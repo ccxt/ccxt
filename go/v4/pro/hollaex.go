@@ -836,7 +836,7 @@ func (this *Hollaex) Ping(client any) any {
 		"op": "ping",
 	}
 }
-func (this *Hollaex) HandlePong(client any, message map[string]any) any {
+func (this *Hollaex) HandlePong(client any, message map[string]any) map[string]any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }

@@ -3182,8 +3182,8 @@ func (this *Okx) ParseCurrency(currency any) map[string]any {
 			typeVar = "fiat"
 		}
 		var idParts []string = strings.Split(*networkId, "-")
-		var parts []any = this.ArraySlice(idParts, 1)
-		var chainPart string = Join(parts, "-")
+		var parts []string = idParts[1:]
+		var chainPart string = strings.Join(parts, "-")
 		var networkCode *string = this.NetworkIdToCode(chainPart, code)
 		if networkCode != nil {
 			networks[*networkCode] = map[string]any{
@@ -3801,12 +3801,12 @@ func (this *Okx) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Okx) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Okx) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Okx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4064,7 +4064,7 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	}()
 	defaultType = DerefScalar(this.SafeString(options, "type", defaultType)) // Candles or HistoryCandles
 	var typeVar *string = this.SafeString(paramsUntil, "type", defaultType)
-	var paramsType any = this.Omit(paramsUntil, "type")
+	var paramsType map[string]any = this.OmitDict(paramsUntil, "type")
 	var isHistoryCandles bool = (typeVar != nil && *typeVar == "HistoryCandles")
 	var response map[string]any = nil
 	if priceType != nil && *priceType == "mark" {
@@ -8262,8 +8262,8 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) Transact
 	var chain *string = this.SafeString(transaction, "chain")
 	if chain != nil {
 		var chainParts []string = strings.Split(*chain, "-")
-		var networkParts []any = this.ArraySlice(chainParts, 1)
-		var networkId string = Join(networkParts, "-")
+		var networkParts []string = chainParts[1:]
+		var networkId string = strings.Join(networkParts, "-")
 		network = this.NetworkIdToCode(networkId, code)
 	}
 	var amount *float64 = this.SafeNumber(transaction, "amt")
@@ -11907,12 +11907,7 @@ func (this *Okx) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], opti
 	var market map[string]any = nil
 	if symbolsNormalized != nil {
 		if symbolsLength == 1 {
-			market = this.Market(func() any {
-				if 0 >= 0 && 0 < len(symbolsNormalized) {
-					return symbolsNormalized[0]
-				}
-				return nil
-			}())
+			market = this.Market(symbolsNormalized[0])
 			var marketId string = *this.SafeString(market, "id", "")
 			var optionParts []string = strings.Split(marketId, "-")
 			var marketInfo map[string]any = SafeMapTyped(market, "info")

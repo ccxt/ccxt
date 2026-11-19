@@ -1438,12 +1438,12 @@ func (this *Grvt) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Grvt) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Grvt) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2847,11 +2847,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	}
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted3, []any{"reduceOnly", "postOnly", "timeInForce"})
 	// Trigger & SL & TP
-	var triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable []any = this.HandleTriggerPricesAndParams(symbol, paramsOmitted2)
-	triggerPrice := GetValue(triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable, 0)
-	stopLossPrice := GetValue(triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable, 1)
-	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable, 2)
-	paramsTriggerPrices := GetValue(triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable, 3)
+	triggerPrice, stopLossPrice, takeProfitPrice, paramsTriggerPrices := this.HandleTriggerPricesAndParams(symbol, paramsOmitted2)
 	var isTriggerOrder bool = ((triggerPrice != nil) || (stopLossPrice != nil) || (takeProfitPrice != nil))
 	if isTriggerOrder {
 		// trigger price
@@ -2931,7 +2927,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		orderRequest["builder_fee"] = this.SafeString(this.Options, "builderRate")
 	}
 	var paramsOmitted any = this.Omit(paramsTrigger, []any{"builderFee"})
-	var signedOrderRequest any = this.CreateSignedRequest(orderRequest, eipType)
+	var signedOrderRequest map[string]any = this.CreateSignedRequest(orderRequest, eipType)
 	var request map[string]any = map[string]any{
 		"order": signedOrderRequest,
 	}
@@ -4312,7 +4308,7 @@ func (this *Grvt) EipDomainData() map[string]any {
 func (this *Grvt) FeeAmountMultiplier() any {
 	return this.ConvertToBigIntCustom("10000") // multiply needed https://t.me/c/3396937126/88
 }
-func (this *Grvt) CreateSignedRequest(request map[string]any, structureType string, optionalArgs ...any) any {
+func (this *Grvt) CreateSignedRequest(request map[string]any, structureType string, optionalArgs ...any) map[string]any {
 	var currencyObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currencyObj
 	signerAddress := GetArg(optionalArgs, 1, nil)

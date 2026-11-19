@@ -1392,12 +1392,12 @@ func (this *Toobit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Toobit) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Toobit) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Toobit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Toobit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2368,9 +2368,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 	if isPostOnly {
 		request["timeInForce"] = "LIMIT_MAKER"
 	}
-	var values []any = ArrayTyped(this.HandleTriggerPricesAndParams(symbol, paramsPostOnly))
-	var triggerPrice *string = SafeStringPtr(values[0])
-	var paramsTrigger any = DerefScalar(values[3])
+	triggerPrice, _, _, paramsTrigger := this.HandleTriggerPricesAndParams(symbol, paramsPostOnly)
 	if triggerPrice != nil {
 		request["stopPrice"] = triggerPrice
 	}

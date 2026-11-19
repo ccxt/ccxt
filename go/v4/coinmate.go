@@ -345,8 +345,8 @@ func (this *Coinmate) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.006"),
 				"maker":      this.ParseNumber("0.004"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.006")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0023")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0021")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("3000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.001")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.004")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("3000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("15000000"), this.ParseNumber("-0.0004")}},
+					"taker": []any{[]any{0.0, 0.006}, []any{10000.0, 0.003}, []any{100000.0, 0.0023}, []any{250000.0, 0.0021}, []any{500000.0, 0.0018}, []any{1000000.0, 0.0015}, []any{3000000.0, 0.0012}, []any{15000000.0, 0.001}},
+					"maker": []any{[]any{0.0, 0.004}, []any{10000.0, 0.002}, []any{100000.0, 0.0012}, []any{250000.0, 0.0009}, []any{500000.0, 0.0005}, []any{1000000.0, 0.0003}, []any{3000000.0, 0.0002}, []any{15000000.0, -0.0004}},
 				},
 			},
 		},
@@ -594,7 +594,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Coinmate) ParseBalance(response any) map[string]any {
+func (this *Coinmate) ParseBalance(response map[string]any) map[string]any {
 	var balances map[string]any = SafeMapTyped(response, "data")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -1322,12 +1322,12 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinmate) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Coinmate) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinmate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Coinmate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

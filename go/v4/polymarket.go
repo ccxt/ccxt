@@ -1059,12 +1059,12 @@ func (this *Polymarket) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
  */
-func (this *Polymarket) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Polymarket) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Polymarket) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3795,10 +3795,10 @@ func (this *Polymarket) HashMessage(message any) string {
 }
 func (this *Polymarket) SignHash(hash any, privateKey any) string {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
-	var r *string = SafeStringPtr(signature["r"])
-	var sVal *string = SafeStringPtr(signature["s"])
+	var r string = *this.SafeString(signature, "r", "")
+	var sVal string = *this.SafeString(signature, "s", "")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
-	return "0x" + PadStart(r, 64, "0") + PadStart(sVal, 64, "0") + v
+	return "0x" + (strings.Repeat("0", max(64-len(r), 0)) + r)[max(len(r)-64, 0):] + (strings.Repeat("0", max(64-len(sVal), 0)) + sVal)[max(len(sVal)-64, 0):] + v
 }
 func (this *Polymarket) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), privateKey)

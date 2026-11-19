@@ -2865,7 +2865,7 @@ func (this *Nado) Ping(client any) any {
 		"client_time": this.NumberToString(this.Milliseconds()),
 	}
 }
-func (this *Nado) HandlePong(client any, message map[string]any) any {
+func (this *Nado) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "result": {

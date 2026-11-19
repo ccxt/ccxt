@@ -537,11 +537,9 @@ func (this *Luno) HandleMessage(client any, message map[string]any) {
 		// frames still arriving until the client resubscribes
 		return
 	}
-	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
-	for j := 0; j < len(handlers); j++ {
-		var handler any = handlers[j]
-		ccxt.CallDynamically(handler, client, message, ccxt.DerefScalar(subscriptions[0]))
-	}
+	var subscription map[string]any = this.SafeDictMap(subscriptions, 0, map[string]any{})
+	this.HandleOrderBook(client, message, subscription)
+	this.HandleTrades(client, message, subscription)
 }
 
 func NewLuno(userConfig map[string]any) *Luno {

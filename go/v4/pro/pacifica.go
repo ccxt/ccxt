@@ -2097,7 +2097,7 @@ func (this *Pacifica) Ping(client any) any {
 		"method": "ping",
 	}
 }
-func (this *Pacifica) HandlePong(client any, message map[string]any) any {
+func (this *Pacifica) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//   {
 	//       "channel": "pong"

@@ -2323,12 +2323,12 @@ func (this *Whitebit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Whitebit) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Whitebit) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Whitebit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3357,8 +3357,14 @@ func (this *Whitebit) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]an
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Whitebit) ParseBalance(response any) map[string]any {
-	var balanceKeys []string = ObjectKeys(response)
+func (this *Whitebit) ParseBalance(response map[string]any) map[string]any {
+	var balanceKeys []string = nil
+	if response != nil {
+		balanceKeys = make([]string, 0, len(response))
+		for objectKey := range response {
+			balanceKeys = append(balanceKeys, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
 		var id string = balanceKeys[i]

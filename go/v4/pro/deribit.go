@@ -910,7 +910,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("book|"+*symbol+"|", descriptor))
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
-func (this *Deribit) CleanOrderBook(data map[string]any) any {
+func (this *Deribit) CleanOrderBook(data map[string]any) map[string]any {
 	var bids []any = ccxt.SafeListTyped(data, "bids")
 	var asks []any = ccxt.SafeListTyped(data, "asks")
 	var cleanedBids []any = []any{}
@@ -1434,7 +1434,7 @@ func (this *Deribit) HandleMessage(client any, message map[string]any) {
 		this.HandleAuthenticationMessage(client, message)
 	}
 }
-func (this *Deribit) HandleAuthenticationMessage(client any, message map[string]any) any {
+func (this *Deribit) HandleAuthenticationMessage(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

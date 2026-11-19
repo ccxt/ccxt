@@ -425,8 +425,8 @@ func (this *Hashkey) Describe() map[string]any {
 					"maker":      this.ParseNumber("0.0012"),
 					"taker":      this.ParseNumber("0.0012"),
 					"tiers": map[string]any{
-						"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.00080")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00070")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.00060")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.00040")}, []any{this.ParseNumber("200000000"), this.ParseNumber("0.00030")}, []any{this.ParseNumber("400000000"), this.ParseNumber("0.00010")}, []any{this.ParseNumber("800000000"), this.ParseNumber("0.00")}},
-						"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.00090")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00085")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.00065")}, []any{this.ParseNumber("200000000"), this.ParseNumber("0.00045")}, []any{this.ParseNumber("400000000"), this.ParseNumber("0.00040")}, []any{this.ParseNumber("800000000"), this.ParseNumber("0.00035")}},
+						"maker": []any{[]any{0.0, 0.0012}, []any{1000000.0, 0.00080}, []any{5000000.0, 0.00070}, []any{10000000.0, 0.00060}, []any{50000000.0, 0.00040}, []any{200000000.0, 0.00030}, []any{400000000.0, 0.00010}, []any{800000000.0, 0.00}},
+						"taker": []any{[]any{0.0, 0.0012}, []any{1000000.0, 0.00090}, []any{5000000.0, 0.00085}, []any{10000000.0, 0.00075}, []any{50000000.0, 0.00065}, []any{200000000.0, 0.00045}, []any{400000000.0, 0.00040}, []any{800000000.0, 0.00035}},
 					},
 				},
 				"swap": map[string]any{
@@ -436,8 +436,8 @@ func (this *Hashkey) Describe() map[string]any {
 					"maker":      this.ParseNumber("0.00025"),
 					"taker":      this.ParseNumber("0.00060"),
 					"tiers": map[string]any{
-						"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.00025")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.00016")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00014")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.00012")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.000080")}, []any{this.ParseNumber("200000000"), this.ParseNumber("0.000060")}, []any{this.ParseNumber("400000000"), this.ParseNumber("0.000020")}, []any{this.ParseNumber("800000000"), this.ParseNumber("0.00")}},
-						"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.00060")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.00050")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00045")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.00040")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.00035")}, []any{this.ParseNumber("200000000"), this.ParseNumber("0.00030")}, []any{this.ParseNumber("400000000"), this.ParseNumber("0.00025")}, []any{this.ParseNumber("800000000"), this.ParseNumber("0.00020")}},
+						"maker": []any{[]any{0.0, 0.00025}, []any{1000000.0, 0.00016}, []any{5000000.0, 0.00014}, []any{10000000.0, 0.00012}, []any{50000000.0, 0.000080}, []any{200000000.0, 0.000060}, []any{400000000.0, 0.000020}, []any{800000000.0, 0.00}},
+						"taker": []any{[]any{0.0, 0.00060}, []any{1000000.0, 0.00050}, []any{5000000.0, 0.00045}, []any{10000000.0, 0.00040}, []any{50000000.0, 0.00035}, []any{200000000.0, 0.00030}, []any{400000000.0, 0.00025}, []any{800000000.0, 0.00020}},
 					},
 				},
 			},
@@ -1506,12 +1506,12 @@ func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Hashkey) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Hashkey) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

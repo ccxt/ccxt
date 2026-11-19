@@ -525,8 +525,8 @@ func (this *Coinbaseinternational) Describe() map[string]any {
 				"tierBased":  true,
 				"percentage": true,
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.004")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0035")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0035")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("250000000"), this.ParseNumber("0.0025")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("250000000"), this.ParseNumber("0")}},
+					"taker": []any{[]any{0.0, 0.004}, []any{1000000.0, 0.004}, []any{5000000.0, 0.0035}, []any{10000000.0, 0.0035}, []any{50000000.0, 0.003}, []any{250000000.0, 0.0025}},
+					"maker": []any{[]any{0.0, 0.002}, []any{1000000.0, 0.0016}, []any{5000000.0, 0.001}, []any{10000000.0, 0.0008}, []any{50000000.0, 0.0005}, []any{250000000.0, 0.0}},
 				},
 			},
 		},

@@ -662,7 +662,7 @@ func (this *Backpack) HandleTicker(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(fallbackTicker, fallbackHash)
 }
-func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Backpack) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         E: '1754178406415232',
@@ -1810,7 +1810,7 @@ func (this *Backpack) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 }
 func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
-		var bidAsk []any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
+		var bidAsk []any = this.ParseOrderBookBidAsk(bidAsks[i])
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
@@ -2246,7 +2246,9 @@ func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
 			parsed["datetime"] = nil
 		}
 	}
-	ccxt.AddElementToObject(parsed, "info", assets)
+	if parsed != nil {
+		parsed["info"] = assets
+	}
 	this.Balance = parsed
 	client.(ccxt.ClientInterface).Resolve(parsed, "balance")
 	return true

@@ -800,8 +800,8 @@ func (this *Xt) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.002"),
 				"taker":      this.ParseNumber("0.002"),
 				"tiers": map[string]any{
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("150000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("300000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("600000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("1200000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("6000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.0002")}},
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("150000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("300000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("600000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("1200000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("6000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.0002")}},
+					"maker": []any{[]any{0.0, 0.002}, []any{5000.0, 0.0018}, []any{10000.0, 0.0016}, []any{20000.0, 0.0014}, []any{50000.0, 0.0012}, []any{150000.0, 0.0010}, []any{300000.0, 0.0008}, []any{600000.0, 0.0007}, []any{1200000.0, 0.0006}, []any{2500000.0, 0.0005}, []any{6000000.0, 0.0004}, []any{15000000.0, 0.0003}, []any{30000000.0, 0.0002}},
+					"taker": []any{[]any{0.0, 0.002}, []any{5000.0, 0.0018}, []any{10000.0, 0.0016}, []any{20000.0, 0.0014}, []any{50000.0, 0.0012}, []any{150000.0, 0.0010}, []any{300000.0, 0.0008}, []any{600000.0, 0.0007}, []any{1200000.0, 0.0006}, []any{2500000.0, 0.0005}, []any{6000000.0, 0.0004}, []any{15000000.0, 0.0003}, []any{30000000.0, 0.0002}},
 				},
 			},
 			"contract": map[string]any{
@@ -810,8 +810,8 @@ func (this *Xt) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.0004"),
 				"taker":      this.ParseNumber("0.0006"),
 				"tiers": map[string]any{
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.00038")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.00036")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00034")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.00032")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.00028")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.00024")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.00016")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.00012")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.00008")}},
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.000588")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.00057")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00054")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.00051")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.00048")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.00045")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.00045")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.00036")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.00033")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.0003")}},
+					"maker": []any{[]any{0.0, 0.0004}, []any{200000.0, 0.00038}, []any{1000000.0, 0.00036}, []any{5000000.0, 0.00034}, []any{10000000.0, 0.00032}, []any{15000000.0, 0.00028}, []any{30000000.0, 0.00024}, []any{50000000.0, 0.0002}, []any{100000000.0, 0.00016}, []any{300000000.0, 0.00012}, []any{500000000.0, 0.00008}},
+					"taker": []any{[]any{0.0, 0.0006}, []any{200000.0, 0.000588}, []any{1000000.0, 0.00057}, []any{5000000.0, 0.00054}, []any{10000000.0, 0.00051}, []any{15000000.0, 0.00048}, []any{30000000.0, 0.00045}, []any{50000000.0, 0.00045}, []any{100000000.0, 0.00036}, []any{300000000.0, 0.00033}, []any{500000000.0, 0.0003}},
 				},
 			},
 		},
@@ -2710,12 +2710,12 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
-func (this *Xt) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Xt) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Xt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

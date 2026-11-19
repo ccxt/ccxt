@@ -182,12 +182,12 @@ func (this *Bybit) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
 	return requestId
 }
-func (this *Bybit) GetUrlByMarketTypeAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
-	ch := make(chan ccxt.AsyncResult[*string], 1)
+func (this *Bybit) GetUrlByMarketTypeAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[string] {
+	ch := make(chan ccxt.AsyncResult[string], 1)
 	go this.getUrlByMarketTypeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[*string], optionalArgs ...any) any {
+func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[string], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -254,18 +254,9 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[*string], opt
 			url = accessibilityUrls["option"]
 		}
 	}
-	url = this.ImplodeHostname(url)
+	var urlResolved string = this.ImplodeHostname(url)
 
-	var resolved *string
-	switch resolvedBox := url.(type) {
-	case *string:
-		resolved = resolvedBox
-	case string:
-		resolved = &resolvedBox
-	default:
-		_ = resolvedBox
-	}
-	ch <- ccxt.AsyncResult[*string]{Value: resolved}
+	ch <- ccxt.AsyncResult[string]{Value: urlResolved}
 	return nil
 }
 func (this *Bybit) CleanParams(params any) any {
@@ -520,7 +511,7 @@ func (this *Bybit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var topic string = *this.SafeString(options, "name", "tickers")
@@ -573,7 +564,7 @@ func (this *Bybit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
 	var topic string = *this.SafeString(options, "name", "tickers")
@@ -658,7 +649,7 @@ func (this *Bybit) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 
 	r2 := <-this.UnWatchTopicsAsync(url, "ticker", symbolsValue, messageHashes, subMessageHashes, topics, params)
 	if r2.Err != nil {
@@ -884,7 +875,7 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
 	var marketIds []any = this.MarketIdsSlice(symbolsValue)
 	var topics []any = []any{}
@@ -1021,14 +1012,14 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
 		var market map[string]any = this.Market(func() any {
 			if 0 >= 0 && 0 < len(data) {
-				return ccxt.DerefScalar(data[0])
+				return data[0]
 			}
 			return nil
 		}())
@@ -1097,7 +1088,7 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	var rawHashes []any = []any{}
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
@@ -1105,7 +1096,7 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		var data []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
 		var market map[string]any = this.Market(func() any {
 			if 0 >= 0 && 0 < len(data) {
-				return ccxt.DerefScalar(data[0])
+				return data[0]
 			}
 			return nil
 		}())
@@ -1330,7 +1321,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
 	var market map[string]any = this.Market(func() any {
 		if 0 >= 0 && 0 < len(symbolsNormalized) {
@@ -1452,7 +1443,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 
 	r2 := <-this.UnWatchTopicsAsync(url, "orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsOmitted)
 	if r2.Err != nil {
@@ -1660,7 +1651,7 @@ func (this *Bybit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -1721,7 +1712,7 @@ func (this *Bybit) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	var messageHashes []any = []any{}
 	var topics []any = []any{}
 	var subMessageHashes []any = []any{}
@@ -1903,10 +1894,10 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          nil,
 	}, marketResolved))
 }
-func (this *Bybit) GetPrivateType(url any) string {
-	if ccxt.GetIndexOf(url, "spot") >= 0 {
+func (this *Bybit) GetPrivateType(url string) string {
+	if strings.Index(url, "spot") >= 0 {
 		return "spot"
-	} else if ccxt.GetIndexOf(url, "v5/private") >= 0 {
+	} else if strings.Index(url, "v5/private") >= 0 {
 		return "unified"
 	} else {
 		return "usdc"
@@ -1966,7 +1957,7 @@ func (this *Bybit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 
 	r2 := <-this.AuthenticateAsync(url)
 	if r2.Err != nil {
@@ -2040,7 +2031,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 
 	r2 := <-this.AuthenticateAsync(url)
 	if r2.Err != nil {
@@ -2264,7 +2255,7 @@ func (this *Bybit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	messageHash = "positions" + messageHash
 	var client ccxt.ClientInterface = this.Client(url)
 
@@ -2487,7 +2478,7 @@ func (this *Bybit) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 
 	r2 := <-this.AuthenticateAsync(url)
 	if r2.Err != nil {
@@ -2543,7 +2534,7 @@ func (this *Bybit) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liquida
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 	method, paramsMethod := this.HandleOptionStringAndParams(this.CleanParams(params), "watchLiquidations", "method", "allLiquidation")
 	var messageHash string = "liquidations::" + *symbolValue
 	var marketId string = *this.SafeString(market, "id", "")
@@ -2734,7 +2725,7 @@ func (this *Bybit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 
 	r2 := <-this.AuthenticateAsync(url)
 	if r2.Err != nil {
@@ -2801,7 +2792,7 @@ func (this *Bybit) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = r1.Value
+	var url string = r1.Value
 
 	r2 := <-this.AuthenticateAsync(url)
 	if r2.Err != nil {
@@ -3009,7 +3000,7 @@ func (this *Bybit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var url *string = r2.Value
+	var url string = r2.Value
 
 	r3 := <-this.AuthenticateAsync(url)
 	if r3.Err != nil {
@@ -3311,12 +3302,12 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 		}
 	}
 }
-func (this *Bybit) WatchTopicsAsync(url any, messageHashes any, topics any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bybit) WatchTopicsAsync(url string, messageHashes any, topics any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTopicsBody(ch, url, messageHashes, topics, optionalArgs...)
 	return ch
 }
-func (this *Bybit) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, topics any, optionalArgs ...any) any {
+func (this *Bybit) watchTopicsBody(ch chan ccxt.AsyncResult[any], url string, messageHashes any, topics any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3377,12 +3368,12 @@ func (this *Bybit) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messa
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Bybit) UnWatchTopicsAsync(url any, topic string, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bybit) UnWatchTopicsAsync(url string, topic string, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTopicsBody(ch, url, topic, symbols, messageHashes, subMessageHashes, topics, optionalArgs...)
 	return ch
 }
-func (this *Bybit) unWatchTopicsBody(ch chan ccxt.AsyncResult[bool], url any, topic string, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) any {
+func (this *Bybit) unWatchTopicsBody(ch chan ccxt.AsyncResult[bool], url string, topic string, symbols any, messageHashes any, subMessageHashes any, topics any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3423,12 +3414,12 @@ func (this *Bybit) unWatchTopicsBody(ch chan ccxt.AsyncResult[bool], url any, to
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Bybit) AuthenticateAsync(url any, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+func (this *Bybit) AuthenticateAsync(url string, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, url, optionalArgs...)
 	return ch
 }
-func (this *Bybit) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, optionalArgs ...any) any {
+func (this *Bybit) authenticateBody(ch chan ccxt.AsyncResult[*string], url string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3686,7 +3677,7 @@ func (this *Bybit) Ping(client any) any {
 		"op":     "ping",
 	}
 }
-func (this *Bybit) HandlePong(client any, message map[string]any) any {
+func (this *Bybit) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//   {
 	//       "success": true,
@@ -3708,7 +3699,7 @@ func (this *Bybit) HandlePong(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
 	return message
 }
-func (this *Bybit) HandleAuthenticate(client any, message map[string]any) any {
+func (this *Bybit) HandleAuthenticate(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "success": true,
@@ -3746,7 +3737,7 @@ func (this *Bybit) HandleAuthenticate(client any, message map[string]any) any {
 	}
 	return message
 }
-func (this *Bybit) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bybit) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "topic": "kline",
@@ -3763,7 +3754,7 @@ func (this *Bybit) HandleSubscriptionStatus(client any, message map[string]any) 
 	//
 	return message
 }
-func (this *Bybit) HandleUnSubscribe(client any, message map[string]any) any {
+func (this *Bybit) HandleUnSubscribe(client any, message map[string]any) map[string]any {
 	//
 	// {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}
 	//

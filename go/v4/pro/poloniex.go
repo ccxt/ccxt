@@ -1241,7 +1241,7 @@ func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, "startTime"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "quantity")}
 }
-func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
+func (this *Poloniex) HandleOHLCV(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "channel": "candles_minute_1",
@@ -1298,7 +1298,7 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	}
 	return message
 }
-func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
+func (this *Poloniex) HandleTrade(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "channel": "trades",
@@ -1477,7 +1477,7 @@ func (this *Poloniex) ParseWsOrderTrade(trade any, optionalArgs ...any) map[stri
 		},
 	}, market))
 }
-func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
+func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string]any {
 	//
 	// ccxt.Order is created
 	//
@@ -1565,9 +1565,21 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 					totalAmount = ccxt.Precise.StringAdd(totalAmount, amount)
 				}
 				if ccxt.Precise.StringGt(totalAmount, "0") {
-					ccxt.AddElementToObject(previousOrder, "average", this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)))
+					if previousOrder != nil {
+						if ptrValue := this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)); ptrValue != nil {
+							previousOrder["average"] = *ptrValue
+						} else {
+							previousOrder["average"] = nil
+						}
+					}
 				}
-				ccxt.AddElementToObject(previousOrder, "cost", this.ParseNumber(totalCost))
+				if previousOrder != nil {
+					if ptrValue := this.ParseNumber(totalCost); ptrValue != nil {
+						previousOrder["cost"] = *ptrValue
+					} else {
+						previousOrder["cost"] = nil
+					}
+				}
 				var previousOrderFilledRaw *string = this.SafeString(previousOrder, "filled")
 				if previousOrderFilledRaw != nil {
 					var tradeAmount *string = this.NumberToString(trade["amount"])
@@ -1583,7 +1595,13 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 					var previousOrderAmountRaw *string = this.SafeString(previousOrder, "amount")
 					if previousOrderAmountRaw != nil {
 						var previousOrderAmount *string = this.NumberToString(previousOrder["amount"])
-						ccxt.AddElementToObject(previousOrder, "remaining", this.ParseNumber(ccxt.Precise.StringSub(previousOrderAmount, previousOrderFilled)))
+						if previousOrder != nil {
+							if ptrValue := this.ParseNumber(ccxt.Precise.StringSub(previousOrderAmount, previousOrderFilled)); ptrValue != nil {
+								previousOrder["remaining"] = *ptrValue
+							} else {
+								previousOrder["remaining"] = nil
+							}
+						}
 					}
 				}
 				if ccxt.IsEqual(previousOrder["fee"], nil) {
@@ -1697,7 +1715,7 @@ func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"trades": trades,
 	}))
 }
-func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
+func (this *Poloniex) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "channel": "ticker",
@@ -2090,7 +2108,7 @@ func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) any
 	}
 	return false
 }
-func (this *Poloniex) HandleAuthenticate(client any, message map[string]any) any {
+func (this *Poloniex) HandleAuthenticate(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "success": true,

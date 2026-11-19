@@ -2064,7 +2064,7 @@ func (this *Opinion) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
  * @param {object} response the raw user-balance response
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
-func (this *Opinion) ParseBalance(response any) map[string]any {
+func (this *Opinion) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

@@ -804,14 +804,10 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	var hasSlash bool = (GetIndexOf(symbol, "/") > -1)
 	var hasUsdc bool = (GetIndexOf(symbol, "USDC") > -1)
 	var base *string = nil
-	var expiry any = nil
+	var expiry *string = nil
 	if hasSlash {
 		base = this.SafeString(symbolBase, 0, "")
-		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
-			expiry = *derefPtr
-		} else {
-			expiry = nil
-		}
+		expiry = this.SafeString(optionParts, 1)
 	} else {
 		base = this.SafeString(optionParts, 0, "")
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
@@ -1470,12 +1466,12 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Deribit) ParseBalance(balance any) map[string]any {
+func (this *Deribit) ParseBalance(balance map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
 	var summaries []any = []any{}
-	if InOp(balance, "summaries") {
+	if _, ok := balance["summaries"]; ok {
 		summaries = ArrayTyped(this.SafeList(balance, "summaries", []any{}))
 	} else {
 		summaries = []any{balance}
@@ -2224,12 +2220,12 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Deribit) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Deribit) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4518,9 +4514,9 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	}
 	request["end_timestamp"] = endTimestamp
 	var isPaginationCall *bool = this.SafeBool(paramsUntil, "isDeribitPaginationCall", false)
-	var paramsOmitted any = paramsUntil
+	var paramsOmitted map[string]any = paramsUntil
 	if isPaginationCall != nil && *isPaginationCall {
-		paramsOmitted = this.Omit(paramsUntil, "isDeribitPaginationCall")
+		paramsOmitted = this.OmitDict(paramsUntil, "isDeribitPaginationCall")
 	}
 	if isPaginationCall != nil && *isPaginationCall {
 		if limit == nil {
@@ -4706,12 +4702,12 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 	var result map[string]any = SafeMapTyped(response, "result")
 	var cursor *string = this.SafeString(result, "continuation")
 	var settlements []any = this.SafeListSlice(result, "settlements", []any{})
-	var settlementsWithCursor any = this.AddPaginationCursorToResult(cursor, settlements)
+	var settlementsWithCursor []any = this.AddPaginationCursorToResult(cursor, settlements)
 
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(settlementsWithCursor, market, since, limit))}
 	return nil
 }
-func (this *Deribit) AddPaginationCursorToResult(cursor *string, data []any) any {
+func (this *Deribit) AddPaginationCursorToResult(cursor *string, data []any) []any {
 	if cursor != nil {
 		var dataLength int = len(data)
 		if dataLength > 0 {

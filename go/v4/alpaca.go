@@ -507,8 +507,8 @@ func (this *Alpaca) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.0015"),
 				"taker":      this.ParseNumber("0.0025"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0022")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.001")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.00")}},
+					"taker": []any{[]any{0.0, 0.0025}, []any{100000.0, 0.0022}, []any{500000.0, 0.0020}, []any{1000000.0, 0.0018}, []any{10000000.0, 0.0015}, []any{25000000.0, 0.0013}, []any{50000000.0, 0.0012}, []any{100000000.0, 0.001}},
+					"maker": []any{[]any{0.0, 0.0015}, []any{100000.0, 0.0012}, []any{500000.0, 0.001}, []any{1000000.0, 0.0008}, []any{10000000.0, 0.0005}, []any{25000000.0, 0.0002}, []any{50000000.0, 0.0002}, []any{100000000.0, 0.00}},
 				},
 			},
 		},
@@ -840,12 +840,12 @@ func (this *Alpaca) ParseMarket(asset any) map[string]any {
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Alpaca) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Alpaca) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

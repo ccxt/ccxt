@@ -1811,8 +1811,8 @@ func (this *Gate) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.002"),
 				"taker":      this.ParseNumber("0.002"),
 				"tiers": map[string]any{
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1.5"), this.ParseNumber("0.00185")}, []any{this.ParseNumber("3"), this.ParseNumber("0.00175")}, []any{this.ParseNumber("6"), this.ParseNumber("0.00165")}, []any{this.ParseNumber("12.5"), this.ParseNumber("0.00155")}, []any{this.ParseNumber("25"), this.ParseNumber("0.00145")}, []any{this.ParseNumber("75"), this.ParseNumber("0.00135")}, []any{this.ParseNumber("200"), this.ParseNumber("0.00125")}, []any{this.ParseNumber("500"), this.ParseNumber("0.00115")}, []any{this.ParseNumber("1250"), this.ParseNumber("0.00105")}, []any{this.ParseNumber("2500"), this.ParseNumber("0.00095")}, []any{this.ParseNumber("3000"), this.ParseNumber("0.00085")}, []any{this.ParseNumber("6000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("11000"), this.ParseNumber("0.00065")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.00055")}, []any{this.ParseNumber("40000"), this.ParseNumber("0.00055")}, []any{this.ParseNumber("75000"), this.ParseNumber("0.00055")}},
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1.5"), this.ParseNumber("0.00195")}, []any{this.ParseNumber("3"), this.ParseNumber("0.00185")}, []any{this.ParseNumber("6"), this.ParseNumber("0.00175")}, []any{this.ParseNumber("12.5"), this.ParseNumber("0.00165")}, []any{this.ParseNumber("25"), this.ParseNumber("0.00155")}, []any{this.ParseNumber("75"), this.ParseNumber("0.00145")}, []any{this.ParseNumber("200"), this.ParseNumber("0.00135")}, []any{this.ParseNumber("500"), this.ParseNumber("0.00125")}, []any{this.ParseNumber("1250"), this.ParseNumber("0.00115")}, []any{this.ParseNumber("2500"), this.ParseNumber("0.00105")}, []any{this.ParseNumber("3000"), this.ParseNumber("0.00095")}, []any{this.ParseNumber("6000"), this.ParseNumber("0.00085")}, []any{this.ParseNumber("11000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.00065")}, []any{this.ParseNumber("40000"), this.ParseNumber("0.00065")}, []any{this.ParseNumber("75000"), this.ParseNumber("0.00065")}},
+					"maker": []any{[]any{0.0, 0.002}, []any{1.5, 0.00185}, []any{3.0, 0.00175}, []any{6.0, 0.00165}, []any{12.5, 0.00155}, []any{25.0, 0.00145}, []any{75.0, 0.00135}, []any{200.0, 0.00125}, []any{500.0, 0.00115}, []any{1250.0, 0.00105}, []any{2500.0, 0.00095}, []any{3000.0, 0.00085}, []any{6000.0, 0.00075}, []any{11000.0, 0.00065}, []any{20000.0, 0.00055}, []any{40000.0, 0.00055}, []any{75000.0, 0.00055}},
+					"taker": []any{[]any{0.0, 0.002}, []any{1.5, 0.00195}, []any{3.0, 0.00185}, []any{6.0, 0.00175}, []any{12.5, 0.00165}, []any{25.0, 0.00155}, []any{75.0, 0.00145}, []any{200.0, 0.00135}, []any{500.0, 0.00125}, []any{1250.0, 0.00115}, []any{2500.0, 0.00105}, []any{3000.0, 0.00095}, []any{6000.0, 0.00085}, []any{11000.0, 0.00075}, []any{20000.0, 0.00065}, []any{40000.0, 0.00065}, []any{75000.0, 0.00065}},
 				},
 			},
 			"swap": map[string]any{
@@ -1822,8 +1822,8 @@ func (this *Gate) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.0"),
 				"taker":      this.ParseNumber("0.0005"),
 				"tiers": map[string]any{
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0000")}, []any{this.ParseNumber("1.5"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("3"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("6"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("12.5"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("25"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("75"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("200"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("500"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("1250"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("2500"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("3000"), this.ParseNumber("-0.00008")}, []any{this.ParseNumber("6000"), this.ParseNumber("-0.01000")}, []any{this.ParseNumber("11000"), this.ParseNumber("-0.01002")}, []any{this.ParseNumber("20000"), this.ParseNumber("-0.01005")}, []any{this.ParseNumber("40000"), this.ParseNumber("-0.02000")}, []any{this.ParseNumber("75000"), this.ParseNumber("-0.02005")}},
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.00050")}, []any{this.ParseNumber("1.5"), this.ParseNumber("0.00048")}, []any{this.ParseNumber("3"), this.ParseNumber("0.00046")}, []any{this.ParseNumber("6"), this.ParseNumber("0.00044")}, []any{this.ParseNumber("12.5"), this.ParseNumber("0.00042")}, []any{this.ParseNumber("25"), this.ParseNumber("0.00040")}, []any{this.ParseNumber("75"), this.ParseNumber("0.00038")}, []any{this.ParseNumber("200"), this.ParseNumber("0.00036")}, []any{this.ParseNumber("500"), this.ParseNumber("0.00034")}, []any{this.ParseNumber("1250"), this.ParseNumber("0.00032")}, []any{this.ParseNumber("2500"), this.ParseNumber("0.00030")}, []any{this.ParseNumber("3000"), this.ParseNumber("0.00030")}, []any{this.ParseNumber("6000"), this.ParseNumber("0.00030")}, []any{this.ParseNumber("11000"), this.ParseNumber("0.00030")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.00030")}, []any{this.ParseNumber("40000"), this.ParseNumber("0.00030")}, []any{this.ParseNumber("75000"), this.ParseNumber("0.00030")}},
+					"maker": []any{[]any{0.0, 0.0000}, []any{1.5, -0.00005}, []any{3.0, -0.00005}, []any{6.0, -0.00005}, []any{12.5, -0.00005}, []any{25.0, -0.00005}, []any{75.0, -0.00005}, []any{200.0, -0.00005}, []any{500.0, -0.00005}, []any{1250.0, -0.00005}, []any{2500.0, -0.00005}, []any{3000.0, -0.00008}, []any{6000.0, -0.01000}, []any{11000.0, -0.01002}, []any{20000.0, -0.01005}, []any{40000.0, -0.02000}, []any{75000.0, -0.02005}},
+					"taker": []any{[]any{0.0, 0.00050}, []any{1.5, 0.00048}, []any{3.0, 0.00046}, []any{6.0, 0.00044}, []any{12.5, 0.00042}, []any{25.0, 0.00040}, []any{75.0, 0.00038}, []any{200.0, 0.00036}, []any{500.0, 0.00034}, []any{1250.0, 0.00032}, []any{2500.0, 0.00030}, []any{3000.0, 0.00030}, []any{6000.0, 0.00030}, []any{11000.0, 0.00030}, []any{20000.0, 0.00030}, []any{40000.0, 0.00030}, []any{75000.0, 0.00030}},
 				},
 			},
 		},
@@ -3513,14 +3513,7 @@ func (this *Gate) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 			panic(r.Err)
 		}
 	}
-	var networkCodePtr *string = nil
-	networkCodePtr, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
-	networkCode := func() any {
-		if networkCodePtr != nil {
-			return *networkCodePtr
-		}
-		return nil
-	}()
+	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
 
 	r1 := <-this.FetchDepositAddressesByNetworkAsync(code, paramsNetworkCode)
 	if r1.Err != nil {
@@ -4116,7 +4109,7 @@ func (this *Gate) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		} else {
 			maxLimit = 300
 		}
-		AddElementToObject(request, "limit", min(*limit, maxLimit))
+		request["limit"] = min(*limit, maxLimit)
 	}
 	request["with_id"] = true
 	var response map[string]any = nil
@@ -4599,7 +4592,7 @@ func (this *Gate) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	marginMode, requestQuery := this.GetMarginMode(false, requestParams)
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		AddElementToObject(request, "currency_pair", market["id"])
+		request["currency_pair"] = market["id"]
 	}
 	var response any = nil
 	if isUnifiedAccount {
@@ -5243,12 +5236,12 @@ func (this *Gate) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Gate) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Gate) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Gate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -5307,7 +5300,7 @@ func (this *Gate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		request["to"] = this.ParseToInt(float64(*until) / 1000)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", min(*limit, 1000)) // default 100, max 1000
+		request["limit"] = min(*limit, 1000) // default 100, max 1000
 	}
 	if (since != nil) && (*this.SafeBool(market, "contract", false)) {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
@@ -5534,7 +5527,7 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		return nil
 	}
 	var marginMode *string = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var query any = nil
 	var market map[string]any = nil
 	if symbol != nil {
@@ -5555,19 +5548,23 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		}()
 	} else {
 		if market != nil {
-			AddElementToObject(request, "currency_pair", market["id"]) // Should always be set for non-trigger
+			request["currency_pair"] = market["id"] // Should always be set for non-trigger
 		}
 		marginMode, query = this.GetMarginMode(false, paramsMarketType)
-		AddElementToObject(request, "account", marginMode)
+		if marginMode != nil {
+			request["account"] = *marginMode
+		} else {
+			request["account"] = nil
+		}
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit) // default 100, max 1000
+		request["limit"] = *limit // default 100, max 1000
 	}
 	if since != nil {
-		AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if until != nil {
-		AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
+		request["to"] = this.ParseToInt(float64(*until) / 1000)
 	}
 	var response []any = nil
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
@@ -7748,7 +7745,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	}()
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, paramsTrigger)
 	var spot bool = (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var query any = map[string]any{}
 	if spot {
 		request, query = this.MultiOrderSpotPrepareRequest(market, trigger, paramsMarketType)
@@ -7756,7 +7753,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 		request, query = this.PrepareRequest(market, typeVar, paramsMarketType)
 	}
 	if spot && (trigger == true) {
-		request = this.Omit(request, "account")
+		request = this.OmitDict(request, "account")
 	}
 	AddElementToObject(request, "status", func() any {
 		if IsEqual(status, "closed") {
@@ -7769,19 +7766,19 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	}
 	if spot {
 		if since != nil {
-			AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
+			request["from"] = this.ParseToInt(float64(*since) / 1000)
 		}
 		var until *int64 = this.SafeInteger(query, "until")
 		if until != nil {
 			query = this.Omit(query, "until")
-			AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
+			request["to"] = this.ParseToInt(float64(*until) / 1000)
 		}
 	}
 	lastId, finalParams := this.HandleParamString2(query, "lastId", "last_id")
 	if lastId != nil {
 		AddElementToObject(request, "last_id", lastId)
 	}
-	return MapTyped(request), finalParams
+	return request, finalParams
 }
 func (this *Gate) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)

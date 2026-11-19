@@ -363,7 +363,7 @@ func (this *Derive) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsResolved)}
 	return nil
 }
-func (this *Derive) HandleTicker(client any, message map[string]any) any {
+func (this *Derive) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "method": "subscription",
@@ -614,7 +614,7 @@ func (this *Derive) HandleMyTradesUnSubscription(client any, topic string) {
 	this.MyTrades = nil
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic, true)
 }
-func (this *Derive) HandleUnSubscribe(client any, message map[string]any) any {
+func (this *Derive) HandleUnSubscribe(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": 1,
@@ -969,11 +969,15 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 			if order != nil {
 				var fee map[string]any = this.SafeDictMap(order, "fee")
 				if fee != nil {
-					ccxt.AddElementToObject(parsed, "fee", fee)
+					if parsed != nil {
+						parsed["fee"] = fee
+					}
 				}
 				var fees any = this.SafeList(order, "fees")
 				if fees != nil {
-					ccxt.AddElementToObject(parsed, "fees", fees)
+					if parsed != nil {
+						parsed["fees"] = fees
+					}
 				}
 				ccxt.AddElementToObject(parsed, "trades", this.SafeList(order, "trades"))
 				parsed["timestamp"] = this.SafeInteger(order, "timestamp")
@@ -1419,8 +1423,16 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 	if opposite != nil {
 		var oppositeContracts *string = this.SafeString(opposite, "contracts")
 		if (oppositeContracts != nil) && (oppositeContracts == nil || *oppositeContracts != "0") {
-			ccxt.AddElementToObject(opposite, "contracts", this.ParseNumber("0"))
-			ccxt.AddElementToObject(opposite, "lastUpdateTimestamp", this.Milliseconds())
+			if opposite != nil {
+				if ptrValue := this.ParseNumber("0"); ptrValue != nil {
+					opposite["contracts"] = *ptrValue
+				} else {
+					opposite["contracts"] = nil
+				}
+			}
+			if opposite != nil {
+				opposite["lastUpdateTimestamp"] = this.Milliseconds()
+			}
 			cache.Append(opposite)
 		}
 	}

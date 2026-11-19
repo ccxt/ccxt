@@ -270,8 +270,8 @@ func (this *Onetrading) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0015"),
 				"maker":      this.ParseNumber("0.001"),
 				"tiers": []any{map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("250"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.00065")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.001")}, []any{this.ParseNumber("100"), this.ParseNumber("0.001")}, []any{this.ParseNumber("250"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0005")}},
+					"taker": []any{[]any{0.0, 0.0015}, []any{100.0, 0.0013}, []any{250.0, 0.0013}, []any{1000.0, 0.001}, []any{5000.0, 0.0009}, []any{10000.0, 0.00075}, []any{20000.0, 0.00065}},
+					"maker": []any{[]any{0.0, 0.001}, []any{100.0, 0.001}, []any{250.0, 0.0009}, []any{1000.0, 0.00075}, []any{5000.0, 0.0006}, []any{10000.0, 0.0005}, []any{20000.0, 0.0005}},
 				}},
 			},
 		},
@@ -1520,7 +1520,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"info":         tradeValue,
 	}, market)
 }
-func (this *Onetrading) ParseBalance(response any) map[string]any {
+func (this *Onetrading) ParseBalance(response map[string]any) map[string]any {
 	var balances []any = SafeListTyped(response, "balances")
 	var result map[string]any = map[string]any{
 		"info": response,

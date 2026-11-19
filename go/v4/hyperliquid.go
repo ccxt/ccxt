@@ -1941,12 +1941,12 @@ func (this *Hyperliquid) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Hyperliquid) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Hyperliquid) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1965,7 +1965,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol an
 		}
 	}
 	var market map[string]any = nil
-	if !IsEqual(symbol, nil) {
+	if true {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
@@ -6633,10 +6633,7 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan AsyncResult[map[string]O
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var swapMarkets any = nil
-	if r1.Value != nil {
-		swapMarkets = MarketInterfacesToList(r1.Value)
-	}
+	var swapMarkets []any = MarketInterfacesToList(r1.Value)
 
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.ParseOpenInterests(swapMarkets, symbolsNormalized))}
 	return nil

@@ -298,8 +298,8 @@ func (this *Luno) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.006"),
 				"maker":      this.ParseNumber("0.004"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.006")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.005")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("20000000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("40000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("80000000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("120000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("160000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.0005")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.004")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0")}, []any{this.ParseNumber("20000000"), this.ParseNumber("0")}, []any{this.ParseNumber("40000000"), this.ParseNumber("-0.0001")}, []any{this.ParseNumber("80000000"), this.ParseNumber("-0.0001")}, []any{this.ParseNumber("120000000"), this.ParseNumber("-0.0002")}, []any{this.ParseNumber("160000000"), this.ParseNumber("-0.0002")}, []any{this.ParseNumber("300000000"), this.ParseNumber("-0.0002")}},
+					"taker": []any{[]any{0.0, 0.006}, []any{20000.0, 0.005}, []any{200000.0, 0.004}, []any{1000000.0, 0.003}, []any{2000000.0, 0.002}, []any{5000000.0, 0.0015}, []any{10000000.0, 0.001}, []any{20000000.0, 0.0009}, []any{40000000.0, 0.0008}, []any{80000000.0, 0.0007}, []any{120000000.0, 0.0006}, []any{160000000.0, 0.0005}, []any{300000000.0, 0.0005}},
+					"maker": []any{[]any{0.0, 0.004}, []any{20000.0, 0.003}, []any{200000.0, 0.002}, []any{1000000.0, 0.001}, []any{2000000.0, 0.0008}, []any{5000000.0, 0.0006}, []any{10000000.0, 0.0}, []any{20000000.0, 0.0}, []any{40000000.0, -0.0001}, []any{80000000.0, -0.0001}, []any{120000000.0, -0.0002}, []any{160000000.0, -0.0002}, []any{300000000.0, -0.0002}},
 				},
 			},
 		},
@@ -778,7 +778,7 @@ func (this *Luno) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(result)}
 	return nil
 }
-func (this *Luno) ParseBalance(response any) map[string]any {
+func (this *Luno) ParseBalance(response map[string]any) map[string]any {
 	var wallets []any = SafeListTyped(response, "balance")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -1482,12 +1482,12 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Luno) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Luno) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

@@ -433,8 +433,8 @@ func (this *Bitrue) Describe() map[string]any {
 					"taker":      this.ParseNumber("0.000400"),
 					"maker":      this.ParseNumber("0.000200"),
 					"tiers": map[string]any{
-						"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.000400")}, []any{this.ParseNumber("250"), this.ParseNumber("0.000400")}, []any{this.ParseNumber("2500"), this.ParseNumber("0.000350")}, []any{this.ParseNumber("7500"), this.ParseNumber("0.000320")}, []any{this.ParseNumber("22500"), this.ParseNumber("0.000300")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.000270")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.000250")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.000220")}, []any{this.ParseNumber("400000"), this.ParseNumber("0.000200")}, []any{this.ParseNumber("750000"), this.ParseNumber("0.000170")}},
-						"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.000200")}, []any{this.ParseNumber("250"), this.ParseNumber("0.000160")}, []any{this.ParseNumber("2500"), this.ParseNumber("0.000140")}, []any{this.ParseNumber("7500"), this.ParseNumber("0.000120")}, []any{this.ParseNumber("22500"), this.ParseNumber("0.000100")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.000080")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.000060")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.000040")}, []any{this.ParseNumber("400000"), this.ParseNumber("0.000020")}, []any{this.ParseNumber("750000"), this.ParseNumber("0")}},
+						"taker": []any{[]any{0.0, 0.000400}, []any{250.0, 0.000400}, []any{2500.0, 0.000350}, []any{7500.0, 0.000320}, []any{22500.0, 0.000300}, []any{50000.0, 0.000270}, []any{100000.0, 0.000250}, []any{200000.0, 0.000220}, []any{400000.0, 0.000200}, []any{750000.0, 0.000170}},
+						"maker": []any{[]any{0.0, 0.000200}, []any{250.0, 0.000160}, []any{2500.0, 0.000140}, []any{7500.0, 0.000120}, []any{22500.0, 0.000100}, []any{50000.0, 0.000080}, []any{100000.0, 0.000060}, []any{200000.0, 0.000040}, []any{400000.0, 0.000020}, []any{750000.0, 0.0}},
 					},
 				},
 			},
@@ -446,8 +446,8 @@ func (this *Bitrue) Describe() map[string]any {
 					"taker":      this.ParseNumber("0.000500"),
 					"maker":      this.ParseNumber("0.000100"),
 					"tiers": map[string]any{
-						"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.000500")}, []any{this.ParseNumber("250"), this.ParseNumber("0.000450")}, []any{this.ParseNumber("2500"), this.ParseNumber("0.000400")}, []any{this.ParseNumber("7500"), this.ParseNumber("0.000300")}, []any{this.ParseNumber("22500"), this.ParseNumber("0.000250")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.000240")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.000240")}, []any{this.ParseNumber("200000"), this.ParseNumber("0.000240")}, []any{this.ParseNumber("400000"), this.ParseNumber("0.000240")}, []any{this.ParseNumber("750000"), this.ParseNumber("0.000240")}},
-						"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.000100")}, []any{this.ParseNumber("250"), this.ParseNumber("0.000080")}, []any{this.ParseNumber("2500"), this.ParseNumber("0.000050")}, []any{this.ParseNumber("7500"), this.ParseNumber("0.0000030")}, []any{this.ParseNumber("22500"), this.ParseNumber("0")}, []any{this.ParseNumber("50000"), this.ParseNumber("-0.000050")}, []any{this.ParseNumber("100000"), this.ParseNumber("-0.000060")}, []any{this.ParseNumber("200000"), this.ParseNumber("-0.000070")}, []any{this.ParseNumber("400000"), this.ParseNumber("-0.000080")}, []any{this.ParseNumber("750000"), this.ParseNumber("-0.000090")}},
+						"taker": []any{[]any{0.0, 0.000500}, []any{250.0, 0.000450}, []any{2500.0, 0.000400}, []any{7500.0, 0.000300}, []any{22500.0, 0.000250}, []any{50000.0, 0.000240}, []any{100000.0, 0.000240}, []any{200000.0, 0.000240}, []any{400000.0, 0.000240}, []any{750000.0, 0.000240}},
+						"maker": []any{[]any{0.0, 0.000100}, []any{250.0, 0.000080}, []any{2500.0, 0.000050}, []any{7500.0, 0.0000030}, []any{22500.0, 0.0}, []any{50000.0, -0.000050}, []any{100000.0, -0.000060}, []any{200000.0, -0.000070}, []any{400000.0, -0.000080}, []any{750000.0, -0.000090}},
 					},
 				},
 			},
@@ -2117,12 +2117,12 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitrue) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bitrue) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bitrue) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

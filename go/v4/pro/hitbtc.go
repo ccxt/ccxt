@@ -986,7 +986,7 @@ func (this *Hitbtc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
+func (this *Hitbtc) HandleTrades(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "result": {
@@ -1213,7 +1213,7 @@ func (this *Hitbtc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
+func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "ch": "candles/M1",                     // Channel
@@ -1369,7 +1369,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySinceLimit(orders, since, limitResolved, "timestamp"))}
 	return nil
 }
-func (this *Hitbtc) HandleOrder(client any, message map[string]any) any {
+func (this *Hitbtc) HandleOrder(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -2003,13 +2003,13 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Hitbtc) HandleNotification(client any, message map[string]any) any {
+func (this *Hitbtc) HandleNotification(client any, message map[string]any) map[string]any {
 	//
 	//     { jsonrpc: "2.0", result: true, id: null }
 	//
 	return message
 }
-func (this *Hitbtc) HandleOrderRequest(client any, message map[string]any) any {
+func (this *Hitbtc) HandleOrderRequest(client any, message map[string]any) map[string]any {
 	//
 	// createOrderWs, cancelOrderWs
 	//
@@ -2146,7 +2146,7 @@ func (this *Hitbtc) HandleUnSubscription(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Hitbtc) HandleAuthenticate(client any, message map[string]any) any {
+func (this *Hitbtc) HandleAuthenticate(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "jsonrpc": "2.0",

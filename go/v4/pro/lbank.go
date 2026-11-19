@@ -913,7 +913,7 @@ func (this *Lbank) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var key *string = ccxt.SafeStringPtr(r1.Value)
+	var key *string = r1.Value
 	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash any = nil
 	var symbolResolved any = func() any {
@@ -1110,7 +1110,7 @@ func (this *Lbank) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var key *string = ccxt.SafeStringPtr(r1.Value)
+	var key *string = r1.Value
 	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "balance"
 	var message map[string]any = map[string]any{

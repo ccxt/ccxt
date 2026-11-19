@@ -131,7 +131,7 @@ func (this *Whitebit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
+func (this *Whitebit) HandleOHLCV(client any, message map[string]any) map[string]any {
 	//
 	// {
 	//     "method": "candles_update",
@@ -403,7 +403,7 @@ func (this *Whitebit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
+func (this *Whitebit) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//   {
 	//       "method": "market_update",
@@ -1416,7 +1416,7 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 	ch <- ccxt.AsyncResult[int]{Value: authorized}
 	return nil
 }
-func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) any {
+func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) map[string]any {
 	//
 	//     { error: null, result: { status: "success" }, id: 1656084550 }
 	//
@@ -1529,7 +1529,7 @@ func (this *Whitebit) HandleSubscriptionStatus(client any, message map[string]an
 		}
 	}
 }
-func (this *Whitebit) HandlePong(client any, message map[string]any) any {
+func (this *Whitebit) HandlePong(client any, message map[string]any) map[string]any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }

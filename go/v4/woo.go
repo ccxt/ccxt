@@ -1176,12 +1176,12 @@ func (this *Woo) ParseMarket(market any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Woo) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Woo) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Woo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3702,14 +3702,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	return nil
 }
 func (this *Woo) GetDedicatedNetworkId(currency any, params any) []any {
-	var networkCodeRawPtr *string = nil
-	networkCodeRawPtr, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
-	networkCodeRaw := func() any {
-		if networkCodeRawPtr != nil {
-			return *networkCodeRawPtr
-		}
-		return nil
-	}()
+	networkCodeRaw, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
 	var networks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyCode *string = this.SafeString(currency, "code", "")
 	var networkCode *string = this.NetworkIdToCode(networkCodeRaw, currencyCode)

@@ -458,8 +458,8 @@ func (this *Coinsph) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.0025"),
 				"taker":      this.ParseNumber("0.003"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.003")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0027")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0024")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("1000000000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("2500000000"), this.ParseNumber("0.0005")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0022")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("1000000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("2500000000"), this.ParseNumber("0.0005")}},
+					"taker": []any{[]any{0.0, 0.003}, []any{500000.0, 0.0027}, []any{1000000.0, 0.0024}, []any{2500000.0, 0.002}, []any{5000000.0, 0.0018}, []any{10000000.0, 0.0015}, []any{100000000.0, 0.0012}, []any{500000000.0, 0.0009}, []any{1000000000.0, 0.0007}, []any{2500000000.0, 0.0005}},
+					"maker": []any{[]any{0.0, 0.0025}, []any{500000.0, 0.0022}, []any{1000000.0, 0.0018}, []any{2500000.0, 0.0015}, []any{5000000.0, 0.0012}, []any{10000000.0, 0.001}, []any{100000000.0, 0.0008}, []any{500000000.0, 0.0007}, []any{1000000000.0, 0.0006}, []any{2500000000.0, 0.0005}},
 				},
 			},
 		},
@@ -1477,12 +1477,12 @@ func (this *Coinsph) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinsph) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Coinsph) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinsph) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Coinsph) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1797,7 +1797,7 @@ func (this *Coinsph) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
-func (this *Coinsph) ParseBalance(response any) map[string]any {
+func (this *Coinsph) ParseBalance(response map[string]any) map[string]any {
 	var balances []any = SafeListTyped(response, "balances")
 	var result map[string]any = map[string]any{
 		"info":      response,

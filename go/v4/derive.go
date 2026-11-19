@@ -1946,12 +1946,12 @@ func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Derive) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Derive) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1984,7 +1984,7 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	if !IsEqual(symbol, nil) {
+	if true {
 		var symbolMarket map[string]any = this.Market(symbol)
 		market = symbolMarket
 		request["instrument_name"] = symbolMarket["id"]
@@ -4667,7 +4667,13 @@ func (this *Derive) ParseBalanceList(response any) map[string]any {
 			used = totalUsdc
 		}
 		AddElementToObject(usdcAccount, "used", used)
-		AddElementToObject(usdcAccount, "free", Precise.StringSub(totalUsdc, used))
+		if usdcAccount != nil {
+			if ptrValue := Precise.StringSub(totalUsdc, used); ptrValue != nil {
+				usdcAccount["free"] = *ptrValue
+			} else {
+				usdcAccount["free"] = nil
+			}
+		}
 		result["USDC"] = usdcAccount
 	}
 	return this.SafeBalance(result).(map[string]any)

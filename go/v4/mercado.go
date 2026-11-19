@@ -619,12 +619,12 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Mercado) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Mercado) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mercado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Mercado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -675,7 +675,7 @@ func (this *Mercado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
-func (this *Mercado) ParseBalance(response any) map[string]any {
+func (this *Mercado) ParseBalance(response map[string]any) map[string]any {
 	var data map[string]any = SafeMapTyped(response, "response_data")
 	var balances map[string]any = SafeMapTyped(data, "balance")
 	var result map[string]any = map[string]any{

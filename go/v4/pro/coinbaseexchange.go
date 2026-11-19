@@ -709,7 +709,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) any {
+func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "match",
@@ -746,7 +746,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) an
 	}
 	return message
 }
-func (this *Coinbaseexchange) HandleMyTrade(client any, message map[string]any) any {
+func (this *Coinbaseexchange) HandleMyTrade(client any, message map[string]any) map[string]any {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var trade map[string]any = this.ParseWsTrade(message)
@@ -1024,7 +1024,11 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 					}
 					var previousOrderFee map[string]any = this.SafeDictMap(previousOrder, "fee", map[string]any{})
 					if (this.SafeNumber(previousOrderFee, "cost") != nil) && (this.SafeNumber(trade["fee"], "cost") != nil) {
-						ccxt.AddElementToObject(previousOrderFee, "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(trade["fee"], "cost"))))
+						if ptrValue := this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(trade["fee"], "cost"))); ptrValue != nil {
+							previousOrderFee["cost"] = *ptrValue
+						} else {
+							previousOrderFee["cost"] = nil
+						}
 						ccxt.AddElementToObject(previousOrder, "fee", previousOrderFee)
 					}
 					// update the newUpdates count
@@ -1110,7 +1114,7 @@ func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) map[s
 		"trades":             nil,
 	}))
 }
-func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) any {
+func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "ticker",
@@ -1275,7 +1279,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Coinbaseexchange) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Coinbaseexchange) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "subscriptions",

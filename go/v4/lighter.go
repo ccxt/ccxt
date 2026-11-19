@@ -846,10 +846,10 @@ func (this *Lighter) HashMessage(message any) string {
 func (this *Lighter) SignHash(hash string, privateKey string) string {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
-	var r *string = SafeStringPtr(signature["r"])
-	var s *string = SafeStringPtr(signature["s"])
+	var r string = *this.SafeString(signature, "r", "")
+	var s string = *this.SafeString(signature, "s", "")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
-	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
+	return "0x" + (strings.Repeat("0", max(64-len(r), 0)) + r)[max(len(r)-64, 0):] + (strings.Repeat("0", max(64-len(s), 0)) + s)[max(len(s)-64, 0):] + v
 }
 func (this *Lighter) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey string) string {
 	var hashMessage string = this.HashMessage(message)
@@ -4156,12 +4156,12 @@ func (this *Lighter) withdrawBody(ch chan AsyncResult[Transaction], code string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Lighter) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Lighter) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Lighter) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

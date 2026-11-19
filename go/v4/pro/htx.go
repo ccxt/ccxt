@@ -240,7 +240,7 @@ func (this *Htx) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Htx) HandleTicker(client any, message map[string]any) any {
+func (this *Htx) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	// "market.btcusdt.detail"
 	//     {
@@ -390,7 +390,7 @@ func (this *Htx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Htx) HandleTrades(client any, message map[string]any) any {
+func (this *Htx) HandleTrades(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.trade.detail",
@@ -1612,7 +1612,7 @@ func (this *Htx) HandleOrder(client any, message map[string]any) {
 		marketId = this.SafeString2(data, "contract_code", "symbol")
 	}
 	var market map[string]any = this.SafeMarket(marketId)
-	var parsedOrder any = nil
+	var parsedOrder map[string]any = nil
 	if data != nil {
 		// spot updates
 		var eventType *string = this.SafeString(data, "eventType")
@@ -2739,7 +2739,7 @@ func (this *Htx) HandleUnSubscription(client any, subscription any) {
 	}
 	this.CleanCache(subscription)
 }
-func (this *Htx) HandleSystemStatus(client any, message map[string]any) any {
+func (this *Htx) HandleSystemStatus(client any, message map[string]any) map[string]any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that

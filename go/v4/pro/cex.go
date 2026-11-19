@@ -1291,8 +1291,8 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	})
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Cex) PairToSymbol(pair any) string {
-	var parts []string = ccxt.Split(pair, ":")
+func (this *Cex) PairToSymbol(pair *string) string {
+	var parts []string = strings.Split(*pair, ":")
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -1470,7 +1470,7 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Cex) HandleOHLCV24(client any, message map[string]any) any {
+func (this *Cex) HandleOHLCV24(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "e": "ohlcv24",
@@ -1949,7 +1949,7 @@ func (this *Cex) ResolveData(client any, message any) {
 	var messageHash *string = this.SafeString(message, "oid")
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
-func (this *Cex) HandleConnected(client any, message map[string]any) any {
+func (this *Cex) HandleConnected(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "e": "connected"

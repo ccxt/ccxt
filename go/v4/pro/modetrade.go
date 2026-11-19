@@ -288,7 +288,7 @@ func (this *Modetrade) ParseWsTicker(ticker map[string]any, optionalArgs ...any)
 		"info":          ticker,
 	}, market))
 }
-func (this *Modetrade) HandleTicker(client any, message map[string]any) any {
+func (this *Modetrade) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDC@ticker",
@@ -1861,14 +1861,14 @@ func (this *Modetrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, mess
 func (this *Modetrade) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Modetrade) HandlePong(client any, message map[string]any) any {
+func (this *Modetrade) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	// { event: "pong", ts: 1614667590000 }
 	//
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Modetrade) HandleSubscribe(client any, message map[string]any) any {
+func (this *Modetrade) HandleSubscribe(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "666888",

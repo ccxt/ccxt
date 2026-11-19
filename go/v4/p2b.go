@@ -227,8 +227,8 @@ func (this *P2b) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.002"),
 				"maker":      this.ParseNumber("0.002"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1"), this.ParseNumber("0.0019")}, []any{this.ParseNumber("5"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10"), this.ParseNumber("0.0017")}, []any{this.ParseNumber("25"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("75"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("150"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("300"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("450"), this.ParseNumber("0.0011")}, []any{this.ParseNumber("500"), this.ParseNumber("0.001")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("5"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("10"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("25"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("75"), this.ParseNumber("0.001")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("150"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("300"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("450"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0001")}},
+					"taker": []any{[]any{0.0, 0.002}, []any{1.0, 0.0019}, []any{5.0, 0.0018}, []any{10.0, 0.0017}, []any{25.0, 0.0016}, []any{75.0, 0.0015}, []any{100.0, 0.0014}, []any{150.0, 0.0013}, []any{300.0, 0.0012}, []any{450.0, 0.0011}, []any{500.0, 0.001}},
+					"maker": []any{[]any{0.0, 0.002}, []any{1.0, 0.0018}, []any{5.0, 0.0016}, []any{10.0, 0.0014}, []any{25.0, 0.0012}, []any{75.0, 0.001}, []any{100.0, 0.0008}, []any{150.0, 0.0006}, []any{300.0, 0.0004}, []any{450.0, 0.0002}, []any{500.0, 0.0001}},
 				},
 			},
 		},
@@ -745,12 +745,12 @@ func (this *P2b) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
  * @param {int} params.lastId order id
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *P2b) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *P2b) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *P2b) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *P2b) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

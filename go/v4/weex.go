@@ -613,8 +613,8 @@ func (this *Weex) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.1"),
 				"maker":      this.ParseNumber("0.1"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.1")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.09")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.08")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.06")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.05")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.04")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.03")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.1")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.08")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.07")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.05")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.04")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.03")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.01")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}},
+					"taker": []any{[]any{0.0, 0.1}, []any{500000.0, 0.09}, []any{1000000.0, 0.08}, []any{2000000.0, 0.06}, []any{5000000.0, 0.05}, []any{10000000.0, 0.04}, []any{25000000.0, 0.03}, []any{50000000.0, 0.02}, []any{100000000.0, 0.0}},
+					"maker": []any{[]any{0.0, 0.1}, []any{500000.0, 0.08}, []any{1000000.0, 0.07}, []any{2000000.0, 0.05}, []any{5000000.0, 0.04}, []any{10000000.0, 0.03}, []any{25000000.0, 0.02}, []any{50000000.0, 0.01}, []any{100000000.0, 0.0}},
 				},
 			},
 			"spot": map[string]any{
@@ -624,8 +624,8 @@ func (this *Weex) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.1"),
 				"maker":      this.ParseNumber("0.1"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.1")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.09")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.08")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.06")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.05")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.04")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.03")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.1")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.08")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.07")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.05")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.04")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.03")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.01")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}},
+					"taker": []any{[]any{0.0, 0.1}, []any{500000.0, 0.09}, []any{1000000.0, 0.08}, []any{2000000.0, 0.06}, []any{5000000.0, 0.05}, []any{10000000.0, 0.04}, []any{25000000.0, 0.03}, []any{50000000.0, 0.02}, []any{100000000.0, 0.0}},
+					"maker": []any{[]any{0.0, 0.1}, []any{500000.0, 0.08}, []any{1000000.0, 0.07}, []any{2000000.0, 0.05}, []any{5000000.0, 0.04}, []any{10000000.0, 0.03}, []any{25000000.0, 0.02}, []any{50000000.0, 0.01}, []any{100000000.0, 0.0}},
 				},
 			},
 			"contract": map[string]any{
@@ -635,8 +635,8 @@ func (this *Weex) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.08"),
 				"maker":      this.ParseNumber("0.02"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.08")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.075")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.06")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.055")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.05")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.048")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.045")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.042")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.04")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.02")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.018")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.018")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.016")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.016")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.014")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.012")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.01")}},
+					"taker": []any{[]any{0.0, 0.08}, []any{1000000.0, 0.075}, []any{5000000.0, 0.06}, []any{10000000.0, 0.055}, []any{30000000.0, 0.05}, []any{50000000.0, 0.048}, []any{100000000.0, 0.045}, []any{300000000.0, 0.042}, []any{500000000.0, 0.04}},
+					"maker": []any{[]any{0.0, 0.02}, []any{1000000.0, 0.02}, []any{5000000.0, 0.018}, []any{10000000.0, 0.018}, []any{30000000.0, 0.016}, []any{50000000.0, 0.016}, []any{100000000.0, 0.014}, []any{300000000.0, 0.012}, []any{500000000.0, 0.01}},
 				},
 			},
 		},
@@ -2191,12 +2191,12 @@ func (this *Weex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Weex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Weex) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Weex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3136,11 +3136,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 	if !isMarketOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var triggerPricestopLossPricetakeProfitPricequeryVariable []any = this.HandleTriggerPricesAndParams(symbol, params)
-	triggerPrice := GetValue(triggerPricestopLossPricetakeProfitPricequeryVariable, 0)
-	stopLossPrice := GetValue(triggerPricestopLossPricetakeProfitPricequeryVariable, 1)
-	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPricequeryVariable, 2)
-	query := GetValue(triggerPricestopLossPricetakeProfitPricequeryVariable, 3)
+	triggerPrice, stopLossPrice, takeProfitPrice, query := this.HandleTriggerPricesAndParams(symbol, params)
 	var isTrigger bool = (triggerPrice != nil)
 	var isStopLoss bool = (stopLossPrice != nil)
 	var isTakeProfit bool = (takeProfitPrice != nil)
@@ -6004,12 +6000,7 @@ func (this *Weex) FromSandboxMarketId(marketId *string) any {
 		return marketId // a live market id, not a demo one
 	}
 	if strings.HasSuffix(*marketId, "SUSDT") {
-		var marketIdPart string
-		if marketId != nil {
-			str := *marketId
-			marketIdPart = str[0 : len(str)-5]
-		}
-		return marketIdPart + "USDT"
+		return (*marketId)[0:len((*marketId))-5] + "USDT"
 	}
 	return marketId
 }

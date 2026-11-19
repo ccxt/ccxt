@@ -1476,8 +1476,8 @@ func (this *Kucoin) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.001"),
 				"maker":      this.ParseNumber("0.001"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.001")}, []any{this.ParseNumber("50"), this.ParseNumber("0.001")}, []any{this.ParseNumber("200"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("2000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("4000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("8000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("15000"), this.ParseNumber("0.00045")}, []any{this.ParseNumber("25000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("40000"), this.ParseNumber("0.00035")}, []any{this.ParseNumber("60000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("80000"), this.ParseNumber("0.00025")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.001")}, []any{this.ParseNumber("50"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("200"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("2000"), this.ParseNumber("0")}, []any{this.ParseNumber("4000"), this.ParseNumber("0")}, []any{this.ParseNumber("8000"), this.ParseNumber("0")}, []any{this.ParseNumber("15000"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("25000"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("40000"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("60000"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("80000"), this.ParseNumber("-0.00005")}},
+					"taker": []any{[]any{0.0, 0.001}, []any{50.0, 0.001}, []any{200.0, 0.0009}, []any{500.0, 0.0008}, []any{1000.0, 0.0007}, []any{2000.0, 0.0007}, []any{4000.0, 0.0006}, []any{8000.0, 0.0005}, []any{15000.0, 0.00045}, []any{25000.0, 0.0004}, []any{40000.0, 0.00035}, []any{60000.0, 0.0003}, []any{80000.0, 0.00025}},
+					"maker": []any{[]any{0.0, 0.001}, []any{50.0, 0.0009}, []any{200.0, 0.0007}, []any{500.0, 0.0005}, []any{1000.0, 0.0003}, []any{2000.0, 0.0}, []any{4000.0, 0.0}, []any{8000.0, 0.0}, []any{15000.0, -0.00005}, []any{25000.0, -0.00005}, []any{40000.0, -0.00005}, []any{60000.0, -0.00005}, []any{80000.0, -0.00005}},
 				},
 			},
 			"spot": map[string]any{
@@ -1486,8 +1486,8 @@ func (this *Kucoin) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.001"),
 				"maker":      this.ParseNumber("0.001"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.001")}, []any{this.ParseNumber("50"), this.ParseNumber("0.001")}, []any{this.ParseNumber("200"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("2000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("4000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("8000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("15000"), this.ParseNumber("0.00045")}, []any{this.ParseNumber("25000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("40000"), this.ParseNumber("0.00035")}, []any{this.ParseNumber("60000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("80000"), this.ParseNumber("0.00025")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.001")}, []any{this.ParseNumber("50"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("200"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("2000"), this.ParseNumber("0")}, []any{this.ParseNumber("4000"), this.ParseNumber("0")}, []any{this.ParseNumber("8000"), this.ParseNumber("0")}, []any{this.ParseNumber("15000"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("25000"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("40000"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("60000"), this.ParseNumber("-0.00005")}, []any{this.ParseNumber("80000"), this.ParseNumber("-0.00005")}},
+					"taker": []any{[]any{0.0, 0.001}, []any{50.0, 0.001}, []any{200.0, 0.0009}, []any{500.0, 0.0008}, []any{1000.0, 0.0007}, []any{2000.0, 0.0007}, []any{4000.0, 0.0006}, []any{8000.0, 0.0005}, []any{15000.0, 0.00045}, []any{25000.0, 0.0004}, []any{40000.0, 0.00035}, []any{60000.0, 0.0003}, []any{80000.0, 0.00025}},
+					"maker": []any{[]any{0.0, 0.001}, []any{50.0, 0.0009}, []any{200.0, 0.0007}, []any{500.0, 0.0005}, []any{1000.0, 0.0003}, []any{2000.0, 0.0}, []any{4000.0, 0.0}, []any{8000.0, 0.0}, []any{15000.0, -0.00005}, []any{25000.0, -0.00005}, []any{40000.0, -0.00005}, []any{60000.0, -0.00005}, []any{80000.0, -0.00005}},
 				},
 			},
 			"contract": map[string]any{
@@ -1496,8 +1496,8 @@ func (this *Kucoin) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0006"),
 				"maker":      this.ParseNumber("0.0002"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("50"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("200"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("2000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("4000"), this.ParseNumber("0.00038")}, []any{this.ParseNumber("8000"), this.ParseNumber("0.00035")}, []any{this.ParseNumber("15000"), this.ParseNumber("0.00032")}, []any{this.ParseNumber("25000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("40000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("60000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("80000"), this.ParseNumber("0.0003")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.02")}, []any{this.ParseNumber("50"), this.ParseNumber("0.015")}, []any{this.ParseNumber("200"), this.ParseNumber("0.01")}, []any{this.ParseNumber("500"), this.ParseNumber("0.01")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.01")}, []any{this.ParseNumber("2000"), this.ParseNumber("0")}, []any{this.ParseNumber("4000"), this.ParseNumber("0")}, []any{this.ParseNumber("8000"), this.ParseNumber("0")}, []any{this.ParseNumber("15000"), this.ParseNumber("-0.003")}, []any{this.ParseNumber("25000"), this.ParseNumber("-0.006")}, []any{this.ParseNumber("40000"), this.ParseNumber("-0.009")}, []any{this.ParseNumber("60000"), this.ParseNumber("-0.012")}, []any{this.ParseNumber("80000"), this.ParseNumber("-0.015")}},
+					"taker": []any{[]any{0.0, 0.0006}, []any{50.0, 0.0006}, []any{200.0, 0.0006}, []any{500.0, 0.0005}, []any{1000.0, 0.0004}, []any{2000.0, 0.0004}, []any{4000.0, 0.00038}, []any{8000.0, 0.00035}, []any{15000.0, 0.00032}, []any{25000.0, 0.0003}, []any{40000.0, 0.0003}, []any{60000.0, 0.0003}, []any{80000.0, 0.0003}},
+					"maker": []any{[]any{0.0, 0.02}, []any{50.0, 0.015}, []any{200.0, 0.01}, []any{500.0, 0.01}, []any{1000.0, 0.01}, []any{2000.0, 0.0}, []any{4000.0, 0.0}, []any{8000.0, 0.0}, []any{15000.0, -0.003}, []any{25000.0, -0.006}, []any{40000.0, -0.009}, []any{60000.0, -0.012}, []any{80000.0, -0.015}},
 				},
 			},
 			"funding": map[string]any{
@@ -9646,12 +9646,12 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Kucoin) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Kucoin) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -10292,14 +10292,7 @@ func (this *Kucoin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	if tagWithdrawTag != nil {
 		request["memo"] = *tagWithdrawTag
 	}
-	var networkCodePtr *string = nil
-	networkCodePtr, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	networkCode := func() any {
-		if networkCodePtr != nil {
-			return *networkCodePtr
-		}
-		return nil
-	}()
+	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	if networkCode != nil {
 		var _netIdTmp *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 		if _netIdTmp != nil {

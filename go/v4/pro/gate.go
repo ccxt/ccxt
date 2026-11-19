@@ -899,7 +899,7 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(marketIdParts, 1)
 	var symbol *string = this.SafeSymbol(marketId, nil, "_", "spot")
 	var messageHash string = "orderbook:" + *symbol
-	if ccxt.IsEqual(this.Orderbooks[*symbol], nil) {
+	if this.Orderbooks[*symbol] == nil {
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, 1000)
 		}
@@ -2130,7 +2130,7 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 			panic(r.Err)
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var payload []any = []any{"!" + "all"}
 	if !this.IsEmpty(symbolsNormalized) {

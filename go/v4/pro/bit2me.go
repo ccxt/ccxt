@@ -701,7 +701,9 @@ func (this *Bit2me) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	request["clientOrderId"] = clientOrderId
 	// the response carries no request id, it is matched by the client order id, and an error only by the symbol
 	var pending map[string]any = this.SafeDictMap(this.Options, "pendingWsOrders", map[string]any{})
-	ccxt.AddElementToObject(pending, clientOrderId, market["id"])
+	if clientOrderId != nil {
+		pending[*clientOrderId] = market["id"]
+	}
 	this.Options["pendingWsOrders"] = pending
 	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "added-order:" + *clientOrderId
@@ -1086,7 +1088,7 @@ func (this *Bit2me) HandleAuthenticate(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Bit2me) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bit2me) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     { "event": "subscribe", "symbol": "BTC/USDC", "subscription": { "name": "order-book" }, "result": "subscribed" }
 	//     { "event": "unsubscribe" }

@@ -114,7 +114,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
+func (this *Bittrade) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.detail",
@@ -221,7 +221,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
+func (this *Bittrade) HandleTrades(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.trade.detail",
@@ -706,7 +706,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message map[string]an
 	}
 	return message
 }
-func (this *Bittrade) HandleSystemStatus(client any, message map[string]any) any {
+func (this *Bittrade) HandleSystemStatus(client any, message map[string]any) map[string]any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that

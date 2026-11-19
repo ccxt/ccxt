@@ -441,7 +441,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 			if !ccxt.StructAbsent(r.Value) {
 				snapshot = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 			}
-			if ccxt.IsEqual(this.Orderbooks[*symbol], nil) {
+			if this.Orderbooks[*symbol] == nil {
 
 				return nil
 			}
@@ -610,7 +610,7 @@ func (this *Woo) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[s
 		"info":          ticker,
 	}, market))
 }
-func (this *Woo) HandleTicker(client any, message map[string]any) any {
+func (this *Woo) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDT@ticker",
@@ -1747,7 +1747,9 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 			}
 			var fees any = this.SafeList(order, "fees")
 			if fees != nil {
-				ccxt.AddElementToObject(parsed, "fees", fees)
+				if parsed != nil {
+					parsed["fees"] = fees
+				}
 			}
 			parsed["trades"] = this.SafeValue(order, "trades")
 			parsed["timestamp"] = this.SafeInteger(order, "timestamp")
@@ -2319,14 +2321,14 @@ func (this *Woo) pongBody(ch chan ccxt.AsyncResult[bool], client any, message ma
 func (this *Woo) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Woo) HandlePong(client any, message map[string]any) any {
+func (this *Woo) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	// { event: "pong", ts: 1657117026090 }
 	//
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Woo) HandleSubscribe(client any, message map[string]any) any {
+func (this *Woo) HandleSubscribe(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "666888",

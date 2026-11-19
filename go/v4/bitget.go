@@ -5143,14 +5143,7 @@ func (this *Bitget) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	_ = params
 	tag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address)
-	var networkCodePtr *string = nil
-	networkCodePtr, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	networkCode := func() any {
-		if networkCodePtr != nil {
-			return *networkCodePtr
-		}
-		return nil
-	}()
+	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a \"network\" parameter"))
 	}
@@ -5217,7 +5210,7 @@ func (this *Bitget) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		result["tag"] = tag
 		result["address"] = address
 		result["addressTo"] = address
-		result["network"] = networkCode
+		result["network"] = *networkCode
 	}
 
 	ch <- AsyncResult[Transaction]{Value: TransactionFromMap(result)}
@@ -6602,12 +6595,12 @@ func (this *Bitget) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitget) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bitget) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -13506,7 +13499,7 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	}
 	var response map[string]any = nil
 	if uta == true {
-		AddElementToObject(requestUntil, "coin", market["settleId"])
+		requestUntil["coin"] = market["settleId"]
 		if productType != nil {
 			requestUntil["category"] = *productType
 		} else {
@@ -13519,8 +13512,8 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		}
 		response = r4.Value
 	} else {
-		AddElementToObject(requestUntil, "symbol", market["id"])
-		AddElementToObject(requestUntil, "marginCoin", market["settleId"])
+		requestUntil["symbol"] = market["id"]
+		requestUntil["marginCoin"] = market["settleId"]
 		requestUntil["businessType"] = "contract_settle_fee"
 		if productType != nil {
 			requestUntil["productType"] = *productType

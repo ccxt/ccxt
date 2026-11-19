@@ -3629,7 +3629,7 @@ func (this *Bitget) HandlePong(client any, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Bitget) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bitget) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "event": "subscribe",
@@ -3785,7 +3785,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message map[string]any
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 }
-func (this *Bitget) HandleUnSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bitget) HandleUnSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//  {
 	//      "op":"unsubscribe",

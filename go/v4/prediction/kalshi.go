@@ -1779,12 +1779,12 @@ func (this *Kalshi) ParseOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Kalshi) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+func (this *Kalshi) FetchTradesAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *Kalshi) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2095,7 +2095,7 @@ func (this *Kalshi) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
  * @param {object} response the raw balance response
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
-func (this *Kalshi) ParseBalance(response any) map[string]any {
+func (this *Kalshi) ParseBalance(response map[string]any) map[string]any {
 	// Kalshi balance in cents → divide by 100
 	var result map[string]any = map[string]any{
 		"info": response,

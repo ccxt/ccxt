@@ -486,8 +486,8 @@ func (this *Coinbase) Describe() map[string]any {
 				"tierBased":  true,
 				"percentage": true,
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.006")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("75000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("250000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("400000000"), this.ParseNumber("0.0005")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.004")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("15000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("75000000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("250000000"), this.ParseNumber("0.0")}, []any{this.ParseNumber("400000000"), this.ParseNumber("0.0")}},
+					"taker": []any{[]any{0.0, 0.006}, []any{10000.0, 0.004}, []any{50000.0, 0.0025}, []any{100000.0, 0.002}, []any{1000000.0, 0.0018}, []any{15000000.0, 0.0016}, []any{75000000.0, 0.0012}, []any{250000000.0, 0.0008}, []any{400000000.0, 0.0005}},
+					"maker": []any{[]any{0.0, 0.004}, []any{10000.0, 0.0025}, []any{50000.0, 0.0015}, []any{100000.0, 0.001}, []any{1000000.0, 0.0008}, []any{15000000.0, 0.0006}, []any{75000000.0, 0.0003}, []any{250000000.0, 0.0}, []any{400000000.0, 0.0}},
 				},
 			},
 		},
@@ -5435,12 +5435,12 @@ func (this *Coinbase) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the trades
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinbase) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Coinbase) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Coinbase) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

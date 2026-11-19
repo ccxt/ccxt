@@ -304,8 +304,8 @@ func (this *Krakenfutures) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0005"),
 				"maker":      this.ParseNumber("0.0002"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.00025")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("20000000"), this.ParseNumber("0.00015")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.000125")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.0001")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.000125")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0001")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.000075")}, []any{this.ParseNumber("20000000"), this.ParseNumber("0.00005")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.000025")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}},
+					"taker": []any{[]any{0.0, 0.0005}, []any{100000.0, 0.0004}, []any{1000000.0, 0.0003}, []any{5000000.0, 0.00025}, []any{10000000.0, 0.0002}, []any{20000000.0, 0.00015}, []any{50000000.0, 0.000125}, []any{100000000.0, 0.0001}},
+					"maker": []any{[]any{0.0, 0.0002}, []any{100000.0, 0.0015}, []any{1000000.0, 0.000125}, []any{5000000.0, 0.0001}, []any{10000000.0, 0.000075}, []any{20000000.0, 0.00005}, []any{50000000.0, 0.000025}, []any{100000000.0, 0.0}},
 				},
 			},
 		},
@@ -1269,12 +1269,12 @@ func (this *Krakenfutures) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {string} [params.method] The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
  * @returns An array of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Krakenfutures) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Krakenfutures) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

@@ -2195,12 +2195,12 @@ func (this *Polymarket) fetchTradingFeeBody(ch chan ccxt.AsyncResult[ccxt.Predic
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Polymarket) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+func (this *Polymarket) FetchTradesAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *Polymarket) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2495,7 +2495,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
  * @param {object} response the raw balance-allowance response
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
-func (this *Polymarket) ParseBalance(response any) map[string]any {
+func (this *Polymarket) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

@@ -3049,12 +3049,12 @@ func (this *Nado) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
  * @param {int} [params.max_trade_id] max trade id to include in the result for pagination
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Nado) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Nado) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Nado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4157,12 +4157,7 @@ func (this *Nado) RemoveMarketSuffix(marketId *string) any {
 		return nil
 	}
 	if strings.HasSuffix(*marketId, "-PERP") {
-		var marketIdPart string
-		if marketId != nil {
-			str := *marketId
-			marketIdPart = str[0 : len(str)-5]
-		}
-		return marketIdPart
+		return (*marketId)[0 : len((*marketId))-5]
 	}
 	return marketId
 }

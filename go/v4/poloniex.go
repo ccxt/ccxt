@@ -927,7 +927,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		var firstCandle int64 = this.ParseToInt(math.Ceil(float64(*since)/float64(duration))) * duration
 		var endTimeByLimit int64 = firstCandle + duration*(*limit-1)
-		AddElementToObject(requestUntil, keyEnd, min(endTimeByLimit, this.Milliseconds()))
+		requestUntil[keyEnd] = min(endTimeByLimit, this.Milliseconds())
 	}
 	if *this.SafeBool(market, "contract", false) {
 
@@ -1891,12 +1891,12 @@ func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Poloniex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Poloniex) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

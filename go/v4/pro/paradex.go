@@ -1026,7 +1026,7 @@ func (this *Paradex) ParseWsLiquidation(liquidation map[string]any, optionalArgs
 		"datetime":     this.Iso8601(timestamp),
 	}, marketResolved)
 }
-func (this *Paradex) HandleTrade(client any, message map[string]any) any {
+func (this *Paradex) HandleTrade(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -1444,7 +1444,7 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 func (this *Paradex) HandleBookSideDeltas(bookside any, deltas []any) {
 	// a size of 0 removes the price level
 	for i := 0; i < len(deltas); i++ {
-		var bidAsk []any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(deltas[i]), 0, 1)
+		var bidAsk []any = this.ParseOrderBookBidAsk(deltas[i], 0, 1)
 		bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
@@ -2000,14 +2000,9 @@ func (this *Paradex) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var messageHashes []any = []any{}
 	if symbolsLength > 0 {
 		for i := 0; i < symbolsLength; i++ {
-			var market map[string]any = this.Market(func() any {
-				if i >= 0 && i < len(symbolsNormalized) {
-					return symbolsNormalized[i]
-				}
-				return nil
-			}())
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			channels = append(channels, ccxt.Add("bbo.", market["id"]))
-			messageHashes = append(messageHashes, ccxt.Add("bidask:", market["symbol"]))
+			messageHashes = append(messageHashes, "bidask:"+market["symbol"].(string))
 		}
 	} else {
 		channels = append(channels, "bbo.ALL")
@@ -2069,14 +2064,9 @@ func (this *Paradex) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optiona
 	var bidAskSymbols []any = []any{}
 	if symbolsLength > 0 {
 		for i := 0; i < symbolsLength; i++ {
-			var market map[string]any = this.Market(func() any {
-				if i >= 0 && i < len(symbolsNormalized) {
-					return symbolsNormalized[i]
-				}
-				return nil
-			}())
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			channels = append(channels, ccxt.Add("bbo.", market["id"]))
-			subMessageHashes = append(subMessageHashes, ccxt.Add("bidask:", market["symbol"]))
+			subMessageHashes = append(subMessageHashes, "bidask:"+market["symbol"].(string))
 			bidAskSymbols = append(bidAskSymbols, market["symbol"])
 		}
 	} else {
@@ -2434,12 +2424,7 @@ func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 		messageHashes = append(messageHashes, channel)
 	} else {
 		for i := 0; i < symbolsLength; i++ {
-			messageHashes = append(messageHashes, ccxt.Add(channel+":", func() any {
-				if i >= 0 && i < len(symbolsNormalized) {
-					return symbolsNormalized[i]
-				}
-				return nil
-			}()))
+			messageHashes = append(messageHashes, ccxt.Add(channel+":", symbolsNormalized[i]))
 		}
 	}
 	var request map[string]any = this.SubscribeRequest(channel)
@@ -2644,7 +2629,7 @@ func (this *Paradex) ParseWsBalance(data map[string]any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Paradex) HandleTicker(client any, message map[string]any) any {
+func (this *Paradex) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

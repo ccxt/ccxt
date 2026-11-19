@@ -935,7 +935,7 @@ func (this *Gemini) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Gemini) HandleHeartbeat(client any, message map[string]any) any {
+func (this *Gemini) HandleHeartbeat(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "heartbeat",
@@ -948,7 +948,7 @@ func (this *Gemini) HandleHeartbeat(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Gemini) HandleSubscription(client any, message map[string]any) any {
+func (this *Gemini) HandleSubscription(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "subscription_ack",

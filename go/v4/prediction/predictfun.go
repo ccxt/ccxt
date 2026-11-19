@@ -1767,12 +1767,12 @@ func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
  * @param {string} [params.minValueUsdtWei] only return matches worth at least this many wei
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Predictfun) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+func (this *Predictfun) FetchTradesAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3699,7 +3699,7 @@ func (this *Predictfun) OrderBookMessageHashes(marketId string) []any {
  * @param {object} message the raw rejection
  * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
  */
-func (this *Predictfun) HandleSubscriptionError(client any, message map[string]any, subscription any) {
+func (this *Predictfun) HandleSubscriptionError(client any, message map[string]any, subscription map[string]any) {
 	var rawError map[string]any = this.SafeDictMap(message, "error", map[string]any{})
 	error := ccxt.ExchangeError(this.Id + " subscribe request rejected " + this.Json(rawError))
 	// watch () registers a subscription before it sends and only sends while the hash is still
@@ -3734,7 +3734,7 @@ func (this *Predictfun) HandleSubscriptionError(client any, message map[string]a
  * @param {ccxt.Client} client the websocket client
  * @param {object} subscription the subscription the acknowledged request id belongs to
  */
-func (this *Predictfun) HandleUnSubscription(client any, subscription any) {
+func (this *Predictfun) HandleUnSubscription(client any, subscription map[string]any) {
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var messageHashesLength int = len(messageHashes)
@@ -4028,7 +4028,7 @@ func (this *Predictfun) watchWalletEventsBody(ch chan ccxt.AsyncResult[any], mes
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var topic *string = ccxt.SafeStringPtr(r.Value)
+	var topic *string = r.Value
 	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"method":    "subscribe",
@@ -4107,7 +4107,7 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan ccxt.AsyncResult[bool], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var topic *string = ccxt.SafeStringPtr(r.Value)
+	var topic *string = r.Value
 	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"method":    "unsubscribe",

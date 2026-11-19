@@ -609,8 +609,8 @@ func (this *Cryptocom) Describe() map[string]any {
 				"maker": this.ParseNumber("0.0025"),
 				"taker": this.ParseNumber("0.005"),
 				"tiers": map[string]any{
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.00065")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}, []any{this.ParseNumber("250000000"), this.ParseNumber("0")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0")}},
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.005")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.00035")}, []any{this.ParseNumber("250000000"), this.ParseNumber("0.00031")}, []any{this.ParseNumber("500000000"), this.ParseNumber("0.00025")}},
+					"maker": []any{[]any{0.0, 0.0025}, []any{10000.0, 0.002}, []any{50000.0, 0.0015}, []any{250000.0, 0.001}, []any{500000.0, 0.0008}, []any{2500000.0, 0.00065}, []any{10000000.0, 0.0}, []any{25000000.0, 0.0}, []any{100000000.0, 0.0}, []any{250000000.0, 0.0}, []any{500000000.0, 0.0}},
+					"taker": []any{[]any{0.0, 0.005}, []any{10000.0, 0.004}, []any{50000.0, 0.0025}, []any{250000.0, 0.002}, []any{500000.0, 0.0018}, []any{2500000.0, 0.001}, []any{10000000.0, 0.0005}, []any{25000000.0, 0.0004}, []any{100000000.0, 0.00035}, []any{250000000.0, 0.00031}, []any{500000000.0, 0.00025}},
 				},
 			},
 		},
@@ -1472,12 +1472,12 @@ func (this *Cryptocom) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Cryptocom) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Cryptocom) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Cryptocom) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1737,7 +1737,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderBook, symbol, timestamp))}
 	return nil
 }
-func (this *Cryptocom) ParseBalance(response any) map[string]any {
+func (this *Cryptocom) ParseBalance(response map[string]any) map[string]any {
 	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTyped(responseResult, "data")
 	var positionBalances []any = SafeListTyped(this.SafeDict(data, 0), "position_balances")

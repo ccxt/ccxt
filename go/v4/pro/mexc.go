@@ -218,12 +218,24 @@ func (this *Mexc) HandleTicker(client any, message any) {
 	var timestamp *int64 = this.SafeInteger2(message, "t", "sendTime")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var ticker any = nil
+	var ticker map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 		this.HandleBidAsk(client, message) // the bids-asks channel is spot only
 		ticker = this.ParseWsTicker(rawTicker, market)
-		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
-		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
+		if ticker != nil {
+			if timestamp != nil {
+				ticker["timestamp"] = *timestamp
+			} else {
+				ticker["timestamp"] = nil
+			}
+		}
+		if ticker != nil {
+			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+				ticker["datetime"] = *ptrValue
+			} else {
+				ticker["datetime"] = nil
+			}
+		}
 	} else if rawTicker != nil {
 		ticker = ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
 	} else {
@@ -387,7 +399,7 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var entry any = data[i]
-		var ticker any = nil
+		var ticker map[string]any = nil
 		if isSpot == true {
 			ticker = this.ParseWsTicker(entry, market)
 		} else {
@@ -1743,7 +1755,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	var marketId *string = this.SafeString2(message, "s", "symbol", futuresMarketId)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var parsed any = nil
+	var parsed map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 		parsed = this.ParseWsOrder(data, market)
 		var sendTime *int64 = this.SafeInteger(message, "sendTime")
@@ -2639,7 +2651,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenK
 	}
 	return nil
 }
-func (this *Mexc) HandlePong(client any, message map[string]any) any {
+func (this *Mexc) HandlePong(client any, message map[string]any) map[string]any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }

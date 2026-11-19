@@ -1951,7 +1951,7 @@ func (this *BaseExchange) InitRestRateLimiter() {
 		"rateLimit":  this.RateLimit,
 	}
 	var existingBucket any = func() any {
-		if IsEqual(this.TokenBucket, nil) {
+		if this.TokenBucket == nil {
 			return map[string]any{}
 		}
 		return this.TokenBucket
@@ -2504,7 +2504,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		for i := 0; i < len(values); i++ {
 			var market any = values[i]
 			var defaultCurrencyPrecision any = func() any {
-				if IsEqual(this.PrecisionMode, DECIMAL_PLACES) {
+				if this.PrecisionMode == DECIMAL_PLACES {
 					return 8
 				}
 				return this.ParseNumber("1e-8")
@@ -2553,7 +2553,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 				if (currentPrecision == nil) || (highestPrecision == nil) {
 					continue
 				}
-				if IsEqual(this.PrecisionMode, TICK_SIZE) {
+				if this.PrecisionMode == TICK_SIZE {
 					if highestPrecision != nil && (currentPrecision == nil || *highestPrecision > *currentPrecision) {
 						highestPrecisionCurrency = currentCurrency
 					}
@@ -3906,7 +3906,7 @@ func (this *BaseExchange) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...an
 	var bidasksValue []any = this.ToArray(bidasks)
 	var result []any = []any{}
 	for i := 0; i < len(bidasksValue); i++ {
-		result = append(result, this.ParseOrderBookBidAsk(DerefScalar(bidasksValue[i]), priceKey, amountKey, countOrIdKey))
+		result = append(result, this.ParseOrderBookBidAsk(bidasksValue[i], priceKey, amountKey, countOrIdKey))
 	}
 	return result
 }
@@ -3920,7 +3920,7 @@ func (this *BaseExchange) ParseOrderBookBidsAsksL3(bidasks any, optionalArgs ...
 	var bidasksValue []any = this.ToArray(bidasks)
 	var result []any = []any{}
 	for i := 0; i < len(bidasksValue); i++ {
-		result = append(result, this.ParseOrderBookBidAskL3(DerefScalar(bidasksValue[i]), priceKey, amountKey, countOrIdKey))
+		result = append(result, this.ParseOrderBookBidAskL3(bidasksValue[i], priceKey, amountKey, countOrIdKey))
 	}
 	return result
 }
@@ -5559,7 +5559,7 @@ func (this *BaseExchange) fetchBalanceWsBody(ch chan AsyncResult[Balances], opti
 	_ = params
 	panic(NotSupported(this.Id + " fetchBalanceWs() is not supported yet"))
 }
-func (this *BaseExchange) ParseBalance(response any) map[string]any {
+func (this *BaseExchange) ParseBalance(response map[string]any) map[string]any {
 	panic(NotSupported(this.Id + " parseBalance() is not supported yet"))
 }
 func (this *BaseExchange) WatchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
@@ -6776,10 +6776,10 @@ func (this *BaseExchange) ForceString(value any) any {
 	return value
 }
 func (this *BaseExchange) IsTickPrecision() bool {
-	return IsEqual(this.PrecisionMode, TICK_SIZE)
+	return (this.PrecisionMode == TICK_SIZE)
 }
 func (this *BaseExchange) IsSignificantPrecision() any {
-	return IsEqual(this.PrecisionMode, SIGNIFICANT_DIGITS)
+	return (this.PrecisionMode == SIGNIFICANT_DIGITS)
 }
 func (this *BaseExchange) ParsePrecision(precision any) any {
 	/**
@@ -7164,46 +7164,6 @@ func (this *BaseExchange) ParseLongShortRatioHistory(response []any, optionalArg
 	}()
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func (this *BaseExchange) HandleTriggerPricesAndParams(symbol any, params any, optionalArgs ...any) []any {
-	//
-	var omitParams bool = GetArgBool(optionalArgs, 0, true)
-	_ = omitParams
-	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var triggerPriceStr *string = nil
-	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
-	var stopLossPriceStr *string = nil
-	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
-	var takeProfitPriceStr *string = nil
-	//
-	var keysToOmit []any = []any{}
-	if triggerPrice != nil {
-		if omitParams == true {
-			keysToOmit = append(keysToOmit, "triggerPrice")
-			keysToOmit = append(keysToOmit, "stopPrice")
-		}
-		triggerPriceStr = this.PriceToPrecision(symbol, ParseFloat(triggerPrice))
-	}
-	if stopLossPrice != nil {
-		if omitParams == true {
-			keysToOmit = append(keysToOmit, "stopLossPrice")
-		}
-		stopLossPriceStr = this.PriceToPrecision(symbol, ParseFloat(stopLossPrice))
-	}
-	if takeProfitPrice != nil {
-		if omitParams == true {
-			keysToOmit = append(keysToOmit, "takeProfitPrice")
-		}
-		takeProfitPriceStr = this.PriceToPrecision(symbol, ParseFloat(takeProfitPrice))
-	}
-	var keysToOmitLength int = len(keysToOmit)
-	var paramsOmitted any = func() any {
-		if keysToOmitLength > 0 {
-			return this.Omit(params, keysToOmit)
-		}
-		return params
-	}()
-	return []any{triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted}
-}
 func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalArgs ...any) (*string, map[string]any) {
 	/**
 	 * @ignore
@@ -7370,11 +7330,11 @@ func (this *BaseExchange) ParseOpenInterest(interest any, optionalArgs ...any) O
 	_ = market
 	panic(NotSupported(this.Id + " parseOpenInterest () is not supported yet"))
 }
-func (this *BaseExchange) ParseOpenInterests(response any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) ParseOpenInterests(response []any, optionalArgs ...any) map[string]any {
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var entry any = GetValue(response, i)
 
 		var parsed map[string]any = OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(entry))
@@ -8639,7 +8599,7 @@ func (this *BaseExchange) ParseLiquidation(liquidation any, optionalArgs ...any)
 	_ = market
 	panic(NotSupported(this.Id + " parseLiquidation () is not supported yet"))
 }
-func (this *BaseExchange) ParseLiquidations(liquidations any, optionalArgs ...any) []any {
+func (this *BaseExchange) ParseLiquidations(liquidations []any, optionalArgs ...any) []any {
 	/**
 	 * @ignore
 	 * @method
@@ -8657,8 +8617,8 @@ func (this *BaseExchange) ParseLiquidations(liquidations any, optionalArgs ...an
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(liquidations); i++ {
-		var entry any = GetValue(liquidations, i)
+	for i := 0; i < len(liquidations); i++ {
+		var entry any = liquidations[i]
 
 		var parsed any = this.DerivedExchange.ParseLiquidation(entry, market)
 		PanicOnError(parsed)
@@ -8865,28 +8825,28 @@ func (this *BaseExchange) ParseConversion(conversion any, optionalArgs ...any) C
 	}
 	panic(NotSupported(this.Id + " parseConversion () is not supported yet"))
 }
-func (this *BaseExchange) ConvertExpireDate(date any) any {
-	if IsEqual(date, nil) {
+func (this *BaseExchange) ConvertExpireDate(date *string) any {
+	if date == nil {
 		return nil
 	}
 	// parse YYMMDD to datetime string
-	var year string = Slice(date, 0, 2)
-	var month string = Slice(date, 2, 4)
-	var day string = Slice(date, 4, 6)
+	var year string = (*date)[0:min(2, len((*date)))]
+	var month string = (*date)[2:min(4, len((*date)))]
+	var day string = (*date)[4:min(6, len((*date)))]
 	// the milliseconds are spelled out because every caller writes the result into
 	// expiryDatetime, which types.ts documents in the ISO 8601 form with them
 	var reconstructedDate string = "20" + year + "-" + month + "-" + day + "T00:00:00.000Z"
 	return reconstructedDate
 }
-func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date any) any {
-	if IsEqual(date, nil) {
+func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date *string) any {
+	if date == nil {
 		return nil
 	}
 	// parse 240119 to 19JAN24
-	var year string = Slice(date, 0, 2)
-	var monthRaw string = Slice(date, 2, 4)
+	var year string = (*date)[0:min(2, len((*date)))]
+	var monthRaw string = (*date)[2:min(4, len((*date)))]
 	var month *string = nil
-	var day string = Slice(date, 4, 6)
+	var day string = (*date)[4:min(6, len((*date)))]
 	if monthRaw == "01" {
 		monthStr := "JAN"
 		month = &monthStr
@@ -8925,13 +8885,13 @@ func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date any) any {
 		month = &monthStr12
 	}
 	if month == nil {
-		panic(BadSymbol(Add(this.Id+" invalid expiry date ", date)))
+		panic(BadSymbol(this.Id + " invalid expiry date " + *date))
 	}
 	var reconstructedDate string = day + *month + year
 	return reconstructedDate
 }
-func (this *BaseExchange) ConvertMarketIdExpireDate(date any) any {
-	if IsEqual(date, nil) {
+func (this *BaseExchange) ConvertMarketIdExpireDate(date *string) *string {
+	if date == nil {
 		return nil
 	}
 	// parse 03JAN24 to 240103.
@@ -8950,19 +8910,35 @@ func (this *BaseExchange) ConvertMarketIdExpireDate(date any) any {
 		"DEC": "12",
 	}
 	// if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
-	var datePadded any = date
-	if GetLength(date) == 6 {
-		datePadded = Add("0", date)
+	var datePadded *string = date
+	if len(*date) == 6 {
+		datePaddedStr := "0" + *date
+		datePadded = &datePaddedStr
 	}
-	var year string = Slice(datePadded, 0, 2)
-	var monthName string = Slice(datePadded, 2, 5)
+	var datePaddedPart string
+	if datePadded != nil {
+		str := *datePadded
+		datePaddedPart = str[0:min(2, len(str))]
+	}
+	var year string = datePaddedPart
+	var datePaddedPart2 string
+	if datePadded != nil {
+		str := *datePadded
+		datePaddedPart2 = str[2:min(5, len(str))]
+	}
+	var monthName string = datePaddedPart2
 	var month *string = this.SafeString(monthMappping, monthName)
-	var day string = Slice(datePadded, 5, 7)
+	var datePaddedPart3 string
+	if datePadded != nil {
+		str := *datePadded
+		datePaddedPart3 = str[5:min(7, len(str))]
+	}
+	var day string = datePaddedPart3
 	if month == nil {
-		panic(BadSymbol(Add(this.Id+" invalid expiry date ", date)))
+		panic(BadSymbol(this.Id + " invalid expiry date " + *date))
 	}
 	var reconstructedDate string = day + *month + year
-	return reconstructedDate
+	return &reconstructedDate
 }
 func (this *BaseExchange) LoadMarketsAndSignInAsync() <-chan AsyncResult[bool] {
 	ch := make(chan AsyncResult[bool], 1)
@@ -9204,7 +9180,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			this.MyTrades = nil
 		} else if topic != nil && *topic == "orders" {
 			this.Orders = nil
-		} else if (topic != nil && *topic == "positions") && (!IsEqual(this.Positions, nil)) {
+		} else if (topic != nil && *topic == "positions") && (this.Positions != nil) {
 			this.Positions = nil
 			var clients []any = ObjectValues(this.Clients)
 			for i := 0; i < len(clients); i++ {
@@ -10488,12 +10464,12 @@ func (this *Exchange) fetchTradesWsBody(ch chan AsyncResult[[]Trade], symbol str
 	panic(NotSupported(this.Id + " fetchTradesWs() is not supported yet"))
 }
 
-func (this *Exchange) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Exchange) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Exchange) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

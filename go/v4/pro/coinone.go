@@ -518,7 +518,7 @@ func (this *Coinone) Ping(client any) any {
 		"request_type": "PING",
 	}
 }
-func (this *Coinone) HandlePong(client any, message map[string]any) any {
+func (this *Coinone) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "response_type":"PONG"

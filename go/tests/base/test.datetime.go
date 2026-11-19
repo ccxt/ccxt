@@ -153,14 +153,20 @@ func TestConvertExpireDate() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// callers write this into expiryDatetime, which types.ts documents with milliseconds
-	Assert(ccxt.IsEqual(exchange.ConvertExpireDate("260503"), "2026-05-03T00:00:00.000Z"))
-	Assert(ccxt.IsEqual(exchange.ConvertExpireDate("240426"), "2024-04-26T00:00:00.000Z"))
+	argStr := "260503"
+	Assert(ccxt.IsEqual(exchange.ConvertExpireDate(&argStr), "2026-05-03T00:00:00.000Z"))
+	argStr2 := "240426"
+	Assert(ccxt.IsEqual(exchange.ConvertExpireDate(&argStr2), "2024-04-26T00:00:00.000Z"))
 	// both spellings of midnight parse to the same instant
-	Assert(ccxt.IsEqual(exchange.Parse8601(exchange.ConvertExpireDate("260503")), 1777766400000))
-	Assert(ccxt.IsEqual(exchange.Parse8601("2026-05-03T00:00:00Z"), exchange.Parse8601(exchange.ConvertExpireDate("260503"))))
+	argStr3 := "260503"
+	Assert(ccxt.IsEqual(exchange.Parse8601(exchange.ConvertExpireDate(&argStr3)), 1777766400000))
+	argStr4 := "260503"
+	Assert(ccxt.IsEqual(exchange.Parse8601("2026-05-03T00:00:00Z"), exchange.Parse8601(exchange.ConvertExpireDate(&argStr4))))
 	// the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
 	// invariant the change exists to establish, and it fails on the old spelling
-	Assert(ccxt.IsEqual(exchange.ConvertExpireDate("260503"), exchange.Iso8601(exchange.Parse8601(exchange.ConvertExpireDate("260503")))))
+	argStr5 := "260503"
+	argStr6 := "260503"
+	Assert(ccxt.IsEqual(exchange.ConvertExpireDate(&argStr5), exchange.Iso8601(exchange.Parse8601(exchange.ConvertExpireDate(&argStr6)))))
 	Assert(ccxt.IsEqual(exchange.ConvertExpireDate(nil), nil))
 }
 func TestYymmdd() {

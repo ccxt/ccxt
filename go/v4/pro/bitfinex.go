@@ -1364,7 +1364,7 @@ func (this *Bitfinex) ParseWsBalance(balance any) any {
 	account["total"] = totalBalance
 	return account
 }
-func (this *Bitfinex) HandleSystemStatus(client any, message map[string]any) any {
+func (this *Bitfinex) HandleSystemStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "event": "info",
@@ -1403,7 +1403,7 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]
 	this.CleanCache(subscription)
 	return true
 }
-func (this *Bitfinex) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bitfinex) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "event": "subscribed",

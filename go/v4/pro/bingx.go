@@ -1671,7 +1671,7 @@ func (this *Bingx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash string = ""
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if (symbolsNormalized != nil) && !this.IsEmpty(symbolsNormalized) {
@@ -1703,7 +1703,7 @@ func (this *Bingx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 		"unsubscribe": false,
 		"id":          uuid,
 	}
-	if fetchPositionsSnapshot && awaitPositionsSnapshot && this.Positions == nil {
+	if fetchPositionsSnapshot && awaitPositionsSnapshot && (this.Positions == nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
 		if r2.Err != nil {
@@ -2515,7 +2515,7 @@ func (this *Bingx) HandleMessage(client any, message map[string]any) {
 		this.HandleSubscriptionStatus(client, message)
 	}
 }
-func (this *Bingx) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bingx) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "code": 0,
@@ -2533,7 +2533,7 @@ func (this *Bingx) HandleSubscriptionStatus(client any, message map[string]any) 
 	}
 	return message
 }
-func (this *Bingx) HandleUnSubscription(client any, subscription any) {
+func (this *Bingx) HandleUnSubscription(client any, subscription map[string]any) {
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for i := 0; i < len(messageHashes); i++ {

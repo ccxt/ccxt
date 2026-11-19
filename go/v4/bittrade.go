@@ -1418,12 +1418,12 @@ func (this *Bittrade) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bittrade) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bittrade) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1719,7 +1719,7 @@ func (this *Bittrade) ParseCurrency(currency any) map[string]any {
 		"info": currency,
 	})
 }
-func (this *Bittrade) ParseBalance(response any) map[string]any {
+func (this *Bittrade) ParseBalance(response map[string]any) map[string]any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var balances []map[string]any = this.SafeListMapsTyped(data, "list")
 	var result map[string]any = map[string]any{

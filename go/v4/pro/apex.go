@@ -1506,7 +1506,7 @@ func (this *Apex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message m
 	}
 	return nil
 }
-func (this *Apex) HandlePong(client any, message map[string]any) any {
+func (this *Apex) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//   {
 	//       "success": true,
@@ -1539,7 +1539,7 @@ func (this *Apex) HandleAccount(client any, message map[string]any) {
 		this.HandleOrder(client, orders)
 	}
 }
-func (this *Apex) HandleAuthenticate(client any, message map[string]any) any {
+func (this *Apex) HandleAuthenticate(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "success": true,
@@ -1563,7 +1563,7 @@ func (this *Apex) HandleAuthenticate(client any, message map[string]any) any {
 	}
 	return message
 }
-func (this *Apex) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Apex) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "topic": "kline",

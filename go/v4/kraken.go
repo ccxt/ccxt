@@ -124,8 +124,8 @@ func (this *Kraken) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0026"),
 				"maker":      this.ParseNumber("0.0016"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0026")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0024")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0022")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0001")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0")}},
+					"taker": []any{[]any{0.0, 0.0026}, []any{50000.0, 0.0024}, []any{100000.0, 0.0022}, []any{250000.0, 0.0020}, []any{500000.0, 0.0018}, []any{1000000.0, 0.0016}, []any{2500000.0, 0.0014}, []any{5000000.0, 0.0012}, []any{10000000.0, 0.0001}},
+					"maker": []any{[]any{0.0, 0.0016}, []any{50000.0, 0.0014}, []any{100000.0, 0.0012}, []any{250000.0, 0.0010}, []any{500000.0, 0.0008}, []any{1000000.0, 0.0006}, []any{2500000.0, 0.0004}, []any{5000000.0, 0.0002}, []any{10000000.0, 0.0}},
 				},
 			},
 		},
@@ -1968,12 +1968,12 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Kraken) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Kraken) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2036,7 +2036,7 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
 }
-func (this *Kraken) ParseBalance(response any) map[string]any {
+func (this *Kraken) ParseBalance(response map[string]any) map[string]any {
 	var balances map[string]any = SafeMapTyped(response, "result")
 	var result map[string]any = map[string]any{
 		"info":      response,

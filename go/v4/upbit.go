@@ -1314,12 +1314,12 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Upbit) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Upbit) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Upbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1797,7 +1797,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a timeInForce parameter for best type orders"))
 	}
 	var response map[string]any = nil
-	var paramsRequest any = this.Omit(paramsOrdType, []any{"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"})
+	var paramsRequest map[string]any = this.OmitDict(paramsOrdType, []any{"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"})
 	if test != nil && *test {
 
 		r1 := <-this.PrivatePostOrdersTest(this.Extend(request, paramsRequest))
@@ -2021,7 +2021,7 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol s
 	if (this.SafeString(request, "new_ord_type") != nil && *this.SafeString(request, "new_ord_type") == "best") && (timeInForce == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a timeInForce parameter for best type orders"))
 	}
-	var paramsRequest any = this.Omit(paramsOrdType, []any{"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"})
+	var paramsRequest map[string]any = this.OmitDict(paramsOrdType, []any{"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"})
 	// console.log ('check the each request paramsOmitted: ', request);
 
 	r1 := <-this.PrivatePostOrdersCancelAndNew(this.Extend(request, paramsRequest))

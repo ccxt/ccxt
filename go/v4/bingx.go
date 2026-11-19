@@ -1844,7 +1844,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 			response = r3.Value
 		} else {
 			var price *string = this.SafeString(paramsUntil, "price")
-			var paramsPrice any = this.Omit(paramsUntil, "price")
+			var paramsPrice map[string]any = this.OmitDict(paramsUntil, "price")
 			if price != nil && *price == "mark" {
 
 				r4 := <-this.SwapV1PublicGetMarketMarkPriceKlines(this.Extend(request, paramsPrice))
@@ -1959,12 +1959,12 @@ func (this *Bingx) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bingx) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bingx) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bingx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3612,7 +3612,7 @@ func (this *Bingx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
-func (this *Bingx) ParseBalance(response any) map[string]any {
+func (this *Bingx) ParseBalance(response map[string]any) map[string]any {
 	//
 	// standard
 	//
@@ -7867,11 +7867,11 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		requestUntil["startTime"] = *since
 	}
 	if limit != nil {
-		AddElementToObject(requestUntil, "limit", min(*limit, 100)) // api maximum 100
+		requestUntil["limit"] = min(*limit, 100) // api maximum 100
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchMyLiquidations", market, paramsUntil)
 	var response map[string]any = nil
-	var liquidations any = nil
+	var key string = "data"
 	if subType != nil && *subType == "inverse" {
 
 		r1 := <-this.CswapV1PrivateGetTradeForceOrders(this.Extend(requestUntil, paramsSubType))
@@ -7879,41 +7879,13 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 			panic(r1.Err)
 		}
 		response = r1.Value
-		//
-		//     {
-		//         "code": 0,
-		//         "msg": "",
-		//         "timestamp": 1721280071678,
-		//         "data": [
-		//             {
-		//                 "orderId": "string",
-		//                 "symbol": "string",
-		//                 "type": "string",
-		//                 "side": "string",
-		//                 "positionSide": "string",
-		//                 "price": "string",
-		//                 "quantity": "float64",
-		//                 "stopPrice": "string",
-		//                 "workingType": "string",
-		//                 "status": "string",
-		//                 "time": "int64",
-		//                 "avgPrice": "string",
-		//                 "executedQty": "string",
-		//                 "profit": "string",
-		//                 "commission": "string",
-		//                 "updateTime": "string"
-		//             }
-		//         ]
-		//     }
-		//
-		liquidations = this.SafeList(response, "data", []any{})
 	} else {
 
 		r2 := <-this.SwapV2PrivateGetTradeForceOrders(this.Extend(requestUntil, paramsSubType))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Value
+		var swapResponse map[string]any = r2.Value
 		//
 		//     {
 		//         "code": 0,
@@ -7943,9 +7915,10 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		//         }
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
-		liquidations = this.SafeList(data, "orders", []any{})
+		response = this.SafeDictMap(swapResponse, "data", map[string]any{})
+		key = "orders"
 	}
+	var liquidations []any = this.SafeListSlice(response, key, []any{})
 
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(liquidations, market, since, limit))}
 	return nil

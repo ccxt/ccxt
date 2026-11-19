@@ -281,7 +281,7 @@ func (this *Woofipro) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 		"info":          ticker,
 	}, market))
 }
-func (this *Woofipro) HandleTicker(client any, message map[string]any) any {
+func (this *Woofipro) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDC@ticker",
@@ -1811,14 +1811,14 @@ func (this *Woofipro) pongBody(ch chan ccxt.AsyncResult[bool], client any, messa
 func (this *Woofipro) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Woofipro) HandlePong(client any, message map[string]any) any {
+func (this *Woofipro) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	// { event: "pong", ts: 1614667590000 }
 	//
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Woofipro) HandleSubscribe(client any, message map[string]any) any {
+func (this *Woofipro) HandleSubscribe(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "666888",

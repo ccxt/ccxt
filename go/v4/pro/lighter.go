@@ -2153,7 +2153,7 @@ func (this *Lighter) HandleMessage(client any, message map[string]any) {
 		this.HandleSubscriptionStatus(client, message)
 	}
 }
-func (this *Lighter) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Lighter) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",

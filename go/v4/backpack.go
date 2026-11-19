@@ -2479,12 +2479,12 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
  * @param {boolean} [params.stock] selects tokenized stock spot trades; inferred from symbol when omitted
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Backpack) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Backpack) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2910,7 +2910,7 @@ func (this *Backpack) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
-func (this *Backpack) ParseBalance(response any) map[string]any {
+func (this *Backpack) ParseBalance(response map[string]any) map[string]any {
 	//
 	//     {
 	//         "USDC": {
@@ -2920,7 +2920,13 @@ func (this *Backpack) ParseBalance(response any) map[string]any {
 	//         }
 	//     }
 	//
-	var balanceKeys []string = ObjectKeys(response)
+	var balanceKeys []string = nil
+	if response != nil {
+		balanceKeys = make([]string, 0, len(response))
+		for objectKey := range response {
+			balanceKeys = append(balanceKeys, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
 		var id string = balanceKeys[i]

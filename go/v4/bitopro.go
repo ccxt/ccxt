@@ -261,8 +261,8 @@ func (this *Bitopro) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.001"),
 				"taker":      this.ParseNumber("0.002"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("3000000"), this.ParseNumber("0.00194")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("550000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("1300000000"), this.ParseNumber("0.0011")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.001")}, []any{this.ParseNumber("3000000"), this.ParseNumber("0.00097")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("30000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("300000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("550000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("1300000000"), this.ParseNumber("0.0003")}},
+					"taker": []any{[]any{0.0, 0.002}, []any{3000000.0, 0.00194}, []any{5000000.0, 0.0015}, []any{30000000.0, 0.0014}, []any{300000000.0, 0.0013}, []any{550000000.0, 0.0012}, []any{1300000000.0, 0.0011}},
+					"maker": []any{[]any{0.0, 0.001}, []any{3000000.0, 0.00097}, []any{5000000.0, 0.0007}, []any{30000000.0, 0.0006}, []any{300000000.0, 0.0005}, []any{550000000.0, 0.0004}, []any{1300000000.0, 0.0003}},
 				},
 			},
 		},
@@ -894,12 +894,12 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitopro) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bitopro) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitopro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bitopro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

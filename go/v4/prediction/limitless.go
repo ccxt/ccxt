@@ -1506,12 +1506,12 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Limitless) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+func (this *Limitless) FetchTradesAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Limitless) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *Limitless) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2896,11 +2896,11 @@ func (this *Limitless) HashMessage(message any) string {
 }
 func (this *Limitless) SignHash(hash string, privateKey string) string {
 	var signature map[string]any = ccxt.Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
-	var r *string = ccxt.SafeStringPtr(signature["r"])
-	var s *string = ccxt.SafeStringPtr(signature["s"])
+	var r string = *this.SafeString(signature, "r", "")
+	var s string = *this.SafeString(signature, "s", "")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
-	var rPadded string = ccxt.PadStart(r, 64, "0")
-	var sPadded string = ccxt.PadStart(s, 64, "0")
+	var rPadded string = (strings.Repeat("0", max(64-len(r), 0)) + r)[max(len(r)-64, 0):]
+	var sPadded string = (strings.Repeat("0", max(64-len(s), 0)) + s)[max(len(s)-64, 0):]
 	var result string = "0x" + rPadded + sPadded + v
 	return strings.ToLower(result)
 }

@@ -345,7 +345,7 @@ func (this *Independentreserve) HandleDeltas(bookside any, deltas []any) {
 		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Independentreserve) HandleHeartbeat(client any, message map[string]any) any {
+func (this *Independentreserve) HandleHeartbeat(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "Time": 1676156208182,
@@ -354,7 +354,7 @@ func (this *Independentreserve) HandleHeartbeat(client any, message map[string]a
 	//
 	return message
 }
-func (this *Independentreserve) HandleSubscriptions(client any, message map[string]any) any {
+func (this *Independentreserve) HandleSubscriptions(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "Data": [ "ticker-btc-sgd" ],

@@ -1457,7 +1457,7 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *strin
 	}
 	return nil
 }
-func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) any {
+func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "channels": [{
@@ -1471,7 +1471,7 @@ func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) 
 	//
 	return message
 }
-func (this *Onetrading) HandleHeartbeat(client any, message map[string]any) any {
+func (this *Onetrading) HandleHeartbeat(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "subscription": "SYSTEM",
@@ -1523,7 +1523,7 @@ func (this *Onetrading) HandleMessage(client any, message map[string]any) {
 		ccxt.CallDynamically(handler, client, message)
 	}
 }
-func (this *Onetrading) HandlePricePointUpdates(client any, message map[string]any) any {
+func (this *Onetrading) HandlePricePointUpdates(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "channel_name": "MARKET_TICKER",
@@ -1544,7 +1544,7 @@ func (this *Onetrading) HandlePricePointUpdates(client any, message map[string]a
 	//
 	return message
 }
-func (this *Onetrading) HandleAuthenticationMessage(client any, message map[string]any) any {
+func (this *Onetrading) HandleAuthenticationMessage(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "channel_name": "SYSTEM",

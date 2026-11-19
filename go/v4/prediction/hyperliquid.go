@@ -274,12 +274,12 @@ func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) a
  * @name hyperliquid#buildOutcomeParentSymbol
  * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
  * @param {object} desc parsed outcome description
- * @param {int} outcomeId integer outcome id
+ * @param {string} outcomeId outcome id
  * @param {string} [name] outcome name
  * @param {object} [question] linked question object from outcomeMeta
  * @returns {string} the parent market outcome
  */
-func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId any, optionalArgs ...any) any {
+func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId string, optionalArgs ...any) any {
 	name := ccxt.GetArg(optionalArgs, 0, "")
 	_ = name
 	var question map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -376,16 +376,16 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 				}
 			}
 			if (true) && (outcomeSlug != "") {
-				return questionSlug + "_" + outcomeSlug + "_" + ccxt.ToString(outcomeId)
+				return questionSlug + "_" + outcomeSlug + "_" + outcomeId
 			}
-			return questionSlug + "_" + ccxt.ToString(outcomeId)
+			return questionSlug + "_" + outcomeId
 		}
 	}
 	// Fallback: use name slugified, or OUTCOME-<id>
 	if (name != nil) && (name != "") {
-		return this.ShortenSlug(name) + "_" + ccxt.ToString(outcomeId)
+		return this.ShortenSlug(name) + "_" + outcomeId
 	}
-	return "OUTCOME_" + ccxt.ToString(outcomeId)
+	return "OUTCOME_" + outcomeId
 }
 
 /**
@@ -474,7 +474,7 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.Market
 		var outcomeInfo map[string]any = this.SafeDictMap(outcomesList, i, map[string]any{})
 		var outcomeId *int64 = this.SafeInteger(outcomeInfo, "outcome", i)
 		var linkedQuestion map[string]any = this.SafeDictMap(outcomesToQuestions, strconv.FormatInt(*outcomeId, 10), map[string]any{})
-		var market any = this.ParseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion)
+		var market any = this.ParseOutcomeMarket(outcomeInfo, strconv.FormatInt(*outcomeId, 10), outcomeId, linkedQuestion)
 		markets = append(markets, market)
 		// Build outcomes dictionary from market outcomes
 		var marketOutcomes []any = ccxt.SafeListTyped(market, "outcomes")
@@ -501,18 +501,19 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.Market
  * @name hyperliquid#parseOutcomeMarket
  * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
  * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+ * @param {string} outcomeKey outcome id as a string
  * @param {int} outcomeId integer outcome id
  * @param {object} [question] linked question object from outcomeMeta questions array
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeId any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeKey string, outcomeId any, optionalArgs ...any) any {
 	var question map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = question
 	var description *string = this.SafeString(outcomeInfo, "description", "")
 	var name *string = this.SafeString(outcomeInfo, "name", "")
 	var sideSpecs []any = ccxt.SafeListTyped(outcomeInfo, "sideSpecs")
 	var desc map[string]any = this.ParseOutcomeDescription(description)
-	var parentSymbol any = this.BuildOutcomeParentSymbol(desc, outcomeId, name, question)
+	var parentSymbol any = this.BuildOutcomeParentSymbol(desc, outcomeKey, name, question)
 	var yesEncoding any = this.OutcomeEncoding(outcomeId, 0)
 	var noEncoding any = this.OutcomeEncoding(outcomeId, 1)
 	var yesOutcomeSymbol any = ccxt.Add(parentSymbol, ":YES")
@@ -602,12 +603,12 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeI
 		},
 	}}
 	var marketRow map[string]any = this.SafeMarketStructure(map[string]any{
-		"id":             ccxt.ToString(outcomeId),
+		"id":             outcomeKey,
 		"market":         parentSymbol,
 		"base":           ccxt.GetValue(ccxt.Split(parentSymbol, "/"), 0),
 		"quote":          quoteCurrency,
 		"settle":         nil,
-		"baseId":         ccxt.ToString(outcomeId),
+		"baseId":         outcomeKey,
 		"quoteId":        quoteCurrency,
 		"settleId":       nil,
 		"type":           "prediction",
@@ -2218,12 +2219,12 @@ func (this *Hyperliquid) ParseTimeInForce(timeInForce *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Hyperliquid) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+func (this *Hyperliquid) FetchTradesAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)

@@ -77,7 +77,7 @@ func (this *Bullish) Ping(client any) any {
 		"id":      id,
 	}
 }
-func (this *Bullish) HandlePong(client any, message map[string]any) any {
+func (this *Bullish) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "7",

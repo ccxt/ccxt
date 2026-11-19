@@ -1085,7 +1085,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	if r5.Err != nil {
 		panic(r5.Err)
 	}
-	var tokenName *string = ccxt.SafeStringPtr(r5.Value)
+	var tokenName *string = &r5.Value
 	var defaultDeadlineSeconds int64 = *this.SafeInteger(this.Options, "approveDeadlineSeconds", 7200)
 	var deadline *int64 = this.SafeInteger(paramsSpender, "deadline", this.Seconds()+defaultDeadlineSeconds)
 	var value string = this.DecimalToPrecision(ccxt.Precise.StringMul(this.NumberToString(amount), "1000000"), ccxt.ROUND, 0, ccxt.DECIMAL_PLACES)
@@ -1920,12 +1920,12 @@ func (this *Sxbet) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
  * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, nextKey)
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Sxbet) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+func (this *Sxbet) FetchTradesAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *Sxbet) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1934,7 +1934,7 @@ func (this *Sxbet) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTra
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(outcome, nil) {
+	if false {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped"))
 	}
 
@@ -3064,7 +3064,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var token *string = ccxt.SafeStringPtr(r.Value)
+		var token *string = r.Value
 		var requestId int64 = this.RequestId(url)
 		this.RegisterSxbetWsRequest(requestId, "centrifugoConnected", "connect")
 		var connectMsg map[string]any = map[string]any{
@@ -3308,7 +3308,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	}
 	var client any = this.Client(url)
 	var isNewSubscription bool = ccxt.IsEqual(client.(ccxt.ClientInterface).SubscriptionSafe(channel), nil)
-	if ccxt.IsEqual(this.Orderbooks[sym], nil) {
+	if this.Orderbooks[sym] == nil {
 		// seed from the REST snapshot so the book is served before the first publication
 		this.SetWsOption("wsWatchedBooks", sym, marketHash)
 
@@ -3321,7 +3321,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 			snapshot = r2.Value
 		}
 		this.ApplySxbetWsSnapshot(snapshot)
-		if ccxt.IsEqual(this.Orderbooks[sym], nil) {
+		if this.Orderbooks[sym] == nil {
 			var emptyBook any = this.OrderBook(map[string]any{})
 			this.Orderbooks[sym] = emptyBook.(ccxt.OrderBookInterface)
 		}

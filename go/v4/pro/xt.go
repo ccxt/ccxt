@@ -1271,7 +1271,7 @@ func (this *Xt) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol st
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Xt) HandleFundingRate(client any, message map[string]any) any {
+func (this *Xt) HandleFundingRate(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "topic": "fund_rate",
@@ -1401,7 +1401,7 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve([]any{position}, "position::contract")
 }
-func (this *Xt) HandleTicker(client any, message map[string]any) any {
+func (this *Xt) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -1484,7 +1484,7 @@ func (this *Xt) HandleTicker(client any, message map[string]any) any {
 	}
 	return message
 }
-func (this *Xt) HandleTickers(client any, message map[string]any) any {
+func (this *Xt) HandleTickers(client any, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -1591,7 +1591,7 @@ func (this *Xt) HandleTickers(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).Resolve(ccxt.TickerMapToMap(this.Tickers), messageHashStart)
 	return message
 }
-func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
+func (this *Xt) HandleOHLCV(client any, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -1663,7 +1663,7 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 	}
 	return message
 }
-func (this *Xt) HandleTrade(client any, message map[string]any) any {
+func (this *Xt) HandleTrade(client any, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -1984,7 +1984,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"trades": nil,
 	}, marketResolved))
 }
-func (this *Xt) HandleOrder(client any, message map[string]any) any {
+func (this *Xt) HandleOrder(client any, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -2203,7 +2203,7 @@ func (this *Xt) Ping(client any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return "ping"
 }
-func (this *Xt) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Xt) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         id: '1763045665228ticker@eth_usdt',
@@ -2230,7 +2230,7 @@ func (this *Xt) HandleSubscriptionStatus(client any, message map[string]any) any
 	}
 	return message
 }
-func (this *Xt) HandleUnSubscription(client any, subscription any) {
+func (this *Xt) HandleUnSubscription(client any, subscription map[string]any) {
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for j := 0; j < len(messageHashes); j++ {

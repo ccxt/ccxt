@@ -827,7 +827,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[map[string]
 			}
 			var stillMissing []any = []any{}
 			for i := 0; i < missingLength; i++ {
-				if !this.HasOutcome(DerefScalar(missing[i])) {
+				if !this.HasOutcome(missing[i]) {
 					stillMissing = append(stillMissing, DerefScalar(missing[i]))
 				}
 			}
@@ -1174,12 +1174,12 @@ func (this *PredictionExchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], out
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *PredictionExchange) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan AsyncResult[[]PredictionTrade] {
+func (this *PredictionExchange) FetchTradesAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[[]PredictionTrade] {
 	ch := make(chan AsyncResult[[]PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchTradesBody(ch chan AsyncResult[[]PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchTradesBody(ch chan AsyncResult[[]PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

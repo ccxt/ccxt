@@ -740,12 +740,12 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Cryptomus) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Cryptomus) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -955,7 +955,7 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 	var sideBuy bool = (side == "buy")
 	var amountToString *string = this.NumberToString(amount)
 	var priceToString *string = this.NumberToString(price)
-	var paramsCost any = this.Omit(paramsOmitted, "cost")
+	var paramsCost map[string]any = this.OmitDict(paramsOmitted, "cost")
 	var costParam *string = this.SafeString(paramsOmitted, "cost")
 	var cost any = costParam
 	var response map[string]any = nil

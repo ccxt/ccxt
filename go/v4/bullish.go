@@ -1205,12 +1205,12 @@ func (this *Bullish) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bullish) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bullish) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bullish) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bullish) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1318,7 +1318,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -1693,7 +1693,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1735,17 +1735,20 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 				}()
 				// try block:
 				if method == "fetchOHLCV" {
+					if symbol == nil {
+						panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
+					}
 
-					r := <-this.FetchOHLCVAsync(StringArg(symbol), timeframe, since, limit, paramsOmitted)
+					r := <-this.FetchOHLCVAsync(*symbol, timeframe, since, limit, paramsOmitted)
 					if r.Err != nil {
 						panic(r.Err)
 					}
-					var retRes132827 []any = OHLCVsToList(r.Value)
-					if retRes132827 == nil {
+					var retRes133127 []any = OHLCVsToList(r.Value)
+					if retRes133127 == nil {
 						ch <- AsyncResult[[]any]{Value: nil}
 						chSent = true
 					} else {
-						ch <- AsyncResult[[]any]{Value: retRes132827}
+						ch <- AsyncResult[[]any]{Value: retRes133127}
 						chSent = true
 					}
 					return nil
@@ -1755,27 +1758,30 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 					if r1.Err != nil {
 						panic(r1.Err)
 					}
-					var retRes133027 []any = FundingRateHistoriesToList(r1.Value)
-					if retRes133027 == nil {
+					var retRes133327 []any = FundingRateHistoriesToList(r1.Value)
+					if retRes133327 == nil {
 						ch <- AsyncResult[[]any]{Value: nil}
 						chSent = true
 					} else {
-						ch <- AsyncResult[[]any]{Value: retRes133027}
+						ch <- AsyncResult[[]any]{Value: retRes133327}
 						chSent = true
 					}
 					return nil
 				} else {
+					if symbol == nil {
+						panic(ArgumentsRequired(this.Id + " market() requires a symbol argument"))
+					}
 
-					r2 := <-this.FetchTradesAsync(symbol, since, limit, paramsOmitted)
+					r2 := <-this.FetchTradesAsync(*symbol, since, limit, paramsOmitted)
 					if r2.Err != nil {
 						panic(r2.Err)
 					}
-					var retRes133227 []any = TradesToList(r2.Value)
-					if retRes133227 == nil {
+					var retRes133827 []any = TradesToList(r2.Value)
+					if retRes133827 == nil {
 						ch <- AsyncResult[[]any]{Value: nil}
 						chSent = true
 					} else {
-						ch <- AsyncResult[[]any]{Value: retRes133227}
+						ch <- AsyncResult[[]any]{Value: retRes133827}
 						chSent = true
 					}
 					return nil
@@ -1839,11 +1845,11 @@ func (this *Bullish) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes136919 []any = r1.Value
-		if retRes136919 == nil {
+		var retRes137519 []any = r1.Value
+		if retRes137519 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes136919)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes137519)}
 		}
 		return nil
 	}
@@ -1949,11 +1955,11 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes144819 []any = r1.Value
-		if retRes144819 == nil {
+		var retRes145419 []any = r1.Value
+		if retRes145419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes144819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes145419)}
 		}
 		return nil
 	}
@@ -2048,7 +2054,7 @@ func (this *Bullish) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var paginate *bool = this.SafeBool(params, "paginate", false)
 	if paginate != nil && *paginate {
 		var paramsPagination map[string]any = this.HandlePaginationParams("fetchOrders", since, params)
@@ -2057,11 +2063,11 @@ func (this *Bullish) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes151419 []any = r2.Value
-		if retRes151419 == nil {
+		var retRes152019 []any = r2.Value
+		if retRes152019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes151419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes152019)}
 		}
 		return nil
 	}
@@ -2256,11 +2262,11 @@ func (this *Bullish) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes164515 []any = OrdersToList(r.Value)
-	if retRes164515 == nil {
+	var retRes165115 []any = OrdersToList(r.Value)
+	if retRes165115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes164515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes165115)}
 	}
 	return nil
 }
@@ -2302,11 +2308,11 @@ func (this *Bullish) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes166515 []any = OrdersToList(r.Value)
-	if retRes166515 == nil {
+	var retRes167115 []any = OrdersToList(r.Value)
+	if retRes167115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes166515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes167115)}
 	}
 	return nil
 }
@@ -2348,11 +2354,11 @@ func (this *Bullish) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes168515 []any = OrdersToList(r.Value)
-	if retRes168515 == nil {
+	var retRes169115 []any = OrdersToList(r.Value)
+	if retRes169115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes168515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes169115)}
 	}
 	return nil
 }
@@ -2394,11 +2400,11 @@ func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes170515 []any = OrdersToList(r.Value)
-	if retRes170515 == nil {
+	var retRes171115 []any = OrdersToList(r.Value)
+	if retRes171115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes170515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes171115)}
 	}
 	return nil
 }
@@ -2436,7 +2442,7 @@ func (this *Bullish) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2524,7 +2530,7 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"commandType":      "V3CreateOrder",
@@ -2623,7 +2629,7 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"commandType":      "V1AmendOrder",
@@ -2698,7 +2704,7 @@ func (this *Bullish) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
@@ -2760,7 +2766,7 @@ func (this *Bullish) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -3448,7 +3454,7 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -3556,7 +3562,7 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
@@ -3696,7 +3702,7 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var maxLimit int = 100
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTransfers", "paginate", false)
 	if paginate {
@@ -3706,11 +3712,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes266519 []any = r2.Value
-		if retRes266519 == nil {
+		var retRes267119 []any = r2.Value
+		if retRes267119 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes266519)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267119)}
 		}
 		return nil
 	}
@@ -3912,7 +3918,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tradingAccountId *string = SafeStringPtr(r1.Value)
+	var tradingAccountId *string = r1.Value
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"assetSymbol":      currency["id"],

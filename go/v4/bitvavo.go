@@ -314,8 +314,8 @@ func (this *Bitvavo) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0025"),
 				"maker":      this.ParseNumber("0.0015"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.0002")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0001")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}},
+					"taker": []any{[]any{0.0, 0.0025}, []any{100000.0, 0.0020}, []any{250000.0, 0.0018}, []any{500000.0, 0.0016}, []any{1000000.0, 0.0014}, []any{2500000.0, 0.0012}, []any{5000000.0, 0.0010}, []any{10000000.0, 0.0008}, []any{25000000.0, 0.0004}, []any{100000000.0, 0.0002}},
+					"maker": []any{[]any{0.0, 0.0015}, []any{100000.0, 0.0010}, []any{250000.0, 0.0009}, []any{500000.0, 0.0008}, []any{1000000.0, 0.0005}, []any{2500000.0, 0.0003}, []any{5000000.0, 0.0001}, []any{10000000.0, 0.0}, []any{25000000.0, 0.0}, []any{100000000.0, 0.0}},
 				},
 			},
 			"byCategory": map[string]any{
@@ -999,12 +999,12 @@ func (this *Bitvavo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitvavo) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bitvavo) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

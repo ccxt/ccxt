@@ -4114,12 +4114,12 @@ func (this *Htx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Htx) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Htx) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Htx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4935,7 +4935,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 			if r5.Err != nil {
 				panic(r5.Err)
 			}
-			var accountId *string = SafeStringPtr(r5.Value)
+			var accountId *string = r5.Value
 			request["account-id"] = accountId
 
 			r6 := <-this.SpotPrivateGetV1AccountAccountsAccountIdBalance(this.Extend(request, paramsMarginMode))
@@ -7046,7 +7046,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var accountId *string = SafeStringPtr(r2.Value)
+	var accountId *string = r2.Value
 	var request map[string]any = map[string]any{
 		"account-id": accountId,
 		"symbol":     market["id"],
@@ -8751,14 +8751,7 @@ func (this *Htx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var networkCodePtr *string = nil
-	networkCodePtr, paramsOmited := this.HandleNetworkCodeAndParams(params)
-	networkCode := func() any {
-		if networkCodePtr != nil {
-			return *networkCodePtr
-		}
-		return nil
-	}()
+	networkCode, paramsOmited := this.HandleNetworkCodeAndParams(params)
 
 	r1 := <-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited)
 	if r1.Err != nil {
@@ -9182,14 +9175,7 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	if tagValue != nil {
 		request["addr-tag"] = *tagValue // only for XRP?
 	}
-	var networkCodePtr *string = nil
-	networkCodePtr, paramsNetwork := this.HandleNetworkCodeAndParams(paramsTag)
-	networkCode := func() any {
-		if networkCodePtr != nil {
-			return *networkCodePtr
-		}
-		return nil
-	}()
+	networkCode, paramsNetwork := this.HandleNetworkCodeAndParams(paramsTag)
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}
@@ -10478,7 +10464,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 		if *this.SafeBool(market, "linear", false) {
 			marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross")
 			AddElementToObject(request, "margin_mode", marginMode)
-			AddElementToObject(request, "contract_code", market["id"])
+			request["contract_code"] = market["id"]
 			if limit != nil {
 				request["limit"] = *limit
 			}
@@ -10489,7 +10475,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 			}
 			response = r1.Value
 		} else {
-			AddElementToObject(request, "contract", market["id"])
+			request["contract"] = market["id"]
 			//
 			//     {
 			//         "code": 200,
@@ -10518,7 +10504,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 			response = r2.Value
 		}
 	} else {
-		AddElementToObject(request, "symbol", market["id"])
+		request["symbol"] = market["id"]
 
 		r3 := <-this.ContractPrivatePostApiV3ContractFinancialRecordExact(this.Extend(request, paramsUntil))
 		if r3.Err != nil {
@@ -11115,7 +11101,7 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var accountId *string = SafeStringPtr(r2.Value)
+	var accountId *string = r2.Value
 	var request map[string]any = map[string]any{
 		"accountId": accountId,
 	}
@@ -11849,7 +11835,7 @@ func (this *Htx) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var accountId *string = SafeStringPtr(r1.Value)
+	var accountId *string = r1.Value
 	var request map[string]any = map[string]any{
 		"currency":  currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),
@@ -11916,7 +11902,7 @@ func (this *Htx) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var accountId *string = SafeStringPtr(r1.Value)
+	var accountId *string = r1.Value
 	var request map[string]any = map[string]any{
 		"currency":  currency["id"],
 		"amount":    this.CurrencyToPrecision(code, amount),
@@ -12347,8 +12333,7 @@ func (this *Htx) ParseSettlements(settlements any, market map[string]any) []any 
 		var settlement map[string]any = SafeMapTyped(settlements, i)
 		var list []any = SafeListTyped(settlement, "list")
 		if *this.SafeBool(market, "linear", false) {
-			var parsedSettlement map[string]any = this.ParseSettlement(settlement, market)
-			result = append(result, parsedSettlement)
+			result = append(result, this.ParseSettlement(settlement, market))
 		} else if list != nil {
 			var timestamp *int64 = this.SafeInteger(settlement, "settlement_time")
 			var timestampDetails map[string]any = map[string]any{
@@ -12461,7 +12446,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], symbo
 	var response map[string]any = nil
 	if *this.SafeBool(market, "swap", false) {
 		if *this.SafeBool(market, "linear", false) {
-			AddElementToObject(requestUntil, "contract_code", market["id"])
+			requestUntil["contract_code"] = market["id"]
 			if limit != nil {
 				requestUntil["limit"] = *limit
 			}
@@ -12472,7 +12457,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], symbo
 			}
 			response = r1.Value
 		} else {
-			AddElementToObject(requestUntil, "contract", market["id"])
+			requestUntil["contract"] = market["id"]
 
 			r2 := <-this.ContractPublicGetSwapApiV3SwapLiquidationOrders(this.Extend(requestUntil, paramsUntil))
 			if r2.Err != nil {
@@ -12481,7 +12466,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], symbo
 			response = r2.Value
 		}
 	} else if *this.SafeBool(market, "future", false) {
-		AddElementToObject(requestUntil, "symbol", market["id"])
+		requestUntil["symbol"] = market["id"]
 
 		r3 := <-this.ContractPublicGetApiV3ContractLiquidationOrders(this.Extend(requestUntil, paramsUntil))
 		if r3.Err != nil {
@@ -12641,7 +12626,7 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 		}
 		request["volume"] = this.AmountToPrecision(symbol, amount)
 		request["direction"] = side
-		var paramsVolume any = this.Omit(paramsOmitted, []any{"volume", "amount"})
+		var paramsVolume map[string]any = this.OmitDict(paramsOmitted, []any{"volume", "amount"})
 		if *this.SafeBool(market, "swap", false) {
 
 			r2 := <-this.ContractPrivatePostSwapApiV1SwapLightningClosePosition(this.Extend(request, paramsVolume))

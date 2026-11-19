@@ -1771,7 +1771,7 @@ func (this *Myriad) SignCancelAll(message map[string]any, networkId string) stri
  * @description normalises a fetched order-book order into a typed-data message (uint256 fields as strings, uint8 fields as ints)
  * @returns {object} the typed-data message
  */
-func (this *Myriad) ClobOrderMessage(rawOrder any) map[string]any {
+func (this *Myriad) ClobOrderMessage(rawOrder map[string]any) map[string]any {
 	var signer any
 	if derefPtr := this.SafeString2(rawOrder, "trader", "user"); derefPtr != nil {
 		signer = *derefPtr
@@ -4046,12 +4046,12 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Myriad) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+func (this *Myriad) FetchTradesAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *Myriad) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4710,7 +4710,7 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 		if sym == nil {
 			continue
 		}
-		if ccxt.IsEqual(this.Orderbooks[sym.(string)], nil) {
+		if this.Orderbooks[sym.(string)] == nil {
 			continue
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[sym.(string)]

@@ -2857,7 +2857,7 @@ func (this *Hyperliquid) Ping(client any) any {
 		"method": "ping",
 	}
 }
-func (this *Hyperliquid) HandlePong(client any, message map[string]any) any {
+func (this *Hyperliquid) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//   {
 	//       "channel": "pong"

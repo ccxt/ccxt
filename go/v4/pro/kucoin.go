@@ -2653,7 +2653,7 @@ func (this *Kucoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any
 }
 func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
-		var bidAsk []any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(bidAsks[i]))
+		var bidAsk []any = this.ParseOrderBookBidAsk(bidAsks[i])
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
@@ -2730,7 +2730,7 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message map[string]any)
 		}
 	}
 }
-func (this *Kucoin) HandleSystemStatus(client any, message map[string]any) any {
+func (this *Kucoin) HandleSystemStatus(client any, message map[string]any) map[string]any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that

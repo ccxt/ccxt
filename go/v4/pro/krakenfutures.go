@@ -200,7 +200,7 @@ func (this *Krakenfutures) subscribePublicBody(ch chan ccxt.AsyncResult[map[stri
 	if length == 1 {
 		var market map[string]any = this.Market(func() any {
 			if 0 >= 0 && 0 < len(marketIds) {
-				return ccxt.DerefScalar(marketIds[0])
+				return marketIds[0]
 			}
 			return nil
 		}())
@@ -1040,7 +1040,7 @@ func (this *Krakenfutures) ParseWsOrderTrade(trade any, optionalArgs ...any) map
 		},
 	}, market))
 }
-func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
+func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[string]any {
 	//
 	//  update (verbose)
 	//
@@ -1156,7 +1156,13 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 				totalAmount = ccxt.Precise.StringAdd(totalAmount, this.NumberToString(currentTrade["amount"]))
 			}
 			if ccxt.Precise.StringGt(totalAmount, "0") {
-				ccxt.AddElementToObject(previousOrder, "average", ccxt.Precise.StringDiv(totalCost, totalAmount))
+				if previousOrder != nil {
+					if ptrValue := ccxt.Precise.StringDiv(totalCost, totalAmount); ptrValue != nil {
+						previousOrder["average"] = *ptrValue
+					} else {
+						previousOrder["average"] = nil
+					}
+				}
 			}
 			ccxt.AddElementToObject(previousOrder, "cost", totalCost)
 			var filledString *string = this.NumberToString(trade["amount"])
@@ -2251,7 +2257,7 @@ func (this *Krakenfutures) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Krakenfutures) HandleAuthenticate(client any, message map[string]any) any {
+func (this *Krakenfutures) HandleAuthenticate(client any, message map[string]any) map[string]any {
 	/**
 	 * @ignore
 	 * @method

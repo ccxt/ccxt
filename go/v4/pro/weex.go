@@ -2719,7 +2719,7 @@ func (this *Weex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message m
 func (this *Weex) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Weex) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Weex) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     { "result": true, "id": 2 }
 	//

@@ -1375,7 +1375,7 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic s
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]any) any {
+func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "event": "unsubscribed",
@@ -2686,7 +2686,7 @@ func (this *Bitvavo) HandleMyTrade(client any, message map[string]any) {
 	tradesArray.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
-func (this *Bitvavo) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bitvavo) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "event": "subscribed",

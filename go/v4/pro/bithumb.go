@@ -620,12 +620,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		if timestampStr == nil {
 			return
 		}
-		var timestampStrPart string
-		if timestampStr != nil {
-			str := *timestampStr
-			timestampStrPart = str[0:min(13, len(str))]
-		}
-		var legacyTimestamp int64 = this.ParseToInt(timestampStrPart)
+		var legacyTimestamp int64 = this.ParseToInt((*timestampStr)[0:min(13, len((*timestampStr)))])
 		if !(legacySymbol != nil && this.Orderbooks[*legacySymbol] != nil) {
 			var ob ccxt.OrderBookInterface = this.OrderBook()
 			ob.SetSymbol(legacySymbol)

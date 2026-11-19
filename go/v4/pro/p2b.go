@@ -423,7 +423,7 @@ func (this *P2b) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
+func (this *P2b) HandleOHLCV(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "method": "kline.update",
@@ -476,7 +476,7 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 	}
 	return message
 }
-func (this *P2b) HandleTrade(client any, message map[string]any) any {
+func (this *P2b) HandleTrade(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "method": "deals.update",
@@ -516,7 +516,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	return message
 }
-func (this *P2b) HandleTicker(client any, message map[string]any) any {
+func (this *P2b) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	// state
 	//
@@ -678,7 +678,7 @@ func (this *P2b) Ping(client any) any {
 		"id":     this.Milliseconds(),
 	}
 }
-func (this *P2b) HandlePong(client any, message map[string]any) any {
+func (this *P2b) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        error: null,

@@ -1362,7 +1362,11 @@ func (this *Btse) ParseBalanceList(response any) map[string]any {
 				if usedCode == nil {
 					continue
 				}
-				AddElementToObject(useds, usedCode, Precise.StringAdd(this.SafeString(useds, usedCode, "0"), this.SafeString(usedRow, "balance")))
+				if ptrValue := Precise.StringAdd(this.SafeString(useds, usedCode, "0"), this.SafeString(usedRow, "balance")); ptrValue != nil {
+					useds[*usedCode] = *ptrValue
+				} else {
+					useds[*usedCode] = nil
+				}
 			}
 			for j := 0; j < len(assets); j++ {
 				var assetRow map[string]any = SafeMapTyped(assets, j)
@@ -1985,12 +1989,12 @@ func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) FundingRat
  * @param {int} [params.until] timestamp in ms of the latest entry to fetch, applied client-side to the most recent trades window
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Btse) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Btse) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)

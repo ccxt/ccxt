@@ -1809,7 +1809,7 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Coinbaseinternational) HandleTrades(client any, message map[string]any) any {
+func (this *Coinbaseinternational) HandleTrades(client any, message map[string]any) map[string]any {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
 	var data []any = ccxt.SafeListTyped(params, "data")

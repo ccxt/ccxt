@@ -308,8 +308,8 @@ func (this *Delta) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0015"),
 				"maker":      this.ParseNumber("0.0010"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("250"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.00065")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.001")}, []any{this.ParseNumber("100"), this.ParseNumber("0.001")}, []any{this.ParseNumber("250"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.00075")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0005")}},
+					"taker": []any{[]any{0.0, 0.0015}, []any{100.0, 0.0013}, []any{250.0, 0.0013}, []any{1000.0, 0.001}, []any{5000.0, 0.0009}, []any{10000.0, 0.00075}, []any{20000.0, 0.00065}},
+					"maker": []any{[]any{0.0, 0.001}, []any{100.0, 0.001}, []any{250.0, 0.0009}, []any{1000.0, 0.00075}, []any{5000.0, 0.0006}, []any{10000.0, 0.0005}, []any{20000.0, 0.0005}},
 				},
 			},
 		},
@@ -468,7 +468,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var expiry string = rawExpiryPart + rawExpiryPart2 + rawExpiryPart3
 	var settle string = quote
 	var strike string = *this.SafeString(optionParts, 2, "")
-	var datetime any = this.ConvertExpireDate(expiry)
+	var datetime any = this.ConvertExpireDate(&expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var optionTypeUnified string = "put"
 	if optionType == "C" {
@@ -1882,12 +1882,12 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Delta) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Delta) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Delta) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Delta) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2042,7 +2042,7 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, since, limitValue))}
 	return nil
 }
-func (this *Delta) ParseBalance(response any) map[string]any {
+func (this *Delta) ParseBalance(response map[string]any) map[string]any {
 	var balances []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{
 		"info": response,

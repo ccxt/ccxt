@@ -466,13 +466,13 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]
 		}
 		streamHash += "::" + strings.Join(symbolsNormalized, ",")
 	}
-	var firstMarket any = nil
+	var firstMarket map[string]any = nil
 	if !this.IsEmpty(symbolsNormalized) {
 		firstMarket = this.GetMarketFromSymbols(symbolsNormalized)
 	}
-	var resolvedAuth any = this.ResolveAuthType("watchLiquidationsForSymbols", firstMarket, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(resolvedAuth, 0))
-	var paramsValue any = ccxt.GetValue(resolvedAuth, 2)
+	resolvedAuthSlot0, _, resolvedAuthSlot2 := this.ResolveAuthType("watchLiquidationsForSymbols", firstMarket, params)
+	var typeVar *string = resolvedAuthSlot0
+	paramsValue := resolvedAuthSlot2
 	// the spot check runs on the RESOLVED type: a spot default combined
 	// with a linear or inverse defaultSubType means the caller wants the
 	// matching derivatives stream, so the rewrite is allowed to route it
@@ -748,10 +748,7 @@ func (this *Binance) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[
 			messageHashes = append(messageHashes, "myLiquidations::"+symbol)
 		}
 	}
-	typeVarsubTypeparamsValueVariable := this.ResolveAuthType("watchMyLiquidationsForSymbols", market, params)
-	var typeVar *string = ccxt.SafeStringPtr(typeVarsubTypeparamsValueVariable[0])
-	var subType *string = ccxt.SafeStringPtr(typeVarsubTypeparamsValueVariable[1])
-	var paramsValue map[string]any = typeVarsubTypeparamsValueVariable[2].(map[string]any)
+	typeVar, subType, paramsValue := this.ResolveAuthType("watchMyLiquidationsForSymbols", market, params)
 	// hand the resolved type forward: the helper already omitted type and
 	// subType from params, so a bare authenticate would re-derive from
 	// options.defaultType and seed a different bucket than the listenKey
@@ -1306,7 +1303,7 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 			if !ccxt.StructAbsent(r.Value) {
 				snapshot = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 			}
-			if ccxt.IsEqual(this.Orderbooks[*symbol], nil) {
+			if this.Orderbooks[*symbol] == nil {
 
 				return nil
 			}
@@ -1560,7 +1557,7 @@ func (this *Binance) HandleSubscriptionStatus(client any, message any) any {
 	}
 	return message
 }
-func (this *Binance) HandleUnSubscription(client any, subscription any) {
+func (this *Binance) HandleUnSubscription(client any, subscription map[string]any) {
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for j := 0; j < len(messageHashes); j++ {
@@ -4195,9 +4192,9 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var time int64 = this.Milliseconds()
-	var resolvedAuth any = this.ResolveAuthType("authenticate", nil, params)
-	var typeVar *string = ccxt.SafeStringPtr(ccxt.GetValue(resolvedAuth, 0))
-	var paramsAuth any = ccxt.GetValue(resolvedAuth, 2)
+	resolvedAuthSlot0, _, resolvedAuthSlot2 := this.ResolveAuthType("authenticate", nil, params)
+	var typeVar *string = resolvedAuthSlot0
+	paramsAuth := resolvedAuthSlot2
 	isPortfolioMargin, paramsPortfolioMargin := this.HandleOptionBoolAndParams2(paramsAuth, "authenticate", "papi", "portfolioMargin", false)
 	// For spot use WebSocket API signature subscription
 	if typeVar != nil && *typeVar == "spot" {
@@ -4285,7 +4282,7 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 				// try block:
 				var response map[string]any = nil
 				if isStock {
-					var requestParams any = this.Omit(paramsOmitted, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
+					var requestParams map[string]any = this.OmitDict(paramsOmitted, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
 
 					r3 := <-this.SapiPostEquityListenKey(requestParams)
 					if r3.Err != nil {
@@ -4464,7 +4461,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 			if isStock {
 				// the equity endpoint is create-or-renew: with an active key this
 				// POST extends the validity of that same key
-				var requestParams any = this.Omit(paramsOmitted, []any{"stock", "name", "callerMethodName", "subType", "timeframe"})
+				var requestParams map[string]any = this.OmitDict(paramsOmitted, []any{"stock", "name", "callerMethodName", "subType", "timeframe"})
 
 				r := <-this.SapiPostEquityListenKey(requestParams)
 				if r.Err != nil {
@@ -4926,10 +4923,11 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	// re-derives from its own method scope, so without this a method-scoped
 	// options.watchBalance.type seeds one bucket while the read below
 	// indexes another - the same derive-first shape watchOrders uses
-	typeVarsubTypeparamsValueVariable := this.ResolveAuthType("watchBalance", nil, params)
-	typeVar := ccxt.GetValue(typeVarsubTypeparamsValueVariable, 0)
-	var subType *string = ccxt.SafeStringPtr(typeVarsubTypeparamsValueVariable[1])
-	var paramsValue map[string]any = typeVarsubTypeparamsValueVariable[2].(map[string]any)
+	typeVarPtr, subType, paramsValue := this.ResolveAuthType("watchBalance", nil, params)
+	var typeVar any = nil
+	if typeVarPtr != nil {
+		typeVar = *typeVarPtr
+	}
 
 	r1 := <-this.AuthenticateAsync(this.Extend(map[string]any{
 		"type":    typeVar,
@@ -5126,7 +5124,7 @@ func (this *Binance) GetAccountTypeFromSubscriptions(subscriptions []string) str
 	}
 	return accountType
 }
-func (this *Binance) ResolveAuthType(methodName string, optionalArgs ...any) []any {
+func (this *Binance) ResolveAuthType(methodName string, optionalArgs ...any) (*string, *string, map[string]any) {
 	// the single home for user-data type derivation: market type, subType,
 	// and the guarded linear/inverse rewrite. option and stock must keep
 	// their own type, or the listenKey bucket, the endpoint dispatch and
@@ -5152,7 +5150,7 @@ func (this *Binance) ResolveAuthType(methodName string, optionalArgs ...any) []a
 	}
 	// sites consuming every element unpack this; the two that skip subType
 	// index it positionally instead, so no receiver is declared-but-unread
-	return []any{typeVar, subType, paramsSubType}
+	return typeVar, subType, paramsSubType
 }
 func (this *Binance) GetMarketType(method string, market any, optionalArgs ...any) *string {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6080,10 +6078,11 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		market = this.Market(symbol)
 		messageHash = ccxt.Add("orders:", this.Symbol(symbol))
 	}
-	typeVarsubTypeparamsValueVariable := this.ResolveAuthType("watchOrders", market, paramsStock)
-	typeVar := ccxt.GetValue(typeVarsubTypeparamsValueVariable, 0)
-	var subType *string = ccxt.SafeStringPtr(typeVarsubTypeparamsValueVariable[1])
-	var paramsValue map[string]any = typeVarsubTypeparamsValueVariable[2].(map[string]any)
+	typeVarPtr, subType, paramsValue := this.ResolveAuthType("watchOrders", market, paramsStock)
+	var typeVar any = nil
+	if typeVarPtr != nil {
+		typeVar = *typeVarPtr
+	}
 	var paramsExtended map[string]any = this.Extend(paramsValue, map[string]any{
 		"type":    typeVar,
 		"symbol":  symbolResolved,
@@ -6752,7 +6751,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 			panic(r.Err)
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash any = ""
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !this.IsEmpty(symbolsNormalized) {
@@ -6765,10 +6764,16 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var typeVar any = nil
 	var subType any = nil
 	var paramsAuth any = nil
-	typeVarsubTypeparamsAuthVariable := this.ResolveAuthType("watchPositions", market, params)
-	typeVar = ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 0)
-	subType = ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 1)
-	paramsAuth = typeVarsubTypeparamsAuthVariable[2]
+	typeVarPtr, subTypePtr, paramsAuthMap := this.ResolveAuthType("watchPositions", market, params)
+	typeVar = nil
+	if typeVarPtr != nil {
+		typeVar = *typeVarPtr
+	}
+	subType = nil
+	if subTypePtr != nil {
+		subType = *subTypePtr
+	}
+	paramsAuth = paramsAuthMap
 	// spot and margin have no positions - whatever still RESOLVES to spot
 	// or margin after the helper falls through to the derivatives stream
 	// matching the subType. requests a defaultSubType already rewrote
@@ -7372,10 +7377,11 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		market = this.Market(symbol)
 		symbolResolved = this.Symbol(symbol)
 	}
-	typeVarsubTypeparamsAuthVariable := this.ResolveAuthType("watchMyTrades", market, params)
-	typeVar := ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 0)
-	var subType *string = ccxt.SafeStringPtr(typeVarsubTypeparamsAuthVariable[1])
-	var paramsAuth map[string]any = typeVarsubTypeparamsAuthVariable[2].(map[string]any)
+	typeVarPtr, subType, paramsAuth := this.ResolveAuthType("watchMyTrades", market, params)
+	var typeVar any = nil
+	if typeVarPtr != nil {
+		typeVar = *typeVarPtr
+	}
 	var messageHash any = "myTrades"
 	var symbolParams map[string]any = map[string]any{}
 	if (symbolResolved != nil) && (market != nil) {
@@ -7483,7 +7489,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 								feeCostString = &feeCostStringValue
 							}
 							ccxt.AddElementToObject(fee, "cost", ccxt.ParseFloat(feeCostString))
-							ccxt.AddElementToObject(order, "fee", fee)
+							if order != nil {
+								order["fee"] = fee
+							}
 						} else if ccxt.IsEqual(fee["currency"], nil) {
 							if order != nil {
 								order["fee"] = tradeFee
@@ -7547,7 +7555,9 @@ func (this *Binance) HandleOrder(client any, message any) {
 			}
 			var fees any = this.SafeList(order, "fees")
 			if fees != nil {
-				ccxt.AddElementToObject(parsed, "fees", fees)
+				if parsed != nil {
+					parsed["fees"] = fees
+				}
 			}
 			parsed["trades"] = this.SafeValue(order, "trades")
 			var timestamp *int64 = this.SafeInteger(parsed, "timestamp")

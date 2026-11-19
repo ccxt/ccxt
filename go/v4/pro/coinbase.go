@@ -1480,7 +1480,7 @@ func (this *Coinbase) TryResolveUsdc(client any, messageHash string, result any)
 		client.(ccxt.ClientInterface).Resolve(result, messageHash+"C") // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
 	}
 }
-func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "subscriptions",
@@ -1525,7 +1525,7 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]an
 	}
 	return message
 }
-func (this *Coinbase) HandleHeartbeats(client any, message map[string]any) any {
+func (this *Coinbase) HandleHeartbeats(client any, message map[string]any) map[string]any {
 	// although the subscription takes a product_ids parameter (i.e. symbol),
 	// there is no (clear) way of mapping the message back to the symbol.
 	//

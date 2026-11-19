@@ -2495,16 +2495,12 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	var quote any = nil
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
-	var expiry any = nil
+	var expiry *string = nil
 	var hasSlash bool = (GetIndexOf(symbol, "/") > -1)
 	var baseName *string = this.SafeString(optionParts, 0, "")
 	if hasSlash {
 		baseName = this.SafeString(symbolBase, 0, "")
-		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
-			expiry = *derefPtr
-		} else {
-			expiry = nil
-		}
+		expiry = this.SafeString(optionParts, 1)
 		var symbolQuoteAndSettle *string = this.SafeString(symbolBase, 1)
 		if symbolQuoteAndSettle == nil {
 			panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing symbolQuoteAndSettle"))
@@ -4736,12 +4732,12 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bybit) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bybit) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bybit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4750,7 +4746,7 @@ func (this *Bybit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " fetchTrades() requires a symbol argument"))
 	}
 	if this.Markets == nil {
@@ -4902,7 +4898,7 @@ func (this *Bybit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, symbol, timestamp, "b", "a"))}
 	return nil
 }
-func (this *Bybit) ParseBalance(response any) map[string]any {
+func (this *Bybit) ParseBalance(response map[string]any) map[string]any {
 	//
 	// cross
 	//     {
@@ -8195,14 +8191,7 @@ func (this *Bybit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var networkCodePtr *string = nil
-	networkCodePtr, paramsOmited := this.HandleNetworkCodeAndParams(params)
-	networkCode := func() any {
-		if networkCodePtr != nil {
-			return *networkCodePtr
-		}
-		return nil
-	}()
+	networkCode, paramsOmited := this.HandleNetworkCodeAndParams(params)
 
 	r1 := <-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited)
 	if r1.Err != nil {
@@ -11880,7 +11869,7 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 	//         "time": 1672283754510
 	//     }
 	//
-	var liquidations any = this.AddPaginationCursorToResult(response)
+	var liquidations []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(liquidations, market, since, limit))}
 	return nil
@@ -12553,12 +12542,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], op
 	if symbols != nil {
 		symbolsLength = len(symbols)
 		if symbolsLength > 0 {
-			market = this.Market(func() any {
-				if 0 >= 0 && 0 < len(symbols) {
-					return symbols[0]
-				}
-				return nil
-			}())
+			market = this.Market(symbols[0])
 		}
 	}
 	var until *int64 = this.SafeInteger(params, "until")

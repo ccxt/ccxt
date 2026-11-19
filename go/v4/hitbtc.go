@@ -514,8 +514,8 @@ func (this *Hitbtc) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0009"),
 				"maker":      this.ParseNumber("0.0009"),
 				"tiers": map[string]any{
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("10"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0001")}, []any{this.ParseNumber("20000"), this.ParseNumber("0")}, []any{this.ParseNumber("50000"), this.ParseNumber("-0.0001")}, []any{this.ParseNumber("100000"), this.ParseNumber("-0.0001")}},
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("10"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0007")}, []any{this.ParseNumber("1000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("5000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("10000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0002")}},
+					"maker": []any{[]any{0.0, 0.0009}, []any{10.0, 0.0007}, []any{100.0, 0.0006}, []any{500.0, 0.0005}, []any{1000.0, 0.0003}, []any{5000.0, 0.0002}, []any{10000.0, 0.0001}, []any{20000.0, 0.0}, []any{50000.0, -0.0001}, []any{100000.0, -0.0001}},
+					"taker": []any{[]any{0.0, 0.0009}, []any{10.0, 0.0008}, []any{100.0, 0.0007}, []any{500.0, 0.0007}, []any{1000.0, 0.0006}, []any{5000.0, 0.0006}, []any{10000.0, 0.0005}, []any{20000.0, 0.0004}, []any{50000.0, 0.0003}, []any{100000.0, 0.0002}},
 				},
 			},
 		},
@@ -1556,12 +1556,12 @@ func (this *Hitbtc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Hitbtc) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Hitbtc) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1585,7 +1585,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	if since != nil {
 		request["from"] = since
 	}
-	if !IsEqual(symbol, nil) {
+	if true {
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 

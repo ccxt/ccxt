@@ -2134,7 +2134,7 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook ccxt.
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	return orderbook
 }
-func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
+func (this *Okx) HandleOrderBook(client any, message map[string]any) map[string]any {
 	//
 	// snapshot
 	//
@@ -3549,7 +3549,7 @@ func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
 	var data []any = this.SafeListSlice(message, "data", []any{})
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
-func (this *Okx) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Okx) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
 	//

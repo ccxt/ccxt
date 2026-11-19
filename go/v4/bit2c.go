@@ -263,8 +263,8 @@ func (this *Bit2c) Describe() map[string]any {
 				"maker":      this.ParseNumber("0.025"),
 				"taker":      this.ParseNumber("0.03"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.03")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0275")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.025")}, []any{this.ParseNumber("75000"), this.ParseNumber("0.0225")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.015")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0125")}, []any{this.ParseNumber("750000"), this.ParseNumber("0.01")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.008")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.006")}, []any{this.ParseNumber("3000000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("4000000"), this.ParseNumber("0.002")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.025")}, []any{this.ParseNumber("20000"), this.ParseNumber("0.0225")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.02")}, []any{this.ParseNumber("75000"), this.ParseNumber("0.0175")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.015")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.01")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0075")}, []any{this.ParseNumber("750000"), this.ParseNumber("0.005")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("2000000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("3000000"), this.ParseNumber("0.002")}, []any{this.ParseNumber("4000000"), this.ParseNumber("0.001")}},
+					"taker": []any{[]any{0.0, 0.03}, []any{20000.0, 0.0275}, []any{50000.0, 0.025}, []any{75000.0, 0.0225}, []any{100000.0, 0.02}, []any{250000.0, 0.015}, []any{500000.0, 0.0125}, []any{750000.0, 0.01}, []any{1000000.0, 0.008}, []any{2000000.0, 0.006}, []any{3000000.0, 0.004}, []any{4000000.0, 0.002}},
+					"maker": []any{[]any{0.0, 0.025}, []any{20000.0, 0.0225}, []any{50000.0, 0.02}, []any{75000.0, 0.0175}, []any{100000.0, 0.015}, []any{250000.0, 0.01}, []any{500000.0, 0.0075}, []any{750000.0, 0.005}, []any{1000000.0, 0.004}, []any{2000000.0, 0.003}, []any{3000000.0, 0.002}, []any{4000000.0, 0.001}},
 				},
 			},
 		},
@@ -345,7 +345,7 @@ func (this *Bit2c) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bit2c) ParseBalance(response any) map[string]any {
+func (this *Bit2c) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -607,12 +607,12 @@ func (this *Bit2c) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bit2c) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bit2c) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
