@@ -10310,6 +10310,39 @@ function goGuardedReadLenBounds (maskedLines: string[], blocks: any[], depth: nu
     return names;
 }
 
+// locals that only ever hold 0 or len(container) (`var n int = 0; if c != nil { n = len(c) }`):
+// n <= len(container) at every point, so a lower bound on n is one on len (never an emptiness proof)
+function goGuardedReadAtMostLenBounds (maskedLines: string[], fn: any, container: string): string[] {
+    const c = goAccessEscape (container);
+    const names: string[] = [];
+    const declRx = /^[ \t]*(?:var ([A-Za-z_]\w*) int(?: = 0)?|([A-Za-z_]\w*) := 0)[ \t]*$/;
+    for (let k = fn.open + 1; k < fn.close; k++) {
+        const m = declRx.exec (maskedLines[k]);
+        const name = (m === null) ? undefined : (m[1] ?? m[2]);
+        if ((name === undefined) || names.includes (name) || (name === container)) {
+            continue;
+        }
+        const assign = new RegExp ('^[ \\t]*' + name + ' = (?:0|len\\(' + c + '\\))[ \\t]*$');
+        let decls = 0;
+        let sets = 0;
+        let ok = true;
+        for (let j = fn.open + 1; (j < fn.close) && ok; j++) {
+            const line = maskedLines[j];
+            if (declRx.exec (line)?.slice (1).includes (name)) {
+                decls += 1;
+            } else if (assign.test (line)) {
+                sets += (line.indexOf ('len(') >= 0) ? 1 : 0;
+            } else if (goTextWritesName (line, name)) {
+                ok = false;
+            }
+        }
+        if (ok && (decls === 1) && (sets > 0)) {
+            names.push (name);
+        }
+    }
+    return names;
+}
+
 // `key` is a valid index into `container` when this conjunct holds; `bounds` are locals
 // equal to len(container)
 function goGuardedReadInRangeClause (clause: string, container: string, key: string, bounds: string[]): boolean {
@@ -10369,7 +10402,8 @@ function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: nu
         // any non-negative literal start keeps the counter in [0, len)
         const loop = /^[ \t]*for ([A-Za-z_]\w*) := \d+; \1 < (.+); \1\+\+ \{$/.exec (header);
         if ((loop !== null) && (loop[1] === key)) {
-            if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, block, loop[2].trim (), container, [ key ])) {
+            if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, block, loop[2].trim (), container, [ key ])
+                && !((loop[2].trim () !== key) && goGuardedReadAtMostLenBounds (maskedLines, fn, container).includes (loop[2].trim ()))) {
                 return false;
             }
             // `goTextWritesName` reads the `&&` of a `&& i < len(x)` condition as an
@@ -10384,7 +10418,7 @@ function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: nu
         }
         const condition = /^[ \t]*if (.*) \{$/.exec (header);
         if (condition !== null) {
-            const bounds = goGuardedReadLenBounds (maskedLines, blocks, depth, fn, block, container);
+            const bounds = [ ...goGuardedReadLenBounds (maskedLines, blocks, depth, fn, block, container), ...goGuardedReadAtMostLenBounds (maskedLines, fn, container) ];
             const clauses = goMapWriteTopLevelParts (condition[1], '&&');
             if (clauses.some ((clause: string) => (clause.indexOf ('||') < 0) && goGuardedReadInRangeClause (clause, container, key, bounds))) {
                 return true;
@@ -10551,6 +10585,14 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     const last = (cond: string) => g ('\tvar xs []any = SafeListTyped(p, "k")\n\tvar n int = len(xs)\n\tif ' + cond + ' {\n' + read ('n-1', 'xs', '').replace (/^/gm, '\t') + '\t}\n');
     ok (last ('n > 0').indexOf ('var m any = xs[n-1]') >= 0, 'len-1 under len > 0 is in range');
     ok (last ('n > 0 && p != nil').indexOf ('var m any = xs[n-1]') >= 0, 'len-1 under an && conjunct len > 0 is in range');
+    const atMost = (set: string, cond: string, index: string) => g ('\tvar xs []string = this.MarketSymbols(s)\n\tvar n int = 0\n\tif xs != nil {\n\t\t' + set + '\n\t}\n\tif ' + cond + ' {\n' + read (index, 'xs', '').replace (/^/gm, '\t') + '\t}\n');
+    ok (atMost ('n = len(xs)', 'n == 1', '0').indexOf ('var m any = xs[0]') >= 0, 'a 0-or-len local bounds len from below');
+    ok (atMost ('n = len(xs)', 'n == 1', '1').indexOf ('func() any {') >= 0, 'a 0-or-len local does not prove past its bound');
+    ok (atMost ('n = len(xs) + 1', 'n == 1', '0').indexOf ('func() any {') >= 0, 'any other write keeps the literal');
+    ok (atMost ('n = len(ys)', 'n > 0', '0').indexOf ('func() any {') >= 0, 'the length of another list proves nothing');
+    const atMostLoop = (set: string) => g ('\tvar xs []string = this.MarketSymbols(s)\n\tvar n int = 0\n\tif xs != nil {\n\t\t' + set + '\n\t}\n\tfor i := 0; i < n; i++ {\n' + read ('i', 'xs', '').replace (/^/gm, '\t') + '\t}\n');
+    ok (atMostLoop ('n = len(xs)').indexOf ('var m any = xs[i]') >= 0, 'a loop to a 0-or-len local is in range');
+    ok (atMostLoop ('n = 5').indexOf ('func() any {') >= 0, 'a loop to a literal-set local stays guarded');
     ok (last ('n >= 0').indexOf ('func() any {') >= 0, 'len-1 under len >= 0 stays guarded');
     const wired = formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n' + lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n\treturn nil\n}\n');
     ok (wired.indexOf ('var m any = markets[0]') >= 0, 'wired into formatGoSource: ' + wired);
