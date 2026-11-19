@@ -13788,9 +13788,13 @@ ${constStatements.join('\n')}
                 'FetchPositionsHistory', 'FetchTrades', 'FetchOrders', 'FetchClosedOrders', 'FetchOHLCV', 'FetchTradingFee', 'FetchMyTrades', 'CreateOrders', 'CancelOrders',
                 'WatchMyTrades', 'WatchOHLCV', 'WatchOrders', 'WatchPositions', 'WatchTrades', 'FetchOrderBook', 'FetchStatus' ].join ('|')})${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
             // hand-written in go/v4 (exchange_safe.go *float64 SafeNumber*, exchange_market_type.go
-            // Handle*AndParams pairs and MarketSymbols, exchange_misc.go ImplodeHostname): drop the copies
+            // Handle*AndParams pairs, MarketSymbols and MarketCodes, exchange_misc.go ImplodeHostname): drop the copies
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOptionAndParams2?', 'HandleOption(?:Bool|Integer)AndParams2?',
+<<<<<<< merged
                 'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'MarketSymbols', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+=======
+                'HandleOptionStringAndParams2', 'HandleUntilOption', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+>>>>>>> G05
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*

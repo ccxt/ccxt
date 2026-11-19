@@ -166,6 +166,20 @@ func (this *BaseExchange) HandleOptionBoolAndParams2Nullable(params any, methodN
 	return this.CheckOptionBool(methodName, optionName1, value), newParams
 }
 
+// MarketCodes is ts/src/base/Exchange.ts marketCodes with its Strings result typed:
+// absent input answers a nil slice, every element is the common currency code.
+func (this *BaseExchange) MarketCodes(optionalArgs ...any) []any {
+	codes := GetArg(optionalArgs, 0, nil)
+	if codes == nil {
+		return nil
+	}
+	var result []any = []any{}
+	for i := 0; i < GetArrayLength(codes); i++ {
+		result = append(result, this.CommonCurrencyCode(GetValue(codes, i)))
+	}
+	return result
+}
+
 // MarketSymbols is ts/src/base/Exchange.ts marketSymbols with its string[] result typed:
 // absent input answers a nil slice, every element is the resolved market's symbol.
 func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
