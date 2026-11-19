@@ -1505,7 +1505,7 @@ export default class hitbtc extends Exchange {
         }, marketResolved);
     }
 
-    async fetchTransactionsHelper (types: Str, code: Str, since: Int, limit: Int, params: Dict): Promise<Transaction[]> {
+    async fetchTransactionsHelper (types: Str, code: Str, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
