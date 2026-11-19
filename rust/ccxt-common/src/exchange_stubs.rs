@@ -1176,7 +1176,7 @@ impl Exchange {
     /// `super.X(...)` from derived exchanges — routes back to the base
     /// Exchange impl. These stubs return Value::Null; they exist so
     /// transpiled `self.super_X()` calls type-check.
-    pub fn super_currency(&self, _code: Value) -> Value {
+    pub fn super_currency(&self, _code: Option<&str>) -> Value {
         Value::Null
     }
     pub fn super_handle_errors(
