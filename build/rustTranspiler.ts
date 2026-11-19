@@ -6608,11 +6608,35 @@ function typeDictPushLists(content: string): string {
     return content;
 }
 
+// Write-time passes over one generated Rust file, applied top to bottom; splitLongRustLines stays last.
+const RUST_WRITE_PASSES: Array<(content: string) => string> = [
+    borrowLiteralBoxes,
+    typedUrlsField,
+    typedBaseDictFields,
+    typedBalanceField,
+    lendMergeOperands,
+    lendOptionalArgs,
+    moveLocalsAtLastUse,
+    lendScalarArgs,
+    moveSelfReassignOperands,
+    lendWsBaseClient,
+    mutSelfFieldStoreBacks,
+    typeHandleOptionTuples,
+    typePredictionPositionsList,
+    typeFilterSliceLists,
+    typeParseListReturns,
+    typeDictPushLists,
+    splitLongRustLines,
+];
+function applyRustWritePasses(content: string): string {
+    return RUST_WRITE_PASSES.reduce((out, pass) => pass(out), content);
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(typeDictPushLists(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(lendScalarArgs(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))))));
+    content = applyRustWritePasses(content);
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -13253,7 +13277,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(typeDictPushLists(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(lendScalarArgs(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))))));
+        fs.writeFileSync(outFile, applyRustWritePasses(finalFile));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
