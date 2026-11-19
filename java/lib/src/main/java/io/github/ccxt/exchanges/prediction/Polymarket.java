@@ -3895,7 +3895,7 @@ public class Polymarket extends PolymarketApi
         {
             return;
         }
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
+        if (!(this.orderbooks.containsKey(outcome)))
         {
             io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});
             this.orderbooks.put(outcome, seededBook);
@@ -3940,7 +3940,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> change = this.safeDict(changes, i, null);
             String tokenId = this.safeString(change, "asset_id");
             String outcome = this.tokenIdToSymbol((String) (tokenId));
-            if ((java.util.Objects.equals(outcome, null)) || !(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
+            if ((java.util.Objects.equals(outcome, null)) || !(this.orderbooks.containsKey(outcome)))
             {
                 continue;
             }
@@ -4098,7 +4098,7 @@ public class Polymarket extends PolymarketApi
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(outcomeValue)))
+            if (!(this.orderbooks.containsKey(outcomeValue)))
             {
                 io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(outcomeValue, null))

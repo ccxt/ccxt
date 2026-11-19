@@ -470,7 +470,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         List<Object> splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("."))));
         String messageHashStart = this.safeString(splitMethod, 0);
         Map<String, Object> tickerData = this.safeDict(data, 1, null);
-        Object ticker = null;
+        Map<String, Object> ticker = null;
         if (java.util.Objects.equals(method, "price.update"))
         {
             String lastPrice = this.safeString(data, 1);

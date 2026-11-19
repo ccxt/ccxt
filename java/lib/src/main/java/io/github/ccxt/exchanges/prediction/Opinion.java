@@ -2223,7 +2223,7 @@ public class Opinion extends OpinionApi
         {
             return;
         }
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(sym)))
+        if (!(this.orderbooks.containsKey(sym)))
         {
             // the delta belongs to the market's other token, whose book is not being watched
             return;

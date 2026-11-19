@@ -2042,24 +2042,24 @@ public class Backpack extends BackpackApi
                 limitResolved = windowLimit;
             }
             Long now = this.milliseconds();
-            Object startTime = since;
-            Object untilValue = until;
+            Long startTime = since;
+            Long untilValue = until;
             if (java.util.Objects.equals(startTime, null))
             {
                 if (java.util.Objects.equals(untilValue, null))
                 {
                     untilValue = now;
                 }
-                startTime = Helpers.subtract(untilValue, ((windowLimit * duration)));
+                startTime = (untilValue == null ? null : untilValue - (windowLimit * duration));
             }
             request.put("startTime", this.parseToInt((startTime == null ? null : ((Number) startTime).doubleValue() / ((double) 1000))));
             // set until value
             if (java.util.Objects.equals(untilValue, null))
             {
-                Object windowEnd = this.sum(startTime, (windowLimit * duration));
-                untilValue = (now == null ? null : (((Number) now).doubleValue() < ((Number) windowEnd).doubleValue() ? (Object) (now) : (Object) (windowEnd)));
+                Long windowEnd = this.sum(startTime, (windowLimit * duration));
+                untilValue = Math.min(now, windowEnd);
             }
-            request.put("endTime", this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(untilValue, 1000)));
+            request.put("endTime", this.parseToInt((untilValue == null ? null : ((double) untilValue) / ((double) 1000))));
             String price = this.safeString(paramsUntil, "price");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
             if (!java.util.Objects.equals(price, null))

@@ -2707,10 +2707,10 @@ public class Tokocrypto extends TokocryptoApi
             {
                 request.put("startTime", since);
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                Object endTime = this.sum(since, 7776000000L);
+                Long endTime = this.sum(since, 7776000000L);
                 if (!java.util.Objects.equals(until, null))
                 {
-                    endTime = (endTime == null || until == null ? null : (((Number) endTime).doubleValue() < ((Number) until).doubleValue() ? (Object) (endTime) : (Object) (until)));
+                    endTime = (endTime == null ? null : Math.min(endTime, until));
                 }
                 request.put("endTime", endTime);
             }

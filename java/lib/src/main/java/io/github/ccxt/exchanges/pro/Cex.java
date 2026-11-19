@@ -1062,7 +1062,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             return null;
         }
         var precise = new Precise(amount);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger(new ArrayList<Object>(Arrays.asList(scale)), 0, 0));
         precise.reduce();
         return String.valueOf(precise);
     }
@@ -1192,7 +1192,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
         // after a re-subscription snapshot
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }

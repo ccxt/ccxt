@@ -1288,7 +1288,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Long depth = this.parseToInt(((((asksLength != null && (limit == null || asksLength > limit))))) ? asksLength : limit);
             Map<String, Object> depths = this.safeDict(this.options, "wsOrderBookDepths", new HashMap<String, Object>() {{}});
             Long storedDepth = this.safeInteger(depths, symbol);
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedDepth, depth)))
+            if (!(this.orderbooks.containsKey(symbol)) || (!java.util.Objects.equals(storedDepth, depth)))
             {
                 // rebuild only on the first snapshot or when the depth changes,
                 // e.g. a re-subscription with a different limit
@@ -1355,7 +1355,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
                 client.subscriptions.remove((String)messageHash);
-                ((Map<String,Object>)this.orderbooks).remove(symbol);
+                this.orderbooks.remove(symbol);
                 client.reject(error, messageHash);
                 return;
             }

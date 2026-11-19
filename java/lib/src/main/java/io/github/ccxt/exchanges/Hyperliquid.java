@@ -881,7 +881,7 @@ public class Hyperliquid extends HyperliquidApi
      */
     public Object calculatePricePrecision(Object price, Object amountPrecision, Object maxDecimals)
     {
-        Object pricePrecision = 0;
+        Long pricePrecision = 0L;
         String priceStr = this.numberToString(price);
         if (java.util.Objects.equals(priceStr, null))
         {
@@ -911,7 +911,7 @@ public class Hyperliquid extends HyperliquidApi
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (leadingZeros + ((long) significantDigits));
             // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(decimalsLeft, pricePrecision);
+            pricePrecision = (decimalsLeft == null || pricePrecision == null ? null : Math.min(decimalsLeft, pricePrecision));
         } else
         {
             // Count the numbers before the decimal separator

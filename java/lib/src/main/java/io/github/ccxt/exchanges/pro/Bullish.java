@@ -406,7 +406,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String messageHash = ("orderbook::" + symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }

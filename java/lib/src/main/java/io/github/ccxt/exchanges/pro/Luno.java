@@ -271,7 +271,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         String symbol = this.safeString(subscription, "symbol", "");
         String messageHash = ("orderbook:" + symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }

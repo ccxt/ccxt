@@ -848,7 +848,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String prec = this.safeString(subscription, "prec", "P0");
         Boolean isRaw = (java.util.Objects.equals(prec, "R0"));
         // if it is an initial snapshot
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             Long limit = this.safeInteger(subscription, "len");
             if (Boolean.TRUE.equals(isRaw))
@@ -973,7 +973,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         if (!java.util.Objects.equals(responseChecksum, localChecksum))
         {
             client.subscriptions.remove(messageHash);
-            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
             boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
             if (checksum)
             {

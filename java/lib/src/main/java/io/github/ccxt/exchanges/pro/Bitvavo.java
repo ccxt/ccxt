@@ -985,7 +985,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             // in that case the buffered delta message identifies the market
             String marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
             String snapshotSymbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(snapshotSymbol)))
+            if (!(this.orderbooks.containsKey(snapshotSymbol)))
             {
                 // this snapshot fetch was scheduled before an unsubscribe removed the
                 // order book - skip it so the getBook request is not sent for a dead market
@@ -1067,7 +1067,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Long limit = this.safeInteger(subscription, "limit");
         Map<String, Object> limits = this.safeDict(this.options, "orderBookLimits", new HashMap<String, Object>() {{}});
         Long storedLimit = this.safeInteger(limits, symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedLimit, limit)))
+        if (!(this.orderbooks.containsKey(symbol)) || (!java.util.Objects.equals(storedLimit, limit)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             limits.put(symbol, limit);
@@ -1086,7 +1086,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String marketId = this.safeString(marketIds, i);
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
             String messageHash = ((name + "@") + this.safeString(marketIds, i, ""));
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 Object subscription = this.safeValue(client.subscriptions, messageHash);
                 Object method = this.safeValue(subscription, "method");

@@ -649,8 +649,8 @@ public class Weex extends WeexApi
                     put( "taker", Weex.this.parseNumber("0.1") );
                     put( "maker", Weex.this.parseNumber("0.1") );
                     put( "tiers", new HashMap<String, Object>() {{
-                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.09"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.06"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
-                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.07"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.01"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.1)), new ArrayList<Object>(Arrays.asList(500000.0, 0.09)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.08)), new ArrayList<Object>(Arrays.asList(2000000.0, 0.06)), new ArrayList<Object>(Arrays.asList(5000000.0, 0.05)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.04)), new ArrayList<Object>(Arrays.asList(25000000.0, 0.03)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.02)), new ArrayList<Object>(Arrays.asList(100000000.0, 0.0)))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.1)), new ArrayList<Object>(Arrays.asList(500000.0, 0.08)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.07)), new ArrayList<Object>(Arrays.asList(2000000.0, 0.05)), new ArrayList<Object>(Arrays.asList(5000000.0, 0.04)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.03)), new ArrayList<Object>(Arrays.asList(25000000.0, 0.02)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.01)), new ArrayList<Object>(Arrays.asList(100000000.0, 0.0)))) );
                     }} );
                 }} );
                 put( "spot", new HashMap<String, Object>() {{
@@ -660,8 +660,8 @@ public class Weex extends WeexApi
                     put( "taker", Weex.this.parseNumber("0.1") );
                     put( "maker", Weex.this.parseNumber("0.1") );
                     put( "tiers", new HashMap<String, Object>() {{
-                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.09"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.06"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
-                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.07"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("2000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.03"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("25000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.01"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0"))))) );
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.1)), new ArrayList<Object>(Arrays.asList(500000.0, 0.09)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.08)), new ArrayList<Object>(Arrays.asList(2000000.0, 0.06)), new ArrayList<Object>(Arrays.asList(5000000.0, 0.05)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.04)), new ArrayList<Object>(Arrays.asList(25000000.0, 0.03)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.02)), new ArrayList<Object>(Arrays.asList(100000000.0, 0.0)))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.1)), new ArrayList<Object>(Arrays.asList(500000.0, 0.08)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.07)), new ArrayList<Object>(Arrays.asList(2000000.0, 0.05)), new ArrayList<Object>(Arrays.asList(5000000.0, 0.04)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.03)), new ArrayList<Object>(Arrays.asList(25000000.0, 0.02)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.01)), new ArrayList<Object>(Arrays.asList(100000000.0, 0.0)))) );
                     }} );
                 }} );
                 put( "contract", new HashMap<String, Object>() {{
@@ -671,8 +671,8 @@ public class Weex extends WeexApi
                     put( "taker", Weex.this.parseNumber("0.08") );
                     put( "maker", Weex.this.parseNumber("0.02") );
                     put( "tiers", new HashMap<String, Object>() {{
-                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.075"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.06"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.055"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("30000000"), Weex.this.parseNumber("0.05"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.048"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0.045"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("300000000"), Weex.this.parseNumber("0.042"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000000"), Weex.this.parseNumber("0.04"))))) );
-                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("0"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("1000000"), Weex.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("5000000"), Weex.this.parseNumber("0.018"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("10000000"), Weex.this.parseNumber("0.018"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("30000000"), Weex.this.parseNumber("0.016"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("50000000"), Weex.this.parseNumber("0.016"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("100000000"), Weex.this.parseNumber("0.014"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("300000000"), Weex.this.parseNumber("0.012"))), new ArrayList<Object>(Arrays.asList(Weex.this.parseNumber("500000000"), Weex.this.parseNumber("0.01"))))) );
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.08)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.075)), new ArrayList<Object>(Arrays.asList(5000000.0, 0.06)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.055)), new ArrayList<Object>(Arrays.asList(30000000.0, 0.05)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.048)), new ArrayList<Object>(Arrays.asList(100000000.0, 0.045)), new ArrayList<Object>(Arrays.asList(300000000.0, 0.042)), new ArrayList<Object>(Arrays.asList(500000000.0, 0.04)))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.02)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.02)), new ArrayList<Object>(Arrays.asList(5000000.0, 0.018)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.018)), new ArrayList<Object>(Arrays.asList(30000000.0, 0.016)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.016)), new ArrayList<Object>(Arrays.asList(100000000.0, 0.014)), new ArrayList<Object>(Arrays.asList(300000000.0, 0.012)), new ArrayList<Object>(Arrays.asList(500000000.0, 0.01)))) );
                     }} );
                 }} );
             }} );
@@ -1935,8 +1935,8 @@ public class Weex extends WeexApi
                     request.put("priceType", priceType);
                 }
                 Long now = this.milliseconds();
-                Object startTime = since;
-                Object endTime = now;
+                Long startTime = since;
+                Long endTime = now;
                 if (!java.util.Objects.equals(until, null))
                 {
                     endTime = until;
@@ -1971,7 +1971,7 @@ public class Weex extends WeexApi
                     }
                 }
                 // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-                if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endTime, now))
+                if ((endTime != null && (now == null || endTime > now)))
                 {
                     endTime = now;
                 }
@@ -4499,13 +4499,13 @@ public class Weex extends WeexApi
             if (Boolean.TRUE.equals(sandboxMode))
             {
                 // the demo trading API does not provide a single-position endpoint
-                return (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
+                return (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = (this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters))).join();
-            return this.parsePositions(response, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), new HashMap<String, Object>() {{}});
+            return this.parsePositions(response, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -5125,7 +5125,7 @@ public class Weex extends WeexApi
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Long type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5146,7 +5146,7 @@ public class Weex extends WeexApi
             request.put("amount", this.costToPrecision(symbol, amount));
             request.put("type", type);
             String parsedType = "reduce";
-            if (Helpers.isEqual(type, 1))
+            if ((type != null && type == 1))
             {
                 parsedType = "add";
             }
@@ -5207,7 +5207,7 @@ public class Weex extends WeexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper((String) (symbol), amount, 2, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 2L, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5228,7 +5228,7 @@ public class Weex extends WeexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper((String) (symbol), amount, 1, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 1L, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }

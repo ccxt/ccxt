@@ -610,7 +610,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
         // after a re-subscription snapshot
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }

@@ -407,7 +407,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }};
         Long timestamp = this.safeInteger(entry, "time");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz", 2);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
             this.orderbooks.put(symbol, ob);
@@ -2053,9 +2053,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String subMessageHash = ("orderbook:" + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (this.orderbooks.containsKey(symbol))
         {
-            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
         }
     }
 

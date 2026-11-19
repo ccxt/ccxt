@@ -924,13 +924,13 @@ public class Deepcoin extends DeepcoinApi
                     // we calculate until (after) for correct pagination
                     int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                     Long numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
-                    Object endTime = this.parseToInt((since + (((duration * numberOfCandles)) * 1000L)));
+                    Long endTime = this.parseToInt((since + (((duration * numberOfCandles)) * 1000L)));
                     if (!java.util.Objects.equals(until, null))
                     {
-                        endTime = (endTime == null || until == null ? null : (((Number) endTime).doubleValue() < ((Number) until).doubleValue() ? (Object) (endTime) : (Object) (until)));
+                        endTime = (endTime == null ? null : Math.min(endTime, until));
                     }
                     Long now = this.milliseconds();
-                    request.put("after", (endTime == null || now == null ? null : (((Number) endTime).doubleValue() < ((Number) now).doubleValue() ? (Object) (endTime) : (Object) (now))));
+                    request.put("after", (endTime == null ? null : Math.min(endTime, now)));
                 }
             }
             Map<String, Object> response = null;

@@ -315,7 +315,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         String datetime = this.safeString(message, "t");
         Long timestamp = this.parse8601(datetime);
         Boolean isSnapshot = (Boolean) this.safeBool(message, "r", false);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }

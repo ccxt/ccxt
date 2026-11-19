@@ -252,7 +252,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + market.get("symbol"));
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(market.get("symbol"))))
+            if (!(this.orderbooks.containsKey(market.get("symbol"))))
             {
                 OrderBook snapshot = (this.fetchOrderBook(symbol, limit, new HashMap<String, Object>() {{}})).join();
                 this.orderbooks.put((String)market.get("symbol"), this.orderBook(snapshot, limit));
@@ -314,7 +314,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 String messageHash = ("orderbook:" + market.get("symbol"));
                 ((List<Object>)markets).add(market);
                 messageHashes.add(messageHash);
-                if (!(((Map<?, ?>)this.orderbooks).containsKey(market.get("symbol"))))
+                if (!(this.orderbooks.containsKey(market.get("symbol"))))
                 {
                     OrderBook snapshot = (this.fetchOrderBook(symbol, limit, new HashMap<String, Object>() {{}})).join();
                     this.orderbooks.put((String)market.get("symbol"), this.orderBook(snapshot, limit));
@@ -2079,7 +2079,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String marketId = this.safeString(message, "product_id");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             return;
         }
@@ -2106,7 +2106,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 client.subscriptions.remove(messageHash);
             }
-            ((Map<String,Object>)this.orderbooks).remove(symbol);
+            this.orderbooks.remove(symbol);
             var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);
             return;
@@ -2232,9 +2232,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         } else if ((((String)messageHash).indexOf("orderbook:") == 0))
         {
             String symbol = (messageHash == null ? null : ((String)messageHash).replaceFirst("orderbook:", ""));
-            if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+            if (this.orderbooks.containsKey(symbol))
             {
-                ((Map<String,Object>)this.orderbooks).remove(symbol);
+                this.orderbooks.remove(symbol);
             }
         } else if ((((String)messageHash).indexOf("ohlcv:") == 0))
         {

@@ -1181,7 +1181,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         if (Boolean.TRUE.equals(incrementalBook))
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 // const ob = this.orderBook ({});
                 io.github.ccxt.ws.WsOrderBook.CountedOrderBook ob = this.countedOrderBook(new HashMap<String, Object>() {{}});
@@ -1246,7 +1246,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             // holds a reference to the old object and would never see updates
             // after this snapshot (every frame of the non-incremental channels
             // is a full snapshot)
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
             }
@@ -3508,9 +3508,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String symbol = (String) market.get("symbol");
         String messageHash = ("unsubscribe:orderbook:" + this.safeString(market, "symbol", ""));
         String subMessageHash = ("orderbook:" + symbol);
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (this.orderbooks.containsKey(symbol))
         {
-            ((Map<String,Object>)this.orderbooks).remove(symbol);
+            this.orderbooks.remove(symbol);
         }
         if (client.subscriptions.containsKey(subMessageHash))
         {

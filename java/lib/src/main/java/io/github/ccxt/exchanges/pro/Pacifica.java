@@ -713,7 +713,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             snapshot.put("nonce", nonce);
         }
         String messageHash = ("orderbook:" + symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
             this.orderbooks.put(symbol, ob);
@@ -1664,9 +1664,9 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String subMessageHash = ("orderbook:" + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (this.orderbooks.containsKey(symbol))
         {
-            ((Map<String,Object>)this.orderbooks).remove(symbol);
+            this.orderbooks.remove(symbol);
         }
     }
 

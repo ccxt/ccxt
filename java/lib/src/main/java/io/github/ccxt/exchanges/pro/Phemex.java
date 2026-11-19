@@ -79,7 +79,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             return null;
         }
         var precise = new Precise(en);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger(new ArrayList<Object>(Arrays.asList(scale)), 0, 0));
         precise.reduce();
         return String.valueOf(precise);
     }
@@ -1044,7 +1044,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
             // after a re-subscription snapshot
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
             }
@@ -1053,7 +1053,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             client.resolve(orderbook, messageHash);
         } else
         {
-            if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+            if (this.orderbooks.containsKey(symbol))
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 Map<String, Object> changes = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});

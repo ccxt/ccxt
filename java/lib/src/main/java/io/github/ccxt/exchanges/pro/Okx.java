@@ -1828,7 +1828,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             client.subscriptions.remove((String)messageHash);
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
             }
             client.reject(error, messageHash);
             return orderbook;
@@ -1952,7 +1952,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 // reset the existing orderbook instead of replacing it: a consumer
                 // holds a reference to the old object and would never see updates
                 // after a re-subscription snapshot
-                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                if (!(this.orderbooks.containsKey(symbol)))
                 {
                     this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
@@ -1972,7 +1972,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
         } else if (java.util.Objects.equals(action, "update"))
         {
-            if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+            if (this.orderbooks.containsKey(symbol))
             {
                 io.github.ccxt.ws.WsOrderBook updatedBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 for (var i = 0; i < data.size(); i++)
@@ -1995,7 +1995,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             // channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.subscriptions)
             if (client.subscriptions.containsKey(messageHash))
             {
-                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                if (!(this.orderbooks.containsKey(symbol)))
                 {
                     this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
@@ -3388,9 +3388,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String subMessageHash = ((channel + ":") + symbol);
         String messageHash = ("unsubscribe:orderbook:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (this.orderbooks.containsKey(symbol))
         {
-            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
         }
     }
 

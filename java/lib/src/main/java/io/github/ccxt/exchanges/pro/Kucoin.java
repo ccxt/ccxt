@@ -1992,7 +1992,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         // let orderbook = this.safeDict (this.orderbooks, symbol);
         if (((String)topic).indexOf("Depth") >= 0)
         {
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 this.orderbooks.put(symbol, this.orderBook());
             } else
@@ -2000,10 +2000,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 orderbook.reset(null);
             }
-            Helpers.addElementToObject(((Map<?, ?>)this.orderbooks).get(symbol), "symbol", symbol);
+            this.orderbooks.get(symbol).put("symbol", symbol);
         } else
         {
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 this.orderbooks.put(symbol, this.orderBook());
             }
@@ -2067,7 +2067,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeIntegerProduct(data, "M", 0.000001);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }
@@ -2211,7 +2211,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Long storedLimit = this.safeInteger(limits, symbol);
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
-            if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))) || (!java.util.Objects.equals(storedLimit, limit)))
+            if (!((symbol != null && this.orderbooks.containsKey(symbol))) || (!java.util.Objects.equals(storedLimit, limit)))
             {
                 ((Map<Object, Object>) (Map<?, ?>) this.orderbooks).put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             } else

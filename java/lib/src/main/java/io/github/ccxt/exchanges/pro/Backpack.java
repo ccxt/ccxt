@@ -408,9 +408,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             } else if (((String)messageHash).indexOf("orderbook") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:orderbook:", "");
-                if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+                if (this.orderbooks.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.orderbooks).remove(symbol);
+                    this.orderbooks.remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("trades") >= 0)
             {
@@ -1341,7 +1341,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 Map<String, Object> market = this.market(symbol);
                 this.wsVenueMarketId("watchOrderBookForSymbols", market, query);
                 topics.add(("depth." + this.safeString(market, "id", "")));
-                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                if (!(this.orderbooks.containsKey(symbol)))
                 {
                     this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
@@ -1433,7 +1433,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }

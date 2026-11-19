@@ -1306,7 +1306,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) market.get("symbol");
         String messageHash = ("orderbook::" + symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             //
             // https://github.com/ccxt/ccxt/issues/6672
@@ -1401,9 +1401,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
             } catch(Exception e)
             {
-                if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+                if (this.orderbooks.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.orderbooks).remove(symbol);
+                    this.orderbooks.remove(symbol);
                 }
                 if (client.subscriptions.containsKey(messageHash))
                 {
@@ -1425,7 +1425,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         for (var i = 0; i < symbols.size(); i++)
         {
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
+            if (!((symbol != null && this.orderbooks.containsKey(symbol))))
             {
                 ((Map<Object, Object>) (Map<?, ?>) this.orderbooks).put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
@@ -4946,7 +4946,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String messageHash = this.safeString(message, "id");
         Map<String, Object> result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Map<String, Object> newSpotOrder = this.safeDict(result, "newOrderResponse", null);
-        Object order = null;
+        Map<String, Object> order = null;
         if (!java.util.Objects.equals(newSpotOrder, null))
         {
             order = this.parseOrder(newSpotOrder, (Map<String, Object>) null);

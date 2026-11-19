@@ -1129,7 +1129,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String datetime = this.safeString(message, "TS");
         Long timestamp = this.parse8601(datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }

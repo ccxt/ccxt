@@ -549,8 +549,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "tiers", new HashMap<String, Object>() {{
-                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("0"), Coinbaseinternational.this.parseNumber("0.004"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("1000000"), Coinbaseinternational.this.parseNumber("0.004"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("5000000"), Coinbaseinternational.this.parseNumber("0.0035"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("10000000"), Coinbaseinternational.this.parseNumber("0.0035"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("50000000"), Coinbaseinternational.this.parseNumber("0.003"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("250000000"), Coinbaseinternational.this.parseNumber("0.0025"))))) );
-                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("0"), Coinbaseinternational.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("1000000"), Coinbaseinternational.this.parseNumber("0.0016"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("5000000"), Coinbaseinternational.this.parseNumber("0.001"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("10000000"), Coinbaseinternational.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("50000000"), Coinbaseinternational.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Coinbaseinternational.this.parseNumber("250000000"), Coinbaseinternational.this.parseNumber("0"))))) );
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.004)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.004)), new ArrayList<Object>(Arrays.asList(5000000.0, 0.0035)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.0035)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.003)), new ArrayList<Object>(Arrays.asList(250000000.0, 0.0025)))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(0.0, 0.002)), new ArrayList<Object>(Arrays.asList(1000000.0, 0.0016)), new ArrayList<Object>(Arrays.asList(5000000.0, 0.001)), new ArrayList<Object>(Arrays.asList(10000000.0, 0.0008)), new ArrayList<Object>(Arrays.asList(50000000.0, 0.0005)), new ArrayList<Object>(Arrays.asList(250000000.0, 0.0)))) );
                     }} );
                 }} );
             }} );
@@ -1148,20 +1148,20 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 throw new NotSupported((this.id + " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")) ;
             }
-            Object limitResolved = java.util.Objects.requireNonNullElse(limit, 100L);
+            Long limitResolved = java.util.Objects.requireNonNullElse(limit, 100L);
             Long duration = this.parseToInt(this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m")));
             Long now = this.milliseconds();
             if (java.util.Objects.equals(since, null))
             {
                 if (java.util.Objects.equals(limitResolved, null))
                 {
-                    limitResolved = 100;
+                    limitResolved = 100L;
                 }
-                request.put("start_timestamp", this.sum(now, Helpers.multiply((this.parseToInt(limitResolved) * duration), -1000)));
+                request.put("start_timestamp", this.sum(now, ((this.parseToInt(limitResolved) * duration) * -1000L)));
                 request.put("end_timestamp", now);
             } else
             {
-                Object sinceResolved = Math.max((since - 1L), 0);
+                Long sinceResolved = Math.max((since - 1L), 0);
                 request.put("start_timestamp", sinceResolved);
                 if (java.util.Objects.equals(limitResolved, null))
                 {

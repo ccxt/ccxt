@@ -554,7 +554,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 return;
             }
             Long legacyTimestamp = this.parseToInt((timestampStr == null ? null : ((String)timestampStr).substring(0, Math.min(13, ((String)timestampStr).length()))));
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(legacySymbol)))
+            if (!(this.orderbooks.containsKey(legacySymbol)))
             {
                 io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
                 ob.put("symbol", legacySymbol);
@@ -576,7 +576,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long obLimit = this.safeInteger(options, "limit", 1000);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, obLimit));
         }

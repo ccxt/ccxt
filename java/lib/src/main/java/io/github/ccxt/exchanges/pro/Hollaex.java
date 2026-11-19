@@ -134,7 +134,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Long timestampMs = this.parse8601(timestamp);
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestampMs, "bids", "asks", 0, 1, 2);
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) null;
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 orderbook = this.orderBook(snapshot);
                 this.orderbooks.put(symbol, orderbook);

@@ -229,7 +229,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         Long timestamp = this.safeInteger(message, "timestamp");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }
@@ -1869,9 +1869,9 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String subMessageHash = this.getMessageHash("orderbook", symbol, (String) null);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (this.orderbooks.containsKey(symbol))
         {
-            ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
         }
     }
 

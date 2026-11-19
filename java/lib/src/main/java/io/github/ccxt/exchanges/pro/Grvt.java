@@ -755,7 +755,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         String messageHash = ("orderbook::" + symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }

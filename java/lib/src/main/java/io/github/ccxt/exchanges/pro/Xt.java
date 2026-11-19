@@ -1480,7 +1480,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             List<Object> obAsks = this.safeList(data, "a", null);
             List<Object> obBids = this.safeList(data, "b", null);
             String messageHash = ((eventVar + "::") + tradeType);
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
                 Long limit = this.safeInteger(subscription, "limit");

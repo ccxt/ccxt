@@ -422,7 +422,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
             Object item = (data == null || marketId == null ? null : data.get(marketId));
             String messageHash = ("orderbooks::" + symbol);
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
                 Long limit = this.safeInteger(subscription, "limit");

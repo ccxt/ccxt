@@ -488,7 +488,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 parseable = hx4NewMap0;
             }
         }
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }

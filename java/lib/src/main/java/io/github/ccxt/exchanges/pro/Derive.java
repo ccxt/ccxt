@@ -168,7 +168,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         String topic = this.safeString(parameters, "channel");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             Object subscription = (((java.util.Objects.equals(topic, null)))) ? null : (client.subscriptions == null || topic == null ? null : client.subscriptions.get(topic));
@@ -474,9 +474,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        if (this.orderbooks.containsKey(symbol))
         {
-            ((Map<String,Object>)this.orderbooks).remove(symbol);
+            this.orderbooks.remove(symbol);
         }
         this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), false);
     }

@@ -350,7 +350,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         String symbol = (String) market.get("symbol");
         Map<String, Object> data = this.safeDict(this.safeList(message, "data", null), 0, null);
         Long timestamp = this.safeInteger(data, "t");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             Long limit = this.safeInteger(message, "depth");
             this.orderbooks.put(symbol, this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));

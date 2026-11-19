@@ -1141,7 +1141,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("orderbook::" + symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");

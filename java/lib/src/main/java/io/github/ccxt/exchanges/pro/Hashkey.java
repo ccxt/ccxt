@@ -444,7 +444,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String marketId = this.safeString(message, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String messageHash = ("orderbook:" + symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }

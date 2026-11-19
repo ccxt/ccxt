@@ -251,7 +251,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         Boolean receivedSnapshot = (Boolean) this.safeBool(subscription, "receivedSnapshot", false);
         Long timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
@@ -302,7 +302,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             {
                 var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
                 client.subscriptions.remove(messageHash);
-                ((Map<String,Object>)this.orderbooks).remove(symbol);
+                this.orderbooks.remove(symbol);
                 client.reject(error, messageHash);
                 return;
             }
@@ -318,11 +318,10 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        Object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = Helpers.replace(((String)result), ".", "");
+        String padded = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
+        String digits = (padded == null ? null : ((String)padded).replaceFirst(java.util.regex.Pattern.quote("."), ""));
         // remove leading zeros
-        result = this.parseNumber(result);
-        result = this.numberToString(result);
+        String result = this.numberToString(this.parseNumber(digits));
         return result;
     }
 

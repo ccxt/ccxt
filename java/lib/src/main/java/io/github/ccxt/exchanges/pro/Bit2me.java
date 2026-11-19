@@ -168,7 +168,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         Long timestamp = this.safeInteger(data, "nonce");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", timestamp);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }

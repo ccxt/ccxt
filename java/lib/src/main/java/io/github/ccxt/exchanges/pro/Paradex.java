@@ -1186,7 +1186,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             client.resolve(stored, messageHash);
             return;
         }
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }

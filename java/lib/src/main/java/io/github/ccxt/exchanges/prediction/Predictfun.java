@@ -3905,7 +3905,7 @@ public class Predictfun extends PredictfunApi
             String outcomeHandle = this.safeString(outcomeObj, "outcome");
             if (!java.util.Objects.equals(outcomeHandle, null))
             {
-                if (!(((Map<?, ?>)this.orderbooks).containsKey(outcomeHandle)))
+                if (!(this.orderbooks.containsKey(outcomeHandle)))
                 {
                     this.orderbooks.put(outcomeHandle, this.orderBook(new HashMap<String, Object>() {{}}));
                 }

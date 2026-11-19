@@ -1460,7 +1460,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(subscription, "limit");
         Long timestamp = this.safeInteger(message, "timestamp");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }

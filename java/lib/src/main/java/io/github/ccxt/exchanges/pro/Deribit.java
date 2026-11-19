@@ -780,7 +780,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String marketId = this.safeString(data, "instrument_name");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(data, "timestamp");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.countedOrderBook());
         }

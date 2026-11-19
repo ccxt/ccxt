@@ -254,7 +254,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String symbol = (String) market.get("symbol");
         Map<String, Object> data = this.safeDict(parameters, 1, null);
         Long timestamp = this.safeTimestamp(data, "timestamp");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
             this.orderbooks.put(symbol, ob);

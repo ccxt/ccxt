@@ -857,7 +857,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Object snapshot = null;
+        Map<String, Object> snapshot = null;
         Long timestamp = (Long) this.safeInteger2(message, "timestamp", "ts");
         timestamp = (Long) this.safeInteger2(data, "timestamp", "ts", timestamp);
         if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
@@ -868,7 +868,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         }
         Long nonce = this.safeInteger(data, "lastUpdateId");
-        ((Map<String, Object>)snapshot).put("nonce", nonce);
+        snapshot.put("nonce", nonce);
         orderbook.reset(snapshot);
         String messageHash = this.getMessageHash("orderbook", symbol, (String) null);
         client.resolve(orderbook, messageHash);

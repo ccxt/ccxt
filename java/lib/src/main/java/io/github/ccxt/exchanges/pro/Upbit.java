@@ -332,7 +332,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String type = this.safeString(message, "stream_type");
         Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(options, "limit", 15);
-        if ((java.util.Objects.equals(type, "SNAPSHOT")) && !(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if ((java.util.Objects.equals(type, "SNAPSHOT")) && !(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }

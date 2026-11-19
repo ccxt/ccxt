@@ -1210,11 +1210,11 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             String type = this.safeString(eventVar, "type");
             if (java.util.Objects.equals(type, "snapshot"))
             {
-                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                if (!(this.orderbooks.containsKey(symbol)))
                 {
                     this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
-            } else if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            } else if (!(this.orderbooks.containsKey(symbol)))
             {
                 continue;
             }

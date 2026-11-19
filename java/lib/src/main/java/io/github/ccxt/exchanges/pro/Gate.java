@@ -694,7 +694,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Long limit = this.safeInteger(subscription, "limit");
         if (!java.util.Objects.equals(symbol, null))
         {
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }

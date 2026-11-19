@@ -216,13 +216,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Long timestamp = (Long) this.safeInteger2(message, "t", "sendTime");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Object ticker = null;
+        Map<String, Object> ticker = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker(rawTicker, market);
-            ((Map<String, Object>)ticker).put("timestamp", timestamp);
-            ((Map<String, Object>)ticker).put("datetime", this.iso8601(timestamp));
+            ticker.put("timestamp", timestamp);
+            ticker.put("datetime", this.iso8601(timestamp));
         } else if (!java.util.Objects.equals(rawTicker, null))
         {
             ticker = this.parseTicker(rawTicker, market);
@@ -372,7 +372,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         for (var i = 0; i < data.size(); i++)
         {
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Object ticker = null;
+            Map<String, Object> ticker = null;
             if (isSpot)
             {
                 ticker = this.parseWsTicker(entry, market);
@@ -933,7 +933,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Integer partsLength = parts.size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         String marketId = this.safeString(parts, (((long) partsLength) - 1L));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
@@ -1047,7 +1047,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String messageHash = ("orderbook:" + symbol);
         Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, null);
         Long limit = this.safeInteger(subscription, "limit");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }
@@ -1246,7 +1246,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         for (var j = 0; j < trades.size(); j++)
         {
-            Object parsedTrade = null;
+            Map<String, Object> parsedTrade = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 parsedTrade = this.parseWsTrade((Map<String, Object>) ((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j))), market);
@@ -1356,7 +1356,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String marketId = this.safeString2(message, "s", "symbol", futuresMarketId);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Object trade = null;
+        Map<String, Object> trade = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             trade = this.parseWsTrade(data, market);
@@ -1605,14 +1605,14 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String marketId = this.safeString2(message, "s", "symbol", futuresMarketId);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Object parsed = null;
+        Map<String, Object> parsed = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             parsed = this.parseWsOrder(data, market);
             Long sendTime = this.safeInteger(message, "sendTime");
             if (!java.util.Objects.equals(sendTime, null))
             {
-                ((Map<String, Object>)parsed).put("lastTradeTimestamp", sendTime);
+                parsed.put("lastTradeTimestamp", sendTime);
             }
         } else if (!java.util.Objects.equals(data, null))
         {
@@ -2305,9 +2305,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             } else if (((String)messageHash).indexOf("orderbook") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:orderbook:", "");
-                if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+                if (this.orderbooks.containsKey(symbol))
                 {
-                    ((Map<String,Object>)this.orderbooks).remove(symbol);
+                    this.orderbooks.remove(symbol);
                 }
             } else if (((String)messageHash).indexOf("trades") >= 0)
             {

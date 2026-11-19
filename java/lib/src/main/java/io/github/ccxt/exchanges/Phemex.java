@@ -1622,7 +1622,7 @@ public class Phemex extends PhemexApi
         }
         String stringN = this.numberToString(n);
         var precise = new Precise(stringN);
-        precise.decimals = this.sum(precise.decimals, Helpers.multiply(scale, -1));
+        precise.decimals = this.sum(precise.decimals, this.parseToInt(Helpers.multiply(scale, -1)));
         precise.reduce();
         String preciseString = String.valueOf(precise);
         return this.parseToNumeric(preciseString);
@@ -1653,7 +1653,7 @@ public class Phemex extends PhemexApi
             return null;
         }
         var precise = new Precise(en);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.parseToInt(scale));
         precise.reduce();
         return String.valueOf(precise);
     }
@@ -2453,7 +2453,7 @@ public class Phemex extends PhemexApi
         //         ]
         //     }
         //
-        Object timestamp = null;
+        Long timestamp = null;
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -2479,7 +2479,7 @@ public class Phemex extends PhemexApi
                 timestamp = lastUpdateTimeNs;
             } else
             {
-                timestamp = (timestamp == null || lastUpdateTimeNs == null ? null : (((Number) timestamp).doubleValue() > ((Number) lastUpdateTimeNs).doubleValue() ? (Object) (timestamp) : (Object) (lastUpdateTimeNs)));
+                timestamp = (timestamp == null || lastUpdateTimeNs == null ? null : Math.max(timestamp, lastUpdateTimeNs));
             }
             account.put("total", total);
             account.put("used", used);

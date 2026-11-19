@@ -9350,7 +9350,7 @@ public Map<String, Object> describe()
             Boolean isNewCandle = (candle != null && candle == -1);
             if (!Boolean.TRUE.equals(isNewCandle))
             {
-                Object candleTimestamp = Helpers.GetValue((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_timestamp);
+                Object candleTimestamp = ((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())) == null ? null : (ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())).get(i_timestamp));
                 if (java.util.Objects.equals(candleTimestamp, null))
                 {
                     throw new ExchangeError((this.id + " buildOHLCVC() missing candle timestamp")) ;

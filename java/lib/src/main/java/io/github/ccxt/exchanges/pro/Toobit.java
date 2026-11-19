@@ -768,7 +768,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             Map<String, Object> entry = this.safeDict(data, i, null);
             String messageHash = ((("orderBook::" + symbol) + "::") + "diffDepth");
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 Long limit = this.safeInteger(this.options.get("ws"), "orderBookLimit", 1000);
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
@@ -832,7 +832,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String marketId = this.safeString(entry, "s");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String messageHash = ((("orderBook::" + symbol) + "::") + channel);
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 Long limit = this.safeInteger(this.options.get("ws"), "orderBookLimit", 1000);
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));

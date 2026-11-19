@@ -296,7 +296,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String method = this.safeString(new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@")))), 1);
         if (java.util.Objects.equals(method, "orderbookupdate"))
         {
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 return;
             }
@@ -321,7 +321,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     }
                 } catch(Exception e)
                 {
-                    ((Map<String,Object>)this.orderbooks).remove(symbol);
+                    this.orderbooks.remove(symbol);
                     if (!java.util.Objects.equals(topic, null))
                     {
                         client.subscriptions.remove((String)topic);
@@ -331,7 +331,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
         } else
         {
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
                 Map<String, Object> subscription = this.safeDict(client.subscriptions, topic, null);
@@ -355,7 +355,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             return;
         }
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }

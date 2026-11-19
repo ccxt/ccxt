@@ -818,7 +818,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String messageHash = ((("orderbook:" + symbol) + ":") + type);
         String datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.countedOrderBook());
         }

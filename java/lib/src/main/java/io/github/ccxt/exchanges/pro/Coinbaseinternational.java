@@ -1646,7 +1646,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         Integer channelPartsLength = channelParts.size();
         Boolean isGrouped = java.util.Objects.equals(channelPartsLength, 5);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             this.orderbooks.put(symbol, ((Boolean.TRUE.equals(isGrouped))) ? this.orderBook(new HashMap<String, Object>() {{}}, limit) : this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
@@ -1666,7 +1666,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if ((!java.util.Objects.equals(type, "snapshot")) && (!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(previousChangeId, nonce)))
             {
                 // drop the stale book and reject only this channels future
-                ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
                 if (client.subscriptions.containsKey(channel))
                 {
                     client.subscriptions.remove((String)((String)channel));

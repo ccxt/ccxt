@@ -1104,7 +1104,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         Long limit = this.safeInteger(subscription, "limit");
         if (java.util.Objects.equals(type, "snapshot"))
         {
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }

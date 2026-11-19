@@ -1295,7 +1295,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Long timestamp = this.safeInteger(message, "T");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) market.get("symbol");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }

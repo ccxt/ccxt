@@ -732,7 +732,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
             }
             client.reject(e, messageHash);
         }
@@ -965,7 +965,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             String size = this.safeString(parts, 3);
             if (java.util.Objects.equals(size, null))
@@ -994,7 +994,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long limit = this.safeInteger(subscription, "limit");
         if (!java.util.Objects.equals(symbol, null))
         {
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            if (!(this.orderbooks.containsKey(symbol)))
             {
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }

@@ -1265,7 +1265,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) market.get("symbol");
         Long timestamp = this.safeInteger(message, "ts");
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }

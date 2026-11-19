@@ -230,7 +230,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
         snapshot.put("nonce", this.safeInteger(message, "sq"));
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
             this.orderbooks.put(symbol, ob);
@@ -330,11 +330,11 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 }
             }
             Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", channels, messageHashes, messageHashes, new HashMap<String, Object>() {{}}, parameters, (Object) null);
-            Object newTicker = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            Map<String, Object> newTicker = (this.<Map<String, Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
+                Helpers.addElementToObject(result, newTicker.get("symbol"), newTicker);
                 return result;
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -408,11 +408,11 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 channels.add(("bbo::" + this.safeString(market, "id", "")));
             }
             Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", channels, messageHashes, messageHashes, new HashMap<String, Object>() {{}}, parameters, (Object) null);
-            Object ticker = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            Map<String, Object> ticker = (this.<Map<String, Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                Helpers.addElementToObject(result, ticker.get("symbol"), ticker);
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -1354,9 +1354,9 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             {
                 if (java.util.Objects.equals(topic, "orderbook"))
                 {
-                    if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+                    if (this.orderbooks.containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                        this.orderbooks.remove((String)symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "trades"))
                 {
