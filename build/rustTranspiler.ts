@@ -8557,6 +8557,68 @@ function typedWsParseProducers (content: string): string {
 }
 //
 // unit slot 079
+// venue-only parsers (no trait slot) whose every return is an object literal or a typed map local, one name per line
+const RUST_LITERAL_PARSE_FNS: string[] = [
+    'parse_margin_loan',
+    'parse_settlement',
+    'parse_trading_fee',
+    'parse_balance_helper',
+    'parse_myriad_market',
+    'parse_market_to_event',
+    'parse_topic_market',
+];
+// Each such declaration returns `Dict` when every return is proven a map; then, in the same file only, `.into_dict()`
+// drops, `.as_map()` copies unwrap the Arc, and any other use re-boxes with `Value::Dict(..)` (no copy).
+function rustTypedLiteralParsers (content: string): string {
+    const tail = '\n\n    Value::Null\n}';
+    for (const fn of RUST_LITERAL_PARSE_FNS) {
+        const decl = new RegExp ('\\n    pub fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n');
+        const d = decl.exec (content);
+        if (d === null || decl.test (content.slice (d.index + d[0].length))) continue;
+        const open = d.index + d[0].length, end = content.indexOf (tail, open);
+        if (end < 0) continue;
+        const body = content.slice (open, end);
+        let out = '', last = 0, ok = true, r: RegExpExecArray | null;
+        const ret = /^ *return (.*)$/gm;
+        while ((r = ret.exec (body)) !== null) {
+            const p = r.index + r[0].length - r[1].length;
+            if (body.startsWith ('Value::Map({', p)) {
+                const close = balancedCloseIndex (body, p + 'Value::Map('.length);
+                if (body[close + 1] !== ';') { ok = false; break; }
+                out += body.slice (last, p) + 'std::sync::Arc::new(' + body.slice (p + 'Value::Map('.length, close + 1);
+                last = ret.lastIndex = close + 1;
+                continue;
+            }
+            const m = /^Value::Map\((\w+)\);$/.exec (r[1]);
+            if (m && new RegExp ('\\blet mut ' + m[1] + ': indexmap::IndexMap<String, Value> = ').test (body)) {
+                out += body.slice (last, p) + 'std::sync::Arc::new(' + m[1] + ');';
+                last = r.index + r[0].length;
+                continue;
+            }
+            ok = false;
+            break;
+        }
+        if (!ok || last === 0) continue;
+        const typed = d[0].replace (') -> Value {', ') -> crate::value::Dict {') + out + body.slice (last) + '\n\n    Default::default()\n}';
+        content = content.slice (0, d.index) + typed + content.slice (end + tail.length);
+        const head = new RegExp ('(?<![\\w.])self\\.' + fn + '\\(', 'g'), starts: number[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = head.exec (content)) !== null) {
+            const ls = content.lastIndexOf ('\n', m.index) + 1;
+            if (!/^\s*(?:\/\/|\*)/.test (content.slice (ls, m.index))) starts.push (m.index);
+        }
+        const copy = '.as_map().cloned().unwrap_or_default()';
+        for (const s of starts.reverse ()) {
+            const close = balancedCloseIndex (content, s + 'self.'.length + fn.length + 1);
+            if (close >= content.length) continue;
+            const rest = content.slice (close + 1);
+            if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            else if (rest.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice (copy.length);
+            else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
+        }
+    }
+    return content;
+}
 //
 // unit slot 080
 //
@@ -9047,6 +9109,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typedWsParseProducers,
     //
     // pass slot 079
+    rustTypedLiteralParsers,
     //
     // pass slot 080
     //
