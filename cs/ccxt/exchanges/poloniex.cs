@@ -901,7 +901,7 @@ public partial class poloniex : Exchange
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
             Int64? firstCandle = (this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)since / duration)))) * duration);
             Int64 endTimeByLimit = this.sum(firstCandle, (duration * ((limit - 1))));
-            requestUntil[keyEnd] = mathMin(endTimeByLimit, this.milliseconds());
+            requestUntil[keyEnd] = Math.Min(endTimeByLimit, this.milliseconds());
         }
         if ((this.safeBool(market, "contract", false) == true))
         {

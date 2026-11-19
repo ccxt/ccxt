@@ -878,15 +878,15 @@ public partial class BaseExchange
                     object limitResolved = (isGreaterThan(limit, arrayLength)) ? arrayLength : limit;
                     if (ascending)
                     {
-                        return this.toArray(this.arraySlice(array, 0, limitResolved));
+                        return this.arraySlice(array, 0, limitResolved);
                     }
-                    return this.toArray(this.arraySlice(array, -System.Convert.ToInt64(limitResolved)));
+                    return this.arraySlice(array, -System.Convert.ToInt64(limitResolved));
                 }
                 if (ascending)
                 {
-                    return this.toArray(this.arraySlice(array, -System.Convert.ToInt64(limit)));
+                    return this.arraySlice(array, -System.Convert.ToInt64(limit));
                 }
-                return this.toArray(this.arraySlice(array, 0, limit));
+                return this.arraySlice(array, 0, limit);
             }
         }
         return array;
@@ -918,7 +918,7 @@ public partial class BaseExchange
         }
         if (tail == true && (limit != null))
         {
-            return this.toArray(this.arraySlice(result, -System.Convert.ToInt64(limit)));
+            return this.arraySlice(result, -System.Convert.ToInt64(limit));
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
@@ -956,7 +956,7 @@ public partial class BaseExchange
         }
         if (tail == true && (limit != null))
         {
-            return this.toArray(this.arraySlice(result, -System.Convert.ToInt64(limit)));
+            return this.arraySlice(result, -System.Convert.ToInt64(limit));
         }
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
@@ -7651,10 +7651,10 @@ public partial class BaseExchange
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
-        return this.filterBySinceLimit(this.toArray(this.sortCursorPaginatedResult(result)), since, limit, ((method == "fetchOHLCV")) ? 0 : "timestamp");
+        return this.filterBySinceLimit(this.sortCursorPaginatedResult(result), since, limit, ((method == "fetchOHLCV")) ? 0 : "timestamp");
     }
 
-    public virtual object sortCursorPaginatedResult(IList<object> result)
+    public virtual IList<object> sortCursorPaginatedResult(IList<object> result)
     {
         IDictionary<string, object> first = this.safeDict(result, 0);
         if ((first != null))

@@ -363,7 +363,7 @@ public partial class hyperliquid : PredictionExchange
                             bucketLabel = ("ABOVE_" + ((thresholds != null && lastIdx < thresholds.Count ? thresholds[lastIdx] : null)));
                         } else
                         {
-                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, (index - 1)))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
+                            bucketLabel = ((("BETWEEN_" + ((thresholds != null && (index - 1) != null && (index - 1) < thresholds.Count ? thresholds[(int)(index - 1)] : null))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
                         }
                         return (((questionUnderlying.ToUpper() + "_") + bucketLabel) + questionExpiryPart);
                     }

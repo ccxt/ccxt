@@ -1174,7 +1174,7 @@ public partial class bitget : ccxt.bitget
                 Int64 calculatedChecksum = this.crc32(payload, true);
                 if ((calculatedChecksum != responseChecksum))
                 {
-                    this.spawn(this.handleCheckSumError, new object[] { client, symbol, messageHash});
+                    this.spawn(this.handleCheckSumError, new object[] { client, symbol, messageHash, this.orderbookChecksumMessage(this.safeString(market, "symbol", ""))});
                     return;
                 }
             }
@@ -1212,10 +1212,10 @@ public partial class bitget : ccxt.bitget
         client.resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
     }
 
-    public async virtual Task handleCheckSumError(WebSocketClient client, string? symbol, string? messageHash)
+    public async virtual Task handleCheckSumError(WebSocketClient client, string? symbol, string? messageHash, object checksumMessage)
     {
         await this.unWatchOrderBook(symbol);
-        var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
+        var error = new ChecksumError(((this.id + " ") + (checksumMessage)));
         client.reject(error, messageHash);
     }
 
@@ -2903,23 +2903,23 @@ public partial class bitget : ccxt.bitget
                     IDictionary<string, object> entry = this.safeDict(coins, j);
                     string? currencyId = this.safeString(entry, "coin");
                     string? code = this.safeCurrencyCode(currencyId);
-                    IDictionary<string, object> account = this.account();
+                    IDictionary<string, object> coinAccount = this.account();
                     if (((code != null)) && (((code != null) && (this.balance != null && this.balance.ContainsKey(code)))))
                     {
-                        account = this.safeDict(this.balance, code, account);
+                        coinAccount = this.safeDict(this.balance, code, coinAccount);
                     }
                     string? borrow = this.safeString(entry, "borrow");
                     string? debts = this.safeString(entry, "debts");
                     if (((borrow != null)) || ((debts != null)))
                     {
-                        account["debt"] = Precise.stringAdd(borrow, debts);
+                        coinAccount["debt"] = Precise.stringAdd(borrow, debts);
                     }
-                    account["free"] = this.safeString(entry, "available");
-                    account["used"] = this.safeString(entry, "locked");
-                    account["total"] = this.safeString(entry, "balance");
+                    coinAccount["free"] = this.safeString(entry, "available");
+                    coinAccount["used"] = this.safeString(entry, "locked");
+                    coinAccount["total"] = this.safeString(entry, "balance");
                     if ((code != null))
                     {
-                        this.balance[(string)code] = account;
+                        this.balance[(string)code] = coinAccount;
                     }
                 }
             } else

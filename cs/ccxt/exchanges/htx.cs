@@ -10715,12 +10715,12 @@ public partial class htx : Exchange
         {
             List<object> dataLinear = this.safeList(response, "data", new List<object>() {});
             List<Dictionary<string, object>> settlementsLinear = this.parseSettlements(dataLinear, market);
-            return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
+            return this.sortBy(settlementsLinear, "timestamp");
         }
         IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> settlementRecord = this.safeList(data, "settlement_record");
         List<Dictionary<string, object>> settlements = this.parseSettlements(settlementRecord, market);
-        return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));
+        return this.sortBy(settlements, "timestamp");
     }
 
     /**

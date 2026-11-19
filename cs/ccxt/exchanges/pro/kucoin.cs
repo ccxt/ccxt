@@ -2067,7 +2067,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
     {
         Int64? limit = this.safeInteger(subscription, "limit");
         List<object> symbols = this.safeList(subscription, "symbols");
@@ -2119,9 +2119,9 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash);
         ((IDictionary<string,object>)client.subscriptions).Remove(id);
         object method = this.safeValue(subscription, "method");
-        if ((method != null))
+        if (((subscription != null)) && ((method != null)))
         {
-            DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         bool? isUnSub = this.safeBool(subscription, "unsubscribe", false);
         if ((isUnSub == true))

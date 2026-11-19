@@ -638,7 +638,7 @@ public partial class kalshi : PredictionExchange
                 await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
             }
         }
-        return ccxt.BaseExchange.ToDict(this.outcomes);
+        return this.outcomes;
     }
 
     public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

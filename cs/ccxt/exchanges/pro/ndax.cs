@@ -541,7 +541,7 @@ public partial class ndax : ccxt.ndax
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
     {
         //
         //     {
@@ -606,7 +606,7 @@ public partial class ndax : ccxt.ndax
             object method = this.safeValue(subscription, "method");
             if ((method != null))
             {
-                DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+                this.handleOrderBookSubscription(client, message, subscription);
             }
         }
     }

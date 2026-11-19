@@ -7,7 +7,7 @@ public partial class PredictionExchange : BaseExchange
 
     public PredictionExchange(object args = null) : base(args) {}
 
-    public IDictionary<string, object> outcomes { get; set; } = null;
+    public Dictionary<string, object> outcomes { get; set; } = null;
     public IDictionary<string, object> outcomes_by_id { get; set; } = null;
     public IDictionary<string, object> events { get; set; } = null;
     public IDictionary<string, object> events_by_slug { get; set; } = null;
@@ -252,20 +252,12 @@ public partial class PredictionExchange : BaseExchange
             for (int qi = 0; qi < queriesLength; qi++)
             {
                 string q = this.safeString(queries, qi, "").ToLower();
-                if ((title == null))
-                {
-                    throw new ExchangeError ((this.id + " filterEventsBySearchIn() missing title")) ;
-                }
-                if (checkTitle && (title.IndexOf(q, StringComparison.Ordinal) >= 0))
+                if (checkTitle && ((title?.IndexOf(q, StringComparison.Ordinal) ?? -1) >= 0))
                 {
                     matched = true;
                     break;
                 }
-                if ((description == null))
-                {
-                    throw new ExchangeError ((this.id + " filterEventsBySearchIn() missing description")) ;
-                }
-                if (checkDescription && (description.IndexOf(q, StringComparison.Ordinal) >= 0))
+                if (checkDescription && ((description?.IndexOf(q, StringComparison.Ordinal) ?? -1) >= 0))
                 {
                     matched = true;
                     break;
@@ -901,7 +893,7 @@ public partial class PredictionExchange : BaseExchange
         {
             await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
         }
-        return ccxt.BaseExchange.ToDict(this.outcomes);
+        return this.outcomes;
     }
 
     public async virtual Task<IDictionary<string, object>> loadOutcome(object outcomeSymbol, bool? reload = null)

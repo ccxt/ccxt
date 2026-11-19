@@ -301,7 +301,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
     {
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
@@ -1931,7 +1931,7 @@ public partial class woo : ccxt.woo
         object method = this.safeValue(subscription, "method");
         if ((method != null))
         {
-            DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         return message;
     }

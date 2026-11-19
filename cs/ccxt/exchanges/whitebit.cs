@@ -1243,8 +1243,7 @@ public partial class whitebit : Exchange
                 };
                 if ((networkId != null))
                 {
-                    int networkLength = networkId.Length;
-                    string? networkCode = this.networkIdToCode(((networkId == null) ? null : networkId.Substring(Math.Min(1, networkId.Length), Math.Max(Math.Max(Math.Min(((networkLength - 1) < 0 ? networkId.Length + ((networkLength - 1)) : (networkLength - 1)), networkId.Length), 0) - Math.Min(1, networkId.Length), 0))), code);
+                    string? networkCode = this.networkIdToCode(((networkId == null) ? null : networkId.Substring(Math.Min(1, networkId.Length), Math.Max(Math.Max(networkId.Length - 1, 0) - Math.Min(1, networkId.Length), 0))), code);
                     if ((networkCode != null))
                     {
                         IDictionary<string, object> feeEntryNetworks = this.safeDict(feeEntry, "networks", new Dictionary<string, object>() {});
@@ -1817,7 +1816,7 @@ public partial class whitebit : Exchange
             {
                 List<object> response = await this.v4PrivatePostOrders(this.extend(request, paramsOmitted));
                 // Search for order in active orders response (array format)
-                IList<object> orders = this.toArray(response);
+                IList<object> orders = response;
                 for (int i = 0; i < (orders?.Count ?? 0); i++)
                 {
                     IDictionary<string, object> order = ((IDictionary<string, object>)orders[i]);
@@ -2312,7 +2311,7 @@ public partial class whitebit : Exchange
                     endTime = rangeEnd;
                 }
             }
-            if (((endTime != null)) && (isLessThan(this.sum(endTime, duration), this.seconds())))
+            if (((endTime != null)) && ((this.sum(endTime, duration) < this.seconds())))
             {
                 request["end"] = endTime;
             }

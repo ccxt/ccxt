@@ -183,37 +183,37 @@ public partial class paradex : ccxt.paradex
         int channelsLength = channels?.Count ?? 0;
         for (int attempt = 0; attempt < channelsLength; attempt++)
         {
-            List<object> pending = this.unsubscribedChannels(url, channels);
+            List<Int64> pending = this.unsubscribedChannels(url, channels);
             int pendingLength = (pending?.Count ?? 0);
             if (pendingLength < 2)
             {
                 break;
             }
-            string? channel = ((string)getValue(channels, (pending != null && 0 < pending.Count ? pending[0] : null)));
+            string? channel = ((string)(channels != null && (pending != null && 0 < pending.Count ? pending[0] : (Int64?)null) is Int64 channelsKey186_39 && channelsKey186_39 < channels.Count ? channels[(int)channelsKey186_39] : null));
             Dictionary<string, object> pendingRequest = this.subscribeRequest(channel);
             await this.sendRequest(url, this.deepExtend(pendingRequest, parameters), channel);
         }
         // the last one goes with the watch, so that an update sent right after it is not missed
-        List<object> missing = this.unsubscribedChannels(url, channels);
+        List<Int64> missing = this.unsubscribedChannels(url, channels);
         int missingLength = (missing?.Count ?? 0);
         if ((missingLength == 0))
         {
             return await this.watchMultiple(url, messageHashes, null, channels);
         }
-        object index = (missing != null && 0 < missing.Count ? missing[0] : null);
-        Dictionary<string, object> request = this.subscribeRequest(getValue(channels, index));
+        Int64? index = ((Int64?)(missing != null && 0 < missing.Count ? missing[0] : (Int64?)null));
+        Dictionary<string, object> request = this.subscribeRequest((channels != null && index != null && index < channels.Count ? channels[(int)index] : null));
         // a failed subscribe rejects the watchers of its own channel only
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
-            { "messageHashes", new List<object>() {getValue(messageHashes, index)} },
+            { "messageHashes", new List<object>() {(messageHashes != null && index != null && index < messageHashes.Count ? messageHashes[(int)index] : null)} },
         };
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {getValue(channels, index)}, subscription);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {(channels != null && index != null && index < channels.Count ? channels[(int)index] : null)}, subscription);
     }
 
-    public virtual List<object> unsubscribedChannels(object url, IList<object> channels)
+    public virtual List<Int64> unsubscribedChannels(object url, IList<object> channels)
     {
         var client = this.client(url);
-        List<object> result = new List<object>() {};
+        List<Int64> result = new List<Int64>() {};
         for (int i = 0; i < (channels?.Count ?? 0); i++)
         {
             if (!((client.subscriptions != null && (channels != null && i < channels.Count ? channels[i] : null) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
@@ -2228,7 +2228,7 @@ public partial class paradex : ccxt.paradex
         Int64? blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
         Int64? templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
         Int64? schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
-        if (((schemaId != 1)) || (isLessThan(frameLength, this.sum(blockLength, 8))))
+        if (((schemaId != 1)) || (((frameLength == null || frameLength < this.sum(blockLength, 8)))))
         {
             return null;
         }

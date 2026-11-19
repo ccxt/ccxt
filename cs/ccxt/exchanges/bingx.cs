@@ -1690,7 +1690,7 @@ public partial class bingx : Exchange
             {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                endTime = mathMin(until, this.sum(since, (duration * requestLimit)));
+                endTime = Math.Min(until.Value, this.sum(since, (duration * requestLimit)));
             }
             request["endTime"] = endTime;
         } else if ((this.safeBool(market, "inverse", false) == true) && ((since != null)))

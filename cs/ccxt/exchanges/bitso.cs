@@ -2045,8 +2045,24 @@ public partial class bitso : Exchange
             { "address", address },
             { "destination_tag", tagWithdrawTag },
         };
-        string classMethod = (("privatePost" + method) + "Withdrawal");
-        object response = await ((Task<object>)callDynamically(this, classMethod, new object[] { this.extend(request, paramsWithdrawTag) }));
+        Dictionary<string, object> withdrawRequest = this.extend(request, paramsWithdrawTag);
+        Dictionary<string, object> response = null;
+        if (method == "Bitcoin")
+        {
+            response = await this.privatePostBitcoinWithdrawal(withdrawRequest);
+        } else if (method == "Ether")
+        {
+            response = await this.privatePostEtherWithdrawal(withdrawRequest);
+        } else if (method == "Ripple")
+        {
+            response = await this.privatePostRippleWithdrawal(withdrawRequest);
+        } else if (method == "Bcash")
+        {
+            response = await this.privatePostBcashWithdrawal(withdrawRequest);
+        } else
+        {
+            response = await this.privatePostLitecoinWithdrawal(withdrawRequest);
+        }
         //
         //     {
         //         "success": true,

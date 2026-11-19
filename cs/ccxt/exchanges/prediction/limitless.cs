@@ -3575,11 +3575,7 @@ public partial class limitless : PredictionExchange
             bool matched = false;
             for (int wi = 0; wi < (wanted?.Count ?? 0); wi++)
             {
-                if ((name == null))
-                {
-                    throw new ExchangeError ((this.id + " fetchRawMarketsByTags() missing name")) ;
-                }
-                if (name.IndexOf(((string)wanted[wi]), StringComparison.Ordinal) >= 0)
+                if ((name?.IndexOf((string)wanted[wi], StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     matched = true;
                     break;

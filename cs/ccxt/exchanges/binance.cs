@@ -6654,9 +6654,9 @@ public partial class binance : Exchange
                 Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "symbols", this.json(this.marketIds(symbolsNormalized)) },
                 };
-                response = await this.publicGetTicker(this.extend(request, paramsMarketType));
+                List<object> rollingResponse = await this.publicGetTicker(this.extend(request, paramsMarketType));
                 // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return ccxt.BaseExchange.ToTickers(this.parseTickersForRolling(response, symbolsNormalized));
+                return ccxt.BaseExchange.ToTickers(this.parseTickersForRolling(rollingResponse, symbolsNormalized));
             } else
             {
                 Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -6676,10 +6676,10 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }
 
-    public virtual object parseTickersForRolling(object response, IList<object> symbols)
+    public virtual object parseTickersForRolling(IList<object> response, IList<object> symbols)
     {
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             string? marketId = this.safeString(this.safeDict(response, i), "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, "spot");

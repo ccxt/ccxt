@@ -1842,7 +1842,7 @@ public partial class weex : Exchange
             }
             Int64 now = this.milliseconds();
             Int64? startTime = since;
-            object endTime = now;
+            Int64? endTime = now;
             if ((until != null))
             {
                 endTime = until;
@@ -1877,7 +1877,7 @@ public partial class weex : Exchange
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if (isGreaterThan(endTime, now))
+            if ((endTime > now))
             {
                 endTime = now;
             }

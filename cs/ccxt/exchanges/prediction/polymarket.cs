@@ -1311,7 +1311,7 @@ public partial class polymarket : PredictionExchange
                 await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
             }
         }
-        return ccxt.BaseExchange.ToDict(this.outcomes);
+        return this.outcomes;
     }
 
     /**
