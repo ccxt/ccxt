@@ -12659,8 +12659,7 @@ export default class binance extends Exchange {
         }
         await this.loadLeverageBrackets(false, params);
         const request = {};
-        let defaultType = 'swap';
-        defaultType = this.safeString(this.options, 'defaultType', defaultType);
+        const defaultType = this.safeString(this.options, 'defaultType', 'swap');
         const type = this.safeString(params, 'type', defaultType);
         let subType = undefined;
         let paramsSubType = undefined;

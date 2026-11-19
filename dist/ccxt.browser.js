@@ -184351,7 +184351,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     const response = await this[method](symbol, undefined, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString(i + 1) + ' method ' + method + ' response length ' + responseLength.toString();
+                        let backwardMessage = 'Dynamic pagination call ' + (i + 1).toString() + ' method ' + method + ' response length ' + responseLength.toString();
                         if (paginationTimestamp !== undefined) {
                             backwardMessage += ' timestamp ' + this.numberToString(paginationTimestamp);
                         }
@@ -184378,7 +184378,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     const response = await this[method](symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength = response.length;
                     if (this.verbose) {
-                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString(i + 1) + ' method ' + method + ' response length ' + responseLength.toString();
+                        let forwardMessage = 'Dynamic pagination call ' + (i + 1).toString() + ' method ' + method + ' response length ' + responseLength.toString();
                         if (paginationTimestamp !== undefined) {
                             forwardMessage += ' timestamp ' + this.numberToString(paginationTimestamp);
                         }
@@ -184616,8 +184616,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const iteration = i + 1;
-                    const incrementalMessage = 'Incremental pagination call ' + iteration.toString() + ' method ' + method + ' response length ' + responseLength.toString();
+                    const incrementalMessage = 'Incremental pagination call ' + (i + 1).toString() + ' method ' + method + ' response length ' + responseLength.toString();
                     this.log(incrementalMessage);
                 }
                 if (responseLength === 0) {
@@ -214695,8 +214694,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         await this.loadLeverageBrackets(false, params);
         const request = {};
-        let defaultType = 'swap';
-        defaultType = this.safeString(this.options, 'defaultType', defaultType);
+        const defaultType = this.safeString(this.options, 'defaultType', 'swap');
         const type = this.safeString(params, 'type', defaultType);
         let subType = undefined;
         let paramsSubType = undefined;
@@ -262952,8 +262950,12 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
         const payload = this.safeList(response, 'payload', []);
         const orders = [];
         for(let i = 0; i < payload.length; i++){
-            const id = payload[i];
-            orders.push(this.parseOrder(id, market));
+            const id = this.safeString(payload, i);
+            orders.push(this.safeOrder({
+                'info': this.safeString(payload, i),
+                'id': id,
+                'symbol': this.safeSymbol(undefined, market, '_')
+            }, market));
         }
         return orders;
     }
@@ -262979,8 +262981,12 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
         const payload = this.safeList(response, 'payload', []);
         const canceledOrders = [];
         for(let i = 0; i < payload.length; i++){
-            const order = this.parseOrder(payload[i]);
-            canceledOrders.push(order);
+            const id = this.safeString(payload, i);
+            canceledOrders.push(this.safeOrder({
+                'info': this.safeString(payload, i),
+                'id': id,
+                'symbol': this.safeSymbol(undefined, undefined, '_')
+            }));
         }
         return canceledOrders;
     }
@@ -262994,17 +263000,7 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
         return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
-        //
-        //
-        // canceledOrder
-        // yWTQGxDMZ0VimZgZ
-        //
-        let id = undefined;
-        if (typeof order === 'string') {
-            id = order;
-        } else {
-            id = this.safeString(order, 'oid');
-        }
+        const id = this.safeString(order, 'oid');
         const side = this.safeString(order, 'side');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const marketId = this.safeString(order, 'book');
@@ -325864,7 +325860,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
         const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result);
     }
-    editOrderRequest(id, symbol, amount, price = undefined, params = {}) {
+    editOrderRequest(id, symbol, amount = undefined, price = undefined, params = {}) {
         const request = {};
         if (id !== undefined) {
             request['order_id'] = id;
@@ -384265,7 +384261,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             'fee': fee
         }, marketResolved);
     }
-    async fetchTransactionsHelper(types, code, since, limit, params) {
+    async fetchTransactionsHelper(types, code, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -498023,7 +498019,7 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
-            const market = this.market(outcomeObj['market']);
+            const market = this.market(this.safeString(outcomeObj, 'market'));
             request['marketId'] = market['id'];
         }
         if (limit !== undefined) {
@@ -498262,7 +498258,7 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
-            const market = this.market(outcomeObj['market']);
+            const market = this.market(this.safeString(outcomeObj, 'market'));
             request['marketTopicId'] = market['info']['marketTopicId'];
         }
         const wallet = await this.fetchWallet('fetchOrders', params);
@@ -543046,7 +543042,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             messageHash = 'triggerOrder';
         }
         let subscriptionHash = 'order:trades';
-        let symbolResolved = undefined;
+        let symbolResolved = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
@@ -543581,7 +543577,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         }
         let market = undefined;
         let messageHash = 'myTrades';
-        let symbolResolved = undefined;
+        let symbolResolved = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
@@ -571822,20 +571818,21 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         }
     }
     getMarketTypeByUrl(url) {
-        const findBy = {
-            'op-': 'option',
-            '/ws/options/': 'option',
-            'delivery': 'future',
-            'fx': 'swap',
-            '/ws/futures/': 'swap'
-        };
-        const keys = Object.keys(findBy);
-        for(let i = 0; i < keys.length; i++){
-            const key = keys[i];
-            const value = findBy[key];
-            if (url.indexOf(key) >= 0) {
-                return value;
-            }
+        // same order as the url table: delivery urls also contain 'fx'
+        if (url.indexOf('op-') >= 0) {
+            return 'option';
+        }
+        if (url.indexOf('/ws/options/') >= 0) {
+            return 'option';
+        }
+        if (url.indexOf('delivery') >= 0) {
+            return 'future';
+        }
+        if (url.indexOf('fx') >= 0) {
+            return 'swap';
+        }
+        if (url.indexOf('/ws/futures/') >= 0) {
+            return 'swap';
         }
         return 'spot';
     }
@@ -606344,7 +606341,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
      * @param {string} [subscribeHash] the subscription the request opens, the request id when undefined
      * @returns {object} the reply
      */ async sendRequest(url, request, subscribeHash = undefined) {
-        const requestHash = 'request:' + this.safeString(request, 'id');
+        const requestHash = 'request:' + this.safeString(request, 'id', '');
         const subscription = {
             'id': request['id'],
             'messageHashes': [
@@ -607199,7 +607196,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         // the whole connection
         const unsubscribe = this.unsubscribeRequest(channel);
         const subscribe = this.subscribeRequest(channel);
-        const unsubscribeHash = 'request:' + this.safeString(unsubscribe, 'id');
+        const unsubscribeHash = 'request:' + this.safeString(unsubscribe, 'id', '');
         client.subscriptions[unsubscribeHash] = {
             'id': unsubscribe['id'],
             'messageHashes': []

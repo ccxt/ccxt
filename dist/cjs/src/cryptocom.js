@@ -1748,7 +1748,7 @@ class cryptocom extends cryptocom$1["default"] {
         const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result);
     }
-    editOrderRequest(id, symbol, amount, price = undefined, params = {}) {
+    editOrderRequest(id, symbol, amount = undefined, price = undefined, params = {}) {
         const request = {};
         if (id !== undefined) {
             request['order_id'] = id;

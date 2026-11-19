@@ -151,7 +151,7 @@ class paradex extends paradex$1["default"] {
      * @returns {object} the reply
      */
     async sendRequest(url, request, subscribeHash = undefined) {
-        const requestHash = 'request:' + this.safeString(request, 'id');
+        const requestHash = 'request:' + this.safeString(request, 'id', '');
         const subscription = {
             'id': request['id'],
             'messageHashes': [requestHash],
@@ -987,7 +987,7 @@ class paradex extends paradex$1["default"] {
         // the whole connection
         const unsubscribe = this.unsubscribeRequest(channel);
         const subscribe = this.subscribeRequest(channel);
-        const unsubscribeHash = 'request:' + this.safeString(unsubscribe, 'id');
+        const unsubscribeHash = 'request:' + this.safeString(unsubscribe, 'id', '');
         client.subscriptions[unsubscribeHash] = {
             'id': unsubscribe['id'],
             'messageHashes': [],

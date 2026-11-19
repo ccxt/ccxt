@@ -1504,7 +1504,7 @@ class hitbtc extends hitbtc$1["default"] {
             'fee': fee,
         }, marketResolved);
     }
-    async fetchTransactionsHelper(types, code, since, limit, params) {
+    async fetchTransactionsHelper(types, code, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }

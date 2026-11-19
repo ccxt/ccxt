@@ -108,7 +108,7 @@ export default class hitbtc extends Exchange {
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
-    fetchTransactionsHelper(types: Str, code: Str, since: Int, limit: Int, params: Dict): Promise<Transaction[]>;
+    fetchTransactionsHelper(types: Str, code: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransactionStatus(status: Str): Str;
     parseTransactionType(type: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;

@@ -1684,7 +1684,7 @@ export default class bitget extends bitgetRest {
             messageHash = 'triggerOrder';
         }
         let subscriptionHash = 'order:trades';
-        let symbolResolved = undefined;
+        let symbolResolved = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
@@ -2227,7 +2227,7 @@ export default class bitget extends bitgetRest {
         }
         let market = undefined;
         let messageHash = 'myTrades';
-        let symbolResolved = undefined;
+        let symbolResolved = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');

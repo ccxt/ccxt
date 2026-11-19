@@ -1253,8 +1253,8 @@ export default class bitso extends Exchange {
         const payload = this.safeList(response, 'payload', []);
         const orders = [];
         for (let i = 0; i < payload.length; i++) {
-            const id = payload[i];
-            orders.push(this.parseOrder(id, market));
+            const id = this.safeString(payload, i);
+            orders.push(this.safeOrder({ 'info': this.safeString(payload, i), 'id': id, 'symbol': this.safeSymbol(undefined, market, '_') }, market));
         }
         return orders;
     }
@@ -1281,8 +1281,8 @@ export default class bitso extends Exchange {
         const payload = this.safeList(response, 'payload', []);
         const canceledOrders = [];
         for (let i = 0; i < payload.length; i++) {
-            const order = this.parseOrder(payload[i]);
-            canceledOrders.push(order);
+            const id = this.safeString(payload, i);
+            canceledOrders.push(this.safeOrder({ 'info': this.safeString(payload, i), 'id': id, 'symbol': this.safeSymbol(undefined, undefined, '_') }));
         }
         return canceledOrders;
     }
@@ -1296,18 +1296,7 @@ export default class bitso extends Exchange {
         return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
-        //
-        //
-        // canceledOrder
-        // yWTQGxDMZ0VimZgZ
-        //
-        let id = undefined;
-        if (typeof order === 'string') {
-            id = order;
-        }
-        else {
-            id = this.safeString(order, 'oid');
-        }
+        const id = this.safeString(order, 'oid');
         const side = this.safeString(order, 'side');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const marketId = this.safeString(order, 'book');

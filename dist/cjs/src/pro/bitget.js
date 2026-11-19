@@ -1677,7 +1677,7 @@ class bitget extends bitget$1["default"] {
             messageHash = 'triggerOrder';
         }
         let subscriptionHash = 'order:trades';
-        let symbolResolved = undefined;
+        let symbolResolved = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
@@ -2220,7 +2220,7 @@ class bitget extends bitget$1["default"] {
         }
         let market = undefined;
         let messageHash = 'myTrades';
-        let symbolResolved = undefined;
+        let symbolResolved = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');

@@ -169,7 +169,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
-    editOrderRequest(id: Str, symbol: string, amount: Num, price?: Num, params?: Dict): Dict;
+    editOrderRequest(id: Str, symbol: string, amount?: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name cryptocom#cancelAllOrders

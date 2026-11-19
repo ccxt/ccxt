@@ -2333,20 +2333,21 @@ class gate extends gate$1["default"] {
         }
     }
     getMarketTypeByUrl(url) {
-        const findBy = {
-            'op-': 'option',
-            '/ws/options/': 'option',
-            'delivery': 'future',
-            'fx': 'swap',
-            '/ws/futures/': 'swap',
-        };
-        const keys = Object.keys(findBy);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = findBy[key];
-            if (url.indexOf(key) >= 0) {
-                return value;
-            }
+        // same order as the url table: delivery urls also contain 'fx'
+        if (url.indexOf('op-') >= 0) {
+            return 'option';
+        }
+        if (url.indexOf('/ws/options/') >= 0) {
+            return 'option';
+        }
+        if (url.indexOf('delivery') >= 0) {
+            return 'future';
+        }
+        if (url.indexOf('fx') >= 0) {
+            return 'swap';
+        }
+        if (url.indexOf('/ws/futures/') >= 0) {
+            return 'swap';
         }
         return 'spot';
     }

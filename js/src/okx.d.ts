@@ -920,7 +920,7 @@ export default class okx extends Exchange {
      * @param {int} [params.until] the latest time in ms of the entries to fetch
      * @returns {object[]} the request and the remaining params
      */
-    handleTradingStatisticsWindow(request: Dict, period: string, since?: Int, limit?: Int, params?: Dict): Dict[];
+    handleTradingStatisticsWindow(request: Dict, period: string, since?: Int, limit?: Int, params?: Dict): [Dict, Dict];
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     setSandboxMode(enable: boolean): void;
     /**

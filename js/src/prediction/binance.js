@@ -1068,7 +1068,7 @@ export default class binance extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
-            const market = this.market(outcomeObj['market']);
+            const market = this.market(this.safeString(outcomeObj, 'market'));
             request['marketId'] = market['id'];
         }
         if (limit !== undefined) {
@@ -1310,7 +1310,7 @@ export default class binance extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
-            const market = this.market(outcomeObj['market']);
+            const market = this.market(this.safeString(outcomeObj, 'market'));
             request['marketTopicId'] = market['info']['marketTopicId'];
         }
         const wallet = await this.fetchWallet('fetchOrders', params);
