@@ -11662,8 +11662,7 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_leverage_brackets(False, params)
         request = {}
-        defaultType = 'swap'
-        defaultType = self.safe_string(self.options, 'defaultType', defaultType)
+        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
         type = self.safe_string(params, 'type', defaultType)
         subType = None
         paramsSubType = None

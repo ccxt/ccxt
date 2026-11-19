@@ -1000,7 +1000,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
-            market = self.market(outcomeObj['market'])
+            market = self.market(self.safe_string(outcomeObj, 'market'))
             request['marketId'] = market['id']
         if limit is not None:
             request['limit'] = limit
@@ -1229,7 +1229,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
-            market = self.market(outcomeObj['market'])
+            market = self.market(self.safe_string(outcomeObj, 'market'))
             request['marketTopicId'] = market['info']['marketTopicId']
         wallet = await self.fetch_wallet('fetchOrders', params)
         request['walletAddress'] = self.safe_string(wallet, 'walletAddress')

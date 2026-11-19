@@ -7850,7 +7850,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interests_history(data, None, since, limit)
 
-    def handle_trading_statistics_window(self, request: dict, period: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
+    def handle_trading_statistics_window(self, request: dict, period: str, since: Int = None, limit: Int = None, params: dict = {}) -> list:
         """
  @ignore
         sets begin, end and limit of a trading statistics history request: okx treats both bounds as exclusive and returns the latest entries first, while since and until are inclusive and since with a limit asks for the earliest entries from since on

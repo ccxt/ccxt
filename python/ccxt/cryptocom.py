@@ -1645,7 +1645,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
-    def edit_order_request(self, id: Str, symbol: str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+    def edit_order_request(self, id: Str, symbol: str, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         request = {}
         if id is not None:
             request['order_id'] = id

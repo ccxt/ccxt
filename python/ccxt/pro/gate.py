@@ -2147,19 +2147,17 @@ class gate(ccxt.async_support.gate):
             return self.safe_string(self.urls['api'], type)
 
     def get_market_type_by_url(self, url: str) -> str:
-        findBy = {
-            'op-': 'option',
-            '/ws/options/': 'option',
-            'delivery': 'future',
-            'fx': 'swap',
-            '/ws/futures/': 'swap',
-        }
-        keys = list(findBy.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            value = findBy[key]
-            if url.find(key) >= 0:
-                return value
+        # same order as the url table: delivery urls also contain 'fx'
+        if url.find('op-') >= 0:
+            return 'option'
+        if url.find('/ws/options/') >= 0:
+            return 'option'
+        if url.find('delivery') >= 0:
+            return 'future'
+        if url.find('fx') >= 0:
+            return 'swap'
+        if url.find('/ws/futures/') >= 0:
+            return 'swap'
         return 'spot'
 
     def request_id(self) -> int:

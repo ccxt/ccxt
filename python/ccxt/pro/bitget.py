@@ -1580,7 +1580,7 @@ class bitget(ccxt.async_support.bitget):
         if isTrigger is True:
             messageHash = 'triggerOrder'
         subscriptionHash = 'order:trades'
-        symbolResolved = None
+        symbolResolved = symbol
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
@@ -2072,7 +2072,7 @@ class bitget(ccxt.async_support.bitget):
             await self.load_markets()
         market = None
         messageHash = 'myTrades'
-        symbolResolved = None
+        symbolResolved = symbol
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')

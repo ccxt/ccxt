@@ -147,7 +147,7 @@ class paradex(ccxt.async_support.paradex):
         :param str [subscribeHash]: the subscription the request opens, the request id when None
         :returns dict: the reply
         """
-        requestHash = 'request:' + self.safe_string(request, 'id')
+        requestHash = 'request:' + self.safe_string(request, 'id', '')
         subscription = {
             'id': request['id'],
             'messageHashes': [requestHash],
@@ -898,7 +898,7 @@ class paradex(ccxt.async_support.paradex):
         # the whole connection
         unsubscribe = self.unsubscribe_request(channel)
         subscribe = self.subscribe_request(channel)
-        unsubscribeHash = 'request:' + self.safe_string(unsubscribe, 'id')
+        unsubscribeHash = 'request:' + self.safe_string(unsubscribe, 'id', '')
         client.subscriptions[unsubscribeHash] = {
             'id': unsubscribe['id'],
             'messageHashes': [],

@@ -1471,7 +1471,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'fee': fee,
         }, marketResolved)
 
-    def fetch_transactions_helper(self, types: Str, code: Str, since: Int, limit: Int, params: dict) -> list[Transaction]:
+    def fetch_transactions_helper(self, types: Str, code: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         request = {
