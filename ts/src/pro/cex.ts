@@ -1074,8 +1074,8 @@ export default class cex extends cexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    pairToSymbol (pair: any): string {
-        const parts = pair.split (':');
+    pairToSymbol (pair: Str): string {
+        const parts = (pair as string).split (':');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
