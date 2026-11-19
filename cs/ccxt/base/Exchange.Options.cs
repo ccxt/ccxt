@@ -217,8 +217,8 @@ public partial class BaseExchange
     public object proxyUrl { get; set; } = null;
     public object proxy_url { get; set; } = null;
 
-    public Func<object, object, object, object> proxyUrlCallback { get; set; } = null;
-    public Func<object, object, object, object> proxy_url_callback { get; set; } = null;
+    public Func<object, object, object, object, object> proxyUrlCallback { get; set; } = null;
+    public Func<object, object, object, object, object> proxy_url_callback { get; set; } = null;
 
     // public object httpProxy { get; set; } = null;
     public object http_proxy { get; set; } = null;
@@ -235,8 +235,8 @@ public partial class BaseExchange
     public object wsSocksProxy { get; set; } = null;
     public object ws_socks_proxy { get; set; } = null;
 
-    public Func<object, object, object, object> socksProxyCallback { get; set; } = null;
-    public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
+    public Func<object, object, object, object, object> socksProxyCallback { get; set; } = null;
+    public Func<object, object, object, object, object> socks_proxy_callback { get; set; } = null;
 
     // WS options
 
