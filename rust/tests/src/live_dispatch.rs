@@ -429,7 +429,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     "markets"          => Value::from(&core.markets),
                     "markets_by_id"    => Value::from(&core.markets_by_id),
                     "currencies"       => Value::from(&core.currencies),
-                    "currencies_by_id" => core.currencies_by_id.clone(),
+                    "currencies_by_id" => Value::from(&core.currencies_by_id),
                     // Lightweight ones still served here so a `__live_id`
                     // snapshot stays fully introspectable through the
                     // same code path.
@@ -455,7 +455,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     // market — from deep-copying the whole describe()
                     // output on every iteration.
                     "api"              => core.api.clone(),
-                    "timeframes"       => core.timeframes.clone(),
+                    "timeframes"       => Value::from(&core.timeframes),
                     "exceptions"       => core.exceptions.clone(),
                     "features"         => core.features.clone(),
                     "precision"        => core.precision.clone(),

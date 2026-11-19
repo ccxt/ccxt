@@ -2539,14 +2539,14 @@ impl Exchange {
         put("markets", &Value::from(&self.markets));
         put("markets_by_id", &Value::from(&self.markets_by_id));
         put("currencies", &Value::from(&self.currencies));
-        put("currencies_by_id", &self.currencies_by_id);
+        put("currencies_by_id", &Value::from(&self.currencies_by_id));
         put("commonCurrencies", &self.commonCurrencies);
         put("baseCurrencies", &self.baseCurrencies);
         put("quoteCurrencies", &self.quoteCurrencies);
         put("symbols", &Value::from(&self.symbols));
         put("ids", &self.ids);
         put("codes", &self.codes);
-        put("timeframes", &self.timeframes);
+        put("timeframes", &Value::from(&self.timeframes));
         put("precision", &self.precision);
         put("limits", &self.limits);
         put("fees", &Value::Dict(self.fees.clone()));
@@ -2589,7 +2589,7 @@ impl Exchange {
         );
         put("reduceFees", &self.reduceFees);
         put("minFundingAddressLength", &self.minFundingAddressLength);
-        put("networkAliases", &self.networkAliases);
+        put("networkAliases", &Value::from(&self.networkAliases));
         put("MAX_VALUE", &self.MAX_VALUE);
         put("returnResponseHeaders", &self.returnResponseHeaders);
         put("httpExceptions", &Value::Dict(self.httpExceptions.clone()));

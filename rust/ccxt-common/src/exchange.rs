@@ -385,14 +385,14 @@ pub struct Exchange {
     pub markets_by_id:     Option<crate::value::Dict>,
     /// Plain dict, never undefined (TS `createSafeDictionary`): reads and writes are the stdlib map ops.
     pub currencies:        crate::value::Dict,
-    pub currencies_by_id:  Value,
+    pub currencies_by_id:  Option<crate::value::Dict>,
     pub commonCurrencies:  Value,
     pub baseCurrencies:    Value,
     pub quoteCurrencies:   Value,
     pub symbols:           crate::value::List,
     pub ids:               Value,
     pub codes:             Value,
-    pub timeframes:        Value,
+    pub timeframes:        Option<crate::value::Dict>,
     pub precision:         Value,
     pub limits:            Value,
     pub fees:              crate::value::Dict,
@@ -464,7 +464,7 @@ pub struct Exchange {
     pub substituteCommonCurrencyCodes: Value,
     pub reduceFees:                Value,
     pub minFundingAddressLength:   Value,
-    pub networkAliases:            Value,
+    pub networkAliases:            crate::value::Dict,
     pub MAX_VALUE:                 Value,
     pub returnResponseHeaders:     Value,
     pub httpExceptions:            crate::value::Dict,
@@ -727,7 +727,7 @@ impl Exchange {
             markets:           None,
             markets_by_id:     None,
             currencies:        crate::value::Dict::default(),
-            currencies_by_id:  Value::Null,
+            currencies_by_id:  None,
             commonCurrencies:  {
                 let mut m = HashMap::new();
                 m.insert("XBT".to_string(),   Value::Str("BTC".into()));
@@ -739,7 +739,7 @@ impl Exchange {
             symbols:           std::sync::Arc::new(Vec::new()),
             ids:               Value::Null,
             codes:             Value::Null,
-            timeframes:        Value::Null,
+            timeframes:        None,
             precision:         Value::Null,
             limits:            base_limits(),
             fees:              base_fees(),
@@ -809,7 +809,7 @@ impl Exchange {
             substituteCommonCurrencyCodes:     Value::Bool(true),
             reduceFees:                        Value::Bool(true),
             minFundingAddressLength:           Value::Int(1),
-                        networkAliases:                    Value::Dict(std::sync::Arc::new([("ETH".to_string(), Value::Str("ERC20".into())), ("TRX".to_string(), Value::Str("TRC20".into())), ("BSC".to_string(), Value::Str("BEP20".into())), ("BSC20".to_string(), Value::Str("BEP20".into())), ("CRONOS".to_string(), Value::Str("CRC20".into())), ("ARB".to_string(), Value::Str("ARBITRUM".into())), ("ARBONE".to_string(), Value::Str("ARBITRUM".into())), ("ARBNOVA".to_string(), Value::Str("ARBITRUM_NOVA".into()))].into_iter().collect())),
+                        networkAliases:                    (std::sync::Arc::new([("ETH".to_string(), Value::Str("ERC20".into())), ("TRX".to_string(), Value::Str("TRC20".into())), ("BSC".to_string(), Value::Str("BEP20".into())), ("BSC20".to_string(), Value::Str("BEP20".into())), ("CRONOS".to_string(), Value::Str("CRC20".into())), ("ARB".to_string(), Value::Str("ARBITRUM".into())), ("ARBONE".to_string(), Value::Str("ARBITRUM".into())), ("ARBNOVA".to_string(), Value::Str("ARBITRUM_NOVA".into()))].into_iter().collect())),
             MAX_VALUE:                         Value::Float(f64::MAX),
             returnResponseHeaders:             Value::Bool(false),
             httpExceptions:                    base_http_exceptions(),
@@ -883,7 +883,7 @@ impl Exchange {
         assign(&mut self.exceptions, get("exceptions"));
         assign(&mut self.requiredCredentials, get("requiredCredentials"));
         assign(&mut self.precisionMode, get("precisionMode"));
-        assign(&mut self.timeframes, get("timeframes"));
+        if let Value::Dict(m) = get("timeframes") { self.timeframes = Some(m); }
         if let Value::Dict(m) = get("fees") { self.fees = m; }
         assign(&mut self.features, get("features"));
         // `userAgent` (describe() or user config): a string, a `{ 'User-Agent': .. }`
@@ -1112,7 +1112,7 @@ impl Exchange {
     /// Currencies by exchange id, typed and shared.
     pub fn currencies_by_id_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
         let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
-        TypedById::refresh(&mut stores.currencies, if let Value::Dict(d) = &self.currencies_by_id { Some(d) } else { None }, |v| match v {
+        TypedById::refresh(&mut stores.currencies, self.currencies_by_id.as_ref(), |v| match v {
             Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
             _ => Vec::new(),
         })
@@ -3180,7 +3180,7 @@ mod typed_by_id_tests {
         assert!(first.records_by_id("ETHUSDT").is_none());
         let mut cur = IndexMap::new();
         cur.insert("XBt".to_string(), market("XBt", "BTC"));
-        ex.currencies_by_id = Value::Map(cur);
+        ex.currencies_by_id = Some(std::sync::Arc::new(cur));
         assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id.as_deref(), Some("XBt"));
         assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].code, None);
         assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].active, None);

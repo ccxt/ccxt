@@ -4344,7 +4344,30 @@ function typedBaseDictFields(content: string): string {
         .replace(/\{ let __sv_tmp = (\w+)\.map_to_safe_map\(Value::Map\((\{[\s\S]*?\})\)\); \1\.currencies = __sv_tmp; \}/g, '$1.currencies = std::sync::Arc::new($2);')
         .replace(/self\.currencies = (get_value\(&\w+, &Value::Str\("currencies"\.into\(\)\)\));/g, 'self.currencies = if let Value::Dict(__m) = $1 { __m } else { Default::default() };')
         .replace(/self\.currencies\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.currencies'));
-    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance', 'tickers', 'currencies']) {
+    // `currencies_by_id` is `Option<Dict>` like `markets_by_id` (undefined until setMarkets indexes currencies).
+    content = content
+        .replace(/self\.currencies_by_id = Value::Null;/g, 'self.currencies_by_id = None;')
+        .replace(/let __t = ([^;]*); self\.currencies_by_id = __t;/g, 'let __t = $1; self.currencies_by_id = if let Value::Dict(__m) = __t { Some(__m) } else { None };')
+        .replace(/self\.currencies_by_id = (get_value\(&\w+, &Value::Str\("currencies_by_id"\.into\(\)\)\));/g, 'self.currencies_by_id = if let Value::Dict(__m) = $1 { Some(__m) } else { None };')
+        .replace(/self\.currencies_by_id (==|!=) Value::Null/g, (_m, op) => 'self.currencies_by_id.' + (op === '==' ? 'is_none()' : 'is_some()'))
+        .replace(/(matches!\(\(&self\.currencies_by_id, (?:[^()]|\((?:[^()]|\([^()]*\))*\))+?\), \()Value::Dict\(__d\)/g, '$1Some(__d)')
+        .replace(/\(self\.currencies_by_id\.as_map\(\), /g, '(self.currencies_by_id.as_deref(), ')
+        .replace(/([^\w:&])self\.currencies_by_id\.clone\(\)/g, '$1Value::from(&self.currencies_by_id)');
+    // `timeframes` is `Option<Dict>` (describe() leaves it undefined unless the venue has fetchOHLCV).
+    content = content
+        .replace(/(matches!\(\(&self\.timeframes, (?:[^()]|\((?:[^()]|\([^()]*\))*\))+?\), \()Value::Dict\(__d\)/g, '$1Some(__d)')
+        .replace(/self\.timeframes\.as_map\(\)/g, 'self.timeframes.as_deref()')
+        .replace(/([^\w:&])self\.timeframes\.clone\(\)/g, '$1Value::from(&self.timeframes)');
+    // Prediction `outcomes` is `Option<Dict>` (undefined until first indexed, then a dict), reached directly or via pred()/pred_mut().
+    const oc = 'self\\.(?:pred(?:_mut)?\\(\\)\\.|exchange\\.)?outcomes\\b';
+    content = content
+        .replace(new RegExp('(' + oc + ') = Value::Map\\(\\{\\s*let mut m = indexmap::IndexMap::new\\(\\);\\s*m\\s*\\}\\);', 'g'), '$1 = Some(Default::default());')
+        .replace(new RegExp('(' + oc + ')(?:\\.clone\\(\\))? (==|!=) Value::Null', 'g'), (_m, f, op) => f + '.' + (op === '==' ? 'is_none()' : 'is_some()'))
+        .replace(new RegExp('(matches!\\(\\(&' + oc + ', (?:[^()]|\\((?:[^()]|\\([^()]*\\))*\\))+?\\), \\()Value::Dict\\(__d\\)', 'g'), '$1Some(__d)')
+        .replace(new RegExp('if let Value::Dict\\((\\w+)\\) = (&mut ' + oc + ') \\{', 'g'), 'if let Some($1) = $2 {')
+        .replace(new RegExp('\\b(safe_\\w+|is_empty)\\((' + oc + ')\\.clone\\(\\)', 'g'), '$1(&$2')
+        .replace(new RegExp('([^\\w:&])(' + oc + ')\\.clone\\(\\)', 'g'), '$1Value::from(&$2)');
+    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance', 'tickers', 'currencies', 'networkAliases']) {
         const r = 'self\\.' + f;
         const k = '("[^"\\\\]*")';
         const make = 'std::sync::Arc::make_mut(';
