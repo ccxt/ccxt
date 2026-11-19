@@ -6789,6 +6789,71 @@ function moveIfArmLocals(content: string): string {
 }
 //
 // unit slot 003
+// `let mut a: T = b.clone();`: drop the copy and use `b` for `a` when `b` (owned, type T) is never named after the
+// first write of `a`; with writes, `b` must be `mut` and no loop may enclose the alias since `b`'s declaration.
+// A consuming use must be the last mention, alone in its statement.
+function dropReadOnlyAliases(content: string): string {
+    const site = /^[ \t]*let mut ([A-Za-z_]\w*): ([^=;\n]+?) = ([A-Za-z_]\w*)\.clone\(\);[ \t]*\n/gm;
+    const borrowAfter = /^(?:\.(?:clone|as_str|as_deref|as_ref|is_some|is_none|is_empty|len|to_string|as_bool|as_f64|as_i64|to_lowercase|to_uppercase)\(\)|\.(?:contains|starts_with|ends_with|replace|split)\(|\[| [=!]= )/;
+    let from = 0;
+    for (;;) {
+        const code = rustBorrowMask(content);
+        site.lastIndex = from;
+        let m: RegExpExecArray | null, done = true;
+        while ((m = site.exec(code)) !== null) {
+            const pos = m.index, a = m[1], ty = m[2].trim(), b = m[3], lineEnd = pos + m[0].length;
+            if (a === b || b === 'self') continue;
+            let fs = -1;
+            for (const f of code.matchAll(/^[ \t]*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)) { if (f.index! <= pos) fs = f.index!; else break; }
+            const open = fs < 0 ? -1 : code.indexOf('{', fs);
+            if (open < 0 || open > pos) continue;
+            const close = balancedCloseIndex(code, open + 1);
+            const lets = [...code.slice(open + 1, pos).matchAll(new RegExp(String.raw`\blet (?:mut )?${b}\s*:\s*([^=;]+?)\s*=`, 'g'))];
+            let declAt = open, bty: string, bmut: boolean;
+            if (lets.length > 0) { const d = lets[lets.length - 1]; declAt = open + 1 + d.index! + d[0].length; bty = d[1].trim(); bmut = d[0].startsWith('let mut'); } else {
+                const p = new RegExp(String.raw`[(,]\s*(mut )?${b}\s*:\s*([^,)]+)`).exec(code.slice(fs, open));
+                if (p === null) continue;
+                bty = p[2].trim(); bmut = p[1] !== undefined;
+            }
+            if (bty !== ty || /^&|\bimpl\b|^\[/.test(bty)) continue;
+            const names = `(?:${a}|${b})`;
+            const rest = code.slice(lineEnd, close);
+            const rebind = new RegExp(String.raw`\blet\b[^=;]*\b${names}\b|\bfor (?:mut )?${names}\b|\|[^|\n]*\b${names}\b[^|\n]*\||Some\((?:ref )?(?:mut )?${names}\)\s*=|&mut ${names}\b`);
+            if (rebind.test(rest) || new RegExp(String.raw`\bfor (?:mut )?${b}\b|\|[^|\n]*\b${b}\b[^|\n]*\||Some\((?:ref )?(?:mut )?${b}\)\s*=`).test(code.slice(declAt, pos))) continue;
+            const occ = [...rest.matchAll(new RegExp(String.raw`(?<![\w.])${names}\b`, 'g'))].map(o => lineEnd + o.index!);
+            const isA = (at: number) => code.startsWith(a, at) && !/\w/.test(code[at + a.length]);
+            const writes = occ.filter(at => isA(at) && /^\s*(?:[-+*/%]?=(?!=)|\.push_str\()/.test(code.slice(at + a.length, at + a.length + 12)));
+            let ok = writes.length === 0 || bmut;
+            const stackAt = (to: number) => { const st: number[] = []; for (let q = declAt; q < to; q++) { if (code[q] === '{') st.push(q); else if (code[q] === '}') st.pop(); } return st.map(o => code.slice(code.lastIndexOf('\n', o) + 1, o)); };
+            if (writes.length > 0 && stackAt(pos).some(h => /\b(?:loop|while|for)\b|\|/.test(h))) ok = false;
+            occ.forEach((at, k) => {
+                if (!ok) return;
+                const name = isA(at) ? a : b;
+                if (name === b && writes.length > 0 && at > writes[0]) { ok = false; return; }
+                if (writes.includes(at)) return;
+                const after = code.slice(at + name.length, at + name.length + 40);
+                if (/^\s*[-+*/%]?=(?!=)/.test(after)) { ok = false; return; }
+                if (code[at - 1] === '&' || /[=!]= $/.test(code.slice(at - 4, at)) || borrowAfter.test(after)) return;
+                // innermost enclosing paren is a formatting macro: borrowed
+                let depth = 0, j = at - 1;
+                for (; j > declAt; j--) { const c = code[j]; if (c === ')' || c === ']' || c === '}') depth++; else if (c === '(' || c === '[' || c === '{') { if (depth === 0) break; depth--; } }
+                if (code[j] === '(' && /\b(?:format|print|println|write)!$/.test(code.slice(j - 8, j))) return;
+                // consuming use: last mention, alone in its statement, no loop / closure since the declaration
+                if (k !== occ.length - 1) { ok = false; return; }
+                const stmt = Math.max(code.lastIndexOf(';', at), code.lastIndexOf('{', at), code.lastIndexOf('}', at));
+                if (k > 0 && occ[k - 1] > stmt) { ok = false; return; }
+                if (stackAt(at).some(h => /\b(?:loop|while|for)\b|\|/.test(h))) ok = false;
+            });
+            if (!ok) continue;
+            let out = content.slice(0, pos), last = lineEnd;
+            for (const at of occ) if (isA(at)) { out += content.slice(last, at) + b; last = at + a.length; }
+            content = out + content.slice(last);
+            from = pos; done = false;
+            break;
+        }
+        if (done) return content;
+    }
+}
 //
 // unit slot 004
 //
@@ -7587,6 +7652,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     moveIfArmLocals,
     //
     // pass slot 003
+    dropReadOnlyAliases,
     //
     // pass slot 004
     //
