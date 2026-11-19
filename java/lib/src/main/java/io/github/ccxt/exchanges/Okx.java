@@ -10139,7 +10139,7 @@ public class Okx extends OkxApi
      * @param {int} [params.until] the latest time in ms of the entries to fetch
      * @returns {object[]} the request and the remaining params
      */
-    public List<Object> handleTradingStatisticsWindow(Map<String, Object> request, String period, Long since, Long limit, Map<String, Object> parameters)
+    public Object handleTradingStatisticsWindow(Map<String, Object> request, String period, Long since, Long limit, Map<String, Object> parameters)
     {
         Integer maxLimit = 100;
         Long effectiveLimit = 100L;

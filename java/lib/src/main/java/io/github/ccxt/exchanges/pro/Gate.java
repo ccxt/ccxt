@@ -1947,7 +1947,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //        }]
         //    }
         //
-        Object type = this.getMarketTypeByUrl((String) (client.url));
+        String type = this.getMarketTypeByUrl((String) (client.url));
         List<Object> data = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (type == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(type));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
@@ -2852,24 +2852,28 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public Object getMarketTypeByUrl(String url)
+    public String getMarketTypeByUrl(String url)
     {
-        Map<String, Object> findBy = new HashMap<String, Object>() {{
-            put( "op-", "option" );
-            put( "/ws/options/", "option" );
-            put( "delivery", "future" );
-            put( "fx", "swap" );
-            put( "/ws/futures/", "swap" );
-        }};
-        List<String> keys = new ArrayList<String>(findBy.keySet());
-        for (var i = 0; i < keys.size(); i++)
+        // same order as the url table: delivery urls also contain 'fx'
+        if (((String)url).indexOf("op-") >= 0)
         {
-            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object value = (findBy == null || key == null ? null : findBy.get(key));
-            if (((String)url).indexOf(key) >= 0)
-            {
-                return value;
-            }
+            return "option";
+        }
+        if (((String)url).indexOf("/ws/options/") >= 0)
+        {
+            return "option";
+        }
+        if (((String)url).indexOf("delivery") >= 0)
+        {
+            return "future";
+        }
+        if (((String)url).indexOf("fx") >= 0)
+        {
+            return "swap";
+        }
+        if (((String)url).indexOf("/ws/futures/") >= 0)
+        {
+            return "swap";
         }
         return "spot";
     }

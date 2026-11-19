@@ -1488,8 +1488,12 @@ public class Bitso extends BitsoApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < payload.size(); i++)
             {
-                Object id = (payload == null || i < 0 || i >= payload.size() ? null : payload.get(i));
-                ((List<Object>)orders).add(this.parseOrder(id, market));
+                String id = this.safeString(payload, i);
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("info", this.safeString(payload, i));
+                j39v2.put("id", id);
+                j39v2.put("symbol", this.safeSymbol(null, market, "_", (String) null));
+                ((List<Object>)orders).add(this.safeOrder(j39v2, market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1525,8 +1529,12 @@ public class Bitso extends BitsoApi
             List<Object> canceledOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < payload.size(); i++)
             {
-                Map<String, Object> order = (Map<String, Object>) this.parseOrder((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)), (Map<String, Object>) null);
-                ((List<Object>)canceledOrders).add(order);
+                String id = this.safeString(payload, i);
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("info", this.safeString(payload, i));
+                j39v3.put("id", id);
+                j39v3.put("symbol", this.safeSymbol(null, (Map<String, Object>) null, "_", (String) null));
+                ((List<Object>)canceledOrders).add(this.safeOrder(j39v3, (Map<String, Object>) null));
             }
             return canceledOrders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1546,19 +1554,7 @@ public class Bitso extends BitsoApi
 
     public Order parseOrder(Object order, Map<String, Object> market)
     {
-        //
-        //
-        // canceledOrder
-        // yWTQGxDMZ0VimZgZ
-        //
-        Object id = null;
-        if ((order instanceof String))
-        {
-            id = order;
-        } else
-        {
-            id = this.safeString(order, "oid");
-        }
+        String id = this.safeString(order, "oid");
         String side = this.safeString(order, "side");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "book");
@@ -1569,29 +1565,29 @@ public class Bitso extends BitsoApi
         String amount = this.safeString(order, "original_amount");
         String remaining = this.safeString(order, "unfilled_amount");
         String clientOrderId = this.safeString(order, "client_id");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", order);
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("clientOrderId", clientOrderId);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("lastTradeTimestamp", null);
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("type", orderType);
-        mapLiteral3.put("timeInForce", null);
-        mapLiteral3.put("postOnly", null);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", price);
-        mapLiteral3.put("triggerPrice", null);
-        mapLiteral3.put("amount", amount);
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("remaining", remaining);
-        mapLiteral3.put("filled", null);
-        mapLiteral3.put("status", status);
-        mapLiteral3.put("fee", null);
-        mapLiteral3.put("average", null);
-        mapLiteral3.put("trades", null);
-        return this.safeOrder(mapLiteral3, market);
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", order );
+            put( "id", id );
+            put( "clientOrderId", clientOrderId );
+            put( "timestamp", timestamp );
+            put( "datetime", Bitso.this.iso8601(timestamp) );
+            put( "lastTradeTimestamp", null );
+            put( "symbol", symbol );
+            put( "type", orderType );
+            put( "timeInForce", null );
+            put( "postOnly", null );
+            put( "side", side );
+            put( "price", price );
+            put( "triggerPrice", null );
+            put( "amount", amount );
+            put( "cost", null );
+            put( "remaining", remaining );
+            put( "filled", null );
+            put( "status", status );
+            put( "fee", null );
+            put( "average", null );
+            put( "trades", null );
+        }}, market);
     }
 
     /**
@@ -1962,14 +1958,14 @@ public class Bitso extends BitsoApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
+                    HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                    mapLiteral3.put("deposit", this.safeNumber(this.safeDict(result, code, null), "deposit", (Object) null));
+                    mapLiteral3.put("withdraw", this.safeNumber(withdrawalFees, currencyId, (Object) null));
                     HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-                    mapLiteral4.put("deposit", this.safeNumber(this.safeDict(result, code, null), "deposit", (Object) null));
+                    mapLiteral4.put("deposit", this.safeValue(this.safeDict(this.safeDict(result, code, null), "info", null), "deposit"));
                     mapLiteral4.put("withdraw", this.safeNumber(withdrawalFees, currencyId, (Object) null));
-                    HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                    mapLiteral5.put("deposit", this.safeValue(this.safeDict(this.safeDict(result, code, null), "info", null), "deposit"));
-                    mapLiteral5.put("withdraw", this.safeNumber(withdrawalFees, currencyId, (Object) null));
-                    mapLiteral4.put("info", mapLiteral5);
-                    result.put(code, mapLiteral4);
+                    mapLiteral3.put("info", mapLiteral4);
+                    result.put(code, mapLiteral3);
                 }
             }
             return result;
@@ -2368,7 +2364,7 @@ public class Bitso extends BitsoApi
         {
             return null;  // fallback to default error handler
         }
-        if ((switch ((Object)(response)) { case List<?> j39v3 -> j39v3.contains("success"); case Map<?, ?> j39v2 -> j39v2.containsKey("success"); case null, default -> false; }))
+        if ((switch ((Object)(response)) { case List<?> j39v5 -> j39v5.contains("success"); case Map<?, ?> j39v4 -> j39v4.containsKey("success"); case null, default -> false; }))
         {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}

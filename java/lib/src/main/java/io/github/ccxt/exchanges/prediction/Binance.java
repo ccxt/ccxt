@@ -1292,7 +1292,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = this.market(outcomeObj.get("market"));
+                Map<String, Object> market = this.market(this.safeString(outcomeObj, "market"));
                 request.put("marketId", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1572,7 +1572,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = this.market(outcomeObj.get("market"));
+                Map<String, Object> market = this.market(this.safeString(outcomeObj, "market"));
                 request.put("marketTopicId", Helpers.GetValue(market.get("info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();

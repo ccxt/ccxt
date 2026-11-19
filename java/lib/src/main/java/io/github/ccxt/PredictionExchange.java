@@ -458,7 +458,7 @@ public Map<String, Object> describe()
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
-        List<Object> keys = ((List<Object>) switch ((Object)(this.events)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = (this.events == null ? new ArrayList<Object>() : new ArrayList<Object>(this.events.keySet()));
         for (var i = 0; i < keys.size(); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));

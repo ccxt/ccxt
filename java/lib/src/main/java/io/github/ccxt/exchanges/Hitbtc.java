@@ -1891,7 +1891,7 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> transactions = (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", (String) (code), since, limit, parameters)).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1913,7 +1913,7 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> transactions = (this.fetchTransactionsHelper("DEPOSIT", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("DEPOSIT", (String) (code), since, limit, parameters)).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1935,7 +1935,7 @@ public class Hitbtc extends HitbtcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> transactions = (this.fetchTransactionsHelper("WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
+            List<Object> transactions = (this.fetchTransactionsHelper("WITHDRAW", (String) (code), since, limit, parameters)).join();
             return this.toArray(transactions);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 

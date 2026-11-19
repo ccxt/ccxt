@@ -2801,7 +2801,7 @@ public class Hyperliquid extends HyperliquidApi
     {
         if ((!(response instanceof String)) && !(response instanceof List))
         {
-            return (Map<String, Object>) (response);
+            return ((response instanceof Map) ? (Map<String, Object>) (response) : null);
         }
         return new HashMap<String, Object>() {{}};
     }

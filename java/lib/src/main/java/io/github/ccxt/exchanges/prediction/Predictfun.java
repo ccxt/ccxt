@@ -1096,7 +1096,7 @@ public class Predictfun extends PredictfunApi
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
                 Boolean prevIsDigit = (i > 0) && (Helpers.getIndexOf(digits, (chars == null || ((int) (((long) i) - 1L)) < 0 || ((int) (((long) i) - 1L)) >= chars.size() ? null : chars.get(((int) (((long) i) - 1L))))) >= 0);
-                Boolean nextIsDigit = (((((long) i) + 1L) < (chars.size()))) && (Helpers.getIndexOf(digits, (chars == null || ((int) (((long) i) + 1L)) < 0 || ((int) (((long) i) + 1L)) >= chars.size() ? null : chars.get(((int) (((long) i) + 1L))))) >= 0);
+                Boolean nextIsDigit = (((((long) i) + 1L) < (chars.size()))) && ((digits == null || chars == null || ((int) (((long) i) + 1L)) < 0 || ((int) (((long) i) + 1L)) >= chars.size() || chars.get(((int) (((long) i) + 1L))) == null ? -1 : digits.indexOf(chars.get(((int) (((long) i) + 1L))))) >= 0);
                 keep = !(Boolean.TRUE.equals(prevIsDigit) && Boolean.TRUE.equals(nextIsDigit));
             }
             if (Boolean.TRUE.equals(keep))

@@ -2444,7 +2444,7 @@ public class Myriad extends MyriadApi
         String result = "0";
         for (var i = 0; (n != null && i < n); i++)
         {
-            Integer v = Helpers.getIndexOf(digits, (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i)));
+            Integer v = (digits == null || chars == null || i < 0 || i >= chars.size() || chars.get(i) == null ? -1 : digits.indexOf(chars.get(i)));
             if ((v != null && v > -1))
             {
                 String mul = Precise.stringMul(result, "16");

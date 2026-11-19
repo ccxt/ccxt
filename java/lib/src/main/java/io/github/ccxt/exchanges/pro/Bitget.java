@@ -1991,7 +1991,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 messageHash = "triggerOrder";
             }
             String subscriptionHash = "order:trades";
-            String symbolResolved = null;
+            String symbolResolved = symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
@@ -2596,7 +2596,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             Map<String, Object> market = null;
             String messageHash = "myTrades";
-            String symbolResolved = null;
+            String symbolResolved = symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);

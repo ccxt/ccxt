@@ -15112,8 +15112,7 @@ public class Binance extends BinanceApi
             }
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String defaultType = "swap";
-            defaultType = this.safeString(this.options, "defaultType", defaultType);
+            String defaultType = this.safeString(this.options, "defaultType", "swap");
             String type = this.safeString(parameters, "type", defaultType);
             String subType = null;
             Map<String, Object> paramsSubType = null;

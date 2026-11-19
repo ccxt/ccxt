@@ -2348,7 +2348,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchBalanceWs", parameters);
             Object result = (this.requestWs("private/get_account_summaries", paramsResolved, true)).join();
             List<Object> summaries = this.safeList(result, "summaries", new ArrayList<Object>(Arrays.asList()));
-            Object balance = new HashMap<String, Object>() {{
+            Map<String, Object> balance = new HashMap<String, Object>() {{
                 put( "info", result );
             }};
             Integer summariesLength = summaries.size();

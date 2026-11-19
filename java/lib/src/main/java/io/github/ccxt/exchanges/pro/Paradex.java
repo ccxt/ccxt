@@ -184,7 +184,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String requestHash = ("request:" + this.safeString(request, "id"));
+            String requestHash = ("request:" + this.safeString(request, "id", ""));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", request.get("id") );
                 put( "messageHashes", new ArrayList<Object>(Arrays.asList(requestHash)) );
@@ -1232,7 +1232,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // the whole connection
             Map<String, Object> unsubscribe = this.unsubscribeRequest((String) (channel));
             Map<String, Object> subscribe = this.subscribeRequest((String) (channel));
-            String unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id"));
+            String unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id", ""));
             client.subscriptions.put(unsubscribeHash, new HashMap<String, Object>() {{
         put( "id", unsubscribe.get("id") );
         put( "messageHashes", new ArrayList<Object>(Arrays.asList()) );
