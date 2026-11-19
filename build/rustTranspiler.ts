@@ -8426,6 +8426,24 @@ function typedReturnOwner (content: string, at: number, typed: Set<string>): boo
 }
 //
 // unit slot 075
+// `account()` always builds the three-key `{ free, used, total }` literal, so it returns `Dict`: `.into_dict()` drops,
+// an owned-map copy unwraps the fresh Arc, any other use (dispatch arm, `Value` locals, arguments) boxes it.
+function rustTypedAccountBuilder (content: string): string {
+    const decl = /\n    fn account\(&self\) -> Value \{\n        return Value::Map\((\{\n    let mut m = indexmap::IndexMap::new\(\);\n(?:        m\.insert\("(?:free|used|total)"\.to_string\(\), Value::Null\);\n){3}    m\n\})\);\n\n    Value::Null\n\}/;
+    content = content.replace (decl, (_a, lit: string) => '\n    fn account(&self) -> crate::value::Dict {\n        return std::sync::Arc::new(' + lit + ');\n\n    Default::default()\n}');
+    if (!content.includes ('self.account()')) return content;
+    const copy = '.as_map().cloned().unwrap_or_default()';
+    const parts = content.split ('self.account()');
+    let out = parts[0];
+    for (let i = 1; i < parts.length; i++) {
+        const prev = out, rest = parts[i];
+        if (/[\w.]$/.test (prev)) out += 'self.account()' + rest;
+        else if (rest.startsWith ('.into_dict()')) out += 'self.account()' + rest.slice ('.into_dict()'.length);
+        else if (rest.startsWith (copy)) out += 'std::sync::Arc::unwrap_or_clone(self.account())' + rest.slice (copy.length);
+        else out += 'Value::Dict(self.account())' + rest;
+    }
+    return out;
+}
 //
 // unit slot 076
 //
@@ -8913,6 +8931,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 074
     //
     // pass slot 075
+    rustTypedAccountBuilder,
     //
     // pass slot 076
     //
