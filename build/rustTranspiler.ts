@@ -4873,6 +4873,111 @@ function rustTypedSafeOrder (content: string): string {
     return content.replace (/self\.\u0000safe_order\(/g, 'self.safe_order(');
 }
 
+// `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
+// `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
+function rustTypedParseOrder (content: string): string {
+    const derivedSig = /\n    fn parse_order\(&self, \w+: impl Into<crate::Value>, market: Option<&crate::types::Market>\) -> Value \{\n/;
+    const safeRet = 'Value::Dict(self.safe_order(';
+    const allSafe = (body: string) => { const r = body.match (/^ *return\b[^\n]*/gm) ?? []; return r.length > 0 && r.every ((x) => x.trim ().startsWith ('return ' + safeRet)); };
+    const unbox = (body: string, wrap: string) => {
+        let out = '', last = 0, at: number;
+        while ((at = body.indexOf ('return ' + safeRet, last)) >= 0) {
+            const open = at + ('return ' + safeRet).length;
+            const close = balancedCloseIndex (body, open);
+            const inner = body.slice (at + 'return Value::Dict('.length, close);
+            out += body.slice (last, at) + 'return ' + (wrap ? wrap + '(' + inner + ')' : inner);
+            last = close + 1;
+        }
+        return out + body.slice (last);
+    };
+    const dictFns = new Set<string> ();
+    const at = content.search (derivedSig);
+    if (at >= 0 && content.startsWith ('\nimpl crate::exchange::DerivedExchange for ', content.lastIndexOf ('\nimpl ', at))) {
+        const open = content.indexOf ('{\n', at) + 1;
+        const tail = '\n\n    Value::Null\n';
+        const end = content.indexOf (tail + '}', open) + tail.length;
+        if (end < tail.length) throw new Error ('rustTypedParseOrder: parse_order override without the Value::Null tail');
+        let body = content.slice (open, end - tail.length);
+        // a local built by `safeOrder` (or by the slot itself) and only returned keeps that type
+        for (const m of [ ...body.matchAll (/\blet mut (\w+): Value = (Value::Dict\(self\.safe_order\(|<Self as crate::exchange::DerivedExchange>::parse_order\()/g) ]) {
+            const name = m[1];
+            const uses = body.match (new RegExp ('\\b' + name + '\\b', 'g'))!.length;
+            const box = 'if let Value::Dict(__rda) = &mut ' + name + ' {';
+            if (m[2].startsWith ('Value::Dict') && uses === 2 && body.includes ('return ' + name + ';')) {
+                const s = body.indexOf (m[0]);
+                const close = balancedCloseIndex (body, s + m[0].length);
+                body = body.slice (0, s) + 'let mut ' + name + ': crate::value::Dict = ' + body.slice (s + m[0].length - 'self.safe_order('.length, close + 1) + body.slice (close + 2);
+                body = body.replace ('return ' + name + ';', 'return Some(' + name + ');');
+            } else if (!m[2].startsWith ('Value::Dict') && uses === 3 && body.includes (box) && body.includes ('return ' + name + ';')) {
+                body = body.replace (m[0], 'let mut ' + name + ': Option<crate::value::Dict> = ' + m[2]).replace (box, 'if let Some(__rda) = &mut ' + name + ' {');
+                body = body.replace ('return ' + name + ';', 'return \u0000' + name + ';');
+            }
+        }
+        // a sub-parser whose every return is `safeOrder` returns `Dict`
+        for (const m of [ ...body.matchAll (/\breturn self\.(parse_\w+_order)\(/g) ]) {
+            const sig = '\n    pub fn ' + m[1] + '(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {\n';
+            const s = content.indexOf (sig);
+            if (s < 0) continue;
+            const e = content.indexOf ('\n\n    Value::Null\n}', s);
+            if (e < 0 || !allSafe (content.slice (s, e))) continue;
+            dictFns.add (m[1]);
+            body = body.split ('return self.' + m[1] + '(').join ('return \u0000self.' + m[1] + '(');
+        }
+        body = unbox (body, 'Some');
+        let out = '', last = 0, r: RegExpExecArray | null;
+        const ret = /(?<=^ *)return ([^;\n]*)/gm;
+        while ((r = ret.exec (body)) !== null) {
+            if (r[1].startsWith ('Some(') || r[1].startsWith ('\u0000') && !r[1].startsWith ('\u0000self.')) continue;
+            if (!r[1].startsWith ('\u0000self.')) throw new Error ('rustTypedParseOrder: unproven parse_order return ' + r[1].slice (0, 80));
+            const close = balancedCloseIndex (body, r.index + 'return \u0000self.'.length + r[1].indexOf ('(') - '\u0000self.'.length + 1);
+            out += body.slice (last, r.index) + 'return Some(' + body.slice (r.index + 'return \u0000'.length, close + 1) + ')';
+            last = close + 1;
+            ret.lastIndex = last;
+        }
+        body = (out + body.slice (last)).replace (/\u0000/g, '') + '\n\n    None\n';
+        content = content.slice (0, at) + content.slice (at, open).replace ('-> Value {', '-> Option<crate::value::Dict> {') + body + content.slice (end);
+    }
+    for (const name of dictFns) {
+        const sig = '\n    pub fn ' + name + '(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {\n';
+        const s = content.indexOf (sig);
+        const e = content.indexOf ('\n\n    Value::Null\n}', s) + '\n\n    Value::Null\n'.length;
+        const body = unbox (content.slice (s + sig.length, e), '').replace (/\n\n    Value::Null\n$/, '\n\n    Default::default()\n');
+        content = content.slice (0, s) + sig.replace ('-> Value {', '-> crate::value::Dict {') + body + content.slice (e);
+    }
+    const base = 'fn parse_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {\n';
+    const probe = '{ let __v = crate::exchange::DerivedExchange::parse_order(self, order, market); if !matches!(__v, crate::Value::Null) { return __v; } }';
+    const b = content.indexOf (base);
+    if (b >= 0) {
+        const e = content.indexOf ('\n\n    Value::Null\n}', b) + '\n\n    Value::Null\n'.length;
+        const body = content.slice (b + base.length, e);
+        if (body.includes (probe) && body.split ('return').length === 2 && body.endsWith ('\n\n    Value::Null\n')) {
+            content = content.slice (0, b) + base.replace ('-> Value {', '-> crate::value::Dict {')
+                + body.replace (probe, 'if let Some(__v) = crate::exchange::DerivedExchange::parse_order(self, order, market) { return __v; }').replace (/Value::Null\n$/, 'Default::default()\n') + content.slice (e);
+        }
+    }
+    const call = new RegExp ('(?<![\\w.])(?:self(?:\\.parent)?\\.|<Self as crate::exchange_generated::ExchangeBase>::|<Self as crate::exchange::DerivedExchange>::)(parse_order|' + [ ...dictFns ].join ('|') + ')\\(', 'g');
+    const starts: number[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = call.exec (content)) !== null) starts.push (m.index);
+    const copy = '.as_map().cloned().unwrap_or_default()';
+    for (const s of starts.reverse ()) {
+        const close = balancedCloseIndex (content, content.indexOf ('(', content.indexOf ('parse_', s)) + 1);
+        if (close >= content.length) continue;
+        const pre = content.slice (s, close + 1), after = content.slice (close + 1);
+        const line = content.slice (content.lastIndexOf ('\n', s), s);
+        if (/\breturn Some\($/.test (line) || /\bfn \w*$/.test (line)) continue;
+        if (pre.startsWith ('<Self as crate::exchange::DerivedExchange>::')) {
+            if (/: Option<crate::value::Dict> = $/.test (line)) continue;
+            if (after.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + '.unwrap_or_default()' + after.slice ('.into_dict()'.length);
+            else if (after.startsWith (copy)) content = content.slice (0, close + 1) + '.map(std::sync::Arc::unwrap_or_clone).unwrap_or_default()' + after.slice (copy.length);
+            else content = content.slice (0, close + 1) + '.map_or(Value::Null, Value::Dict)' + after;
+        } else if (after.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + after.slice ('.into_dict()'.length);
+        else if (after.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + pre + ')' + after.slice (copy.length);
+        else content = content.slice (0, s) + 'Value::Dict(' + pre + ')' + after;
+    }
+    return content;
+}
+
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
 // returns `Dict` (`omit_t`: the same map, empty for a non-map, like `.into_dict()`); its arm and `Value` slot box it back.
 function rustTypedRouteAndParams (content: string): string {
@@ -11535,6 +11640,7 @@ impl std::ops::DerefMut for ${coreName} {
             }
 
             rustContent = rustTypedParseOrderBook(rustContent);
+            rustContent = rustTypedParseOrder(rustContent);
 
             // Phase 2 — lexical sanity check. A file with mismatched
             // delimiters would break the whole crate, so a failure here is
@@ -12331,6 +12437,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedIndexBy(finalFile);
         finalFile = rustTypedParseOrderBook(finalFile);
         finalFile = rustTypedSafeOrder(finalFile);
+        finalFile = rustTypedParseOrder(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);
