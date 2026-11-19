@@ -14,7 +14,7 @@ import type { int, Account, Balances, Currency, Dict, Endpoint, FundingHistory, 
  * @augments Exchange
  */
 export default class reya extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'reya',
             'name': 'Reya',
@@ -254,7 +254,7 @@ export default class reya extends Exchange {
 
     /** @ignore */
     reyaNetwork (): Dict {
-        const network = this.isSandboxModeEnabled ? 'sandbox' : 'mainnet';
+        const network = (this.isSandboxModeEnabled) ? 'sandbox' : 'mainnet';
         return this.safeDict (this.options, network, {});
     }
 
@@ -366,18 +366,22 @@ export default class reya extends Exchange {
     override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const response = await this.publicGetPerpMarketsSummary (params);
-        return this.parseTickers (response, symbols);
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            results.push (this.parseTicker (response[i]));
+        }
+        return this.filterByArrayTickers (results, 'symbol', this.marketSymbols (symbols));
     }
 
     /** @ignore */
-    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
-        const timestamp = this.safeInteger (fundingRate, 'updatedAt');
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
+        const timestamp = this.safeInteger (contract, 'updatedAt');
         return {
-            'info': fundingRate, 'symbol': this.safeSymbol (this.safeString (fundingRate, 'symbol'), market),
+            'info': contract, 'symbol': this.safeSymbol (this.safeString (contract, 'symbol'), market),
             'timestamp': timestamp, 'datetime': this.iso8601 (timestamp),
-            'markPrice': this.safeNumber (fundingRate, 'markPrice'), 'indexPrice': this.safeNumber (fundingRate, 'oraclePrice'),
+            'markPrice': this.safeNumber (contract, 'markPrice'), 'indexPrice': this.safeNumber (contract, 'oraclePrice'),
             'interestRate': undefined, 'estimatedSettlePrice': undefined,
-            'fundingRate': this.parseNumber (Precise.stringDiv (this.safeString (fundingRate, 'fundingRate'), '100')), 'interval': '1h',
+            'fundingRate': this.parseNumber (Precise.stringDiv (this.safeString (contract, 'fundingRate'), '100')), 'interval': '1h',
             'fundingTimestamp': undefined, 'fundingDatetime': undefined,
             'nextFundingRate': undefined, 'nextFundingTimestamp': undefined, 'nextFundingDatetime': undefined,
             'previousFundingRate': undefined, 'previousFundingTimestamp': undefined, 'previousFundingDatetime': undefined,
@@ -435,7 +439,8 @@ export default class reya extends Exchange {
         const candleLimit = (limit === undefined) ? 200 : Math.min (limit, 200);
         let endTime = this.milliseconds ();
         if (since !== undefined) {
-            endTime = Math.min (endTime, this.sum (since, duration * (candleLimit - 1)));
+            // a page ends with the candle containing endTime, so this reads candleLimit candles from since
+            endTime = Math.min (endTime, this.sum (since, duration * candleLimit) - 1);
         }
         const until = this.safeInteger (params, 'until', endTime);
         const [ configuredSource, query ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'priceSource', 'trade');
@@ -529,6 +534,7 @@ export default class reya extends Exchange {
 
     /** @ignore */
     parseReyaTrade (trade: Dict, market: Market = undefined, accountId: Str = undefined): Trade {
+        const resolvedMarket = this.safeMarket (this.safeString (trade, 'symbol'), market);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const isMaker = accountId !== undefined && this.safeString (trade, 'makerAccountId') === accountId;
         const isTaker = accountId !== undefined && this.safeString (trade, 'takerAccountId') === accountId;
@@ -540,19 +546,19 @@ export default class reya extends Exchange {
         let orderId = undefined;
         let takerOrMaker = undefined;
         if (isMaker || isTaker) {
-            orderId = isMaker ? this.safeString (trade, 'makerOrderId') : this.safeString (trade, 'takerOrderId');
-            takerOrMaker = isMaker ? 'maker' : 'taker';
-            const feeCost = isMaker ? this.safeString (trade, 'makerFee', '0') : this.safeString (trade, 'takerFee');
+            orderId = (isMaker) ? this.safeString (trade, 'makerOrderId') : this.safeString (trade, 'takerOrderId');
+            takerOrMaker = (isMaker) ? 'maker' : 'taker';
+            const feeCost = (isMaker) ? this.safeString (trade, 'makerFee', '0') : this.safeString (trade, 'takerFee');
             fee = { 'currency': 'RUSD', 'cost': feeCost };
         }
         return this.safeTrade ({
             'info': trade, 'id': this.safeString (trade, 'sequenceNumber'), 'order': orderId,
             'timestamp': timestamp, 'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeSymbol (this.safeString (trade, 'symbol'), market),
+            'symbol': resolvedMarket['symbol'],
             'type': undefined, 'side': side, 'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'), 'amount': this.safeString (trade, 'qty'), 'cost': undefined,
             'fee': fee,
-        }, market);
+        }, resolvedMarket);
     }
 
     /**
@@ -595,7 +601,7 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchBalance
-     * @description fetch the rUSD margin of one cross-margined account: total is the margin balance, used the initial margin of its positions and free the free collateral; collateral held in other assets counts at its haircut value
+     * @description fetch the rUSD margin of one cross-margined account: total is the margin balance, free the free collateral and used the rest, the initial margin of its positions (all of the margin balance while it is below the initial margin); collateral held in other assets counts at its haircut value
      * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.accountId] trading account id, defaults to options.accountId
@@ -607,33 +613,31 @@ export default class reya extends Exchange {
         const [ method, methodParams ] = this.handleOptionAndParams (params, 'fetchBalance', 'method', 'accountSummaries');
         const request: Dict = { 'address': this.reyaWalletAddress () };
         const query = this.omit (methodParams, 'accountId');
+        const account = this.numberToString (accountId);
         if (method === 'accountBalances') {
             const balances = await this.privateGetWalletAddressAccountBalances (this.extend (request, query));
-            return this.parseReyaAssetBalances (balances, accountId);
+            const assetResult: Dict = { 'info': balances };
+            for (let i = 0; i < balances.length; i++) {
+                const entry = balances[i];
+                if (this.safeString (entry, 'accountId') === account) {
+                    const code = this.safeCurrencyCode (this.safeString (entry, 'asset'));
+                    const assetBalance = this.account ();
+                    assetBalance['total'] = this.safeString (entry, 'realBalance');
+                    if (code !== undefined) {
+                        assetResult[code] = assetBalance;
+                    }
+                }
+            }
+            return this.safeBalance (assetResult);
         }
         request['accountId'] = accountId;
         const response = await this.privateGetWalletAddressAccountSummaries (this.extend (request, query));
-        return this.parseReyaAccountSummary (response, accountId);
-    }
-
-    /** @ignore */
-    parseReyaAccountSummary (summaries: Dict[], accountId: number): Balances {
-        const account = this.numberToString (accountId);
-        const result: Dict = { 'info': summaries };
-        for (let i = 0; i < summaries.length; i++) {
-            const summary = summaries[i];
+        const result: Dict = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const summary = response[i];
             if (this.safeString (summary, 'accountId') === account) {
                 const timestamp = this.safeInteger (summary, 'updatedAt');
-                const total = this.safeString (summary, 'marginBalance');
-                let free = this.safeString (summary, 'freeCollateral');
-                if (Precise.stringLt (free, '0')) {
-                    free = '0'; // an initial margin deficit leaves nothing free
-                }
-                const balance = this.account ();
-                balance['total'] = total;
-                balance['free'] = free;
-                balance['used'] = Precise.stringSub (total, free);
-                result['RUSD'] = balance;
+                result['RUSD'] = this.parseReyaMargin (summary);
                 result['timestamp'] = timestamp;
                 result['datetime'] = this.iso8601 (timestamp);
             }
@@ -642,21 +646,18 @@ export default class reya extends Exchange {
     }
 
     /** @ignore */
-    parseReyaAssetBalances (balances: Dict[], accountId: number): Balances {
-        const account = this.numberToString (accountId);
-        const result: Dict = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
-            if (this.safeString (entry, 'accountId') === account) {
-                const code = this.safeCurrencyCode (this.safeString (entry, 'asset'));
-                const balance = this.account ();
-                balance['total'] = this.safeString (entry, 'realBalance');
-                if (code !== undefined) {
-                    result[code] = balance;
-                }
-            }
+    parseReyaMargin (summary: Dict): Dict {
+        // the account's rUSD margin: free + used = the margin balance
+        const total = this.safeString (summary, 'marginBalance');
+        let free = this.safeString (summary, 'freeCollateral');
+        if (Precise.stringLt (free, '0')) {
+            free = '0'; // an initial margin deficit leaves nothing free
         }
-        return this.safeBalance (result);
+        const balance = this.account ();
+        balance['total'] = total;
+        balance['free'] = free;
+        balance['used'] = Precise.stringSub (total, free);
+        return balance;
     }
 
     /** @ignore */
@@ -890,7 +891,7 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchFundingHistory
-     * @description fetch the funding one account's positions paid or received, one entry per market and UTC hour starting at its timestamp; the funding is already in the balance
+     * @description fetch the funding one account's positions paid or received, one entry per market and UTC hour starting at its timestamp; the funding is already in the balance; Reya pages newest first, so with since and limit this returns the newest entries at or after since
      * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] earliest hour start in milliseconds
@@ -933,7 +934,7 @@ export default class reya extends Exchange {
     /**
      * @method
      * @name reya#fetchTradingFees
-     * @description fetch the fee rates of the wallet's fee tier, which apply to every market
+     * @description fetch the maker and taker rates of the wallet's fee tier, which apply to every market, before any referral or OG discounts
      * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
@@ -1099,6 +1100,7 @@ export default class reya extends Exchange {
      * @param {int} [since] earliest timestamp in milliseconds
      * @param {int} [limit] maximum entries per page, up to 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId
      * @param {string} [params.cursor] opaque pagination cursor
      * @param {int} [params.until] latest timestamp in milliseconds
      * @returns {object[]} trade structures
@@ -1256,7 +1258,7 @@ export default class reya extends Exchange {
     }
 
     /** @ignore */
-    override nonce (): number {
+    override nonce (): int {
         // microseconds; incrementingNonce () bumps past the previous value when two signed requests share one
         return this.milliseconds () * 1000;
     }
@@ -1266,7 +1268,11 @@ export default class reya extends Exchange {
         this.checkRequiredCredentials ();
         const network = this.reyaNetwork ();
         const domain = { 'name': 'Reya', 'version': '1', 'verifyingContract': this.safeString (network, 'ordersGateway') };
-        const nonce = this.safeString (request, 'nonce', this.numberToString (this.incrementingNonce ()));
+        let nonce = this.safeString (request, 'nonce');
+        if (nonce === undefined) {
+            const nextNonce = this.incrementingNonce ();
+            nonce = this.numberToString (nextNonce);
+        }
         const deadline = this.safeInteger (request, 'deadline', this.sum (this.seconds (), this.safeInteger (this.options, 'deadlineSeconds', 30)));
         const accountId = this.safeInteger (request, 'accountId');
         const symbol = this.safeString (request, 'symbol');
@@ -1279,7 +1285,7 @@ export default class reya extends Exchange {
                 throw new NotSupported (this.id + ' signing supports LIMIT orders only');
             }
             const signer = this.ethGetAddressFromPrivateKey (this.privateKey);
-            const signedQty = this.safeBool (request, 'isBuy') ? this.safeString (request, 'qty') : Precise.stringNeg (this.safeString (request, 'qty'));
+            const signedQty = (this.safeBool (request, 'isBuy')) ? this.safeString (request, 'qty') : Precise.stringNeg (this.safeString (request, 'qty'));
             const timeInForceValues: Dict = { 'GTC': 0, 'IOC': 1, 'GTT': 2 };
             types = {
                 'Order': [ { 'name': 'verifyingChainId', 'type': 'uint256' }, { 'name': 'deadline', 'type': 'uint256' }, { 'name': 'order', 'type': 'OrderDetails' } ],
@@ -1347,7 +1353,7 @@ export default class reya extends Exchange {
     }
 
     /** @ignore */
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

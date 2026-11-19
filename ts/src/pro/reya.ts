@@ -1,14 +1,14 @@
 // ---------------------------------------------------------------------------
 
 import reyaRest from '../reya.js';
-import { BadRequest, ExchangeError } from '../base/errors.js';
+import { BadRequest, ExchangeError, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 export default class reya extends reyaRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -36,16 +36,20 @@ export default class reya extends reyaRest {
     }
 
     /** @ignore */
-    async subscribeReyaChannel (channel: string, params: Dict = {}): Promise<any> {
+    async subscribeReyaChannel (channel: string, params: Dict = {}, messageHash: Str = undefined): Promise<any> {
         const url = this.urls['api']['ws'];
         const request = this.extend (params, { 'type': 'subscribe', 'channel': channel });
-        return await this.watch (url, channel, request, channel);
+        const hash = (messageHash === undefined) ? channel : messageHash;
+        return await this.watch (url, hash, request, channel);
     }
 
     /** @ignore */
-    reyaWalletChannel (resource: string): string {
-        // wallet channels are public reads keyed by the owner address; options.accountId selects the account
-        this.reyaAccountId ();
+    reyaWalletChannel (resource: string, params: Dict = {}): string {
+        // wallet channels are public reads keyed by the owner address; they stream the account in options.accountId
+        const accountId = this.numberToString (this.reyaAccountId (params));
+        if (accountId !== this.safeString (this.options, 'accountId')) {
+            throw new NotSupported (this.id + ' watch methods stream options.accountId; set options.accountId to ' + accountId);
+        }
         const address = this.reyaWalletAddress ();
         return '/v2/wallet/' + address.toLowerCase () + '/' + resource;
     }
@@ -126,11 +130,11 @@ export default class reya extends reyaRest {
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const ohlcv = await this.subscribeReyaChannel ('/v2/candles/' + market['id'] + '/' + resolution, params);
-        let ohlcvLimit = limit;
+        let limitResolved = limit;
         if (this.newUpdates) {
-            ohlcvLimit = ohlcv.getLimit (market['symbol'], limit);
+            limitResolved = ohlcv.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, ohlcvLimit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -139,11 +143,13 @@ export default class reya extends reyaRest {
      * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/asyncapi-trading-v2.yaml
      * @description watch the rUSD margin of the account in options.accountId, in the structure fetchBalance returns; the subscription is refused while Reya cannot value the account, and a later call subscribes again
      * @param {object} [params] extra subscription parameters
+     * @param {int} [params.accountId] must equal options.accountId
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarkets ();
-        return await this.subscribeReyaChannel (this.reyaWalletChannel ('accountSummaries'), params);
+        const channel = this.reyaWalletChannel ('accountSummaries', params);
+        return await this.subscribeReyaChannel (channel, this.omit (params, 'accountId'));
     }
 
     /**
@@ -152,15 +158,17 @@ export default class reya extends reyaRest {
      * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/asyncapi-trading-v2.yaml
      * @description watch the valued open positions of the account in options.accountId; each update returns all of its open positions, in the structure fetchPositions returns
      * @param {string[]} [symbols] unified market symbols
-     * @param {int} [since] not used by reya.watchPositions
+     * @param {int} [since] earliest valuation timestamp in milliseconds
      * @param {int} [limit] maximum positions
      * @param {object} [params] extra subscription parameters
+     * @param {int} [params.accountId] must equal options.accountId
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const marketSymbols = this.marketSymbols (symbols);
-        const positions = await this.subscribeReyaChannel (this.reyaWalletChannel ('positionRisk'), params);
+        const channel = this.reyaWalletChannel ('positionRisk', params);
+        const positions = await this.subscribeReyaChannel (channel, this.omit (params, 'accountId'));
         return this.filterBySymbolsSinceLimit (positions, marketSymbols, since, limit, true);
     }
 
@@ -173,17 +181,20 @@ export default class reya extends reyaRest {
      * @param {int} [since] earliest order timestamp in milliseconds
      * @param {int} [limit] maximum orders
      * @param {object} [params] extra subscription parameters
+     * @param {int} [params.accountId] must equal options.accountId
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const orders = await this.subscribeReyaChannel (this.reyaWalletChannel ('orderChanges'), params);
+        const channel = this.reyaWalletChannel ('orderChanges', params);
         const symbolResolved = (symbol === undefined) ? undefined : this.symbol (symbol);
-        let ordersLimit = limit;
+        const messageHash = (symbolResolved === undefined) ? channel : channel + '::' + symbolResolved;
+        const orders = await this.subscribeReyaChannel (channel, this.omit (params, 'accountId'), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            ordersLimit = orders.getLimit (symbolResolved, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, ordersLimit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -195,17 +206,20 @@ export default class reya extends reyaRest {
      * @param {int} [since] earliest trade timestamp in milliseconds
      * @param {int} [limit] maximum trades
      * @param {object} [params] extra subscription parameters
+     * @param {int} [params.accountId] must equal options.accountId
      * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        const trades = await this.subscribeReyaChannel (this.reyaWalletChannel ('perpExecutions'), params);
+        const channel = this.reyaWalletChannel ('perpExecutions', params);
         const symbolResolved = (symbol === undefined) ? undefined : this.symbol (symbol);
-        let tradesLimit = limit;
+        const messageHash = (symbolResolved === undefined) ? channel : channel + '::' + symbolResolved;
+        const trades = await this.subscribeReyaChannel (channel, this.omit (params, 'accountId'), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            tradesLimit = trades.getLimit (symbolResolved, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, tradesLimit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /** @ignore */
@@ -236,7 +250,7 @@ export default class reya extends reyaRest {
         }
         const stored = this.ohlcvs[symbol][(timeframe as string)];
         // candles arrive in ascending t; a candle replaces the stored one with the same t
-        const rows = Array.isArray (data) ? data : this.safeList (data, 'data', []);
+        const rows = (Array.isArray (data)) ? data : this.safeList (data, 'data', []);
         for (let i = 0; i < rows.length; i++) {
             stored.append (this.parseOHLCV (rows[i], market));
         }
@@ -246,13 +260,19 @@ export default class reya extends reyaRest {
     /** @ignore */
     handleBalance (client: Client, channel: string, data: any) {
         // a frame carries only the accounts that were recalculated
-        const rows = Array.isArray (data) ? data : this.safeList (data, 'data', []);
-        const accountId = this.reyaAccountId ();
-        const account = this.numberToString (accountId);
+        const rows = (Array.isArray (data)) ? data : this.safeList (data, 'data', []);
+        const account = this.numberToString (this.reyaAccountId ());
         for (let i = 0; i < rows.length; i++) {
-            if (this.safeString (rows[i], 'accountId') === account) {
-                this.balance = this.parseReyaAccountSummary ([ rows[i] ], accountId);
-                client.resolve (this.balance, channel);
+            const summary = rows[i];
+            if (this.safeString (summary, 'accountId') === account) {
+                const timestamp = this.safeInteger (summary, 'updatedAt');
+                const result: Dict = {
+                    'info': summary,
+                    'RUSD': this.parseReyaMargin (summary),
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                };
+                client.resolve (this.safeBalance (result), channel);
             }
         }
     }
@@ -265,7 +285,7 @@ export default class reya extends reyaRest {
         if (frameAccount !== undefined && frameAccount !== account) {
             return;
         }
-        const rows = Array.isArray (data) ? data : this.safeList (data, 'data', []);
+        const rows = (Array.isArray (data)) ? data : this.safeList (data, 'data', []);
         const positions = [];
         for (let i = 0; i < rows.length; i++) {
             if (this.safeString (rows[i], 'accountId') === account) {
@@ -278,37 +298,65 @@ export default class reya extends reyaRest {
     /** @ignore */
     handleOrders (client: Client, channel: string, data: any) {
         // the snapshot holds the open orders; updates carry every later order event, in order
-        const rows = Array.isArray (data) ? data : this.safeList (data, 'data', []);
+        const rows = (Array.isArray (data)) ? data : this.safeList (data, 'data', []);
         const account = this.numberToString (this.reyaAccountId ());
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
+        const symbols: Dict = {};
         for (let i = 0; i < rows.length; i++) {
-            if (this.safeString (rows[i], 'accountId') === account) {
-                stored.append (this.parseOrder (rows[i]));
+            const row = rows[i];
+            // a FEED_RESET row asks to rebuild the order view; it does not mean the order was cancelled
+            if ((this.safeString (row, 'accountId') === account) && (this.safeString (row, 'cancelReason') !== 'FEED_RESET')) {
+                const order = this.parseOrder (row);
+                stored.append (order);
+                const symbol = order['symbol'];
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
         }
-        client.resolve (stored, channel);
+        const changed = Object.keys (symbols);
+        this.resolveReyaBySymbol (client, channel, stored, changed);
+    }
+
+    /** @ignore */
+    resolveReyaBySymbol (client: Client, channel: string, stored: any, symbols: string[]) {
+        // resolve only when the account's rows changed: for every market, and for each market that changed
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 0) {
+            client.resolve (stored, channel);
+            for (let i = 0; i < symbolsLength; i++) {
+                client.resolve (stored, channel + '::' + symbols[i]);
+            }
+        }
     }
 
     /** @ignore */
     handleMyTrades (client: Client, channel: string, data: any) {
-        const rows = Array.isArray (data) ? data : this.safeList (data, 'data', []);
+        const rows = (Array.isArray (data)) ? data : this.safeList (data, 'data', []);
         const account = this.numberToString (this.reyaAccountId ());
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.myTrades;
+        const symbols: Dict = {};
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (this.safeString (row, 'makerAccountId') === account || this.safeString (row, 'takerAccountId') === account) {
-                stored.append (this.parseReyaTrade (row, undefined, account));
+            if ((this.safeString (row, 'makerAccountId') === account) || (this.safeString (row, 'takerAccountId') === account)) {
+                const trade = this.parseReyaTrade (row, undefined, account);
+                stored.append (trade);
+                const symbol = trade['symbol'];
+                if (symbol !== undefined) {
+                    symbols[symbol] = true;
+                }
             }
         }
-        client.resolve (stored, channel);
+        const changed = Object.keys (symbols);
+        this.resolveReyaBySymbol (client, channel, stored, changed);
     }
 
     /** @ignore */
@@ -345,7 +393,7 @@ export default class reya extends reyaRest {
 
     /** @ignore */
     handleTrades (client: Client, channel: string, data: any) {
-        const rows = Array.isArray (data) ? data : this.safeList (data, 'data', []);
+        const rows = (Array.isArray (data)) ? data : this.safeList (data, 'data', []);
         const symbols: Dict = {};
         for (let i = 0; i < rows.length; i++) {
             const trade = this.parseTrade (rows[i]);
@@ -376,9 +424,22 @@ export default class reya extends reyaRest {
         }
         const channel = this.safeString (message, 'channel');
         if (type === 'error') {
-            client.reject (new ExchangeError (this.id + ' ' + this.safeString (message, 'message')), channel);
-            if (channel !== undefined && (channel in client.subscriptions)) {
-                // a refused subscription, such as a valuation channel while a price is stale, is sent again by the next watch call
+            if (channel === undefined) {
+                client.reject (new ExchangeError (this.id + ' ' + this.safeString (message, 'message')));
+                return;
+            }
+            // the server ends a subscription it cannot serve, such as a valuation channel while a required
+            // price is stale (a NetworkError: retry after backing off); reject every watcher of the channel
+            // and let the next watch call subscribe again
+            const messageHashes = this.findMessageHashes (client, channel);
+            for (let i = 0; i < messageHashes.length; i++) {
+                if (channel.endsWith ('/accountSummaries') || channel.endsWith ('/positionRisk')) {
+                    client.reject (new NetworkError (this.id + ' ' + this.safeString (message, 'message')), messageHashes[i]);
+                } else {
+                    client.reject (new ExchangeError (this.id + ' ' + this.safeString (message, 'message')), messageHashes[i]);
+                }
+            }
+            if (channel in client.subscriptions) {
                 delete client.subscriptions[channel];
             }
             return;

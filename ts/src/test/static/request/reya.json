@@ -195,7 +195,7 @@
                     1699999920000,
                     2
                 ],
-                "url": "https://api.reya.xyz/v2/candleHistory/BTCRUSDPERP/1m?endTime=1699999980000&priceSource=trade"
+                "url": "https://api.reya.xyz/v2/candleHistory/BTCRUSDPERP/1m?endTime=1700000039999&priceSource=trade"
             },
             {
                 "description": "merged candles on request",

@@ -473,22 +473,20 @@
                 ],
                 "parsedResponses": [
                     {
-                        "info": [
-                            {
-                                "accountId": 42,
-                                "collateralValue": "1000",
-                                "unrealizedPnl": "0",
-                                "marginBalance": "1000",
-                                "equity": "1000",
-                                "initialMarginRequirement": "400",
-                                "liquidationMarginRequirement": "10",
-                                "freeCollateral": "600",
-                                "initialMarginRatio": "0.1",
-                                "liquidationMarginRatio": "0.01",
-                                "updatedAt": 1700000000000,
-                                "pricesUpdatedAt": 1699999999000
-                            }
-                        ],
+                        "info": {
+                            "accountId": 42,
+                            "collateralValue": "1000",
+                            "unrealizedPnl": "0",
+                            "marginBalance": "1000",
+                            "equity": "1000",
+                            "initialMarginRequirement": "400",
+                            "liquidationMarginRequirement": "10",
+                            "freeCollateral": "600",
+                            "initialMarginRatio": "0.1",
+                            "liquidationMarginRatio": "0.01",
+                            "updatedAt": 1700000000000,
+                            "pricesUpdatedAt": 1699999999000
+                        },
                         "RUSD": {
                             "free": 600,
                             "used": 400,
@@ -507,22 +505,20 @@
                         }
                     },
                     {
-                        "info": [
-                            {
-                                "accountId": 42,
-                                "collateralValue": "990",
-                                "unrealizedPnl": "0",
-                                "marginBalance": "990",
-                                "equity": "990",
-                                "initialMarginRequirement": "1000",
-                                "liquidationMarginRequirement": "10",
-                                "freeCollateral": "-10",
-                                "initialMarginRatio": "0.1",
-                                "liquidationMarginRatio": "0.01",
-                                "updatedAt": 1700000002000,
-                                "pricesUpdatedAt": 1700000001000
-                            }
-                        ],
+                        "info": {
+                            "accountId": 42,
+                            "collateralValue": "990",
+                            "unrealizedPnl": "0",
+                            "marginBalance": "990",
+                            "equity": "990",
+                            "initialMarginRequirement": "1000",
+                            "liquidationMarginRequirement": "10",
+                            "freeCollateral": "-10",
+                            "initialMarginRatio": "0.1",
+                            "liquidationMarginRatio": "0.01",
+                            "updatedAt": 1700000002000,
+                            "pricesUpdatedAt": 1700000001000
+                        },
                         "RUSD": {
                             "free": 0,
                             "used": 990,
@@ -738,10 +734,8 @@
         ],
         "watchOrders": [
             {
-                "description": "open orders snapshot, then order events of the configured account",
-                "input": [
-                    "BTC/RUSD:RUSD"
-                ],
+                "description": "open orders snapshot, then order events of the configured account; other accounts and FEED_RESET rows resolve nothing",
+                "input": [],
                 "url": "wss://ws.reya.xyz",
                 "options": {
                     "accountId": 42
@@ -798,6 +792,57 @@
                     },
                     {
                         "type": "channel_data",
+                        "timestamp": 1700000000500,
+                        "channel": "/v2/wallet/wallet/orderChanges",
+                        "data": [
+                            {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "accountId": 43,
+                                "orderId": "12",
+                                "clientOrderId": "7",
+                                "qty": "1",
+                                "execQty": "0",
+                                "cumQty": "0",
+                                "side": "B",
+                                "limitPx": "100",
+                                "orderType": "LIMIT",
+                                "timeInForce": "GTC",
+                                "reduceOnly": false,
+                                "postOnly": true,
+                                "triggered": false,
+                                "status": "CANCELLED",
+                                "createdAt": 1700000000000,
+                                "lastUpdateAt": 1700000000500,
+                                "sequenceNumber": 101,
+                                "cancelReason": "USER_CANCEL"
+                            },
+                            {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "accountId": 42,
+                                "orderId": "11",
+                                "clientOrderId": "7",
+                                "qty": "1",
+                                "execQty": "0",
+                                "cumQty": "0",
+                                "side": "B",
+                                "limitPx": "100",
+                                "orderType": "LIMIT",
+                                "timeInForce": "GTC",
+                                "reduceOnly": false,
+                                "postOnly": true,
+                                "triggered": false,
+                                "status": "CANCELLED",
+                                "createdAt": 1700000000000,
+                                "lastUpdateAt": 1700000000500,
+                                "sequenceNumber": 102,
+                                "cancelReason": "FEED_RESET"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "channel_data",
                         "timestamp": 1700000002000,
                         "channel": "/v2/wallet/wallet/orderChanges",
                         "data": [
@@ -820,7 +865,7 @@
                                 "status": "OPEN",
                                 "createdAt": 1700000000000,
                                 "lastUpdateAt": 1700000001000,
-                                "sequenceNumber": 101
+                                "sequenceNumber": 103
                             },
                             {
                                 "exchangeId": 2,
@@ -841,7 +886,7 @@
                                 "status": "CANCELLED",
                                 "createdAt": 1700000000000,
                                 "lastUpdateAt": 1700000002000,
-                                "sequenceNumber": 102,
+                                "sequenceNumber": 104,
                                 "cancelReason": "USER_CANCEL"
                             }
                         ]
@@ -919,7 +964,7 @@
                                 "status": "CANCELLED",
                                 "createdAt": 1700000000000,
                                 "lastUpdateAt": 1700000002000,
-                                "sequenceNumber": 102,
+                                "sequenceNumber": 104,
                                 "cancelReason": "USER_CANCEL"
                             },
                             "id": "11",
@@ -942,6 +987,212 @@
                             "average": null,
                             "cost": 40,
                             "status": "canceled",
+                            "fee": null,
+                            "trades": [],
+                            "fees": [],
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "channel": "/v2/wallet/wallet/orderChanges"
+                    }
+                ]
+            },
+            {
+                "description": "a symbol watch resolves only for that market",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "url": "wss://ws.reya.xyz",
+                "options": {
+                    "accountId": 42
+                },
+                "messages": [
+                    {
+                        "type": "subscribed",
+                        "channel": "/v2/wallet/wallet/orderChanges",
+                        "contents": {
+                            "data": [
+                                {
+                                    "exchangeId": 2,
+                                    "symbol": "BTCRUSDPERP",
+                                    "accountId": 42,
+                                    "orderId": "11",
+                                    "clientOrderId": "7",
+                                    "qty": "1",
+                                    "execQty": "0",
+                                    "cumQty": "0",
+                                    "side": "B",
+                                    "limitPx": "100",
+                                    "orderType": "LIMIT",
+                                    "timeInForce": "GTC",
+                                    "reduceOnly": false,
+                                    "postOnly": true,
+                                    "triggered": false,
+                                    "status": "OPEN",
+                                    "createdAt": 1700000000000,
+                                    "lastUpdateAt": 1700000000000
+                                }
+                            ],
+                            "snapshotSequenceNumber": 100
+                        }
+                    },
+                    {
+                        "type": "channel_data",
+                        "timestamp": 1700000001000,
+                        "channel": "/v2/wallet/wallet/orderChanges",
+                        "data": [
+                            {
+                                "exchangeId": 2,
+                                "symbol": "ETHRUSDPERP",
+                                "accountId": 42,
+                                "orderId": "21",
+                                "clientOrderId": "7",
+                                "qty": "1",
+                                "execQty": "0",
+                                "cumQty": "0",
+                                "side": "B",
+                                "limitPx": "100",
+                                "orderType": "LIMIT",
+                                "timeInForce": "GTC",
+                                "reduceOnly": false,
+                                "postOnly": true,
+                                "triggered": false,
+                                "status": "OPEN",
+                                "createdAt": 1700000000000,
+                                "lastUpdateAt": 1700000001000,
+                                "sequenceNumber": 101
+                            }
+                        ]
+                    },
+                    {
+                        "type": "channel_data",
+                        "timestamp": 1700000002000,
+                        "channel": "/v2/wallet/wallet/orderChanges",
+                        "data": [
+                            {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "accountId": 42,
+                                "orderId": "11",
+                                "clientOrderId": "7",
+                                "qty": "1",
+                                "execQty": "1",
+                                "cumQty": "1",
+                                "side": "B",
+                                "limitPx": "100",
+                                "orderType": "LIMIT",
+                                "timeInForce": "GTC",
+                                "reduceOnly": false,
+                                "postOnly": true,
+                                "triggered": false,
+                                "status": "FILLED",
+                                "createdAt": 1700000000000,
+                                "lastUpdateAt": 1700000002000,
+                                "sequenceNumber": 102
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "accountId": 42,
+                                "orderId": "11",
+                                "clientOrderId": "7",
+                                "qty": "1",
+                                "execQty": "0",
+                                "cumQty": "0",
+                                "side": "B",
+                                "limitPx": "100",
+                                "orderType": "LIMIT",
+                                "timeInForce": "GTC",
+                                "reduceOnly": false,
+                                "postOnly": true,
+                                "triggered": false,
+                                "status": "OPEN",
+                                "createdAt": 1700000000000,
+                                "lastUpdateAt": 1700000000000
+                            },
+                            "id": "11",
+                            "clientOrderId": "7",
+                            "timestamp": 1700000000000,
+                            "datetime": "2023-11-14T22:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1700000000000,
+                            "symbol": "BTC/RUSD:RUSD",
+                            "type": "limit",
+                            "timeInForce": "GTC",
+                            "postOnly": true,
+                            "reduceOnly": false,
+                            "side": "buy",
+                            "price": 100,
+                            "triggerPrice": null,
+                            "amount": 1,
+                            "filled": 0,
+                            "remaining": 1,
+                            "average": null,
+                            "cost": 0,
+                            "status": "open",
+                            "fee": null,
+                            "trades": [],
+                            "fees": [],
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "accountId": 42,
+                                "orderId": "11",
+                                "clientOrderId": "7",
+                                "qty": "1",
+                                "execQty": "1",
+                                "cumQty": "1",
+                                "side": "B",
+                                "limitPx": "100",
+                                "orderType": "LIMIT",
+                                "timeInForce": "GTC",
+                                "reduceOnly": false,
+                                "postOnly": true,
+                                "triggered": false,
+                                "status": "FILLED",
+                                "createdAt": 1700000000000,
+                                "lastUpdateAt": 1700000002000,
+                                "sequenceNumber": 102
+                            },
+                            "id": "11",
+                            "clientOrderId": "7",
+                            "timestamp": 1700000000000,
+                            "datetime": "2023-11-14T22:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1700000002000,
+                            "symbol": "BTC/RUSD:RUSD",
+                            "type": "limit",
+                            "timeInForce": "GTC",
+                            "postOnly": true,
+                            "reduceOnly": false,
+                            "side": "buy",
+                            "price": 100,
+                            "triggerPrice": null,
+                            "amount": 1,
+                            "filled": 1,
+                            "remaining": 0,
+                            "average": null,
+                            "cost": 100,
+                            "status": "closed",
                             "fee": null,
                             "trades": [],
                             "fees": [],
@@ -1009,6 +1260,30 @@
                                 }
                             ]
                         }
+                    },
+                    {
+                        "type": "channel_data",
+                        "timestamp": 1700000001000,
+                        "channel": "/v2/wallet/wallet/perpExecutions",
+                        "data": [
+                            {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "takerAccountId": 43,
+                                "makerAccountId": 77,
+                                "takerOrderId": "501",
+                                "makerOrderId": "601",
+                                "fillId": "903",
+                                "qty": "2",
+                                "side": "B",
+                                "takerFee": "0.03",
+                                "makerFee": "-0.001",
+                                "price": "100",
+                                "type": "ORDER_MATCH",
+                                "timestamp": 1700000000903,
+                                "sequenceNumber": 903
+                            }
+                        ]
                     },
                     {
                         "type": "channel_data",
@@ -1108,6 +1383,183 @@
                             "price": 101,
                             "amount": 0.25,
                             "cost": 25.25,
+                            "fee": {
+                                "currency": "RUSD",
+                                "cost": -0.001
+                            },
+                            "fees": [
+                                {
+                                    "currency": "RUSD",
+                                    "cost": -0.001
+                                }
+                            ]
+                        }
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "channel": "/v2/wallet/wallet/perpExecutions"
+                    }
+                ]
+            },
+            {
+                "description": "a symbol watch resolves only for that market",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "url": "wss://ws.reya.xyz",
+                "options": {
+                    "accountId": 42
+                },
+                "messages": [
+                    {
+                        "type": "subscribed",
+                        "channel": "/v2/wallet/wallet/perpExecutions",
+                        "contents": {
+                            "data": [
+                                {
+                                    "exchangeId": 2,
+                                    "symbol": "BTCRUSDPERP",
+                                    "takerAccountId": 42,
+                                    "makerAccountId": 77,
+                                    "takerOrderId": "501",
+                                    "makerOrderId": "601",
+                                    "fillId": "900",
+                                    "qty": "0.5",
+                                    "side": "B",
+                                    "takerFee": "0.03",
+                                    "makerFee": "-0.001",
+                                    "price": "100",
+                                    "type": "ORDER_MATCH",
+                                    "timestamp": 1700000000900,
+                                    "sequenceNumber": 900
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "channel_data",
+                        "timestamp": 1700000001000,
+                        "channel": "/v2/wallet/wallet/perpExecutions",
+                        "data": [
+                            {
+                                "exchangeId": 2,
+                                "symbol": "ETHRUSDPERP",
+                                "takerAccountId": 42,
+                                "makerAccountId": 77,
+                                "takerOrderId": "501",
+                                "makerOrderId": "601",
+                                "fillId": "904",
+                                "qty": "1",
+                                "side": "A",
+                                "takerFee": "0.03",
+                                "makerFee": "-0.001",
+                                "price": "10",
+                                "type": "ORDER_MATCH",
+                                "timestamp": 1700000000904,
+                                "sequenceNumber": 904
+                            }
+                        ]
+                    },
+                    {
+                        "type": "channel_data",
+                        "timestamp": 1700000002000,
+                        "channel": "/v2/wallet/wallet/perpExecutions",
+                        "data": [
+                            {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "takerAccountId": 77,
+                                "makerAccountId": 42,
+                                "takerOrderId": "501",
+                                "makerOrderId": "601",
+                                "fillId": "905",
+                                "qty": "0.1",
+                                "side": "A",
+                                "takerFee": "0.03",
+                                "makerFee": "-0.001",
+                                "price": "102",
+                                "type": "ORDER_MATCH",
+                                "timestamp": 1700000000905,
+                                "sequenceNumber": 905
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "takerAccountId": 42,
+                                "makerAccountId": 77,
+                                "takerOrderId": "501",
+                                "makerOrderId": "601",
+                                "fillId": "900",
+                                "qty": "0.5",
+                                "side": "B",
+                                "takerFee": "0.03",
+                                "makerFee": "-0.001",
+                                "price": "100",
+                                "type": "ORDER_MATCH",
+                                "timestamp": 1700000000900,
+                                "sequenceNumber": 900
+                            },
+                            "id": "900",
+                            "order": "501",
+                            "timestamp": 1700000000900,
+                            "datetime": "2023-11-14T22:13:20.900Z",
+                            "symbol": "BTC/RUSD:RUSD",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 100,
+                            "amount": 0.5,
+                            "cost": 50,
+                            "fee": {
+                                "currency": "RUSD",
+                                "cost": 0.03
+                            },
+                            "fees": [
+                                {
+                                    "currency": "RUSD",
+                                    "cost": 0.03
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "exchangeId": 2,
+                                "symbol": "BTCRUSDPERP",
+                                "takerAccountId": 77,
+                                "makerAccountId": 42,
+                                "takerOrderId": "501",
+                                "makerOrderId": "601",
+                                "fillId": "905",
+                                "qty": "0.1",
+                                "side": "A",
+                                "takerFee": "0.03",
+                                "makerFee": "-0.001",
+                                "price": "102",
+                                "type": "ORDER_MATCH",
+                                "timestamp": 1700000000905,
+                                "sequenceNumber": 905
+                            },
+                            "id": "905",
+                            "order": "601",
+                            "timestamp": 1700000000905,
+                            "datetime": "2023-11-14T22:13:20.905Z",
+                            "symbol": "BTC/RUSD:RUSD",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": "maker",
+                            "price": 102,
+                            "amount": 0.1,
+                            "cost": 10.2,
                             "fee": {
                                 "currency": "RUSD",
                                 "cost": -0.001

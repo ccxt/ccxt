@@ -2328,6 +2328,106 @@
                     }
                 }
             }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "every market summary in the list, hourly percentage rates as fractions",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/RUSD:RUSD",
+                        "ETH/RUSD:RUSD"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "10",
+                        "fundingRate": "0.0118",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "50000",
+                        "pxChange24h": "2",
+                        "markPrice": "100",
+                        "oraclePrice": "99"
+                    },
+                    {
+                        "symbol": "ETHRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "5",
+                        "fundingRate": "-0.00125",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "1000",
+                        "pxChange24h": "-1",
+                        "markPrice": "10"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/RUSD:RUSD": {
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "oiQty": "10",
+                            "fundingRate": "0.0118",
+                            "longFundingValue": "0",
+                            "shortFundingValue": "0",
+                            "volume24h": "50000",
+                            "pxChange24h": "2",
+                            "markPrice": "100",
+                            "oraclePrice": "99"
+                        },
+                        "symbol": "BTC/RUSD:RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "markPrice": 100,
+                        "indexPrice": 99,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "fundingRate": 0.000118,
+                        "interval": "1h",
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null
+                    },
+                    "ETH/RUSD:RUSD": {
+                        "info": {
+                            "symbol": "ETHRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "oiQty": "5",
+                            "fundingRate": "-0.00125",
+                            "longFundingValue": "0",
+                            "shortFundingValue": "0",
+                            "volume24h": "1000",
+                            "pxChange24h": "-1",
+                            "markPrice": "10"
+                        },
+                        "symbol": "ETH/RUSD:RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "markPrice": 10,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "fundingRate": -1.25e-05,
+                        "interval": "1h",
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null
+                    }
+                }
+            }
         ]
     }
 }
