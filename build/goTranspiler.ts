@@ -12123,7 +12123,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (goMapTypedOfMapLocal (dropNoOpMapTyped (goSafeBalanceSelfRebind (goSafeListTypedDefaultReads (goSafeListSliceReads (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content))))))))))))));
+    content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (goMapTypedOfMapLocal (goOmitChainMapLocals (dropNoOpMapTyped (goSafeBalanceSelfRebind (goSafeListTypedDefaultReads (goSafeListSliceReads (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content)))))))))))))));
     content = goTypedGvMapReads (content);
     content = path.endsWith ('.go') ? goHashmapRowReads (content) : content;
     content = goTypedNativeDerefs (path, content);
@@ -15835,7 +15835,7 @@ async function runMain () {
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
             goAsyncInt64ValueCheck, goAsyncStringValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'late native inop: ', goLateNativeInOpCheck ],
             [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
-            goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ], [ 'go map typed of map local: ', goMapTypedOfMapLocalSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
+            goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ], [ 'go map typed of map local: ', goMapTypedOfMapLocalSelfTest ], [ 'go omit chain map locals: ', goOmitChainMapLocalsSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
@@ -16650,6 +16650,44 @@ function goMapTypedOfMapLocal (content: string): string {
         const binds = (fn.match (new RegExp ('\\bvar ' + x + '\\b|(?<![\\w.])' + x + '(?:, \\w+)* :=|(?<![\\w.])\\w+, ' + x + ' :=|[(,] ?' + x + ' [\\w*[\\]{}.]+[,)]|range ' + x + '\\b', 'g')) ?? []).length;
         return ((typed === 1) && (binds === 1)) ? x : all;
     })).join ('\n');
+}
+
+// `var x any = y` / `var x any = this.Omit(y, ..)` with y a map[string]any bound once, and every later
+// write `x = this.Omit(z, ..)` of such a map, holds a map: Omit of a map argument always returns a fresh map
+function goOmitChainMapLocals (content: string): string {
+    return content.split (/\n(?=func )/).map ((fn) => {
+        // a declared map is a map at every write (the compiler checks them); only a second binding can shadow it
+        const typed = (x: string) => ((fn.match (new RegExp ('\\bvar ' + x + '\\b|(?<![\\w.])' + x + '(?:, \\w+)* :=|(?<![\\w.])\\w+, ' + x + ' :=|[(,] ?' + x + ' [\\w*[\\]{}.]+[,)]|range ' + x + '\\b', 'g')) ?? []).length === 1)
+            && new RegExp ('\\bvar ' + x + ' map\\[string\\]any\\b|[(,] ?' + x + ' map\\[string\\]any[,)]').test (fn);
+        const omitOf = (r: string) => /^(?:ccxt\.)?this\.Omit\((\w+), /.exec (r)?.[1];
+        for (let changed = true; changed;) {
+            changed = false;
+            for (const m of [ ...fn.matchAll (/\n(\t*)var (\w+) any = (\w+|(?:ccxt\.)?this\.Omit\(\w+, [^\n]*\))\n/g) ]) {
+                const x = m[2];
+                const src = omitOf (m[3]) ?? m[3];
+                const writes = [ ...fn.matchAll (new RegExp ('\\n\\t*' + x + ' = ([^\\n]*)', 'g')) ].map ((w) => w[1]);
+                const binds = (fn.match (new RegExp ('(?<![\\w.&])' + x + '(?:, \\w+)* :?=(?!=)|(?<![\\w.])\\w+, ' + x + ' :?=(?!=)|[(,] ?' + x + ' [\\w*[\\]{}.]+[,)]|range ' + x + '\\b|&' + x + '\\b|\\bvar ' + x + '\\b', 'g')) ?? []).length;
+                if (!typed (src) || (binds !== 1 + writes.length) || !writes.every ((w) => (omitOf (w) !== undefined) && typed (omitOf (w)))) {
+                    continue;
+                }
+                const od = (v: string) => v.replace (/^(?:ccxt\.)?this\.Omit\(/, 'this.OmitDict(');
+                fn = fn.replace (m[0], '\n' + m[1] + 'var ' + x + ' map[string]any = ' + od (m[3]) + '\n')
+                    .replace (new RegExp ('(\\n\\t*' + x + ' = )((?:ccxt\\.)?this\\.Omit\\()', 'g'), '$1this.OmitDict(');
+                changed = true;
+            }
+        }
+        return fn;
+    }).join ('\n');
+}
+
+function goOmitChainMapLocalsSelfTest (ok: SelfTestOk): void {
+    const f = (body: string) => 'func (this *X) F(p map[string]any, c bool) map[string]any {\n' + body + '}\n';
+    const pos = f ('\tvar a any = p\n\tif c {\n\t\ta = this.Omit(p, "k")\n\t}\n\tvar b any = this.Omit(a, []any{"x"})\n\treturn MapTyped(b)\n');
+    const out = goMapTypedOfMapLocal (goOmitChainMapLocals (pos));
+    ok (out.includes ('var a map[string]any = p\n') && out.includes ('a = this.OmitDict(p, "k")') && out.includes ('var b map[string]any = this.OmitDict(a, []any{"x"})\n\treturn b\n'), 'omit chain typed: ' + out);
+    const keep = [ f ('\tvar a any = p\n\ta = this.Foo(p)\n\treturn MapTyped(a)\n'), f ('\tvar a any = q\n\treturn MapTyped(a)\n'), f ('\tvar a any = p\n\t_, a = this.H(p)\n\treturn MapTyped(a)\n'),
+        f ('\tvar a any = p\n\tg(&a)\n\treturn MapTyped(a)\n'), f ('\tvar a any = p\n\tp := 1\n\treturn MapTyped(a)\n') ];
+    keep.forEach ((b, i) => ok (goOmitChainMapLocals (b) === b, 'omit chain negative ' + i));
 }
 
 function goMapTypedOfMapLocalSelfTest (ok: SelfTestOk): void {
