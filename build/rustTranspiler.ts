@@ -9060,6 +9060,27 @@ function nativeLocalStrKeyRemove (content: string): string {
 // unit slot 095
 //
 // unit slot 096
+// Small helper calls whose operand type is fixed by the line that declares it: print the std operation.
+// Each pattern matches only its declaration-proven shape; anything else keeps the helper.
+function nativeSmallHelperCalls (content: string): string {
+    let out = content;
+    // `x: Option<String>` from number_to_string: parse_int of its box is a trimmed i64 parse, Null otherwise
+    out = out.replace (/crate::runtime::parse_int\(&Value::from\(self\.number_to_string\((\w+)\)\)\)/g,
+        (_m, x) => `self.number_to_string(${x}).and_then(|__s| __s.trim().parse::<i64>().ok()).map(Value::Int).unwrap_or(Value::Null)`);
+    // a Float-or-Null parse of `stringifiedNumber: Option<String>` truncated to i64
+    out = out.replace (/(let mut (\w+): Option<String> = self\.number_to_string\(\w+\);\n\s*let mut (\w+): Value = \(match \2\.as_deref\(\) \{ Some\(__parse_s\) => __parse_s\.trim\(\)\.parse::<f64>\(\)\.map\(Value::Float\)\.unwrap_or\(Value::Null\), None => Value::Null \}\);\n\s*return )crate::runtime::parse_int\(&\3\)\.as_i64\(\);/g,
+        (_m, head, s) => `${head}${s}.as_deref().and_then(|__s| __s.trim().parse::<f64>().ok()).map(|__f| __f as i64);`);
+    // `one: String` right-padded with '0' to an Option<i64> width (None pads to 0, as pad_end does)
+    out = out.replace (/(let mut (\w+): String = "1"\.to_string\(\);\n(\s*)let mut (\w+): Value = )pad_end\(&Value::from\(\2\), &Value::from\(\(if let Some\(__l\) = (\w+) \{ Some\(__l \+ 1\) \} else \{ None \}\)\), &Value::Str\("0"\.into\(\)\)\);/g,
+        (_m, head, one, _i, _s, d) => `${head}Value::Str(format!("{:0<__w$}", ${one}, __w = ${d}.map_or(0, |__l| (__l + 1) as usize)).into());`);
+    // `enable` rebound from `vec![Value::from(enable: bool)]` is always a Bool
+    out = out.replace (/(let __args: Vec<Value> = vec!\[Value::from\(enable\)\];[\s\S]{0,2000}?)Value::Bool\(!is_true\(&enable\)\)/g,
+        (m, head) => (/\bfn \w/.test (head) ? m : `${head}Value::Bool(enable.as_bool() != Some(true))`));
+    // safe_string with no default answers Value::Str or Null: parse_float is a trimmed f64 parse of the Str, else Null
+    out = out.replace (/crate::runtime::parse_float\(&(self\.safe_string\(Value::Map\(\w+\.clone\(\)\), Value::Str\("\w+"\.into\(\)\), &\[\]\))\)/g,
+        (_m, call) => `${call}.as_str().and_then(|__s| __s.trim().parse::<f64>().ok()).map(Value::Float).unwrap_or(Value::Null)`);
+    return out;
+}
 //
 // unit slot 097
 // `get_value(&Value::from(&b), s.as_str())` on a declared `Option<Book>` local with a declared `String` key reads the
@@ -9536,6 +9557,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 095
     //
     // pass slot 096
+    nativeSmallHelperCalls,
     //
     // pass slot 097
     readTypedBookFields,
