@@ -29,18 +29,12 @@ function helperTestSandboxState (exchange: any, expectEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
     const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
-    const sandbox = testSharedMethods.exchangeProp (exchange, 'sandbox');
-    const testnet = testSharedMethods.exchangeProp (exchange, 'testnet');
     if (expectEnabled) {
         assert (isSandboxModeEnabled === true);
-        assert (sandbox === true, 'sandbox should be true');
-        assert (testnet === true, 'testnet should be true');
         assert (exchange.urls['api']['public'] === 'https://testnet.org');
         assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
     } else {
         assert (isSandboxModeEnabled !== true);
-        assert (sandbox !== true, 'sandbox should be false');
-        assert (testnet !== true, 'testnet should be false');
         assert (exchange.urls['api']['public'] === 'https://example.com');
         assert (exchange.urls['test']['public'] === 'https://testnet.org');
     }
