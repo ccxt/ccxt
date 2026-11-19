@@ -13589,7 +13589,7 @@ ${constStatements.join('\n')}
             // hand-written in go/v4 (exchange_safe.go *float64 SafeNumber*, exchange_market_type.go
             // Handle*AndParams pairs and MarketSymbols, exchange_misc.go ImplodeHostname): drop the copies
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOptionAndParams2?', 'HandleOption(?:Bool|Integer)AndParams2?',
-                'HandleOptionStringAndParams2', 'HandleUntilOption', 'MarketSymbols', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+                'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'MarketSymbols', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*
@@ -17358,7 +17358,7 @@ export function goTypedDerefSelfTest (ok: SelfTestOk): void {
 // `a, x := this.HandleXAndParams(..)` declares x as map[string]any (hand-written pair results); when that
 // is x's only declaration in the function, Omit(x, ..) always yields a map, so MapTyped(Omit) == OmitDict.
 function goTypedMaplistTupleMethods (): string {
-    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?(?:Nullable)?|HandleOptionIntegerAndParams2?|HandleOptionAndParams2?';
+    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?(?:Nullable)?|HandleOptionIntegerAndParams2?|HandleOptionAndParams2?|HandleMaxEntriesPerRequestAndParams';
 }
 
 function goTypedMaplistTupleMap (func: string, name: string, pairs: string = ''): boolean {

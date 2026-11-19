@@ -7931,28 +7931,6 @@ func (this *BaseExchange) CreateOHLCVObject(symbol any, timeframe any, data any)
 	AddElementToObject(GetValue(res, symbol), timeframe, data)
 	return res
 }
-func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, optionalArgs ...any) any {
-	// the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
-	var maxEntriesPerRequest *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
-	_ = maxEntriesPerRequest
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
-	_ = params
-	var maxEntriesPerRequestDefault int64
-	if maxEntriesPerRequest == nil {
-		maxEntriesPerRequestDefault = 1000
-	} else {
-		maxEntriesPerRequestDefault = *maxEntriesPerRequest
-	}
-	var maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxEntriesPerRequest", maxEntriesPerRequestDefault)
-	maxEntriesPerRequestResolved := func() any {
-		if p, _ := maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	paramsMaxEntriesPerRequest := maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable[1]
-	return []any{maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest}
-}
 func (this *BaseExchange) FetchPaginatedCallDynamicAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
 	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPaginatedCallDynamicBody(ch, method, optionalArgs...)
@@ -7981,9 +7959,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 	var result []any = []any{}
 	var errors int = 0
 	var until *int64 = this.SafeIntegerN(paramsPaginationDirection, []any{"until", "untill", "till"}) // do not omit it from params here
-	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection)
-	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
+	maxEntriesPerRequestOption, paramsMaxEntriesPerRequest := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection)
 	if paginationDirection != nil && *paginationDirection == "forward" {
 		if since == nil {
 			panic(ArgumentsRequired(this.Id + " pagination requires a since argument when paginationDirection set to forward"))
@@ -8215,9 +8191,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 	}
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
 	var maxCallsLimit int64 = this.ParseToInt(maxCallsPaginationCalls)
-	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls)
-	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
+	maxEntriesPerRequestOption, paramsMaxEntriesPerRequest := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls)
 	// paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
 	// pagination always walks forward internally, so strip it here to avoid leaking an
 	// unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
@@ -8324,14 +8298,12 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 		maxRetriesOption = p
 	}
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
-	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
-	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
+	maxEntriesPerRequestOption, paramsMaxEntriesPerRequest := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	var cursorValue any = nil
 	var errors int = 0
 	var result []any = []any{}
 	var timeframe *string = this.SafeString(paramsMaxEntriesPerRequest, "timeframe")
-	var paramsOmitted any = this.Omit(paramsMaxEntriesPerRequest, "timeframe") // reading the timeframe from the method arguments to avoid changing the signature
+	var paramsOmitted map[string]any = this.OmitDict(paramsMaxEntriesPerRequest, "timeframe") // reading the timeframe from the method arguments to avoid changing the signature
 	var shouldBreak bool = false
 	for i := 0; maxCallsPaginationCalls != nil && int64(i) < *maxCallsPaginationCalls; i++ {
 
@@ -8493,9 +8465,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 		maxRetriesOption = p
 	}
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
-	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
-	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
-	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
+	maxEntriesPerRequestOption, paramsMaxEntriesPerRequest := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	var errors int = 0
 	var result []any = []any{}
 	var shouldBreak bool = false

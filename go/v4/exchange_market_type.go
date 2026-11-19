@@ -206,6 +206,22 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
 	return result
 }
 
+// HandleMaxEntriesPerRequestAndParams: the option wins, then the argument, then 1000; slot 0 is
+// the integer (nil only when CheckOptionInteger answers nil), slot 1 the params left over.
+func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, optionalArgs ...any) (any, map[string]any) {
+	maxEntriesPerRequest := GetArgInt64Ptr(optionalArgs, 0, nil)
+	params := GetArgMap(optionalArgs, 1, map[string]any{})
+	var defaultValue int64 = 1000
+	if maxEntriesPerRequest != nil {
+		defaultValue = *maxEntriesPerRequest
+	}
+	value, rest := this.HandleOptionAndParams(params, method, "maxEntriesPerRequest", defaultValue)
+	if resolved := this.CheckOptionInteger(method, "maxEntriesPerRequest", value); resolved != nil {
+		return *resolved, rest
+	}
+	return nil, rest
+}
+
 // HandleOptionIntegerAndParams is the `defaultValue: number` overload: the option read as an integer
 // (another type panics in CheckOptionInteger), so the result is never absent.
 func (this *BaseExchange) HandleOptionIntegerAndParams(params any, methodName any, optionName any, defaultValue int64) (int64, map[string]any) {
