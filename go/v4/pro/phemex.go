@@ -62,7 +62,7 @@ func (this *Phemex) FromEn(en any, scale any) any {
 		return nil
 	}
 	precise := ccxt.NewPrecise(en)
-	precise.Decimals = this.Sum(precise.Decimals, scale)
+	precise.Decimals += int(*this.SafeInteger([]any{scale}, 0, 0))
 	precise.Reduce()
 	return precise.String()
 }

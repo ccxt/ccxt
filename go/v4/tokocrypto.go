@@ -1038,7 +1038,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 		"symbol": this.GetMarketIdByType(market),
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
+		request["limit"] = *limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
 	}
 	var response map[string]any = nil
 	if this.IsNativeMarket(market) {
@@ -1307,7 +1307,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 	request["symbol"] = this.GetMarketIdByType(market)
 	if this.IsNativeMarket(market) {
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		// open/v1/market/trades answers an empty list for every market, the
 		// aggregate endpoint is the one that carries data for these markets
@@ -1344,13 +1344,13 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 		return nil
 	}
 	if limit != nil {
-		request["limit"] = limit // default = 500, maximum = 1000
+		request["limit"] = *limit // default = 500, maximum = 1000
 	}
 	var defaultMethod string = "binanceGetTrades"
 	var method *string = this.SafeString(this.Options, "fetchTradesMethod", defaultMethod)
 	var response []any = nil
 	if (method != nil && *method == "binanceGetAggTrades") && (since != nil) {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// https://github.com/ccxt/ccxt/issues/6400
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
 		request["endTime"] = *since + 3600000
@@ -1769,7 +1769,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	}
 	// const duration = this.parseTimeframe (timeframe);
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if until != nil {
 		request["endTime"] = until
@@ -2494,10 +2494,10 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOpenV1Orders(this.Extend(request, params))
@@ -2740,7 +2740,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	}
 	var endTime *int64 = this.SafeInteger2(params, "until", "endTime")
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if endTime != nil {
@@ -2752,7 +2752,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 		request["endTime"] = endTime
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, paramsOmitted))
@@ -2918,7 +2918,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
 		var endTime int64 = *since + 7776000000
 		if until != nil {
@@ -2927,7 +2927,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 		request["endTime"] = endTime
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOpenV1Deposits(this.Extend(request, params))
@@ -3006,12 +3006,12 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
 		request["endTime"] = *since + 7776000000
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOpenV1Withdraws(this.Extend(request, params))

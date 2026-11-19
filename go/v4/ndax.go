@@ -1614,7 +1614,7 @@ func (this *Ndax) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 		"InstrumentId": market["id"],
 	}
 	if limit != nil {
-		request["Count"] = limit
+		request["Count"] = *limit
 	}
 
 	responseRecv := <-this.PublicGetGetLastTrades(this.Extend(request, params))
@@ -1915,7 +1915,7 @@ func (this *Ndax) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		"AccountId": accountId,
 	}
 	if limit != nil {
-		request["Depth"] = limit
+		request["Depth"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetGetAccountTransactions(this.Extend(request, paramsOmitted))
@@ -2316,7 +2316,7 @@ func (this *Ndax) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		request["StartTimeStamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
-		request["Depth"] = limit
+		request["Depth"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetGetTradesHistory(this.Extend(request, paramsOmitted))
@@ -2674,7 +2674,7 @@ func (this *Ndax) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		request["StartTimeStamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
-		request["Depth"] = limit
+		request["Depth"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetGetOrdersHistory(this.Extend(request, paramsOmitted))

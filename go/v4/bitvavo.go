@@ -599,7 +599,7 @@ func (this *Bitvavo) ParseMarkets(markets any) []any {
 		}
 		var status *string = this.SafeString(market, "status")
 		var feeCategory *string = this.SafeString(market, "feeCategory")
-		var fees any = this.SafeDict(feesByCategory, feeCategory, defaultFees)
+		var fees map[string]any = this.SafeDictMap(feesByCategory, feeCategory, defaultFees)
 		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"symbol":         *base + "/" + *quote,
@@ -1043,7 +1043,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
@@ -1343,7 +1343,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetMarketBook(this.Extend(request, params))
@@ -1391,7 +1391,7 @@ func (this *Bitvavo) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 func (this *Bitvavo) FetchOHLCVRequest(symbol *string, optionalArgs ...any) map[string]any {
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1405,7 +1405,7 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol *string, optionalArgs ...any) map[
 	if since != nil {
 		// https://github.com/ccxt/ccxt/issues/9227
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["start"] = since
+		request["start"] = *since
 		var sinceLimit int64
 		if limit == nil {
 			sinceLimit = 1440
@@ -1494,13 +1494,13 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit))}
 	return nil
 }
-func (this *Bitvavo) ParseBalanceList(response any) map[string]any {
+func (this *Bitvavo) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -1743,10 +1743,10 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a subaccountId parameter"))
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 
@@ -2496,9 +2496,9 @@ func (this *Bitvavo) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2507,10 +2507,10 @@ func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) map[string]any {
 		"market": market["id"],
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 500, max 1000
+		request["limit"] = *limit // default 500, max 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	return this.Extend(requestUntil, paramsUntil)
@@ -2830,9 +2830,9 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) Order {
 func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2841,10 +2841,10 @@ func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) map[string]any {
 		"market": market["id"],
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 500, max 1000
+		request["limit"] = *limit // default 500, max 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	return this.Extend(requestUntil, paramsUntil)
@@ -2976,7 +2976,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 		currency = this.Currency(code)
 	}
 	if since != nil {
-		request["fromDate"] = since
+		request["fromDate"] = *since
 	}
 	if limit != nil {
 		request["maxItems"] = min(*limit, 100)
@@ -3073,7 +3073,7 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 	}, currencyResolved)
 }
 func (this *Bitvavo) WithdrawRequest(code *string, amount any, address *string, optionalArgs ...any) map[string]any {
-	tag := GetArg(optionalArgs, 0, nil)
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3149,9 +3149,9 @@ func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string,
 func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any {
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3162,10 +3162,10 @@ func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any
 		request["symbol"] = currency["id"]
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 500, max 1000
+		request["limit"] = *limit // default 500, max 1000
 	}
 	return this.Extend(request, params)
 }
@@ -3238,9 +3238,9 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) map[string]any {
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3251,10 +3251,10 @@ func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) map[string]any {
 		request["symbol"] = currency["id"]
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 500, max 1000
+		request["limit"] = *limit // default 500, max 1000
 	}
 	return this.Extend(request, params)
 }

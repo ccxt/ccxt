@@ -995,7 +995,7 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price parameter for a " + typeVar + " order"))
 		}
 		request["quantity"] = amountToString
-		request["price"] = price
+		request["price"] = *price
 
 		r2 := <-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, paramsCost))
 		if r2.Err != nil {
@@ -1110,7 +1110,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetV2UserApiExchangeOrdersHistory(this.Extend(request, params))

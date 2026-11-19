@@ -3497,12 +3497,12 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	}
 	return url
 }
-func (this *Htx) SubscribePublicAsync(url any, symbol *string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Htx) SubscribePublicAsync(url any, symbol *string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, url, symbol, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Htx) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, symbol *string, messageHash any, optionalArgs ...any) any {
+func (this *Htx) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, symbol *string, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	method := ccxt.GetArg(optionalArgs, 0, nil)

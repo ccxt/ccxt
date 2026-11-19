@@ -1192,7 +1192,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		payload["limit"] = limit
+		payload["limit"] = *limit
 	}
 	var marketType *string = this.GetMarketType("fetchOrderBookWs", market, params)
 	if marketType == nil || *marketType != "linear" {
@@ -2740,10 +2740,10 @@ func (this *Binance) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 	var until *int64 = this.SafeInteger(paramsReturnRateLimits, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsReturnRateLimits, "until")
 	if since != nil {
-		payload["startTime"] = since
+		payload["startTime"] = *since
 	}
 	if limit != nil {
-		payload["limit"] = limit
+		payload["limit"] = *limit
 	}
 	if until != nil {
 		payload["endTime"] = until
@@ -5073,7 +5073,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	}
 	var event *string = this.SafeString(message, "e")
 	// balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
-	var balanceMessage any = this.SafeDict(message, "a", message)
+	var balanceMessage map[string]any = this.SafeDictMap(message, "a", message)
 	if event != nil && *event == "balanceUpdate" {
 		var currencyId *string = this.SafeString(message, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -7189,10 +7189,10 @@ func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 		"returnRateLimits": returnRateLimits,
 	}
 	if since != nil {
-		payload["startTime"] = since
+		payload["startTime"] = *since
 	}
 	if limit != nil {
-		payload["limit"] = limit
+		payload["limit"] = *limit
 	}
 	var fromId *int64 = this.SafeInteger(paramsReturnRateLimits, "fromId")
 	if (fromId != nil) && (since != nil) {
@@ -7271,7 +7271,7 @@ func (this *Binance) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 		"returnRateLimits": returnRateLimits,
 	}
 	if limit != nil {
-		payload["limit"] = limit
+		payload["limit"] = *limit
 	}
 	var message map[string]any = map[string]any{
 		"id":     messageHash,

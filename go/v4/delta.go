@@ -1735,7 +1735,7 @@ func (this *Delta) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetL2orderbookSymbol(this.Extend(request, params))
@@ -2949,7 +2949,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[[]Order], metho
 		request["start_time"] = this.NumberToString(*since * 1000)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	var response map[string]any = nil
 	if method == "privateGetOrders" {
@@ -3038,7 +3038,7 @@ func (this *Delta) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		request["start_time"] = this.NumberToString(*since * 1000)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.PrivateGetFills(this.Extend(request, params))
@@ -3136,7 +3136,7 @@ func (this *Delta) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 		request["asset_id"] = currency["numericId"]
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.PrivateGetWalletTransactions(this.Extend(request, params))
@@ -4065,7 +4065,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 		"states": "expired",
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.PublicGetProducts(this.Extend(request, params))

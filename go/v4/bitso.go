@@ -404,7 +404,7 @@ func (this *Bitso) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	_ = params
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r := <-this.PrivateGetLedger(this.Extend(request, params))
@@ -1076,7 +1076,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		"time_bucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 		if limit != nil {
 			var duration int64 = this.ParseTimeframe(timeframe)
 			request["end"] = this.Sum(since, (duration**limit)*1000)

@@ -693,7 +693,7 @@ func (this *P2b) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetDepthResult(this.Extend(request, params))
@@ -776,7 +776,7 @@ func (this *P2b) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 		"lastId": lastId,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetHistory(this.Extend(request, params))
@@ -1260,7 +1260,7 @@ func (this *P2b) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, params))
@@ -1342,7 +1342,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 		"orderId": id,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivatePostAccountOrder(this.Extend(request, params))
@@ -1452,7 +1452,7 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		"endTime":   untilSec,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivatePostAccountMarketDealHistory(this.Extend(request, paramsOmitted))
@@ -1567,7 +1567,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivatePostAccountOrderHistory(this.Extend(request, paramsOmitted))

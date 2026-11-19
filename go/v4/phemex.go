@@ -1631,7 +1631,7 @@ func (this *Phemex) ToEn(n any, scale *int64) any {
 	}
 	var stringN *string = this.NumberToString(n)
 	precise := NewPrecise(stringN)
-	precise.Decimals = this.Sum(precise.Decimals, (*scale * int64(-1)))
+	precise.Decimals += int(this.ParseToInt(*scale * int64(-1)))
 	precise.Reduce()
 	var preciseString string = precise.ToString()
 	return this.ParseToNumeric(preciseString)
@@ -1657,7 +1657,7 @@ func (this *Phemex) FromEn(en any, scale any) any {
 		return nil
 	}
 	precise := NewPrecise(en)
-	precise.Decimals = this.Sum(precise.Decimals, scale)
+	precise.Decimals += int(this.ParseToInt(scale))
 	precise.Reduce()
 	return precise.ToString()
 }
@@ -3990,10 +3990,10 @@ func (this *Phemex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	var marketSettle *string = this.SafeString(market, "settle")
@@ -4192,10 +4192,10 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	if (symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT") {
@@ -4327,7 +4327,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	var response map[string]any = nil
 	if isUSDTSettled {
@@ -5321,7 +5321,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if *limit > 200 {
 			panic(BadRequest(this.Id + " fetchFundingHistory() limit argument cannot exceed 200"))
 		}
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	var marketSettle *string = this.SafeString(market, "settle")
@@ -6256,10 +6256,10 @@ func (this *Phemex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		"currency": currency["id"],
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetAssetsTransfer(this.Extend(request, params))
@@ -6434,10 +6434,10 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		"symbol": customSymbol,
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	var response map[string]any = nil
@@ -6872,10 +6872,10 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversio
 		request["fromCurrency"] = code
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -7234,7 +7234,7 @@ func (this *Phemex) HandleErrors(code int64, reason string, url string, method s
 	//     {"code":412,"msg":"Missing parameter - to","data":null}
 	//     {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
 	//
-	var error any = this.SafeDict(response, "error", response)
+	var error map[string]any = this.SafeDictMap(response, "error", response)
 	var errorCode *string = this.SafeString(error, "code")
 	var message *string = this.SafeString(error, "msg")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {

@@ -1364,7 +1364,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		if price == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
-		request["price"] = price
+		request["price"] = *price
 	}
 	if quantityIsRequired {
 		AddElementToObject(request, market["baseId"], this.AmountToPrecision(symbol, amount))

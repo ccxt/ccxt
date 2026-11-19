@@ -1466,7 +1466,7 @@ func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetQuoteV1Depth(this.Extend(request, params))
@@ -1532,7 +1532,7 @@ func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PublicGetQuoteV1Trades(this.Extend(request, params))
@@ -1606,10 +1606,10 @@ func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	until, paramsUntil := this.HandleOptionAndParams(paramsMarketType, methodName, "until")
 	if until != nil {
@@ -1846,10 +1846,10 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"interval": timeframeValue,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	until, paramsUntil := this.HandleOptionAndParams(paramsPaginate, methodName, "until")
 	if until != nil {
@@ -2405,10 +2405,10 @@ func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, methodName, "until")
 	var until *int64 = nil
@@ -2489,10 +2489,10 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, methodName, "until")
 	var until *int64 = nil
@@ -2938,9 +2938,9 @@ func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{}
-	request["startTime"] = since
+	request["startTime"] = *since
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	request["endTime"] = *until
 	flowType, paramsFlowType := this.HandleOptionStringAndParams(paramsUntil, methodName, "flowType")
@@ -3966,7 +3966,7 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]Order], optio
 			request["symbol"] = market["id"]
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 
 		responseRecv := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId))
@@ -4031,7 +4031,7 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]Order], optio
 		request["type"] = "LIMIT"
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response []any = nil
 	accountId, paramsAccountId := this.HandleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId")
@@ -4104,10 +4104,10 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, methodName, "until")
 	var until *int64 = nil
@@ -4605,7 +4605,7 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))

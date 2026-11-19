@@ -1406,10 +1406,10 @@ func (this *Deepcoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	if until != nil {
@@ -1490,10 +1490,10 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	if until != nil {
@@ -1797,10 +1797,10 @@ func (this *Deepcoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		request["ccy"] = currency["id"]
 	}
 	if since != nil {
-		request["after"] = since
+		request["after"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsMarketType, "until")
 	if until != nil {
@@ -2647,7 +2647,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Ord
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, paramsMethodName, "spot")
 	request["instType"] = this.ConvertToInstrumentType(marketType)
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
 	var response map[string]any = nil
 	if trigger != nil && *trigger {
@@ -2897,7 +2897,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		"instId": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "trigger")
@@ -3201,20 +3201,18 @@ func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(BadRequest(this.Id + " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order."))
 		}
 		if stopLossPrice != nil {
-			request["slTriggerPx"] = func() any {
-				if symbolResolved != "" {
-					return this.PriceToPrecision(symbolResolved, stopLossPrice)
-				}
-				return this.NumberToString(stopLossPrice)
-			}()
+			if symbolResolved != "" {
+				request["slTriggerPx"] = this.PriceToPrecision(symbolResolved, stopLossPrice)
+			} else {
+				request["slTriggerPx"] = this.NumberToString(stopLossPrice)
+			}
 		}
 		if takeProfitPrice != nil {
-			request["tpTriggerPx"] = func() any {
-				if symbolResolved != "" {
-					return this.PriceToPrecision(symbolResolved, takeProfitPrice)
-				}
-				return this.NumberToString(takeProfitPrice)
-			}()
+			if symbolResolved != "" {
+				request["tpTriggerPx"] = this.PriceToPrecision(symbolResolved, takeProfitPrice)
+			} else {
+				request["tpTriggerPx"] = this.NumberToString(takeProfitPrice)
+			}
 		}
 		var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopLossPrice", "takeProfitPrice"})
 
@@ -3932,7 +3930,7 @@ func (this *Deepcoin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		"instId": market["id"],
 	}
 	if limit != nil {
-		request["size"] = limit // default 20, max 100
+		request["size"] = *limit // default 20, max 100
 	}
 
 	r1 := <-this.PublicGetDeepcoinTradeFundRateHistory(this.Extend(request, params))
@@ -4055,10 +4053,10 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["instId"] = market["id"]
 	}
 	if since != nil {
-		request["begin"] = since
+		request["begin"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 100
+		request["limit"] = *limit // default 100, max 100
 	}
 	var until *int64 = this.SafeInteger(paramsMarketType, "until")
 	if until != nil {

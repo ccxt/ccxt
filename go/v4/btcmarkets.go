@@ -391,10 +391,10 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan AsyncResult[[]Tr
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["after"] = since
+		request["after"] = *since
 	}
 	var currency map[string]any = nil
 	if code != nil {
@@ -1731,10 +1731,10 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["marketId"] = market["id"]
 	}
 	if since != nil {
-		request["after"] = since
+		request["after"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetOrders(this.Extend(request, params))
@@ -1870,10 +1870,10 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 		request["marketId"] = market["id"]
 	}
 	if since != nil {
-		request["after"] = since
+		request["after"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetTrades(this.Extend(request, params))

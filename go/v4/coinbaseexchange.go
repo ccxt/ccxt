@@ -1508,7 +1508,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan AsyncResult[[]Trade], op
 		"product_id": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
@@ -1571,7 +1571,7 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan AsyncResult[[]Trade], symb
 		"id": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
 
 	responseRecv := <-this.PublicGetProductsIdTrades(this.Extend(request, params))
@@ -2110,7 +2110,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 		request["product_id"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
@@ -2632,7 +2632,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 		request["start_date"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_date")
 	if until != nil {
@@ -2718,7 +2718,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 		request["id"] = id
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response []any = nil
 	if id == nil {

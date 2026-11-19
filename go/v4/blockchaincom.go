@@ -531,7 +531,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan AsyncResult[OrderBookL3]
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetL3Symbol(this.Extend(request, params))
@@ -567,7 +567,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan AsyncResult[OrderBook], 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetL2Symbol(this.Extend(request, params))
@@ -1259,7 +1259,7 @@ func (this *Blockchaincom) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optio
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -1521,7 +1521,7 @@ func (this *Blockchaincom) fetchWithdrawalsBody(ch chan AsyncResult[[]Transactio
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	var currency map[string]any = nil
 	if code != nil {
@@ -1617,7 +1617,7 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan AsyncResult[[]Transaction],
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	var currency map[string]any = nil
 	if code != nil {

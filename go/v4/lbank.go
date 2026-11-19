@@ -1440,7 +1440,7 @@ func (this *Lbank) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["time"] = since
+		request["time"] = *since
 	}
 	if limit != nil {
 		request["size"] = min(*limit, 600)
@@ -2647,7 +2647,7 @@ func (this *Lbank) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	if sinceValue != nil {
 		request["start_date"] = this.Ymd(sinceValue, "-")         // max query 2 days ago
@@ -3424,7 +3424,7 @@ func (this *Lbank) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 
 	r1 := <-this.SpotPrivatePostSupplementDepositHistory(this.Extend(request, params))
@@ -3503,7 +3503,7 @@ func (this *Lbank) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 
 	r1 := <-this.SpotPrivatePostSupplementWithdraws(this.Extend(request, params))

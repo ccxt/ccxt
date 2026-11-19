@@ -876,7 +876,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			request["start"] = this.Iso8601(since)
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 
 		r1 := <-this.MarketPublicGetV1beta3CryptoLocTrades(this.Extend(request, paramsOmitted))
@@ -1083,7 +1083,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var ohlcvs any = nil
 	if method == "marketPublicGetV1beta3CryptoLocBars" {
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		if since != nil {
 			request["start"] = this.Iso8601(since)
@@ -1849,7 +1849,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		}
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.TraderPrivateGetV2Orders(this.Extend(request, paramsOmitted))
@@ -2249,7 +2249,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["after"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsOmitted)
 

@@ -1022,7 +1022,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 		"instrument_id": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetInfoBook(this.Extend(request, params))
@@ -1083,7 +1083,7 @@ func (this *Polymarket) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 		"instrument_id": market["id"],
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = params
@@ -1246,7 +1246,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	}
 	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	} else {
 		// the venue requires an explicit range start - the window covers
 		// exactly the requested number of candle bins including the
@@ -1482,7 +1482,7 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 		"instrument_id": market["id"],
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")
 	if until != nil {
@@ -2807,7 +2807,7 @@ func (this *Polymarket) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["instrument_id"] = market["id"]
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = params
@@ -2935,7 +2935,7 @@ func (this *Polymarket) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = params
@@ -3027,7 +3027,7 @@ func (this *Polymarket) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHis
 		request["instrument_id"] = symbolMarket["id"]
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = params
@@ -3210,7 +3210,7 @@ func (this *Polymarket) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = params
@@ -3274,7 +3274,7 @@ func (this *Polymarket) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = params

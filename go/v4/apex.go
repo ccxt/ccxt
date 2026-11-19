@@ -1431,10 +1431,10 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	var market map[string]any = this.Market(symbol)
 	request["symbol"] = market["id"]
 	if since != nil {
-		request["beginTimeInclusive"] = since
+		request["beginTimeInclusive"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var page *int64 = this.SafeInteger(params, "page")
 	if page != nil {
@@ -2324,10 +2324,10 @@ func (this *Apex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["beginTimeInclusive"] = since
+		request["beginTimeInclusive"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
 	if endTimeExclusive != nil {
@@ -2453,10 +2453,10 @@ func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["beginTimeInclusive"] = since
+		request["beginTimeInclusive"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
 	if endTimeExclusive != nil {
@@ -2525,10 +2525,10 @@ func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["beginTimeInclusive"] = since
+		request["beginTimeInclusive"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
 	if endTimeExclusive != nil {

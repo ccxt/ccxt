@@ -1048,7 +1048,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
@@ -1281,7 +1281,7 @@ func (this *Dydx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		request["ticker"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.IndexerGetOrders(this.Extend(request, paramsSubAccountNumber))

@@ -824,7 +824,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		"pairSymbol": market["id"],
 	}
 	if limit != nil {
-		request["last"] = limit
+		request["last"] = *limit
 	}
 
 	r1 := <-this.PublicGetTrades(this.Extend(request, params))
@@ -1232,7 +1232,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	}
 	if limit != nil {
 		// default 100 max 1000
-		request["last"] = limit
+		request["last"] = *limit
 	}
 	if since != nil {
 		request["startTime"] = math.Floor(float64(*since) / 1000)

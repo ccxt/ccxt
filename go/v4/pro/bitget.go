@@ -1232,7 +1232,7 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = "orderbook:" + *symbol
 	var data any = this.SafeValue(message, "data")
 	// tokenized stock snapshots arrive as a plain dict instead of a list
-	var rawOrderBook any = this.SafeDict(data, 0, this.SafeDict(message, "data"))
+	var rawOrderBook map[string]any = this.SafeDictMap(data, 0, this.SafeDict(message, "data"))
 	if rawOrderBook == nil {
 		return
 	}
@@ -1304,13 +1304,13 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 		var bidsKey string = "bids"
 		var asksKey string = "asks"
 		// bitget UTA has `a` and `b` instead of `asks` and `bids`
-		if ccxt.InOp(rawOrderBook, "a") {
-			if !(ccxt.InOp(rawOrderBook, "asks")) {
+		if _, ok := rawOrderBook["a"]; ok {
+			if _, ok := rawOrderBook["asks"]; !ok {
 				asksKey = "a"
 			}
 		}
-		if ccxt.InOp(rawOrderBook, "b") {
-			if !(ccxt.InOp(rawOrderBook, "bids")) {
+		if _, ok := rawOrderBook["b"]; ok {
+			if _, ok := rawOrderBook["bids"]; !ok {
 				bidsKey = "b"
 			}
 		}

@@ -3655,12 +3655,12 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) (*string, ma
 	paramsSubType = this.Omit(paramsSubType, []any{"productType", "category"})
 	return productType, MapTyped(paramsSubType)
 }
-func (this *Bitget) HandleUTAAndParamsAsync(params any, methodName any, optionalArgs ...any) <-chan AsyncResult[MapPair[any]] {
+func (this *Bitget) HandleUTAAndParamsAsync(params any, methodName string, optionalArgs ...any) <-chan AsyncResult[MapPair[any]] {
 	ch := make(chan AsyncResult[MapPair[any]], 1)
 	go this.handleUTAAndParamsBody(ch, params, methodName, optionalArgs...)
 	return ch
 }
-func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[MapPair[any]], params any, methodName any, optionalArgs ...any) any {
+func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[MapPair[any]], params any, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var defaultValue bool = GetArgBool(optionalArgs, 0, false)
@@ -4104,12 +4104,16 @@ func (this *Bitget) ParseMarket(market any) map[string]any {
 		var priceEndStep *string = this.SafeString(market, "priceEndStep")
 		var sizeMultiplier *string = this.SafeString(market, "sizeMultiplier")
 		precise := NewPrecise(priceEndStep)
-		precise.Decimals = mathMax(precise.Decimals, pricePlaces)
+		if pricePlaces != nil {
+			precise.Decimals = max(precise.Decimals, int(*pricePlaces))
+		}
 		precise.Reduce()
 		var priceString string = precise.ToString()
 		pricePrecision = this.ParseNumber(priceString)
 		preciseAmount := NewPrecise(sizeMultiplier)
-		preciseAmount.Decimals = mathMax(preciseAmount.Decimals, volumePlaces)
+		if volumePlaces != nil {
+			preciseAmount.Decimals = max(preciseAmount.Decimals, int(*volumePlaces))
+		}
 		preciseAmount.Reduce()
 		var amountString string = preciseAmount.ToString()
 		amountPrecision = this.ParseNumber(amountString)
@@ -4960,11 +4964,11 @@ func (this *Bitget) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			var retRes313123 []any = r2.Value
-			if retRes313123 == nil {
+			var retRes313523 []any = r2.Value
+			if retRes313523 == nil {
 				ch <- AsyncResult[[]Transaction]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes313123)}
+				ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes313523)}
 			}
 			return nil
 		}
@@ -4973,11 +4977,11 @@ func (this *Bitget) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes313319 []any = r3.Value
-		if retRes313319 == nil {
+		var retRes313719 []any = r3.Value
+		if retRes313719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes313319)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes313719)}
 		}
 		return nil
 	}
@@ -5001,7 +5005,7 @@ func (this *Bitget) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		request["coin"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	var response map[string]any = nil
@@ -5266,11 +5270,11 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			var retRes332623 []any = r2.Value
-			if retRes332623 == nil {
+			var retRes333023 []any = r2.Value
+			if retRes333023 == nil {
 				ch <- AsyncResult[[]Transaction]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes332623)}
+				ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes333023)}
 			}
 			return nil
 		}
@@ -5279,11 +5283,11 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes332819 []any = r3.Value
-		if retRes332819 == nil {
+		var retRes333219 []any = r3.Value
+		if retRes333219 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes332819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes333219)}
 		}
 		return nil
 	}
@@ -5687,7 +5691,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	productType, paramsProductType := this.HandleProductTypeAndParams(market, params)
 	var response map[string]any = nil
@@ -6628,11 +6632,11 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes442519 []any = r1.Value
-		if retRes442519 == nil {
+		var retRes442919 []any = r1.Value
+		if retRes442919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes442519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes442919)}
 		}
 		return nil
 	}
@@ -6653,7 +6657,7 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		} else if *this.SafeBool(market, "contract", false) {
 			request["limit"] = min(*limit, 1000)
 		} else {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchTrades")
@@ -6698,7 +6702,7 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		if spotMethod != nil && *spotMethod == "publicSpotGetV2SpotMarketFillsHistory" {
 			request, paramsPaginate = this.HandleUntilOption("endTime", request, paramsPaginate)
 			if since != nil {
-				request["startTime"] = since
+				request["startTime"] = *since
 			}
 
 			r5 := <-this.PublicSpotGetV2SpotMarketFillsHistory(this.Extend(request, paramsPaginate))
@@ -6723,7 +6727,7 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		if swapMethod != nil && *swapMethod == "publicMixGetV2MixMarketFillsHistory" {
 			request, paramsPaginate = this.HandleUntilOption("endTime", request, paramsPaginate)
 			if since != nil {
-				request["startTime"] = since
+				request["startTime"] = *since
 			}
 
 			r7 := <-this.PublicMixGetV2MixMarketFillsHistory(this.Extend(request, paramsPaginate))
@@ -7238,11 +7242,11 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes487519 []any = r2.Value
-		if retRes487519 == nil {
+		var retRes487919 []any = r2.Value
+		if retRes487919 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes487519)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes487919)}
 		}
 		return nil
 	}
@@ -7325,7 +7329,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var calculatedEndTime any = nil
 	if since != nil {
 		calculatedStartTime = since
-		request["startTime"] = since
+		request["startTime"] = *since
 		if until == nil {
 			calculatedEndTime = this.Sum(since, recentDuration)
 			if *since > (now - recentDuration) {
@@ -9001,11 +9005,11 @@ func (this *Bitget) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes634619 []any = OrdersToList(r2.Value)
-		if retRes634619 == nil {
+		var retRes635019 []any = OrdersToList(r2.Value)
+		if retRes635019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes634619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes635019)}
 		}
 		return nil
 	}
@@ -9776,11 +9780,11 @@ func (this *Bitget) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes691319 []any = OrdersToList(r2.Value)
-		if retRes691319 == nil {
+		var retRes691719 []any = OrdersToList(r2.Value)
+		if retRes691719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes691319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes691719)}
 		}
 		return nil
 	}
@@ -10334,11 +10338,11 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes734819 []any = r2.Value
-		if retRes734819 == nil {
+		var retRes735219 []any = r2.Value
+		if retRes735219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes734819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes735219)}
 		}
 		return nil
 	}
@@ -10350,11 +10354,11 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var isTrigger bool = (trigger != nil && *trigger == true) || planTypeDefined
 	request, paramsMarginMode = this.HandleUntilOption("endTime", request, paramsMarginMode)
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var sinceDefault any = nil
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if (uta != true) && ((typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") || (marginMode != nil)) {
 		var clientOrderId *string = this.SafeString2(paramsMarginMode, "clientOid", "clientOrderId")
@@ -10915,11 +10919,11 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes778619 []any = OrdersToList(r1.Value)
-		if retRes778619 == nil {
+		var retRes779019 []any = OrdersToList(r1.Value)
+		if retRes779019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes778619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes779019)}
 		}
 		return nil
 	}
@@ -10956,11 +10960,11 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes781219 []any = r3.Value
-		if retRes781219 == nil {
+		var retRes781619 []any = r3.Value
+		if retRes781619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes781219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes781619)}
 		}
 		return nil
 	}
@@ -10970,11 +10974,11 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	paramsUTA = this.Omit(paramsUTA, []any{"stop", "trigger", "trailing"})
 	request, paramsUTA = this.HandleUntilOption("endTime", request, paramsUTA)
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var sinceDefault any = nil
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") || (marginMode != nil) {
 		var clientOrderId *string = this.SafeString2(paramsUTA, "clientOid", "clientOrderId")
@@ -11320,20 +11324,20 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes810019 []any = r1.Value
-		if retRes810019 == nil {
+		var retRes810419 []any = r1.Value
+		if retRes810419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes810019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes810419)}
 		}
 		return nil
 	}
 	request, paramsProductType = this.HandleUntilOption("endTime", request, paramsProductType)
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	var trigger *bool = this.SafeBool2(paramsProductType, "stop", "trigger")
@@ -11520,11 +11524,11 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			var retRes824823 []any = r2.Value
-			if retRes824823 == nil {
+			var retRes825223 []any = r2.Value
+			if retRes825223 == nil {
 				ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes824823)}
+				ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes825223)}
 			}
 			return nil
 		}
@@ -11545,11 +11549,11 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes825819 []any = r3.Value
-		if retRes825819 == nil {
+		var retRes826219 []any = r3.Value
+		if retRes826219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes825819)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes826219)}
 		}
 		return nil
 	}
@@ -11561,10 +11565,10 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	}
 	request, paramsOmitted = this.HandleUntilOption("endTime", request, paramsOmitted)
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	if uta == true {
@@ -12028,10 +12032,10 @@ func (this *Bitget) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	var request map[string]any = map[string]any{}
 	request, paramsUTA = this.HandleUntilOption("endTime", request, paramsUTA)
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var paginate bool = false
 	var marginMode *string = nil
@@ -12057,11 +12061,11 @@ func (this *Bitget) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes875819 []any = r2.Value
-		if retRes875819 == nil {
+		var retRes876219 []any = r2.Value
+		if retRes876219 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes875819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes876219)}
 		}
 		return nil
 	}
@@ -12449,11 +12453,11 @@ func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes906119 []any = r1.Value
-		if retRes906119 == nil {
+		var retRes906519 []any = r1.Value
+		if retRes906519 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes906119)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes906519)}
 		}
 		return nil
 	}
@@ -12955,7 +12959,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	paramsProductType = r1.Value.P
 	if uta == true {
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		request["category"] = productType
 
@@ -12991,16 +12995,16 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			var retRes953023 []any = r3.Value
-			if retRes953023 == nil {
+			var retRes953423 []any = r3.Value
+			if retRes953423 == nil {
 				ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes953023)}
+				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes953423)}
 			}
 			return nil
 		}
 		if limit != nil {
-			request["pageSize"] = limit
+			request["pageSize"] = *limit
 		}
 		request["productType"] = productType
 
@@ -13459,11 +13463,11 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			var retRes989723 []any = r2.Value
-			if retRes989723 == nil {
+			var retRes990123 []any = r2.Value
+			if retRes990123 == nil {
 				ch <- AsyncResult[[]FundingHistory]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes989723)}
+				ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes990123)}
 			}
 			return nil
 		}
@@ -13472,11 +13476,11 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes989919 []any = r3.Value
-		if retRes989919 == nil {
+		var retRes990319 []any = r3.Value
+		if retRes990319 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes989919)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes990319)}
 		}
 		return nil
 	}
@@ -14251,10 +14255,10 @@ func (this *Bitget) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		"fromType": typeVar,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	request, paramsMarketType = this.HandleUntilOption("endTime", request, paramsMarketType)
 
@@ -14904,11 +14908,11 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1101219 []any = r1.Value
-		if retRes1101219 == nil {
+		var retRes1101619 []any = r1.Value
+		if retRes1101619 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1101219)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1101619)}
 		}
 		return nil
 	}
@@ -15400,11 +15404,11 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1140319 []any = r1.Value
-		if retRes1140319 == nil {
+		var retRes1140719 []any = r1.Value
+		if retRes1140719 == nil {
 			ch <- AsyncResult[[]BorrowInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(retRes1140319)}
+			ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(retRes1140719)}
 		}
 		return nil
 	}
@@ -15419,12 +15423,12 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		request["startTime"] = this.Milliseconds() - 7776000000
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBorrowInterest", paramsPaginate, "cross")
@@ -15831,10 +15835,10 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 		}
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	productType, paramsProductType := this.HandleProductTypeAndParams(market, paramsUntil)
@@ -16054,7 +16058,7 @@ func (this *Bitget) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversio
 	var msInDay int = 86400000
 	var now int64 = this.Milliseconds()
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		request["startTime"] = now - int64(msInDay)
 	}
@@ -16065,7 +16069,7 @@ func (this *Bitget) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversio
 		request["endTime"] = now
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 

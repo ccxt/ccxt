@@ -3954,9 +3954,9 @@ func (this *Gate) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3983,10 +3983,10 @@ func (this *Gate) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	request["type"] = "fund" // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'
 	if since != nil {
 		// from should be integer
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = *limit
 	}
 	var response []any = nil
 	if typeVar != nil && *typeVar == "swap" {
@@ -4022,7 +4022,7 @@ func (this *Gate) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseFundingHistories(response, symbolResolved, since, limit))}
 	return nil
 }
-func (this *Gate) ParseFundingHistories(response any, symbol any, since any, limit any) []any {
+func (this *Gate) ParseFundingHistories(response any, symbol any, since *int64, limit *int64) []any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry map[string]any = SafeMapTyped(response, i)
@@ -5905,7 +5905,7 @@ func (this *Gate) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		request["currency"] = currency["id"] // todo: currencies have network-junctions
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
 		var start int64 = this.ParseToInt(float64(*since) / 1000)
@@ -5982,7 +5982,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["currency"] = currency["id"] // todo: currencies have network-junctions
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
 		var start int64 = this.ParseToInt(float64(*since) / 1000)
@@ -7727,7 +7727,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -7762,7 +7762,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 		return status
 	}())
 	if limit != nil {
-		AddElementToObject(request, "limit", limit)
+		request["limit"] = *limit
 	}
 	if spot {
 		if since != nil {
@@ -10220,7 +10220,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInteres
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
@@ -10336,10 +10336,10 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]an
 		"underlying": this.SafeString(optionParts, 0),
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
@@ -10663,10 +10663,10 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		paramsSettle = this.OmitDict(paramsMarketType, "settle")
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsSettle)
 	if typeVar != nil && *typeVar == "spot" {
@@ -11034,10 +11034,10 @@ func (this *Gate) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], symb
 		"contract": market["id"],
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
@@ -11109,7 +11109,7 @@ func (this *Gate) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], op
 	var response []any = nil
 	if (*this.SafeBool(market, "swap", false)) || (*this.SafeBool(market, "future", false)) {
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		request["settle"] = market["settleId"]
 	} else if *this.SafeBool(market, "option", false) {

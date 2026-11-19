@@ -1202,7 +1202,7 @@ func (this *Woo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.V3PublicGetMarketTrades(this.Extend(request, params))
@@ -2559,7 +2559,7 @@ func (this *Woo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until") // unified in milliseconds
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"until"})
@@ -2922,7 +2922,7 @@ func (this *Woo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["maxLevel"] = limit
+		request["maxLevel"] = *limit
 	}
 
 	r1 := <-this.V3PublicGetOrderbook(this.Extend(request, params))
@@ -3388,7 +3388,7 @@ func (this *Woo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -3396,7 +3396,7 @@ func (this *Woo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		request["endTime"] = until
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.V3PrivateGetTradeTransactionHistory(this.Extend(request, paramsOmitted))
@@ -3773,7 +3773,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 		request["network"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["size"] = min(*limit, 1000)
@@ -4265,10 +4265,10 @@ func (this *Woo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 		currency = this.Currency(code)
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until") // unified in milliseconds
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
@@ -4756,7 +4756,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -5075,7 +5075,7 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
@@ -5932,10 +5932,10 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversion],
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 

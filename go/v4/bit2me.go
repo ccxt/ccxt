@@ -1155,7 +1155,7 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"limit":    requestLimit,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		// the endpoint returns the oldest candles first, so request a window that covers `limit` candles
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
@@ -1243,12 +1243,12 @@ func (this *Bit2me) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
-func (this *Bit2me) ParseBalanceList(response any) map[string]any {
+func (this *Bit2me) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var wallet map[string]any = MapTyped(GetValue(response, i))
+	for i := 0; i < len(response); i++ {
+		var wallet map[string]any = MapTyped(response[i])
 		var currencyId *string = this.SafeString(wallet, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1413,12 +1413,11 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 		request["stopPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 		var stopLossLimit any = stopLimitPrice
 		if IsEqual(stopLossLimit, nil) {
-			stopLossLimit = func() any {
-				if price != nil {
-					return this.NumberToString(price)
-				}
-				return stopLossPrice
-			}()
+			if price != nil {
+				stopLossLimit = this.NumberToString(price)
+			} else {
+				stopLossLimit = stopLossPrice
+			}
 		}
 		request["stopLimitPrice"] = this.PriceToPrecision(symbol, stopLossLimit)
 	} else if isMarketOrder {

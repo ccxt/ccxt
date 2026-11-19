@@ -1833,12 +1833,12 @@ func (this *Cryptocom) HandleCancelAllOrders(client any, message map[string]any)
 	var messageHash *string = this.SafeString(message, "id")
 	client.(ccxt.ClientInterface).Resolve(message, messageHash)
 }
-func (this *Cryptocom) WatchPublicAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Cryptocom) WatchPublicAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash any, optionalArgs ...any) any {
+func (this *Cryptocom) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1966,12 +1966,12 @@ func (this *Cryptocom) watchPrivateRequestBody(ch chan ccxt.AsyncResult[any], no
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Cryptocom) WatchPrivateSubscribeAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Cryptocom) WatchPrivateSubscribeAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateSubscribeBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) watchPrivateSubscribeBody(ch chan ccxt.AsyncResult[any], messageHash any, optionalArgs ...any) any {
+func (this *Cryptocom) watchPrivateSubscribeBody(ch chan ccxt.AsyncResult[any], messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

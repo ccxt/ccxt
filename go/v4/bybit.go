@@ -4381,7 +4381,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 	}
 	request["category"] = typeVar
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsValue, "until")            // unified in milliseconds
 	var endTime *int64 = this.SafeInteger(paramsValue, "endTime", until) // exchange-specific in milliseconds
@@ -4763,7 +4763,7 @@ func (this *Bybit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 	if limit != nil {
 		// spot: [1,60], default: 60.
 		// others: [1,1000], default: 500
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	typeVar, paramsValue := this.GetBybitType("fetchTrades", market, params)
 	request["category"] = typeVar
@@ -7274,10 +7274,10 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan AsyncResult[[]Order], optional
 		request["orderFilter"] = "StopOrder"
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")            // unified in milliseconds
 	var endTime *int64 = this.SafeInteger(paramsOmitted, "endTime", until) // exchange-specific in milliseconds
@@ -7547,10 +7547,10 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		request["orderFilter"] = "StopOrder"
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")            // unified in milliseconds
 	var endTime *int64 = this.SafeInteger(paramsOmitted, "endTime", until) // exchange-specific in milliseconds
@@ -7830,7 +7830,7 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["orderFilter"] = "StopOrder"
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.PrivateGetV5OrderRealtime(this.Extend(request, paramsOmitted))
@@ -8022,10 +8022,10 @@ func (this *Bybit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	typeVar, paramsValue := this.GetBybitType("fetchMyTrades", market, paramsPaginate)
 	request["category"] = typeVar
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsValue)
 
@@ -8277,10 +8277,10 @@ func (this *Bybit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
@@ -8380,10 +8380,10 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
@@ -8618,7 +8618,7 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 		request[currencyKey] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchLedger", nil, paramsPaginate)
 	var response map[string]any = nil
@@ -9866,7 +9866,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan AsyncResult[[
 		"category":     category,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until") // unified in milliseconds
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
@@ -9882,7 +9882,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan AsyncResult[[
 		}
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetV5MarketOpenInterest(this.Extend(request, paramsOmitted))
@@ -10073,7 +10073,7 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.FetchDerivativesOpenInterestHistoryAsync(symbol, timeframe, since, limit, params)
@@ -10560,10 +10560,10 @@ func (this *Bybit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
@@ -11247,7 +11247,7 @@ func (this *Bybit) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	}
 	request["category"] = typeVar
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetV5MarketDeliveryPrice(this.Extend(request, paramsValue))
@@ -11332,7 +11332,7 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string
 	}
 	request["category"] = typeVar
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetV5AssetDeliveryRecord(this.Extend(request, paramsValue))
@@ -11827,10 +11827,10 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 	typeVar, paramsValue := this.GetBybitType("fetchMyLiquidations", market, paramsPaginate)
 	request["category"] = typeVar
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsValue)
 
@@ -12211,10 +12211,10 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	} else {
 		request["size"] = 100
 	}
@@ -12565,10 +12565,10 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], op
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if until != nil {
 		request["endTime"] = until
@@ -13034,7 +13034,7 @@ func (this *Bybit) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversion
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetV5AssetExchangeQueryConvertHistory(this.Extend(request, params))
@@ -13193,7 +13193,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongShor
 		"category": typeVar,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetV5MarketAccountRatio(this.Extend(request, paramsValue))

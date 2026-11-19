@@ -1028,7 +1028,7 @@ func (this *Cex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV requires a limit parameter when fetching candles with since or until"))
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicPostGetCandles(this.Extend(request, paramsUntil))
@@ -1359,10 +1359,10 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status st
 		request["pair"] = market["id"]
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	if since != nil {
-		request["serverCreateTimestampFrom"] = since
+		request["serverCreateTimestampFrom"] = *since
 	} else if isClosedOrders {
 		// exchange requires a `since` parameter for closed orders, so set default to allowed 365
 		request["serverCreateTimestampFrom"] = this.Milliseconds() - (364*24)*60*60*1000
@@ -1959,10 +1959,10 @@ func (this *Cex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["dateFrom"] = since
+		request["dateFrom"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {
@@ -2078,10 +2078,10 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 		currency = this.Currency(code)
 	}
 	if since != nil {
-		request["dateFrom"] = since
+		request["dateFrom"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	until, paramsUntil := this.HandleParamInteger2(params, "until", "till")
 	if until != nil {

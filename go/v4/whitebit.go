@@ -2154,7 +2154,7 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 			method = &methodStr2
 		}
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if method != nil && *method == "v4PublicGetTicker" {
 		//
 		//      "BCH_RUB": {
@@ -2172,7 +2172,7 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if method != nil && *method == "v4PublicGetFutures" {
 		//
 		//     {
@@ -2218,14 +2218,14 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	} else {
 
 		r3 := <-this.V2PublicGetTicker(paramsMethod)
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response = r3.Raw
+		response = r3.Value
 	}
 	var resultList []any = SafeListTyped(response, "result")
 	if resultList != nil {
@@ -2233,7 +2233,13 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(resultList, symbolsNormalized))}
 		return nil
 	}
-	var marketIds []string = ObjectKeys(response)
+	var marketIds []string = nil
+	if response != nil {
+		marketIds = make([]string, 0, len(response))
+		for objectKey := range response {
+			marketIds = append(marketIds, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
@@ -2283,7 +2289,7 @@ func (this *Whitebit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // default = 100, maximum = 100
+		request["limit"] = *limit // default = 100, maximum = 100
 	}
 
 	r1 := <-this.V4PublicGetOrderbookMarket(this.Extend(request, params))
@@ -5099,10 +5105,10 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		"market": market["id"],
 	}
 	if since != nil {
-		request["startDate"] = since
+		request["startDate"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
@@ -5224,7 +5230,7 @@ func (this *Whitebit) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 		request["ticker"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 1000
+		request["limit"] = *limit // default 1000
 	}
 
 	r1 := <-this.V4PrivatePostMainAccountHistory(this.Extend(request, params))
@@ -5440,7 +5446,7 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Convers
 		request["from"] = this.NumberToString(start)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params, 0.001)
 
@@ -5580,7 +5586,7 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], 
 		"market": market["id"],
 	}
 	if since != nil {
-		request["startDate"] = since
+		request["startDate"] = *since
 	}
 	if limit != nil {
 		request["limit"] = since

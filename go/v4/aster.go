@@ -1582,7 +1582,7 @@ func (this *Aster) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1500)
@@ -1885,7 +1885,7 @@ func (this *Aster) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1000)
@@ -2703,7 +2703,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1000)
@@ -3381,7 +3381,7 @@ func (this *Aster) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ..
 		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var response []any = nil
@@ -4396,7 +4396,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]Margin
 		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if until != nil {
 		request["endTime"] = until
@@ -4650,7 +4650,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1000) // max 1000
@@ -4764,7 +4764,7 @@ func (this *Aster) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1000) // max 1000

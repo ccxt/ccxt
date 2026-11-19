@@ -2850,14 +2850,14 @@ func (this *Xt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchMyTrades", market, paramsMarketType)
 	if (subType != nil) || (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 		if limit != nil {
-			request["size"] = limit
+			request["size"] = *limit
 		}
 		if subType != nil && *subType == "inverse" {
 
@@ -2882,7 +2882,7 @@ func (this *Xt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...
 		}
 		request["bizType"] = marginOrSpotRequest
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 
 		r3 := <-this.PrivateSpotGetTrade(this.Extend(request, paramsMarginMode))
@@ -4031,10 +4031,10 @@ func (this *Xt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...an
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrders", market, params)
@@ -5439,10 +5439,10 @@ func (this *Xt) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArgs
 		currency = this.Currency(code)
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
@@ -5669,10 +5669,10 @@ func (this *Xt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalAr
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 10, max 200
+		request["limit"] = *limit // default 10, max 200
 	}
 
 	r1 := <-this.PrivateSpotGetDepositHistory(this.Extend(request, params))
@@ -5754,10 +5754,10 @@ func (this *Xt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 10, max 200
+		request["limit"] = *limit // default 10, max 200
 	}
 
 	r1 := <-this.PrivateSpotGetWithdrawHistory(this.Extend(request, params))
@@ -6469,7 +6469,7 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	} else {
 		request["limit"] = 200 // max
 	}
@@ -6955,10 +6955,10 @@ func (this *Xt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], o
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchFundingHistory", market, params)
 	var response map[string]any = nil
@@ -7326,10 +7326,10 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], optio
 		}
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositionsHistory", market, paramsUntil)

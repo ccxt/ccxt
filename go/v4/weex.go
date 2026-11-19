@@ -2593,10 +2593,10 @@ func (this *Weex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -2813,10 +2813,10 @@ func (this *Weex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 		return nil
 	}
 	if since != nil {
-		request["after"] = since
+		request["after"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsPaginate)
 
@@ -3724,10 +3724,10 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		response = responseRecv.Value
 	} else {
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 		var trigger *bool = this.SafeBool(paramsUntil, "trigger", false)
@@ -4024,7 +4024,7 @@ func (this *Weex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, maxLimit)
@@ -4128,10 +4128,10 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order],
 		request["symbol"] = this.ToSandboxMarketId(market)
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -4520,10 +4520,10 @@ func (this *Weex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	var response []any = nil
@@ -4655,10 +4655,10 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 			request["currency"] = currency["id"]
 		}
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
@@ -4670,10 +4670,10 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		items = this.SafeList(contractResponse, "items", []any{})
 	} else if accountType != nil && *accountType == "funding" {
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		if limit != nil {
-			request["pageSize"] = limit
+			request["pageSize"] = *limit
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
@@ -4685,10 +4685,10 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		items = this.SafeList(fundingResponse, "items", []any{})
 	} else {
 		if since != nil {
-			request["after"] = since
+			request["after"] = *since
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsMarketType)
 
@@ -4872,10 +4872,10 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 	// the exchange rejects startTime and endTime when either is sent alone, they only work as a pair

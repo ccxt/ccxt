@@ -1413,7 +1413,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		request["marketId"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.FetchWalletAsync("fetchOpenOrders", paramsMaxEntriesPerRequest)
@@ -1536,7 +1536,7 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		outcomeObj = this.Outcome(outcome)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
 		request["startDate"] = this.Yyyymmdd(since)
@@ -1902,7 +1902,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		outcomeObj = this.Outcome(outcome)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
 		request["startDate"] = this.Yyyymmdd(since)

@@ -1642,7 +1642,7 @@ func (this *Coinbaseinternational) fetchOrderBookBody(ch chan AsyncResult[OrderB
 		"instrument_name": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 		if this.IsNativeDeribitCredentials() {
 			var depths []any = []any{1, 5, 10, 20, 50, 100, 1000, 10000}
 			if (*limit < 1) || (*limit > 10000) {
@@ -2113,7 +2113,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan AsyncResult[[]Tran
 		"query":           "transfer",
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsResolved, "until")
 	if until != nil {
@@ -2541,7 +2541,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 		request["end_timestamp"] = until
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
@@ -2891,7 +2891,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 		if price == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a price parameter for a limit order types"))
 		}
-		request["price"] = price
+		request["price"] = *price
 		if this.IsNativeDeribitCredentials() {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
@@ -3626,7 +3626,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan AsyncResult[[]Ord
 		"instrument_name": market["id"],
 	}
 	if !this.IsNativeDeribitCredentials() && (limit != nil) {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.AuthenticateV2Async()
@@ -3732,7 +3732,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan AsyncResult[[]Trade
 		"include_old":     true,
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted any = paramsPaginate

@@ -1248,7 +1248,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			"asset_pair_name": market["id"],
 		}
 		if limit != nil {
-			request["limit"] = limit // default 50, max 200
+			request["limit"] = *limit // default 50, max 200
 		}
 
 		r2 := <-this.PublicGetAssetPairsAssetPairNameDepth(this.Extend(request, params))
@@ -2233,7 +2233,7 @@ func (this *Bigone) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		"asset_pair_name": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // default 20, max 200
+		request["limit"] = *limit // default 20, max 200
 	}
 
 	r1 := <-this.PrivateGetOrders(this.Extend(request, params))
@@ -2309,7 +2309,7 @@ func (this *Bigone) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		"asset_pair_name": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // default 20, max 200
+		request["limit"] = *limit // default 20, max 200
 	}
 
 	r1 := <-this.PrivateGetTrades(this.Extend(request, params))
@@ -2727,7 +2727,7 @@ func (this *Bigone) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		request["asset_symbol"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 50
+		request["limit"] = *limit // default 50
 	}
 
 	r1 := <-this.PrivateGetDeposits(this.Extend(request, params))
@@ -2803,7 +2803,7 @@ func (this *Bigone) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		request["asset_symbol"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 50
+		request["limit"] = *limit // default 50
 	}
 
 	r1 := <-this.PrivateGetWithdrawals(this.Extend(request, params))

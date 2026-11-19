@@ -1333,7 +1333,7 @@ func (this *Extended) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.V1PrivateGetUserTrades(this.Extend(paramsPaginate, request))
@@ -1441,10 +1441,10 @@ func (this *Extended) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["market"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.V1PrivateGetUserFundingHistory(this.Extend(paramsPaginate, request))
@@ -2243,7 +2243,7 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.V1PrivateGetUserAssetOperations(this.Extend(request, paramsPaginate))
@@ -2386,7 +2386,7 @@ func (this *Extended) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.V1PrivateGetUserAssetOperations(this.Extend(request, paramsPaginate))
@@ -2677,7 +2677,7 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 		"type": "TRANSFER",
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.V1PrivateGetUserAssetOperations(this.Extend(request, paramsPaginate))
@@ -4540,7 +4540,7 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.V1PrivateGetUserOrdersHistory(this.Extend(paramsPaginate, request))

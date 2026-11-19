@@ -1280,7 +1280,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	if (!ccxt.IsString(midsResponse)) && !ccxt.IsArray(midsResponse) {
 		allMids = midsResponse
 	}
-	var mids any = this.SafeDict(allMids, "mids", allMids)
+	var mids map[string]any = this.SafeDictMap(allMids, "mids", allMids)
 	var positions []any = []any{}
 	for i := 0; i < len(balances); i++ {
 		var balance map[string]any = this.SafeDictMap(balances, i, map[string]any{})
@@ -2098,7 +2098,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) ma
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var entry any = this.SafeDict(order, "order", order) // eslint-disable-line
+	var entry map[string]any = this.SafeDictMap(order, "order", order) // eslint-disable-line
 	var status any = this.ParseOrderStatus(this.SafeString2(order, "ccxtStatus", "status"))
 	var coin *string = this.SafeString(entry, "coin")
 	var outcomeObj map[string]any = this.SafeOutcome(coin, market)
@@ -2315,7 +2315,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	}
 	if since != nil {
 		request["type"] = "userFillsByTime"
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		request["type"] = "userFills"
 	}

@@ -938,7 +938,7 @@ func (this *Foxbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 200 {
 			request["page_size"] = 200
 		}
@@ -1009,7 +1009,7 @@ func (this *Foxbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		request["start_time"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 		if *limit > 500 {
 			request["limit"] = 500
 		}
@@ -1251,7 +1251,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 		request["start_time"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -1689,7 +1689,7 @@ func (this *Foxbit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		request["start_time"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -1774,7 +1774,7 @@ func (this *Foxbit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["start_time"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -1901,7 +1901,7 @@ func (this *Foxbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		currency = this.Currency(code)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -1977,7 +1977,7 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		currency = this.Currency(code)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -2324,7 +2324,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code argument"))
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}

@@ -1769,7 +1769,7 @@ func (this *Deribit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketId *string = this.SafeString(ticker, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString2(ticker, "last_price", "last")
-	var stats any = this.SafeDict(ticker, "stats", ticker)
+	var stats map[string]any = this.SafeDictMap(ticker, "stats", ticker)
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -2247,7 +2247,7 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		"include_old":     true,
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	if limit != nil {
 		request["count"] = min(*limit, 1000) // default 10
@@ -2485,7 +2485,7 @@ func (this *Deribit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"instrument_name": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetGetOrderBook(this.Extend(request, params))
@@ -3222,7 +3222,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	var market map[string]any = nil
 	var response map[string]any = nil
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	} else {
 		request["count"] = 1000 // max value
 	}
@@ -3377,7 +3377,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	}
 	var market map[string]any = nil
 	if limit != nil {
-		request["count"] = limit // default 10
+		request["count"] = *limit // default 10
 	}
 	var response map[string]any = nil
 	if symbol == nil {
@@ -3502,7 +3502,7 @@ func (this *Deribit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		"currency": currency["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.PrivateGetGetDeposits(this.Extend(request, params))
@@ -3579,7 +3579,7 @@ func (this *Deribit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		"currency": currency["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.PrivateGetGetWithdrawals(this.Extend(request, params))
@@ -4047,7 +4047,7 @@ func (this *Deribit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		"currency": currency["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.PrivateGetGetTransfers(this.Extend(request, params))
@@ -4664,10 +4664,10 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 		"type":            "bankruptcy",
 	}
 	if since != nil {
-		request["search_start_timestamp"] = since
+		request["search_start_timestamp"] = *since
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r2 := <-this.PublicGetGetLastSettlementsByInstrument(this.Extend(request, paramsPaginate))
@@ -4768,10 +4768,10 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 		"type":            "bankruptcy",
 	}
 	if since != nil {
-		request["search_start_timestamp"] = since
+		request["search_start_timestamp"] = *since
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.PrivateGetGetSettlementHistoryByInstrument(this.Extend(request, params))

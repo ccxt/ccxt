@@ -1796,9 +1796,9 @@ func (this *Lighter) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 		panic(r.Err)
 	}
 	var txTypetxInfoorderVariable []any = ccxt.MapSliceToList(r.Value)
-	txType := ccxt.GetValue(txTypetxInfoorderVariable, 0)
-	txInfo := ccxt.GetValue(txTypetxInfoorderVariable, 1)
-	order := ccxt.GetValue(txTypetxInfoorderVariable, 2)
+	txType := txTypetxInfoorderVariable[0]
+	txInfo := txTypetxInfoorderVariable[1]
+	order := txTypetxInfoorderVariable[2]
 	var market map[string]any = this.Market(symbol)
 	var parsedTx any = this.ParseJson(txInfo)
 	var message map[string]any = map[string]any{
@@ -1857,8 +1857,8 @@ func (this *Lighter) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 		panic(r.Err)
 	}
 	var txTypetxInfoVariable []any = ccxt.MapSliceToList(r.Value)
-	txType := ccxt.GetValue(txTypetxInfoVariable, 0)
-	txInfo := ccxt.GetValue(txTypetxInfoVariable, 1)
+	txType := txTypetxInfoVariable[0]
+	txInfo := txTypetxInfoVariable[1]
 	var market map[string]any = this.Market(symbol)
 	var parsedTx any = this.ParseJson(txInfo)
 	var message map[string]any = map[string]any{
@@ -1916,8 +1916,8 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 		panic(r.Err)
 	}
 	var txTypetxInfoVariable []any = ccxt.MapSliceToList(r.Value)
-	txType := ccxt.GetValue(txTypetxInfoVariable, 0)
-	txInfo := ccxt.GetValue(txTypetxInfoVariable, 1)
+	txType := txTypetxInfoVariable[0]
+	txInfo := txTypetxInfoVariable[1]
 	var parsedTx any = this.ParseJson(txInfo)
 	var message map[string]any = map[string]any{
 		"type": "jsonapi/sendtx",

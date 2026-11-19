@@ -2887,7 +2887,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.PublicGetFundingRateHistory(this.Extend(request, paramsPaginate))
@@ -3320,7 +3320,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		"account": userAddress,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.PublicGetOrdersHistory(this.Extend(request, paramsOriginAndSingleAddress))
@@ -4322,7 +4322,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		"account": userAddress,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r2 := <-this.PublicGetAccountBalanceHistory(this.Extend(request, paramsOriginAndSingleAddress))
@@ -4609,7 +4609,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		"account": userAddress,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var defaultLimit int = 100
 	if paginate {

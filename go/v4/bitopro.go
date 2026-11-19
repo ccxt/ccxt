@@ -758,7 +758,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"pair": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetOrderBookPair(this.Extend(request, params))
@@ -1787,10 +1787,10 @@ func (this *Bitopro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		"pair": market["id"],
 	}
 	if since != nil {
-		request["startTimestamp"] = since
+		request["startTimestamp"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOrdersAllPair(this.Extend(request, params))
@@ -2141,10 +2141,10 @@ func (this *Bitopro) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		"currency": currency["id"],
 	}
 	if since != nil {
-		request["startTimestamp"] = since
+		request["startTimestamp"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetWalletDepositHistoryCurrency(this.Extend(request, params))
@@ -2221,10 +2221,10 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		"currency": currency["id"],
 	}
 	if since != nil {
-		request["startTimestamp"] = since
+		request["startTimestamp"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetWalletWithdrawHistoryCurrency(this.Extend(request, params))

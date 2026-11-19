@@ -329,11 +329,10 @@ func (this *Independentreserve) ValueToChecksum(value *float64) any {
 	// ccxt.ToFixed returns a zero-padded *string* in js but a *number* in
 	// go/c#/java, dropping trailing zeros. decimalToPrecision with
 	// ccxt.PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-	var result any = this.DecimalToPrecision(value, ccxt.ROUND, 8, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO)
-	result = ccxt.Replace(result, ".", "")
+	var padded string = this.DecimalToPrecision(value, ccxt.ROUND, 8, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO)
+	var digits string = strings.Replace(padded, ".", "", 1)
 	// remove leading zeros
-	result = this.ParseNumber(result)
-	result = ccxt.DerefScalar(this.NumberToString(result))
+	var result *string = this.NumberToString(this.ParseNumber(digits))
 	return result
 }
 func (this *Independentreserve) HandleDelta(bookside any, delta any) {

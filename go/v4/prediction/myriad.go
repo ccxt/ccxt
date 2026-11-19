@@ -1308,7 +1308,7 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[ccxt.Predi
 		parsed["timeInForce"] = timeInForce
 	}
 	if (this.SafeNumber(parsed, "price") == nil) && (price != nil) {
-		parsed["price"] = price
+		parsed["price"] = *price
 	}
 	if (this.SafeNumber(parsed, "amount") == nil) && (!ccxt.IsEqual(amount, nil)) {
 		parsed["amount"] = amount
@@ -2110,7 +2110,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trader", "address", "status"})
 
@@ -4078,7 +4078,7 @@ func (this *Myriad) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 		"network_id": networkId,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.MyriadPublicGetMarketsIdEvents(this.Extend(request, params))

@@ -1583,7 +1583,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if true {
 		market = this.Market(symbol)
@@ -1669,10 +1669,10 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["symbol"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	var response any = []any{}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
@@ -2155,7 +2155,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook
 		request["symbols"] = strings.Join(marketIdsInner, ",")
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetPublicOrderbook(this.Extend(request, params))
@@ -2219,7 +2219,7 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetPublicOrderbookSymbol(this.Extend(request, params))
@@ -2591,7 +2591,7 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["from"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchClosedOrders", paramsMarketType)

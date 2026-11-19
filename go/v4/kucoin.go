@@ -4513,7 +4513,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol 
 	}
 	var endAt any = now
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 		endAt = this.Sum(since, *windowLimit*duration)
 	} else if limit != nil {
 		request["from"] = sinceResolved
@@ -5015,7 +5015,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			request["level"] = level
 			if limit != nil {
 				if (limit != nil && *limit == 20) || (limit != nil && *limit == 100) {
-					request["limit"] = limit
+					request["limit"] = *limit
 				} else {
 					panic(ExchangeError(this.Id + " fetchOrderBook() limit argument must be 20 or 100"))
 				}
@@ -7479,13 +7479,13 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan AsyncResult[[]Order], st
 			request["status"] = lowercaseStatus
 		}
 		if since != nil {
-			request["startAt"] = since
+			request["startAt"] = *since
 		}
 		if limit != nil {
 			if *limit < 10 {
 				request["pageSize"] = 10 // minimum page size, the result is trimmed to the limit
 			} else {
-				request["pageSize"] = limit
+				request["pageSize"] = *limit
 			}
 		}
 		if (until != nil) && (until == nil || *until != 0) {
@@ -7643,7 +7643,7 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan AsyncResult[[]Order]
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 	if until != nil {
 		request["endAt"] = until
@@ -7803,7 +7803,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan AsyncResult[[]Order], sta
 	var tradeType *string = this.HandleTradeType(isContract, marginMode, isUnified, paramsMarginMode)
 	AddElementToObject(paramsMarginMode, "tradeType", tradeType)
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endAt", request, paramsMarginMode)
 	if limit != nil {
@@ -9274,11 +9274,11 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 	if hf {
 		// does not return trades earlier than 2019-02-18T00:00:00Z
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		if since != nil {
 			// only returns trades up to one week after the since param
-			request["startAt"] = since
+			request["startAt"] = *since
 		}
 		if isMargin {
 
@@ -9299,7 +9299,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 		// does not return trades earlier than 2019-02-18T00:00:00Z
 		if since != nil {
 			// only returns trades up to one week after the since param
-			request["startAt"] = since
+			request["startAt"] = *since
 		}
 
 		r4 := <-this.PrivateGetFills(this.Extend(request, paramsRequest))
@@ -9437,7 +9437,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan AsyncResult[[]Trade], opti
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 	if limit != nil {
 		request["pageSize"] = min(1000, *limit)
@@ -9580,10 +9580,10 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	var tradeType *string = this.HandleTradeType(isContract, marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	request, paramsOmitted = this.HandleUntilOption("endAt", request, paramsOmitted)
 
@@ -10589,7 +10589,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if *limit < 10 {
 			request["pageSize"] = 10 // minimum page size, the result is trimmed to the limit
 		} else {
-			request["pageSize"] = limit
+			request["pageSize"] = *limit
 		}
 	}
 	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
@@ -10605,7 +10605,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		response = r3.Value
 	} else {
 		if since != nil {
-			request["startAt"] = since
+			request["startAt"] = *since
 		}
 
 		r4 := <-this.PrivateGetDeposits(this.Extend(request, paramsRequest))
@@ -10701,10 +10701,10 @@ func (this *Kucoin) fetchContractDepositsBody(ch chan AsyncResult[[]Transaction]
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 
 	r1 := <-this.FuturesPrivateGetDepositList(this.Extend(request, params))
@@ -10837,7 +10837,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if *limit < 10 {
 			request["pageSize"] = 10 // minimum page size, the result is trimmed to the limit
 		} else {
-			request["pageSize"] = limit
+			request["pageSize"] = *limit
 		}
 	}
 	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
@@ -10853,7 +10853,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		response = r3.Value
 	} else {
 		if since != nil {
-			request["startAt"] = since
+			request["startAt"] = *since
 		}
 
 		r4 := <-this.PrivateGetWithdrawals(this.Extend(request, paramsRequest))
@@ -10950,10 +10950,10 @@ func (this *Kucoin) fetchContractWithdrawalsBody(ch chan AsyncResult[[]Transacti
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 
 	r1 := <-this.FuturesPrivateGetWithdrawalList(this.Extend(request, params))
@@ -12233,7 +12233,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 	// atm only single currency retrieval is supported
 	var currency map[string]any = nil
@@ -12244,14 +12244,14 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 	if limit != nil {
 		if typeVar != nil && *typeVar == "contract" {
-			request["maxCount"] = limit
+			request["maxCount"] = *limit
 		} else if hf {
-			request["limit"] = limit
+			request["limit"] = *limit
 		} else {
 			if *limit < 10 {
 				request["pageSize"] = 10 // minimum page size, the result is trimmed to the limit
 			} else {
-				request["pageSize"] = limit
+				request["pageSize"] = *limit
 			}
 		}
 	}
@@ -12808,7 +12808,7 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]
 		"currency":   currency["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if limit != nil {
@@ -14007,12 +14007,12 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 	var dataList []any = []any{}
 	if uta == true {
 		if limit != nil {
-			request["pageSize"] = limit
+			request["pageSize"] = *limit
 		}
 		request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 
@@ -14046,7 +14046,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	} else {
 		if limit != nil {
 			// * Since is ignored if limit is defined
-			request["maxCount"] = limit
+			request["maxCount"] = *limit
 		}
 
 		r3 := <-this.FuturesPrivateGetFundingHistory(this.Extend(request, paramsRequest))
@@ -14360,10 +14360,10 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	}
 	if uta == true {
 		if since != nil {
-			request["startAt"] = since
+			request["startAt"] = *since
 		}
 		if limit != nil {
-			request["pageSize"] = limit
+			request["pageSize"] = *limit
 		}
 		request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 		//
@@ -14407,7 +14407,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 			return limit
 		}()
 		if since != nil {
-			request["from"] = since
+			request["from"] = *since
 		}
 		var until *int64 = this.SafeInteger(paramsRequest, "until")
 		if until != nil {
@@ -15757,10 +15757,10 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInter
 		"interval": interval,
 	}
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endAt", request, paramsPaginate)
 
@@ -16027,10 +16027,10 @@ func (this *Kucoin) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["startAt"] = since
+		request["startAt"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	} else {
 		request["pageSize"] = 500
 	}

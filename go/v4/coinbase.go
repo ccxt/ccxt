@@ -4006,7 +4006,7 @@ func (this *Coinbase) findAccountIdBody(ch chan AsyncResult[*string], code *stri
 	return nil
 }
 func (this *Coinbase) PrepareAccountRequest(optionalArgs ...any) map[string]any {
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4018,7 +4018,7 @@ func (this *Coinbase) PrepareAccountRequest(optionalArgs ...any) map[string]any 
 		"account_id": accountId,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	return request
 }
@@ -4042,7 +4042,7 @@ func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan AsyncRes
 		"account_id": accountId,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if accountId == nil {
 		if code == nil {
@@ -5576,7 +5576,7 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["product_id"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
 		request["start_sequence_timestamp"] = this.Iso8601(since)
@@ -5668,7 +5668,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"product_id": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(params, "fetchOrderBook", "usePrivate", false)

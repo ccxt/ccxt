@@ -1065,7 +1065,7 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterf
 		var mappedBase *string = this.SafeCurrencyCode(mappedBaseName)
 		var mappedQuote *string = this.SafeCurrencyCode(mappedQuoteId)
 		var mappedSymbol *string = SafeStringPtr(Add(Add(mappedBase, "/"), mappedQuote))
-		var innerBaseTokenInfo any = this.SafeDict(baseTokenInfo, "spec", baseTokenInfo)
+		var innerBaseTokenInfo map[string]any = this.SafeDictMap(baseTokenInfo, "spec", baseTokenInfo)
 		// const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
 		var amountPrecisionStr *string = this.SafeString(innerBaseTokenInfo, "szDecimals")
 		var amountPrecision int64 = this.ParseToInt(amountPrecisionStr)
@@ -1973,7 +1973,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol st
 	}
 	if since != nil {
 		request["type"] = "userFillsByTime"
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		request["type"] = "userFills"
 	}
@@ -4120,7 +4120,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 		"coin": this.SafeString(market, "baseName"),
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		var maxLimit int64
 		if limit == nil {
@@ -4486,7 +4486,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var deduplicatedByOid map[string]any = map[string]any{}
 	for i := 0; i < len(historicalOrders); i++ {
 		var rawOrder any = historicalOrders[i]
-		var entry any = this.SafeDict(rawOrder, "order", rawOrder)
+		var entry map[string]any = this.SafeDictMap(rawOrder, "order", rawOrder)
 		var oid *string = this.SafeString(entry, "oid")
 		if oid != nil {
 			if _, ok := deduplicatedByOid[*oid]; !ok {
@@ -4875,7 +4875,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optiona
 	}
 	if since != nil {
 		request["type"] = "userFillsByTime"
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		request["type"] = "userFills"
 	}
@@ -5040,7 +5040,7 @@ func (this *Hyperliquid) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidati
 	}
 	if since != nil {
 		request["type"] = "userFillsByTime"
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		request["type"] = "userFills"
 	}
@@ -6307,7 +6307,7 @@ func (this *Hyperliquid) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], opt
 		"user": userAddress,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(params2, "until")
 	if until != nil {
@@ -6434,7 +6434,7 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan AsyncResult[[]Transaction], o
 		"user": userAddress,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(params2, "until")
 	if until != nil {
@@ -6538,7 +6538,7 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 		"user": userAddress,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(params2, "until")
 	if until != nil {
@@ -6761,7 +6761,7 @@ func (this *Hyperliquid) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHi
 		"type": "userFunding",
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPublicAddress, "until")

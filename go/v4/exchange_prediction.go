@@ -240,7 +240,7 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 	}
 	return result
 }
-func (this *PredictionExchange) NormalizeTagKey(tag any) any {
+func (this *PredictionExchange) NormalizeTagKey(tag any) string {
 	// reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
 	// "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
 	// of the same tag compare equal — venues surface tags in different forms and callers
@@ -277,9 +277,9 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 	if tagsLength == 0 {
 		return events
 	}
-	var wanted []any = []any{}
+	var wanted []string = []string{}
 	for i := 0; i < tagsLength; i++ {
-		var wantedKey any = this.NormalizeTagKey(this.SafeString(tags, i, ""))
+		var wantedKey string = this.NormalizeTagKey(this.SafeString(tags, i, ""))
 		if wantedKey != "" {
 			// an empty normalized key would substring-match every tag
 			wanted = append(wanted, wantedKey)
@@ -301,7 +301,7 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 			if !IsEqual(tagLabel, nil) {
 				var tagKey any = this.NormalizeTagKey(tagLabel)
 				for wi := 0; wi < len(wanted); wi++ {
-					if GetIndexOf(tagKey, DerefScalar(wanted[wi])) >= 0 {
+					if GetIndexOf(tagKey, wanted[wi]) >= 0 {
 						matched = true
 						break
 					}

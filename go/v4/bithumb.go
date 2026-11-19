@@ -550,10 +550,10 @@ func (this *Bithumb) AmountToPrecision(symbol any, amount any) *string {
 	retStr := this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES)
 	return &retStr
 }
-func (this *Bithumb) GetGen2MarketId(market any) any {
+func (this *Bithumb) GetGen2MarketId(market any) string {
 	var marketId *string = this.SafeString(market, "id")
 	if (marketId != nil) && (strings.Index(*marketId, "-") >= 0) {
-		return marketId
+		return *marketId
 	}
 	var quoteId *string = this.SafeString(market, "quoteId")
 	if quoteId == nil {
@@ -986,7 +986,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		request["baseId"] = market["baseId"]
 		request["quoteId"] = market["quoteId"]
 		if limit != nil {
-			request["count"] = limit // default 30, max 30
+			request["count"] = *limit // default 30, max 30
 		}
 
 		r2 := <-this.PublicGetPublicOrderbookBaseIdQuoteId(this.Extend(request, paramsGeneration))
@@ -1185,7 +1185,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	if generation == 2 {
 		// Bithumb v2 ticker payloads are inconsistent for all-market calls,
 		// so we aggregate 300 markets per request only when symbols are not provided.
-		var marketIds []any = []any{}
+		var marketIds []string = []string{}
 		var symbolsForMarketIds any = this.Symbols
 		if symbols != nil {
 			symbolsForMarketIds = symbols
@@ -1213,7 +1213,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		}())
 		var marketIdsChunk []any = []any{}
 		for i := 0; i < marketIdsLength; i++ {
-			marketIdsChunk = append(marketIdsChunk, DerefScalar(marketIds[i]))
+			marketIdsChunk = append(marketIdsChunk, marketIds[i])
 			var marketIdsChunkLength int = len(marketIdsChunk)
 			var isLastMarketId bool = (i == (marketIdsLength - 1))
 			if (int64(marketIdsChunkLength) >= maxMarketIdsPerRequest) || isLastMarketId {
@@ -1892,7 +1892,7 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	var data any = []any{}
 	if generation == 2 {
@@ -2869,7 +2869,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		}
 		market = this.Market(symbol)
 		if since != nil {
-			request["after"] = since
+			request["after"] = *since
 		}
 		request["count"] = limitResolved
 		request["order_currency"] = market["base"]
@@ -2954,7 +2954,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		request["market"] = this.GetGen2MarketId(market)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var data any = nil
 	if twap != nil && *twap {
@@ -3725,7 +3725,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response []any = nil
 	var currency map[string]any = nil
@@ -3889,7 +3889,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response []any = nil
 	var currency map[string]any = nil

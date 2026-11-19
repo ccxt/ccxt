@@ -2185,7 +2185,7 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
 		entry["info"] = message
 	}
-	var messageValue any = this.SafeDict(message, "a", message)
+	var messageValue map[string]any = this.SafeDictMap(message, "a", message)
 	var B []any = ccxt.SafeListTyped(messageValue, "B")
 	var wallet string = *this.SafeString(this.Options, "wallet", "wb")
 	for i := 0; i < len(B); i++ {

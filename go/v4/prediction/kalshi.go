@@ -1504,7 +1504,7 @@ func (this *Kalshi) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	//         }
 	//     }
 	//
-	var book any = this.SafeDict(response, "orderbook_fp", response)
+	var book map[string]any = this.SafeDictMap(response, "orderbook_fp", response)
 	// Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
 	var rawYes []any = ccxt.SafeListTyped(book, "yes_dollars")
 	var rawNo []any = ccxt.SafeListTyped(book, "no_dollars")
@@ -1944,7 +1944,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 		request["ticker"] = this.SafeString(outcomeObj["info"], "ticker")
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.KalshiPrivateGetPortfolioFills(this.Extend(request, params))
@@ -2226,7 +2226,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.KalshiPrivateGetPortfolioSettlements(this.Extend(request, params))
@@ -2825,7 +2825,7 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 	var order map[string]any = this.ParsePredictionOrder(response, outcomeObj)
 	order["side"] = side
 	order["amount"] = amount
-	order["price"] = price
+	order["price"] = *price
 	// the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
 	// parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
 	// otherwise a fully-filled order would return status 'closed' with filled 0

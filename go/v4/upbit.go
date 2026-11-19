@@ -913,7 +913,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 		"markets": ids,
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	responseRecv := <-this.PublicGetOrderbook(this.Extend(request, params))
@@ -2101,7 +2101,7 @@ func (this *Upbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default is 100
+		request["limit"] = *limit // default is 100
 	}
 
 	responseRecv := <-this.PrivateGetDeposits(this.Extend(request, params))
@@ -2237,7 +2237,7 @@ func (this *Upbit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default is 100
+		request["limit"] = *limit // default is 100
 	}
 
 	responseRecv := <-this.PrivateGetWithdraws(this.Extend(request, params))
@@ -2632,7 +2632,7 @@ func (this *Upbit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
@@ -2712,10 +2712,10 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["market"] = market["id"]
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
@@ -2797,10 +2797,10 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optiona
 		request["market"] = market["id"]
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 

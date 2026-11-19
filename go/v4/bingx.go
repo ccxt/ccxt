@@ -1586,12 +1586,11 @@ func (this *Bingx) ParseMarket(market any) map[string]any {
 	var fees map[string]any = SafeMapTyped(this.Fees, typeVar)
 	var contractSize any = nil
 	if swap {
-		contractSize = func() any {
-			if checkIsInverse {
-				return inverseContractSize
-			}
-			return this.ParseNumber("1")
-		}()
+		if checkIsInverse {
+			contractSize = inverseContractSize
+		} else {
+			contractSize = this.ParseNumber("1")
+		}
 	}
 	var isActive bool = false
 	if (this.SafeString(market, "apiStateOpen") != nil && *this.SafeString(market, "apiStateOpen") == "true") && (this.SafeString(market, "apiStateClose") != nil && *this.SafeString(market, "apiStateClose") == "true") {
@@ -2663,7 +2662,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1000) // api maximum 1000
@@ -2786,10 +2785,10 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "endTime")
 	var paramsUntil map[string]any = func() map[string]any {
@@ -3769,10 +3768,10 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sym
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	if since != nil {
-		request["startTs"] = since
+		request["startTs"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTs", request, params)
 	var response map[string]any = nil
@@ -5877,10 +5876,10 @@ func (this *Bingx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ..
 		panic(NotSupported(this.Id + " fetchOrders() is not supported for inverse swap markets"))
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsSubType)
 
@@ -6334,7 +6333,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		response = r1.Value
 	} else if typeVar != nil && *typeVar == "spot" {
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		var until *int64 = this.SafeInteger2(paramsStandard, "until", "till")
 		if until != nil {
@@ -6342,7 +6341,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		}
 		var paramsSpot map[string]any = this.OmitDict(paramsStandard, []any{"until", "till"})
 		if limit != nil {
-			request["pageSize"] = limit
+			request["pageSize"] = *limit
 		}
 
 		r2 := <-this.SpotV1PrivateGetTradeHistoryOrders(this.Extend(request, paramsSpot))
@@ -6358,7 +6357,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 				request["limit"] = min(*limit, 1000)
 			}
 			if since != nil {
-				request["startTime"] = since
+				request["startTime"] = *since
 			}
 			var until *int64 = this.SafeInteger(paramsOmitted, "until")
 			if until != nil {
@@ -6578,7 +6577,7 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"fromAccount", "toAccount"})
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["pageSize"] = mathMin(limit, maxLimit)
@@ -6842,7 +6841,7 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1000) // api maximum 1000
@@ -6918,7 +6917,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1000) // api maximum 1000
@@ -7562,7 +7561,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 			if *this.SafeBool(market, "spot", false) {
 				startTimeReq = "startTime"
 			}
-			request[startTimeReq] = since
+			request[startTimeReq] = *since
 		} else if *this.SafeBool(market, "swap", false) {
 			request["startTs"] = now - (30*24)*60*60*1000 // 30 days for swap
 		}
@@ -7579,7 +7578,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		}
 		if *this.SafeBool(market, "spot", false) {
 			if limit != nil {
-				request["limit"] = limit // default 500, maximum 1000
+				request["limit"] = *limit // default 500, maximum 1000
 			}
 			paramsTrades = paramsUntil
 

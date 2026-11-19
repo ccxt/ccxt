@@ -848,7 +848,7 @@ func (this *Coincheck) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetExchangeOrdersTransactionsPagination(this.Extend(request, params))
@@ -921,7 +921,7 @@ func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 		"pair": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetTrades(this.Extend(request, params))
@@ -1171,7 +1171,7 @@ func (this *Coincheck) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetDepositMoney(this.Extend(request, params))
@@ -1250,7 +1250,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetWithdraws(this.Extend(request, params))

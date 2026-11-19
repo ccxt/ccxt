@@ -840,7 +840,7 @@ func (this *Zebpay) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
@@ -1047,7 +1047,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		if until != nil {
 			request["endTime"] = until
@@ -1065,10 +1065,10 @@ func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	} else {
 		request["timeframe"] = timeframe
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		if since != nil {
-			request["since"] = since
+			request["since"] = *since
 		}
 		if until != nil {
 			if since == nil {
@@ -1158,7 +1158,7 @@ func (this *Zebpay) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		"symbol": market["id"],
 	}
 	if (*this.SafeBool(market, "spot", false)) && (limit != nil) {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
@@ -1751,7 +1751,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if *this.SafeBool(market, "spot", false) {
 		request["currentPage"] = 1
 		if limit != nil {
-			request["pageSize"] = limit
+			request["pageSize"] = *limit
 		}
 
 		r1 := <-this.PrivateSpotGetV2ExOrders(this.Extend(request, params))
@@ -1763,10 +1763,10 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		orders = ArrayTyped(this.SafeList(responseData, "items", []any{}))
 	} else {
 		if since != nil {
-			request["since"] = since
+			request["since"] = *since
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 
 		r2 := <-this.PrivateSwapGetV1TradeOrderOpenOrders(this.Extend(request, params))

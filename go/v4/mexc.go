@@ -1389,12 +1389,11 @@ func (this *Mexc) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 		//
 		var keys []string = ObjectKeys(response)
 		var length int = len(keys)
-		status = func() any {
-			if length > 0 {
-				return this.Json(response)
-			}
-			return "ok"
-		}()
+		if length > 0 {
+			status = this.Json(response)
+		} else {
+			status = "ok"
+		}
 	} else if marketType != nil && *marketType == "swap" {
 
 		r1 := <-this.ContractPublicGetPing(query)
@@ -1406,12 +1405,11 @@ func (this *Mexc) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 		//     {"success":true,"code":"0","data":"1648124374985"}
 		//
 		var success *bool = this.SafeBool(response, "success", false)
-		status = func() any {
-			if success != nil && *success {
-				return "ok"
-			}
-			return this.Json(response)
-		}()
+		if success != nil && *success {
+			status = "ok"
+		} else {
+			status = this.Json(response)
+		}
 		updated = this.SafeInteger(response, "data")
 	}
 
@@ -1974,7 +1972,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if *this.SafeBool(market, "spot", false) {
 
@@ -2094,13 +2092,13 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var trades any = []any{}
 	if *this.SafeBool(market, "spot", false) {
 		var until *int64 = this.SafeInteger2(params, "endTime", "until")
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 			if until == nil {
 				panic(ArgumentsRequired(this.Id + " fetchTrades() requires an until parameter when since is provided"))
 			}
@@ -2422,7 +2420,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	}
 	if *this.SafeBool(market, "spot", false) {
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		if (since != nil) && (until == nil) {
 			// we have to calculate it assuming we can get at most 2000 entries per request
@@ -2445,7 +2443,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			}
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		if until != nil {
 			request["endTime"] = *until + 1 // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
@@ -3702,13 +3700,13 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		}
 		marginMode, queryInner := this.HandleMarginModeAndParams("fetchOrders", paramsOmitted)
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		if until != nil {
 			request["endTime"] = until
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		var spotResponse []any = nil
 		if marginMode != nil {
@@ -3782,7 +3780,7 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		return nil
 	} else {
 		if since != nil {
-			request["start_time"] = since
+			request["start_time"] = *since
 			var maxTimeTillEnd *int64 = this.SafeInteger(this.Options, "maxTimeTillEnd")
 			if maxTimeTillEnd == nil {
 				panic(ExchangeError(this.Id + " fetchOrders() requires a numeric options[\"maxTimeTillEnd\"]"))
@@ -3806,7 +3804,7 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 			request["end_time"] = until
 		}
 		if limit != nil {
-			request["page_size"] = limit
+			request["page_size"] = *limit
 		}
 		var method string = *this.SafeString(this.Options, "fetchOrders", "contractPrivateGetOrderListHistoryOrders")
 		method = *this.SafeString(query, "method", method)
@@ -5389,10 +5387,10 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	var trades any = []any{}
 	if marketType != nil && *marketType == "spot" {
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		var until *int64 = this.SafeInteger(paramsMarketType, "until")
 		if until != nil {
@@ -5412,14 +5410,14 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		trades = r1.Raw
 	} else {
 		if since != nil {
-			request["start_time"] = since
+			request["start_time"] = *since
 			var end *int64 = this.SafeInteger(paramsMarketType, "end_time")
 			if end == nil {
 				request["end_time"] = this.Sum(since, this.Options["maxTimeTillEnd"])
 			}
 		}
 		if limit != nil {
-			request["page_size"] = limit
+			request["page_size"] = *limit
 		}
 
 		r2 := <-this.ContractPrivateGetOrderListOrderDeals(this.Extend(request, paramsMarketType))
@@ -5759,7 +5757,7 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.ContractPrivateGetPositionFundingRecords(this.Extend(request, params))
@@ -6001,7 +5999,7 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.ContractPublicGetFundingRateHistory(this.Extend(request, params))
@@ -6507,13 +6505,13 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		}
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		if *limit > 1000 {
 			panic(ExchangeError("This exchange supports a maximum limit of 1000"))
 		}
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if rawNetwork != nil {
@@ -6592,13 +6590,13 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
 		if *limit > 1000 {
 			panic(ExchangeError("This exchange supports a maximum limit of 1000"))
 		}
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
@@ -7188,13 +7186,13 @@ func (this *Mexc) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	var resultList any = []any{}
 	if marketType != nil && *marketType == "spot" {
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 		if limit != nil {
 			if *limit > 100 {
 				panic(ExchangeError("This exchange supports a maximum limit of 50"))
 			}
-			request["size"] = limit
+			request["size"] = *limit
 		}
 
 		r1 := <-this.SpotPrivateGetCapitalTransfer(this.Extend(request, paramsToAccountType))
@@ -7223,7 +7221,7 @@ func (this *Mexc) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 		resultList = this.SafeList(response, "rows", []any{})
 	} else if marketType != nil && *marketType == "swap" {
 		if limit != nil {
-			request["page_size"] = limit
+			request["page_size"] = *limit
 		}
 
 		r2 := <-this.ContractPrivateGetAccountTransferRecord(this.Extend(request, paramsToAccountType))
@@ -8066,7 +8064,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 		}
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 
 	r1 := <-this.ContractPrivateGetPositionListHistoryPositions(this.Extend(request, params))

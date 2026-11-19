@@ -1508,7 +1508,7 @@ func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 		"pair": market["id"],
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 	}
 
 	r1 := <-this.PublicGetTrades(this.Extend(request, params))
@@ -1664,10 +1664,10 @@ func (this *Luno) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		"pair": market["id"],
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetListtrades(this.Extend(request, params))

@@ -1067,7 +1067,7 @@ func (this *Limitless) ParseEvent(event any) map[string]any {
 		} else {
 			markets = append(markets, this.ParseMarket(rawMarket))
 		}
-		var marketInfo any = this.SafeDict(rawMarket, "info", rawMarket)
+		var marketInfo map[string]any = this.SafeDictMap(rawMarket, "info", rawMarket)
 		// use volumeFormatted (human units) — the raw `volume` is 1e-6 fixed-point, which would
 		// make the event volume 1,000,000x too big and useless for cross-venue ranking
 		totalVolume = this.Sum(totalVolume, this.SafeNumber(marketInfo, "volumeFormatted", 0))
@@ -1909,7 +1909,7 @@ func (this *Limitless) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		"statuses": []any{"LIVE", "MATCHED"},
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params))

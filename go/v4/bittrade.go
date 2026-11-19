@@ -1391,10 +1391,10 @@ func (this *Bittrade) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["symbol"] = market["id"]
 	}
 	if limit != nil {
-		request["size"] = limit // 1-100 orders, default is 100
+		request["size"] = *limit // 1-100 orders, default is 100
 	}
 	if since != nil {
-		request["start-time"] = since // a date within 120 days from today
+		request["start-time"] = *since // a date within 120 days from today
 	}
 
 	r1 := <-this.PrivateGetOrderMatchresults(this.Extend(request, params))
@@ -2129,7 +2129,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan AsyncResult[[]Order], option
 	}
 	request["account-id"] = accountId
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	var omitted map[string]any = this.OmitDict(params, "account-id")
 

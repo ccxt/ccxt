@@ -867,7 +867,7 @@ func (this *Bitflyer) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 		"product_code": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	responseRecv := <-this.PublicGetGetexecutions(this.Extend(request, params))
@@ -1343,7 +1343,7 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		"product_code": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetGetexecutions(this.Extend(request, params))
@@ -1527,7 +1527,7 @@ func (this *Bitflyer) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		currency = this.Currency(code)
 	}
 	if limit != nil {
-		request["count"] = limit // default 100
+		request["count"] = *limit // default 100
 	}
 
 	responseRecv := <-this.PrivateGetGetcoinins(this.Extend(request, params))
@@ -1594,7 +1594,7 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		currency = this.Currency(code)
 	}
 	if limit != nil {
-		request["count"] = limit // default 100
+		request["count"] = *limit // default 100
 	}
 
 	responseRecv := <-this.PrivateGetGetcoinouts(this.Extend(request, params))

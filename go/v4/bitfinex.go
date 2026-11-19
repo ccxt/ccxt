@@ -1573,7 +1573,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"precision": precision,
 	}
 	if limit != nil {
-		request["len"] = limit
+		request["len"] = *limit
 	}
 	var fullRequest map[string]any = this.Extend(request, params)
 
@@ -2034,7 +2034,7 @@ func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 		sort = "1"
 	}
 	if limit != nil {
@@ -2136,7 +2136,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"limit":     limitResolved,
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 		request["sort"] = 1
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
@@ -3054,10 +3054,10 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 25, max 2500
+		request["limit"] = *limit // default 25, max 2500
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	var market map[string]any = nil
@@ -3231,10 +3231,10 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		"end": this.Milliseconds(),
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 25, max 1000
+		request["limit"] = *limit // default 25, max 1000
 	}
 	var response []any = nil
 	if symbol != nil {
@@ -3748,10 +3748,10 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // max 1000
+		request["limit"] = *limit // max 1000
 	}
 	var response []any = nil
 	if code != nil {
@@ -4332,10 +4332,10 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	var response []any = nil
@@ -4517,7 +4517,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
@@ -4876,10 +4876,10 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
@@ -5053,10 +5053,10 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 

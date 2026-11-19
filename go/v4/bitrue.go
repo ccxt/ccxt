@@ -1658,7 +1658,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			"interval":     this.SafeString(timeframesFuture, timeframe, "1min"),
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		if *this.SafeBool(market, "linear", false) {
 
@@ -1683,7 +1683,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			"scale":  this.SafeString(timeframesSpot, timeframe, "1m"),
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		var until *int64 = this.SafeInteger(params, "until")
 		if until != nil {
@@ -2145,7 +2145,7 @@ func (this *Bitrue) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			"symbol": market["id"],
 		}
 		if limit != nil {
-			request["limit"] = limit // default 100, max 1000
+			request["limit"] = *limit // default 100, max 1000
 		}
 
 		r1 := <-this.SpotV1PublicGetTrades(this.Extend(request, params))
@@ -2705,10 +2705,10 @@ func (this *Bitrue) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 1000
+		request["limit"] = *limit // default 100, max 1000
 	}
 
 	responseRecv := <-this.SpotV1PrivateGetAllOrders(this.Extend(request, params))
@@ -3083,7 +3083,7 @@ func (this *Bitrue) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	var data any = []any{}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var limitResolved any = nil
 	if limit != nil {
@@ -3218,10 +3218,10 @@ func (this *Bitrue) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		"status": 1,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.SpotV1PrivateGetDepositHistory(this.Extend(request, params))
@@ -3314,10 +3314,10 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		"status": 5,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.SpotV1PrivateGetWithdrawHistory(this.Extend(request, params))
@@ -3756,7 +3756,7 @@ func (this *Bitrue) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		request["coinSymbol"] = currency["id"]
 	}
 	if since != nil {
-		request["beginTime"] = since
+		request["beginTime"] = *since
 	}
 	var limitResolved any = nil
 	if limit != nil {

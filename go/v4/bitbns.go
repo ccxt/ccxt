@@ -512,7 +512,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+		request["limit"] = *limit // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
 	}
 
 	r1 := <-this.WwwGetOrderFetchOrderbook(this.Extend(request, params))

@@ -1499,9 +1499,9 @@ func (this *Lighter) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	}
 	txTypetxInfoorderVariableRecv, _ := MapSliceToList(r.Value), r.Value != nil
 	var txTypetxInfoorderVariable []any = txTypetxInfoorderVariableRecv
-	txType := GetValue(txTypetxInfoorderVariable, 0)
-	txInfo := GetValue(txTypetxInfoorderVariable, 1)
-	order := GetValue(txTypetxInfoorderVariable, 2)
+	txType := txTypetxInfoorderVariable[0]
+	txInfo := txTypetxInfoorderVariable[1]
+	order := txTypetxInfoorderVariable[2]
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
@@ -4720,8 +4720,8 @@ func (this *Lighter) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 	}
 	txTypetxInfoVariableRecv, _ := MapSliceToList(r.Value), r.Value != nil
 	var txTypetxInfoVariable []any = txTypetxInfoVariableRecv
-	txType := GetValue(txTypetxInfoVariable, 0)
-	txInfo := GetValue(txTypetxInfoVariable, 1)
+	txType := txTypetxInfoVariable[0]
+	txInfo := txTypetxInfoVariable[1]
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
@@ -4828,8 +4828,8 @@ func (this *Lighter) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	txTypetxInfoVariableRecv, _ := MapSliceToList(r.Value), r.Value != nil
 	var txTypetxInfoVariable []any = txTypetxInfoVariableRecv
-	txType := GetValue(txTypetxInfoVariable, 0)
-	txInfo := GetValue(txTypetxInfoVariable, 1)
+	txType := txTypetxInfoVariable[0]
+	txInfo := txTypetxInfoVariable[1]
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
 		"tx_info": txInfo,

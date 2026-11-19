@@ -974,7 +974,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"quote":    market["quoteId"],
 	}
 	if limit != nil {
-		request["limit"] = limit // max 1000
+		request["limit"] = *limit // max 1000
 	}
 
 	r1 := <-this.PublicGetBookCurrencyQuote(this.Extend(request, params))
@@ -1569,7 +1569,7 @@ func (this *Latoken) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
 	var response any = []any{}
 	if symbol != nil {
@@ -1879,7 +1879,7 @@ func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
 	var response []any = nil
 	if symbol != nil {

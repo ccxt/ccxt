@@ -977,7 +977,7 @@ func (this *Bitfinex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		"freq": freq,
 	}
 	if limit != nil {
-		request["len"] = limit // string, number of price points, '25', '100', default = '25'
+		request["len"] = *limit // string, number of price points, '25', '100', default = '25'
 	}
 
 	r := <-this.SubscribeAsync("book", symbol, this.DeepExtend(request, params))

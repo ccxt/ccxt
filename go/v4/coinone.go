@@ -737,7 +737,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"target_currency": market["base"],
 	}
 	if limit != nil {
-		request["size"] = limit // only support 5, 10, 15, 16
+		request["size"] = *limit // only support 5, 10, 15, 16
 	}
 
 	r1 := <-this.V2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.Extend(request, params))

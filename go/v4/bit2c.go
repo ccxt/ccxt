@@ -638,7 +638,7 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 		request["date"] = this.ParseToInt(since)
 	}
 	if limit != nil {
-		request["limit"] = limit // max 100000
+		request["limit"] = *limit // max 100000
 	}
 	var responseList []any = []any{}
 	if (method != nil && *method == "publicGetExchangesPairTrades") || (method != nil && *method == "public_get_exchanges_pair_trades") {
@@ -1138,7 +1138,7 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["take"] = limit
+		request["take"] = *limit
 	}
 	request["take"] = limit
 	if since != nil {

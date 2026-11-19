@@ -2039,7 +2039,7 @@ func (this *Nado) SignStreamAuthentication(tx map[string]any, chainId *string, e
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, tx)
 	return this.SignHash(this.HashString(encoded, ccxt.Keccak, "hex"), this.PrivateKey)
 }
-func (this *Nado) CreatePublicSubscriptionRequest(method string, streamType any, optionalArgs ...any) map[string]any {
+func (this *Nado) CreatePublicSubscriptionRequest(method string, streamType string, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	id := ccxt.GetArg(optionalArgs, 1, nil)
@@ -2058,12 +2058,12 @@ func (this *Nado) CreatePublicSubscriptionRequest(method string, streamType any,
 		"id":     id,
 	}
 }
-func (this *Nado) WatchPublicMultipleAsync(streamType any, markets any, messageHashes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Nado) WatchPublicMultipleAsync(streamType string, markets any, messageHashes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicMultipleBody(ch, streamType, markets, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamType any, markets any, messageHashes []any, optionalArgs ...any) any {
+func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamType string, markets any, messageHashes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2107,12 +2107,12 @@ func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamT
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Nado) UnWatchPublicAsync(streamType any, market any, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Nado) UnWatchPublicAsync(streamType string, market any, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchPublicBody(ch, streamType, market, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Nado) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], streamType any, market any, messageHash string, optionalArgs ...any) any {
+func (this *Nado) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], streamType string, market any, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2150,12 +2150,12 @@ func (this *Nado) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], streamType a
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Nado) UnWatchPublicMultipleAsync(streamType any, markets any, messageHashes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Nado) UnWatchPublicMultipleAsync(streamType string, markets any, messageHashes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchPublicMultipleBody(ch, streamType, markets, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Nado) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool], streamType any, markets any, messageHashes []any, optionalArgs ...any) any {
+func (this *Nado) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool], streamType string, markets any, messageHashes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

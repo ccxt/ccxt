@@ -1237,7 +1237,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 		"instrument_code": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetOrderBookInstrumentCode(this.Extend(request, params))
@@ -1673,7 +1673,7 @@ func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var rawOrder any = this.SafeDict(order, "order", order)
+	var rawOrder map[string]any = this.SafeDictMap(order, "order", order)
 	var id *string = this.SafeString(rawOrder, "order_id")
 	var clientOrderId *string = this.SafeString(rawOrder, "client_id")
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrder, "time"))
@@ -2131,7 +2131,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 		request["to"] = this.Iso8601(until)
 	}
 	if limit != nil {
-		request["max_page_size"] = limit
+		request["max_page_size"] = *limit
 	}
 
 	r1 := <-this.PrivateGetAccountOrders(this.Extend(request, paramsOmitted))
@@ -2308,7 +2308,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id st
 		"order_id": id,
 	}
 	if limit != nil {
-		request["max_page_size"] = limit
+		request["max_page_size"] = *limit
 	}
 
 	r1 := <-this.PrivateGetAccountOrdersOrderIdTrades(this.Extend(request, params))
@@ -2411,7 +2411,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 		request["to"] = this.Iso8601(until)
 	}
 	if limit != nil {
-		request["max_page_size"] = limit
+		request["max_page_size"] = *limit
 	}
 
 	r1 := <-this.PrivateGetAccountTrades(this.Extend(request, paramsOmitted))

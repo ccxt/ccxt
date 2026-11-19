@@ -1397,10 +1397,10 @@ func (this *Cryptocom) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["instrument_name"] = market["id"]
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -1513,10 +1513,10 @@ func (this *Cryptocom) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 		"instrument_name": market["id"],
 	}
 	if since != nil {
-		request["start_ts"] = since
+		request["start_ts"] = *since
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -2754,10 +2754,10 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		request["instrument_name"] = market["id"]
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -3070,10 +3070,10 @@ func (this *Cryptocom) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	}
 	if since != nil {
 		// 90 days date range
-		request["start_ts"] = since
+		request["start_ts"] = *since
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
@@ -3158,10 +3158,10 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	}
 	if since != nil {
 		// 90 days date range
-		request["start_ts"] = since
+		request["start_ts"] = *since
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
@@ -3752,10 +3752,10 @@ func (this *Cryptocom) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 		currency = this.SafeCurrency(code)
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
@@ -4275,10 +4275,10 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 		"valuation_type":  "funding_hist",
 	}
 	if since != nil {
-		request["start_ts"] = since
+		request["start_ts"] = *since
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})

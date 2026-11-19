@@ -1338,7 +1338,7 @@ func (this *Coinsph) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetOpenapiQuoteV1Depth(this.Extend(request, params))
@@ -1416,7 +1416,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		limitResolved = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// since work properly only when it is "younger" than last "limit" candle
 		if until != nil {
 			request["endTime"] = until
@@ -1507,7 +1507,7 @@ func (this *Coinsph) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		request["limit"] = 1000
 	} else {
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 	}
 
@@ -1576,11 +1576,11 @@ func (this *Coinsph) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// since work properly only when it is "younger" than last 'limit' trade
 		request["limit"] = 1000
 	} else if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetOpenapiV1MyTrades(this.Extend(request, params))
@@ -2104,11 +2104,11 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// since work properly only when it is "younger" than last 'limit' order
 		request["limit"] = 1000
 	} else if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params))
@@ -2633,10 +2633,10 @@ func (this *Coinsph) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
@@ -2719,10 +2719,10 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))

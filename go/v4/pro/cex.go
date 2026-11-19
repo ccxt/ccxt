@@ -1135,7 +1135,7 @@ func (this *Cex) FromPrecision(amount any, scale any) any {
 		return nil
 	}
 	precise := ccxt.NewPrecise(amount)
-	precise.Decimals = this.Sum(precise.Decimals, scale)
+	precise.Decimals += int(*this.SafeInteger([]any{scale}, 0, 0))
 	precise.Reduce()
 	return precise.String()
 }

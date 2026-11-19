@@ -436,8 +436,14 @@ func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//         }
 	//     }
 	//
-	var markets any = this.SafeDict(response, "data", response)
-	var keys []string = ObjectKeys(markets)
+	var markets map[string]any = this.SafeDictMap(response, "data", response)
+	var keys []string = nil
+	if markets != nil {
+		keys = make([]string, 0, len(markets))
+		for objectKey := range markets {
+			keys = append(keys, objectKey)
+		}
+	}
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -551,8 +557,14 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	//         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
 	//     }
 	//
-	var currencies any = this.SafeDict(response, "data", response)
-	var keys []string = ObjectKeys(currencies)
+	var currencies map[string]any = this.SafeDictMap(response, "data", response)
+	var keys []string = nil
+	if currencies != nil {
+		keys = make([]string, 0, len(currencies))
+		for objectKey := range currencies {
+			keys = append(keys, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -803,7 +815,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
@@ -896,7 +908,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"interval": this.SafeInteger(this.Timeframes, timeframe, 5),
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 	}
 	var defaultLimit int = 1000 // default max limit if not specified
 	var limitValue int64
@@ -1023,7 +1035,7 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_date"] = since
+		request["start_date"] = *since
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {
@@ -1665,7 +1677,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["symbols"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
@@ -1757,7 +1769,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	var thirtyDays int64 = (30 * 24) * 60 * 60 * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if since != nil {
-		request["start_date"] = since
+		request["start_date"] = *since
 	} else if until != nil {
 		request["start_date"] = *until - thirtyDays
 	}
@@ -1774,7 +1786,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		}()
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
@@ -1950,7 +1962,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	var thirtyDays int64 = (30 * 24) * 60 * 60 * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if since != nil {
-		request["start_date"] = since
+		request["start_date"] = *since
 	} else if until != nil {
 		request["start_date"] = *until - thirtyDays
 	}
@@ -1967,7 +1979,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		}()
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {

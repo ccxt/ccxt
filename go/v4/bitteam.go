@@ -1056,7 +1056,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		request["pair"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetTradeApiCcxtOrdersOfUser(this.Extend(request, params))
@@ -2297,7 +2297,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		request["pairId"] = market["numericId"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetTradeApiCcxtTradesOfUser(this.Extend(request, params))
@@ -2705,7 +2705,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 		request["currency"] = currency["numericId"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetTradeApiTransactionsOfUser(this.Extend(request, params))

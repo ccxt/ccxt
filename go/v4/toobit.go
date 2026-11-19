@@ -1339,7 +1339,7 @@ func (this *Toobit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.CommonGetQuoteV1Depth(this.Extend(request, params))
@@ -1418,7 +1418,7 @@ func (this *Toobit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.CommonGetQuoteV1Trades(this.Extend(request, params))
@@ -1610,7 +1610,7 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		endKey = "to"
 	}
 	if since != nil {
-		request[startKey] = since
+		request[startKey] = *since
 	}
 	if until != nil {
 		request[endKey] = until
@@ -1629,7 +1629,7 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		request["endTime"] = mathMin((*since - (1 - (durationMs * *limit))), this.Milliseconds())
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response any = []any{}
 	if endpoint != nil && *endpoint == "index" {
@@ -2098,7 +2098,7 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
@@ -2868,7 +2868,7 @@ func (this *Toobit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["symbol"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	var response any = []any{}
@@ -2928,10 +2928,10 @@ func (this *Toobit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var market map[string]any = nil
@@ -2998,7 +2998,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	marketType, _ := this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil)
@@ -3069,10 +3069,10 @@ func (this *Toobit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var market map[string]any = this.Market(symbol)
 	request["symbol"] = market["id"]
@@ -3219,7 +3219,7 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if limit != nil {

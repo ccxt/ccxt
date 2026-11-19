@@ -1316,11 +1316,11 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		// handleUntilOption returns the request it was given, so the filters
 		// can be set on it directly instead of through the returned tuple
 		if since != nil {
-			request["since"] = since
+			request["since"] = *since
 			request["sort"] = "asc"
 		}
 		if limit != nil {
-			request["count"] = limit
+			request["count"] = *limit
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("before", request, paramsMethod)
 
@@ -1905,10 +1905,10 @@ func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[Order], id string, 
 		"orderId": id,
 	}
 	if amount != nil {
-		request["size"] = amount
+		request["size"] = *amount
 	}
 	if price != nil {
-		request["limitPrice"] = price
+		request["limitPrice"] = *price
 	}
 
 	r1 := <-this.PrivatePostEditorder(this.Extend(request, params))
@@ -2390,10 +2390,10 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], o
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var response map[string]any = nil
@@ -2482,10 +2482,10 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order],
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 	}
 	var response map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -3236,7 +3236,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], o
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 		request["sort"] = "asc"
 	}
 	if limit != nil {
@@ -3345,14 +3345,14 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan AsyncResult[[]Funding
 		"info": "funding rate change",
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 		request["sort"] = "asc"
 	}
 	if (limit != nil) && (symbol == nil) {
 		// the account log has no contract filter, so a symbol is applied on the
 		// client side - a server side page size would truncate the rows of other
 		// contracts away before that filter runs and under-fill the result
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
@@ -4144,11 +4144,11 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]Posit
 		request["tradeable"] = market["id"]
 	}
 	if since != nil {
-		request["since"] = since
+		request["since"] = *since
 		request["sort"] = "asc"
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {

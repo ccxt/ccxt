@@ -1950,12 +1950,12 @@ func (this *BaseExchange) InitRestRateLimiter() {
 		"windowSize": this.RollingWindowSize,
 		"rateLimit":  this.RateLimit,
 	}
-	var existingBucket any = func() any {
-		if this.TokenBucket == nil {
-			return map[string]any{}
-		}
-		return this.TokenBucket
-	}()
+	var existingBucket map[string]any
+	if this.TokenBucket == nil {
+		existingBucket = map[string]any{}
+	} else {
+		existingBucket = this.TokenBucket
+	}
 	this.TokenBucket = this.Extend(defaultBucket, existingBucket)
 	this.InitThrottler()
 }
@@ -3670,12 +3670,13 @@ func (this *BaseExchange) ConvertTradingViewToOHLCV(ohlcvs any, optionalArgs ...
 	var closes []any = SafeListTyped(ohlcvs, close)
 	var volumes []any = SafeListTyped(ohlcvs, volume)
 	for i := 0; i < len(timestamps); i++ {
-		result = append(result, []any{func() any {
-			if ms == true {
-				return this.SafeInteger(timestamps, i)
-			}
-			return this.SafeTimestamp(timestamps, i)
-		}(), this.SafeValue(opens, i), this.SafeValue(highs, i), this.SafeValue(lows, i), this.SafeValue(closes, i), this.SafeValue(volumes, i)})
+		var branchValue *int64
+		if ms == true {
+			branchValue = this.SafeInteger(timestamps, i)
+		} else {
+			branchValue = this.SafeTimestamp(timestamps, i)
+		}
+		result = append(result, []any{branchValue, this.SafeValue(opens, i), this.SafeValue(highs, i), this.SafeValue(lows, i), this.SafeValue(closes, i), this.SafeValue(volumes, i)})
 	}
 	return result
 }

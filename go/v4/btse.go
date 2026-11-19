@@ -3704,10 +3704,10 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a code argument for the spot wallet history"))
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, methodName, "until")
 	var until *int64 = nil
@@ -4024,10 +4024,10 @@ func (this *Btse) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code argument for the spot wallet history"))
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "fetchLedger", "until")
 	var until *int64 = nil

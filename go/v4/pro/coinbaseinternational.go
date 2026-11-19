@@ -2778,7 +2778,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResul
 		"instrument_name": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.RequestWsAsync("private/get_open_orders_by_instrument", this.Extend(request, paramsResolved), true)
@@ -2836,7 +2836,7 @@ func (this *Coinbaseinternational) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]
 		"instrument_name": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.RequestWsAsync("private/get_order_history_by_instrument", this.Extend(request, paramsResolved), true)
@@ -2938,7 +2938,7 @@ func (this *Coinbaseinternational) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[
 		"include_old":     true,
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.RequestWsAsync("private/get_user_trades_by_instrument", this.Extend(request, paramsResolved), true)

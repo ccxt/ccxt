@@ -190,7 +190,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 		message["start"] = this.ParseToInt(float64(sinceInt) / 1000)
 	}
 	if limit != nil {
-		message["size"] = limit
+		message["size"] = *limit
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 	var requestId int64 = this.RequestId()

@@ -3851,7 +3851,7 @@ func (this *Okx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 		response = r2.Value
 	} else {
 		if limit != nil {
-			request["limit"] = limit // default 100
+			request["limit"] = *limit // default 100
 		}
 		method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades")
 		if method != nil && *method == "publicGetMarketTrades" {
@@ -4201,7 +4201,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	if until != nil {
@@ -6685,7 +6685,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	typeVar, query = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if limit != nil {
-		request["limit"] = limit // default 100, max 100
+		request["limit"] = *limit // default 100, max 100
 	}
 	request["state"] = "canceled"
 	var options map[string]any = SafeMapTyped(this.Options, "fetchCanceledOrders")
@@ -6718,7 +6718,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		}
 	} else {
 		if since != nil {
-			request["begin"] = since
+			request["begin"] = *since
 		}
 		var until *int64 = this.SafeInteger(query, "until")
 		if until != nil {
@@ -6944,7 +6944,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		}
 	} else {
 		if since != nil {
-			request["begin"] = since
+			request["begin"] = *since
 		}
 		var until *int64 = this.SafeInteger(query, "until")
 		if until != nil {
@@ -7136,7 +7136,7 @@ func (this *Okx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		request["instId"] = market["id"]
 	}
 	if since != nil {
-		request["begin"] = since
+		request["begin"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	typeVar, query := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsUntil)
@@ -7304,7 +7304,7 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var currency map[string]any = nil
 	if code != nil {
@@ -7867,7 +7867,7 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 100
+		request["limit"] = *limit // default 100, max 100
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
@@ -8031,7 +8031,7 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 100
+		request["limit"] = *limit // default 100, max 100
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
@@ -9144,10 +9144,10 @@ func (this *Okx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 		request["ccy"] = currency["id"]
 	}
 	if since != nil {
-		request["begin"] = since
+		request["begin"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetAccountBillsArchive(this.Extend(request, params))
@@ -9579,7 +9579,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 		}
 	}
 	if since != nil {
-		request["begin"] = since
+		request["begin"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	var symbolResolved *string
@@ -10212,10 +10212,10 @@ func (this *Okx) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]any
 		"ccy": currency["id"],
 	}
 	if since != nil {
-		request["before"] = since
+		request["before"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetFinanceSavingsLendingRateHistory(this.Extend(request, params))
@@ -10629,7 +10629,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 		request["before"] = *since - 1
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -11107,7 +11107,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 		response = r2.Value
 	} else {
 		if since != nil {
-			request["begin"] = since
+			request["begin"] = *since
 		}
 		var until *int64 = this.SafeInteger(paramsMarketType, "until")
 		if until != nil {
@@ -11525,7 +11525,7 @@ func (this *Okx) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]any
 		request["before"] = *since - 1
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetPublicDeliveryExerciseHistory(this.Extend(request, paramsMarketType))
@@ -11608,10 +11608,10 @@ func (this *Okx) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 		request["instType"] = this.ConvertToInstrumentType(symbolMarket["type"])
 	}
 	if since != nil {
-		request["begin"] = since
+		request["begin"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "fetchMySettlementHistory", "method", "privateGetAccountBillsArchive")
 	var until *int64 = this.SafeInteger(paramsMethod, "until")
@@ -12857,10 +12857,10 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]MarginMo
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if until != nil {
 		request["endTime"] = until

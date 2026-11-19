@@ -1229,7 +1229,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		"pair": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit // 100
+		request["count"] = *limit // 100
 	}
 
 	r1 := <-this.PublicGetDepth(this.Extend(request, params))
@@ -2000,7 +2000,7 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		request["since"] = this.NumberToString(this.ParseToInt(float64(*since) / 1000)) // expected to be in seconds
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.PublicGetTrades(this.Extend(request, params))

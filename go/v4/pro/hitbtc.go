@@ -919,7 +919,7 @@ func (this *Hitbtc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 		},
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var name string = "trades"
 
@@ -1139,7 +1139,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		"symbols": []any{market["id"]},
 	}
 	if limit != nil {
-		subscribeParams["limit"] = limit
+		subscribeParams["limit"] = *limit
 	}
 	var request map[string]any = map[string]any{
 		"params": subscribeParams,

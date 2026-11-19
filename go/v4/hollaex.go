@@ -1633,7 +1633,7 @@ func (this *Hollaex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		request["start_date"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = limit // default 50, max 100
+		request["limit"] = *limit // default 50, max 100
 	}
 
 	r1 := <-this.PrivateGetOrders(this.Extend(request, params))
@@ -2002,7 +2002,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		request["symbol"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 50, max 100
+		request["limit"] = *limit // default 50, max 100
 	}
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
@@ -2200,7 +2200,7 @@ func (this *Hollaex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 50, max 100
+		request["limit"] = *limit // default 50, max 100
 	}
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)
@@ -2354,7 +2354,7 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 50, max 100
+		request["limit"] = *limit // default 50, max 100
 	}
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)

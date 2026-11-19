@@ -1353,7 +1353,7 @@ func (this *Blofin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	}
 	var response map[string]any = nil
 	if limit != nil {
-		request["limit"] = limit // default 100
+		request["limit"] = *limit // default 100
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsNoPaginate, "fetchTrades", "method", "publicGetMarketTrades")
 	if method != nil && *method == "publicGetMarketTrades" {
@@ -1540,7 +1540,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
@@ -2520,7 +2520,7 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["instId"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 100
+		request["limit"] = *limit // default 100, max 100
 	}
 	var isTrigger *bool = this.SafeBoolN(paramsPaginate, []any{"stop", "trigger"}, false)
 	var isTpSl *bool = this.SafeBool2(paramsPaginate, "tpsl", "TPSL", false)
@@ -2616,7 +2616,7 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["instId"] = market["id"]
 	}
 	if since != nil {
-		request["begin"] = since
+		request["begin"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	if limit != nil {
@@ -2729,7 +2729,7 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 100
+		request["limit"] = *limit // default 100, max 100
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
@@ -2805,7 +2805,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 100
+		request["limit"] = *limit // default 100, max 100
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
@@ -3488,7 +3488,7 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var currency map[string]any = nil
 	if code != nil {
@@ -3989,7 +3989,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 		request["limit"] = min(*limit, 100)
 	}
 	if since != nil {
-		request["begin"] = since
+		request["begin"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 
@@ -4548,10 +4548,10 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["instId"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 100
+		request["limit"] = *limit // default 100, max 100
 	}
 	if since != nil {
-		request["begin"] = since
+		request["begin"] = *since
 	}
 	var isTrigger *bool = this.SafeBoolN(paramsPaginate, []any{"stop", "trigger", "tpsl", "TPSL"}, false)
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory")

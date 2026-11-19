@@ -1241,7 +1241,7 @@ func (this *Modetrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.V1PublicGetPublicMarketTrades(this.Extend(request, params))
@@ -1533,7 +1533,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_t", request, paramsPaginate, 0.001)
 
@@ -1984,7 +1984,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHist
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -3276,7 +3276,7 @@ func (this *Modetrade) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
 		request["size"] = mathMin(limit, maxLimit)
@@ -3337,7 +3337,7 @@ func (this *Modetrade) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", response)
+	var data map[string]any = this.SafeDictMap(response, "data", response)
 	var orders []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
@@ -3592,10 +3592,10 @@ func (this *Modetrade) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	} else {
 		request["size"] = 500
 	}
@@ -3737,10 +3737,10 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optio
 		request["token"] = this.SafeString(currency, "id")
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	var transactionType *string = this.SafeString(params, "type")
 	var paramsOmitted map[string]any = this.OmitDict(params, "type")

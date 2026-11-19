@@ -2144,7 +2144,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		request["page_size"] = min(*limit, 1000)
 	}
 	if since != nil {
-		request["start_at"] = since
+		request["start_at"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
@@ -3657,10 +3657,10 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		request["market"] = market["id"]
 	}
 	if since != nil {
-		request["start_at"] = since
+		request["start_at"] = *since
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
@@ -3937,10 +3937,10 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	if since != nil {
-		request["start_at"] = since
+		request["start_at"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
@@ -4222,7 +4222,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	} else {
 		request["from"] = 1
 	}
@@ -4340,10 +4340,10 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	var paramsKinds map[string]any = this.OmitDict(paramsPaginate, "allKinds")
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	if since != nil {
-		request["start_at"] = since
+		request["start_at"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsKinds)
 
@@ -4455,10 +4455,10 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	var paramsKinds map[string]any = this.OmitDict(paramsPaginate, "allKinds")
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	if since != nil {
-		request["start_at"] = since
+		request["start_at"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsKinds)
 
@@ -4568,10 +4568,10 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		currency = this.SafeCurrency(code)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	if since != nil {
-		request["start_at"] = since
+		request["start_at"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
@@ -5494,7 +5494,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		request["page_size"] = 100
 	}
 	if since != nil {
-		request["start_at"] = since
+		request["start_at"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 

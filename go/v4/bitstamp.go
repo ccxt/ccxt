@@ -2978,7 +2978,7 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["pair"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response []any = nil
 	if symbol != nil {
@@ -3144,7 +3144,7 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivatePostUserTransactions(this.Extend(request, params))
@@ -3671,7 +3671,7 @@ func (this *Bitstamp) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivatePostUserTransactions(this.Extend(request, params))

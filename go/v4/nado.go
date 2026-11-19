@@ -2357,7 +2357,7 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var baseAsset any = this.SafeDict(assetsByCode, base, asset)
+		var baseAsset map[string]any = this.SafeDictMap(assetsByCode, base, asset)
 		var quoteAsset map[string]any = SafeMapTyped(assetsByCode, quote)
 		var baseId *string = this.SafeString(baseAsset, "product_id", rawBaseId)
 		var quoteId *string = this.SafeString(quoteAsset, "product_id", rawQuoteId)

@@ -2004,7 +2004,7 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		request["page_size"] = pageSize
 	}
 	if since != nil {
-		request["from_timestamp"] = since
+		request["from_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -2392,7 +2392,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		"instrument_name": market["id"],
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
@@ -3251,12 +3251,12 @@ func (this *Derive) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 		market = this.Market(symbol)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	} else {
 		request["page_size"] = 500
 	}
 	if since != nil {
-		request["from_timestamp"] = since
+		request["from_timestamp"] = *since
 	}
 	if until != nil {
 		request["to_timestamp"] = until
@@ -3789,10 +3789,10 @@ func (this *Derive) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 		request["instrument_name"] = symbolMarket["id"]
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	if since != nil {
-		request["from_timestamp"] = since
+		request["from_timestamp"] = *since
 	}
 
 	r1 := <-this.PrivatePostGetTradeHistory(this.Extend(request, paramsDeriveSubaccountId))
@@ -3910,10 +3910,10 @@ func (this *Derive) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["instrument_name"] = symbolMarket["id"]
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	if since != nil {
-		request["from_timestamp"] = since
+		request["from_timestamp"] = *since
 	}
 
 	r2 := <-this.PrivatePostGetTradeHistory(this.Extend(request, paramsDeriveSubaccountId))
@@ -4234,10 +4234,10 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		request["instrument_name"] = symbolMarket["id"]
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 	}
 	var until *int64 = this.SafeInteger(paramsDeriveSubaccountId, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveSubaccountId, []any{"until"})
@@ -4863,7 +4863,7 @@ func (this *Derive) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		"subaccount_id": subaccountId,
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsDeriveSubaccountId, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveSubaccountId, []any{"until"})
@@ -4954,7 +4954,7 @@ func (this *Derive) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]
 		"risk_universe_id": riskUniverseId,
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsUniverse, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsUniverse, []any{"until"})
@@ -5067,7 +5067,7 @@ func (this *Derive) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 		"subaccount_id": subaccountId,
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsDeriveSubaccountId, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveSubaccountId, []any{"until"})
@@ -5266,7 +5266,7 @@ func (this *Derive) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		"subaccount_id": subaccountId,
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 
 	r1 := <-this.PrivatePostGetDepositHistory(this.Extend(request, paramsDeriveSubaccountId))
@@ -5353,7 +5353,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		"subaccount_id": subaccountId,
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 
 	r1 := <-this.PrivatePostGetWithdrawalHistory(this.Extend(request, paramsDeriveSubaccountId))

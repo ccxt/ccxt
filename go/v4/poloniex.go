@@ -914,11 +914,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		keyEnd = "endTime"
 	}
 	if since != nil {
-		request[keyStart] = since
+		request[keyStart] = *since
 	}
 	if limit != nil {
 		// limit should in between 100 and 500
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption(keyEnd, request, paramsPaginate)
 	if (since != nil) && (limit != nil) && (this.SafeInteger(requestUntil, keyEnd) == nil) {
@@ -1915,7 +1915,7 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // max 1000, for spot & swap
+		request["limit"] = *limit // max 1000, for spot & swap
 	}
 	if *this.SafeBool(market, "contract", false) {
 
@@ -2033,10 +2033,10 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		endKey = "eTime"
 	}
 	if since != nil {
-		request[startKey] = since
+		request[startKey] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if isContract && (symbol != nil) {
 		request["symbol"] = this.SafeString(market, "id")
@@ -2533,7 +2533,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		request["limit"] = min(200, *limit)
 	}
 	if since != nil {
-		request["sTime"] = since
+		request["sTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("eTime", request, paramsMarketType)
 
@@ -4083,10 +4083,10 @@ func (this *Poloniex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 

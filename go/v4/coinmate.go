@@ -915,10 +915,10 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 		"limit": 1000,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["timestampFrom"] = since
+		request["timestampFrom"] = *since
 	}
 	if code != nil {
 		var currency map[string]any = this.Currency(code)
@@ -1226,7 +1226,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["currencyPair"] = market["id"]
 	}
 	if since != nil {
-		request["timestampFrom"] = since
+		request["timestampFrom"] = *since
 	}
 
 	r1 := <-this.PrivatePostTradeHistory(this.Extend(request, params))
@@ -1521,7 +1521,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	}
 	// offset param that appears in other parts of the API doesn't appear to be supported here
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivatePostOrderHistory(this.Extend(request, params))

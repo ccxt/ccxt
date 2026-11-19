@@ -2019,7 +2019,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], statu
 		request["status"] = status
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrdersByStatus", "until")
 	var until *int64 = nil
@@ -2194,7 +2194,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"interval": timeframeValue,
 	}
 	if since != nil {
-		request["fromMs"] = since
+		request["fromMs"] = *since
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOHLCV", "until")
 	var until *int64 = nil
@@ -2956,7 +2956,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[stri
 		request["startTime"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchMySettlementHistory", "until")
 	var until *int64 = nil

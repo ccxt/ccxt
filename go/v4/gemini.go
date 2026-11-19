@@ -1314,8 +1314,8 @@ func (this *Gemini) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit_bids"] = limit
-		request["limit_asks"] = limit
+		request["limit_bids"] = *limit
+		request["limit_asks"] = *limit
 	}
 
 	r1 := <-this.PublicGetV1BookSymbol(this.Extend(request, params))
@@ -1778,7 +1778,7 @@ func (this *Gemini) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		request["limit_trades"] = min(*limit, 500)
 	}
 	if since != nil {
-		request["timestamp"] = since
+		request["timestamp"] = *since
 	}
 
 	responseRecv := <-this.PublicGetV1TradesSymbol(this.Extend(request, params))
@@ -2479,7 +2479,7 @@ func (this *Gemini) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit_trades"] = limit
+		request["limit_trades"] = *limit
 	}
 	if since != nil {
 		request["timestamp"] = this.ParseToInt(float64(*since) / 1000)
@@ -2613,10 +2613,10 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transacti
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit_transfers"] = limit
+		request["limit_transfers"] = *limit
 	}
 	if since != nil {
-		request["timestamp"] = since
+		request["timestamp"] = *since
 	}
 
 	responseRecv := <-this.PrivatePostV1Transfers(this.Extend(request, params))

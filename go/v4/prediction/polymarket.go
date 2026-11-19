@@ -1515,14 +1515,14 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var targets []any = []any{}
+	var targets []string = []string{}
 	for oi := 0; oi < len(outcomes); oi++ {
 		targets = append(targets, outcomes[oi])
 	}
 	var outcomesByTokenId map[string]any = map[string]any{}
 	var tokenIds []any = []any{}
 	for i := 0; i < len(targets); i++ {
-		var outcomeObj map[string]any = this.Outcome(ccxt.DerefScalar(targets[i]))
+		var outcomeObj map[string]any = this.Outcome(targets[i])
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		if tokenId != nil {
 			if _, ok := outcomesByTokenId[*tokenId]; !ok {
@@ -3262,7 +3262,7 @@ func (this *Polymarket) PolymarketOrderRawAmounts(side string, size any, price a
 			"amount": 6,
 		},
 	}
-	var cfg any = this.SafeDict(configs, tickSize, this.SafeDict(configs, "0.01"))
+	var cfg map[string]any = this.SafeDictMap(configs, tickSize, this.SafeDict(configs, "0.01"))
 	var priceDecimals *int64 = this.SafeInteger(cfg, "price")
 	var sizeDecimals *int64 = this.SafeInteger(cfg, "size")
 	var amountDecimals *int64 = this.SafeInteger(cfg, "amount")

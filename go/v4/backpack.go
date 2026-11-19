@@ -2642,10 +2642,10 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		return nil
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var paramsOmitted map[string]any = accountParams
 	if stock != nil && *stock {
@@ -2986,10 +2986,10 @@ func (this *Backpack) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		currency = this.Currency(code)
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 1000
+		request["limit"] = *limit // default 100, max 1000
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchDeposits", "until")
 	var until *int64 = nil
@@ -3052,10 +3052,10 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		currency = this.Currency(code)
 	}
 	if since != nil {
-		request["from"] = since
+		request["from"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchWithdrawals", "until")
 	var until *int64 = nil
@@ -4178,7 +4178,7 @@ func (this *Backpack) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var selection []any = this.HandleStockParams("fetchOrders", params, market)
 	var stock *bool = this.SafeBool(selection, 0, false)
@@ -4564,7 +4564,7 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))

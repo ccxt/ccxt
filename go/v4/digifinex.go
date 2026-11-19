@@ -1284,7 +1284,7 @@ func (this *Digifinex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	marketType, query := this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
@@ -1943,7 +1943,7 @@ func (this *Digifinex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 		if *this.SafeBool(market, "swap", false) {
 			request["limit"] = min(*limit, 100)
 		} else {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 	}
 	var response map[string]any = nil
@@ -2851,7 +2851,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 			panic(r.Err)
 		}
 	}
-	var ids []any = []any{}
+	var ids []string = []string{}
 	var symbols []any = []any{}
 	var symbolsById map[string]any = map[string]any{}
 	var marketType *string = nil
@@ -2942,7 +2942,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 	requestType, paramsRequest := this.HandleMarketTypeAndParams("cancelOrdersForSymbols", nil, params, "spot")
 	var request map[string]any = map[string]any{
 		"market":   requestType,
-		"order_id": Join(ids, ","),
+		"order_id": strings.Join(ids, ","),
 	}
 
 	r2 := <-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, paramsRequest))
@@ -3180,10 +3180,10 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	var swap bool = (marketType != nil && *marketType == "swap")
 	if swap {
 		if since != nil {
-			request["start_timestamp"] = since
+			request["start_timestamp"] = *since
 		}
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 	} else {
 		request["market"] = marketType
@@ -3324,7 +3324,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	var request map[string]any = map[string]any{}
 	if marketType != nil && *marketType == "swap" {
 		if since != nil {
-			request["start_timestamp"] = since
+			request["start_timestamp"] = *since
 		}
 	} else {
 		request["market"] = marketType
@@ -3340,7 +3340,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request[marketIdRequest] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	var isMargin bool = (marginMode != nil) || (marketType != nil && *marketType == "margin")
@@ -3609,7 +3609,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	marginMode, query := this.HandleMarginModeAndParams("fetchMyTrades", paramsMarketType)
 	if marketType != nil && *marketType == "swap" {
 		if since != nil {
-			request["start_timestamp"] = since
+			request["start_timestamp"] = *since
 		}
 	} else {
 		request["market"] = marketType
@@ -3625,7 +3625,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		request[marketIdRequest] = this.SafeString(market, "id")
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	var isMargin bool = (marginMode != nil) || (marketType != nil && *marketType == "margin")
@@ -3805,7 +3805,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	marginMode, query := this.HandleMarginModeAndParams("fetchLedger", paramsMarketType)
 	if marketType != nil && *marketType == "swap" {
 		if since != nil {
-			request["start_timestamp"] = since
+			request["start_timestamp"] = *since
 		}
 	} else {
 		request["market"] = marketType
@@ -3823,7 +3823,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 		request[currencyIdRequest] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var response map[string]any = nil
 	var isMargin bool = (marginMode != nil) || (marketType != nil && *marketType == "margin")
@@ -4254,7 +4254,7 @@ func (this *Digifinex) ParseTransfer(transfer any, optionalArgs ...any) Transfer
 	_ = currency
 	var fromAccount *string = nil
 	var toAccount *string = nil
-	var data any = this.SafeDict(transfer, "data", transfer)
+	var data map[string]any = this.SafeDictMap(transfer, "data", transfer)
 	var typeVar *int64 = this.SafeInteger(data, "type")
 	if typeVar != nil && *typeVar == 1 {
 		fromAccountStr := "spot"
@@ -4873,10 +4873,10 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 		"instrument_id": market["id"],
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicSwapGetPublicFundingRateHistory(this.Extend(request, params))
@@ -5522,10 +5522,10 @@ func (this *Digifinex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], 
 		request["currency"] = this.SafeString(currency, "id")
 	}
 	if since != nil {
-		request["start_timestamp"] = since
+		request["start_timestamp"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 20 max 100
+		request["limit"] = *limit // default 20 max 100
 	}
 
 	r1 := <-this.PrivateSwapGetAccountTransferRecord(this.Extend(request, params))

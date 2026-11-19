@@ -1299,7 +1299,7 @@ func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.V1PublicGetPublicMarketTrades(this.Extend(request, params))
@@ -1936,7 +1936,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_t", request, paramsPaginate, 0.001)
 
@@ -2080,7 +2080,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -3374,10 +3374,10 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	} else {
 		request["size"] = maxLimit
 	}
@@ -3435,7 +3435,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", response)
+	var data map[string]any = this.SafeDictMap(response, "data", response)
 	var orders []any = SafeListTyped(data, "rows")
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
@@ -3690,10 +3690,10 @@ func (this *Woofipro) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	} else {
 		request["size"] = 500
 	}
@@ -3835,10 +3835,10 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], option
 		request["balance_token"] = this.SafeString(currency, "id")
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	var transactionType *string = this.SafeString(params, "type")
 	var paramsOmitted map[string]any = this.OmitDict(params, "type")

@@ -1374,7 +1374,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state s
 	}
 	var q map[string]any = map[string]any{}
 	if limit != nil {
-		q["limit"] = limit
+		q["limit"] = *limit
 	}
 	var request map[string]any = this.Extend(q, params)
 	var response map[string]any = nil
@@ -1625,7 +1625,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetFuturesPositionsHistory(this.Extend(request, params))
@@ -2163,7 +2163,7 @@ func (this *Mudrex) transferBody(ch chan AsyncResult[TransferEntry], code string
 		}
 		response = r1.Value
 	}
-	var data any = this.SafeDict(response, "data", response)
+	var data map[string]any = this.SafeDictMap(response, "data", response)
 
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(map[string]any{
 		"info":        response,

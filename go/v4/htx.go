@@ -3075,7 +3075,7 @@ func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var close *string = this.SafeString(ticker, "close")
 	var baseVolume *string = this.SafeString(ticker, "amount")
 	var quoteVolume *string = this.SafeString(ticker, "vol")
-	var marketResolved any = this.SafeDict(this.Markets, symbol, market)
+	var marketResolved map[string]any = this.SafeDictMap(this.Markets, symbol, market)
 	if *this.SafeBool(marketResolved, "contract", false) {
 		// contract tickers count 'vol' in contracts
 		if *this.SafeBool(marketResolved, "linear", false) {
@@ -3536,7 +3536,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 			// 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
 			// it is not accepted by the exchange if you set it explicitly
 			if limit == nil || *limit != 150 {
-				request["depth"] = limit
+				request["depth"] = *limit
 			}
 		}
 		request["symbol"] = market["id"]
@@ -3935,10 +3935,10 @@ func (this *Htx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 			request["symbol"] = market["id"]
 		}
 		if limit != nil {
-			request["size"] = limit // default 100, max 500
+			request["size"] = *limit // default 100, max 500
 		}
 		if since != nil {
-			request["start-time"] = since // a date within 120 days from today
+			request["start-time"] = *since // a date within 120 days from today
 		}
 		request, paramsUntil = this.HandleUntilOption("end-time", request, paramsMarketType)
 
@@ -3952,13 +3952,13 @@ func (this *Htx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 			panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 		}
 		if since != nil {
-			request["start_time"] = since
+			request["start_time"] = *since
 		}
 		request, paramsUntil = this.HandleUntilOption("end_time", request, paramsMarketType)
 		if *this.SafeBool(market, "linear", false) {
 			request["contract_code"] = this.SafeString(market, "id")
 			if limit != nil {
-				request["limit"] = limit // default 100, max 500
+				request["limit"] = *limit // default 100, max 500
 			}
 
 			r3 := <-this.ContractPrivateGetV5TradeOrderDetails(this.Extend(request, paramsUntil))
@@ -3968,7 +3968,7 @@ func (this *Htx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 			response = r3.Value
 		} else if *this.SafeBool(market, "inverse", false) {
 			if limit != nil {
-				request["page_size"] = limit // default 100, max 500
+				request["page_size"] = *limit // default 100, max 500
 			}
 			request["contract"] = this.SafeString(market, "id")
 			request["trade_type"] = 0 // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
@@ -5491,7 +5491,7 @@ func (this *Htx) fetchSpotOrdersByStatesBody(ch chan AsyncResult[[]Order], state
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start-time"] = since // a window of 48 hours within 180 days
+		request["start-time"] = *since // a window of 48 hours within 180 days
 		request["end-time"] = this.Sum(since, (48*60)*60*1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end-time", request, params)
@@ -5641,12 +5641,12 @@ func (this *Htx) fetchContractOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss) || (takeProfit != nil && *takeProfit) || (stopLossTakeProfit != nil && *stopLossTakeProfit) || (trailing != nil && *trailing))
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	request, paramsUntil = this.HandleUntilOption("end_time", request, paramsOmitted)
 	if *this.SafeBool(market, "linear", false) {
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchContractOrders", paramsUntil, "cross")
 		request["margin_mode"] = marginMode
@@ -6170,7 +6170,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		}
 		request["account-id"] = accountId
 		if limit != nil {
-			request["size"] = limit
+			request["size"] = *limit
 		}
 		var paramsOmitted any = this.Omit(paramsSubType, "account-id")
 
@@ -6186,9 +6186,9 @@ func (this *Htx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		}
 		if limit != nil {
 			if isLinear {
-				request["limit"] = limit
+				request["limit"] = *limit
 			} else {
-				request["page_size"] = limit
+				request["page_size"] = *limit
 			}
 		}
 		var trigger *bool = this.SafeBool2(paramsSubType, "stop", "trigger")
@@ -9512,7 +9512,7 @@ func (this *Htx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
@@ -9525,7 +9525,7 @@ func (this *Htx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 		request["end_time"] = until
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.SpotPrivateGetV5AccountUniversalTransferRecords(this.Extend(request, paramsOmitted))
@@ -9749,11 +9749,11 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 			request["limit"] = min(*limit, 100) // max 100
 		}
 		if since != nil {
-			request["start_time"] = since
+			request["start_time"] = *since
 		}
 	} else {
 		if limit != nil {
-			request["page_size"] = limit
+			request["page_size"] = *limit
 		} else {
 			request["page_size"] = 50 // max
 		}
@@ -10070,7 +10070,7 @@ func (this *Htx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 		request["start-date"] = this.Yyyymmdd(since)
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	var market map[string]any = nil
 	var response map[string]any = nil
@@ -11111,10 +11111,10 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // max 500
+		request["limit"] = *limit // max 500
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
@@ -11312,7 +11312,7 @@ func (this *Htx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 		"amount_type": amountType,
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	var response map[string]any = nil
 	if *this.SafeBool(market, "future", false) {
@@ -12014,13 +12014,13 @@ func (this *Htx) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]any
 	}
 	if limit != nil {
 		if (*this.SafeBool(market, "linear", false)) && (*this.SafeBool(market, "swap", false)) {
-			request["limit"] = limit
+			request["limit"] = *limit
 		} else {
-			request["page_size"] = limit
+			request["page_size"] = *limit
 		}
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 	var response map[string]any = nil
@@ -12440,7 +12440,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], symbo
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trade_type", "tradeType"})
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsOmitted)
 	var response map[string]any = nil

@@ -1225,7 +1225,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		"pair": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	if since != nil {
 		request["since"] = this.ParseToInt(float64(*since) / 1000)
@@ -1284,7 +1284,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		request["pair"] = market["id"]
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 	if since != nil {
 		request["since"] = this.ParseToInt(float64(*since) / 1000)
