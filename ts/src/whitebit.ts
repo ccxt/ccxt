@@ -952,8 +952,7 @@ export default class whitebit extends Exchange {
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length;
-                    const networkCode = this.networkIdToCode (networkId.slice (1, networkLength - 1), code);
+                    const networkCode = this.networkIdToCode (networkId.slice (1, -1), code);
                     if (networkCode !== undefined) {
                         const feeEntryNetworks: Dict = this.safeDict (feeEntry, 'networks', {});
                         feeEntryNetworks[networkCode] = {

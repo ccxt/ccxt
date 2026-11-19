@@ -23360,6 +23360,7 @@ const R92J3_LONG_FIXED_PARAMS = {
     'insertMissingCandles': [ 3 ],
     'unsubscribeChannelsFrom': [ 5 ],
     'unsubscribeChannelAt': [ 5 ],
+    'padHex': [ 1 ],
 };
 
 function r92j3LongFixedParamType (printer, node) {
