@@ -60,6 +60,45 @@ impl<T: InArrayNeedle + ?Sized> InArrayNeedle for &T {
     fn needle_eq(&self, x: &Value) -> bool { (**self).needle_eq(x) }
 }
 
+/// The container `in_array` / `is_empty` only read: a `Value` or a typed list/map, by value or lent.
+/// `any_item` tests list items (anything else holds none); `container_empty` is Null or an empty list/map.
+pub trait ContainerArg {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool;
+    fn container_empty(&self) -> bool;
+}
+impl ContainerArg for Value {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { matches!(self, Value::Arr(a) if a.iter().any(|x| f(x))) }
+    fn container_empty(&self) -> bool { self.is_null() || self.as_array().is_some_and(Vec::is_empty) || self.as_map().is_some_and(HashMap::is_empty) }
+}
+impl ContainerArg for Vec<Value> {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|x| f(x)) }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for crate::value::List {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|x| f(x)) }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for crate::value::Dict {
+    fn any_item(&self, _f: &mut dyn FnMut(&Value) -> bool) -> bool { false }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for HashMap<String, Value> {
+    fn any_item(&self, _f: &mut dyn FnMut(&Value) -> bool) -> bool { false }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl ContainerArg for Vec<String> {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|s| f(&Value::from(s.as_str()))) }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
+impl<T: ContainerArg> ContainerArg for Option<T> {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.as_ref().is_some_and(|c| c.any_item(f)) }
+    fn container_empty(&self) -> bool { self.as_ref().map_or(true, |c| c.container_empty()) }
+}
+impl<T: ContainerArg + ?Sized> ContainerArg for &T {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { (**self).any_item(f) }
+    fn container_empty(&self) -> bool { (**self).container_empty() }
+}
+
 /// Coerces `&Exchange` to `&mut Exchange`. The lint that warns about
 /// this is suppressed locally — see the safety note on the call site.
 #[allow(clippy::mut_from_ref, invalid_reference_casting)]
@@ -2037,14 +2076,8 @@ impl Exchange {
     /// `isEmpty(value)` — true when an array/dict is empty, or the
     /// value is null/undefined. Scalars (strings, numbers, bools) are
     /// never considered empty — mirrors `functions/generic.ts`.
-    pub fn is_empty(&self, v: impl Into<Value>) -> Value {
-        let empty = match &Into::<Value>::into(v) {
-            Value::Null => true,
-            Value::Arr(a) => a.is_empty(),
-            Value::Dict(m) => m.is_empty(),
-            _ => false,
-        };
-        Value::Bool(empty)
+    pub fn is_empty(&self, v: impl ContainerArg) -> Value {
+        Value::Bool(v.container_empty())
     }
 
     pub fn value_is_defined(&self, v: Value) -> bool {
@@ -2186,12 +2219,8 @@ impl Exchange {
         }
     }
 
-    pub fn in_array(&self, needle: impl InArrayNeedle, haystack: impl Into<Value>) -> bool {
-        if let Value::Arr(a) = haystack.into() {
-            a.iter().any(|x| needle.needle_eq(x))
-        } else {
-            false
-        }
+    pub fn in_array(&self, needle: impl InArrayNeedle, haystack: impl ContainerArg) -> bool {
+        haystack.any_item(&mut |x| needle.needle_eq(x))
     }
 
     pub fn unique(&self, v: Value) -> Value {

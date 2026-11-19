@@ -5667,7 +5667,7 @@ function rustStrParamCopyDrop (content: string): string {
         }
         const body = masked.slice (bodyStart, bodyEnd);
         // a later binding of the same name (`let`, closure or match arm) shadows the parameter: keep the copy
-        if (new RegExp ('\\b(?:let (?:mut )?|\\|[^|\\n]*\\b|Some\\()' + name + '\\b').test (body)) continue;
+        if (new RegExp ('\\b(?:let (?:mut )?|Some\\()' + name + '\\b|(?<!\\|)\\|(?:[^|\\n]*, *)?(?:mut )?' + name + '\\b[^|\\n]*\\|(?!\\|)').test (body)) continue;
         const useRe = new RegExp ('(?<![\\w.:$])' + name + '(?![\\w$])', 'g');
         const local: Array<{ start: number, end: number, text: string }> = [];
         let ok = true, u: RegExpExecArray | null;
@@ -9283,6 +9283,72 @@ function rustTypedDictEndpointsCrate (): Map<string, string> {
 }
 
 // Write-time passes over one generated Rust file, applied top to bottom; splitLongRustLines stays last.
+// `in_array` / `is_empty` read their container through `impl ContainerArg` (exchange_stubs.rs): a local declared
+// `Value` or a typed list/map is lent instead of cloned or re-boxed; a typed list/map tests `.is_empty()` natively
+// and a `Value` local answers `is_dictionary` with `.is_map()` (the trait default's own body).
+const RUST_CONTAINER_LOCAL_TYPES = new Set([ 'Value', 'crate::value::List', 'crate::value::Dict', 'Option<crate::value::List>',
+    'Option<crate::value::Dict>', 'Option<Vec<String>>', 'Vec<Value>', 'Vec<String>', 'indexmap::IndexMap<String, Value>' ]);
+function rustContainerLocalType(content: string, fnStart: number, open: number, close: number, name: string): string | undefined {
+    const body = content.slice(open, close);
+    const types = new Set<string>();
+    for (const d of body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*(=\\s*(get_arg\\()?|;)`, 'g'))) {
+        types.add(d[1] !== undefined ? d[1].trim() : d[3] !== undefined ? 'Value' : '?');
+    }
+    for (const d of body.matchAll(new RegExp(`(?:\\bfor |\\||\\b(?:Some|Ok|Arr|Dict|Str)\\()\\s*(?:ref )?(?:mut )?\\(?${name}\\b`, 'g'))) types.add('?' + d.index);
+    const param = new RegExp(`[(,]\\s*(?:mut )?${name}\\s*:\\s*([^,)]+)`).exec(content.slice(fnStart, open));
+    if (param !== null) types.add(param[1].trim());
+    return types.size === 1 ? [...types][0] : undefined;
+}
+function lendContainerArgs(content: string): string {
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    const fnStarts = [...code.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const site = /self\.(in_array|is_empty|is_dictionary)\(/g;
+    const edits: [number, number, string][] = [];
+    let fi = -1;
+    for (const m of code.matchAll(site)) {
+        const pos = m.index as number, argOpen = pos + m[0].length;
+        while (fi + 1 < fnStarts.length && fnStarts[fi + 1] <= pos) fi++;
+        if (fi < 0) continue;
+        const open = code.indexOf('{', fnStarts[fi]);
+        if (open < 0 || open > pos) continue;
+        const close = balancedCloseIndex(code, open + 1);
+        const callClose = balancedCloseIndex(code, argOpen);
+        const args = code.slice(argOpen, callClose);
+        // the container is the last top-level argument
+        let depth = 0, split = -1, inStr = false;
+        for (let j = 0; j < args.length; j++) {
+            const c = args[j];
+            if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+            if (c === '"') inStr = true; else if ('([{'.includes(c)) depth++; else if (')]}'.includes(c)) depth--; else if (c === ',' && depth === 0) split = j;
+        }
+        if ((m[1] === 'in_array') !== (split >= 0)) continue;
+        const argStart = split < 0 ? 0 : split + 1;
+        const arg = args.slice(argStart).trim();
+        const am = /^(?:&?([A-Za-z_]\w*)(?:\.clone\(\))?|Value::Arr\(([A-Za-z_]\w*)\.clone\(\)\)|([A-Za-z_]\w*)\.clone\(\)\.map_or\(Value::Null, Value::Arr\))$/.exec(arg);
+        if (am === null) continue;
+        const name = am[1] ?? am[2] ?? am[3];
+        if (name === 'self' || name === 'Value') continue;
+        const t = rustContainerLocalType(code, fnStarts[fi], open, close, name);
+        if (t === undefined || !RUST_CONTAINER_LOCAL_TYPES.has(t)) continue;
+        if (am[2] !== undefined && t !== 'crate::value::List') continue;
+        if (am[3] !== undefined && t !== 'Option<crate::value::List>') continue;
+        const tail = content.slice(callClose + 1, callClose + 1 + 24);
+        const typedContainer = /^(?:crate::value::(?:List|Dict)|Vec<\w+>|indexmap::IndexMap<String, Value>)$/.test(t);
+        if (m[1] === 'is_dictionary') {
+            if (t !== 'Value' || !tail.startsWith('.as_bool() == Some(true)')) continue;
+            edits.push([pos, callClose + 1 + '.as_bool() == Some(true)'.length, `${name}.is_map()`]);
+        } else if (m[1] === 'is_empty' && typedContainer && tail.startsWith('.as_bool() == Some(true)')) {
+            edits.push([pos, callClose + 1 + '.as_bool() == Some(true)'.length, `${name}.is_empty()`]);
+        } else if (arg !== '&' + name && arg !== name) {
+            edits.push([argOpen + argStart, callClose, (split < 0 ? '' : ' ') + '&' + name]);
+        }
+    }
+    let out = '', last = 0;
+    for (const [a, b, t] of edits.sort((x, y) => x[0] - y[0])) { if (a < last) continue; out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
+ //
+
 const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     borrowLiteralBoxes,
     typedUrlsField,
@@ -9369,6 +9435,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     readTypedBookFields,
     rustSyncTryBlocks,
     rustStrHaystackIndexOf,
+    lendContainerArgs,
     splitLongRustLines,
 ];
 function applyRustWritePasses(content: string): string {
