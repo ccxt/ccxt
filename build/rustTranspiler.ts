@@ -7364,6 +7364,30 @@ function lendImplodeParams(content: string): string {
 // unit slot 031
 //
 // unit slot 032
+// Lend a map local as the head of omit/extend: `f(x.clone(), ..)` / `f(Value::Map(x.clone()), ..)` prints `f(&x, ..)` when x is
+// declared in this fn as Value / Dict / Option<Dict> / IndexMap (the borrowed `OmitSource` / `ExtendHead` impls copy exactly
+// as the clone did; `&Option<Dict>` merges `None` onto an empty map like the boxed Null). Skipped if the call names x again.
+function lendOmitExtendHeads(content: string): string {
+    const site = /\bself\.(omit_t|extend_t|extend|omit)\((Value::Map\()?([A-Za-z_]\w*)\.clone\(\)(\)|\.map_or\(Value::Null, Value::Dict\))?(?=, )/g;
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(site)) {
+        const [whole, fn, wrap, name, tail] = m;
+        if (name === 'self' || (wrap !== undefined ? tail !== ')' : tail === ')')) continue;
+        const at = (m.index as number) + whole.length, open = (m.index as number) + 5 + fn.length + 1;
+        if (new RegExp(`(?<![\\w.])${name}\\b`).test(content.slice(at, balancedCloseIndex(content, open)))) continue;
+        const fnAt = content.lastIndexOf('fn ', m.index as number);
+        const decls = [...content.slice(fnAt, m.index as number).matchAll(new RegExp(`(?<![\\w.])${name}\\s*(?::\\s*(indexmap::IndexMap<String, Value>|[^=;,)]+?)\\s*[=;,)]| = (get_arg)\\()`, 'g'))];
+        if (decls.length === 0) continue;
+        const ty = (decls[decls.length - 1][1] ?? 'Value').trim();
+        const ok = wrap !== undefined ? fn !== 'omit' && ty === 'indexmap::IndexMap<String, Value>'
+            : tail !== undefined ? ty === 'Option<crate::value::Dict>'
+            : /^(?:Value|crate::value::Dict|Option<crate::value::Dict>)$/.test(ty);
+        if (ok) edits.push([open, at, '&' + name]);
+    }
+    let out = '', last = 0;
+    for (const [a, b, s] of edits) { out += content.slice(last, a) + s; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 033
 // Lend a boxed local to the encoders that read it (`urlencode`, `rawencode`, `urlencode_nested`,
@@ -9291,6 +9315,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 031
     //
     // pass slot 032
+    lendOmitExtendHeads,
     //
     // pass slot 033
     lendEncoderOperands,
