@@ -2092,7 +2092,7 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 		if keysLength != 2 {
 			continue
 		}
-		var key *string = SafeStringPtr(keyValue[0])
+		var key *string = &keyValue[0]
 		var value any = func() any {
 			if 1 >= 0 && 1 < len(keyValue) {
 				return keyValue[1]

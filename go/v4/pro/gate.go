@@ -1003,7 +1003,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 	if nonce == nil {
 		var cacheLength int64 = 0
 		if storedOrderBook != nil {
-			var storedCacheLength int = ccxt.GetArrayLength(storedOrderBook.GetCache())
+			var storedCacheLength int = len(storedOrderBook.GetCache())
 			cacheLength = this.ParseToInt(storedCacheLength)
 		}
 		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 10))
@@ -1029,7 +1029,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 		storedOrderBook.SetCache([]any{})
 		var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 		if checksum == true {
-			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
+			error := ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol))
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 		}
 	}
@@ -2338,12 +2338,10 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(parts) {
-				return parts[1]
-			}
-			return nil
-		}())
+		var symbolsString *string = nil
+		if 1 >= 0 && 1 < len(parts) {
+			symbolsString = &parts[1]
+		}
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {

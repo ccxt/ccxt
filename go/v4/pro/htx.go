@@ -996,7 +996,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	if (prevSeqNum != nil) && (*prevSeqNum > orderbookNonce) {
 		var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 		if checksum == true {
-			panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
+			panic(ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol)))
 		}
 	}
 	var spotConditon bool = (market["spot"] == true) && (ccxt.IsEqual(prevSeqNum, this.SafeInteger(orderbook, "nonce")))
@@ -2270,12 +2270,10 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
 			var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, j))
 			var parts []string = strings.Split(*messageHash, "::")
-			var symbolsString *string = ccxt.SafeStringPtr(func() any {
-				if 1 >= 0 && 1 < len(parts) {
-					return parts[1]
-				}
-				return nil
-			}())
+			var symbolsString *string = nil
+			if 1 >= 0 && 1 < len(parts) {
+				symbolsString = &parts[1]
+			}
 			var symbols []string = strings.Split(*symbolsString, ",")
 			var positions any = this.FilterByArray(marginModePositions, "symbol", symbols, false)
 			if !this.IsEmpty(positions) {

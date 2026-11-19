@@ -88,7 +88,7 @@ func TestSafeString() {
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "emptyString"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputList, 0), "hi"))
 	// With defaults
-	Assert(ccxt.IsEqual(exchange.SafeStringLower(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"))
+	Assert((ccxt.IsEqual(exchange.SafeStringLower(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case")))
 	// safeStringLower2testSafeString
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringLower2(inputDict, "a", "f"), "0.123"))
@@ -115,7 +115,7 @@ func TestSafeString() {
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "emptyString"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputList, 0), "HI"))
 	// With defaults
-	Assert(ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"))
+	Assert((ccxt.IsEqual(exchange.SafeStringUpper(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case")))
 	// safeStringUpper2
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "i"), "1"))
 	Assert(ccxt.IsEqual(exchange.SafeStringUpper2(inputDict, "a", "f"), "0.123"))

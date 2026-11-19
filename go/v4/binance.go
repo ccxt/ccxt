@@ -4430,18 +4430,14 @@ func (this *Binance) Market(symbol any) map[string]any {
 			if isLegacy {
 				// support legacy symbols
 				var basequote []string = Split(symbol, "/")
-				var base *string = SafeStringPtr(func() any {
-					if 0 >= 0 && 0 < len(basequote) {
-						return basequote[0]
-					}
-					return nil
-				}())
-				var quote *string = SafeStringPtr(func() any {
-					if 1 >= 0 && 1 < len(basequote) {
-						return basequote[1]
-					}
-					return nil
-				}())
+				var base *string = nil
+				if 0 >= 0 && 0 < len(basequote) {
+					base = &basequote[0]
+				}
+				var quote *string = nil
+				if 1 >= 0 && 1 < len(basequote) {
+					quote = &basequote[1]
+				}
 				var settle *string = quote
 				if quote != nil && *quote == "USD" {
 					settle = base
@@ -6831,14 +6827,14 @@ func (this *Binance) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 				"symbols": this.Json(this.MarketIds(symbolsNormalized)),
 			}
 
-			r3 := <-this.PublicGetTicker(this.Extend(request, paramsMarketType))
-			if r3.Err != nil {
-				panic(r3.Err)
+			rollingResponseRecv := <-this.PublicGetTicker(this.Extend(request, paramsMarketType))
+			if rollingResponseRecv.Err != nil {
+				panic(rollingResponseRecv.Err)
 			}
-			response = r3.Raw
+			var rollingResponse []any = rollingResponseRecv.Value
 
 			// parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-			ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickersForRolling(response, symbolsNormalized))}
+			ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickersForRolling(rollingResponse, symbolsNormalized))}
 			return nil
 		} else {
 			var request map[string]any = map[string]any{}
@@ -6846,19 +6842,19 @@ func (this *Binance) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 				request["symbols"] = this.Json(this.MarketIds(symbolsNormalized))
 			}
 
-			r4 := <-this.PublicGetTicker24hr(this.Extend(request, paramsMarketType))
-			if r4.Err != nil {
-				panic(r4.Err)
+			r3 := <-this.PublicGetTicker24hr(this.Extend(request, paramsMarketType))
+			if r3.Err != nil {
+				panic(r3.Err)
 			}
-			response = r4.Value
+			response = r3.Value
 		}
 	} else if typeVar != nil && *typeVar == "option" {
 
-		r5 := <-this.EapiPublicGetTicker(paramsMarketType)
-		if r5.Err != nil {
-			panic(r5.Err)
+		r4 := <-this.EapiPublicGetTicker(paramsMarketType)
+		if r4.Err != nil {
+			panic(r4.Err)
 		}
-		response = r5.Raw
+		response = r4.Raw
 	} else {
 		panic(NotSupported(this.Id + " fetchTickers() does not support " + *typeVar + " markets yet"))
 	}
@@ -6866,9 +6862,9 @@ func (this *Binance) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbolsNormalized))}
 	return nil
 }
-func (this *Binance) ParseTickersForRolling(response any, symbols []string) map[string]any {
+func (this *Binance) ParseTickersForRolling(response []any, symbols []string) map[string]any {
 	var results []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var marketId *string = this.SafeString(this.SafeDict(response, i), "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, "spot")
 		var parsedTicker map[string]any = TickerToMap(this.ParseTicker(this.SafeValue(response, i)))
@@ -17443,11 +17439,11 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 				}
 				if origclientorderidlistLength > 0 {
 					// wrap clientOrderids around ""
-					var newClientOrderIds []any = []any{}
+					var newClientOrderIds []string = []string{}
 					for i := 0; i < origclientorderidlistLength; i++ {
 						newClientOrderIds = append(newClientOrderIds, "%22"+*this.SafeString(origclientorderidlist, i, "")+"%22")
 					}
-					query = query + "&" + "origclientorderidlist=%5B" + Join(newClientOrderIds, "%2C") + "%5D"
+					query = query + "&" + "origclientorderidlist=%5B" + strings.Join(newClientOrderIds, "%2C") + "%5D"
 				}
 			} else {
 				query = this.Rawencode(extendedParams)

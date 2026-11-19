@@ -924,7 +924,7 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		"fee":          nil,
 	}, market))
 }
-func (this *Bithumb) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Bithumb) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//    {
 	//        "status" : "5100",
@@ -948,19 +948,14 @@ func (this *Bithumb) HandleErrorMessage(client any, message map[string]any) any 
 		return true
 	}
 	var errorCode *string = this.SafeString(message, "status")
-
 	{
-		ret__ := func(this *Bithumb) (ret_ any) {
+		ret__ := func(this *Bithumb) (ret_ bool) {
 			defer func() {
 				if e := recover(); e != nil {
-					if e == "break" {
-						return
-					}
-					ret_ = func(this *Bithumb) any {
+					ret_ = func(this *Bithumb) bool {
 						// catch block:
 						client.(ccxt.ClientInterface).Reject(e)
 						return false
-
 					}(this)
 				}
 			}()
@@ -973,12 +968,8 @@ func (this *Bithumb) HandleErrorMessage(client any, message map[string]any) any 
 				panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", msg)))
 			}
 			return true
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 

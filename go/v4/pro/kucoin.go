@@ -1264,7 +1264,7 @@ func (this *Kucoin) watchMultiHelperBody(ch chan ccxt.AsyncResult[map[string]any
 	}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(symbolsNormalized[i])
+		var symbol *string = &symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		messageHashes = append(messageHashes, "bidask@"+market["symbol"].(string))
 	}
@@ -2268,7 +2268,7 @@ func (this *Kucoin) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ..
 func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -2277,7 +2277,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	if limit != nil {
-		if (!ccxt.IsEqual(limit, 20)) && (!ccxt.IsEqual(limit, 100)) && (!ccxt.IsEqual(limit, 50)) && (!ccxt.IsEqual(limit, 5)) {
+		if (limit == nil || *limit != 20) && (limit == nil || *limit != 100) && (limit == nil || *limit != 50) && (limit == nil || *limit != 5) {
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100"))
 		}
 	}
@@ -2309,11 +2309,11 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	methodOption, paramsMethod := this.HandleOptionStringAndParams2(params, "watchOrderBook", optionName, "method", defaultMethod)
 	var method any = methodOption
 	if ccxt.GetIndexOf(method, "Depth") < 0 {
-		if (ccxt.IsEqual(limit, 5)) || (ccxt.IsEqual(limit, 50)) {
+		if (limit != nil && *limit == 5) || (limit != nil && *limit == 50) {
 			if !(isFuturesMethod != nil && *isFuturesMethod) {
 				method = "/spotMarket/level2"
 			}
-			method = ccxt.Add(method, "Depth"+ccxt.ToString(limit))
+			method = ccxt.Add(method, "Depth"+strconv.FormatInt(*limit, 10))
 		}
 	}
 	var topic any = ccxt.Add(ccxt.Add(method, ":"), strings.Join(marketIds, ","))
@@ -2504,7 +2504,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger2(data, "sequenceEnd", "timestamp")
 		if nonce == nil {
-			var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(orderbook.GetCache()))
+			var cacheLength int64 = this.ParseToInt(len(orderbook.GetCache()))
 			var subscriptions []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 			var subscription any = nil
 			for i := 0; i < len(subscriptions); i++ {
@@ -2568,7 +2568,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaEnd *int64 = this.SafeInteger(data, "C")
 		if nonce == nil {
-			var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(orderbook.GetCache()))
+			var cacheLength int64 = this.ParseToInt(len(orderbook.GetCache()))
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 5))
@@ -2657,7 +2657,7 @@ func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
+func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription any) {
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var symbols any = this.SafeList(subscription, "symbols")
 	if symbols == nil {
@@ -2703,8 +2703,8 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message map[string]any)
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
 	client.(ccxt.ClientInterface).SubscriptionDel(id)
 	var method any = this.SafeValue(subscription, "method")
-	if method != nil {
-		ccxt.CallDynamically(method, client, message, subscription)
+	if (subscription != nil) && (method != nil) {
+		this.HandleOrderBookSubscription(client, message, subscription)
 	}
 	var isUnSub *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if isUnSub != nil && *isUnSub {

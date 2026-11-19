@@ -3515,7 +3515,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 	}
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		results = append(results, this.Extend(this.ParseTransactionWithType(this.SafeDict(response, i, map[string]any{}), currency, transactType), paramsUntil))
+		results = append(results, this.Extend(this.ParseTransactionWithType(this.SafeDictMap(response, i, map[string]any{}), currency, transactType), paramsUntil))
 	}
 	var sorted []any = this.SortBy(results, "timestamp")
 	var currencyCode any = func() any {
@@ -3528,7 +3528,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(sorted, currencyCode, since, limit))}
 	return nil
 }
-func (this *Toobit) ParseTransactionWithType(transaction any, optionalArgs ...any) any {
+func (this *Toobit) ParseTransactionWithType(transaction map[string]any, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var transactType *string = GetArgStringPtr(optionalArgs, 1, nil)

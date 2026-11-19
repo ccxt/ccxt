@@ -4040,7 +4040,7 @@ func (this *Nado) PadHex(value string, length any, optionalArgs ...any) string {
 	if left == true {
 		var paddedLeft string = zeros + value
 		var start int64 = int64(len(paddedLeft)) - this.ParseToInt(length)
-		return Slice(paddedLeft, start, len(paddedLeft))
+		return paddedLeft[start+int64(len(paddedLeft))*min(max(-start, 0), 1) : len(paddedLeft)]
 	}
 	var paddedRight string = value + zeros
 	return Slice(paddedRight, 0, length)

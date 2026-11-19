@@ -705,7 +705,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
 		for i := 0; i < len(symbols); i++ {
-			var s *string = SafeStringPtr(symbols[i])
+			var s *string = &symbols[i]
 			if s != nil {
 				if _, ok := result[*s]; ok {
 					AddElementToObject(filtered, s, func() any {

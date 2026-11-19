@@ -4372,7 +4372,7 @@ func (this *Extended) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		market = this.Market(symbol)
 	}
 	var response map[string]any = nil
-	var order any = nil
+	var order map[string]any = nil
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	if clientOrderId != nil {
@@ -4386,7 +4386,7 @@ func (this *Extended) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		}
 		response = r1.Value
 		var data []any = SafeListTyped(response, "data")
-		order = this.SafeDict(data, 0, map[string]any{})
+		order = this.SafeDictMap(data, 0, map[string]any{})
 	} else {
 		if false {
 			panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument"))
@@ -4400,7 +4400,7 @@ func (this *Extended) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 			panic(r2.Err)
 		}
 		response = r2.Value
-		order = this.SafeDict(response, "data", map[string]any{})
+		order = this.SafeDictMap(response, "data", map[string]any{})
 	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}

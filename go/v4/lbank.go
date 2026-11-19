@@ -733,13 +733,11 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		var market map[string]any = data[i]
 		var marketId *string = this.SafeString(market, "symbol")
 		var parts []string = strings.Split(*marketId, "_")
-		var baseId *string = SafeStringPtr(parts[0])
-		var quoteId *string = SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(parts) {
-				return parts[1]
-			}
-			return nil
-		}())
+		var baseId *string = &parts[0]
+		var quoteId *string = nil
+		if 1 >= 0 && 1 < len(parts) {
+			quoteId = &parts[1]
+		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		if (base == nil) || (quote == nil) {

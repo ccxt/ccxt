@@ -1680,7 +1680,7 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
-func (this *Woofipro) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Woofipro) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	// {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
 	//
@@ -1692,15 +1692,11 @@ func (this *Woofipro) HandleErrorMessage(client any, message map[string]any) any
 		return false
 	}
 	var errorMessage *string = this.SafeString(message, "errorMsg")
-
 	{
-		ret__ := func(this *Woofipro) (ret_ any) {
+		ret__ := func(this *Woofipro) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Woofipro) any {
+					ret_ = func(this *Woofipro) bool {
 						// catch block:
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
@@ -1712,7 +1708,6 @@ func (this *Woofipro) HandleErrorMessage(client any, message map[string]any) any
 							client.(ccxt.ClientInterface).Reject(error)
 						}
 						return true
-
 					}(this)
 				}
 			}()
@@ -1722,12 +1717,8 @@ func (this *Woofipro) HandleErrorMessage(client any, message map[string]any) any
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Woofipro) HandleMessage(client any, message map[string]any) {

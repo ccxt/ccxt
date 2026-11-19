@@ -621,7 +621,7 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -2178,7 +2178,7 @@ func (this *Krakenfutures) GetMessageHash(unifiedElementName string, optionalArg
 	}
 	return messageHash
 }
-func (this *Krakenfutures) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Krakenfutures) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//    {
 	//        event: 'alert',
@@ -2198,30 +2198,21 @@ func (this *Krakenfutures) HandleErrorMessage(client any, message map[string]any
 	if (errMsg != nil) && (strings.Index(*errMsg, "Already subscribed") >= 0) {
 		return false
 	}
-
 	{
-		ret__ := func(this *Krakenfutures) (ret_ any) {
+		ret__ := func(this *Krakenfutures) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Krakenfutures) any {
+					ret_ = func(this *Krakenfutures) bool {
 						// catch block:
 						client.(ccxt.ClientInterface).Reject(error)
 						return false
-
 					}(this)
 				}
 			}()
 			// try block:
 			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", errMsg)))
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Krakenfutures) HandleMessage(client any, message map[string]any) {

@@ -220,22 +220,16 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
 		var event map[string]any = SafeMapTyped(events, i)
-		var title *string = this.SafeStringLower(event, "title", "")
-		var description *string = this.SafeStringLower(event, "description", "")
+		var title string = *this.SafeStringLower(event, "title", "")
+		var description string = *this.SafeStringLower(event, "description", "")
 		var matched bool = false
 		for qi := 0; qi < queriesLength; qi++ {
 			var q string = strings.ToLower(*this.SafeString(queries, qi, ""))
-			if title == nil {
-				panic(ExchangeError(this.Id + " filterEventsBySearchIn() missing title"))
-			}
-			if checkTitle && (GetIndexOf(title, q) >= 0) {
+			if checkTitle && (strings.Index(title, q) >= 0) {
 				matched = true
 				break
 			}
-			if description == nil {
-				panic(ExchangeError(this.Id + " filterEventsBySearchIn() missing description"))
-			}
-			if checkDescription && (GetIndexOf(description, q) >= 0) {
+			if checkDescription && (strings.Index(description, q) >= 0) {
 				matched = true
 				break
 			}

@@ -6448,7 +6448,7 @@ func (this *Mexc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 			key = this.SafeString(keys, 0)
 		}
 	}
-	if (key == nil) || (IsEqual(this.SafeDict(addressStructures, key), nil)) {
+	if (key == nil) || (this.SafeDictMap(addressStructures, key) == nil) {
 		panic(InvalidAddress(Add(Add(this.Id+" fetchDepositAddress() cannot find a deposit address for "+code+", and network", network), "consider creating one using .createDepositAddress() method or in MEXC website")))
 	}
 

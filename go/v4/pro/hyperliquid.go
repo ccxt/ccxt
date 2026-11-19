@@ -2480,7 +2480,7 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message map[string]any) 
 			// the requested state is already reached, so the unWatch call resolves through the
 			// regular unsubscription handler, the subscription is echoed only inside the text
 			var subscriptionStart int = strings.Index(*ret_msg, "{")
-			var subscription any = this.ParseJson(ccxt.Slice(ret_msg, subscriptionStart, nil))
+			var subscription any = this.ParseJson((*ret_msg)[max(subscriptionStart+len((*ret_msg))*min(max(-subscriptionStart, 0), 1), 0):])
 			if subscription != nil {
 				this.HandleUnsubscription(client, subscription)
 				return true

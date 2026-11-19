@@ -2457,13 +2457,44 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		"address":         address,
 		"destination_tag": tagWithdrawTag,
 	}
-	var classMethod string = "privatePost" + *method + "Withdrawal"
+	var withdrawRequest map[string]any = this.Extend(request, paramsWithdrawTag)
+	var response map[string]any = nil
+	if method != nil && *method == "Bitcoin" {
 
-	r1 := <-this.CallDynamically(classMethod, this.Extend(request, paramsWithdrawTag))
-	if r1.Err != nil {
-		panic(r1.Err)
+		r1 := <-this.PrivatePostBitcoinWithdrawal(withdrawRequest)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
+	} else if method != nil && *method == "Ether" {
+
+		r2 := <-this.PrivatePostEtherWithdrawal(withdrawRequest)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
+	} else if method != nil && *method == "Ripple" {
+
+		r3 := <-this.PrivatePostRippleWithdrawal(withdrawRequest)
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		response = r3.Value
+	} else if method != nil && *method == "Bcash" {
+
+		r4 := <-this.PrivatePostBcashWithdrawal(withdrawRequest)
+		if r4.Err != nil {
+			panic(r4.Err)
+		}
+		response = r4.Value
+	} else {
+
+		r5 := <-this.PrivatePostLitecoinWithdrawal(withdrawRequest)
+		if r5.Err != nil {
+			panic(r5.Err)
+		}
+		response = r5.Value
 	}
-	response := r1.Value
 	//
 	//     {
 	//         "success": true,

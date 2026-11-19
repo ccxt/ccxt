@@ -2241,11 +2241,11 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		"ordertype": typeVar,
 		"volume":    this.AmountToPrecision(symbol, amount),
 	}
-	var orderRequest any = this.OrderRequest("createOrder", &symbol, &typeVar, request, amount, price, params)
-	var flags string = *this.SafeString(GetValue(orderRequest, 0), "oflags", "")
+	var orderRequest []any = this.OrderRequest("createOrder", &symbol, &typeVar, request, amount, price, params)
+	var flags string = *this.SafeString(orderRequest[0], "oflags", "")
 	var isUsingCost bool = (strings.Index(flags, "viqc") > -1)
 
-	r1 := <-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1)))
+	r1 := <-this.PrivatePostAddOrder(this.Extend(orderRequest[0], orderRequest[1]))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2322,8 +2322,8 @@ func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 			"ordertype": typeVar,
 			"volume":    parsedAmount,
 		}
-		var orderRequest any = this.OrderRequest("createOrders", marketId, typeVar, req, amount, price, orderParams)
-		ordersRequests = append(ordersRequests, GetValue(orderRequest, 0))
+		var orderRequest []any = this.OrderRequest("createOrders", marketId, typeVar, req, amount, price, orderParams)
+		ordersRequests = append(ordersRequests, orderRequest[0])
 	}
 	this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var response map[string]any = nil
@@ -4543,7 +4543,7 @@ func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	tagAndParamsSlot0, tagAndParamsSlot1 := this.HandleParamString(params, "tag")
 	var tagWithdrawTag *string = tagAndParamsSlot0
 	paramsWithdrawTag := tagAndParamsSlot1
-	if InOp(paramsWithdrawTag, "key") {
+	if _, ok := paramsWithdrawTag["key"]; ok {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {

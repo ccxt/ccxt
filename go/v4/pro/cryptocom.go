@@ -393,7 +393,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 		if currentNonce != previousNonce && (currentNonce == nil || previousNonce == nil || *currentNonce != *previousNonce) {
 			var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 			if checksum == true {
-				panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
+				panic(ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol)))
 			}
 		}
 	}
@@ -1498,7 +1498,7 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -1999,7 +1999,7 @@ func (this *Cryptocom) watchPrivateSubscribeBody(ch chan ccxt.AsyncResult[any], 
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Cryptocom) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Cryptocom) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//    {
 	//        "id": 0,
@@ -2010,15 +2010,11 @@ func (this *Cryptocom) HandleErrorMessage(client any, message map[string]any) an
 	//
 	var id *string = this.SafeString(message, "id")
 	var errorCode *string = this.SafeString(message, "code")
-
 	{
-		ret__ := func(this *Cryptocom) (ret_ any) {
+		ret__ := func(this *Cryptocom) (ret_ bool) {
 			defer func() {
 				if e := recover(); e != nil {
-					if e == "break" {
-						return
-					}
-					ret_ = func(this *Cryptocom) any {
+					ret_ = func(this *Cryptocom) bool {
 						// catch block:
 						if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
@@ -2030,7 +2026,6 @@ func (this *Cryptocom) HandleErrorMessage(client any, message map[string]any) an
 							client.(ccxt.ClientInterface).Reject(e, id)
 						}
 						return true
-
 					}(this)
 				}
 			}()
@@ -2045,12 +2040,8 @@ func (this *Cryptocom) HandleErrorMessage(client any, message map[string]any) an
 				panic(ccxt.ExchangeError(feedback))
 			}
 			return false
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Cryptocom) HandleSubscribe(client any, message map[string]any) {
@@ -2114,7 +2105,7 @@ func (this *Cryptocom) HandleMessage(client any, message map[string]any) {
 	// handle unsubscribe
 	// {"id":1725448572836,"method":"unsubscribe","code":0}
 	//
-	if ccxt.EvalTruthy(this.HandleErrorMessage(client, message)) {
+	if this.HandleErrorMessage(client, message) {
 		return
 	}
 	var method *string = this.SafeString(message, "method")

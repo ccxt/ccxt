@@ -1857,7 +1857,7 @@ func (this *Myriad) ToOrderbookWei(value any) any {
 		panic(ccxt.ExchangeError(this.Id + " toOrderbookWei() missing scaled"))
 	}
 	if dotIndex > -1 {
-		return ccxt.Slice(scaled, 0, dotIndex)
+		return (*scaled)[0:min(dotIndex+len((*scaled))*min(max(-dotIndex, 0), 1), len((*scaled)))]
 	}
 	return scaled
 }

@@ -1297,7 +1297,7 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, o
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Apex) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Apex) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//   {
 	//       "success": false,
@@ -1342,15 +1342,11 @@ func (this *Apex) HandleErrorMessage(client any, message map[string]any) any {
 	//   }
 	//
 	var code *string = this.SafeStringN(message, []any{"code", "ret_code", "retCode"})
-
 	{
-		ret__ := func(this *Apex) (ret_ any) {
+		ret__ := func(this *Apex) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Apex) any {
+					ret_ = func(this *Apex) bool {
 						// catch block:
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
@@ -1363,7 +1359,6 @@ func (this *Apex) HandleErrorMessage(client any, message map[string]any) any {
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
 						return true
-
 					}(this)
 				}
 			}()
@@ -1396,12 +1391,8 @@ func (this *Apex) HandleErrorMessage(client any, message map[string]any) any {
 				}
 			}
 			return false
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Apex) HandleMessage(client any, message map[string]any) {

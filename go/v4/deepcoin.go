@@ -1606,7 +1606,7 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAdd
 	if length != 1 {
 		panic(NotSupported(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}
-	var code *string = SafeStringPtr(codes[0])
+	var code *string = &codes[0]
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency_id": currency["id"],
@@ -1702,7 +1702,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 		panic(r1.Err)
 	}
 	var addressess []any = DepositAddressesToList(r1.Value)
-	var length int = GetArrayLength(addressess)
+	var length int = len(addressess)
 	var index any = 0
 	if (network != nil) && (length > 1) {
 		// the last entry on the requested network wins

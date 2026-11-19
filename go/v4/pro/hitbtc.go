@@ -2053,7 +2053,7 @@ func (this *Hitbtc) HandleOrderRequest(client any, message map[string]any) map[s
 	return message
 }
 func (this *Hitbtc) HandleMessage(client any, message map[string]any) {
-	if ccxt.EvalTruthy(this.HandleError(client, message)) {
+	if this.HandleError(client, message) {
 		return
 	}
 	var channel *string = this.SafeString2(message, "ch", "method")
@@ -2167,7 +2167,7 @@ func (this *Hitbtc) HandleAuthenticate(client any, message map[string]any) map[s
 	}
 	return message
 }
-func (this *Hitbtc) HandleError(client any, message map[string]any) any {
+func (this *Hitbtc) HandleError(client any, message map[string]any) bool {
 	//
 	//    {
 	//        jsonrpc: '2.0',
@@ -2181,15 +2181,11 @@ func (this *Hitbtc) HandleError(client any, message map[string]any) any {
 	//
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	if error != nil {
-
 		{
-			ret__ := func(this *Hitbtc) (ret_ any) {
+			ret__ := func(this *Hitbtc) (ret_ bool) {
 				defer func() {
 					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *Hitbtc) any {
+						ret_ = func(this *Hitbtc) bool {
 							// catch block:
 							var id *string = this.SafeString(message, "id")
 							if ccxt.IsInstance(e, ccxt.AuthenticationError) {
@@ -2214,7 +2210,6 @@ func (this *Hitbtc) HandleError(client any, message map[string]any) any {
 								}
 							}
 							return true
-
 						}(this)
 					}
 				}()
@@ -2226,12 +2221,8 @@ func (this *Hitbtc) HandleError(client any, message map[string]any) any {
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 				panic(ccxt.ExchangeError(feedback))
-
 			}(this)
-			if ret__ != nil {
-				return ret__
-			}
-			return nil
+			return ret__
 		}
 	}
 	return false

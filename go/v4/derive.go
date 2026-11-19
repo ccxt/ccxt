@@ -4647,15 +4647,27 @@ func (this *Derive) ParseBalanceList(response any) map[string]any {
 		for j := 0; j < len(collaterals); j++ {
 			var balance map[string]any = SafeMapTyped(collaterals, j)
 			var code *string = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
-			var account any = this.SafeDict(result, code)
+			var account map[string]any = this.SafeDictMap(result, code)
 			if account == nil {
 				account = this.Account()
-				AddElementToObject(account, "total", this.SafeString(balance, "amount"))
+				if account != nil {
+					if ptrValue := this.SafeString(balance, "amount"); ptrValue != nil {
+						account["total"] = *ptrValue
+					} else {
+						account["total"] = nil
+					}
+				}
 			} else {
-				AddElementToObject(account, "total", Precise.StringAdd(this.SafeString(account, "total"), this.SafeString(balance, "amount")))
+				if account != nil {
+					if ptrValue := Precise.StringAdd(this.SafeString(account, "total"), this.SafeString(balance, "amount")); ptrValue != nil {
+						account["total"] = *ptrValue
+					} else {
+						account["total"] = nil
+					}
+				}
 			}
 			if code != nil {
-				result[*code] = account
+				AddElementToObject(result, code, account)
 			}
 		}
 	}

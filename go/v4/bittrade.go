@@ -2117,8 +2117,8 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		for i := 0; i < GetArrayLength(this.Accounts); i++ {
-			var account map[string]any = MapTyped(GetValue(this.Accounts, i))
+		for i := 0; i < len(this.Accounts); i++ {
+			var account map[string]any = MapTyped(this.Accounts[i])
 			if this.SafeString(account, "type") != nil && *this.SafeString(account, "type") == "spot" {
 				accountId = this.SafeString(account, "id")
 				if accountId != nil {

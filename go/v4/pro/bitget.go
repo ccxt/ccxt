@@ -1100,7 +1100,7 @@ func (this *Bitget) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ..
 func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1124,10 +1124,10 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	var isStockOrUta bool = (isStockSpot || uta)
 	var channel string = "books"
 	var incrementalFeed bool = true
-	if (ccxt.IsEqual(limit, 1)) || (ccxt.IsEqual(limit, 5)) || (ccxt.IsEqual(limit, 15)) || (ccxt.IsEqual(limit, 50)) {
-		channel += ccxt.ToString(limit)
+	if (limit != nil && *limit == 1) || (limit != nil && *limit == 5) || (limit != nil && *limit == 15) || (limit != nil && *limit == 50) {
+		channel += strconv.FormatInt(*limit, 10)
 		// books50 sends a snapshot first and incremental updates afterwards
-		incrementalFeed = (ccxt.IsEqual(limit, 50))
+		incrementalFeed = (limit != nil && *limit == 50)
 	}
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
@@ -1288,7 +1288,7 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 			var payload string = ccxt.Join(payloadArray, ":")
 			var calculatedChecksum int64 = this.Crc32(payload, true)
 			if responseChecksum == nil || *responseChecksum != calculatedChecksum {
-				this.Spawn(this.HandleCheckSumErrorAsync, client, symbol, messageHash)
+				this.Spawn(this.HandleCheckSumErrorAsync, client, symbol, messageHash, this.OrderbookChecksumMessage(this.SafeString(market, "symbol", "")))
 				return
 			}
 		}
@@ -1319,12 +1319,12 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*symbol], messageHash)
 }
-func (this *Bitget) HandleCheckSumErrorAsync(client any, symbol any, messageHash any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitget) HandleCheckSumErrorAsync(client any, symbol any, messageHash any, checksumMessage any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
-	go this.handleCheckSumErrorBody(ch, client, symbol, messageHash)
+	go this.handleCheckSumErrorBody(ch, client, symbol, messageHash, checksumMessage)
 	return ch
 }
-func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], client any, symbol any, messageHash any) any {
+func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], client any, symbol any, messageHash any, checksumMessage any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1332,7 +1332,7 @@ func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], clie
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
+	error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", checksumMessage))
 	client.(ccxt.ClientInterface).Reject(error, messageHash)
 	return nil
 }
@@ -1949,7 +1949,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -3086,45 +3086,93 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 				var entry map[string]any = ccxt.SafeMapTyped(coins, j)
 				var currencyId *string = this.SafeString(entry, "coin")
 				var code *string = this.SafeCurrencyCode(currencyId)
-				var account any = this.Account()
+				var coinAccount map[string]any = this.Account()
 				if code != nil {
 					if _, ok := this.Balance[*code]; ok {
-						account = this.SafeDict(this.Balance, code, account)
+						coinAccount = this.SafeDictMap(this.Balance, code, coinAccount)
 					}
 				}
 				var borrow *string = this.SafeString(entry, "borrow")
 				var debts *string = this.SafeString(entry, "debts")
 				if (borrow != nil) || (debts != nil) {
-					ccxt.AddElementToObject(account, "debt", ccxt.Precise.StringAdd(borrow, debts))
+					if coinAccount != nil {
+						if ptrValue := ccxt.Precise.StringAdd(borrow, debts); ptrValue != nil {
+							coinAccount["debt"] = *ptrValue
+						} else {
+							coinAccount["debt"] = nil
+						}
+					}
 				}
-				ccxt.AddElementToObject(account, "free", this.SafeString(entry, "available"))
-				ccxt.AddElementToObject(account, "used", this.SafeString(entry, "locked"))
-				ccxt.AddElementToObject(account, "total", this.SafeString(entry, "balance"))
+				if coinAccount != nil {
+					if ptrValue := this.SafeString(entry, "available"); ptrValue != nil {
+						coinAccount["free"] = *ptrValue
+					} else {
+						coinAccount["free"] = nil
+					}
+				}
+				if coinAccount != nil {
+					if ptrValue := this.SafeString(entry, "locked"); ptrValue != nil {
+						coinAccount["used"] = *ptrValue
+					} else {
+						coinAccount["used"] = nil
+					}
+				}
+				if coinAccount != nil {
+					if ptrValue := this.SafeString(entry, "balance"); ptrValue != nil {
+						coinAccount["total"] = *ptrValue
+					} else {
+						coinAccount["total"] = nil
+					}
+				}
 				if code != nil {
-					this.Balance[*code] = account
+					this.Balance[*code] = coinAccount
 				}
 			}
 		} else {
 			var currencyId *string = this.SafeString2(rawBalance, "coin", "marginCoin")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			var account any = this.Account()
+			var account map[string]any = this.Account()
 			if code != nil {
 				if _, ok := this.Balance[*code]; ok {
-					account = this.SafeDict(this.Balance, code, account)
+					account = this.SafeDictMap(this.Balance, code, account)
 				}
 			}
 			var borrow *string = this.SafeString(rawBalance, "borrow")
 			if borrow != nil {
 				var interest *string = this.SafeString(rawBalance, "interest")
-				ccxt.AddElementToObject(account, "debt", ccxt.Precise.StringAdd(borrow, interest))
+				if account != nil {
+					if ptrValue := ccxt.Precise.StringAdd(borrow, interest); ptrValue != nil {
+						account["debt"] = *ptrValue
+					} else {
+						account["debt"] = nil
+					}
+				}
 			}
 			var freeQuery string = "available"
 			if ccxt.InOp(rawBalance, "maxTransferOut") {
 				freeQuery = "maxTransferOut"
 			}
-			ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, freeQuery))
-			ccxt.AddElementToObject(account, "total", this.SafeString(rawBalance, "equity"))
-			ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "frozen"))
+			if account != nil {
+				if ptrValue := this.SafeString(rawBalance, freeQuery); ptrValue != nil {
+					account["free"] = *ptrValue
+				} else {
+					account["free"] = nil
+				}
+			}
+			if account != nil {
+				if ptrValue := this.SafeString(rawBalance, "equity"); ptrValue != nil {
+					account["total"] = *ptrValue
+				} else {
+					account["total"] = nil
+				}
+			}
+			if account != nil {
+				if ptrValue := this.SafeString(rawBalance, "frozen"); ptrValue != nil {
+					account["used"] = *ptrValue
+				} else {
+					account["used"] = nil
+				}
+			}
 			if code != nil {
 				this.Balance[*code] = account
 			}
@@ -3436,20 +3484,16 @@ func (this *Bitget) HandleAuthenticate(client any, message map[string]any) {
 	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 	future.Resolve(true)
 }
-func (this *Bitget) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Bitget) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//    { event: "error", code: 30015, msg: "Invalid sign" }
 	//
 	var event *string = this.SafeString(message, "event")
-
 	{
-		ret__ := func(this *Bitget) (ret_ any) {
+		ret__ := func(this *Bitget) (ret_ bool) {
 			defer func() {
 				if e := recover(); e != nil {
-					if e == "break" {
-						return
-					}
-					ret_ = func(this *Bitget) any {
+					ret_ = func(this *Bitget) bool {
 						// catch block:
 						if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
@@ -3462,7 +3506,6 @@ func (this *Bitget) HandleErrorMessage(client any, message map[string]any) any {
 							client.(ccxt.ClientInterface).Reject(e)
 						}
 						return true
-
 					}(this)
 				}
 			}()
@@ -3476,12 +3519,8 @@ func (this *Bitget) HandleErrorMessage(client any, message map[string]any) any {
 				panic(ccxt.ExchangeError(feedback))
 			}
 			return false
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Bitget) HandleTextMessage(client any, message string) {

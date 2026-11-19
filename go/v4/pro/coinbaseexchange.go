@@ -974,9 +974,9 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 		if byKey := orders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
 			previousOrders = byKey[*symbol]
 		}
-		var previousOrder any = this.SafeDict(previousOrders, orderId)
+		var previousOrder map[string]any = this.SafeDictMap(previousOrders, orderId)
 		if previousOrder == nil {
-			previousOrder = this.SafeDictN(previousOrders, []any{makerOrderId, takerOrderId})
+			previousOrder = this.SafeDictNMap(previousOrders, []any{makerOrderId, takerOrderId})
 		}
 		if previousOrder == nil {
 			var parsed map[string]any = this.ParseWsOrder(message)
@@ -1006,17 +1006,41 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 						totalAmount = this.SafeString(tradeEntry, "amount", "0")
 					}
 					if !ccxt.Precise.StringEq(totalAmount, "0") {
-						ccxt.AddElementToObject(previousOrder, "average", this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)))
-					}
-					ccxt.AddElementToObject(previousOrder, "cost", this.ParseNumber(totalCost))
-					var previousOrderFilled *string = this.SafeString(previousOrder, "filled")
-					if previousOrderFilled != nil {
-						ccxt.AddElementToObject(previousOrder, "filled", this.ParseNumber(ccxt.Precise.StringAdd(previousOrderFilled, this.SafeString(trade, "amount"))))
-						if this.SafeString(previousOrder, "amount") != nil {
-							ccxt.AddElementToObject(previousOrder, "remaining", this.ParseNumber(ccxt.Precise.StringSub(this.SafeString(previousOrder, "amount"), this.SafeString(previousOrder, "filled"))))
+						if previousOrder != nil {
+							if ptrValue := this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)); ptrValue != nil {
+								previousOrder["average"] = *ptrValue
+							} else {
+								previousOrder["average"] = nil
+							}
 						}
 					}
-					if ccxt.IsEqual(this.SafeDict(previousOrder, "fee"), nil) {
+					if previousOrder != nil {
+						if ptrValue := this.ParseNumber(totalCost); ptrValue != nil {
+							previousOrder["cost"] = *ptrValue
+						} else {
+							previousOrder["cost"] = nil
+						}
+					}
+					var previousOrderFilled *string = this.SafeString(previousOrder, "filled")
+					if previousOrderFilled != nil {
+						if previousOrder != nil {
+							if ptrValue := this.ParseNumber(ccxt.Precise.StringAdd(previousOrderFilled, this.SafeString(trade, "amount"))); ptrValue != nil {
+								previousOrder["filled"] = *ptrValue
+							} else {
+								previousOrder["filled"] = nil
+							}
+						}
+						if this.SafeString(previousOrder, "amount") != nil {
+							if previousOrder != nil {
+								if ptrValue := this.ParseNumber(ccxt.Precise.StringSub(this.SafeString(previousOrder, "amount"), this.SafeString(previousOrder, "filled"))); ptrValue != nil {
+									previousOrder["remaining"] = *ptrValue
+								} else {
+									previousOrder["remaining"] = nil
+								}
+							}
+						}
+					}
+					if this.SafeDictMap(previousOrder, "fee") == nil {
 						ccxt.AddElementToObject(previousOrder, "fee", map[string]any{
 							"cost":     0,
 							"currency": this.SafeString(trade["fee"], "currency"),
@@ -1029,7 +1053,9 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 						} else {
 							previousOrderFee["cost"] = nil
 						}
-						ccxt.AddElementToObject(previousOrder, "fee", previousOrderFee)
+						if previousOrder != nil {
+							previousOrder["fee"] = previousOrderFee
+						}
 					}
 					// update the newUpdates count
 					orders.Append(previousOrder)
@@ -1293,7 +1319,7 @@ func (this *Coinbaseexchange) HandleSubscriptionStatus(client any, message map[s
 	//
 	return message
 }
-func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//     {
 	//         "type": "error",
@@ -1311,19 +1337,14 @@ func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]
 	//
 	var errMsg *string = this.SafeString(message, "message")
 	var reason string = *this.SafeString(message, "reason", "")
-
 	{
-		ret__ := func(this *Coinbaseexchange) (ret_ any) {
+		ret__ := func(this *Coinbaseexchange) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Coinbaseexchange) any {
+					ret_ = func(this *Coinbaseexchange) bool {
 						// catch block:
 						client.(ccxt.ClientInterface).Reject(error)
 						return true
-
 					}(this)
 				}
 			}()
@@ -1333,12 +1354,8 @@ func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]
 			} else {
 				panic(ccxt.ExchangeError(this.Id + " " + reason))
 			}
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Coinbaseexchange) HandleMessage(client any, message map[string]any) {

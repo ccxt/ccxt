@@ -1083,8 +1083,8 @@ func (this *Coinbase) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		for i := 0; i < GetArrayLength(this.Accounts); i++ {
-			var account map[string]any = MapTyped(GetValue(this.Accounts, i))
+		for i := 0; i < len(this.Accounts); i++ {
+			var account map[string]any = MapTyped(this.Accounts[i])
 			if (this.SafeString(account, "code") != nil && *this.SafeString(account, "code") == code) && (this.SafeString(account, "type") != nil && *this.SafeString(account, "type") == "wallet") {
 				accountId = this.SafeString(account, "id")
 				break
@@ -3994,8 +3994,8 @@ func (this *Coinbase) findAccountIdBody(ch chan AsyncResult[*string], code *stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	for i := 0; i < GetArrayLength(this.Accounts); i++ {
-		var account map[string]any = MapTyped(GetValue(this.Accounts, i))
+	for i := 0; i < len(this.Accounts); i++ {
+		var account map[string]any = MapTyped(this.Accounts[i])
 		if this.SafeString(account, "code") == code || (this.SafeString(account, "code") != nil && code != nil && *this.SafeString(account, "code") == *code) {
 
 			ch <- AsyncResult[*string]{Value: this.SafeString(account, "id")}

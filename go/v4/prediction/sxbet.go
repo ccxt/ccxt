@@ -923,7 +923,7 @@ func (this *Sxbet) fetchErc20NameBody(ch chan ccxt.AsyncResult[string], rpcUrl *
 	var lengthHex string = hex[64:min(128, len(hex))]
 	var length int64 = this.ParseToInt(this.HexToInt(lengthHex))
 	var dataEnd int64 = 128 + length*2
-	var dataHex string = ccxt.Slice(hex, 128, dataEnd)
+	var dataHex string = hex[128:min(dataEnd+int64(len(hex))*min(max(-dataEnd, 0), 1), int64(len(hex)))]
 
 	ch <- ccxt.AsyncResult[string]{Value: this.Decode(this.Base16ToBinary(dataHex))}
 	return nil
@@ -2728,7 +2728,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 			panic(r2.Err)
 		}
 		var rows []any = ccxt.MapSliceToList(r2.Value)
-		var rowsLength int = ccxt.GetArrayLength(rows)
+		var rowsLength int = len(rows)
 		for j := 0; j < rowsLength; j++ {
 			var row any = ccxt.GetValue(rows, j)
 			var rowHash *string = this.SafeString(row, "marketHash")

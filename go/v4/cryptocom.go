@@ -2808,8 +2808,8 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 func (this *Cryptocom) ParseAddress(addressString *string) []any {
 	if (addressString != nil) && (strings.Index(*addressString, "?") > 0) {
 		var addressParts []string = strings.Split(*addressString, "?")
-		var address *string = SafeStringPtr(addressParts[0])
-		var rawTag *string = SafeStringPtr(addressParts[1])
+		var address *string = &addressParts[0]
+		var rawTag *string = &addressParts[1]
 		var splitted []string = strings.Split(*rawTag, "=")
 		return []any{address, func() any {
 			if 1 >= 0 && 1 < len(splitted) {

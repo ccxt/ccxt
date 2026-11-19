@@ -1056,14 +1056,7 @@ func (this *Mercado) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagPtr *string = nil
-	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if tagWithdrawTagPtr != nil {
-			return *tagWithdrawTagPtr
-		}
-		return nil
-	}()
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
@@ -1096,7 +1089,7 @@ func (this *Mercado) withdrawBody(ch chan AsyncResult[Transaction], code string,
 					panic(ArgumentsRequired(this.Id + " withdraw() requires a tag or destination_tag parameter to withdraw " + code))
 				}
 			} else {
-				request["destination_tag"] = tagWithdrawTag
+				request["destination_tag"] = *tagWithdrawTag
 			}
 		}
 	}

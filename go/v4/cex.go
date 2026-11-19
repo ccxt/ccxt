@@ -1237,7 +1237,7 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	_ = params
 	accountName, paramsAccount := this.HandleParamString(params, "account", "") // default is empty string
 	method, paramsMethod := this.HandleParamString(paramsAccount, "method", "privatePostGetMyWalletBalance")
-	var accountBalance any = nil
+	var accountBalance map[string]any = nil
 	if method != nil && *method == "privatePostGetMyAccountStatusV3" {
 
 		r := <-this.PrivatePostGetMyAccountStatusV3(paramsMethod)
@@ -1260,7 +1260,7 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
 		var balances map[string]any = SafeMapTyped(data, "balancesPerAccounts")
-		accountBalance = this.SafeDict(balances, accountName, map[string]any{})
+		accountBalance = this.SafeDictMap(balances, accountName, map[string]any{})
 	} else {
 
 		r1 := <-this.PrivatePostGetMyWalletBalance(paramsMethod)
@@ -1280,17 +1280,23 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 		//            },
 		//            ...
 		//
-		accountBalance = this.SafeDict(response, "data", map[string]any{})
+		accountBalance = this.SafeDictMap(response, "data", map[string]any{})
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(accountBalance))}
 	return nil
 }
-func (this *Cex) ParseBalance(response any) map[string]any {
+func (this *Cex) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var keys []string = ObjectKeys(response)
+	var keys []string = nil
+	if response != nil {
+		keys = make([]string, 0, len(response))
+		for objectKey := range response {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var balance map[string]any = SafeMapTyped(response, key)

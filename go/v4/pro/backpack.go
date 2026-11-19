@@ -1771,7 +1771,7 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 	var deltaNonce *int64 = this.SafeInteger(data, "u")
 	var messageHash string = "orderbook:" + *symbol
 	if nonce == nil {
-		var cacheSize int = ccxt.GetArrayLength(storedOrderBook.GetCache())
+		var cacheSize int = len(storedOrderBook.GetCache())
 		var cacheLength int64 = this.ParseToInt(cacheSize)
 		// cache the triggering delta before a synchronous snapshot can inspect the cache
 		storedOrderBook.AppendCache(data)
@@ -2121,7 +2121,7 @@ func (this *Backpack) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	}
 	query := r.Value
 	var stock *bool = this.SafeBool(query, "stock", false)
-	if (stock != nil && *stock) && (ccxt.IsEqual(this.SafeList(this.Options, "securities"), nil)) {
+	if (stock != nil && *stock) && (this.SafeListSlice(this.Options, "securities", nil) == nil) {
 
 		r1 := <-this.FetchSecuritiesAsync()
 		if r1.Err != nil {

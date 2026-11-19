@@ -640,7 +640,7 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var first *string = ccxt.SafeStringPtr(symbolsNormalized[0])
+	var first *string = &symbolsNormalized[0]
 	var market map[string]any = this.Market(first)
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = (market["settle"] == "USDT")

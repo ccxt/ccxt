@@ -4079,12 +4079,10 @@ func (this *Bitget) ParseMarket(market any) map[string]any {
 				yearPartPart = str[2:min(4, len(str))]
 			}
 			var year string = yearPartPart
-			var month *string = SafeStringPtr(func() any {
-				if 1 >= 0 && 1 < len(expiryParts) {
-					return expiryParts[1]
-				}
-				return nil
-			}())
+			var month *string = nil
+			if 1 >= 0 && 1 < len(expiryParts) {
+				month = &expiryParts[1]
+			}
 			var dayPartPart string
 			if dayPart != nil {
 				str := *dayPart
@@ -4404,12 +4402,10 @@ func (this *Bitget) ParseUtaMarket(market any, stock bool) map[string]any {
 				yearPartPart = str[2:min(4, len(str))]
 			}
 			var year string = yearPartPart
-			var month *string = SafeStringPtr(func() any {
-				if 1 >= 0 && 1 < len(expiryParts) {
-					return expiryParts[1]
-				}
-				return nil
-			}())
+			var month *string = nil
+			if 1 >= 0 && 1 < len(expiryParts) {
+				month = &expiryParts[1]
+			}
 			var dayPartPart string
 			if dayPart != nil {
 				str := *dayPart

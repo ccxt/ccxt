@@ -2336,13 +2336,11 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			continue
 		}
 		var idParts []string = strings.Split(*id, "-")
-		var baseId *string = SafeStringPtr(idParts[0])
-		var quoteId *string = SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(idParts) {
-				return idParts[1]
-			}
-			return nil
-		}())
+		var baseId *string = &idParts[0]
+		var quoteId *string = nil
+		if 1 >= 0 && 1 < len(idParts) {
+			quoteId = &idParts[1]
+		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		if (base == nil) || (quote == nil) {
@@ -3903,7 +3901,7 @@ func (this *Kucoin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	var uta bool = false
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchTicker", "uta", uta)
 	var response map[string]any = nil
-	var result any = nil
+	var result map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTicker", market, paramsUta)
 	if utaOption != nil && *utaOption {
 		request["tradeType"] = this.TypeToTradeType(typeVar)
@@ -3944,7 +3942,7 @@ func (this *Kucoin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
 		var resultList []any = SafeListTyped(data, "list")
-		result = this.SafeDict(resultList, 0, map[string]any{})
+		result = this.SafeDictMap(resultList, 0, map[string]any{})
 	} else if *this.SafeBool(market, "contract", false) {
 
 		r2 := <-this.FuturesPublicGetTicker(this.Extend(request, paramsMarketType))
@@ -4004,7 +4002,7 @@ func (this *Kucoin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		//         }
 		//     }
 		//
-		result = this.SafeDict(response, "data", map[string]any{})
+		result = this.SafeDictMap(response, "data", map[string]any{})
 	}
 
 	ch <- AsyncResult[Ticker]{Value: TickerFromMap(this.ParseSpotOrUtaTicker(result, market))}
@@ -5510,7 +5508,7 @@ func (this *Kucoin) createContractOrderBody(ch chan AsyncResult[Order], symbol s
 	var market map[string]any = this.Market(symbol)
 	var testOrder *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
-	var hasTpOrSlOrder bool = (!IsEqual(this.SafeDict(paramsOmitted, "stopLoss"), nil)) || (!IsEqual(this.SafeDict(paramsOmitted, "takeProfit"), nil))
+	var hasTpOrSlOrder bool = (this.SafeDictMap(paramsOmitted, "stopLoss") != nil) || (this.SafeDictMap(paramsOmitted, "takeProfit") != nil)
 	var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, &side, amount, price, paramsOmitted)
 	var response map[string]any = nil
 	if testOrder != nil && *testOrder {
@@ -10406,7 +10404,7 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		var numTxidParts int = len(txidParts)
 		if numTxidParts > 1 {
 			if address == nil {
-				if GetLength(txidParts[1]) > 1 {
+				if len(txidParts[1]) > 1 {
 					address = func() any {
 						if 1 >= 0 && 1 < len(txidParts) {
 							return txidParts[1]

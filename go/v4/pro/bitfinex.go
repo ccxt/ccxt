@@ -1200,7 +1200,7 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 		}
 		var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 		if checksum == true {
-			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
+			error := ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol))
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 		}
 	}

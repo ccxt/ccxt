@@ -1758,7 +1758,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) map[strin
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
 		if !this.IsEmpty(tickers) {
@@ -2031,7 +2031,7 @@ func (this *Poloniex) HandleUnsubscription(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//    {
 	//        message: 'Invalid channel value ["ordersss"]',
@@ -2067,15 +2067,11 @@ func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) any
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var orderId *string = this.SafeString(first, "orderId")
 	if (event != nil && *event == "error") || (orderId != nil && *orderId == "0") {
-
 		{
-			ret__ := func(this *Poloniex) (ret_ any) {
+			ret__ := func(this *Poloniex) (ret_ bool) {
 				defer func() {
 					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *Poloniex) any {
+						ret_ = func(this *Poloniex) bool {
 							// catch block:
 							if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 								var messageHash string = "authenticated"
@@ -2087,7 +2083,6 @@ func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) any
 								client.(ccxt.ClientInterface).Reject(e, id)
 							}
 							return true
-
 						}(this)
 					}
 				}()
@@ -2098,12 +2093,8 @@ func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) any
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 				panic(ccxt.ExchangeError(feedback))
-
 			}(this)
-			if ret__ != nil {
-				return ret__
-			}
-			return nil
+			return ret__
 		}
 	}
 	return false

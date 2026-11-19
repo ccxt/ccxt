@@ -314,7 +314,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		var calculatedChecksum int64 = this.Crc32(payload, false)
 		var responseChecksum *int64 = this.SafeInteger(orderBook, "Crc32")
 		if responseChecksum == nil || *responseChecksum != calculatedChecksum {
-			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
+			error := ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(&symbol))
 			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			delete(this.Orderbooks, symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)

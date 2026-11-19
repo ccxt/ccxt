@@ -8532,7 +8532,7 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	if symbols != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var entry *string = SafeStringPtr(symbols[i])
+			var entry *string = &symbols[i]
 			var market map[string]any = this.Market(entry)
 			marketIds = append(marketIds, market["id"])
 		}

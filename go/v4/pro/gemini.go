@@ -431,7 +431,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	}
 	var timeframeIdFull string = typeVarPart
 	var timeframeEndIndex int = strings.Index(timeframeIdFull, "_")
-	var timeframeId string = ccxt.Slice(timeframeIdFull, 0, timeframeEndIndex)
+	var timeframeId string = timeframeIdFull[0:min(timeframeEndIndex+len(timeframeIdFull)*min(max(-timeframeEndIndex, 0), 1), len(timeframeIdFull))]
 	var marketId string = strings.ToLower(*this.SafeString(message, "symbol", ""))
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -1211,7 +1211,7 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	} else {
 		endIndex = urlLength
 	}
-	var request string = ccxt.Slice(url, startIndex, endIndex)
+	var request string = (*url)[startIndex+len((*url))*min(max(-startIndex, 0), 1) : min(endIndex+len((*url))*min(max(-endIndex, 0), 1), len((*url)))]
 	var payload map[string]any = map[string]any{
 		"request": request,
 		"nonce":   this.IncrementingNonce(),

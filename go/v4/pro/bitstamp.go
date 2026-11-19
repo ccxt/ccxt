@@ -247,7 +247,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 	}
 	var messageHash string = "orderbook:" + *symbol
 	if nonce == nil {
-		var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(storedOrderBook.GetCache()))
+		var cacheLength int64 = this.ParseToInt(len(storedOrderBook.GetCache()))
 		// the rest API is very delayed
 		// usually it takes at least 4-5 deltas to resolve
 		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 6))

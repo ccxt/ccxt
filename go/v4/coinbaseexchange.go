@@ -861,13 +861,11 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan AsyncResult[[]MarketInter
 		var market any = rawMarkets[i]
 		var id *string = this.SafeString(market, "id")
 		var parts []string = strings.Split(*id, "-")
-		var baseId *string = SafeStringPtr(parts[0])
-		var quoteId *string = SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(parts) {
-				return parts[1]
-			}
-			return nil
-		}())
+		var baseId *string = &parts[0]
+		var quoteId *string = nil
+		if 1 >= 0 && 1 < len(parts) {
+			quoteId = &parts[1]
+		}
 		// BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
 		// const baseId = this.safeString (market, 'base_currency');
 		// const quoteId = this.safeString (market, 'quote_currency');

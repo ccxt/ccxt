@@ -1631,7 +1631,7 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
 	if outcomes != nil {
 		for i := 0; i < len(outcomes); i++ {
-			var requested *string = ccxt.SafeStringPtr(outcomes[i])
+			var requested *string = &outcomes[i]
 			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			if requestedOutcome != nil {

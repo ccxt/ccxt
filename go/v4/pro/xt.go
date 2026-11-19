@@ -1392,7 +1392,7 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray([]any{position}, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -1574,12 +1574,10 @@ func (this *Xt) HandleTickers(client any, message map[string]any) map[string]any
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(func() any {
-			if 2 >= 0 && 2 < len(parts) {
-				return parts[2]
-			}
-			return nil
-		}())
+		var symbolsString *string = nil
+		if 2 >= 0 && 2 < len(parts) {
+			symbolsString = &parts[2]
+		}
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
 		var tickersSymbols []string = ccxt.ObjectKeys(tickers)
@@ -1807,7 +1805,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		if nonce == nil {
-			var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(orderbook.GetCache()))
+			var cacheLength int64 = this.ParseToInt(len(orderbook.GetCache()))
 			var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 25))
 			if cacheLength == snapshotDelay {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})

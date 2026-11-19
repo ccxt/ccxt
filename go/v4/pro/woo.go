@@ -892,11 +892,17 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker any = this.SafeDict(data, i)
+		var ticker map[string]any = this.SafeDictMap(data, i)
 		if ticker == nil {
 			continue
 		}
-		ccxt.AddElementToObject(ticker, "ts", timestamp)
+		if ticker != nil {
+			if timestamp != nil {
+				ticker["ts"] = *timestamp
+			} else {
+				ticker["ts"] = nil
+			}
+		}
 		var parsedTicker map[string]any = this.ParseWsBidAsk(ticker)
 		var symbol *string = this.SafeString(parsedTicker, "symbol")
 		if symbol != nil {
@@ -2160,7 +2166,7 @@ func (this *Woo) HandleFundingRate(client any, message map[string]any) {
 	var messageHash *string = this.SafeString(message, "topic")
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Woo) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Woo) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	// {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
 	//
@@ -2172,15 +2178,11 @@ func (this *Woo) HandleErrorMessage(client any, message map[string]any) any {
 		return false
 	}
 	var errorMessage *string = this.SafeString(message, "errorMsg")
-
 	{
-		ret__ := func(this *Woo) (ret_ any) {
+		ret__ := func(this *Woo) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Woo) any {
+					ret_ = func(this *Woo) bool {
 						// catch block:
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
@@ -2192,7 +2194,6 @@ func (this *Woo) HandleErrorMessage(client any, message map[string]any) any {
 							client.(ccxt.ClientInterface).Reject(error)
 						}
 						return true
-
 					}(this)
 				}
 			}()
@@ -2202,12 +2203,8 @@ func (this *Woo) HandleErrorMessage(client any, message map[string]any) any {
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
@@ -2342,7 +2339,7 @@ func (this *Woo) HandleSubscribe(client any, message map[string]any) map[string]
 	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 	var method any = this.SafeValue(subscription, "method")
 	if method != nil {
-		ccxt.CallDynamically(method, client, message, subscription)
+		this.HandleOrderBookSubscription(client, message, subscription)
 	}
 	return message
 }

@@ -1880,7 +1880,7 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	// networksById: inverse of options.networks, explicit options.networksById entries win
 	var userConfig map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = userConfig
-	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeDict(this.Options, "networks", map[string]any{}))
+	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeDictMap(this.Options, "networks", map[string]any{}))
 	this.Options["networksById"] = this.Extend(networkIdsToCodesGenerated, this.SafeDict(this.Options, "networksById", map[string]any{}))
 	this.FeaturesGenerator()
 	this.HasAutocorrect()
@@ -2144,12 +2144,10 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 		return defaultValue
 	}
 	var splited []string = Split(paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-	var parentKey *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(splited) {
-			return splited[0]
-		}
-		return nil
-	}())
+	var parentKey *string = nil
+	if 0 >= 0 && 0 < len(splited) {
+		parentKey = &splited[0]
+	}
 	var subKey *string = this.SafeString(splited, 1)
 	if !(InOp(methodDict, parentKey)) {
 		return defaultValue // unsupported paramName, check "exchange.features" for details');
@@ -2170,11 +2168,11 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 		return this.SafeValue(dictionary, subKey)
 	}
 }
-func (this *BaseExchange) OrderbookChecksumMessage(symbol any) any {
-	if IsEqual(symbol, nil) {
+func (this *BaseExchange) OrderbookChecksumMessage(symbol *string) string {
+	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " orderbookChecksumMessage() requires a symbol argument"))
 	}
-	return Add(symbol, " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false")
+	return *symbol + " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false"
 }
 func (this *BaseExchange) GetDefaultOptions() any {
 	return map[string]any{
@@ -3242,12 +3240,18 @@ func (this *BaseExchange) AddKeyInArrayItems(obj any, keyName any) any {
 	}
 	return result
 }
-func (this *BaseExchange) InvertFlatStringDictionary(dict any) any {
+func (this *BaseExchange) InvertFlatStringDictionary(dict map[string]any) any {
 	var reversed map[string]any = map[string]any{}
-	var keys []string = ObjectKeys(dict)
+	var keys []string = nil
+	if dict != nil {
+		keys = make([]string, 0, len(dict))
+		for objectKey := range dict {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var value any = GetValue(dict, key)
+		var value any = dict[key]
 		if IsString(value) {
 			AddElementToObject(reversed, value, key)
 		}
@@ -5165,11 +5169,7 @@ func (this *BaseExchange) loadAccountsBody(ch chan AsyncResult[[]Account], optio
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var rValueBox any = nil
-		if r.Value != nil {
-			rValueBox = AccountsToList(r.Value)
-		}
-		this.Accounts = rValueBox
+		this.Accounts = AccountsToList(r.Value)
 		PanicOnError(this.Accounts)
 	} else {
 		if !IsEqual(this.Accounts, nil) {
@@ -5192,11 +5192,7 @@ func (this *BaseExchange) loadAccountsBody(ch chan AsyncResult[[]Account], optio
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var r1ValueBox any = nil
-			if r1.Value != nil {
-				r1ValueBox = AccountsToList(r1.Value)
-			}
-			this.Accounts = r1ValueBox
+			this.Accounts = AccountsToList(r1.Value)
 			PanicOnError(this.Accounts)
 		}
 	}
@@ -6555,12 +6551,10 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan AsyncResult[DepositAdd
 			return nil
 		} else {
 			var keys []string = ObjectKeys(addressStructures)
-			var key *string = SafeStringPtr(func() any {
-				if 0 >= 0 && 0 < len(keys) {
-					return keys[0]
-				}
-				return nil
-			}())
+			var key *string = nil
+			if 0 >= 0 && 0 < len(keys) {
+				key = &keys[0]
+			}
 
 			ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(addressStructures, key))}
 			return nil
@@ -9182,7 +9176,13 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			this.Orders = nil
 		} else if (topic != nil && *topic == "positions") && (this.Positions != nil) {
 			this.Positions = nil
-			var clients []any = ObjectValues(this.Clients)
+			var clients []any = nil
+			if this.Clients != nil {
+				clients = make([]any, 0, len(this.Clients))
+				for _, objectValue := range this.Clients {
+					clients = append(clients, objectValue)
+				}
+			}
 			for i := 0; i < len(clients); i++ {
 				var client any = clients[i]
 				var futures any = (client.(Client)).Futures

@@ -1936,7 +1936,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	var isTrailingAmountOrder bool = (trailingAmount != nil)
 	var isTrailingPercentOrder bool = (trailingPercent != nil)
 	var isTrailing bool = isTrailingAmountOrder || isTrailingPercentOrder
-	var isConditional bool = isTrailing || (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (!IsEqual(this.SafeList(paramsMarginMode, "childOrders"), nil))
+	var isConditional bool = isTrailing || (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (this.SafeListSlice(paramsMarginMode, "childOrders", nil) != nil)
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(paramsMarginMode, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, paramsMarginMode)
@@ -2155,7 +2155,7 @@ func (this *Woo) editOrderBody(ch chan AsyncResult[Order], id string, symbol str
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"})
-	var isConditional bool = (isTrigger != nil && *isTrigger) || isTrailing || (triggerPrice != nil) || (!IsEqual(this.SafeList(paramsOmitted, "childOrders"), nil))
+	var isConditional bool = (isTrigger != nil && *isTrigger) || isTrailing || (triggerPrice != nil) || (this.SafeListSlice(paramsOmitted, "childOrders", nil) != nil)
 	var response map[string]any = nil
 	if isConditional {
 		if isByClientOrder {

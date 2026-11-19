@@ -582,7 +582,7 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var token *string = ccxt.SafeStringPtr(r.Value)
+		var token *string = r.Value
 		var requestId int64 = this.RequestId()
 		var request map[string]any = map[string]any{
 			"jsonrpc": "2.0",
@@ -3002,8 +3002,8 @@ func (this *Paradex) SbeReadUint(frameHex string, offset any, length any) any {
 		// plain variables as slice bounds, php gets end - start unparenthesized
 		var middle int64 = position + 1
 		var next int64 = position + 2
-		var high int = strings.Index(digits, ccxt.Slice(frameHex, position, middle))
-		var low int = strings.Index(digits, ccxt.Slice(frameHex, middle, next))
+		var high int = strings.Index(digits, frameHex[position+int64(len(frameHex))*min(max(-position, 0), 1):min(middle+int64(len(frameHex))*min(max(-middle, 0), 1), int64(len(frameHex)))])
+		var low int = strings.Index(digits, frameHex[middle+int64(len(frameHex))*min(max(-middle, 0), 1):min(next+int64(len(frameHex))*min(max(-next, 0), 1), int64(len(frameHex)))])
 		result = this.ParseToInt(this.Sum(result, ccxt.Multiply(high*16, factor), (int64(low) * factor)))
 		factor = this.ParseToInt(factor * 256)
 		position = this.ParseToInt(next)
@@ -3053,18 +3053,18 @@ func (this *Paradex) SbeReadString(frameHex string, offset int64, length int64) 
 	var size int64 = this.ParseToInt(length)
 	var start int64 = first * 2
 	var end int64 = start + size*2
-	return this.BinaryToString(this.Base16ToBinary(ccxt.Slice(frameHex, start, end)))
+	return this.BinaryToString(this.Base16ToBinary(frameHex[start+int64(len(frameHex))*min(max(-start, 0), 1) : min(end+int64(len(frameHex))*min(max(-end, 0), 1), int64(len(frameHex)))]))
 }
 func (this *Paradex) SbeReadAddress(frameHex string, offset any) string {
 	// a 32-byte big-endian account address, printed without leading zeros like the JSON feed
 	var first int64 = this.ParseToInt(offset)
 	var rawStart int64 = first * 2
 	var rawEnd int64 = rawStart + 64
-	var raw string = ccxt.Slice(frameHex, rawStart, rawEnd)
+	var raw string = frameHex[rawStart+int64(len(frameHex))*min(max(-rawStart, 0), 1) : min(rawEnd+int64(len(frameHex))*min(max(-rawEnd, 0), 1), int64(len(frameHex)))]
 	var start any = 63
 	for i := 0; i < 63; i++ {
 		var next int = i + 1
-		if ccxt.Slice(raw, i, next) != "0" {
+		if raw[i:min(next+len(raw)*min(max(-next, 0), 1), len(raw))] != "0" {
 			start = i
 			break
 		}

@@ -4099,12 +4099,10 @@ func (this *Polymarket) EthChecksumAddress(address *string) string {
 	var result string = ""
 	for i := 0; i < len(addrChars); i++ {
 		var ch string = addrChars[i]
-		var hashCh *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(hashChars) {
-				return hashChars[i]
-			}
-			return nil
-		}())
+		var hashCh *string = nil
+		if i >= 0 && i < len(hashChars) {
+			hashCh = &hashChars[i]
+		}
 		if strings.Index(upperNibbles, *hashCh) >= 0 {
 			result = result + strings.ToUpper(ch)
 		} else {

@@ -2077,7 +2077,7 @@ func (this *Paradex) GetSystemConfigAsync() <-chan AsyncResult[map[string]any] {
 func (this *Paradex) getSystemConfigBody(ch chan AsyncResult[map[string]any]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	if IsEqual(this.SafeDict(this.Options, "systemConfig"), nil) {
+	if this.SafeDictMap(this.Options, "systemConfig") == nil {
 
 		r := <-this.PublicGetSystemConfig()
 		if r.Err != nil {
@@ -2133,7 +2133,7 @@ func (this *Paradex) RetrieveAccountAsync() <-chan AsyncResult[map[string]any] {
 func (this *Paradex) retrieveAccountBody(ch chan AsyncResult[map[string]any]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	if IsEqual(this.SafeDict(this.Options, "paradexAccount"), nil) {
+	if this.SafeDictMap(this.Options, "paradexAccount") == nil {
 		this.CheckRequiredCredentials()
 
 		r := <-this.GetSystemConfigAsync()

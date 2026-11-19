@@ -1436,8 +1436,8 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 			cache.Append(opposite)
 		}
 	}
-	var position any = this.SafeDict(symbolPositions, side)
-	if ccxt.IsEqual(position, nil) {
+	var position map[string]any = this.SafeDictMap(symbolPositions, side)
+	if position == nil {
 		// the position is freshly opened by the current fill, so the local clock approximates the open time
 		var timestamp int64 = this.Milliseconds()
 		position = ccxt.PositionToMap(this.SafePosition(map[string]any{
@@ -1448,10 +1448,22 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 			"info":      entry,
 		}))
 	}
-	ccxt.AddElementToObject(position, "contracts", this.ParseNumber(contracts))
-	ccxt.AddElementToObject(position, "side", side)
-	ccxt.AddElementToObject(position, "lastUpdateTimestamp", this.Milliseconds())
-	ccxt.AddElementToObject(position, "info", entry)
+	if position != nil {
+		if ptrValue := this.ParseNumber(contracts); ptrValue != nil {
+			position["contracts"] = *ptrValue
+		} else {
+			position["contracts"] = nil
+		}
+	}
+	if position != nil {
+		position["side"] = side
+	}
+	if position != nil {
+		position["lastUpdateTimestamp"] = this.Milliseconds()
+	}
+	if position != nil {
+		position["info"] = entry
+	}
 	cache.Append(position)
 	return position
 }
@@ -1498,16 +1510,26 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		if code == nil {
 			continue
 		}
-		var account any = this.SafeDict(subBalance, code)
+		var account map[string]any = this.SafeDictMap(subBalance, code)
 		if account == nil {
 			account = this.Account()
 		}
 		// the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
-		ccxt.AddElementToObject(account, "total", this.SafeString(entry, "new_balance"))
+		if account != nil {
+			if ptrValue := this.SafeString(entry, "new_balance"); ptrValue != nil {
+				account["total"] = *ptrValue
+			} else {
+				account["total"] = nil
+			}
+		}
 		// the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
-		ccxt.AddElementToObject(account, "free", nil)
-		ccxt.AddElementToObject(account, "used", nil)
-		subBalance[*code] = account
+		if account != nil {
+			account["free"] = nil
+		}
+		if account != nil {
+			account["used"] = nil
+		}
+		ccxt.AddElementToObject(subBalance, code, account)
 		updated = true
 	}
 	if updated {
@@ -1519,7 +1541,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(positionUpdates, "positions:"+*topic)
 	}
 }
-func (this *Derive) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Derive) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	// {
 	//     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
@@ -1531,15 +1553,11 @@ func (this *Derive) HandleErrorMessage(client any, message map[string]any) any {
 	}
 	var errorMessage map[string]any = ccxt.SafeMapTyped(message, "error")
 	var errorCode *string = this.SafeString(errorMessage, "code")
-
 	{
-		ret__ := func(this *Derive) (ret_ any) {
+		ret__ := func(this *Derive) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Derive) any {
+					ret_ = func(this *Derive) bool {
 						// catch block:
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
@@ -1551,7 +1569,6 @@ func (this *Derive) HandleErrorMessage(client any, message map[string]any) any {
 							client.(ccxt.ClientInterface).Reject(error)
 						}
 						return true
-
 					}(this)
 				}
 			}()
@@ -1562,12 +1579,8 @@ func (this *Derive) HandleErrorMessage(client any, message map[string]any) any {
 				panic(ccxt.ExchangeError(feedback))
 			}
 			return false
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Derive) HandleMessage(client any, message map[string]any) {

@@ -1957,16 +1957,12 @@ func (this *Cex) HandleConnected(client any, message map[string]any) map[string]
 	//
 	return message
 }
-func (this *Cex) HandleErrorMessage(client any, message map[string]any) any {
-
+func (this *Cex) HandleErrorMessage(client any, message map[string]any) bool {
 	{
-		ret__ := func(this *Cex) (ret_ any) {
+		ret__ := func(this *Cex) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Cex) any {
+					ret_ = func(this *Cex) bool {
 						// catch block:
 						var messageHash *string = this.SafeString(message, "oid")
 						var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
@@ -1976,7 +1972,6 @@ func (this *Cex) HandleErrorMessage(client any, message map[string]any) any {
 						} else {
 							panic(error)
 						}
-
 					}(this)
 				}
 			}()
@@ -1988,12 +1983,8 @@ func (this *Cex) HandleErrorMessage(client any, message map[string]any) any {
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 			panic(ccxt.ExchangeError(feedback))
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Cex) HandleMessage(client any, message map[string]any) {

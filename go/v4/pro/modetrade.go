@@ -1719,7 +1719,7 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
-func (this *Modetrade) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Modetrade) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	// {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
 	//
@@ -1731,15 +1731,11 @@ func (this *Modetrade) HandleErrorMessage(client any, message map[string]any) an
 		return false
 	}
 	var errorMessage *string = this.SafeString(message, "errorMsg")
-
 	{
-		ret__ := func(this *Modetrade) (ret_ any) {
+		ret__ := func(this *Modetrade) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Modetrade) any {
+					ret_ = func(this *Modetrade) bool {
 						// catch block:
 						if ccxt.IsInstance(error, ccxt.AuthenticationError) {
 							var messageHash string = "authenticated"
@@ -1751,7 +1747,6 @@ func (this *Modetrade) HandleErrorMessage(client any, message map[string]any) an
 							client.(ccxt.ClientInterface).Reject(error)
 						}
 						return true
-
 					}(this)
 				}
 			}()
@@ -1761,16 +1756,12 @@ func (this *Modetrade) HandleErrorMessage(client any, message map[string]any) an
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Modetrade) HandleMessage(client any, message map[string]any) {
-	if ccxt.EvalTruthy(this.HandleErrorMessage(client, message)) {
+	if this.HandleErrorMessage(client, message) {
 		return
 	}
 	var methods map[string]any = map[string]any{

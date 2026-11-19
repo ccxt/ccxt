@@ -676,7 +676,7 @@ func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
 	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if method != nil {
-			ccxt.CallDynamically(method, client, message, subscription)
+			this.HandleOrderBookSubscription(client, message, subscription)
 		}
 	}
 }

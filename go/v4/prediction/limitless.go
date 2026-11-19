@@ -4030,13 +4030,10 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 	var categoriesLength int = len(categories)
 	for i := 0; i < categoriesLength; i++ {
 		var category map[string]any = ccxt.SafeMapTyped(categories, i)
-		var name *string = this.SafeStringLower(category, "name", "")
+		var name string = *this.SafeStringLower(category, "name", "")
 		var categoryId *string = this.SafeString(category, "id")
 		var matched bool = false
 		for wi := 0; wi < len(wanted); wi++ {
-			if name == nil {
-				panic(ccxt.ExchangeError(this.Id + " fetchRawMarketsByTags() missing name"))
-			}
 			if ccxt.GetIndexOf(name, wanted[wi]) >= 0 {
 				matched = true
 				break

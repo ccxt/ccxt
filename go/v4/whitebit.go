@@ -1303,7 +1303,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	for i := 0; i < len(currencyIds); i++ {
 		var entry string = currencyIds[i]
 		var splitEntry []string = strings.Split(entry, " ")
-		var currencyId *string = SafeStringPtr(splitEntry[0])
+		var currencyId *string = &splitEntry[0]
 		var feeInfo any = this.SafeDict(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codesValue == nil) || (this.InArray(code, codesValue))) {
@@ -1339,8 +1339,12 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				}(),
 			}
 			if networkId != nil {
-				var networkLength int = len(*networkId)
-				var networkCode *string = this.NetworkIdToCode(Slice(networkId, 1, networkLength-1), code)
+				var networkIdPart string
+				if networkId != nil {
+					str := *networkId
+					networkIdPart = str[1 : len(str)-1]
+				}
+				var networkCode *string = this.NetworkIdToCode(networkIdPart, code)
 				if networkCode != nil {
 					var feeEntryNetworks map[string]any = this.SafeDictMap(feeEntry, "networks", map[string]any{})
 					feeEntryNetworks[*networkCode] = map[string]any{
@@ -5865,11 +5869,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes424619 []any = r.Value
-		if retRes424619 == nil {
+		var retRes424519 []any = r.Value
+		if retRes424519 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes424619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes424519)}
 		}
 		return nil
 	}

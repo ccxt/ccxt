@@ -226,8 +226,8 @@ func (this *Hyperliquid) ParseOutcomeDescription(description *string) map[string
 		var part string = parts[i]
 		var colonIndex int = strings.Index(part, ":")
 		if colonIndex > -1 {
-			var key string = ccxt.Slice(part, 0, colonIndex)
-			var value string = ccxt.Slice(part, colonIndex+1, nil)
+			var key string = part[0:min(colonIndex+len(part)*min(max(-colonIndex, 0), 1), len(part))]
+			var value string = part[max((colonIndex+1)+len(part)*min(max(-(colonIndex+1), 0), 1), 0):]
 			result[key] = value
 		}
 	}
@@ -527,7 +527,7 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeK
 		var expParts []string = strings.Split(*expiry, "-")
 		var expPartsLength int = len(expParts)
 		if (expPartsLength >= 1) && (ccxt.GetLength(expParts[0]) == 8) {
-			var ymd *string = ccxt.SafeStringPtr(expParts[0])
+			var ymd *string = &expParts[0]
 			var hm string = "0000"
 			if expPartsLength >= 2 {
 				hm = expParts[1]
@@ -682,7 +682,7 @@ func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any 
 	}
 	var midStr *string = this.NumberToString(midPx)
 	var parts []string = strings.Split(*midStr, ".")
-	var intPart *string = ccxt.SafeStringPtr(parts[0])
+	var intPart *string = &parts[0]
 	var intPartLength int = len(*intPart)
 	var szDecimalsInt int64 = this.ParseToInt(szDecimals)
 	var maxDecimals int64 = this.ParseToInt(8 - szDecimalsInt)
@@ -1241,7 +1241,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 			panic(r.Err)
 		}
 		for i := 0; i < len(outcomes); i++ {
-			var requested *string = ccxt.SafeStringPtr(outcomes[i])
+			var requested *string = &outcomes[i]
 			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			if requestedOutcome != nil {
@@ -2585,7 +2585,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 		var parts []string = strings.Split(*expiryRaw, "-")
 		var partsLength int = len(parts)
 		if (partsLength >= 1) && (ccxt.GetLength(parts[0]) == 8) {
-			var ymd *string = ccxt.SafeStringPtr(parts[0])
+			var ymd *string = &parts[0]
 			var hm string = "0000"
 			if partsLength >= 2 {
 				hm = parts[1]

@@ -634,12 +634,10 @@ func (this *Bybit) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var topics []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsValue) {
-				return symbolsValue[i]
-			}
-			return nil
-		}())
+		var symbol *string = nil
+		if i >= 0 && i < len(symbolsValue) {
+			symbol = &symbolsValue[i]
+		}
 		topics = append(topics, topic+"."+marketId)
 		subMessageHashes = append(subMessageHashes, "ticker:"+*symbol)
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+*symbol)
@@ -1006,7 +1004,7 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	}
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstSymbol *string = ccxt.SafeStringPtr(marketSymbols[0])
+	var firstSymbol *string = &marketSymbols[0]
 
 	r1 := <-this.GetUrlByMarketTypeAsync(firstSymbol, false, "watchOHLCVForSymbols", params)
 	if r1.Err != nil {
@@ -1082,7 +1080,7 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	}
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstSymbol *string = ccxt.SafeStringPtr(marketSymbols[0])
+	var firstSymbol *string = &marketSymbols[0]
 
 	r1 := <-this.GetUrlByMarketTypeAsync(firstSymbol, false, "watchOHLCVForSymbols", params)
 	if r1.Err != nil {
@@ -2429,7 +2427,7 @@ func (this *Bybit) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -3220,7 +3218,7 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 		this.ParseWsBalance(ccxt.DerefScalar(rawBalances[i]), account)
 	}
 	if !ccxt.IsEqual(account, nil) {
-		if ccxt.IsEqual(this.SafeDict(this.Balance, account), nil) {
+		if this.SafeDictMap(this.Balance, account) == nil {
 			ccxt.AddElementToObject(this.Balance, account, map[string]any{})
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "info", info)
@@ -3290,7 +3288,7 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 	// is the consistent total, the spot rows fall back to the wallet balance
 	account["total"] = this.SafeString2(balance, "equity", "walletBalance")
 	if accountType != nil {
-		if ccxt.IsEqual(this.SafeDict(this.Balance, accountType), nil) {
+		if this.SafeDictMap(this.Balance, accountType) == nil {
 			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
 		}
 		if (accountType != nil) && (code != nil) {
@@ -3459,7 +3457,7 @@ func (this *Bybit) authenticateBody(ch chan ccxt.AsyncResult[*string], url strin
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Bybit) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Bybit) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//   {
 	//       "success": false,
@@ -3504,15 +3502,11 @@ func (this *Bybit) HandleErrorMessage(client any, message map[string]any) any {
 	//   }
 	//
 	var code *string = this.SafeStringN(message, []any{"code", "ret_code", "retCode"})
-
 	{
-		ret__ := func(this *Bybit) (ret_ any) {
+		ret__ := func(this *Bybit) (ret_ bool) {
 			defer func() {
 				if error := recover(); error != nil {
-					if error == "break" {
-						return
-					}
-					ret_ = func(this *Bybit) any {
+					ret_ = func(this *Bybit) bool {
 						// catch block:
 						var reqId *string = this.SafeString2(message, "req_id", "reqId")
 						var foundSubscription bool = false
@@ -3557,7 +3551,6 @@ func (this *Bybit) HandleErrorMessage(client any, message map[string]any) any {
 							}
 						}
 						return true
-
 					}(this)
 				}
 			}()
@@ -3581,12 +3574,8 @@ func (this *Bybit) HandleErrorMessage(client any, message map[string]any) any {
 				}
 			}
 			return false
-
 		}(this)
-		if ret__ != nil {
-			return ret__
-		}
-		return nil
+		return ret__
 	}
 }
 func (this *Bybit) HandleMessage(client any, message map[string]any) {

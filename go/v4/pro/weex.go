@@ -2667,7 +2667,7 @@ func (this *Weex) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -2740,7 +2740,7 @@ func (this *Weex) HandleSubscriptionStatus(client any, message map[string]any) m
 	}
 	return message
 }
-func (this *Weex) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Weex) HandleErrorMessage(client any, message map[string]any) bool {
 	//
 	//     {
 	//         "result": false,
@@ -2752,19 +2752,14 @@ func (this *Weex) HandleErrorMessage(client any, message map[string]any) any {
 	if !(result != nil && *result) {
 		var msg *string = this.SafeString(message, "msg", "")
 		var feedback string = this.Id + " " + this.Json(message)
-
 		{
-			ret__ := func(this *Weex) (ret_ any) {
+			ret__ := func(this *Weex) (ret_ bool) {
 				defer func() {
 					if error := recover(); error != nil {
-						if error == "break" {
-							return
-						}
-						ret_ = func(this *Weex) any {
+						ret_ = func(this *Weex) bool {
 							// catch block:
 							client.(ccxt.ClientInterface).Reject(error)
 							return true
-
 						}(this)
 					}
 				}()
@@ -2772,12 +2767,8 @@ func (this *Weex) HandleErrorMessage(client any, message map[string]any) any {
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], msg, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], msg, feedback)
 				panic(ccxt.ExchangeError(feedback))
-
 			}(this)
-			if ret__ != nil {
-				return ret__
-			}
-			return nil
+			return ret__
 		}
 	}
 	return false
@@ -2794,7 +2785,7 @@ func (this *Weex) HandleMessage(client any, message map[string]any) {
 	//         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
 	//     }
 	//
-	if ccxt.EvalTruthy(this.HandleErrorMessage(client, message)) {
+	if this.HandleErrorMessage(client, message) {
 		return
 	}
 	var id *string = this.SafeString(message, "id")

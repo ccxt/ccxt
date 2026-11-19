@@ -2489,12 +2489,12 @@ func (this *Bingx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 	//        ]
 	//    }
 	//
-	var data any = nil
+	var data map[string]any = nil
 	if *this.SafeBool(market, "inverse", false) {
 		var dataList []any = SafeListTyped(response, "data")
-		data = this.SafeDict(dataList, 0, map[string]any{})
+		data = this.SafeDictMap(dataList, 0, map[string]any{})
 	} else {
-		data = this.SafeDict(response, "data", map[string]any{})
+		data = this.SafeDictMap(response, "data", map[string]any{})
 	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}

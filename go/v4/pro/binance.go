@@ -1483,7 +1483,7 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 						} else {
 							var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 							if checksum == true {
-								panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
+								panic(ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol)))
 							}
 						}
 					}
@@ -1502,7 +1502,7 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 						} else {
 							var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 							if checksum == true {
-								panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
+								panic(ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol)))
 							}
 						}
 					}
@@ -4510,7 +4510,13 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 		})
 	}
 	// whether or not to schedule another listenKey keepAlive request
-	var clients []any = ccxt.ObjectValues(this.Clients)
+	var clients []any = nil
+	if this.Clients != nil {
+		clients = make([]any, 0, len(this.Clients))
+		for _, objectValue := range this.Clients {
+			clients = append(clients, objectValue)
+		}
+	}
 	var refreshRateKey string = "listenKeyRefreshRate"
 	if isStock {
 		refreshRateKey = "stockListenKeyRefreshRate"
@@ -7006,7 +7012,7 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -7644,7 +7650,7 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {

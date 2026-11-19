@@ -934,7 +934,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "generation", 2)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var data any = nil
+	var data map[string]any = nil
 	var timestamp *int64 = nil
 	if generation == 2 {
 		request["markets"] = this.GetGen2MarketId(market)
@@ -1014,7 +1014,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		//         }
 		//     }
 		//
-		data = this.SafeDict(response, "data", map[string]any{})
+		data = this.SafeDictMap(response, "data", map[string]any{})
 		timestamp = this.SafeInteger(data, "timestamp")
 	}
 
@@ -1784,7 +1784,7 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var parts []string = strings.Split(*transactionDatetime, " ")
 		var numParts int = len(parts)
 		if numParts > 1 {
-			var transactionDate *string = SafeStringPtr(parts[0])
+			var transactionDate *string = &parts[0]
 			var rawTransactionTime *string = this.SafeString(parts, 1, "")
 			var transactionTime *string = rawTransactionTime
 			if len(*rawTransactionTime) < 8 {

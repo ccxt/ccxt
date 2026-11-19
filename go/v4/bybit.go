@@ -3804,7 +3804,7 @@ func (this *Bybit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 		// we can't use marketSymbols here due to the conflicting ids between markets
 		var currentType *string = nil
 		for i := 0; i < len(symbols); i++ {
-			var symbol *string = SafeStringPtr(symbols[i])
+			var symbol *string = &symbols[i]
 			// using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
 			// infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
 			var isExchangeSpecificSymbol bool = (strings.Index(*symbol, "/") < 0)
@@ -5111,37 +5111,41 @@ func (this *Bybit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin) || (enableUnifiedAccount != nil && *enableUnifiedAccount)
 	// don't use getBybitType here
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	var typeVar any = marketType
+	var typeVar *string = marketType
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBalance", nil, paramsMarketType)
-	if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
+	if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 		typeVar = subType
 	}
 	var lowercaseRawType *string
-	if !IsEqual(typeVar, nil) {
-		lowercaseRawTypeValue := ToLower(typeVar)
+	if typeVar != nil {
+		lowercaseRawTypeValue := strings.ToLower(*typeVar)
 		lowercaseRawType = &lowercaseRawTypeValue
 	} else {
 		lowercaseRawType = nil
 	}
-	var isSpot bool = (IsEqual(typeVar, "spot"))
-	var isLinear bool = (IsEqual(typeVar, "linear"))
-	var isInverse bool = (IsEqual(typeVar, "inverse"))
+	var isSpot bool = (typeVar != nil && *typeVar == "spot")
+	var isLinear bool = (typeVar != nil && *typeVar == "linear")
+	var isInverse bool = (typeVar != nil && *typeVar == "inverse")
 	var isFunding bool = (lowercaseRawType != nil && *lowercaseRawType == "fund") || (lowercaseRawType != nil && *lowercaseRawType == "funding")
 	if isUnifiedAccount {
 		var unifiedMarginStatus int64 = *this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
 		if unifiedMarginStatus < 5 {
 			// it's not uta.20 where inverse are unified
 			if isInverse {
-				typeVar = "contract"
+				typeVarStr := "contract"
+				typeVar = &typeVarStr
 			} else {
-				typeVar = "unified"
+				typeVarStr2 := "unified"
+				typeVar = &typeVarStr2
 			}
 		} else {
-			typeVar = "unified" // uta.20 where inverse are unified
+			typeVarStr3 := "unified"
+			typeVar = &typeVarStr3 // uta.20 where inverse are unified
 		}
 	} else {
 		if isLinear || isInverse {
-			typeVar = "contract"
+			typeVarStr4 := "contract"
+			typeVar = &typeVarStr4
 		}
 	}
 	var accountTypes map[string]any = SafeMapTyped(this.Options, "accountsByType")
@@ -5834,13 +5838,14 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 			panic(InvalidOrder(this.Id + " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders"))
 		}
 		if isStopLossOrder || isTakeProfitOrder {
-			var tpslModeSl any = nil
-			var tpslModeTp any = nil
+			var tpslModeSl *string = nil
+			var tpslModeTp *string = nil
 			if isStopLossOrder {
 				request["stopLoss"] = this.GetPrice(symbolValue, stopLossTriggerPrice)
 				var stopLossLimitPrice *string = this.SafeString2(query, "stopLossLimitPrice", "slLimitPrice")
 				if stopLossLimitPrice != nil {
-					tpslModeSl = "Partial"
+					tpslModeSlStr := "Partial"
+					tpslModeSl = &tpslModeSlStr
 					request["slOrderType"] = "Limit"
 					request["slLimitPrice"] = stopLossLimitPrice
 					request["slSize"] = amountString
@@ -5848,9 +5853,11 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 					request["slOrderType"] = "Market"
 					if amountString != nil {
 						request["slSize"] = amountString
-						tpslModeSl = "Partial"
+						tpslModeSlStr2 := "Partial"
+						tpslModeSl = &tpslModeSlStr2
 					} else {
-						tpslModeSl = "Full"
+						tpslModeSlStr3 := "Full"
+						tpslModeSl = &tpslModeSlStr3
 					}
 				}
 			}
@@ -5858,7 +5865,8 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 				request["takeProfit"] = this.GetPrice(symbolValue, takeProfitTriggerPrice)
 				var takeProfitLimitPrice *string = this.SafeString2(query, "takeProfitLimitPrice", "tpLimitPrice")
 				if takeProfitLimitPrice != nil {
-					tpslModeTp = "Partial"
+					tpslModeTpStr := "Partial"
+					tpslModeTp = &tpslModeTpStr
 					request["tpOrderType"] = "Limit"
 					request["tpLimitPrice"] = takeProfitLimitPrice
 					request["tpSize"] = amountString
@@ -5866,13 +5874,15 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 					request["tpOrderType"] = "Market"
 					if amountString != nil {
 						request["tpSize"] = amountString
-						tpslModeTp = "Partial"
+						tpslModeTpStr2 := "Partial"
+						tpslModeTp = &tpslModeTpStr2
 					} else {
-						tpslModeTp = "Full"
+						tpslModeTpStr3 := "Full"
+						tpslModeTp = &tpslModeTpStr3
 					}
 				}
 			}
-			if isTakeProfitOrder && isStopLossOrder && (!IsEqual(tpslModeSl, tpslModeTp)) {
+			if isTakeProfitOrder && isStopLossOrder && (tpslModeSl != tpslModeTp && (tpslModeSl == nil || tpslModeTp == nil || *tpslModeSl != *tpslModeTp)) {
 				panic(InvalidOrder(this.Id + " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination"))
 			}
 			if tpslModeSl != nil {

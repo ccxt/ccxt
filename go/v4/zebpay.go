@@ -688,7 +688,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 	}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
-	var data any = nil
+	var data map[string]any = nil
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -711,7 +711,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 		//       } ,
 		//     "statusCode": 200,
 		// }
-		data = this.SafeDict(response, "data", map[string]any{})
+		data = this.SafeDictMap(response, "data", map[string]any{})
 	} else {
 
 		r2 := <-this.PublicSwapGetV1ExchangeTradefee(this.Extend(request, params))
@@ -735,7 +735,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 		// }
 		//
 		var responseData []any = SafeListTyped(response, "data")
-		data = this.SafeDict(responseData, 0, map[string]any{})
+		data = this.SafeDictMap(responseData, 0, map[string]any{})
 	}
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(data, market)}

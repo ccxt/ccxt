@@ -878,7 +878,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan AsyncResult[[]MarketInterfac
 	var result []any = []any{}
 	// skip the first element (empty string)
 	for i := 1; i < numRows; i++ {
-		var row *string = SafeStringPtr(rows[i])
+		var row *string = &rows[i]
 		var cells []string = strings.Split(*row, "</td>\n") // eslint-disable-line quotes
 		var numCells int = len(cells)
 		if numCells < 5 {
@@ -907,7 +907,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan AsyncResult[[]MarketInterfac
 		var cell3 string = *this.SafeString(cells, 3, "")
 		var pricePrecisionString string = strings.Replace(cell3, "<td>", "", 1)
 		var pricePrecisionParts []string = strings.Split(pricePrecisionString, " ")
-		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
+		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, marketId[startingIndex+int64(len(marketId))*min(max(-startingIndex, 0), 1):min(idLength+len(marketId)*min(max(-idLength, 0), 1), len(marketId))])
 		var baseId *string = this.SafeStringLower(amountPrecisionParts, 1, strings.Replace(marketId, *quoteId, "", 1))
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
@@ -1200,7 +1200,7 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 				var quoteCurrency *string = this.SafeString(quoteCurrencies, i, "")
 				if strings.HasSuffix(marketIdWithoutPerp, *quoteCurrency) {
 					var quoteLength int64 = this.ParseToInt(int64(-1) * int64(len(*quoteCurrency)))
-					baseId = Slice(marketIdWithoutPerp, 0, quoteLength)
+					baseId = marketIdWithoutPerp[0:min(quoteLength+int64(len(marketIdWithoutPerp))*min(max(-quoteLength, 0), 1), int64(len(marketIdWithoutPerp)))]
 					quoteId = quoteCurrency
 					if isPerp {
 						settleId = quoteCurrency // always same

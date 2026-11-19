@@ -6158,8 +6158,8 @@ func (this *Htx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			for i := 0; i < GetArrayLength(this.Accounts); i++ {
-				var account map[string]any = MapTyped(GetValue(this.Accounts, i))
+			for i := 0; i < len(this.Accounts); i++ {
+				var account map[string]any = MapTyped(this.Accounts[i])
 				if this.SafeString(account, "type") != nil && *this.SafeString(account, "type") == "spot" {
 					accountId = this.SafeString(account, "id")
 					if accountId != nil {
@@ -7583,7 +7583,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	//     }
 	//
 	var data any = nil
-	var result any = nil
+	var result map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 
 		ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
@@ -7610,9 +7610,9 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	} else if *this.SafeBool(market, "linear", false) {
 		if isTrigger || isTrailingPercentOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder {
 			data = this.SafeList(response, "data", []any{})
-			result = this.SafeDict(data, 0, map[string]any{})
+			result = this.SafeDictMap(data, 0, map[string]any{})
 		} else {
-			result = this.SafeDict(response, "data", map[string]any{})
+			result = this.SafeDictMap(response, "data", map[string]any{})
 		}
 		if result == nil {
 			panic(NullResponse(this.Id + " parseOrder() returned empty response"))
@@ -7627,12 +7627,12 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		return nil
 	} else if isStopLossTriggerOrder {
 		data = this.SafeDict(response, "data", map[string]any{})
-		result = this.SafeDict(data, "sl_order", map[string]any{})
+		result = this.SafeDictMap(data, "sl_order", map[string]any{})
 	} else if isTakeProfitTriggerOrder {
 		data = this.SafeDict(response, "data", map[string]any{})
-		result = this.SafeDict(data, "tp_order", map[string]any{})
+		result = this.SafeDictMap(data, "tp_order", map[string]any{})
 	} else {
-		result = this.SafeDict(response, "data", map[string]any{})
+		result = this.SafeDictMap(response, "data", map[string]any{})
 	}
 	if result == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
@@ -9932,12 +9932,12 @@ func (this *Htx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol s
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRate() supports inverse and linear swaps only"))
 	}
-	var result any = nil
+	var result map[string]any = nil
 	if *this.SafeBool(market, "linear", false) {
 		var data []any = SafeListTyped(response, "data")
-		result = this.SafeDict(data, 0, map[string]any{})
+		result = this.SafeDictMap(data, 0, map[string]any{})
 	} else {
-		result = this.SafeDict(response, "data", map[string]any{})
+		result = this.SafeDictMap(response, "data", map[string]any{})
 	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(result, market)}

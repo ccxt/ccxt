@@ -142,7 +142,7 @@ func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var token *string = ccxt.SafeStringPtr(r.Value)
+	var token *string = r.Value
 	var cookies map[string]any = map[string]any{
 		"JWT_COOKIE": token,
 	}
@@ -1025,7 +1025,7 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var symbolPositions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(symbolPositions) {

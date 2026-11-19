@@ -2851,7 +2851,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var isTriggerOrder bool = ((triggerPrice != nil) || (stopLossPrice != nil) || (takeProfitPrice != nil))
 	if isTriggerOrder {
 		// trigger price
-		var selectedPrice any = nil
+		var selectedPrice *string = nil
 		if triggerPrice != nil {
 			selectedPrice = triggerPrice
 		} else if stopLossPrice != nil {
