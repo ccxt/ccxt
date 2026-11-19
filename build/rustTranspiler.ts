@@ -6182,8 +6182,9 @@ function moveLocalsAtLastUse(content: string): string {
         const close = balancedCloseIndex(code, open + 1);
         const word = new RegExp(`(?<![\\w.])${name}\\b`);
         const divEnd = rustDivergingStmtEnd(code, open + 1, pos);
-        if (word.test(code.slice(end, divEnd < 0 ? close : divEnd))) continue;
         const body = content.slice(open + 1, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+        const loopEnd = divEnd < 0 ? rustLoopBodyLetScopeEnd(code, open, pos, name) : undefined;
+        if (word.test(code.slice(end, divEnd >= 0 ? divEnd : loopEnd ?? close))) continue;
         // owned binding: `let [mut] x: T = ` (T not a reference) or untyped `let x = get_arg(`
         let decl: RegExpMatchArray | undefined = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
         // or an owned by-value parameter of this fn (`[mut] x: T`, T not a reference / impl / slice)
@@ -6202,9 +6203,10 @@ function moveLocalsAtLastUse(content: string): string {
         }
         const heads = stack.map(o => after.slice(after.lastIndexOf('\n', o) + 1, o));
         const stmtStart = Math.max(after.lastIndexOf(';'), after.lastIndexOf('{'), after.lastIndexOf('}'));
-        heads.push(after.slice(stmtStart + 1));
+        const stmt = loopEnd === undefined ? after.slice(stmtStart + 1) : rustDropOwnedReads(after.slice(stmtStart + 1), name);
+        heads.push(stmt);
         if (heads.some(h => (divEnd < 0 ? /\b(?:loop|while|for)\b|\|/ : /\basync\b|\|/).test(h))) continue;
-        if (divEnd < 0 ? word.test(after.slice(stmtStart + 1)) : rustOnlyCloneMentions(after.slice(stmtStart + 1), name) || rustBorrowsFrom(after, code.slice(end, divEnd), name)) continue;
+        if (divEnd < 0 ? word.test(stmt) : rustOnlyCloneMentions(stmt, name) || rustBorrowsFrom(after, code.slice(end, divEnd), name)) continue;
         edits.push([pos, end, `${m[1]}${name}`]);
     }
     let out = '', last = 0;
@@ -7957,6 +7959,31 @@ function lendStringArgDefaultSlice(content: string): string {
 }
 //
 // unit slot 050
+// A local declared by `let` directly in a loop body is a fresh binding per iteration: its last use
+// is judged up to that body's close. Returns that close, or undefined when the site is elsewhere.
+function rustLoopBodyLetScopeEnd(code: string, open: number, pos: number, name: string): number | undefined {
+    const lets = [...code.slice(open, pos).matchAll(new RegExp(`\\blet (?:mut )?${name}\\b`, 'g'))];
+    if (lets.length === 0) return undefined;
+    const at = open + (lets[lets.length - 1].index as number);
+    const stack: number[] = [];
+    let inStr = false;
+    for (let j = open; j < at; j++) {
+        const c = code[j];
+        if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+        if (c === '"') inStr = true; else if (c === '{') stack.push(j); else if (c === '}') stack.pop();
+    }
+    const blk = stack[stack.length - 1];
+    if (blk === undefined || blk === open) return undefined;
+    if (!/^\s*(?:'\w+: )?(?:for|while|loop)\b/.test(code.slice(code.lastIndexOf('\n', blk) + 1, blk))) return undefined;
+    const end = balancedCloseIndex(code, blk + 1);
+    return end > pos ? end : undefined;
+}
+// Blank string literals and earlier reads of `name` that leave no borrow behind: `x.is_some()` / `x.is_none()`,
+// `x.as_deref().unwrap_or("..").to_string()` and `&x.as_map().and_then(|__m| __m.get("..")).cloned().unwrap_or(Value::Null)`.
+function rustDropOwnedReads(stmt: string, name: string): string {
+    const re = new RegExp(`(?<![\\w.])${name}\\.(?:is_(?:some|none)\\(\\)|as_deref\\(\\)\\.unwrap_or\\("\\w*"\\)\\.to_string\\(\\)|as_map\\(\\)\\.and_then\\(\\|__m\\| __m\\.get\\("\\w+"\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\))`, 'g');
+    return stmt.replace(re, r => ' '.repeat(r.length)).replace(/"(?:[^"\\]|\\.)*"/g, q => ' '.repeat(q.length));
+}
 //
 // unit slot 051
 // `x.clone()` on a local whose every declaration in the function is bool / i64 / f64 (or Option of one) is a copy:
