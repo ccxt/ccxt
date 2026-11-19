@@ -1294,7 +1294,7 @@ class ContainerOpProver {
             const rhs = containerOpParens (real.slice (rhsStart, end));
             if (rhs === 'None') continue;
             const sub = /^self\.safe_dict(?:_k)?_[to]\(&([a-z_][A-Za-z0-9_]*), (?:"[A-Za-z0-9_]+"|Value::Int\([a-z_][A-Za-z0-9_]*\))\)$/.exec (rhs);
-            const cm = /^self\.call_method_[to]\("([a-z0-9_]+)", (&\[[^\]]*\])\)\.await$/.exec (rhs);
+            const cm = /^self\.call_method_[to]\("([a-z0-9_]+)", (&\[[^\]]*\])\)\.await$/.exec (rhs) ?? /^self\.([a-z0-9_]+)\((&\[[^\]]*\])\)\.await(?:\.unwrap_or_default\(\))?$/.exec (rhs);
             const ok = (cm !== null && containerOpIsEndpoint (`self.${cm[1]}(${cm[2]}).await`))
                 || (sub !== null && sub[1] !== name && (this.nativeList (sub[1], pos) || this.facts (sub[1], pos)?.lenSafe === true));
             if (!ok) return false;
@@ -1464,7 +1464,7 @@ function nativeContainerOpsCrate (paths: string[]): Map<string, string> {
     containerOpApiFns = new Set ();
     for (const p of paths) {
         const api = p.replace (/\.rs$/, '_api.rs');
-        if (fs.existsSync (api)) for (const m of fs.readFileSync (api, 'utf8').matchAll (/pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> Value \{\n\s*self\.call_method\(Value::Str\("\1"\.into\(\)\), optional_args\)\.await/g)) containerOpApiFns.add (m[1]);
+        if (fs.existsSync (api)) for (const m of fs.readFileSync (api, 'utf8').matchAll (/pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> (?:Value|Option<crate::value::Dict>) \{\n\s*(?:if let Value::Dict\(m\) = )?self\.call_method\(Value::Str\("\1"\.into\(\)\), optional_args\)\.await/g)) containerOpApiFns.add (m[1]);
     }
     const proven = containerOpCrateIndex (files);
     const fns = new Set ([ ...proven ].map (k => k.split ('#')[0]));
@@ -9030,6 +9030,81 @@ function rustStrHaystackIndexOf (content: string): string {
 }
 //
 // unit slot 100
+// An implicit-API wrapper whose every caller in the crate takes its body back as a dict (`call_method_t` / `_o` by its
+// name) answers `Option<Dict>` (the `call_method_o` body: None for any non-map body); `_t` callers add `.unwrap_or_default()`.
+// Any other use of the name anywhere under rust/ (raw Value read, by-name arm, hand-written call) keeps the Value wrapper.
+function rustTypedDictEndpointsCrate (): Map<string, string> {
+    const out = new Map<string, string> ();
+    const files = new Map<string, string> ();
+    const walk = (d: string) => {
+        if (!fs.existsSync (d)) return;
+        for (const e of fs.readdirSync (d, { withFileTypes: true })) {
+            const full = `${d}/${e.name}`;
+            if (e.isDirectory ()) { if (e.name !== 'target') walk (full); } else if (e.name.endsWith ('.rs')) files.set (full, fs.readFileSync (full, 'utf8'));
+        }
+    };
+    walk ('./rust');
+    const wrapper = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> Value \{\n(\s*)self\.call_method\(Value::Str\("\1"\.into\(\)\), optional_args\)\.await\n/g;
+    const names = new Set<string> ();
+    for (const [ f, c ] of files) if (f.endsWith ('_api.rs')) for (const m of c.matchAll (wrapper)) names.add (m[1]);
+    const blocked = new Set<string> ();
+    const dict = new Set<string> ();
+    for (const [ f, c ] of files) {
+        if (f.endsWith ('_api.rs')) continue;
+        for (const m of c.matchAll (/\b(?:fn |\.)([a-z0-9_]+)\(|"([a-z0-9_]+)"/g)) {
+            const n = m[1] ?? m[2];
+            if (!names.has (n)) continue;
+            const before = c.slice (Math.max (0, m.index - 30), m.index);
+            if (m[2] !== undefined && /(?:self|self\.parent)\.call_method_[to]\($/.test (before)) { dict.add (n); continue; }
+            const close = m[1] !== undefined && /self(?:\.parent)?$/.test (before) ? balancedCloseIndex (c, m.index + m[0].length) : c.length;
+            if (/^\.await\.into_(?:opt_)?dict\(\)/.test (c.slice (close + 1, close + 30))) { dict.add (n); continue; }
+            blocked.add (n);
+        }
+    }
+    const typed = new Set ([ ...dict ].filter ((n) => !blocked.has (n)));
+    for (const [ f, c ] of files) if (f.endsWith ('_api.rs')) for (const m of c.matchAll (/pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> Option<crate::value::Dict> \{/g)) typed.add (m[1]);
+    if (typed.size === 0) return out;
+    for (const [ f, c ] of files) {
+        let n2: string;
+        if (f.endsWith ('_api.rs')) {
+            n2 = c.replace (wrapper, (s, n: string, ind: string) => (!typed.has (n) ? s
+                : `pub async fn ${n}(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {\n${ind}if let Value::Dict(m) = self.call_method(Value::Str("${n}".into()), optional_args).await { Some(m) } else { None }\n`));
+        } else {
+            // a WS core reaches its own REST core's endpoints only through `call_method`'s runtime dispatch: those stay
+            if (f.includes ('/ccxt-pro/')) n2 = c.replace (/\bself\.parent\.call_method_([to])\("([a-z0-9_]+)", /g, (s, k: string, n: string) => (typed.has (n) ? `self.parent.${n}(${k}` : s));
+            else n2 = c.replace (/\bself(\.parent)?\.call_method_([to])\("([a-z0-9_]+)", /g, (s, p: string | undefined, k: string, n: string) => (typed.has (n) ? `self${p ?? ''}.${n}(${k}` : s));
+            // close each rewritten call: `name(t<args>).await` -> `name(<args>).await[.unwrap_or_default()]`
+            let res = '', last = 0;
+            const head = /\.([a-z0-9_]+)\(([to])/g;
+            let m: RegExpExecArray | null;
+            while ((m = head.exec (n2)) !== null) {
+                if (!typed.has (m[1]) || !n2.startsWith ('&[', m.index + m[0].length)) continue;
+                const open = m.index + m[0].length - 1;
+                const close = balancedCloseIndex (n2, open);
+                if (close >= n2.length || !n2.startsWith ('.await', close + 1)) continue;
+                res += n2.slice (last, open) + n2.slice (open + 1, close + 1) + '.await' + (m[2] === 't' ? '.unwrap_or_default()' : '');
+                last = close + 1 + '.await'.length;
+                head.lastIndex = last;
+            }
+            n2 = res + n2.slice (last);
+            // a wrapper already typed when this file was printed: `.into_dict()` is `.unwrap_or_default()`, `.into_opt_dict()` drops
+            res = ''; last = 0;
+            const call = /\bself(?:\.parent)?\.([a-z0-9_]+)\(/g;
+            while ((m = call.exec (n2)) !== null) {
+                if (!typed.has (m[1])) continue;
+                const close = balancedCloseIndex (n2, m.index + m[0].length);
+                const conv = n2.slice (close + 1, close + 40).match (/^\.await\.into_(opt_)?dict\(\)/);
+                if (close >= n2.length || conv === null) continue;
+                res += n2.slice (last, close + 1) + '.await' + (conv[1] ? '' : '.unwrap_or_default()');
+                last = close + 1 + conv[0].length;
+                call.lastIndex = last;
+            }
+            n2 = res + n2.slice (last);
+        }
+        if (n2 !== c) out.set (f, n2);
+    }
+    return out;
+}
 //
 // unit slot 101
 //
@@ -17404,6 +17479,7 @@ impl std::ops::DerefMut for ${coreName} {
         this.writeRustRegistries();
         this.borrowWsHandlerParams();
         this.nativeContainerOpsCrate();
+        for (const [f, src] of rustTypedDictEndpointsCrate()) fs.writeFileSync(f, src);
     }
 
     /** Length sites of `impl Into` params proven by every caller in the crate (rest, pro and base files). */
@@ -17472,6 +17548,7 @@ impl std::ops::DerefMut for ${coreName} {
         }
 
         if (!child) this.writeRustRegistries();
+        if (!child) for (const [f, src] of rustTypedDictEndpointsCrate()) fs.writeFileSync(f, src);
         if (child || exchanges.length > 0 || baseOnly) return;
 
         this.transpileErrorHierarchy();
