@@ -7035,6 +7035,54 @@ function lendWatchMultipleHashes(content: string): string {
 }
 //
 // unit slot 035
+// `self.spawn(&[..])` / `self.delay(ms, &[..])` queue owned copies of their elements: when the call is directly
+// followed by `return`, an owned local or by-value parameter cloned into an element is moved instead
+// (not inside a loop body head, closure or async block, and not mentioned elsewhere in the call or the return).
+function moveSpawnArgsBeforeReturn(content: string): string {
+    const fnStarts = [...content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(/\bself\.(?:spawn|delay)\(/g)) {
+        const pos = m.index as number, close = balancedCloseIndex(content, pos + m[0].length);
+        const tail = /^\)(?:\.await)?;[ \t]*\n\s*return\b([^;\n]*);/.exec(content.slice(close));
+        if (tail === null) continue;
+        let fs = -1;
+        for (const s of fnStarts) { if (s < pos) fs = s; else break; }
+        if (fs < 0) continue;
+        const open = content.indexOf('{', fs);
+        if (open < 0 || open > pos) continue;
+        const call = content.slice(pos, close);
+        const before = content.slice(open + 1, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+        const stack: number[] = [];
+        let inStr = false;
+        for (let j = 0; j < before.length; j++) {
+            const c = before[j];
+            if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+            if (c === '"') inStr = true; else if (c === '{') stack.push(j); else if (c === '}') stack.pop();
+        }
+        if (stack.some(o => /\basync\b|\|/.test(before.slice(before.lastIndexOf('\n', o) + 1, o)))) continue;
+        const sig = content.slice(fs, open);
+        for (const a of call.matchAll(/(?<![\w.])([A-Za-z_]\w*)\.clone\(\)(?=[\]),]|\.map\()/g)) {
+            const name = a[1];
+            if (name === 'self') continue;
+            const word = new RegExp(`(?<![\\w.])${name}\\b`, 'g');
+            if ((call.match(word) ?? []).length !== 1 || word.test(tail[1])) continue;
+            const lets = [...before.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=`, 'g'))];
+            if (lets.length > 0) {
+                const ty = lets[lets.length - 1][1];
+                if (ty === undefined || /^&|\bimpl\b/.test(ty.trim())) continue;
+            } else {
+                const p = new RegExp(`[(,]\\s*(?:mut )?${name}\\s*:\\s*([^,)]+)`).exec(sig);
+                if (p === null || /^&|\bimpl\b|^\[/.test(p[1].trim())) continue;
+            }
+            if (new RegExp(`\\bfor (?:mut )?${name}\\b`).test(before)) continue;
+            const at = pos + (a.index as number);
+            edits.push([at, at + a[0].length, name]);
+        }
+    }
+    let out = '', last = 0;
+    for (const [a, b, t] of edits.sort((x, y) => x[0] - y[0])) { out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 036
 //
@@ -7356,6 +7404,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendWatchMultipleHashes,
     //
     // pass slot 035
+    moveSpawnArgsBeforeReturn,
     //
     // pass slot 036
     //
