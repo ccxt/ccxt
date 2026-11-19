@@ -276,12 +276,12 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    buildOutcomeParentSymbol (desc: Dict, outcomeId: number, name: string = '', question: Dict = {}): string {
+    buildOutcomeParentSymbol (desc: Dict, outcomeId: string, name: string = '', question: Dict = {}): string {
         const underlying = this.safeString (desc, 'underlying', '');
         if (underlying !== '') {
             const targetPrice = this.safeString (desc, 'targetPrice', '');
@@ -369,16 +369,16 @@ export default class hyperliquid extends Exchange {
                     }
                 }
                 if ((outcomeSlug !== undefined) && (outcomeSlug !== '')) {
-                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId.toString ();
+                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId;
                 }
-                return questionSlug + '_' + outcomeId.toString ();
+                return questionSlug + '_' + outcomeId;
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if ((name !== undefined) && (name !== '')) {
-            return this.shortenSlug (name) + '_' + outcomeId.toString ();
+            return this.shortenSlug (name) + '_' + outcomeId;
         }
-        return 'OUTCOME_' + outcomeId.toString ();
+        return 'OUTCOME_' + outcomeId;
     }
 
     /**
@@ -451,7 +451,7 @@ export default class hyperliquid extends Exchange {
             const outcomeInfo = this.safeDict (outcomesList, i, {});
             const outcomeId = this.safeInteger (outcomeInfo, 'outcome', i);
             const linkedQuestion = this.safeDict (outcomesToQuestions, outcomeId.toString (), {});
-            const market = this.parseOutcomeMarket (outcomeInfo, outcomeId, linkedQuestion);
+            const market = this.parseOutcomeMarket (outcomeInfo, outcomeId.toString (), outcomeId, linkedQuestion);
             markets.push (market);
             // Build outcomes dictionary from market outcomes
             const marketOutcomes = this.safeList (market, 'outcomes', []);
@@ -476,16 +476,17 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    parseOutcomeMarket (outcomeInfo: Dict, outcomeId: number, question: Dict = {}): Market {
+    parseOutcomeMarket (outcomeInfo: Dict, outcomeKey: string, outcomeId: number, question: Dict = {}): Market {
         const description = this.safeString (outcomeInfo, 'description', '');
         const name = this.safeString (outcomeInfo, 'name', '');
         const sideSpecs = this.safeList (outcomeInfo, 'sideSpecs', []);
         const desc = this.parseOutcomeDescription (description);
-        const parentSymbol = this.buildOutcomeParentSymbol (desc, outcomeId, name, question);
+        const parentSymbol = this.buildOutcomeParentSymbol (desc, outcomeKey, name, question);
         const yesEncoding = this.outcomeEncoding (outcomeId, 0);
         const noEncoding = this.outcomeEncoding (outcomeId, 1);
         const yesOutcomeSymbol = parentSymbol + ':YES';
@@ -562,12 +563,12 @@ export default class hyperliquid extends Exchange {
             },
         ];
         const marketRow = this.safeMarketStructure ({
-            'id': outcomeId.toString (),
+            'id': outcomeKey,
             'market': parentSymbol,
             'base': parentSymbol.split ('/')[0],
             'quote': quoteCurrency,
             'settle': undefined,
-            'baseId': outcomeId.toString (),
+            'baseId': outcomeKey,
             'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
