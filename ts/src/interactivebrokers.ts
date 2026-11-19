@@ -1095,7 +1095,7 @@ export default class interactivebrokers extends Exchange {
             promises.push (this.fetchLiveOrdersRaw ());
         }
         const results = await Promise.all (promises);
-        const response = results[0];
+        const response = this.safeDict (results, 0, {});
         //
         //     {
         //         "USD": {
@@ -1126,12 +1126,12 @@ export default class interactivebrokers extends Exchange {
         };
         let index = 1;
         if (withPositions) {
-            balanceResponse['positions'] = results[index];
+            balanceResponse['positions'] = this.safeDict (results, index);
             index = index + 1;
         }
         if (withOpenOrders) {
             // the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
-            balanceResponse['orders'] = results[index];
+            balanceResponse['orders'] = this.safeDict (results, index);
         }
         return this.parseBalance (balanceResponse);
     }
