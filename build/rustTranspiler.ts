@@ -5952,7 +5952,12 @@ function lendMergeOperands(content: string): string {
 // file declares with `optional_args: &[Value]`, or a prediction base helper, takes `&[&Value]` and callers lend
 // `&x` for `x.clone()`; by-name dispatch lends its `args` elements.
 const RUST_LENT_OPTIONAL_ARGS = ['authenticate', 'load_account', 'get_market_type'];
-const RUST_LENT_OPTIONAL_ARGS_BASE = ['parse_search_queries', 'require_event_query', 'is_post_only', 'check_address'];
+const RUST_LENT_OPTIONAL_ARGS_BASE = [
+    'parse_search_queries',
+    'require_event_query',
+    'is_post_only',
+    'check_address',
+];
 // implicit-API wrappers (`*_api.rs`, `&[&Value]` forwarded to `call_method`) and the hand-written by-name dispatchers
 const RUST_LENT_DISPATCHERS = ['call_method', 'call_method_t', 'call_method_o', 'call_method_lt', 'call_method_lo'];
 // venue-only methods whose every declaration reads `optional_args` only through `get_arg` and every caller passes a slice
@@ -6306,7 +6311,11 @@ function splitLongRustLines(content: string, max = 400): string {
 // Base handleOption*AndParams(2) answer a native `(slot 0, Dict)` tuple: each printed `Vec<Value>` head and its slot reads
 // become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
 // Base handle{Option*,MarketType,MarginMode,SubType}AndParams, handleParam{String,Bool,Integer}(2) and handlePostOnly share the shape
-const RUST_TUPLE_FN_NAME = String.raw`(?:(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params|handle_stock_params|is_unified_enabled|get_bybit_type)`;
+const RUST_TUPLE_FN_CORE = String.raw`(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params|handle_stock_params|is_unified_enabled|get_bybit_type`;
+// venue request/option helpers answering a `[slot 0, Dict]` pair, one name per line
+const RUST_TUPLE_VENUE_FNS: string[] = [
+];
+const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS].join('|')})`;
 // handleStockParams and hyperliquid isUnifiedEnabled answer [Bool, Dict]; bybit isUnifiedEnabled answers [boolean, boolean]
 const rustTupleFam = (name: string, src = ''): string => (name === 'is_unified_enabled' && /\bpub struct Bybit\b/.test(src) ? 'bool_pair_' : /bool|_stock_|unified/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : /margin_mode/.test(name) ? 'margin_mode_' : /sub_type/.test(name) ? 'sub_type_' : '');
 const RUST_OPTION_TUPLE_FNS = new RegExp(String.raw`\b(?:self|exchange)(?:\.parent)?\.(${RUST_TUPLE_FN_NAME})\(`, 'g');
