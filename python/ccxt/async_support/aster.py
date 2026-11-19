@@ -1340,14 +1340,15 @@ class aster(Exchange, ImplicitAPI):
         untilDefined = ('until' in params)
         if sinceDefined:
             request['startTime'] = since
+        paramsUntil = params
         if untilDefined:
-            request = self.handle_until_option('endTime', request, params)
+            request, paramsUntil = self.handle_until_option('endTime', request, params)
         # use historical endpoint for targeted requests
         if sinceDefined:
             if self.safe_bool(market, 'swap', False):
-                response = await self.fapiPublicGetV3AggTrades(self.extend(request, params))
+                response = await self.fapiPublicGetV3AggTrades(self.extend(request, paramsUntil))
             else:
-                response = await self.sapiPublicGetV3AggTrades(self.extend(request, params))
+                response = await self.sapiPublicGetV3AggTrades(self.extend(request, paramsUntil))
             #
             # both FAPI and SAPI have same response format
             #
@@ -1365,9 +1366,9 @@ class aster(Exchange, ImplicitAPI):
             #
         else:
             if self.safe_bool(market, 'swap', False):
-                response = await self.fapiPublicGetV3Trades(self.extend(request, params))
+                response = await self.fapiPublicGetV3Trades(self.extend(request, paramsUntil))
             else:
-                response = await self.sapiPublicGetV3Trades(self.extend(request, params))
+                response = await self.sapiPublicGetV3Trades(self.extend(request, paramsUntil))
             #
             # SAPI & FAPI have only one field difference
             #

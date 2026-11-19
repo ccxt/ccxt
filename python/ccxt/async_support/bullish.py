@@ -2377,7 +2377,6 @@ class bullish(Exchange, ImplicitAPI):
         request = {
             'tradingAccountId': tradingAccountId,
         }
-        response = None
         code = self.safe_string(params, 'code')
         if code is not None:
             currency = self.currency(code)

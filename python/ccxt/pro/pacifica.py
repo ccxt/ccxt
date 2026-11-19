@@ -79,7 +79,11 @@ class pacifica(ccxt.async_support.pacifica):
         else:
             if self.handle_option('setupApiKeyHeaders', 'apiKey') is not None:
                 headers['PF-API-KEY'] = self.options['apiKey']
-        self.options['ws']['options']['headers'] = headers
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsSubOptions = self.safe_dict(wsOptions, 'options', {})
+        wsSubOptions['headers'] = headers
+        wsOptions['options'] = wsSubOptions
+        self.options['ws'] = wsOptions
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """

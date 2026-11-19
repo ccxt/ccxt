@@ -238,11 +238,7 @@ class gate(ccxt.async_support.gate):
             raise ArgumentsRequired(self.id + ' cancelAllOrdersWs() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
-        market = None
-        if symbol is None:
-            market = None
-        else:
-            market = self.market(symbol)
+        market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_cancel_cp'
@@ -2130,13 +2126,12 @@ class gate(ccxt.async_support.gate):
     def get_url_by_market(self, market: object) -> str:
         if self.safe_bool(market, 'contract', False):
             settleKey = 'usdt' if (self.safe_bool(market, 'linear', False)) else 'btc'
-            return self.safe_string(self.urls['api'][market['type']], settleKey, '')
-        else:
-            return self.safe_string(self.urls['api'], market['type'], '')
+            contractUrl = self.safe_string(self.urls['api'][market['type']], settleKey, '')
+            return contractUrl
+        spotUrl = self.safe_string(self.urls['api'], market['type'], '')
+        return spotUrl
 
-    def get_type_by_market(self, market: Market) -> Str:
-        if market is None:
-            return None
+    def get_type_by_market(self, market: Market) -> str:
         if self.safe_bool(market, 'spot', False):
             return 'spot'
         elif self.safe_bool(market, 'option', False):

@@ -5371,7 +5371,16 @@ class kucoin(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrdersByStatus', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, paramsPaginate)
+            # paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+            paramsContract = self.extend(paramsPaginate, {'paginate': False, 'uta': False})
+            if symbol is None:
+                paramsContract = self.extend(paramsContract, {'type': 'contract'})
+            paginatedMethods = {
+                'active': 'fetchOpenOrders',
+                'open': 'fetchOpenOrders',
+            }
+            paginatedMethod = self.safe_string(paginatedMethods, status, 'fetchClosedOrders')
+            return await self.fetch_paginated_call_dynamic(paginatedMethod, symbol, since, limit, paramsContract)
         trigger = self.safe_bool_2(paramsPaginate, 'stop', 'trigger')
         until = self.safe_integer(paramsPaginate, 'until')
         paramsOmitted = self.omit(paramsPaginate, ['stop', 'until', 'trigger'])
@@ -8860,11 +8869,8 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        assets = None
-        if marginMode == 'isolated':
-            assets = self.safe_list(data, 'assets', [])
-        else:
-            assets = self.safe_list(data, 'accounts', [])
+        assetsKey = 'assets' if (marginMode == 'isolated') else 'accounts'
+        assets = self.safe_list(data, assetsKey, [])
         interest = self.parse_borrow_interests(assets, market)
         filteredByCurrency = self.filter_by_currency_since_limit(interest, code, since, limit)
         return self.filter_by_symbol_since_limit(filteredByCurrency, symbol, since, limit)
@@ -11075,7 +11081,13 @@ class kucoin(Exchange, ImplicitAPI):
         return self.safe_string(getVersions, 'deposit-addresses', 'v1')
 
     def set_deposit_addresses_version(self, version: str):
-        self.options['versions']['private']['GET']['deposit-addresses'] = version
+        versions = self.safe_dict(self.options, 'versions', {})
+        privateVersions = self.safe_dict(versions, 'private', {})
+        getVersions = self.safe_dict(privateVersions, 'GET', {})
+        getVersions['deposit-addresses'] = version
+        privateVersions['GET'] = getVersions
+        versions['private'] = privateVersions
+        self.options['versions'] = versions
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]

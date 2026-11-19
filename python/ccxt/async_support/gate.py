@@ -6439,8 +6439,9 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
+        currencyId = self.safe_string(currency, 'id', '')
         request = {
-            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
+            'currency': currencyId.upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         market = self.market(symbol)
@@ -6470,8 +6471,9 @@ class gate(Exchange, ImplicitAPI):
             await self.load_markets()
         await self.load_unified_status()
         currency = self.currency(code)
+        currencyId = self.safe_string(currency, 'id', '')
         request = {
-            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
+            'currency': currencyId.upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(params, 'repayCrossMargin', 'unifiedAccount', False)
@@ -6517,8 +6519,9 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
+        currencyId = self.safe_string(currency, 'id', '')
         request = {
-            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
+            'currency': currencyId.upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         market = self.market(symbol)
@@ -6563,8 +6566,9 @@ class gate(Exchange, ImplicitAPI):
             await self.load_markets()
         await self.load_unified_status()
         currency = self.currency(code)
+        currencyId = self.safe_string(currency, 'id', '')
         request = {
-            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
+            'currency': currencyId.upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(params, 'borrowCrossMargin', 'unifiedAccount', False)

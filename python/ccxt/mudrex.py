@@ -369,7 +369,7 @@ class mudrex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         rows = []
         if isinstance(data, list):
-            rows = self.to_array(data)
+            rows = self.safe_list(response, 'data', [])
         else:
             rows = self.safe_list(data, 'items', [])
         resultTickers = {}

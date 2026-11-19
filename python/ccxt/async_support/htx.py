@@ -3188,7 +3188,9 @@ class htx(Exchange, ImplicitAPI):
         if assetType == '1':
             type = 'crypto'
         if code is not None:
-            self.options['networkChainIdsByNames'][code] = {}
+            chainIdsByNames = self.safe_dict(self.options, 'networkChainIdsByNames', {})
+            chainIdsByNames[code] = {}
+            self.options['networkChainIdsByNames'] = chainIdsByNames
         chains = self.safe_list(rawCurrency, 'chains', [])
         networks = {}
         for j in range(0, len(chains)):
@@ -3196,7 +3198,11 @@ class htx(Exchange, ImplicitAPI):
             uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
             title = self.safe_string_2(chainEntry, 'baseChain', 'displayName')  # baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if code is not None and title is not None:
-                self.options['networkChainIdsByNames'][code][title] = uniqueChainId
+                chainIdsByNamesDict = self.safe_dict(self.options, 'networkChainIdsByNames', {})
+                chainIdsByTitle = self.safe_dict(chainIdsByNamesDict, code, {})
+                chainIdsByTitle[title] = uniqueChainId
+                chainIdsByNamesDict[code] = chainIdsByTitle
+                self.options['networkChainIdsByNames'] = chainIdsByNamesDict
             if uniqueChainId is not None:
                 networkNamesByChainIdsDict3 = self.safe_dict(self.options, 'networkNamesByChainIds', {})
                 networkNamesByChainIdsDict3[uniqueChainId] = title

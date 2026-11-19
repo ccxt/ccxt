@@ -295,7 +295,7 @@ class coinspot(Exchange, ImplicitAPI):
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
-            rows = self.to_array(balances)
+            rows = self.safe_list_2(response, 'balance', 'balances', [])
             numRows = len(rows)
             for i in range(0, numRows):
                 currencies = self.safe_dict(rows, i, {})

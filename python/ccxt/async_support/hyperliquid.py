@@ -651,10 +651,12 @@ class hyperliquid(Exchange, ImplicitAPI):
                     # eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     safeCode = self.safe_currency_code(name)
                     hip3Code = name if (safeCode is None) else safeCode.replace(':', '-')
-                    self.options['hip3TokensByName'][name] = {
+                    hip3TokensByName = self.safe_dict(self.options, 'hip3TokensByName', {})
+                    hip3TokensByName[name] = {
                         'quote': collateralTokenCode,
                         'code': hip3Code,
                     }
+                    self.options['hip3TokensByName'] = hip3TokensByName
                 result.append(data)
             markets = self.array_concat(markets, self.parse_markets(result))
         #

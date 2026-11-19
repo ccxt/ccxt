@@ -1209,8 +1209,12 @@ class aster(ccxt.async_support.aster):
                     # reject instead of caching an empty credential, so
                     # waiters retry rather than proceed unauthenticated
                     raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
-                self.options['listenKey'][type] = listenKey
-                self.options['lastAuthenticatedTime'][type] = time
+                listenKeys = self.safe_dict(self.options, 'listenKey', {})
+                listenKeys[type] = listenKey
+                self.options['listenKey'] = listenKeys
+                lastAuthenticatedTimes = self.safe_dict(self.options, 'lastAuthenticatedTime', {})
+                lastAuthenticatedTimes[type] = time
+                self.options['lastAuthenticatedTime'] = lastAuthenticatedTimes
                 keepAliveParams = self.extend({'type': type}, params)
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, keepAliveParams)
                 # settle the flight: client.resolve () removes the future from
@@ -1242,7 +1246,9 @@ class aster(ccxt.async_support.aster):
                 messageHash = messageHashes[i]
                 client.reject(error, messageHash)
             self.options['listenKey'][type] = None
-            self.options['lastAuthenticatedTime'][type] = 0
+            lastAuthenticatedTimes = self.safe_dict(self.options, 'lastAuthenticatedTime', {})
+            lastAuthenticatedTimes[type] = 0
+            self.options['lastAuthenticatedTime'] = lastAuthenticatedTimes
             return
         # whether or not to schedule another listenKey keepAlive request
         listenKeyRefreshOptions = self.safe_dict(self.options, 'listenKeyRefresh', {})

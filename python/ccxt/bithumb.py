@@ -747,7 +747,6 @@ class bithumb(Exchange, ImplicitAPI):
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchOrderBook', 'generation', 2)
         market = self.market(symbol)
         request = {}
-        response = None
         data = None
         timestamp = None
         if generation == 2:
@@ -1134,7 +1133,6 @@ class bithumb(Exchange, ImplicitAPI):
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchTicker', 'generation', 2)
         market = self.market(symbol)
         request = {}
-        response = None
         data = {}
         if generation == 2:
             request['markets'] = self.get_gen2_market_id(market)
