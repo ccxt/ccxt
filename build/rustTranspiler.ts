@@ -7618,6 +7618,54 @@ function typeOptionalIntArgs(content: string): string {
 }
 //
 // unit slot 048
+// A typed unified method rebinds its `f64` / `Option<f64>` price, amount and cost arguments as the `Value` they were
+// boxed to (`Value::from(x)`, so the same `Float` / `Null`); read the Copy parameter instead and box at each use.
+function readTypedNumericArgs(content: string): string {
+    const code = maskText(content).replace(/^\s*(?:\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    const sig = /^ *pub (?:async )?fn \w+\(([^\n{]*)\)[^\n{]*\{\n *let __args: Vec<Value> = vec!\[([^\n]*)\];\n *let mut __it = __args\.into_iter\(\);\n/gm;
+    const edits: [number, number, string][] = [];
+    for (const s of code.matchAll(sig)) {
+        const open = (s.index as number) + s[0].indexOf('{');
+        const close = balancedCloseIndex(code, open + 1);
+        const boxed = splitRustArgs(s[2]).map(a => a.trim());
+        const reqBinds = [...code.slice(open, close).matchAll(/let mut (\w+) = __it\.next\(\)\.unwrap_or_default\(\);/g)].map(m => m[1]);
+        for (const p of s[1].matchAll(/(?:^|, )(price|amount|cost): (f64|Option<f64>)(?=,|$)/g)) {
+            const name = p[1], opt = p[2] !== 'f64';
+            const at = boxed.indexOf(`Value::from(${name})`);
+            const req = reqBinds.indexOf(name);
+            const bind = req >= 0
+                ? new RegExp(`let mut ${name} = __it\\.next\\(\\)\\.unwrap_or_default\\(\\);`).exec(code.slice(open, close))
+                : new RegExp(`\\n *let mut ${name} = get_arg\\(optional_args, ${at - reqBinds.length}, Value::Null\\);`).exec(code.slice(open, close));
+            if (bind === null || at < 0 || (req >= 0 ? at !== req : at < reqBinds.length)) continue;
+            const from = open + (bind.index as number) + bind[0].length;
+            const body = code.slice(from, close);
+            const local: [number, number, string][] = [];
+            let ok = true;
+            for (const u of body.matchAll(new RegExp(`(?<![\\w.])${name}\\b`, 'g'))) {
+                const a = from + (u.index as number), rest = content.slice(a + name.length, a + name.length + 40);
+                const before = content.slice(Math.max(0, a - 12), a);
+                if (/(?:&mut |let (?:mut )?|for |\||ref )$/.test(before) || /^\s*(?::|=[^=]|[+\-*/]=)/.test(rest) || /^\.\w+_mut\(/.test(rest)) { ok = false; break; }
+                const r = (n: number, t: string) => local.push([a, a + name.length + n, t]);
+                const nul = /^ (==|!=) Value::Null\b/.exec(rest);
+                if (/^\.as_f64\(\)\.unwrap_or_default\(\)/.test(rest)) r(29, opt ? `${name}.unwrap_or_default()` : name);
+                else if (/^\.as_f64\(\)/.test(rest)) r(9, opt ? name : `Some(${name})`);
+                else if (opt && nul !== null) r(nul[0].length, `${name}.${nul[1] === '==' ? 'is_none' : 'is_some'}()`);
+                else if (/^\.clone\(\)\)/.test(rest) && (before.endsWith('Value::from(') || /(?:number_to_string|parse_number)\($|(?:price|amount|cost)_to_precision\((?:[^()]|\([^()]*\))*, $/.test(content.slice(content.lastIndexOf('\n', a), a)))) r(8, name);
+                else if (/^\.clone\(\)/.test(rest)) r(8, `Value::from(${name})`);
+                else if (/^\)/.test(rest) && before.endsWith('Value::from(')) continue;
+                else if (/^\)/.test(rest) && /(?:number_to_string|parse_number)\((?:&|self\.number_to_string\()?$|(?:price|amount|cost)_to_precision\((?:[^()]|\([^()]*\))*, $/.test(content.slice(content.lastIndexOf('\n', a), a))) continue;
+                else r(0, `Value::from(${name})`);
+            }
+            if (!ok) continue;
+            const b = open + (bind.index as number);
+            edits.push([b, b + bind[0].length, req >= 0 ? 'let _ = __it.next();' : ''], ...local);
+        }
+    }
+    edits.sort((x, y) => x[0] - y[0]);
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { if (a < last) continue; out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 049
 //
@@ -8044,6 +8092,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typeOptionalIntArgs,
     //
     // pass slot 048
+    readTypedNumericArgs,
     //
     // pass slot 049
     //
