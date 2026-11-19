@@ -14183,8 +14183,8 @@ ${constStatements.join('\n')}
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
             // padHexAddress / shortenSlug (: string, no venue override) answer a Go string on every return path
-            const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ] };
-            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goJoinStringLocals (goGofmtSplicedText (goGofmtNestedParens (goSafeListTypedDefaultReads (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file))))))))))))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
+            const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ], 'NormalizeTagKey': [ 'return s' ] };
+            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goJoinStringLocals (goRetypeStringReturns (goGofmtSplicedText (goGofmtNestedParens (goSafeListTypedDefaultReads (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file))))))))))), 'PredictionExchange', stringReturns))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -17442,7 +17442,7 @@ function goRetypeStringReturns (content: string, receiver: string, methods: { [n
 // when every return is a literal, a literal-default SafeString (derefed), a never-nil `*string` local (derefed),
 // a `string` local or a native string sum; any other return keeps the box
 function goRetypeNonNilStringMethods (content: string): string {
-    const GO_NON_NIL_STRING_METHODS = [ 'GetWsUrl', 'GetTypeByMarket' ];
+    const GO_NON_NIL_STRING_METHODS = [ 'GetWsUrl', 'GetTypeByMarket', 'GetGen2MarketId' ];
     if (!GO_NON_NIL_STRING_METHODS.some ((m) => content.indexOf (') ' + m + '(') >= 0)) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
     const overridden = goAddOverriddenMethods (fileMasked);
@@ -17468,7 +17468,7 @@ function goRetypeNonNilStringMethods (content: string): string {
                 native = '*' + expr;
             } else if (/^\w+$/.test (expr)) {
                 const type = goFuncDeclaredType (fn, expr);
-                native = (type === 'string') ? expr : (((type === '*string') && goNonNilStringPtr (fn, expr)) ? '*' + expr : null);
+                native = (type === 'string') ? expr : (((type === '*string') && (goNonNilStringPtr (fn, expr) || goNilGuardedReturn (fn, at, expr))) ? '*' + expr : null);
             } else {
                 native = goAddStringSum (expr, r[2], locals, overridden);
             }
@@ -17479,12 +17479,30 @@ function goRetypeNonNilStringMethods (content: string): string {
     });
 }
 
+// `return x` whose innermost enclosing `if` opens with `x != nil` and nothing writes x in between
+function goNilGuardedReturn (fn: string, at: number, name: string): boolean {
+    const lines = fn.slice (0, at).split ('\n');
+    const indent = (l: string) => l.length - l.trimStart ().length;
+    const own = indent (lines[lines.length - 1]);
+    for (let i = lines.length - 2; i >= 0; i--) {
+        if ((lines[i].trim () === '') || (indent (lines[i]) >= own)) {
+            if (new RegExp ('(?<![\\w.*])' + name + '\\s*=(?!=)').test (lines[i])) { return false; }
+            continue;
+        }
+        return new RegExp ('^\\s*if \\(?' + name + ' != nil\\)?(?: && [^\\n]*)? \\{$').test (lines[i]);
+    }
+    return false;
+}
+
 function goRetypeNonNilStringMethodsSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = '') => goNativeStringAdds (goRetypeNonNilStringMethods ('package ccxt\n\nfunc (this *X) GetWsUrl(' + sig + ') any {\n' + body + '}\nfunc (this *X) G() any {\n\treturn Add(this.GetWsUrl(), "/")\n}\n'));
     let r = f ('\tvar u *string = this.SafeString(this.Urls, "ws", "")\n\tif x {\n\t\treturn "a"\n\t}\n\tif y {\n\t\treturn this.SafeString(this.Urls, "p", "")\n\t}\n\treturn *u + "/" + c\n', 'c string');
     ok (r.includes ('GetWsUrl(c string) string {') && r.includes ('return *this.SafeString(this.Urls, "p", "")') && r.includes ('return this.GetWsUrl() + "/"'), 'every return proven: string, Add native: ' + r);
     r = f ('\tvar u *string = this.SafeString(this.Urls, "ws", "")\n\treturn u\n');
     ok (r.includes ('GetWsUrl() string {') && r.includes ('return *u'), 'literal-default pointer local derefs: ' + r);
+    r = f ('\tvar u *string = this.SafeString(this.Urls, "ws")\n\tif (u != nil) && (strings.Index(*u, "-") >= 0) {\n\t\treturn u\n\t}\n\treturn "a"\n');
+    ok (r.includes ('GetWsUrl() string {') && r.includes ('return *u'), 'nil-guarded pointer return derefs: ' + r);
+    ok (f ('\tvar u *string = this.SafeString(this.Urls, "ws")\n\tif u != nil {\n\t\tu = nil\n\t\treturn u\n\t}\n\treturn "a"\n').includes ('GetWsUrl() any {'), 'write after the guard keeps any');
     for (const keep of [ '\treturn this.SafeString(this.Urls, "ws")\n', '\treturn nil\n', '\treturn p\n', '\treturn func() any {\n\t\treturn "a"\n\t}()\n' ]) {
         ok (f (keep, 'p any').includes ('GetWsUrl(p any) any {'), 'unproven return keeps any: ' + keep);
     }
@@ -18998,16 +19016,17 @@ function goTypedStrRewriteFunc (func: string, file: string, pkgs: Set<string>): 
 // Join(X, sep) is a `[]string` (Join then prints strings.Join); Join/len answer the same on the []any of the same strings.
 // Every use of the name must be one of those four forms.
 function goJoinStringLocals (content: string): string {
-    if (!/(?<![\w.])(?:ccxt\.)?Join\(/.test (content) || (content.indexOf ('var ') < 0)) {
+    if (!/(?<![\w.])(?:ccxt\.)?(?:Join|DerefScalar)\(/.test (content) || (content.indexOf ('var ') < 0)) {
         return content;
     }
     const parts = content.split (/(?=^func )/m);
     for (let p = 0; p < parts.length; p++) {
-        if (!parts[p].startsWith ('func ') || !/(?<![\w.])(?:ccxt\.)?Join\(/.test (parts[p])) {
+        if (!parts[p].startsWith ('func ') || !/(?<![\w.])(?:ccxt\.)?(?:Join|DerefScalar)\(/.test (parts[p])) {
             continue;
         }
         let func = parts[p];
         const masked0 = goTextMaskLiteralsAndComments (func);
+        const joinOverridden = goAddOverriddenMethods (goTextMaskLiteralsAndComments (content));
         const names = [ ...masked0.matchAll (/^[ \t]*var (\w+) \[\]any = \[\]any\{/gm) ].map ((m) => m[1]);
         for (const name of new Set (names)) {
             const masked = goTextMaskLiteralsAndComments (func);
@@ -19023,7 +19042,11 @@ function goJoinStringLocals (content: string): string {
             const elems = (decl[3].trim () === '') ? [] : goGuardedReadSplitArgs (decl[3]);
             const isLeaf = (e: string) => { const o = goTypedStrOperand (e, func, masked, content); return (o !== undefined) && (o.kind === 'string') && (o.text === e); };
             // a `+` sum of string leaves, a defaulted `*this.SafeString(.., "lit")` among them, is a string
-            const isString = (e: string) => isLeaf (e) || goJoinStringSum (e, isLeaf);
+            // a call of a method this file declares `string` (goAddStringLeaf's same-file arm) is a string too
+            const stringCall = (e: string) => /^this\.\w+\(/.test (e) && goAddStringLeaf (e, goTextMaskLiteralsAndComments (e), new Set<string> (), joinOverridden);
+            // a deref `*x` of a `*string` local is a Go string; so is a once-bound `var x any = <string call>` local
+            const derefPtr = (e: string) => /^\*\w+$/.test (e) && (goFuncDeclaredType (func, e.slice (1)) === '*string');
+            const isString = (e: string) => isLeaf (e) || goJoinStringSum (e, isLeaf) || stringCall (e) || derefPtr (e) || (goJoinBoxedStringLocal (func, e, stringCall) !== undefined);
             if (!elems.every (isString)) {
                 continue;
             }
@@ -19037,11 +19060,19 @@ function goJoinStringLocals (content: string): string {
             }
             const lens = (masked.match (new RegExp ('(?<![\\w.])len\\(' + n + '\\)', 'g')) ?? []).length;
             const joins = (masked.match (new RegExp ('(?<![\\w.])(?:ccxt\\.)?Join\\(' + n + ', ', 'g')) ?? []).length;
-            accounted += lens + joins;
-            if (!ok || (joins < 1) || (accounted !== total)) {
+            // element reads `n[i]` as a call argument (the deref of a string element is the element itself)
+            const idx = '(?<![\\w.&])' + n + '\\[[A-Za-z_]\\w*\\](?=[,)])';
+            const reads = (masked.match (new RegExp (idx, 'g')) ?? []).length;
+            accounted += lens + joins + reads;
+            if (!ok || ((joins < 1) && (reads < 1)) || (accounted !== total)) {
                 continue;
             }
             func = func.replace (decl[0], decl[1] + '[]string' + decl[2] + '[]string{' + decl[3] + '}');
+            for (const m of func.matchAll (new RegExp ('^[ \\t]*' + n + ' = append\\(' + n + ', (\\w+)\\)$', 'gm'))) {
+                const boxed = goJoinBoxedStringLocal (func, m[1], stringCall);
+                func = (boxed === undefined) ? func : func.replace (boxed, boxed.replace (/ any = /, ' string = '));
+            }
+            func = func.replace (new RegExp ('(?<![\\w.])(?:ccxt\\.)?DerefScalar\\((' + n + '\\[[A-Za-z_]\\w*\\])\\)', 'g'), '$1');
         }
         // ArraySlice(s, k) of a []string s is s[k:] (same panic when k > len(s)); only for locals read by len/Join
         for (const m of [ ...goTextMaskLiteralsAndComments (func).matchAll (/^([ \t]*var (\w+) )\[\]any = this\.ArraySlice\((\w+), (\d{1,3})\)$/gm) ]) {
@@ -19061,6 +19092,26 @@ function goJoinStringLocals (content: string): string {
         parts[p] = func;
     }
     return parts.join ('');
+}
+
+// the `var x any = <string call>` line of a local bound once, never rebound, nil-compared, addressed or asserted
+function goJoinBoxedStringLocal (func: string, name: string, stringCall: (e: string) => boolean): string | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name)) {
+        return undefined;
+    }
+    const masked = goTextMaskLiteralsAndComments (func);
+    const decls = [ ...masked.matchAll (new RegExp ('^[ \\t]*var ' + name + ' any = (.+)$', 'gm')) ];
+    if ((decls.length !== 1) || (goFuncDeclaredType (func, name) !== 'any')) {
+        return undefined;
+    }
+    const at = (decls[0].index as number) + decls[0][0].length - decls[0][1].length;
+    const rhs = func.slice (at, at + decls[0][1].length).trim ();
+    const rest = masked.replace (decls[0][0], '');
+    const w = '(?<![\\w.])' + name + '(?![\\w])';
+    if (!stringCall (rhs) || new RegExp (w + '\\s*(?:[-+*/%|&^]?=(?!=)|\\.\\(|\\[|[=!]=\\s*nil)|&' + name + '\\b|nil\\s*[=!]=\\s*' + w).test (rest)) {
+        return undefined;
+    }
+    return func.slice (decls[0].index as number, (decls[0].index as number) + decls[0][0].length);
 }
 
 // `a + b + ..` where every term is a string leaf or a never-nil `*this.SafeString*(.., "lit")` read
@@ -19106,6 +19157,14 @@ function goJoinStringLocalsCheck (ok: SelfTestOk): void {
     const sl = '\tvar ids []string = strings.Split(s, \"-\")\n\tvar parts []any = this.ArraySlice(ids, 1)\n\tvar j string = Join(parts, \"-\")\n';
     ok (f (sl + '\treturn j\n').includes ('var parts []string = ids[1:]') && f (sl + '\treturn j\n').includes ('strings.Join(parts, '), 'ArraySlice of []string joins natively');
     ok (f (sl + '\treturn parts\n').includes ('this.ArraySlice(ids, 1)'), 'returned slice stays []any');
+    const ix = '\tvar ids []any = []any{}\n\tvar out []any = []any{}\n\tfor i := 0; i < 3; i++ {\n\t\tids = append(ids, s)\n\t}\n\tfor i := 0; i < len(ids); i++ {\n\t\tout = append(out, DerefScalar(ids[i]))\n\t}\n';
+    ok (f (ix + '\treturn out\n').includes ('var ids []string = []string{}') && f (ix + '\treturn out\n').includes ('append(out, ids[i])'), 'index-read string local is []string, read needs no deref');
+    ok (f (ix + '\treturn ids[0]\n').includes ('var ids []any'), 'statement-level index read stays []any');
+    ok (f (ix.replace ('ids = append(ids, s)', 'ids = append(ids, n)') + '\treturn out\n').includes ('var ids []any'), 'any push stays []any');
+    const bx = '\tvar ids []any = []any{}\n\tvar k any = this.G(n)\n\tids = append(ids, k)\n\treturn Join(ids, \",\")\n';
+    const g = (body: string) => goStdlibStringHelpers (goJoinStringLocals (goSelfTestHead (true) + 'func (this *X) G(n any) string {\n\treturn \"a\"\n}\nfunc (this *X) F(n any) any {\n' + body + '}\n'));
+    ok (g (bx).includes ('var k string = this.G(n)') && g (bx).includes ('var ids []string'), 'once-bound string-method local is a string push');
+    ok (g (bx.replace ('ids = append', 'k = n\n\tids = append')).includes ('var ids []any'), 'rebound local stays []any');
     ok (f (sl.replace ('[]string = strings.Split(s, \"-\")', 'any = n') + '\treturn j\n').includes ('this.ArraySlice(ids, 1)'), 'any source stays');
 }
 
