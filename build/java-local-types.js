@@ -27653,7 +27653,7 @@ export function installJavaEventsParamsSlots (transpiler) {
     };
 }
 
-// ===== currencies_by_id reads: `this.currencies_by_id[k]` with a String-typed identifier key =====
+// ===== currencies_by_id / timeframes reads: `this.<field>[k]` with a String-typed identifier key =====
 // The field is declared Map<String, Object> in BaseExchange.java; GetValue's Map branch with a
 // String key is `get(k)`, and a null receiver or key answers null, so both stay guarded.
 export function installJavaCurrenciesByIdReads (transpiler) {
@@ -27667,7 +27667,8 @@ export function installJavaCurrenciesByIdReads (transpiler) {
         const printed = upstreamRead (node);
         const receiver = unwrapParens (node?.expression);
         const key = node?.argumentExpression;
-        if (printed !== undefined || thisPropName (receiver) !== 'currencies_by_id' || !javaBaseMapField (printer, receiver)
+        const field = thisPropName (receiver);
+        if (printed !== undefined || (field !== 'currencies_by_id' && field !== 'timeframes') || !javaBaseMapField (printer, receiver)
             || key === undefined || !ts.isIdentifier (key) || !printer.javaRepeatableOperand (key)) {
             return printed;
         }
@@ -27679,7 +27680,8 @@ export function installJavaCurrenciesByIdReads (transpiler) {
             return printed;
         }
         const k = printer.printNode (key, 0);
-        return `(this.currencies_by_id == null || ${k} == null ? null : this.currencies_by_id.get(${k}))`;
+        const m = printer.printNode (receiver, 0);
+        return `(${m} == null || ${k} == null ? null : ${m}.get(${k}))`;
     };
 }
 
