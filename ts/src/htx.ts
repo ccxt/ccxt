@@ -3332,7 +3332,9 @@ export default class htx extends Exchange {
             type = 'crypto';
         }
         if (code !== undefined) {
-            this.options['networkChainIdsByNames'][code] = {};
+            const chainIdsByNames = this.safeDict (this.options, 'networkChainIdsByNames', {});
+            chainIdsByNames[code] = {};
+            this.options['networkChainIdsByNames'] = chainIdsByNames;
         }
         const chains: Dict[] = this.safeList (rawCurrency, 'chains', []);
         const networks: Dict = {};
@@ -3341,7 +3343,11 @@ export default class htx extends Exchange {
             const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2 (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code !== undefined && title !== undefined) {
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+                const chainIdsByNamesDict = this.safeDict (this.options, 'networkChainIdsByNames', {});
+                const chainIdsByTitle = this.safeDict (chainIdsByNamesDict, code, {});
+                chainIdsByTitle[title] = uniqueChainId;
+                chainIdsByNamesDict[code] = chainIdsByTitle;
+                this.options['networkChainIdsByNames'] = chainIdsByNamesDict;
             }
             if (uniqueChainId !== undefined) {
                 const networkNamesByChainIdsDict3 = this.safeDict (this.options, 'networkNamesByChainIds', {});

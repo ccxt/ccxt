@@ -11839,7 +11839,13 @@ export default class kucoin extends Exchange {
     }
 
     setDepositAddressesVersion (version: string) {
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        const versions = this.safeDict (this.options, 'versions', {});
+        const privateVersions = this.safeDict (versions, 'private', {});
+        const getVersions = this.safeDict (privateVersions, 'GET', {});
+        getVersions['deposit-addresses'] = version;
+        privateVersions['GET'] = getVersions;
+        versions['private'] = privateVersions;
+        this.options['versions'] = versions;
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {

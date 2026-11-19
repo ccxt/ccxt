@@ -1326,8 +1326,12 @@ export default class aster extends asterRest {
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
-                this.options['listenKey'][type] = listenKey;
-                this.options['lastAuthenticatedTime'][type] = time;
+                const listenKeys = this.safeDict (this.options, 'listenKey', {});
+                listenKeys[type] = listenKey;
+                this.options['listenKey'] = listenKeys;
+                const lastAuthenticatedTimes = this.safeDict (this.options, 'lastAuthenticatedTime', {});
+                lastAuthenticatedTimes[type] = time;
+                this.options['lastAuthenticatedTime'] = lastAuthenticatedTimes;
                 const keepAliveParams = this.extend ({ 'type': type }, params);
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, keepAliveParams);
                 // settle the flight: client.resolve () removes the future from
@@ -1365,7 +1369,9 @@ export default class aster extends asterRest {
                 client.reject (error, messageHash);
             }
             this.options['listenKey'][type] = undefined;
-            this.options['lastAuthenticatedTime'][type] = 0;
+            const lastAuthenticatedTimes = this.safeDict (this.options, 'lastAuthenticatedTime', {});
+            lastAuthenticatedTimes[type] = 0;
+            this.options['lastAuthenticatedTime'] = lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
