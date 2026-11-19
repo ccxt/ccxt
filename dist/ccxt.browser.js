@@ -477210,7 +477210,7 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
      */ async setLeverage(leverage, symbol = undefined, params = {}) {
         const operationType = 'update_leverage';
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -551910,7 +551910,8 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         }
         let rawSubscriptions = [];
         const messageHashes = [];
-        if (symbols !== undefined && symbols.length > 0) {
+        const symbolsLength = symbols === undefined ? 0 : symbols.length;
+        if (symbolsLength > 0) {
             for(let i = 0; i < symbols.length; i++){
                 const current = symbols[i];
                 let market = undefined;
@@ -634041,7 +634042,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         const marketType = this.handleMarketTypeAndParams('fetchClosedOrders', market, paramsUntil)[0];
         let response = [];
         if (marketType === 'spot') {
-            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchClosedOrders() is not supported for ' + marketType + ' markets');
         } else {
             response = await this.privateGetApiV1FuturesHistoryOrders(requestUntil);
         //
@@ -651360,7 +651361,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             return await this.v3PrivatePutFuturesLeverage(this.extend(request, paramsMarginMode));
         } else {
             const marketType = this.safeString(market, 'type', '');
-            throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchLeverage() is not supported for ' + marketType + ' markets');
+            throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' setLeverage() is not supported for ' + marketType + ' markets');
         }
     }
     /**
