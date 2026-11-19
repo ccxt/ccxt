@@ -9480,6 +9480,9 @@ export function csharpWsAndIndexGetValue (content: string): string {
         // an integer index: int/Int64 names and int literals under `+`/`-` (pure, read twice); `Int64?` alone
         const indexKind = (text: string): string | undefined => {
             if (/^\d{1,9}$/.test (text)) return 'int';
+            // the printer's guarded literal read of a declared List<Int64>: an Int64? with no side effect
+            const own = /^\(([A-Za-z_]\w*) != null && (\d{1,9}) < \1\.Count \? \1\[\2\] : \(Int64\?\)null\)$/.exec (text);
+            if (own !== null) return (bindingType (own[1]) === 'List<Int64>') ? 'Int64?read' : undefined;
             if (/^[A-Za-z_]\w*$/.test (text)) {
                 const t = bindingType (text);
                 return [ 'int', 'Int64', 'Int64?' ].includes (t) ? t : undefined;
@@ -9508,6 +9511,10 @@ export function csharpWsAndIndexGetValue (content: string): string {
                 if (cacheTypes.includes (rt)) return `(${r} != null && ${k} < ${r}.Count ? ${r}[${k}] : null)`;
             } else if (kind === 'Int64') {
                 if (!/^[A-Za-z_]\w*$/.test (keyMask) || cacheTypes.includes (rt)) return `(${r} != null && ${k} < ${r}.Count ? ${r}[(int)${k}] : null)`;
+            } else if (kind === 'Int64?read') {
+                // a repeated read expression is not null-flow tracked: bind it once by a type pattern
+                const v = r + 'Key' + i + '_' + at;
+                return `(${r} != null && ${k} is Int64 ${v} && ${v} < ${r}.Count ? ${r}[(int)${v}] : null)`;
             } else if (kind === 'Int64?') {
                 return `(${r} != null && ${k} != null && ${k} < ${r}.Count ? ${r}[(int)${k}] : null)`;
             }

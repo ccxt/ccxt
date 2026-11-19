@@ -15673,6 +15673,7 @@ export function installCsharpLocalTypes (transpiler) {
     installCsharpNativeStringConcat (csharp);
     // `x[i]` reads the enclosing `for` bounds by the receiver's own length (see the
     // list-index-reads section above): the printer's bound proof needs both names' printed types
+    installCsharpIntIndexAccumulators (csharp);
     installCsharpListIndexReads (csharp);
     // `k in x` -> ContainsKey for the dict-typed locals this module retypes (see
     // installCsharpDictInOp); installed after the rewrite wrapper so it records the final line
@@ -23731,4 +23732,106 @@ function int64IndexGroupLocal (csharp, declaration, context) {
     }
     // the group's every use was enumerated above: each member is declared Int64 together
     return { type: 'Int64' };
+}
+
+// ===== `number[]` index accumulators =====
+// A sync method declared once in ts/src, annotated `number[]`, whose every return is one `number[]` local
+// seeded `[]` and written only by `.push (<int-literal for-counter>)`: the list holds Int64 indices, so the
+// signature, the accumulator and same-file consumer locals print `List<Int64>` (no cast anywhere).
+function intIndexAccumulatorOf (method) {
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration || method.body === undefined || method.name?.kind !== ts.SyntaxKind.Identifier
+            || method.type?.kind !== ts.SyntaxKind.ArrayType || method.type.elementType?.kind !== ts.SyntaxKind.NumberKeyword
+            || (method.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword) || tsSourceMethodDeclarationCount (method.name.text) !== 1) {
+        return undefined;
+    }
+    const returns = [];
+    const declarations = [];
+    const visit = (n) => {
+        if (n !== method && ts.isFunctionLike (n)) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.ReturnStatement) {
+            returns.push (n);
+        }
+        if (n.kind === ts.SyntaxKind.VariableDeclaration) {
+            declarations.push (n);
+        }
+        n.forEachChild (visit);
+    };
+    visit (method.body);
+    const name = returns[0]?.expression?.kind === ts.SyntaxKind.Identifier ? returns[0].expression.text : undefined;
+    const local = declarations.filter ((d) => d.name?.kind === ts.SyntaxKind.Identifier && d.name.text === name);
+    if (name === undefined || local.length !== 1 || returns.some ((r) => r.expression?.kind !== ts.SyntaxKind.Identifier || r.expression.text !== name)) {
+        return undefined;
+    }
+    const acc = local[0];
+    const init = stripParens (acc.initializer);
+    if (acc.type?.kind !== ts.SyntaxKind.ArrayType || acc.type.elementType?.kind !== ts.SyntaxKind.NumberKeyword
+            || init?.kind !== ts.SyntaxKind.ArrayLiteralExpression || init.elements.length !== 0 || !isBlockScopedDeclaration (acc)) {
+        return undefined;
+    }
+    // every other mention: `acc.push (<counter>)` as a statement, the counter a `let c = <int literal>` for-header binding
+    let ok = true;
+    const uses = (n) => {
+        if (!ok || (n !== method && ts.isFunctionLike (n))) {
+            ok = ok && !(n !== method && ts.isFunctionLike (n) && n.getText ().includes (name));
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== acc.name && !(n.parent?.kind === ts.SyntaxKind.ReturnStatement)) {
+            const call = n.parent?.parent;
+            const arg = call?.arguments?.[0];
+            const counter = declarations.filter ((d) => d.name?.kind === ts.SyntaxKind.Identifier && arg?.kind === ts.SyntaxKind.Identifier && d.name.text === arg.text);
+            ok = n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && n.parent.expression === n && n.parent.name?.text === 'push'
+                && call?.kind === ts.SyntaxKind.CallExpression && call.arguments.length === 1 && call.parent?.kind === ts.SyntaxKind.ExpressionStatement
+                && counter.length === 1 && counter[0].parent?.parent?.kind === ts.SyntaxKind.ForStatement
+                && counter[0].initializer?.kind === ts.SyntaxKind.NumericLiteral && /^\d{1,9}$/.test (counter[0].initializer.text);
+        }
+        n.forEachChild (uses);
+    };
+    uses (method.body);
+    return ok ? acc : undefined;
+}
+
+// `const x = this.<m> (...)` (never rewritten) whose callee is a same-file index accumulator method
+function intIndexAccumulatorConsumer (declaration) {
+    const call = stripParens (declaration.initializer);
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || (declaration.parent?.flags & ts.NodeFlags.Const) === 0 || call?.kind !== ts.SyntaxKind.CallExpression
+            || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = call.expression.name?.text;
+    let found;
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.MethodDeclaration && n.name?.kind === ts.SyntaxKind.Identifier && n.name.text === name) {
+            found = n;
+        }
+        n.forEachChild (visit);
+    };
+    visit (declaration.getSourceFile ());
+    return intIndexAccumulatorOf (found) !== undefined;
+}
+
+export function installCsharpIntIndexAccumulators (csharp) {
+    if (!csharp || typeof csharp.printFunctionType !== 'function' || csharp._intIndexAccumulatorsPatched) {
+        return;
+    }
+    const upstreamFunctionType = csharp.printFunctionType.bind (csharp);
+    csharp.printFunctionType = (node) => {
+        const printed = upstreamFunctionType (node);
+        return (printed === 'List<object>' && intIndexAccumulatorOf (node) !== undefined) ? 'List<Int64>' : printed;
+    };
+    const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamDeclaration (node, identation);
+        const declaration = node?.declarations?.length === 1 ? node.declarations[0] : undefined;
+        const method = declaration === undefined ? undefined : ts.findAncestor (declaration.parent, ts.isFunctionLike);
+        if (declaration !== undefined && intIndexAccumulatorConsumer (declaration)) {
+            return printed.replace (/^(\s*)List<object> (\w+) = this\./, '$1List<Int64> $2 = this.');
+        }
+        if (declaration === undefined || intIndexAccumulatorOf (method) !== declaration) {
+            return printed;
+        }
+        return printed.replace (/^(\s*)List<object> (\w+) = new List<object>\(\) \{\}/, '$1List<Int64> $2 = new List<Int64>() {}');
+    };
+    csharp._intIndexAccumulatorsPatched = true;
 }
