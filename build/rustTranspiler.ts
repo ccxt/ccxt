@@ -6219,6 +6219,9 @@ const RUST_SCALAR_LENT_FNS: Array<[string, number, number?]> = [
     ['safe_list_or_o', 1, 3],
     ['amount_to_precision', 1, 2],
     ['cost_to_precision', 1, 2],
+    ['parse_timeframe', 0],
+    ['parse8601', 0],
+    ['iso8601', 0],
 ];
 // Lend a local to the scalar helpers that take `impl ScalarArg`: `f(x.clone())` (x declared a scalar or
 // `Value` in this fn) and `f(x.clone().map(Value::from).unwrap_or(Value::Null))` (x declared

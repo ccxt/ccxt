@@ -586,8 +586,8 @@ pub trait ExchangeOps {
     /// `_redundant_exchange` slot. Mutates the Value-map keyed by `key`.
     fn set_property(&mut self, redundant_exchange: Value, key: Value, value: Value);
     fn get_fetch_cache(&mut self) -> Value;
-    fn parse_timeframe(&self, tf: Value) -> i64;
-    fn iso8601(&self, ts: Value) -> Value;
+    fn parse_timeframe(&self, tf: impl ccxt::value::ScalarArg) -> i64;
+    fn iso8601(&self, ts: impl ccxt::value::ScalarArg) -> Value;
     fn milliseconds(&self) -> i64;
     fn get_ccxt_version(&self) -> Value;
     fn safeString(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
@@ -661,8 +661,8 @@ impl ExchangeOps for Value {
     fn omit(&self, obj: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.omit(obj, keys, o)) }
     fn omit_zero(&self, s: Value)                -> Option<String> { with_base(|e| e.omit_zero(s)) }
     fn array_concat(&self, a: Value, b: Value)   -> Value { with_base(|e| e.array_concat(a, b)) }
-    fn parse_timeframe(&self, tf: Value)         -> i64 { with_base(|e| e.parse_timeframe(tf)) }
-    fn iso8601(&self, ts: Value)                 -> Value { with_base(|e| e.iso8601(ts)) }
+    fn parse_timeframe(&self, tf: impl ccxt::value::ScalarArg) -> i64 { with_base(|e| e.parse_timeframe(tf)) }
+    fn iso8601(&self, ts: impl ccxt::value::ScalarArg) -> Value { with_base(|e| e.iso8601(ts)) }
     fn milliseconds(&self)                        -> i64 { with_base(|e| e.milliseconds()) }
     fn get_ccxt_version(&self)                     -> Value { with_base(|e| e.get_ccxt_version()) }
     /// Set a field on the exchange Value-map by key. The

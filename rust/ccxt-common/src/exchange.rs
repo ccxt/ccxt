@@ -1290,13 +1290,12 @@ impl Exchange {
         self.milliseconds() * 1000
     }
 
-    /// `ts` takes any `Into<Value>`: a typed `i64` / `Option<i64>` / `f64` local passes as is and converts to the very
-    /// `Int` / `Null` / `Float` its box held, so the answer is the one the boxed call gave.
-    pub fn iso8601(&self, ts: impl Into<Value>) -> Value {
-        let n = match ts.into() {
-            Value::Int(n)   => n,
-            Value::Float(f) => f as i64,
-            Value::Str(ref s) => match s.parse::<i64>() { Ok(v) => v, Err(_) => return Value::Null },
+    /// `ts` is lent as a scalar: `None` / `Value::Null` and non-scalars answer `Null`, a string parses as i64.
+    pub fn iso8601(&self, ts: impl crate::value::ScalarArg) -> Value {
+        let n = match ts.scalar() {
+            crate::value::ScalarRef::Num(Value::Int(n)) => n,
+            crate::value::ScalarRef::Num(Value::Float(f)) => f as i64,
+            crate::value::ScalarRef::Str(s) => match s.parse::<i64>() { Ok(v) => v, Err(_) => return Value::Null },
             _ => return Value::Null,
         };
         if n < 0 {
@@ -1307,8 +1306,8 @@ impl Exchange {
             .unwrap_or(Value::Null)
     }
 
-    pub fn parse8601(&self, s: Value) -> Option<i64> {
-        let str_val = match s { Value::Str(s) => s, _ => return None };
+    pub fn parse8601(&self, s: impl crate::value::ScalarArg) -> Option<i64> {
+        let str_val = match s.scalar() { crate::value::ScalarRef::Str(s) => s, _ => return None };
         if str_val.is_empty() {
             return None;
         }

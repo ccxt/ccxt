@@ -3146,8 +3146,8 @@ impl Exchange {
         }
     }
 
-    pub fn parse_timeframe(&self, tf: Value) -> i64 {
-        let s = stringify_param(&tf);
+    pub fn parse_timeframe(&self, tf: impl crate::value::ScalarArg) -> i64 {
+        let s = match tf.scalar() { ScalarRef::Str(s) => s.to_string(), ScalarRef::Null => stringify_param(&Value::Null), ScalarRef::Num(v) => stringify_param(&v), ScalarRef::Other(v) => stringify_param(v) };
         let last = s.chars().last().unwrap_or('m');
         let num: i64 = s[..s.len().saturating_sub(1)].parse().unwrap_or(0);
         match last {
