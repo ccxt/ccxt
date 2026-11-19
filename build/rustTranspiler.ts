@@ -5984,6 +5984,10 @@ const RUST_LENT_OPTIONAL_ARGS_BASE = [
     'parse_trades',
     'parse_transactions',
     'parse_ledger',
+    'handle_market_type_and_params',
+    'handle_sub_type_and_params',
+    'handle_margin_mode_and_params',
+    'handle_max_entries_per_request_and_params',
 ];
 // implicit-API wrappers (`*_api.rs`, `&[&Value]` forwarded to `call_method`) and the hand-written by-name dispatchers
 const RUST_LENT_DISPATCHERS = ['call_method', 'call_method_t', 'call_method_o', 'call_method_lt', 'call_method_lo'];
@@ -7556,6 +7560,21 @@ function moveClientSettleOperands(content: string): string {
 }
 //
 // unit slot 037
+// Transpiled base tests call the lent tuple handlers on an `exchange.` receiver: lend each slice element there too.
+const RUST_LENT_TUPLE_HANDLERS = /\bexchange\.(?:handle_market_type_and_params|handle_sub_type_and_params|handle_margin_mode_and_params|handle_max_entries_per_request_and_params)\(/g;
+function lendTupleHandlerTestCalls(content: string): string {
+    let out = '', last = 0;
+    for (const m of content.matchAll(RUST_LENT_TUPLE_HANDLERS)) {
+        const open = (m.index as number) + m[0].length, close = balancedCloseIndex(content, open);
+        const args = splitRustArgs(content.slice(open, close)), tail = args[args.length - 1].trim();
+        if (!tail.startsWith('&[') || balancedCloseIndex(tail, 2) !== tail.length - 1 || tail.slice(2, -1).trim() === '') continue;
+        const lent = '&[' + splitRustArgs(tail.slice(2, -1)).map(e => e.trim()).map(e => e.startsWith('&') ? e : '&' + e.replace(/^([A-Za-z_]\w*)\.clone\(\)$/, '$1')).join(', ') + ']';
+        const at = content.lastIndexOf(tail, close);
+        out += content.slice(last, at) + lent;
+        last = at + tail.length;
+    }
+    return out + content.slice(last);
+}
 //
 // unit slot 038
 // `check_required_argument` only compares its argument (`== Null`, `in_array`): it takes `&Value` and every
@@ -9330,6 +9349,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     moveClientSettleOperands,
     //
     // pass slot 037
+    lendTupleHandlerTestCalls,
     //
     // pass slot 038
     lendRequiredArgument,

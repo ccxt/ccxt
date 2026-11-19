@@ -2052,7 +2052,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, id, market, &[delim, market_type])
     }
     fn super_handle_market_type_and_params(&self, method_name: Value, market: Option<&crate::types::Market>, params: Value, default_value: Value) -> (Value, crate::value::Dict) {
-        <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, market, &[params, default_value])
+        <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, market, &[&params, &default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
         crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol.as_str().unwrap_or_default()))
@@ -2061,7 +2061,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)
     }
     fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> (Value, crate::value::Dict) {
-        <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[params, default_value])
+        <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[&params, &default_value])
     }
     fn super_safe_currency_code(&self, currency_id: Option<&str>, currency: Option<&crate::types::Currency>) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::safe_currency_code(self, currency_id, currency)
