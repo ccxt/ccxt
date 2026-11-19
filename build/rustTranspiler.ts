@@ -6887,6 +6887,21 @@ function borrowProMessageView(content: string): string {
 }
 //
 // unit slot 006
+// A safe_string match consumed as Option<String>/String prints String arms directly instead of a Value copied twice.
+const RUST_SAFE_STR_ARMS = 'Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => ';
+function rustSafeStringOwnedArms (content: string): string {
+    if (!content.includes (RUST_SAFE_STR_ARMS)) {
+        return content;
+    }
+    const esc = RUST_SAFE_STR_ARMS.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const lit = '"(?:[^"\\\\]|\\\\.)*"';
+    const arms = (wrap: (x: string) => string) => `Some(Value::Str(__s)) if !__s.is_empty() => ${wrap ('__s.to_string()')}, Some(Value::Int(__n)) => ${wrap ('__n.to_string()')}, Some(Value::Float(__f)) => ${wrap ('__f.to_string()')}, _ => `;
+    const some = (x: string) => `Some(${x})`;
+    return content
+        .replace (new RegExp (esc + 'Value::Null \\}\\)\\.as_str\\(\\)\\.map\\(str::to_owned\\)', 'g'), () => arms (some) + 'None })')
+        .replace (new RegExp (esc + 'Value::Str\\((' + lit + ')\\.into\\(\\)\\) \\}\\)\\.as_str\\(\\)\\.map\\(str::to_owned\\)', 'g'), (_m, d) => arms (some) + `Some(${d}.to_string()) })`)
+        .replace (new RegExp (esc + 'Value::Str\\((' + lit + ')\\.into\\(\\)\\) \\}\\)\\.as_str\\(\\)\\.unwrap_or\\(' + lit + '\\)\\.to_string\\(\\)', 'g'), (_m, d) => arms ((x) => x) + `${d}.to_string() })`);
+}
 //
 // unit slot 007
 //
@@ -7688,6 +7703,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     borrowProMessageView,
     //
     // pass slot 006
+    rustSafeStringOwnedArms,
     //
     // pass slot 007
     //
