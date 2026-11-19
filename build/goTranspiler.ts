@@ -9252,6 +9252,7 @@ const GO_MAPWRITE_PLAIN_CALLS = [
     'this.Milliseconds', 'this.Seconds', 'this.Microseconds', 'this.Uuid', 'this.Uuid2', 'this.Uuid16', 'this.Uuid22',
     'this.Extend', 'this.DeepExtend', 'this.Json', 'this.Capitalize', 'this.ParseTimeframe', 'this.Account',
     'this.ParseToInt',  // base-only, returns int64
+    'min', 'max',  // Go builtins: only ever printed over typed numbers
     'GetValue', 'ToString', 'ToLower', 'ToUpper', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'ParseInt', 'Json', 'JsonStringify',
 ];
 
@@ -9286,10 +9287,11 @@ function goMapWriteLocalNeverNil (maskedFunc: string, decl: any, name: string, d
         return false;
     }
     const n = goAccessEscape (name);
-    if (goMapLocalRebound (maskedFunc, n)) {
+    const own = goPairRebindsBlanked (maskedFunc, name);
+    if (goMapLocalRebound (own, n)) {
         return false; // address taken or multi-value rebinding
     }
-    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
+    for (const w of own.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
         if (!producer.test (w[1].trim ()) && !w[1].trim ().startsWith ('this.OmitDict(' + name + ', ') && !goSelfMapRebind (w[1].trim (), name)) { // self-omit
             return false;
         }
@@ -9308,6 +9310,20 @@ function goMapWritePlainValueExpr (maskedValue: string): boolean {
         open = call[0].length - 1;
     }
     return (open >= 0) && (goMapWriteGroupEnd (maskedValue, open) === maskedValue.length);
+}
+
+// `row["lit"]` on a map local whose every write is a Market/SafeMarket/Currency/SafeCurrency result or nil
+function goMapWriteMarketRowRead (maskedFunc: string, value: string, type: string | undefined): boolean {
+    const m = /^(\w+)\["[^"\\\n]*"\]$/.exec (value);
+    if ((m === null) || (type !== 'map[string]any')) {
+        return false;
+    }
+    const n = goAccessEscape (m[1]);
+    if (goMapLocalRebound (maskedFunc, n) || new RegExp ('AddElementToObject\\(' + n + '\\b|(?<![\\w.])' + n + '\\s*\\[[^\\n]*\\]\\s*=(?!=)').test (maskedFunc)) {
+        return false;
+    }
+    const writes = [ ...maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])(?:var ' + n + ' map\\[string\\]any|' + n + ')\\s*=(?!=)\\s*([^\\n]*)', 'gm')) ];
+    return (writes.length > 0) && writes.every ((w) => GO_MARKET_ROW_WRITE.test (w[1].trim ()));
 }
 
 // OrderBookInterface field writes: AddElementToObject(orderbook, "timestamp", ts) -> orderbook.SetTimestamp(ts).
@@ -9560,6 +9576,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = value; // every write is already deref'd (derefScalar is idempotent), so the helper's deref is a no-op
     } else if (goMapWriteKeyReadFromValue (lines, masked, start, k, key, value, typeAt)) {
         valueOut = value;
+    } else if (goMapWriteMarketRowRead (maskedFunc, value, typeAt (value.replace (/\[[\s\S]*$/, ''), k))) {
+        valueOut = value; // Market/Currency rows are pointer-free (MarketTyped): the helper's deref leaves the read unchanged
     }
     if ((valueOut === undefined) && (lastLine === k) && (goDerefPointerValue (lines, value, valueMasked, typeAt (value, k)) !== undefined)) {
         // a pointer value: the helper stores *v, or nil for a nil pointer; print that store as a plain if/else
@@ -18172,6 +18190,8 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
                 }
             } else if (untilRx.test (masked[k])) {
                 continue; // returns MapTyped(x): x itself
+            } else if ((masked[k].trim () !== '') && (goPairRebindsBlanked (masked[start] + '\n' + masked[k], name).split ('\n').pop () === '')) {
+                continue; // slot 0 of a never-nil pair method
             } else if (new RegExp ('(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)|,\\s*' + n + '\\s*(?:,[^=\\n]*)?:?=(?!=)').test (masked[k])) {
                 safe = false;
             } else if (goTextWritesName (masked[k], n) && !new RegExp ('\\b' + n + '\\s*\\[').test (masked[k])) {
@@ -18188,6 +18208,14 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
 }
 
 function goTypedAddElemRetypeCheck (ok: SelfTestOk): void {
+    {
+        const prep = (ret: string) => 'func (this *X) Prep(p map[string]any) (map[string]any, map[string]any) {\n\tvar request map[string]any = map[string]any{}\n\treturn ' + ret + ', p\n}\n';
+        const use = 'func (this *X) f(p map[string]any, s string) any {\n\tvar market map[string]any = this.Market(s)\n\tvar request any = map[string]any{}\n\tvar q any = nil\n\tif s == "a" {\n\t\trequest, q = this.Prep(p)\n\t}\n\tAddElementToObject(request, "id", market["id"])\n\tAddElementToObject(request, "l", min(int64(1), int64(2)))\n\treturn q\n}\n';
+        let g = formatGoSource ('selftest.go', prep ('request') + use);
+        ok (g.includes ('var request map[string]any = map[string]any{}\n\tvar q') && g.includes ('request["id"] = market["id"]') && g.includes ('request["l"] = min('), 'never-nil pair rebind types the receiver: ' + g);
+        g = formatGoSource ('selftest.go', prep ('nil') + use);
+        ok (g.includes ('AddElementToObject(request, "id"'), 'a nil pair slot keeps the helper: ' + g);
+    }
     const f = (body: string) => goTypedAddElemRetypeMapLocals ('func (this *X) f(p any, code string) any {\n' + body + '\treturn nil\n}\n');
     let r = f ('\tvar account any = this.SafeDict(p, code, this.Account())\n\tAddElementToObject(account, "free", this.SafeString(p, "f"))\n');
     ok (r.includes ('var account map[string]any = this.SafeDictMap(p, code, this.Account())'), 'defaulted SafeDict receiver is typed: ' + r);
@@ -21051,6 +21079,26 @@ function goPairMapSlotNeverNil (maskedFunc: string, decl: any, depth: number): b
         }
     }
     return true;
+}
+
+// `name, q = this.M(..)` lines whose M is a same-file pair method putting a never-nil map in slot 0, blanked
+function goPairRebindsBlanked (maskedFunc: string, name: string): string {
+    const file: string[] | undefined = (goTupleSlotNeverNil as any).file;
+    const recv = /^func \(this \*(\w+)\) /.exec (maskedFunc);
+    if ((file === undefined) || (recv === null) || !/^\w+$/.test (name)) {
+        return maskedFunc;
+    }
+    const rx = new RegExp ('^\\s*' + name + ', \\w+ = this\\.(\\w+)\\([^\\n]*\\)$');
+    return maskedFunc.split ('\n').map ((l) => {
+        const m = rx.exec (l);
+        if (m === null) {
+            return l;
+        }
+        const sigs = file.filter ((f) => new RegExp ('^func \\(this \\*\\w+\\) ' + m[1] + '\\(').test (f));
+        const ok = (sigs.length === 1) && sigs[0].startsWith ('func (this *' + recv[1] + ') ') && sigs[0].endsWith (') (map[string]any, map[string]any) {')
+            && goPairMapSlotNeverNil (maskedFunc, { 'pairs': [ m[1] ], 'pairSlot': 0 }, 1);
+        return ok ? '' : l;
+    }).join ('\n');
 }
 
 function goSplitTopLevelCommas (text: string): string[] {
