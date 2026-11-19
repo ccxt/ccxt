@@ -17741,7 +17741,8 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return undefined;
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
-        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict') && (mapped.literalOnly !== true))
+        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict') && (mapped.literalOnly !== true)
+            && !proAsyncListParameterFeedsToArray (owner, parameter, mapped))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
@@ -17794,6 +17795,16 @@ function csharpParameterDecision (csharp, parameter, expected) {
     } finally {
         csharpParameterDecisionsInProgress.delete (parameter);
     }
+}
+
+// a pro async helper's list parameter that the body hands to toArray / marketSymbols (printed
+// `this.toArray (p)`) takes the sync call-site proof: all-list callers make toArray an identity
+function proAsyncListParameterFeedsToArray (owner, parameter, mapped) {
+    if (mapped.type !== 'IList<object>' || !owner.getSourceFile ().fileName.replace (/\\/g, '/').includes ('/pro/')) {
+        return false;
+    }
+    const name = parameter.name?.text;
+    return (name !== undefined) && new RegExp ('\\bthis\\.(?:toArray|marketSymbols)\\s*\\(\\s*' + name + '\\s*[,)]').test ((owner.getSourceFile ().text ?? '').substring (owner.body?.pos ?? 0, owner.body?.end ?? 0));
 }
 
 // a pro handler's array parameter goes through the call-site proof only when its file names the

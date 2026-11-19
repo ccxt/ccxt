@@ -5334,7 +5334,8 @@ class NewTranspiler {
         const widensReturn = /^\s*(?:public|protected|private|internal)\b[^(]*?\b(?:object|IList<object>|Task<object>|Task<IList<object>>)\s+[A-Za-z_]\w*\s*\(/.test (region);
         const masked = this.maskCsharpLiterals (region);
         region = this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => {
-            const type = lists.get (match[1]) ?? this.csharpScopedListDeclType (masked, at, match[1]);
+            // a nullable-annotated `IList<object>?` parameter is the same runtime type
+            const type = (lists.get (match[1]) ?? this.csharpScopedListDeclType (masked, at, match[1]))?.replace (/^IList<object>\?$/, 'IList<object>');
             return (((at > 0) && /[\w.]/.test (region[at - 1])) || !((type === 'IList<object>') || (((type === 'List<object>') || caches.has (match[1])) && (this.csharpListWideningSlot (region.substring (Math.max (0, at - 120), at), lists) || (widensReturn && /\breturn\s+$/.test (region.substring (Math.max (0, at - 20), at))))))) ? undefined : match[1];
         });
         // base arraySlice(object, …) is declared IList<object> (its byte[] twin needs a byte[] argument,
