@@ -4875,9 +4875,14 @@ function goArithKind (scope: GoArithScope, text: string, maskedText: string): Ki
     const conv = /^float64\(/.exec (m);
     if (conv) {
         const end = goArithClose (m, conv[0].length - 1);
-        if ((end > 0) && /^(?:\s*[*/]\s*[1-9]\d*(?:\.\d+)?)*$/.test (m.slice (end + 1))) {
+        if ((end > 0) && /^(?:\s*[*/]\s*(?:[1-9]\d*(?:\.\d+)?|float64\(\*?[A-Za-z_]\w*\)))*$/.test (m.slice (end + 1))) {
             return 'f64';
         }
+    }
+    // math.Floor/Ceil/Trunc of anything is a float64 value
+    const mathF = /^math\.(?:Floor|Ceil|Trunc)\(/.exec (m);
+    if (mathF && (goArithClose (m, mathF[0].length - 1) === m.length - 1)) {
+        return 'f64';
     }
     // helpers with a plain Go return type (go/v4/exchange_helpers.go): never nil
     const plain = /^(?:ccxt\.)?(GetArrayLength|GetLength|len|ParseInt)\(/.exec (m);
@@ -5278,6 +5283,7 @@ function goIntegralArithmeticSelfTest (): string[] {
         [ '\tvar n int = 3\n\treturn OpNeg(n)', '(-int64(n))', true ],
         [ '\tvar a int64 = d\n\treturn Multiply(this.Sum(a, 1), d)', '((a + 1) * d)', true ],
         [ '\tvar a any = d\n\treturn Multiply(this.Sum(a, 1), d)', 'Multiply(this.Sum(a, 1), d)', true ],
+        [ '\tvar ms int64 = d\n\treturn Multiply(math.Floor(float64(ms)/float64(ms)), ms)', '(int64(math.Floor(float64(ms)/float64(ms))) * ms)', true ],
     ];
     return goArithCaseProblems (goNativeArithmetic, wrap, cases, 'go integral arithmetic self test expected ');
 }
@@ -5591,6 +5597,10 @@ function goNonNilMulSubNative (helper: string, a: string, b: string, ka: Kind, k
         return { 'text': '(' + ((ka === 'int') ? 'int64(' + a + ')' : a) + op + ((kb === 'int') ? 'int64(' + b + ')' : b) + ')', 'kind': 'i64' };
     }
     const floatSide = (k: Kind) => (k === 'f64') || (k === 'flit') || (k === 'ilit');
+    // Multiply converts a to b's kind, then multiplies as int64: exact for an already-integral float
+    if ((helper === 'Multiply') && (ka === 'f64') && (kb === 'i64') && /^math\.(?:Floor|Ceil|Trunc)\(/.test (a)) {
+        return { 'text': '(int64(' + a + ') * ' + b + ')', 'kind': 'i64' };
+    }
     if ((ka !== 'f64') && (kb !== 'f64')) {
         return undefined;
     }
@@ -18725,7 +18735,10 @@ function goTypedLenFunc (fn: string): string {
     const out = lines.join ('\n').replace (/(?<![\w.])(?:ccxt\.)?GetLength\((\w+\.\(ccxt\.ClientInterface\)\.GetUrl\(\))\)/g, 'len($1)');
     // credential fields are declared `string` and GetLength(string) is len() of its bytes
     const cred = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetLength\\((this\\.(?:' + gb09CredentialFields ().join ('|') + '))\\)', 'g');
-    return out.replace (cred, 'len($1)');
+    // an index read of a once-declared `[]string` is a Go string; the index panics the same before either call
+    const elem = /(?<![\w.])(?:ccxt\.)?GetLength\((\w+)(\[\w+\])\)/g;
+    return out.replace (cred, 'len($1)').split ('\n').map ((line, k, all) => line.replace (elem, ((m: string, x: string, ix: string) =>
+        ((goTypedLenDeclType (all, k, x) === '[]string') && !rebinds (x)) ? 'len(' + x + ix + ')' : m) as any)).join ('\n');
 }
 
 function goTypedLenNative (content: string): string {
@@ -18748,6 +18761,8 @@ function goTypedLenSelfTest (ok: SelfTestOk): void {
     ok (f ('', '\tif (ccxt.GetLength(this.Secret) == 88) || (GetLength(this.ApiKey) == 8) {\n\t}\n').includes ('(len(this.Secret) == 88) || (len(this.ApiKey) == 8)'), 'credential string field');
     ok (f ('', '\tn := GetLength(this.Token)\n\tm := GetLength(this.Secrets)\n\tk := GetLength(that.Secret)\n').split ('GetLength(').length === 4, 'boxed or foreign field keeps helper');
     ok (f ('', '\tvar s string = "GetLength(x)"\n').includes ('"GetLength(x)"'), 'string literal untouched');
+    ok (f ('', '\tvar p []string = strings.Split(s, "-")\n\tif ccxt.GetLength(p[0]) == 8 {\n\t}\n').includes ('len(p[0]) == 8'), '[]string element');
+    ok (f ('', '\tvar p []any = x\n\tif GetLength(p[0]) == 8 {\n\t}\n').includes ('GetLength(p[0])'), '[]any element keeps helper');
 }
 
 
