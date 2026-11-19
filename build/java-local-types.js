@@ -1996,6 +1996,8 @@ const VENUE_RETURN_KINDS = {
     'convertToBigIntCustom': [ 'Long' ], 'feeAmountMultiplier': [ 'Long' ],
     // prediction `parseEvent (..): PredictionEvent`: every declaration returns this.extend (..), a fresh map
     'parseEvent': [ JAVA_ARRAY_TYPE_MAP () ],
+    // hyperliquid `infoList (..): Dict[]` (one declaration per class): returns its own list literal or the IsArray-guarded arg
+    'infoList': [ 'java.util.List<Object>' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {

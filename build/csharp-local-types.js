@@ -20220,10 +20220,10 @@ function guardedNullableDoubleNegation (csharp, node, csharpType) {
 }
 
 // Return-path-proven list producers: single-definition names (getSettlementCurrencies,
-// outcomesByMarketId, sbeReadVarStrings) whose every return boxes a List<object> or null, plus the
+// outcomesByMarketId, sbeReadVarStrings, infoList) whose every return boxes a List<object> or null, plus the
 // hand-written `List<string> unique`; retyped locals still pass csharpLocalIsSafeToRetype.
 function registerListProducerReturnTypes () {
-    const methods = { 'getSettlementCurrencies': 'List<object>', 'outcomesByMarketId': 'List<object>', 'sbeReadVarStrings': 'List<object>' };
+    const methods = { 'getSettlementCurrencies': 'List<object>', 'outcomesByMarketId': 'List<object>', 'sbeReadVarStrings': 'List<object>', 'infoList': 'List<object>' };
     for (const [ name, type ] of Object.entries (methods)) {
         if (!Object.prototype.hasOwnProperty.call (CSHARP_METHOD_RETURN_TYPES, name)) {
             CSHARP_METHOD_RETURN_TYPES[name] = type;

@@ -4292,6 +4292,69 @@ function rustTypedRouteAndParams (content: string): string {
 
 // `marketSymbols` answers `undefined` or the list it builds (ts/src/base/Exchange.ts), so it returns `Option<List>`:
 // `.into_opt_list()` drops, `.into_list()` (Null -> []) is `.unwrap_or_default()`, a `Value` slot boxes it back.
+// A method whose whole body is `let mut result: Value = Value::from(vec![]); if (matches!(&x, Value::Arr(_))) { result = x; } return result;`
+// never answers anything but a list: it returns `crate::value::List`, `.into_list()` drops, `.into_opt_list()` is `Some(..)`
+// and any other read (the dynamic dispatch arm) boxes it back with `Value::Arr`. It reads nothing from `self`, so it is an
+// associated fn: `Self::f(self.g(..).await)` takes no shared borrow of self.
+function rustTypedListNarrowers (content: string): string {
+    const def = /pub fn (\w+)\(&self, mut (\w+): Value\) -> Value \{\n(\s*)let mut result: Value = Value::from\(vec!\[\]\);\n\s*if \(matches!\(&\2, Value::Arr\(_\)\)\) \{\n\s*result = \2;\n\s*\}\n\s*return result;\n\n\s*Value::Null\n\}/g;
+    const names: string[] = [];
+    content = content.replace (def, (_s, name: string, arg: string, ind: string) => {
+        names.push (name);
+        return `pub fn ${name}(${arg}: Value) -> crate::value::List {\n${ind}if let Value::Arr(list) = ${arg} {\n${ind}    return list;\n${ind}}\n${ind}std::sync::Arc::new(Vec::new())\n}`;
+    });
+    for (const name of names) {
+        const head = new RegExp ('\\bself\\.' + name + '\\(', 'g');
+        let out = '', last = 0, m: RegExpExecArray | null;
+        while ((m = head.exec (content)) !== null) {
+            const close = balancedCloseIndex (content, m.index + m[0].length);
+            const conv = content.slice (close + 1).match (/^\.into_(opt_)?list\(\)/);
+            const call = 'Self::' + content.slice (m.index + 'self.'.length, close + 1);
+            out += content.slice (last, m.index) + (conv === null ? `Value::Arr(${call})` : (conv[1] ? `Some(${call})` : call));
+            last = close + 1 + (conv !== null ? conv[0].length : 0);
+            head.lastIndex = last;
+        }
+        content = out + content.slice (last);
+    }
+    return rustFoldNarrowedResponses (rustTypedDictNarrowers (content));
+}
+
+// `if (typeof x !== 'string' && !Array.isArray (x)) return x; return {};` read only through `.into_dict()` is exactly
+// `if let Value::Dict(m) = x { m } else { {} }`: it returns `crate::value::Dict`, `.into_dict()` drops,
+// `.into_opt_dict()` is `Some(..)` and any other read boxes it back with `Value::Dict`.
+function rustTypedDictNarrowers (content: string): string {
+    const def = /pub fn (\w+)\(&self, mut (\w+): Value\) -> Value \{\n(\s*)if \(!matches!\(&\2, Value::Str\(_\)\)\) && !\(matches!\(&\2, Value::Arr\(_\)\)\) \{\n\s*return \2;\n\s*\}\n\s*return Value::Map\(\{\n\s*let mut m = indexmap::IndexMap::new\(\);\n\s*m\n\s*\}\);\n\n\s*Value::Null\n\}/g;
+    const names: string[] = [];
+    content = content.replace (def, (_s, name: string, arg: string, ind: string) => {
+        names.push (name);
+        return `pub fn ${name}(${arg}: Value) -> crate::value::Dict {\n${ind}if let Value::Dict(dict) = ${arg} {\n${ind}    return dict;\n${ind}}\n${ind}crate::value::Dict::default()\n}`;
+    });
+    for (const name of names) {
+        const head = new RegExp ('\\bself\\.' + name + '\\(', 'g');
+        let out = '', last = 0, m: RegExpExecArray | null;
+        while ((m = head.exec (content)) !== null) {
+            const close = balancedCloseIndex (content, m.index + m[0].length);
+            const conv = content.slice (close + 1).match (/^\.into_(opt_)?dict\(\)/);
+            const call = 'Self::' + content.slice (m.index + 'self.'.length, close + 1);
+            out += content.slice (last, m.index) + (conv === null ? `Value::Dict(${call})` : (conv[1] ? `Some(${call})` : call));
+            last = close + 1 + (conv !== null ? conv[0].length : 0);
+            head.lastIndex = last;
+        }
+        content = out + content.slice (last);
+    }
+    return content;
+}
+
+// `let mut r: Value = self.public_post_info(..).await;` read once, by the next line's info_list / info_dict narrower,
+// is moved straight into it (the name occurs nowhere else in the file).
+function rustFoldNarrowedResponses (content: string): string {
+    const fold = /let mut (\w+): Value = (self\.public_post_info\(&\[\w+\]\)\.await);\n(\s*)(let mut \w+: [^=\n]+ = (?:Some\()?Self::info_(?:list|dict)\()\1\)/g;
+    return content.replace (fold, (s, local: string, value: string, ind: string, head: string) => {
+        const uses = content.match (new RegExp ('\\b' + local + '\\b', 'g')) ?? [];
+        return (uses.length === 2) ? `${head}${value})` : s;
+    });
+}
+
 function rustTypedMarketSymbols (content: string): string {
     return rustTypedOptListProducer (content, 'market_symbols', '');
 }
@@ -10653,6 +10716,7 @@ impl std::ops::DerefMut for ${coreName} {
                 if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustTypedMarketIdsCodes(rustContent);
+                rustContent = rustTypedListNarrowers(rustContent);
                 rustContent = rustStrParamCopyDrop(rustContent);
                 rustContent = rustSelfFieldReadClones(rustContent);
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
@@ -11502,6 +11566,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedListAndOmitBranches(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
+        finalFile = rustTypedListNarrowers(finalFile);
         finalFile = rustStrParamCopyDrop(finalFile);
         finalFile = rustSelfFieldReadClones(finalFile);
 
