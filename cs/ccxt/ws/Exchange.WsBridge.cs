@@ -365,7 +365,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!inOp(this.orderbooks, symbol))
         {
-            (client).reject(new ExchangeError(add(this.id, " loadOrderBook() orderbook is not initiated")), messageHash);
+            (client).reject(new ExchangeError(this.id + " loadOrderBook() orderbook is not initiated"), messageHash);
             return;
         }
         object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
@@ -389,7 +389,7 @@ public partial class Exchange
                 }
                 tries++;
             }
-            error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
+            error = new ExchangeError(this.id + " nonce is behind the cache after " + ((object)maxRetries).ToString() + " tries.");
         }
         catch (Exception e)
         {

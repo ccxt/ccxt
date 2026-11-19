@@ -1022,8 +1022,8 @@ public partial class BaseExchange
         );
         var account = createSafeDictionary();
         account["privateKey"] = privatekey.ToString("x");
-        account["publicKey"] = add("0x", publicKey.ToString("x"));
-        account["address"] = add("0x", accountAddress.ToString("x"));
+        account["publicKey"] = "0x" + publicKey.ToString("x");
+        account["address"] = "0x" + accountAddress.ToString("x");
         return account;
     }
 

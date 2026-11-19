@@ -7326,13 +7326,63 @@ function csharpStringEncodeIdentity (content: string): string {
             }
             return seen > 0;
         };
-        const next = lines[i].replace (call, (all, name) => (proven (name) ? name : all));
+        let next = lines[i].replace (call, (all, name) => (proven (name) ? name : all));
+        next = csharpStringEncodeCallArgs (next, lines, (name) => proven (name), stringFields);
         if (next !== lines[i]) {
             lines[i] = next;
             changed = true;
         }
     }
     return changed ? lines.join ('\n') : content;
+}
+
+// `this.encode(e)` on an expression whose static type is `string` (a literal, a `string`-returning
+// call, `.ToUpper()` of a proven string, a `+` concat of proven strings) is `e` itself
+function csharpStringEncodeCallArgs (line: string, lines: string[], provenName: (n: string) => boolean, stringFields: string[]): string {
+    const stringCalls = [ 'numberToString', 'stringToBase64' ];
+    const ownString = (name: string) => {
+        const decl = new RegExp ('^[ ]{4}(?:(?:public|private|protected|internal|static|virtual|override|async|new)[ ]+)+([\\w<>,.?\\[\\]]+)[ ]+' + name + '[ ]*\\(');
+        const types = lines.map ((l) => decl.exec (l)).filter ((m) => m !== null).map ((m) => m[1]);
+        return (types.length > 0) && types.every ((t) => (t === 'string') || (t === 'string?'));
+    };
+    const isString = (text: string, depth = 0): boolean => {
+        const t = text.trim ();
+        const m = csharpHelperMaskLine (t);
+        if (depth > 6) return false;
+        if (/^"(?:[^"\\]|\\.)*"$/.test (t)) return true;
+        if (/^[A-Za-z_]\w*$/.test (t)) return provenName (t);
+        if (/^this\.[A-Za-z_]\w*$/.test (t)) return stringFields.includes (t);
+        const call = /^this\.([A-Za-z_]\w*)\(/.exec (m);
+        if ((call !== null) && (csharpHelperCallEnd (m, call[0].length - 1) === m.length - 1)) return stringCalls.includes (call[1]) || ownString (call[1]);
+        const upper = /\.(?:ToUpper|ToLower)\(\)$/.exec (m);
+        if ((upper !== null) && /^(?:this\.)?[A-Za-z_]\w*$/.test (t.substring (0, upper.index))) return isString (t.substring (0, upper.index), depth + 1);
+        if (m.startsWith ('(') && (csharpHelperCallEnd (m, 0) === m.length - 1)) {
+            const inner = m.slice (1, -1);
+            const parts: string[] = [];
+            let level = 0;
+            let last = 0;
+            for (let k = 0; k < inner.length; k++) {
+                const ch = inner[k];
+                if ('([{'.includes (ch)) level++;
+                else if (')]}'.includes (ch)) level--;
+                else if ((level === 0) && (inner.substring (k, k + 3) === ' + ')) { parts.push (t.slice (1, -1).substring (last, k)); last = k + 3; k += 2; }
+                else if ((level === 0) && /[?:=<>&|!*\/%^-]/.test (ch)) return false;
+            }
+            parts.push (t.slice (1, -1).substring (last));
+            return parts.every ((p) => isString (p, depth + 1));
+        }
+        return false;
+    };
+    const masked = csharpHelperMaskLine (line);
+    const calls = [ ...masked.matchAll (/(?<![\w.])this\.encode\(/g) ].reverse ();
+    for (const c of calls) {
+        const open = c.index + c[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const arg = line.substring (open + 1, close);
+        if (isString (arg)) line = line.substring (0, c.index) + arg.trim () + line.substring (close + 1);
+    }
+    return line;
 }
 
 // ws caches Exchange.Options.cs declares with a typed row (`IDictionary<string, IDictionary<string, object>>`):
@@ -8290,7 +8340,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         'rawencode', 'numberToString', 'iso8601', 'ymdhms', 'yyyymmdd', 'uuid', 'json', 'hmac', 'encode', 'decode',
         'stringToBase64', 'binaryToBase64', 'decimalToPrecision', 'safeString', 'safeString2', 'safeStringN',
         'safeStringLower', 'safeStringUpper', 'safeStringLower2', 'safeStringUpper2', 'amountToPrecision',
-        'priceToPrecision', 'costToPrecision', 'currencyToPrecision', 'feeToPrecision', 'uuid5' ];
+        'priceToPrecision', 'costToPrecision', 'currencyToPrecision', 'feeToPrecision', 'uuid5', 'safeCurrencyCode' ];
     const nullableBoolCalls = [ 'safeBool', 'safeBool2', 'safeBoolN' ];
     const lines = content.split ('\n');
     // the return types every in-file declaration of a method gives it
@@ -8394,9 +8444,11 @@ export function csharpStringAddEqualityTruth (content: string): string {
             }
             return typeOf (region, line, inner, depth + 1);
         }
-        const call = /^((?:this|Precise)\.)?([A-Za-z_]\w*)\(/.exec (m);
+        const call = /^((?:this|Precise|base)\.)?([A-Za-z_]\w*)\(/.exec (m);
         if ((call !== null) && (csharpHelperCallEnd (m, call[0].length - 1) === m.length - 1)) {
             const name = call[2];
+            // `base.f(...)` binds the Exchange declaration: only the table proves it
+            if (call[1] === 'base.') return stringCalls.includes (name) ? 'string' : undefined;
             if (call[1] === 'this.') {
                 if (returnsOf (name, stringCalls, [ 'string', 'string?' ])) return 'string';
                 if (returnsOf (name, nullableBoolCalls, [ 'bool?' ])) return 'bool?';
@@ -8681,6 +8733,16 @@ export function stringAddEqualityTruthSelfTest (): string[] {
         + body.split ('\n').map ((l) => '        ' + l).join ('\n') + '\n    }\n}\n';
     const check = snippetChecker (problems, 'string add equality truth self', (body) => csharpStringAddEqualityTruth (wrap (body)), csharpStringAddEqualityTruth);
     check ('string param left', 'object q = add(b, a);', 'object q = (b + a);');
+    const enc = snippetChecker (problems, 'string encode call args', (body) => csharpStringEncodeIdentity (wrap (body)));
+    enc ('literal', 'object q = this.encode("x");', 'object q = "x";');
+    enc ('numberToString', 'object q = this.encode(this.numberToString(a));', 'object q = this.numberToString(a);');
+    enc ('string concat', 'object q = this.encode(((b + c) + b));', 'object q = ((b + c) + b);');
+    enc ('ToUpper of a credential', 'object q = this.encode(this.secret.ToUpper());', 'object q = this.secret.ToUpper();');
+    enc ('object param keeps encode', 'object q = this.encode(a);', 'object q = this.encode(a);');
+    enc ('object concat keeps encode', 'object q = this.encode((b + a));', 'object q = this.encode((b + a));');
+    enc ('untyped call keeps encode', 'object q = this.encode(this.hash(b));', 'object q = this.encode(this.hash(b));');
+    check ('base string call left', 'return ((string?)((object)(add(add(base.safeCurrencyCode(a), \".\"), c))));', 'return ((string?)((object)(((base.safeCurrencyCode(a) + \".\") + c))));');
+    check ('base untyped call left keeps helper', 'return add(base.safeValue(a, \"k\"), c);', 'return add(base.safeValue(a, \"k\"), c);');
     check ('binaryToBase16 box accumulates natively', 'object h = this.binaryToBase16(a);\nobject d = add(add(h, \"00\"), this.intToBase16(a));\nd = add(d, \"01\");', 'd = (d + \"01\");');
     check ('uuid5 string result left', 'string? q = this.uuid5(c, "x");\nobject d = add(this.uuid5(c, "y"), "-");', '(this.uuid5(c, "y") + "-")');
     check ('implodeHostname box keeps helper', 'object u = this.implodeHostname(a);\nobject d = add(u, \"/x\");', 'add(u, \"/x\")');
