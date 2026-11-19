@@ -1075,6 +1075,8 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS, {
     'retrieveCredentials': 'IDictionary<string, object>',
     'handleRouteAndParams': 'Dictionary<string, object>',
     'handlePaginationParams': 'Dictionary<string, object>', // bullish only: both returns are this.extend / paramsExtended
+    // single base declaration, no override: parseBorrowRate rows -> sortBy<T> -> filterByCurrencySinceLimit<T>
+    'parseBorrowRateHistory': 'List<Dictionary<string, object>>',
 });
 
 // subscribeRequest / unsubscribeRequest: declared only in pro/paradex, each single return a dict literal,
@@ -1518,7 +1520,10 @@ export function installCsharpCollectionReturns (transpiler) {
         // hands back the mapped box on every path, so the boundary cast would be an identity box
         const accumulator = (mapped === 'List<Dictionary<string, object>>') && node.expression?.kind === ts.SyntaxKind.Identifier
             && dictListAccumulator (csharp, (indexScope (csharp, enclosing).identifiers.get (node.expression.text) ?? []).find ((n) => n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n)?.parent);
-        if (mapped === undefined || !node.expression || accumulator || csharp84c6ReturnIsTyped (csharp, node.expression, mapped) || collectionReturnIsTyped (csharp, node.expression, mapped) || callReturnIsMapped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
+        const sortedFilter = (mapped === 'List<Dictionary<string, object>>') && node.expression?.kind === ts.SyntaxKind.CallExpression && node.expression.arguments?.[0]?.kind === ts.SyntaxKind.Identifier
+            && dictListGenericFilterOf (node.expression, node.expression.arguments[0].text)
+            && dictListSortedLocal (csharp, (indexScope (csharp, enclosing).identifiers.get (node.expression.arguments[0].text) ?? []).find ((n) => n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n)?.parent);
+        if (mapped === undefined || !node.expression || accumulator || sortedFilter || csharp84c6ReturnIsTyped (csharp, node.expression, mapped) || collectionReturnIsTyped (csharp, node.expression, mapped) || callReturnIsMapped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
             return upstreamReturnStatement (node, identation);
         }
         // the printed expression keeps its upstream shape; the cast only names the box
@@ -1531,7 +1536,7 @@ export function installCsharpCollectionReturns (transpiler) {
     const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
     csharp.printVariableDeclarationList = (node, identation) => {
         const printed = upstreamDeclaration (node, identation);
-        if (node?.declarations?.length === 1 && dictListCallLocal (node.declarations[0])) {
+        if (node?.declarations?.length === 1 && (dictListCallLocal (node.declarations[0]) || dictListSortedLocal (csharp, node.declarations[0]))) {
             return printed.replace (/^(\s*)List<object> (\w+) = this\./, '$1List<Dictionary<string, object>> $2 = this.');
         }
         if (node?.declarations?.length !== 1 || !dictListAccumulator (csharp, node.declarations[0])) {
@@ -8468,6 +8473,9 @@ function dictListAccumulator (csharp, declaration) {
         if (use === declaration.name || (parent?.kind === ts.SyntaxKind.ReturnStatement && enclosingFunction (use) === scope)) {
             continue;
         }
+        if (dictListSortedLocal (csharp, dictListSortCall (use)?.parent, false)) {
+            continue;
+        }
         const call = parent?.parent;
         if (parent?.kind !== ts.SyntaxKind.PropertyAccessExpression || parent.expression !== use || parent.name?.text !== 'push'
                 || call?.kind !== ts.SyntaxKind.CallExpression || call.expression !== parent || call.arguments?.length !== 1
@@ -8477,6 +8485,48 @@ function dictListAccumulator (csharp, declaration) {
         pushed = true;
     }
     return pushed;
+}
+
+// `this.sortBy (<use>, ...)` with `use` as its first argument, else undefined
+function dictListSortCall (use) {
+    const call = use?.parent;
+    const callee = call?.expression;
+    return (call?.kind === ts.SyntaxKind.CallExpression && call.arguments?.[0] === use && callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && callee.expression?.kind === ts.SyntaxKind.ThisKeyword && callee.name?.text === 'sortBy') ? call : undefined;
+}
+
+// generic List<T> filterBy*SinceLimit<T>(IList<T> ...) (genericFilterFamily) over `sorted`
+const DICT_LIST_GENERIC_FILTERS = [ 'filterBySinceLimit', 'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit' ];
+
+function dictListGenericFilterOf (node, name) {
+    const call = stripParens (node);
+    const callee = call?.expression;
+    const first = call?.arguments?.[0];
+    return call?.kind === ts.SyntaxKind.CallExpression && callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+        && DICT_LIST_GENERIC_FILTERS.includes (callee.name?.text) && first?.kind === ts.SyntaxKind.Identifier && first.text === name;
+}
+
+// `const sorted = this.sortBy (acc, ...)` in a dict-list method, `acc` a proven dict-list
+// accumulator, read only by `return this.filterBy*SinceLimit (sorted, ...)`: generic sortBy<T>
+// binds T = Dictionary, so the local holds the accumulator's element type
+function dictListSortedLocal (csharp, declaration, checkSource = true) {
+    const scope = enclosingFunction (declaration);
+    const call = stripParens (declaration?.initializer);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || call === undefined
+            || dictListSortCall (call.arguments?.[0]) !== call || call.arguments[0].kind !== ts.SyntaxKind.Identifier
+            || scope?.kind !== ts.SyntaxKind.MethodDeclaration || collectionReturnType (csharp, scope, 'object') !== 'List<Dictionary<string, object>>') {
+        return false;
+    }
+    const name = declaration.name.text;
+    const uses = (indexScope (csharp, scope).identifiers.get (name) ?? []).filter ((n) => n !== declaration.name);
+    if (uses.length === 0 || !uses.every ((use) => enclosingFunction (use) === scope && use.parent?.parent?.kind === ts.SyntaxKind.ReturnStatement && dictListGenericFilterOf (use.parent, name))) {
+        return false;
+    }
+    if (!checkSource) {
+        return true;
+    }
+    const source = (indexScope (csharp, scope).identifiers.get (call.arguments[0].text) ?? []).find ((n) => n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n)?.parent;
+    return dictListAccumulator (csharp, source);
 }
 
 // ---- element reads of a narrowed string-list PARAMETER -----------------------------
