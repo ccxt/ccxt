@@ -11743,6 +11743,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
     content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeBalanceSelfRebind (goSafeListSliceReads (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content))))))))))));
     content = goTypedGvMapReads (content);
+    content = path.endsWith ('.go') ? goHashmapRowReads (content) : content;
     content = goTypedNativeDerefs (path, content);
     content = goTypedStrNativeStringHelpers (path, content);
     content = path.endsWith ('.go') ? goNativeStringAdds (goRetypeNonNilStringMethods (content)) : content;  // row reads exist only from here
@@ -15434,7 +15435,7 @@ async function runMain () {
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
             goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ],
             [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
-            goTernaryAnyTypedCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ]
+            goTernaryAnyTypedCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
@@ -16179,6 +16180,41 @@ function goSafeListSliceReads (content: string): string {
         call.lastIndex = cursor;
     }
     return out + content.substring (cursor);
+}
+
+// `var m map[string]any = SafeMapTyped(c.(*ArrayCache).Hashmap, k)` (Hashmap is map[string]map[string]any) is
+// the native row read when k is a once-declared string (or *string, nil -> nil map); a missing or nil row is
+// the nil map SafeMapTyped answers. The cache assertion is evaluated exactly once in both forms.
+function goHashmapRowReads (content: string): string {
+    const re = /^(\t+)var (\w+) map\[string\]any = (?:ccxt\.)?SafeMapTyped\(((?:this\.)?\w+\.\((?:\*ccxt\.|\*)ArrayCache\)\.Hashmap), (\w+)\)$/gm;
+    return content.replace (re, (line: string, ind: string, name: string, rows: string, key: string, at: number) => {
+        const body = goEnclosingFuncText (content, at);
+        const header = body.substring (0, body.indexOf ('{\n') + 1);
+        const declared = (type: string) => goOnceDeclaredAs (body, key, type, '')
+            || (!new RegExp ('\\bvar ' + key + ' |(?<![.\\w])' + key + '(?:, \\w+)? :=').test (body) && new RegExp ('[(,] ?' + key + ' ' + type.replace ('*', '\\*') + '[,)]').test (header));
+        if (declared ('string')) {
+            return ind + 'var ' + name + ' map[string]any = ' + rows + '[' + key + ']';
+        }
+        if (declared ('*string')) {
+            return ind + 'var ' + name + ' map[string]any = nil\n' + ind + 'if byKey := ' + rows + '; ' + key + ' != nil {\n' + ind + '\t' + name + ' = byKey[*' + key + ']\n' + ind + '}';
+        }
+        return line;
+    });
+}
+
+function goHashmapRowReadsSelfTest (ok: SelfTestOk): void {
+    const f = (sig: string, body: string) => '\nfunc (this *X) F(' + sig + ') {\n' + body + '}\n';
+    const read = '\tvar o map[string]any = ccxt.SafeMapTyped(c.(*ccxt.ArrayCache).Hashmap, s)\n';
+    const str = goHashmapRowReads (f ('c any', '\tvar s string = \"a\"\n' + read));
+    ok (str.includes ('\tvar o map[string]any = c.(*ccxt.ArrayCache).Hashmap[s]\n'), 'string local: ' + str);
+    const par = goHashmapRowReads (f ('s string', '\tvar o map[string]any = SafeMapTyped(this.P.(*ArrayCache).Hashmap, s)\n'));
+    ok (par.includes ('\tvar o map[string]any = this.P.(*ArrayCache).Hashmap[s]\n'), 'string param: ' + par);
+    const ptr = goHashmapRowReads (f ('c any', '\tvar s *string = this.SafeString(c, \"k\")\n' + read));
+    ok (ptr.includes ('\tvar o map[string]any = nil\n\tif byKey := c.(*ccxt.ArrayCache).Hashmap; s != nil {\n\t\to = byKey[*s]\n\t}\n'), '*string local: ' + ptr);
+    const keep = [ f ('c any, s any', read), f ('c any', '\tvar s any = \"a\"\n' + read), f ('c any', '\tvar s string = \"a\"\n\ts := 1\n' + read),
+        f ('c any', '\tvar s string = \"a\"\n\tvar o map[string]any = ccxt.SafeMapTyped(c.(*ccxt.ArrayCacheByTimestamp).Hashmap, s)\n') ];
+    keep.forEach ((b, i) => ok (goHashmapRowReads (b) === b, 'negative ' + i));
+    ok (goHashmapRowReads (str) === str, 'idempotent');
 }
 
 // `x = MapTyped(this.SafeBalance(x))` of a once-declared map[string]any local is the bare call: the base
