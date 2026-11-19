@@ -8110,6 +8110,64 @@ function lendMarketStringMembers(content: string): string {
 }
 //
 // unit slot 064
+// `let mut x: Option<Cache> = self.f.clone();` is a second handle on the same cache: when every later use of `x`
+// is a borrow / method receiver / plain reassignment stored straight back, the fn awaits nothing and calls no
+// `&mut self` method, `x` is the field itself, so its reads and writes go to `self.f` and the copy goes away.
+const RUST_WS_CACHE_FIELDS = ['orders', 'myTrades', 'positions', 'liquidations', 'myLiquidations'];
+function wsCacheFieldAliases(content: string): string {
+    const lines = content.split('\n');
+    const mutFns = new Set<string>(['parse_ws_balance', 'parse_ws_balances', 'extend_exchange_options', 'safe_deterministic_call']);
+    for (const m of content.matchAll(/\bfn (\w+)(?:<[^(]*>)?\(&mut self/g)) mutFns.add(m[1]);
+    const decl = new RegExp(`^(\\s*)let mut (\\w+): Option<crate::pro::cache::Cache> = self\\.(${RUST_WS_CACHE_FIELDS.join('|')})\\.clone\\(\\);$`);
+    const fnHead = /^ {4}(?:pub )?(?:async )?fn \w+(?:<[^>]*>)?\((&(?:'\w+ )?mut self|&self)?/;
+    let recvMut = false;
+    for (let i = 0; i < lines.length; i++) {
+        const h = fnHead.exec(lines[i]);
+        if (h) recvMut = (h[1] ?? '').includes('mut');
+        const m = decl.exec(lines[i]);
+        if (!m) continue;
+        const [, , x, f] = m;
+        let end = i + 1;
+        while (end < lines.length && !/^(\}$|    (pub )?(async )?fn )/.test(lines[end])) end++;
+        const word = new RegExp(`(?<![\\w.:"])${x}\\b(?!")`, 'g');
+        const has = new RegExp(word.source);
+        const code = (s: string) => /^\s*\/\//.test(s) ? '' : s.replace(/"(?:\\.|[^"\\])*"/g, '""');
+        let last = i;
+        for (let j = i + 1; j < end; j++) if (has.test(code(lines[j]))) last = j;
+        const seg = lines.slice(i + 1, last + 1).map(code);
+        const store = new RegExp(`^\\s*self\\.${f} = ${x}(?:\\.clone\\(\\))?;$`);
+        let ok = last > i;
+        for (let k = 0; ok && k < seg.length; k++) {
+            const s = seg[k];
+            if (/\bunsafe\b|=>|\|/.test(s) && has.test(s)) ok = false;
+            if (/\.await\b/.test(s)) ok = false;
+            for (const c of s.matchAll(/\bself\.(\w+)\(/g)) if (mutFns.has(c[1])) ok = false;
+            if (new RegExp(`\\bself\\.${f}\\s*=[^=]`).test(s) && !store.test(s)) ok = false;
+            if (new RegExp(`\\blet (?:mut )?${x}\\b`).test(s)) ok = false;
+            if (store.test(s)) continue;
+            const assign = new RegExp(`^\\s*${x} = [^=]`).test(s);
+            if (assign && !(recvMut && k + 1 < seg.length && store.test(seg[k + 1]))) ok = false;
+            for (const u of s.matchAll(word)) {
+                const at = u.index as number, before = s.slice(0, at), after = s.slice(at + x.length);
+                if (assign && before.trim() === '') continue;
+                if (before.endsWith('&')) continue;
+                if (/^\.(is_none|is_some|hashmap)\(/.test(after)) continue;
+                // `self.f.append(..)` derefs `self` mutably first: its arguments may not read `self`
+                if (recvMut && /^\.(append|clear|get_limit)\(/.test(after) && !/\bself\b/.test(s)) continue;
+                ok = false;
+            }
+            if (/\b(append|clear|get_limit)\(/.test(s) && !recvMut) ok = false;
+        }
+        if (!ok) continue;
+        lines[i] = '\u0000';
+        for (let j = i + 1; j <= last; j++) {
+            if (store.test(code(lines[j]))) { lines[j] = '\u0000'; continue; }
+            if (/^\s*\/\//.test(lines[j])) continue;
+            lines[j] = lines[j].split(/("(?:\\.|[^"\\])*")/).map((p, n) => n % 2 ? p : p.replace(word, `self.${f}`)).join('');
+        }
+    }
+    return lines.filter(l => l !== '\u0000').join('\n');
+}
 //
 // unit slot 065
 //
@@ -8661,6 +8719,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendMarketStringMembers,
     //
     // pass slot 064
+    wsCacheFieldAliases,
     //
     // pass slot 065
     //
