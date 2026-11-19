@@ -187,7 +187,9 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	if (currentSymbol != nil) && !ccxt.IsEqual(currentSymbol, symbol) {
 		panic(ccxt.ArgumentsRequired(this.Id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance"))
 	}
-	ccxt.AddElementToObject(this.Options["watchTrades"], "symbol", symbol)
+	var watchTradesDict map[string]any = this.SafeDictMap(this.Options, "watchTrades", map[string]any{})
+	ccxt.AddElementToObject(watchTradesDict, "symbol", symbol)
+	this.Options["watchTrades"] = watchTradesDict
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -985,7 +987,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var storedOrders ccxt.WsArrayCache = this.Orders
-	var ordersBySymbol map[string]any = ccxt.SafeMapTyped(storedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
+	var ordersBySymbol map[string]any = storedOrders.(*ccxt.ArrayCache).Hashmap[symbol]
 	var order any = this.SafeValue(ordersBySymbol, orderId)
 	if ccxt.IsEqual(order, nil) {
 		order = this.ParseWsOrderUpdate(data, market)
@@ -1333,8 +1335,8 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(data, "time")
-	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
-	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
+	var asks []any = this.SafeListSlice(data, "asks", []any{})
+	var bids []any = this.SafeListSlice(data, "bids", []any{})
 	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
 	this.HandleDeltas(storedOrderBook.GetBids(), bids)
 	storedOrderBook.SetTimestamp(timestamp)
@@ -1348,7 +1350,7 @@ func (this *Cex) HandleDelta(bookside any, delta any) {
 }
 func (this *Cex) HandleDeltas(bookside any, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
 
@@ -1445,7 +1447,7 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	var symbol string = *base + "/" + *quote
 	var market map[string]any = this.SafeMarket(symbol)
 	var messageHash string = "ohlcv:" + symbol
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = this.SafeListSlice(message, "data", []any{})
 	if _, ok := this.Ohlcvs[symbol]; !ok {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}

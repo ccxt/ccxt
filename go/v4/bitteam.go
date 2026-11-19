@@ -518,7 +518,7 @@ func (this *Bitteam) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var markets []any = SafeListTypedDefault(result, "pairs", []any{})
+	var markets []any = this.SafeListSlice(result, "pairs", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -711,7 +711,7 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//     }
 	//
 	var responseResult map[string]any = SafeMapTyped(response, "result")
-	var currencies []any = SafeListTypedDefault(responseResult, "currencies", []any{})
+	var currencies []any = this.SafeListSlice(responseResult, "currencies", []any{})
 	// using another endpoint to fetch statuses of deposits and withdrawals
 
 	r1 := <-this.PublicGetTradeApiCmcAssets()
@@ -917,7 +917,7 @@ func (this *Bitteam) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTypedDefault(result, "data", []any{})
+	var data []any = this.SafeListSlice(result, "data", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1147,7 +1147,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var orders []any = SafeListTypedDefault(result, "orders", []any{})
+	var orders []any = this.SafeListSlice(result, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2439,7 +2439,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var trades []any = SafeListTypedDefault(result, "trades", []any{})
+	var trades []any = this.SafeListSlice(result, "trades", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2802,7 +2802,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var transactions []any = SafeListTypedDefault(result, "transactions", []any{})
+	var transactions []any = this.SafeListSlice(result, "transactions", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit))}
 	return nil

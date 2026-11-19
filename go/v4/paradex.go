@@ -873,7 +873,7 @@ func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "results", []any{})
+	var data []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(data))}
 	return nil
@@ -1362,7 +1362,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "results", []any{})
+	var data []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1442,7 +1442,7 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "results", []any{})
+	var data []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -1614,7 +1614,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "results", []any{})
+	var data []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
@@ -1878,7 +1878,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//         ]
 	//     }
 	//
-	var trades []any = SafeListTypedDefault(response, "results", []any{})
+	var trades []any = this.SafeListSlice(response, "results", []any{})
 	for i := 0; i < len(trades); i++ {
 		AddElementToObject(trades[i], "next", this.SafeString(response, "next"))
 	}
@@ -2055,12 +2055,12 @@ func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) OpenIn
 		"info":               interest,
 	}, marketResolved)
 }
-func (this *Paradex) HashMessage(message any) any {
+func (this *Paradex) HashMessage(message any) string {
 	var hashed string = this.HashString(message, keccak, "hex")
 	return "0x" + hashed
 }
-func (this *Paradex) SignHash(hash any, privateKey string) string {
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+func (this *Paradex) SignHash(hash string, privateKey string) string {
+	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -3507,7 +3507,7 @@ func (this *Paradex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	//     ]
 	//   }
 	//
-	var orders []any = SafeListTypedDefault(response, "results", []any{})
+	var orders []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -3560,7 +3560,7 @@ func (this *Paradex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "results", []any{})
+	var data []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 	return nil
@@ -3680,7 +3680,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//         ]
 	//     }
 	//
-	var trades []any = SafeListTypedDefault(response, "results", []any{})
+	var trades []any = this.SafeListSlice(response, "results", []any{})
 	for i := 0; i < len(trades); i++ {
 		AddElementToObject(trades[i], "next", this.SafeString(response, "next"))
 	}
@@ -3955,7 +3955,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "results", []any{})
+	var data []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(data, market, since, limit))}
 	return nil
@@ -4309,7 +4309,7 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//         ]
 	//     }
 	//
-	var rows []any = SafeListTypedDefault(response, "results", []any{})
+	var rows []any = this.SafeListSlice(response, "results", []any{})
 	// the cursor pagination reads the next page cursor from the parsed entries
 	var next *string = this.SafeString(response, "next")
 	for i := 0; i < len(rows); i++ {
@@ -4868,7 +4868,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 	//         ]
 	//     }
 	//
-	var results []any = SafeListTypedDefault(response, "results", []any{})
+	var results []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(results, symbolsNormalized))}
 	return nil
@@ -5032,7 +5032,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 	//     ]
 	// }
 	//
-	var results []any = SafeListTypedDefault(response, "results", []any{})
+	var results []any = this.SafeListSlice(response, "results", []any{})
 	// the cursor pagination reads the next page cursor from the parsed entries
 	var next *string = this.SafeString(response, "next")
 	for i := 0; i < len(results); i++ {

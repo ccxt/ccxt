@@ -1355,7 +1355,7 @@ func (this *Bingx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opti
 	//            },
 	//            ...
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(data)}
 	return nil
@@ -1452,7 +1452,7 @@ func (this *Bingx) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var markets []any = SafeListTypedDefault(data, "symbols", []any{})
+	var markets []any = this.SafeListSlice(data, "symbols", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1502,7 +1502,7 @@ func (this *Bingx) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//        ]
 	//    }
 	//
-	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var markets []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1539,7 +1539,7 @@ func (this *Bingx) fetchInverseSwapMarketsBody(ch chan AsyncResult[[]MarketInter
 	//         ]
 	//     }
 	//
-	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var markets []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1707,9 +1707,9 @@ func (this *Bingx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		panic(r.Err)
 	}
 	var promises []any = r.Value
-	var linearSwapMarkets []any = SafeListTypedDefault(promises, 0, []any{})
-	var inverseSwapMarkets []any = SafeListTypedDefault(promises, 1, []any{})
-	var spotMarkets []any = SafeListTypedDefault(promises, 2, []any{})
+	var linearSwapMarkets []any = this.SafeListSlice(promises, 0, []any{})
+	var inverseSwapMarkets []any = this.SafeListSlice(promises, 1, []any{})
+	var spotMarkets []any = this.SafeListSlice(promises, 2, []any{})
 	var swapMarkets []any = this.ArrayConcat(linearSwapMarkets, inverseSwapMarkets)
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(spotMarkets, swapMarkets))}
@@ -2046,7 +2046,7 @@ func (this *Bingx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	//      ]
 	//    }
 	//
-	var trades []any = SafeListTypedDefault(response, "data", []any{})
+	var trades []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2551,7 +2551,7 @@ func (this *Bingx) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 		}
 		response = r2.Value
 	}
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
@@ -2689,7 +2689,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 	//        ]
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(data, market, since, limit))}
 	return nil
@@ -2823,7 +2823,7 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 	//                 }
 	//             ]
 	//         }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(data, market, since, limit))}
 	return nil
@@ -3815,7 +3815,7 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sym
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var records []any = SafeListTypedDefault(data, "positionHistory", []any{})
+	var records []any = this.SafeListSlice(data, "positionHistory", []any{})
 	var positions []any = this.ParsePositions(records)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySymbolSinceLimit(positions, symbol, since, limit))}
@@ -3888,7 +3888,7 @@ func (this *Bingx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 			response = r3.Value
 		}
 	}
-	var positions []any = SafeListTypedDefault(response, "data", []any{})
+	var positions []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbolsNormalized))}
 	return nil
@@ -4833,7 +4833,7 @@ func (this *Bingx) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, 
 		response = parsedResponse
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result []any = SafeListTypedDefault(data, "orders", []any{})
+	var result []any = this.SafeListSlice(data, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market))}
 	return nil
@@ -5941,7 +5941,7 @@ func (this *Bingx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ..
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "orders", []any{})
+	var orders []any = this.SafeListSlice(data, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -6605,7 +6605,7 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 	//         ]
 	//     }
 	//
-	var rows []any = SafeListTypedDefault(response, "rows", []any{})
+	var rows []any = this.SafeListSlice(response, "rows", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit))}
 	return nil
@@ -6701,7 +6701,7 @@ func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[st
 	//         }
 	//     }
 	//
-	var data []any = SafeListTypedDefault(this.SafeDict(response, "data"), "data", []any{})
+	var data []any = this.SafeListSlice(this.SafeDict(response, "data"), "data", []any{})
 	var parsed []any = this.ParseDepositAddresses(data, []any{currency["code"]}, false)
 
 	ch <- AsyncResult[map[string]DepositAddress]{Value: DepositAddressMapFromMap(this.IndexBy(parsed, "network"))}
@@ -8641,7 +8641,7 @@ func (this *Bingx) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTi
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ParseMarketLeverageTiers(data, market))}
 	return nil
@@ -8693,7 +8693,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 	var access string = section[2]
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var url string = this.ImplodeHostname(this.UrlsApi[typeVar])
-	if (isSandbox != nil && *isSandbox) && IsEqual(url, nil) {
+	if (isSandbox != nil && *isSandbox) && false {
 		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + typeVar + " endpoints"))
 	}
 	var pathValue string = this.ImplodeParams(path, params)

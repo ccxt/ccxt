@@ -450,8 +450,8 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
 	} else {
-		var asks []any = ccxt.SafeListTypedDefault(data, "a", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(data, "b", []any{})
+		var asks []any = this.SafeListSlice(data, "a", []any{})
+		var bids []any = this.SafeListSlice(data, "b", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -467,7 +467,7 @@ func (this *Apex) HandleDelta(bookside any, delta any) {
 }
 func (this *Apex) HandleDeltas(bookside any, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
 
@@ -1526,15 +1526,15 @@ func (this *Apex) HandlePing(client any, message map[string]any) {
 }
 func (this *Apex) HandleAccount(client any, message map[string]any) {
 	var contents map[string]any = ccxt.SafeMapTyped(message, "contents")
-	var fills []any = ccxt.SafeListTypedDefault(contents, "fills", []any{})
+	var fills []any = this.SafeListSlice(contents, "fills", []any{})
 	if fills != nil {
 		this.HandleMyTrades(client, fills)
 	}
-	var positions []any = ccxt.SafeListTypedDefault(contents, "positions", []any{})
+	var positions []any = this.SafeListSlice(contents, "positions", []any{})
 	if positions != nil {
 		this.HandlePositions(client, positions)
 	}
-	var orders []any = ccxt.SafeListTypedDefault(contents, "orders", []any{})
+	var orders []any = this.SafeListSlice(contents, "orders", []any{})
 	if orders != nil {
 		this.HandleOrder(client, orders)
 	}

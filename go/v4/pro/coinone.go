@@ -154,8 +154,8 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 		orderbook.Reset()
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
-	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
+	var asks []any = this.SafeListSlice(data, "asks", []any{})
+	var bids []any = this.SafeListSlice(data, "bids", []any{})
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	orderbook.SetTimestamp(timestamp)

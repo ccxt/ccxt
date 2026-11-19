@@ -959,7 +959,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) Order {
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
-	var rawTrades []any = SafeListTypedDefault(order, "operations", []any{})
+	var rawTrades []any = this.SafeListSlice(order, "operations", []any{})
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1291,7 +1291,7 @@ func (this *Mercado) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	}
 	var response map[string]any = r1.Value
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
+	var orders []any = this.SafeListSlice(responseData, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1345,7 +1345,7 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	var response map[string]any = r1.Value
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
+	var orders []any = this.SafeListSlice(responseData, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1399,7 +1399,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	}
 	var response map[string]any = r1.Value
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var ordersRaw []any = SafeListTypedDefault(responseData, "orders", []any{})
+	var ordersRaw []any = this.SafeListSlice(responseData, "orders", []any{})
 	var orders []any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 

@@ -4571,7 +4571,7 @@ func (this *Mexc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		//         "code": "0"
 		//     }
 		//
-		var data []any = SafeListTypedDefault(swapResponse, "data", []any{})
+		var data []any = this.SafeListSlice(swapResponse, "data", []any{})
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 		return nil
@@ -6817,7 +6817,7 @@ func (this *Mexc) closeAllPositionsBody(ch chan AsyncResult[[]Position], optiona
 	//         "data": []
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data))}
 	return nil
@@ -6928,7 +6928,7 @@ func (this *Mexc) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, symbols))}
 	return nil
@@ -7960,7 +7960,7 @@ func (this *Mexc) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
@@ -8114,7 +8114,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 	//        ]
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var positions []any = this.ParsePositions(data, symbols, params)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}

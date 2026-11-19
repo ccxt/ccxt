@@ -401,7 +401,7 @@ func (this *P2b) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 	//        ]
 	//    }
 	//
-	var markets []any = SafeListTypedDefault(response, "result", []any{})
+	var markets []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -803,7 +803,7 @@ func (this *P2b) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 	//        current_time: '1699255571.413828'
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -952,7 +952,7 @@ func (this *P2b) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	//        current_time: '1699256375.030494'
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, since, limit))}
 	return nil
@@ -1293,7 +1293,7 @@ func (this *P2b) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//        ]
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, since, limit))}
 	return nil
@@ -1374,7 +1374,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 	//    }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var records []any = SafeListTypedDefault(result, "records", []any{})
+	var records []any = this.SafeListSlice(result, "records", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(records, market, since, limit))}
 	return nil
@@ -1487,7 +1487,7 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	//    }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var deals []any = SafeListTypedDefault(result, "deals", []any{})
+	var deals []any = this.SafeListSlice(result, "deals", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(deals, market, sinceResolved, limit))}
 	return nil

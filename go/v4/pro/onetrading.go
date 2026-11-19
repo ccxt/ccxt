@@ -550,7 +550,7 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks")
 		orderbook.Reset(snapshot)
 	} else if typeVar == "ORDER_BOOK_UPDATE" {
-		var changes []any = ccxt.SafeListTypedDefault(message, "changes", []any{})
+		var changes []any = this.SafeListSlice(message, "changes", []any{})
 		this.HandleBookDeltas(orderbook, changes)
 	} else {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook() did not recognize message type " + typeVar))

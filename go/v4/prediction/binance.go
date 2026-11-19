@@ -1462,7 +1462,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	//     ]
 	// }
 	//
-	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
+	var orders []any = this.SafeListSlice(response, "orders", []any{})
 	var parsedOrders []any = this.ParsePredictionOrders(orders, outcomeObj, since)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(parsedOrders, outcome, since, limit))}
@@ -1594,7 +1594,7 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	//     ]
 	// }
 	//
-	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
+	var orders []any = this.SafeListSlice(response, "orders", []any{})
 	var parsedOrders []any = this.ParsePredictionOrders(orders, outcomeObj, since)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(parsedOrders, outcome, since, limit))}
@@ -1703,7 +1703,7 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	//     ]
 	// }
 	//
-	var data []any = ccxt.SafeListTypedDefault(response, "positions", []any{})
+	var data []any = this.SafeListSlice(response, "positions", []any{})
 	if outcomes == nil {
 
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(data))}
@@ -1772,7 +1772,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 	var response map[string]any = r2.Value
 	//
 	//
-	var positions []any = ccxt.SafeListTypedDefault(response, "positions", []any{})
+	var positions []any = this.SafeListSlice(response, "positions", []any{})
 	var parsedPositions []any = this.ParsePredictionPositions(positions)
 	var filteredPositions []any = ccxt.ArrayTyped(this.FilterByOutcomeSinceLimit(parsedPositions, outcome, nil, nil))
 
@@ -1960,7 +1960,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	//     ]
 	// }
 	//
-	var trades []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
+	var trades []any = this.SafeListSlice(response, "orders", []any{})
 	var parsedTrades []any = this.ParsePredictionTrades(trades, outcomeObj)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByOutcomeSinceLimit(parsedTrades, outcome, since, limit))}

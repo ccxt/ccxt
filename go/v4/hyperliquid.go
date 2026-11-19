@@ -526,7 +526,7 @@ func (this *Hyperliquid) fetchCurrenciesBody(ch chan AsyncResult[map[string]any]
 	//     ]
 	//
 	// const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
-	var tokens []any = SafeListTypedDefault(response, "tokens", []any{})
+	var tokens []any = this.SafeListSlice(response, "tokens", []any{})
 	// const meta = this.safeList (response, 'universe', []);
 	this.Options["cachedCurrenciesById"] = map[string]any{} // used to map hip3 markets
 
@@ -538,7 +538,15 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "index")
 	var name *string = this.SafeString(rawCurrency, "name")
 	var code *string = this.SafeCurrencyCode(name)
-	AddElementToObject(this.Options["cachedCurrenciesById"], id, name)
+	var cachedCurrenciesByIdDict1 map[string]any = this.SafeDictMap(this.Options, "cachedCurrenciesById", map[string]any{})
+	if id != nil {
+		if name != nil {
+			cachedCurrenciesByIdDict1[*id] = *name
+		} else {
+			cachedCurrenciesByIdDict1[*id] = nil
+		}
+	}
+	this.Options["cachedCurrenciesById"] = cachedCurrenciesByIdDict1
 	var result map[string]any = this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"name":      name,
@@ -574,7 +582,13 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) map[string]any {
 			}
 			var baseCode *string = this.SafeCurrencyCode(nameWithoutU)
 			if code != nil {
-				AddElementToObject(this.Options["spotCurrencyMapping"], code, baseCode)
+				var spotCurrencyMappingDict2 map[string]any = this.SafeDictMap(this.Options, "spotCurrencyMapping", map[string]any{})
+				if baseCode != nil {
+					spotCurrencyMappingDict2[*code] = *baseCode
+				} else {
+					spotCurrencyMappingDict2[*code] = nil
+				}
+				this.Options["spotCurrencyMapping"] = spotCurrencyMappingDict2
 			}
 		}
 	}
@@ -1002,7 +1016,7 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterf
 	// ]
 	//
 	var first map[string]any = SafeMapTyped(response, 0)
-	var second []any = SafeListTypedDefault(response, 1, []any{})
+	var second []any = this.SafeListSlice(response, 1, []any{})
 	var meta []any = SafeListTyped(first, "universe")
 	var tokens []any = SafeListTyped(first, "tokens")
 	// a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
@@ -1865,7 +1879,9 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	candlesResponse := r1.Value
+	var candles []any = this.InfoList(candlesResponse)
+
 	//
 	//     [
 	//         {
@@ -1882,11 +1898,6 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol str
 	//         }
 	//     ]
 	//
-	var candles []any = []any{}
-	if IsArray(response) {
-		candles = ArrayTyped(response)
-	}
-
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, originalSince, limit, useTail))}
 	return nil
 }
@@ -1972,7 +1983,9 @@ func (this *Hyperliquid) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol an
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	fillsResponse := r1.Value
+	var fills []any = this.InfoList(fillsResponse)
+
 	//
 	//     [
 	//         {
@@ -1993,11 +2006,6 @@ func (this *Hyperliquid) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol an
 	//         }
 	//     ]
 	//
-	var fills []any = []any{}
-	if IsArray(response) {
-		fills = ArrayTyped(response)
-	}
-
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(fills, market, since, limit))}
 	return nil
 }
@@ -2027,7 +2035,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	retStr := this.DecimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.PaddingMode)
 	return &retStr
 }
-func (this *Hyperliquid) HashMessage(message any) any {
+func (this *Hyperliquid) HashMessage(message any) string {
 	return "0x" + this.HashString(message, keccak, "hex")
 }
 func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
@@ -3089,7 +3097,7 @@ func (this *Hyperliquid) CreateOrderRequest(symbol string, typeVar *string, side
 	}
 	return orderObj
 }
-func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) CreateOrdersRequest(orders []any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @name hyperliquid#createOrdersRequest
@@ -3104,7 +3112,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 	var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage")
 	defaultSlippage = this.SafeString(params, "slippage", defaultSlippage)
 	var hasClientOrderId bool = false
-	var ordersLength int = GetArrayLength(orders)
+	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
@@ -3995,7 +4003,7 @@ func (this *Hyperliquid) editOrdersBody(ch chan AsyncResult[[]Order], orders []a
 	//
 	var responseObject map[string]any = SafeMapTyped(response, "response")
 	var dataObject map[string]any = SafeMapTyped(responseObject, "data")
-	var statuses []any = SafeListTypedDefault(dataObject, "statuses", []any{})
+	var statuses []any = this.SafeListSlice(dataObject, "statuses", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(statuses))}
 	return nil
@@ -4128,7 +4136,8 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	fundingsResponse := r1.Value
+	var fundings []any = this.InfoList(fundingsResponse)
 	//
 	//     [
 	//         {
@@ -4140,10 +4149,6 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	//     ]
 	//
 	var result []any = []any{}
-	var fundings []any = []any{}
-	if IsArray(response) {
-		fundings = ArrayTyped(response)
-	}
 	for i := 0; i < len(fundings); i++ {
 		var entry map[string]any = SafeMapTyped(fundings, i)
 		var timestamp *int64 = this.SafeInteger(entry, "time")
@@ -4229,7 +4234,8 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	rawOrdersResponse := r1.Value
+	var rawOrders []any = this.InfoList(rawOrdersResponse)
 	//
 	//     [
 	//         {
@@ -4244,10 +4250,6 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optio
 	//     ]
 	//
 	var orderWithStatus []any = []any{}
-	var rawOrders []any = []any{}
-	if IsArray(response) {
-		rawOrders = ArrayTyped(response)
-	}
 	for i := 0; i < len(rawOrders); i++ {
 		var order map[string]any = SafeMapTyped(rawOrders, i)
 		var extendOrder map[string]any = map[string]any{}
@@ -4455,7 +4457,8 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	historicalOrdersResponse := r1.Value
+	var historicalOrders []any = this.InfoList(historicalOrdersResponse)
 	//
 	//     [
 	//         {
@@ -4477,10 +4480,6 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	// so a canceled order appears twice: once as 'open' and once as 'canceled'.
 	// Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
 	var deduplicatedByOid map[string]any = map[string]any{}
-	var historicalOrders []any = []any{}
-	if IsArray(response) {
-		historicalOrders = ArrayTyped(response)
-	}
 	for i := 0; i < len(historicalOrders); i++ {
 		var rawOrder any = historicalOrders[i]
 		var entry any = this.SafeDict(rawOrder, "order", rawOrder)
@@ -4886,7 +4885,9 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	myFillsResponse := r1.Value
+	var myFills []any = this.InfoList(myFillsResponse)
+
 	//
 	//     [
 	//         {
@@ -4908,11 +4909,6 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optiona
 	//         }
 	//     ]
 	//
-	var myFills []any = []any{}
-	if IsArray(response) {
-		myFills = ArrayTyped(response)
-	}
-
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(myFills, market, since, limit))}
 	return nil
 }
@@ -5054,7 +5050,8 @@ func (this *Hyperliquid) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidati
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	infoResponse := r1.Value
+	var response []any = this.InfoList(infoResponse)
 	//
 	//     [
 	//         {
@@ -5082,15 +5079,13 @@ func (this *Hyperliquid) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidati
 	//     ]
 	//
 	var fills []any = []any{}
-	if IsArray(response) {
-		var user *string = this.SafeStringLower(request, "user")
-		for i := 0; i < GetArrayLength(response); i++ {
-			var fill map[string]any = this.SafeDictMap(response, i, map[string]any{})
-			var liquidation map[string]any = SafeMapTyped(fill, "liquidation")
-			// liquidator fills carry the liquidated counterparty here
-			if this.SafeStringLower(liquidation, "liquidatedUser") == user || (this.SafeStringLower(liquidation, "liquidatedUser") != nil && user != nil && *this.SafeStringLower(liquidation, "liquidatedUser") == *user) {
-				fills = append(fills, fill)
-			}
+	var user *string = this.SafeStringLower(request, "user")
+	for i := 0; i < len(response); i++ {
+		var fill map[string]any = this.SafeDictMap(response, i, map[string]any{})
+		var liquidation map[string]any = SafeMapTyped(fill, "liquidation")
+		// liquidator fills carry the liquidated counterparty here
+		if this.SafeStringLower(liquidation, "liquidatedUser") == user || (this.SafeStringLower(liquidation, "liquidatedUser") != nil && user != nil && *this.SafeStringLower(liquidation, "liquidatedUser") == *user) {
+			fills = append(fills, fill)
 		}
 	}
 
@@ -5180,20 +5175,10 @@ func (this *Hyperliquid) GetDexFromSymbols(methodName string, optionalArgs ...an
 	}
 	// the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
 	// so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return symbols[0]
-		}
-		return nil
-	}())
+	var firstMarket map[string]any = this.Market(symbols[0])
 	var dexName any = this.GetDexFromHip3Symbol(firstMarket)
 	for i := 1; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbols) {
-				return symbols[i]
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(symbols[i])
 		var currentDexName any = this.GetDexFromHip3Symbol(market)
 		if !IsEqual(currentDexName, dexName) {
 			panic(NotSupported(this.Id + " " + methodName + " only supports symbols from one DEX at a time for HIP3 markets"))
@@ -6460,7 +6445,8 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan AsyncResult[[]Transaction], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	depositLedgerResponse := r1.Value
+	var depositLedger []any = this.InfoList(depositLedgerResponse)
 	//
 	// [
 	//     {
@@ -6474,10 +6460,6 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan AsyncResult[[]Transaction], o
 	//     }
 	// ]
 	//
-	var depositLedger []any = []any{}
-	if IsArray(response) {
-		depositLedger = ArrayTyped(response)
-	}
 	var records []any = this.ExtractTypeFromDelta(depositLedger)
 	var vaultAddress any = nil
 	var vaultAddressPtr *string = nil
@@ -6564,7 +6546,8 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	withdrawalLedgerResponse := r1.Value
+	var withdrawalLedger []any = this.InfoList(withdrawalLedgerResponse)
 	//
 	// [
 	//     {
@@ -6578,10 +6561,6 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	//     }
 	// ]
 	//
-	var withdrawalLedger []any = []any{}
-	if IsArray(response) {
-		withdrawalLedger = ArrayTyped(response)
-	}
 	var records []any = this.ExtractTypeFromDelta(withdrawalLedger)
 	var vaultAddress any = nil
 	var vaultAddressPtr *string = nil
@@ -7118,6 +7097,21 @@ func (this *Hyperliquid) ParseCreateEditOrderArgs(id *string, symbol *string, ty
 		order["id"] = id
 	}
 	return order, globalParams
+}
+
+/**
+ * @ignore
+ * @method
+ * @description narrows an info endpoint response for a request type that answers with a JSON array
+ * @param {object|object[]|string} response the info endpoint response
+ * @returns {object[]} the response array, or an empty array for any other response
+ */
+func (this *Hyperliquid) InfoList(response any) []any {
+	var result []any = []any{}
+	if IsArray(response) {
+		result = ArrayTyped(response)
+	}
+	return result
 }
 
 func NewHyperliquid(userConfig map[string]any) *Hyperliquid {

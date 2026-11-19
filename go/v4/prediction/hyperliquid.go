@@ -360,25 +360,25 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 	}
 	var questionName *string = this.SafeString(question, "name")
 	if (questionName != nil) && (questionName == nil || *questionName != "") {
-		var questionSlug any = this.ShortenSlug(questionName)
-		if (questionSlug != nil) && (!ccxt.IsEqual(questionSlug, "")) {
-			var outcomeSlug any = this.ShortenSlug(name)
+		var questionSlug string = this.ShortenSlug(questionName)
+		if (true) && (questionSlug != "") {
+			var outcomeSlug string = this.ShortenSlug(name)
 			var genericOutcomeNames map[string]any = map[string]any{
 				"RECURRING":               true,
 				"RECURRING_FALLBACK":      true,
 				"RECURRING_NAMED_OUTCOME": true,
 			}
-			if ccxt.InOp(genericOutcomeNames, outcomeSlug) {
-				if ccxt.GetIndexOf(outcomeSlug, "FALLBACK") >= 0 {
+			if _, ok := genericOutcomeNames[outcomeSlug]; ok {
+				if strings.Index(outcomeSlug, "FALLBACK") >= 0 {
 					outcomeSlug = "OTHER"
 				} else {
 					outcomeSlug = ""
 				}
 			}
-			if (outcomeSlug != nil) && (!ccxt.IsEqual(outcomeSlug, "")) {
-				return ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(questionSlug, "_"), outcomeSlug), "_"), ccxt.ToString(outcomeId))
+			if (true) && (outcomeSlug != "") {
+				return questionSlug + "_" + outcomeSlug + "_" + ccxt.ToString(outcomeId)
 			}
-			return ccxt.Add(ccxt.Add(questionSlug, "_"), ccxt.ToString(outcomeId))
+			return questionSlug + "_" + ccxt.ToString(outcomeId)
 		}
 	}
 	// Fallback: use name slugified, or OUTCOME-<id>
@@ -813,14 +813,11 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	response := r2.Value
+	allMidsResponse := r2.Value
+	var allMids any = this.InfoDict(allMidsResponse)
 	//
 	// { "mids": { "#10": "0.45", "#11": "0.55", ... } }
 	//
-	var allMids any = map[string]any{}
-	if (!ccxt.IsString(response)) && !ccxt.IsArray(response) {
-		allMids = response
-	}
 	var mids any = this.SafeDict(allMids, "mids", allMids)
 	var tickers map[string]any = map[string]any{}
 	var outcomesMap any = func() any {
@@ -1099,7 +1096,9 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	candlesResponse := r1.Value
+	var candles []any = this.InfoList(candlesResponse)
+
 	//
 	//     [
 	//         {
@@ -1116,11 +1115,6 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	//         }
 	//     ]
 	//
-	var candles []any = []any{}
-	if ccxt.IsArray(response) {
-		candles = ccxt.ArrayTyped(response)
-	}
-
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
 	return nil
 }
@@ -1173,9 +1167,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchBalance", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = ccxt.MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchBalance", params)
 	var request map[string]any = map[string]any{
 		"type": "spotClearinghouseState",
 		"user": userAddress,
@@ -1263,9 +1255,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 			panic(r1.Err)
 		}
 	}
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchPositions", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = ccxt.MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchPositions", params)
 	var request map[string]any = map[string]any{
 		"type": "spotClearinghouseState",
 		"user": userAddress,
@@ -1471,7 +1461,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 		candidates = append(candidates, this.OutcomeCoin(this.OutcomeEncoding(numeric, 1))) // raw outcome id -> NO encoding
 	}
 	for i := 0; i < len(candidates); i++ {
-		var key *string = ccxt.SafeStringPtr(ccxt.DerefScalar(candidates[i]))
+		var key *string = ccxt.SafeStringPtr(candidates[i])
 		if ccxt.InOp(this.Outcomes, key) {
 			return this.SafeDict(this.Outcomes, key, map[string]any{})
 		}
@@ -1882,9 +1872,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOpenOrders", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = ccxt.MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchOpenOrders", params)
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
 	var request map[string]any = map[string]any{
 		"type": method,
@@ -1895,12 +1883,9 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	rawOrdersResponse := r.Value
+	var rawOrders []any = this.InfoList(rawOrdersResponse)
 	var ordersWithStatus []any = []any{}
-	var rawOrders []any = []any{}
-	if ccxt.IsArray(response) {
-		rawOrders = ccxt.ArrayTyped(response)
-	}
 	for i := 0; i < len(rawOrders); i++ {
 		var order any = rawOrders[i]
 		ordersWithStatus = append(ordersWithStatus, this.Extend(order, map[string]any{
@@ -1951,9 +1936,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOrders", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = ccxt.MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchOrders", params)
 	var request map[string]any = map[string]any{
 		"type": "historicalOrders",
 		"user": userAddress,
@@ -1963,13 +1946,10 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	historicalOrdersResponse := r.Value
+	var historicalOrders []any = this.InfoList(historicalOrdersResponse)
 	// Deduplicate by oid keeping most recent statusTimestamp
 	var deduped map[string]any = map[string]any{}
-	var historicalOrders []any = []any{}
-	if ccxt.IsArray(response) {
-		historicalOrders = ccxt.ArrayTyped(response)
-	}
 	for i := 0; i < len(historicalOrders); i++ {
 		var raw any = historicalOrders[i]
 		var entry any = this.SafeDict(raw, "order")
@@ -2041,9 +2021,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	userAddressparamsAddressVariable := this.HandlePublicAddress("fetchOrder", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsAddressVariable[0])
-	var paramsAddress map[string]any = ccxt.MapTyped(userAddressparamsAddressVariable[1])
+	userAddress, paramsAddress := this.HandlePublicAddress("fetchOrder", params)
 	var clientOrderId *string = this.SafeString(paramsAddress, "clientOrderId")
 	var request map[string]any = map[string]any{
 		"type": "orderStatus",
@@ -2067,11 +2045,8 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
-	var orderStatus any = map[string]any{}
-	if (!ccxt.IsString(response)) && !ccxt.IsArray(response) {
-		orderStatus = response
-	}
+	orderStatusResponse := r.Value
+	var orderStatus any = this.InfoDict(orderStatusResponse)
 	var orderWrapper any = this.SafeDict(orderStatus, "order", orderStatus)
 	var parsed map[string]any = this.ParsePredictionOrder(orderWrapper, nil)
 	if outcome != nil {
@@ -2333,9 +2308,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 			panic(r1.Err)
 		}
 	}
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchMyTrades", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = ccxt.MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchMyTrades", params)
 	var request map[string]any = map[string]any{
 		"user": userAddress,
 	}
@@ -2494,7 +2467,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	}
 	var lowerQueries []any = []any{}
 	for i := 0; i < len(queries); i++ {
-		var queryString *string = ccxt.SafeStringPtr(ccxt.DerefScalar(queries[i]))
+		var queryString *string = ccxt.SafeStringPtr(queries[i])
 		lowerQueries = append(lowerQueries, strings.ToLower(*queryString))
 	}
 	var lowerQueriesLength int = len(lowerQueries)
@@ -2591,7 +2564,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
  */
 func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	var parentSymbol *string = this.SafeString(raw, "parentSymbol")
-	var markets []any = ccxt.SafeListTypedDefault(raw, "markets", []any{})
+	var markets []any = this.SafeListSlice(raw, "markets", []any{})
 	// Extract info from first market
 	var marketsLength int = len(markets)
 	var firstMarket any = func() any {
@@ -2702,7 +2675,7 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 	retStr := this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode)
 	return &retStr
 }
-func (this *Hyperliquid) HashMessage(message any) any {
+func (this *Hyperliquid) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
 func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
@@ -2918,14 +2891,14 @@ func (this *Hyperliquid) initializeClientBody(ch chan ccxt.AsyncResult[bool]) an
 
 	return nil
 }
-func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) []any {
+func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) (*string, map[string]any) {
 	userAux, paramsUser := this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
 	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
 	if (user != nil) && (user == nil || *user != "") {
-		return []any{user, paramsAddress}
+		return user, paramsAddress
 	}
 	if this.WalletAddress != "" {
-		return []any{this.WalletAddress, paramsAddress}
+		return ccxt.SafeStringPtr(this.WalletAddress), paramsAddress
 	}
 	panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter or walletAddress to be set"))
 }
@@ -3013,6 +2986,35 @@ func (this *Hyperliquid) CalculateRateLimiterCost(api any, method string, path s
 		}
 	}
 	return this.SafeValue(config, "cost", 1)
+}
+
+/**
+ * @ignore
+ * @method
+ * @description narrows an info endpoint response for a request type that answers with a JSON array
+ * @param {object|object[]|string} response the info endpoint response
+ * @returns {object[]} the response array, or an empty array for any other response
+ */
+func (this *Hyperliquid) InfoList(response any) []any {
+	var result []any = []any{}
+	if ccxt.IsArray(response) {
+		result = ccxt.ArrayTyped(response)
+	}
+	return result
+}
+
+/**
+ * @ignore
+ * @method
+ * @description narrows an info endpoint response for a request type that answers with a JSON object
+ * @param {object|object[]|string} response the info endpoint response
+ * @returns {object} the response object, or an empty object for any other response
+ */
+func (this *Hyperliquid) InfoDict(response any) any {
+	if (!ccxt.IsString(response)) && !ccxt.IsArray(response) {
+		return response
+	}
+	return map[string]any{}
 }
 
 func NewHyperliquid(userConfig map[string]any) *Hyperliquid {

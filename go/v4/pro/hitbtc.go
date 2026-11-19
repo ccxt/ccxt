@@ -494,8 +494,8 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 			var parsedSnapshot map[string]any = this.ParseOrderBook(item, symbol, timestamp, "b", "a")
 			orderbook.Reset(parsedSnapshot)
 		} else {
-			var asks []any = ccxt.SafeListTypedDefault(item, "a", []any{})
-			var bids []any = ccxt.SafeListTypedDefault(item, "b", []any{})
+			var asks []any = this.SafeListSlice(item, "a", []any{})
+			var bids []any = this.SafeListSlice(item, "b", []any{})
 			this.HandleDeltas(orderbook.GetAsks(), asks)
 			this.HandleDeltas(orderbook.GetBids(), bids)
 		}
@@ -1677,9 +1677,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	var market map[string]any = this.Market(symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsMarketType)
-	orderRequestparamsValueVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
-	var orderRequest map[string]any = orderRequestparamsValueVariable[0].(map[string]any)
-	var paramsValue map[string]any = orderRequestparamsValueVariable[1].(map[string]any)
+	orderRequest, paramsValue := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
 	var request map[string]any = this.Extend(orderRequest, paramsValue)
 	if marketType != nil && *marketType == "swap" {
 
@@ -1975,7 +1973,7 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "method")
-	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var params []any = this.SafeListSlice(message, "params", []any{})
 	// merge the parsed update into the existing balance object instead of
 	// replacing it: a consumer awakened by an earlier message holds a
 	// reference to this.balance, and ccxt.Client.resolve is a no-op while

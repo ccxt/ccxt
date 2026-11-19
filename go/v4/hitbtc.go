@@ -1615,7 +1615,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var marketInner map[string]any = this.Market(marketId)
-		var rawTrades []any = SafeListTypedDefault(response, marketId, []any{})
+		var rawTrades []any = this.SafeListSlice(response, marketId, []any{})
 		var parsed []any = this.ParseTrades(rawTrades, marketInner)
 		trades = this.ArrayConcat(trades, parsed)
 	}
@@ -3338,9 +3338,7 @@ func (this *Hitbtc) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var market map[string]any = this.Market(symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsMarketType)
-	requestparamsValueVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
-	var request map[string]any = requestparamsValueVariable[0].(map[string]any)
-	var paramsValue map[string]any = requestparamsValueVariable[1].(map[string]any)
+	request, paramsValue := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
@@ -3368,7 +3366,7 @@ func (this *Hitbtc) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, typeVar string, side string, amount any, optionalArgs ...any) []any {
+func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, typeVar string, side string, amount any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	marginMode := GetArg(optionalArgs, 1, nil)
@@ -3433,7 +3431,7 @@ func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, ty
 			return marginMode
 		}()
 	}
-	return []any{request, paramsOmitted}
+	return request, paramsOmitted
 }
 func (this *Hitbtc) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -3626,7 +3624,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMo
 	} else {
 		panic(BadSymbol(this.Id + " fetchMarginModes () supports swap contracts and margin only"))
 	}
-	var config []any = SafeListTypedDefault(response, "config", []any{})
+	var config []any = this.SafeListSlice(response, "config", []any{})
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(config, symbolsNormalized, "symbol"))}
 	return nil

@@ -888,8 +888,8 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
 		orderbook.Reset(snapshot)
 	} else if event == "updated" {
-		var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
+		var asks []any = this.SafeListSlice(message, "asks", []any{})
+		var bids []any = this.SafeListSlice(message, "bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -905,7 +905,7 @@ func (this *Blockchaincom) HandleDelta(bookside any, delta any) {
 }
 func (this *Blockchaincom) HandleDeltas(bookside any, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
 func (this *Blockchaincom) HandleMessage(client any, message map[string]any) {

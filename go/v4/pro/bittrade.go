@@ -610,8 +610,8 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 	}
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (nonce != nil) && (prevSeqNum == nil || *prevSeqNum <= *nonce) && (seqNum != nil && *seqNum > *nonce) {
-		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
+		var asks []any = this.SafeListSlice(tick, "asks", []any{})
+		var bids []any = this.SafeListSlice(tick, "bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetNonce(seqNum)

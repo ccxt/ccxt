@@ -1154,8 +1154,8 @@ func (this *Phemex) HandleOrderBook(client any, message map[string]any) {
 		if symbol != nil && this.Orderbooks[*symbol] != nil {
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
-			var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
-			var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
+			var asks []any = this.SafeListSlice(changes, "asks", []any{})
+			var bids []any = this.SafeListSlice(changes, "bids", []any{})
 			this.CustomHandleDeltas(orderbook.GetAsks(), asks, market)
 			this.CustomHandleDeltas(orderbook.GetBids(), bids, market)
 			orderbook.SetNonce(nonce)
@@ -1624,8 +1624,8 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	var trades []any = []any{}
 	var parsedOrders []any = []any{}
 	if (ccxt.InOp(message, "closed")) || (ccxt.InOp(message, "fills")) || (ccxt.InOp(message, "open")) {
-		var closed []any = ccxt.SafeListTypedDefault(message, "closed", []any{})
-		var open []any = ccxt.SafeListTypedDefault(message, "open", []any{})
+		var closed []any = this.SafeListSlice(message, "closed", []any{})
+		var open []any = this.SafeListSlice(message, "open", []any{})
 		var orders []any = this.ArrayConcat(open, closed)
 		var ordersLength int = len(orders)
 		if ordersLength == 0 {

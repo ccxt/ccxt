@@ -828,7 +828,7 @@ func (this *Coinbaseinternational) fetchMarketsBody(ch chan AsyncResult[[]Market
 	//         "testnet": false
 	//     }
 	//
-	var instruments []any = SafeListTypedDefault(response, "result", []any{})
+	var instruments []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
 	return nil
@@ -1034,7 +1034,7 @@ func (this *Coinbaseinternational) fetchCurrenciesBody(ch chan AsyncResult[map[s
 	//         "testnet": false
 	//     }
 	//
-	var currencies []any = SafeListTypedDefault(response, "result", []any{})
+	var currencies []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -1358,7 +1358,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan AsyncResu
 	//         "testnet": false
 	//     }
 	//
-	var rawRates []any = SafeListTypedDefault(response, "result", []any{})
+	var rawRates []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(rawRates, market, since, limit))}
 	return nil
@@ -2174,7 +2174,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan AsyncResult[[]Tran
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var transfers []any = SafeListTypedDefault(result, "logs", []any{})
+	var transfers []any = this.SafeListSlice(result, "logs", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
 	return nil
@@ -2470,7 +2470,7 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan AsyncResult[[]Posi
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 	if this.IsEmpty(symbols) {
 
 		ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(result))}
@@ -2598,7 +2598,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var logs []any = SafeListTypedDefault(result, "logs", []any{})
+	var logs []any = this.SafeListSlice(result, "logs", []any{})
 	if !this.IsNativeDeribitCredentials() {
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(logs, currency, since, limit))}
@@ -3668,7 +3668,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan AsyncResult[[]Ord
 	//         ]
 	//     }
 	//
-	var rawOrders []any = SafeListTypedDefault(response, "result", []any{})
+	var rawOrders []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(rawOrders, market, since, limit))}
 	return nil
@@ -3831,7 +3831,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan AsyncResult[[]Trade
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var trades []any = SafeListTypedDefault(result, "trades", []any{})
+	var trades []any = this.SafeListSlice(result, "trades", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil

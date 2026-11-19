@@ -1605,7 +1605,7 @@ func (this *Bitvavo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	//         "maxItems": 0
 	//     }
 	//
-	var accounts []any = SafeListTypedDefault(response, "items", []any{})
+	var accounts []any = this.SafeListSlice(response, "items", []any{})
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts))}
 	return nil
@@ -1774,7 +1774,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//         "limit": 25
 	//     }
 	//
-	var items []any = SafeListTypedDefault(response, "items", []any{})
+	var items []any = this.SafeListSlice(response, "items", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(items, currency, since, limit))}
 	return nil
@@ -2798,7 +2798,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var rawTrades []any = SafeListTypedDefault(order, "fills", []any{})
+	var rawTrades []any = this.SafeListSlice(order, "fills", []any{})
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly *bool = this.SafeBool(order, "postOnly")
 	// https://github.com/ccxt/ccxt/issues/8489
@@ -3010,7 +3010,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//         "maxItems": 100
 	//     }
 	//
-	var items []any = SafeListTypedDefault(response, "items", []any{})
+	var items []any = this.SafeListSlice(response, "items", []any{})
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(items, currency, since, limit))}
 	return nil

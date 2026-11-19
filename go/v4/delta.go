@@ -736,7 +736,7 @@ func (this *Delta) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opti
 	//         "success":true
 	//     }
 	//
-	var currencies []any = SafeListTypedDefault(response, "result", []any{})
+	var currencies []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -1926,7 +1926,7 @@ func (this *Delta) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	//         "success":true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -2037,7 +2037,7 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, since, limitValue))}
 	return nil
@@ -2224,7 +2224,7 @@ func (this *Delta) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(result, symbols))}
 	return nil
@@ -2990,7 +2990,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[[]Order], metho
 	//         }
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, since, limit))}
 	return nil
@@ -3091,7 +3091,7 @@ func (this *Delta) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	//         "success":true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -3165,7 +3165,7 @@ func (this *Delta) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	//         "success":true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(result, currency, since, limit))}
 	return nil
@@ -3511,7 +3511,7 @@ func (this *Delta) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	//         "success":true
 	//     }
 	//
-	var rates []any = SafeListTypedDefault(response, "result", []any{})
+	var rates []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rates, symbolsNormalized))}
 	return nil
@@ -4131,7 +4131,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	//         "success": true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 	var settlements []any = this.ParseSettlements(result, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
@@ -4951,7 +4951,7 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optiona
 	//         "success": true
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(result, symbolsNormalized))}
 	return nil

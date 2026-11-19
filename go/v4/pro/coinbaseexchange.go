@@ -970,7 +970,10 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 			return
 		}
 		var orders ccxt.WsArrayCache = this.Orders
-		var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
+		var previousOrders map[string]any = nil
+		if byKey := orders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+			previousOrders = byKey[*symbol]
+		}
 		var previousOrder any = this.SafeDict(previousOrders, orderId)
 		if previousOrder == nil {
 			previousOrder = this.SafeDictN(previousOrders, []any{makerOrderId, takerOrderId})

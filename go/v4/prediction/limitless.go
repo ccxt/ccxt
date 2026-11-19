@@ -377,7 +377,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 			panic(r1.Err)
 		}
 		var firstPageResponse map[string]any = r1.Value
-		var firstData []any = ccxt.SafeListTypedDefault(firstPageResponse, "data", []any{})
+		var firstData []any = this.SafeListSlice(firstPageResponse, "data", []any{})
 		allRaw = this.ArrayConcat(allRaw, firstData)
 		var promises []any = []any{}
 		var cappedPages float64 = math.Ceil(float64(*maxMarkets) / float64(*pageSize))
@@ -1040,9 +1040,10 @@ func (this *Limitless) ParseEvent(event any) map[string]any {
 	var endDate *string = this.SafeString(event, "deadline", this.SafeString(event, "expiresAt"))
 	var title *string = this.SafeString(event, "title", groupId)
 	var hasGroupId bool = (groupId != nil) && (groupId == nil || *groupId != "")
-	var eventSlug any = nil
+	var eventSlug *string = nil
 	if hasGroupId {
-		eventSlug = this.ShortenSlug(groupId)
+		shortenSlugText := this.ShortenSlug(groupId)
+		eventSlug = &shortenSlugText
 	}
 	var hasEndDate bool = (endDate != nil) && (endDate == nil || *endDate != "")
 	var endTimestamp *int64 = func() *int64 {
@@ -2890,11 +2891,11 @@ func (this *Limitless) SignOrderRequest(signRequest map[string]any, marketSymbol
 	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, signRequest)
 	return this.SignMessage(msg, this.PrivateKey)
 }
-func (this *Limitless) HashMessage(message any) any {
+func (this *Limitless) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
-func (this *Limitless) SignHash(hash any, privateKey string) string {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
+func (this *Limitless) SignHash(hash string, privateKey string) string {
+	var signature map[string]any = ccxt.Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	var r *string = ccxt.SafeStringPtr(signature["r"])
 	var s *string = ccxt.SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -3148,7 +3149,7 @@ func (this *Limitless) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		panic(r1.Err)
 	}
 	response := r1.Raw
-	var canceled []any = ccxt.SafeListTypedDefault(response, "canceled", []any{})
+	var canceled []any = this.SafeListSlice(response, "canceled", []any{})
 	var failed []any = ccxt.SafeListTyped(response, "failed")
 	var failedLethgn int = len(failed)
 	if failedLethgn > 0 {
@@ -3801,7 +3802,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			if queries == nil {
 				panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 			}
-			var q *string = ccxt.SafeStringPtr(ccxt.DerefScalar(queries[i]))
+			var q *string = ccxt.SafeStringPtr(queries[i])
 
 			r := <-this.LimitlessPublicGetMarketsSearch(this.Extend(map[string]any{
 				"query": q,
@@ -3836,7 +3837,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	} else {
 		// tags scope: resolve the tags to limitless categories and page only those
 		// categories' listings server-side — never the whole active listing
-		var requestedTags []any = ccxt.SafeListTypedDefault(params, "tags", []any{})
+		var requestedTags []any = this.SafeListSlice(params, "tags", []any{})
 
 		r2 := <-this.FetchRawMarketsByTagsAsync(requestedTags, params)
 		if r2.Err != nil {

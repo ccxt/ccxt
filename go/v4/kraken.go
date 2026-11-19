@@ -1540,7 +1540,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//         }
 	//     }
 	var result map[string]any = SafeMapTyped(response, "result")
-	var ohlcvs []any = SafeListTypedDefault(result, market["id"], []any{})
+	var ohlcvs []any = this.SafeListSlice(result, market["id"], []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
@@ -2422,7 +2422,9 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 		"baseId":  baseId,
 		"quoteId": quoteId,
 	}
-	AddElementToObject(this.Options["delistedMarketsById"], id, market)
+	var delistedMarketsByIdDict map[string]any = this.SafeDictMap(this.Options, "delistedMarketsById", map[string]any{})
+	AddElementToObject(delistedMarketsByIdDict, id, market)
+	this.Options["delistedMarketsById"] = delistedMarketsByIdDict
 	return market
 }
 func (this *Kraken) ParseOrderStatus(status *string) *string {
@@ -4113,7 +4115,7 @@ func (this *Kraken) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//                       "time":  1529223212,
 	//                     "status": "Success"                                                       } ] }
 	//
-	var depositResult []any = SafeListTypedDefault(response, "result", []any{})
+	var depositResult []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactionsByType("deposit", depositResult, code, since, limit))}
 	return nil
@@ -4206,11 +4208,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322119 []any = r1.Value
-		if retRes322119 == nil {
+		var retRes322319 []any = r1.Value
+		if retRes322319 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes322119)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes322319)}
 		}
 		return nil
 	}
@@ -4391,7 +4393,7 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan AsyncResult[[]map[string]any
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(result)}
 	return nil

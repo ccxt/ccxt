@@ -1735,7 +1735,10 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders ccxt.WsArrayCache = this.Orders
-		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
+		var orders map[string]any = nil
+		if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+			orders = byKey[*symbol]
+		}
 		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
@@ -2066,7 +2069,13 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 	}
 	var ts *int64 = this.SafeInteger(message, "ts")
 	this.Balance["info"] = data
-	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
+	if this.Balance != nil {
+		if ts != nil {
+			this.Balance["timestamp"] = *ts
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+	}
 	this.Balance["datetime"] = this.Iso8601(ts)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -2215,7 +2224,7 @@ func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var unsubMessageHashes []any = ccxt.SafeListTyped(subscription, "unsubMessageHashes")
 	for i := 0; i < len(subMessageHashes); i++ {
-		var subHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(subMessageHashes[i]))
+		var subHash *string = ccxt.SafeStringPtr(subMessageHashes[i])
 		var unsubHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(unsubMessageHashes) {
 				return unsubMessageHashes[i]

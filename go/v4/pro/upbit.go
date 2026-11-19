@@ -82,7 +82,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 		var symbol string = *this.SafeString(symbolsNormalized, i, "")
 		var messageHash string = channel + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
-		if !(ccxt.InOp(subscriptions, messageHash)) {
+		if _, ok := subscriptions[messageHash]; !ok {
 			subscriptions[messageHash] = map[string]any{
 				"type":  channel,
 				"codes": []any{marketId},
@@ -993,7 +993,13 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "assets")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	if this.Balance != nil {
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+	}
 	this.Balance["datetime"] = this.Iso8601(timestamp)
 	for i := 0; i < len(data); i++ {
 		var balance map[string]any = ccxt.SafeMapTyped(data, i)

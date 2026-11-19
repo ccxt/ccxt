@@ -421,7 +421,7 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	// check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
 	var methodNames []any = []any{methodName, Add(Add(methodName, "."), this.Ext)}
 	for i := 0; i < len(methodNames); i++ {
-		var mName *string = SafeStringPtr(DerefScalar(methodNames[i]))
+		var mName *string = SafeStringPtr(methodNames[i])
 		if InOp(this.SkippedMethods, mName) {
 			// if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
 			if IsString(GetValue(this.SkippedMethods, mName)) {
@@ -1022,12 +1022,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan ccxt.AsyncResult[any
 		ch <- ccxt.AsyncResult[any]{Value: defaultSymbols}
 		return nil
 	}
-	var result []any = []any{exchange.SafeString(func() any {
-		if 0 >= 0 && 0 < len(ranked) {
-			return DerefScalar(ranked[0])
-		}
-		return nil
-	}(), "symbol")}
+	var result []any = []any{exchange.SafeString(DerefScalar(ranked[0]), "symbol")}
 	if rankedLength > 1 {
 		result = append(result, exchange.SafeString(DerefScalar(ranked[1]), "symbol"))
 	}

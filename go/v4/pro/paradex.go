@@ -3605,7 +3605,7 @@ func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 									handled = true
 									client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 									// watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
-									var messageHashes []any = ccxt.SafeListTypedDefault(subscription, "messageHashes", []any{subscribeHash})
+									var messageHashes []any = this.SafeListSlice(subscription, "messageHashes", []any{subscribeHash})
 									for j := 0; j < len(messageHashes); j++ {
 										client.(ccxt.ClientInterface).Reject(e, messageHashes[j])
 									}

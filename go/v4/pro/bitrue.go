@@ -174,7 +174,7 @@ func (this *Bitrue) HandleBalance(client any, message map[string]any) {
 	//      "u": 2285311
 	//    }
 	//
-	var balances []any = ccxt.SafeListTypedDefault(message, "B", []any{})
+	var balances []any = this.SafeListSlice(message, "B", []any{})
 	this.ParseWSBalances(balances)
 	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
@@ -496,8 +496,8 @@ func (this *Bitrue) HandleOrderBook(client any, message map[string]any) {
 	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
 	var parseable any = tick
 	if isFutures {
-		var rawAsks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
-		var rawBuys []any = ccxt.SafeListTypedDefault(tick, "buys", []any{})
+		var rawAsks []any = this.SafeListSlice(tick, "asks", []any{})
+		var rawBuys []any = this.SafeListSlice(tick, "buys", []any{})
 		parseable = map[string]any{
 			"asks": this.ParseContractBidsAsks(rawAsks, *symbol),
 			"buys": this.ParseContractBidsAsks(rawBuys, *symbol),

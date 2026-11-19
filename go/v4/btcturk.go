@@ -369,7 +369,7 @@ func (this *Btcturk) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var markets []any = SafeListTypedDefault(data, "symbols", []any{})
+	var markets []any = this.SafeListSlice(data, "symbols", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1185,8 +1185,8 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var bids []any = SafeListTypedDefault(data, "bids", []any{})
-	var asks []any = SafeListTypedDefault(data, "asks", []any{})
+	var bids []any = this.SafeListSlice(data, "bids", []any{})
+	var asks []any = this.SafeListSlice(data, "asks", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.ArrayConcat(bids, asks), market, since, limit))}
 	return nil

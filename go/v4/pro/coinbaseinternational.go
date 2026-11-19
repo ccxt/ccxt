@@ -435,7 +435,7 @@ func (this *Coinbaseinternational) unWatchMyTradesBody(ch chan ccxt.AsyncResult[
 func (this *Coinbaseinternational) HandleMyTrades(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel")
-	var data []any = ccxt.SafeListTypedDefault(params, "data", []any{})
+	var data []any = this.SafeListSlice(params, "data", []any{})
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -770,7 +770,7 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel")
 	var data map[string]any = ccxt.SafeMapTyped(params, "data")
-	var rawPositions []any = ccxt.SafeListTypedDefault(data, "positions", []any{})
+	var rawPositions []any = this.SafeListSlice(data, "positions", []any{})
 	var positions []any = this.ParsePositions(rawPositions)
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {

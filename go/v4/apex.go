@@ -635,7 +635,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	//        }
 	//     ]
 	// }
-	var rows []any = SafeListTypedDefault(spotConfig, "assets", []any{})
+	var rows []any = this.SafeListSlice(spotConfig, "assets", []any{})
 	var chains any = this.SafeList(multiChain, "chains", []any{})
 	this.Options["_temp_currencies_chains"] = chains
 	var result map[string]any = this.ParseCurrencies(rows)
@@ -754,7 +754,7 @@ func (this *Apex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	var response map[string]any = r.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var contractConfig map[string]any = SafeMapTyped(data, "contractConfig")
-	var perpetualContract []any = SafeListTypedDefault(contractConfig, "perpetualContract", []any{})
+	var perpetualContract []any = this.SafeListSlice(contractConfig, "perpetualContract", []any{})
 
 	// {
 	//     "perpetualContract":[
@@ -1025,7 +1025,7 @@ func (this *Apex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = SafeListTypedDefault(response, "data", []any{})
+	var tickers []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
@@ -1091,7 +1091,7 @@ func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var OHLCVs []any = SafeListTypedDefault(data, this.SafeString(market, "id2"), []any{})
+	var OHLCVs []any = this.SafeListSlice(data, this.SafeString(market, "id2"), []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(OHLCVs, market, timeframe, since, limitResolved))}
 	return nil
@@ -1266,7 +1266,7 @@ func (this *Apex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	//  }
 	//  ]
 	//
-	var trades []any = SafeListTypedDefault(response, "data", []any{})
+	var trades []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limitResolved))}
 	return nil
@@ -2271,7 +2271,7 @@ func (this *Apex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = SafeListTypedDefault(response, "data", []any{})
+	var orders []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, nil, since, limit))}
 	return nil
@@ -2346,7 +2346,7 @@ func (this *Apex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "orders", []any{})
+	var orders []any = this.SafeListSlice(data, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2402,7 +2402,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "orders", []any{})
+	var orders []any = this.SafeListSlice(data, "orders", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(orders, nil, since, limit))}
 	return nil
@@ -2475,7 +2475,7 @@ func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "orders", []any{})
+	var orders []any = this.SafeListSlice(data, "orders", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(orders, market, since, limit))}
 	return nil
@@ -2547,7 +2547,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var fundingValues []any = SafeListTypedDefault(data, "fundingValues", []any{})
+	var fundingValues []any = this.SafeListSlice(data, "fundingValues", []any{})
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(fundingValues, market, since, limit))}
 	return nil
@@ -2671,7 +2671,7 @@ func (this *Apex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var positions []any = SafeListTypedDefault(data, "positions", []any{})
+	var positions []any = this.SafeListSlice(data, "positions", []any{})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbols))}
 	return nil

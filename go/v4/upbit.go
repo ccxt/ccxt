@@ -901,7 +901,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 	var ids *string = nil
 	if symbols == nil {
 		if this.Ids != nil {
-			idsStr := Join(this.Ids, ",")
+			idsStr := strings.Join(this.Ids, ",")
 			ids = &idsStr
 		}
 	} else {

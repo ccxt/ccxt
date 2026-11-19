@@ -2640,8 +2640,8 @@ func (this *Kucoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any
 			storedAsks.StoreArray(value)
 		}
 	} else if !ccxt.IsEqual(changes, nil) {
-		var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
-		var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
+		var bids []any = this.SafeListSlice(changes, "bids", []any{})
+		var asks []any = this.SafeListSlice(changes, "asks", []any{})
 		this.HandleBidAsks(storedBids, bids)
 		this.HandleBidAsks(storedAsks, asks)
 	} else {
@@ -3133,7 +3133,10 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		}
 		return this.Orders
 	}()
-	var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
+	var orders map[string]any = nil
+	if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+		orders = byKey[*symbol]
+	}
 	var order map[string]any = this.SafeDictMap(orders, orderId)
 	if order != nil {
 		if this.SafeString(order, "status") != nil && *this.SafeString(order, "status") == "closed" {
@@ -4029,7 +4032,7 @@ func (this *Kucoin) GetCurrentPosition(symbol string) any {
 	if this.Positions == nil {
 		return nil
 	}
-	var symbolCache map[string]any = ccxt.SafeMapTyped(this.Positions.(*ccxt.ArrayCache).Hashmap, symbol)
+	var symbolCache map[string]any = this.Positions.(*ccxt.ArrayCache).Hashmap[symbol]
 	var values []any = nil
 	if symbolCache != nil {
 		values = make([]any, 0, len(symbolCache))

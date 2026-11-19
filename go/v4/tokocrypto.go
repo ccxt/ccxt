@@ -885,7 +885,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 		}
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var list []any = SafeListTypedDefault(data, "list", []any{})
+	var list []any = this.SafeListSlice(data, "list", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(list))}
 	return nil
@@ -1338,7 +1338,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 		//    }
 		//
 		var data map[string]any = SafeMapTyped(responseInner, "data")
-		var list []any = SafeListTypedDefault(data, "list", []any{})
+		var list []any = this.SafeListSlice(data, "list", []any{})
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(list, market, since, limit))}
 		return nil
@@ -2076,7 +2076,7 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 		sideStr2 := "sell"
 		side = &sideStr2
 	}
-	var fills []any = SafeListTypedDefault(order, "fills", []any{})
+	var fills []any = this.SafeListSlice(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString2(order, "clientOrderId", "clientId")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
 	// the order type carries the post only flag on its own, 7 on the open/v1
@@ -2539,7 +2539,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "list", []any{})
+	var orders []any = this.SafeListSlice(data, "list", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2786,7 +2786,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = SafeListTypedDefault(data, "list", []any{})
+	var trades []any = this.SafeListSlice(data, "list", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2959,7 +2959,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var deposits []any = SafeListTypedDefault(data, "list", []any{})
+	var deposits []any = this.SafeListSlice(data, "list", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, currency, since, limit))}
 	return nil
@@ -3045,7 +3045,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var withdrawals []any = SafeListTypedDefault(data, "list", []any{})
+	var withdrawals []any = this.SafeListSlice(data, "list", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawals, currency, since, limit))}
 	return nil

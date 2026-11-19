@@ -930,7 +930,7 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var items []any = SafeListTypedDefault(response, "data", []any{})
+	var items []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(items, nil, since, limit))}
 	return nil
@@ -1234,7 +1234,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, nil, since, limitResolved))}
 	return nil
@@ -1370,7 +1370,7 @@ func (this *Coinmate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1472,7 +1472,7 @@ func (this *Coinmate) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	var extension map[string]any = map[string]any{
 		"status": "open",
 	}
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, nil, since, limit, extension))}
 	return nil
@@ -1529,7 +1529,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil

@@ -1025,7 +1025,7 @@ func (this *Grvt) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	}
 	var results []any = r.Value
 	var response map[string]any = SafeMapTyped(results, 0)
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(result))}
 	return nil
@@ -1177,7 +1177,7 @@ func (this *Grvt) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	//            },
 	//            ..
 	//
-	var responseResult []any = SafeListTypedDefault(response, "result", []any{})
+	var responseResult []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(responseResult)}
 	return nil
@@ -1496,7 +1496,7 @@ func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	//            },
 	//            ...
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -1697,7 +1697,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	//        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
 	//    }
 	//
-	var candles []any = SafeListTypedDefault(response, "result", []any{})
+	var candles []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
 	return nil
@@ -1809,7 +1809,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	//        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(result, market))}
 	return nil
@@ -2045,7 +2045,7 @@ func (this *Grvt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		//     "next": "Qw0918="
 		// }
 		//
-		var result []any = SafeListTypedDefault(response, "result", []any{})
+		var result []any = this.SafeListSlice(response, "result", []any{})
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(result, currency, since, limit))}
 		return nil
@@ -2146,7 +2146,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		//     "next": "Qw0918="
 		// }
 		//
-		var result []any = SafeListTypedDefault(response, "result", []any{})
+		var result []any = this.SafeListSlice(response, "result", []any{})
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(result, currency, since, limit))}
 		return nil
@@ -2201,7 +2201,7 @@ func (this *Grvt) internalFetchTransfersBody(ch chan AsyncResult[[]TransferEntry
 	//        "next": ""
 	//    }
 	//
-	var rows []any = SafeListTypedDefault(response, "result", []any{})
+	var rows []any = this.SafeListSlice(response, "result", []any{})
 	var transfers []any = this.ParseTransfers(rows, currency, since, limit)
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(transfers)}
@@ -2417,7 +2417,7 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	//        "next": ""
 	//    }
 	//
-	var rows []any = SafeListTypedDefault(response, "result", []any{})
+	var rows []any = this.SafeListSlice(response, "result", []any{})
 	var transfers []any = this.ParseTransfers(rows, currency, since, limit)
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ToArray(this.SafeList(this.FilterTransfersByType(transfers, "internal", false), 1, []any{})))}
@@ -2663,7 +2663,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan AsyncResult[bool]) any {
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
 	this.Options["userMainAccountId"] = DerefScalar(mainAccountId)
 	if accountIsUndefined {
-		var subAccountIds []any = SafeListTypedDefault(GetValue(responses, 1), "sub_account_ids", []any{})
+		var subAccountIds []any = this.SafeListSlice(GetValue(responses, 1), "sub_account_ids", []any{})
 		var length int = len(subAccountIds)
 		if length < 1 {
 			panic(ArgumentsRequired(this.Id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website"))
@@ -3168,7 +3168,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	//        "next": ""
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, nil, since, limit))}
 	return nil
@@ -3250,7 +3250,7 @@ func (this *Grvt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	//        ]
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(result, symbolsNormalized))}
 	return nil
@@ -3371,7 +3371,7 @@ func (this *Grvt) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], o
 	//                "margin_type": "CROSS"
 	//            },
 	//
-	var results []any = SafeListTypedDefault(response, "results", []any{})
+	var results []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(results, symbols))}
 	return nil
@@ -3506,7 +3506,7 @@ func (this *Grvt) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMode
 	//                "margin_type": "CROSS"
 	//            },
 	//
-	var results []any = SafeListTypedDefault(response, "results", []any{})
+	var results []any = this.SafeListSlice(response, "results", []any{})
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseLeverages(results, symbols))}
 	return nil
@@ -3620,7 +3620,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	//        "next": ""
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(result, market, since, limit))}
 	return nil
@@ -3770,7 +3770,7 @@ func (this *Grvt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	//        "next": ""
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, since, limit))}
 	return nil
@@ -3877,7 +3877,7 @@ func (this *Grvt) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//        ]
 	//    }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, nil, since, limit))}
 	return nil

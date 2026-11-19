@@ -434,7 +434,7 @@ func (this *Foxbit) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//     }
 	//   ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(data)}
 	return nil
@@ -629,7 +629,7 @@ func (this *Foxbit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//       }
 	//     ]
 	//   }
-	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var markets []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -765,7 +765,7 @@ func (this *Foxbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	//      }
 	//    ]
 	//  }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -958,7 +958,7 @@ func (this *Foxbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1262,7 +1262,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
@@ -1464,7 +1464,7 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
@@ -1723,7 +1723,7 @@ func (this *Foxbit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	//         }
 	//     ]
 	// }
-	var list []any = SafeListTypedDefault(response, "data", []any{})
+	var list []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(list, market, since, limit))}
 	return nil
@@ -1799,7 +1799,7 @@ func (this *Foxbit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//         "created_at": "2021-02-15T22:06:32.999Z"
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1931,7 +1931,7 @@ func (this *Foxbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -2022,7 +2022,7 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -2340,7 +2340,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, currency, since, limit))}
 	return nil

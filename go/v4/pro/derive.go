@@ -955,7 +955,10 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 				this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 			}
 			var cachedOrders ccxt.WsArrayCache = this.Orders
-			var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
+			var orders map[string]any = nil
+			if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+				orders = byKey[*symbol]
+			}
 			var order map[string]any
 			if orderId == nil {
 				order = nil
@@ -1243,7 +1246,9 @@ func (this *Derive) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 		}
 		var emptyBalance map[string]any = map[string]any{}              // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
 		var seeded map[string]any = this.Extend(snapshot, emptyBalance) // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
-		ccxt.AddElementToObject(this.Balance, subaccountIdKey, seeded)
+		if this.Balance != nil {
+			this.Balance[*subaccountIdKey] = seeded
+		}
 	}
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".balances"
@@ -1398,7 +1403,10 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 	}
 	var contracts *string = ccxt.Precise.StringAbs(newSize)
 	var cache ccxt.WsArrayCache = this.PositionsByType[subaccountIdKey]
-	var symbolPositions map[string]any = ccxt.SafeMapTyped(cache.(*ccxt.ArrayCache).Hashmap, symbol)
+	var symbolPositions map[string]any = nil
+	if byKey := cache.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+		symbolPositions = byKey[*symbol]
+	}
 	// a fill through zero flattens the opposite side first
 	var oppositeSide string
 	if isShort {

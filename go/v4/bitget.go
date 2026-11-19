@@ -3879,7 +3879,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			continue
 		}
 		var res map[string]any = SafeMapTyped(results, i)
-		var data []any = SafeListTypedDefault(res, "data", []any{})
+		var data []any = this.SafeListSlice(res, "data", []any{})
 		var firstData map[string]any = SafeMapTyped(data, 0)
 		var isBorrowable *bool = this.SafeBool(firstData, "isBorrowable")
 		if fetchMargins && (isBorrowable != nil) {
@@ -4016,7 +4016,7 @@ func (this *Bitget) ParseMarket(market any) map[string]any {
 	var baseId *string = this.SafeString(market, "baseCoin")
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var base *string = this.SafeCurrencyCode(baseId)
-	var supportMarginCoins []any = SafeListTypedDefault(market, "supportMarginCoins", []any{})
+	var supportMarginCoins []any = this.SafeListSlice(market, "supportMarginCoins", []any{})
 	var settleId *string = nil
 	if this.InArray(baseId, supportMarginCoins) {
 		settleId = baseId
@@ -4214,7 +4214,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	var markets []any = []any{}
 	for i := 0; i < len(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)
-		var data []any = SafeListTypedDefault(res, "data", []any{})
+		var data []any = this.SafeListSlice(res, "data", []any{})
 		markets = this.ArrayConcat(markets, data)
 	}
 	//
@@ -4560,7 +4560,7 @@ func (this *Bitget) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//            },
 	//            ...
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(data)}
 	return nil
@@ -4824,7 +4824,7 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageT
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "data", []any{})
+	var result []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ParseMarketLeverageTiers(result, market))}
 	return nil
@@ -5072,7 +5072,7 @@ func (this *Bitget) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         ]
 	//     }
 	//
-	var rawTransactions []any = SafeListTypedDefault(response, "data", []any{})
+	var rawTransactions []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rawTransactions, nil, sinceResolved, limit))}
 	return nil
@@ -5392,7 +5392,7 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//         ]
 	//     }
 	//
-	var rawTransactions []any = SafeListTypedDefault(response, "data", []any{})
+	var rawTransactions []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rawTransactions, currency, sinceResolved, limit))}
 	return nil
@@ -6414,7 +6414,7 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsResolved))}
 	return nil
@@ -6805,7 +6805,7 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -7294,7 +7294,9 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if *this.SafeBool(market, "spot", false) {
 		key = "spot"
 	}
-	var ohlcOptions map[string]any = SafeMapTyped(this.Options["fetchOHLCV"], key)
+	var ohlcOptionsSrc, _ = this.Options["fetchOHLCV"].(map[string]any)
+	var ohlcOptions map[string]any
+	ohlcOptions, _ = ohlcOptionsSrc[key].(map[string]any)
 	var maxLimitPerTimeframe map[string]any = SafeMapTyped(ohlcOptions, "maxLimitPerTimeframe")
 	var timeframeLimitValue *int64 = this.SafeInteger(maxLimitPerTimeframe, timeframe)
 	// the per-timeframe cap only applies to a user-supplied limit
@@ -7711,7 +7713,7 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 	return nil
@@ -8959,7 +8961,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan AsyncResult[[]Order], orders []a
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
@@ -9119,8 +9121,8 @@ func (this *Bitget) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var failure []any = SafeListTypedDefault(data, "failureList", []any{})
-	var orderInfo []any = SafeListTypedDefault(data, "successList", []any{})
+	var failure []any = this.SafeListSlice(data, "failureList", []any{})
+	var orderInfo []any = this.SafeListSlice(data, "successList", []any{})
 	var both []any = this.ArrayConcat(orderInfo, failure)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(both, market))}
@@ -9724,7 +9726,7 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan AsyncResult[[]Order], ids []stri
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
@@ -9876,7 +9878,7 @@ func (this *Bitget) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "successList", []any{})
+	var orders []any = this.SafeListSlice(data, "successList", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market))}
 	return nil
@@ -10739,13 +10741,13 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		return nil
 	} else if typeVar != nil && *typeVar == "spot" {
 		if (marginMode != nil) || (trigger != nil && *trigger == true) {
-			var resultList []any = SafeListTypedDefault(data, "orderList", []any{})
+			var resultList []any = this.SafeListSlice(data, "orderList", []any{})
 
 			ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(resultList, market, sinceResolved, limit))}
 			return nil
 		}
 	} else {
-		var result []any = SafeListTypedDefault(data, "entrustedList", []any{})
+		var result []any = this.SafeListSlice(data, "entrustedList", []any{})
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, sinceResolved, limit))}
 		return nil
@@ -11275,7 +11277,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	if IsString(response) {
 		response = JsonParse(response)
 	}
-	var orders []any = SafeListTypedDefault(response, "data", []any{})
+	var orders []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, sinceResolved, limit))}
 	return nil
@@ -11446,7 +11448,7 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "list", []any{})
+	var orders []any = this.SafeListSlice(data, "list", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -11609,7 +11611,7 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 			response = r5.Value
 		}
 		var utaData map[string]any = SafeMapTyped(response, "data")
-		var list []any = SafeListTypedDefault(utaData, "list", []any{})
+		var list []any = this.SafeListSlice(utaData, "list", []any{})
 
 		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(list, currency, since, limit))}
 		return nil
@@ -11681,7 +11683,7 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	//
 	var data any = this.SafeValue(response, "data")
 	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") {
-		var bills []any = SafeListTypedDefault(data, "bills", []any{})
+		var bills []any = this.SafeListSlice(data, "bills", []any{})
 
 		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(bills, currency, since, limit))}
 		return nil
@@ -12257,17 +12259,17 @@ func (this *Bitget) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//
 	var data any = this.SafeValue(response, "data")
 	if uta == true {
-		var fills []any = SafeListTypedDefault(data, "list", []any{})
+		var fills []any = this.SafeListSlice(data, "list", []any{})
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(fills, market, since, limit))}
 		return nil
 	} else if (*this.SafeBool(market, "swap", false)) || (*this.SafeBool(market, "future", false)) {
-		var fills []any = SafeListTypedDefault(data, "fillList", []any{})
+		var fills []any = this.SafeListSlice(data, "fillList", []any{})
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(fills, market, since, limit))}
 		return nil
 	} else if marginMode != nil {
-		var fills []any = SafeListTypedDefault(data, "fills", []any{})
+		var fills []any = this.SafeListSlice(data, "fills", []any{})
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(fills, market, since, limit))}
 		return nil
@@ -13274,7 +13276,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 		response = r5.Value
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
@@ -14293,7 +14295,7 @@ func (this *Bitget) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(data, currency, since, limit))}
 	return nil
@@ -14570,7 +14572,7 @@ func (this *Bitget) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]
 	//         "requestTime": "1700120731773"
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(data, codes, "coin"))}
 	return nil
@@ -15017,7 +15019,7 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var liquidations []any = SafeListTypedDefault(data, "resultList", []any{})
+	var liquidations []any = this.SafeListSlice(data, "resultList", []any{})
 
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(liquidations, market, since, limit))}
 	return nil
@@ -15507,7 +15509,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "resultList", []any{})
+	var rows []any = this.SafeListSlice(data, "resultList", []any{})
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
@@ -15874,7 +15876,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 		response = r3.Value
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var responseList []any = SafeListTypedDefault(data, "list", []any{})
+	var responseList []any = this.SafeListSlice(data, "list", []any{})
 	var positions []any = this.ParsePositions(responseList, symbols, paramsUTA)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
@@ -16106,7 +16108,7 @@ func (this *Bitget) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversio
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var dataList []any = SafeListTypedDefault(data, "dataList", []any{})
+	var dataList []any = this.SafeListSlice(data, "dataList", []any{})
 
 	ch <- AsyncResult[[]Conversion]{Value: ConversionsFromList(this.ParseConversions(dataList, code, "fromCoin", "toCoin", since, limit))}
 	return nil
@@ -16382,7 +16384,7 @@ func (this *Bitget) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongSho
 		}
 		response = r2.Value
 	}
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(data, market))}
 	return nil

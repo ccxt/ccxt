@@ -414,7 +414,7 @@ func (this *Bitopro) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//         ]
 	//     }
 	//
-	var currencies []any = SafeListTypedDefault(response, "data", []any{})
+	var currencies []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -481,7 +481,7 @@ func (this *Bitopro) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var markets []any = this.SafeListSlice(response, "data", []any{})
 
 	//
 	//     {
@@ -703,7 +703,7 @@ func (this *Bitopro) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = SafeListTypedDefault(response, "data", []any{})
+	var tickers []any = this.SafeListSlice(response, "data", []any{})
 
 	//
 	//     {
@@ -925,7 +925,7 @@ func (this *Bitopro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var trades []any = SafeListTypedDefault(response, "data", []any{})
+	var trades []any = this.SafeListSlice(response, "data", []any{})
 
 	//
 	//     {
@@ -1130,7 +1130,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	//
 	//     {
 	//         "data":[
@@ -1251,7 +1251,7 @@ func (this *Bitopro) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var balances []any = SafeListTypedDefault(response, "data", []any{})
+	var balances []any = this.SafeListSlice(response, "data", []any{})
 
 	//
 	//     {
@@ -1879,7 +1879,7 @@ func (this *Bitopro) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = SafeListTypedDefault(response, "data", []any{})
+	var orders []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1976,7 +1976,7 @@ func (this *Bitopro) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var trades []any = SafeListTypedDefault(response, "data", []any{})
+	var trades []any = this.SafeListSlice(response, "data", []any{})
 
 	//
 	//     {
@@ -2152,7 +2152,7 @@ func (this *Bitopro) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result []any = SafeListTypedDefault(response, "data", []any{})
+	var result []any = this.SafeListSlice(response, "data", []any{})
 
 	//
 	//     {
@@ -2232,7 +2232,7 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result []any = SafeListTypedDefault(response, "data", []any{})
+	var result []any = this.SafeListSlice(response, "data", []any{})
 
 	//
 	//     {
@@ -2484,7 +2484,7 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(data, codes, "currency"))}
 	return nil

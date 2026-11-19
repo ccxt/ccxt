@@ -957,7 +957,7 @@ func (this *Coinspot) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	//         ],
 	//     }
 	//
-	var trades []any = SafeListTypedDefault(response, "orders", []any{})
+	var trades []any = this.SafeListSlice(response, "orders", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1037,11 +1037,11 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//          },
 	//      ]
 	// }
-	var buyTrades []any = SafeListTypedDefault(response, "buyorders", []any{})
+	var buyTrades []any = this.SafeListSlice(response, "buyorders", []any{})
 	for i := 0; i < len(buyTrades); i++ {
 		AddElementToObject(buyTrades[i], "side", "buy")
 	}
-	var sellTrades []any = SafeListTypedDefault(response, "sellorders", []any{})
+	var sellTrades []any = this.SafeListSlice(response, "sellorders", []any{})
 	for i := 0; i < len(sellTrades); i++ {
 		AddElementToObject(sellTrades[i], "side", "sell")
 	}

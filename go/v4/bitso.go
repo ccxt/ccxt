@@ -435,7 +435,7 @@ func (this *Bitso) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	//         }]
 	//     }
 	//
-	var payload []any = SafeListTypedDefault(response, "payload", []any{})
+	var payload []any = this.SafeListSlice(response, "payload", []any{})
 	var currency map[string]any = this.SafeCurrency(code)
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(payload, currency, since, limit))}
@@ -764,7 +764,7 @@ func (this *Bitso) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opti
 	//
 	var payload map[string]any = SafeMapTyped(catalogues, "payload")
 	var currencies map[string]any = SafeMapTyped(payload, "currencies")
-	var metadata []any = SafeListTypedDefault(currencies, "metadata", []any{})
+	var metadata []any = this.SafeListSlice(currencies, "metadata", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(metadata)}
 	return nil
@@ -1113,7 +1113,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	//         ]
 	//     }
 	//
-	var payload []any = SafeListTypedDefault(response, "payload", []any{})
+	var payload []any = this.SafeListSlice(response, "payload", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(payload, market, timeframe, since, limit))}
 	return nil
@@ -1291,7 +1291,7 @@ func (this *Bitso) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var payload []any = SafeListTypedDefault(response, "payload", []any{})
+	var payload []any = this.SafeListSlice(response, "payload", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(payload, market, since, limit))}
 	return nil
@@ -1456,7 +1456,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var payload []any = SafeListTypedDefault(response, "payload", []any{})
+	var payload []any = this.SafeListSlice(response, "payload", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(payload, market, since, limit))}
 	return nil
@@ -1800,7 +1800,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var payload []any = SafeListTypedDefault(response, "payload", []any{})
+	var payload []any = this.SafeListSlice(response, "payload", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(payload, market, since, limit))}
 	return nil
@@ -1898,7 +1898,7 @@ func (this *Bitso) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var payload []any = SafeListTypedDefault(response, "payload", []any{})
+	var payload []any = this.SafeListSlice(response, "payload", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(payload, market))}
 	return nil
@@ -2039,7 +2039,7 @@ func (this *Bitso) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 	//         }]
 	//     }
 	//
-	var transactions []any = SafeListTypedDefault(response, "payload", []any{})
+	var transactions []any = this.SafeListSlice(response, "payload", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit, params))}
 	return nil
@@ -2306,7 +2306,7 @@ func (this *Bitso) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]D
 	//        }
 	//    }
 	//
-	var payload []any = SafeListTypedDefault(response, "payload", []any{})
+	var payload []any = this.SafeListSlice(response, "payload", []any{})
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(payload, codes))}
 	return nil
@@ -2545,6 +2545,12 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 		}
 		return nil
 	}()
+	var addressValue *string
+	if withdrawalAddress != nil {
+		addressValue = withdrawalAddress
+	} else {
+		addressValue = receivingAddress
+	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString2(transaction, "wid", "fid"),
 		"txid":        this.SafeString(details, "tx_hash"),
@@ -2552,12 +2558,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 		"datetime":    datetime,
 		"network":     networkCodeUpper,
 		"addressFrom": receivingAddress,
-		"address": func() any {
-			if withdrawalAddress != nil {
-				return withdrawalAddress
-			}
-			return receivingAddress
-		}(),
+		"address": addressValue,
 		"addressTo": withdrawalAddress,
 		"amount":    this.SafeNumber(transaction, "amount"),
 		"type": func() string {

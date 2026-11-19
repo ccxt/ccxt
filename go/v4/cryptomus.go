@@ -380,7 +380,7 @@ func (this *Cryptomus) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(result))}
 	return nil
@@ -871,7 +871,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result))}
 	return nil
@@ -974,12 +974,11 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 					cost = Precise.StringMul(amountToString, priceToString)
 				}
 			} else {
-				cost = func() any {
-					if (costParam != nil) && (costParam == nil || *costParam != "") {
-						return costParam
-					}
-					return amountToString
-				}()
+				if (costParam != nil) && (costParam == nil || *costParam != "") {
+					cost = costParam
+				} else {
+					cost = amountToString
+				}
 			}
 			request["value"] = cost
 		} else {
@@ -1240,7 +1239,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	//             ...
 	//         ]
 	//     }
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, nil, nil))}
 	return nil
@@ -1448,7 +1447,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	var takerFee *string = this.SafeString(currentFeeTier, "taker_percent")
 	makerFee = Precise.StringDiv(makerFee, "100")
 	takerFee = Precise.StringDiv(takerFee, "100")
-	var feeTiers []any = SafeListTypedDefault(data, "tariff_steps", []any{})
+	var feeTiers []any = this.SafeListSlice(data, "tariff_steps", []any{})
 	var result map[string]any = map[string]any{}
 	var tiers map[string]any = this.ParseFeeTiers(feeTiers)
 	var symbols []string = this.Symbols

@@ -444,7 +444,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var assetTicks map[string]any = SafeMapTyped(data, "asset_ticks")
-	var ohlcvs []any = SafeListTypedDefault(assetTicks, strings.ToLower(assetPair), []any{})
+	var ohlcvs []any = this.SafeListSlice(assetTicks, strings.ToLower(assetPair), []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
@@ -1654,7 +1654,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var positions []any = this.ParsePositions(data, symbolsNormalized)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}

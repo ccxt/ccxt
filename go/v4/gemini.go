@@ -730,7 +730,7 @@ func (this *Gemini) fetchCurrenciesFromWebBody(ch chan AsyncResult[Currencies], 
 	//    }
 	//
 	this.Options["tradingPairs"] = this.SafeList(data, "tradingPairs")
-	var currenciesArray []any = SafeListTypedDefault(data, "currencies", []any{})
+	var currenciesArray []any = this.SafeListSlice(data, "currencies", []any{})
 
 	ch <- AsyncResult[Currencies]{Value: CurrenciesFromMap(this.ParseCurrencies(currenciesArray))}
 	return nil
@@ -878,12 +878,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan AsyncResult[[]MarketInterfac
 	var result []any = []any{}
 	// skip the first element (empty string)
 	for i := 1; i < numRows; i++ {
-		var row *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(rows) {
-				return rows[i]
-			}
-			return nil
-		}())
+		var row *string = SafeStringPtr(rows[i])
 		var cells []string = strings.Split(*row, "</td>\n") // eslint-disable-line quotes
 		var numCells int = len(cells)
 		if numCells < 5 {

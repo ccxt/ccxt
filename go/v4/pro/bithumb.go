@@ -609,7 +609,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	//
 	var content map[string]any = ccxt.SafeMapTyped(message, "content")
 	if content != nil {
-		var list []any = ccxt.SafeListTypedDefault(content, "list", []any{})
+		var list []any = this.SafeListSlice(content, "list", []any{})
 		var first map[string]any = ccxt.SafeMapTyped(list, 0)
 		var legacyMarketId *string = this.SafeString(first, "symbol")
 		if legacyMarketId == nil {
@@ -825,7 +825,7 @@ func (this *Bithumb) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var content map[string]any = ccxt.SafeMapTyped(message, "content")
-	var rawTrades []any = ccxt.SafeListTypedDefault(content, "list", []any{message})
+	var rawTrades []any = this.SafeListSlice(content, "list", []any{message})
 	for i := 0; i < len(rawTrades); i++ {
 		var rawTrade any = rawTrades[i]
 		var marketId *string = this.SafeString2(rawTrade, "symbol", "code")
@@ -1072,7 +1072,13 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 	}
 	this.Balance["info"] = message
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	if this.Balance != nil {
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+	}
 	this.Balance["datetime"] = this.Iso8601(timestamp)
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
@@ -1195,7 +1201,7 @@ func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var url *string = this.SafeString(wsUrls, "privateGen2", "")
 	var messageHash string = "myOrder"
-	var codes []any = ccxt.SafeListTypedDefault(params, "codes", []any{})
+	var codes []any = this.SafeListSlice(params, "codes", []any{})
 	var request []any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
 		"type":  messageHash,
 		"codes": codes,

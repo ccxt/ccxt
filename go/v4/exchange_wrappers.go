@@ -2214,7 +2214,7 @@ func (this *Exchange) CreateOrdersWs(orders []OrderRequest, options ...CreateOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersWsAsync(orders, opts.Params)
+	r := <-this.CreateOrdersWsAsync(ConvertOrderRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

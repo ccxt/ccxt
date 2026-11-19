@@ -887,7 +887,7 @@ func (this *Pacifica) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//   "error": null,
 	//   "code": null
 	// }
-	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var markets []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1579,7 +1579,7 @@ func (this *Pacifica) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	//     "code": null
 	//   }
 	//
-	var result []any = SafeListTypedDefault(response, "data", []any{})
+	var result []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(result, symbols))}
 	return nil
@@ -1747,7 +1747,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//   "code": null
 	// }
 	//
-	var candles []any = SafeListTypedDefault(response, "data", []any{})
+	var candles []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
 	return nil
@@ -1832,7 +1832,7 @@ func (this *Pacifica) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	//   "last_order_id": 1557404170
 	// }
 	//
-	var recentTrades []any = SafeListTypedDefault(response, "data", []any{})
+	var recentTrades []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(recentTrades, market, since, limit))}
 	return nil
@@ -2335,12 +2335,7 @@ func (this *Pacifica) CreateOrdersRequest(orders []any, optionalArgs ...any) any
 		var requestList []any = ArrayTyped(this.CreateOrderRequest(symbol, *typeVar, side, amountNumber, priceNumber, orderParams))
 		var action map[string]any = map[string]any{
 			"type": "Create",
-			"data": func() any {
-				if 0 >= 0 && 0 < len(requestList) {
-					return DerefScalar(requestList[0])
-				}
-				return nil
-			}(),
+			"data": DerefScalar(requestList[0]),
 		}
 		actions = append(actions, action)
 	}
@@ -3257,7 +3252,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	//   "last_order_id": 1557370337
 	// }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3367,7 +3362,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	return nil
 }
 func (this *Pacifica) AddPaginationCursorToResult(response any) []any {
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var paginationCursor *string = this.SafeString(response, "next_cursor")
 	var hasMore *bool = this.SafeBool(response, "has_more", false)
 	var dataLength int = len(data)
@@ -4174,7 +4169,7 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.ParseOpenInterests(data, symbolsNormalized))}
 	return nil
@@ -4464,7 +4459,7 @@ func (this *Pacifica) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var transactions []any = this.ParseTransactions(data, this.SafeCurrency(code))
 	var deposits []any = this.FilterBy(transactions, "type", "deposit")
 
@@ -4517,7 +4512,7 @@ func (this *Pacifica) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var transactions []any = this.ParseTransactions(data, this.SafeCurrency(code))
 	var withdrawals []any = this.FilterBy(transactions, "type", "withdrawal")
 

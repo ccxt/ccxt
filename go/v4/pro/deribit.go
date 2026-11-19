@@ -724,7 +724,7 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
-	var trades []any = ccxt.SafeListTypedDefault(params, "data", []any{})
+	var trades []any = this.SafeListSlice(params, "data", []any{})
 	var cachedTrades ccxt.WsArrayCache = this.MyTrades
 	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -896,8 +896,8 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 		}
 	}
 	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
-	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
+	var asks []any = this.SafeListSlice(data, "asks", []any{})
+	var bids []any = this.SafeListSlice(data, "bids", []any{})
 	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
 	this.HandleDeltas(storedOrderBook.GetBids(), bids)
 	storedOrderBook.SetNonce(timestamp)
@@ -910,7 +910,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("book|"+*symbol+"|", descriptor))
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
-func (this *Deribit) CleanOrderBook(data any) any {
+func (this *Deribit) CleanOrderBook(data map[string]any) any {
 	var bids []any = ccxt.SafeListTyped(data, "bids")
 	var asks []any = ccxt.SafeListTyped(data, "asks")
 	var cleanedBids []any = []any{}
@@ -943,8 +943,8 @@ func (this *Deribit) CleanOrderBook(data any) any {
 			return nil
 		}()})
 	}
-	ccxt.AddElementToObject(data, "bids", cleanedBids)
-	ccxt.AddElementToObject(data, "asks", cleanedAsks)
+	data["bids"] = cleanedBids
+	data["asks"] = cleanedAsks
 	return data
 }
 func (this *Deribit) HandleDelta(bookside any, delta any) {

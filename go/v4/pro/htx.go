@@ -1002,16 +1002,17 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var spotConditon bool = (market["spot"] == true) && (ccxt.IsEqual(prevSeqNum, this.SafeInteger(orderbook, "nonce")))
 	var nonSpotCondition bool = (market["contract"] == true) && (version != nil) && (ccxt.IsEqual(*version-1, this.SafeInteger(orderbook, "nonce")))
 	if (spotConditon) || (nonSpotCondition) {
-		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
+		var asks []any = this.SafeListSlice(tick, "asks", []any{})
+		var bids []any = this.SafeListSlice(tick, "bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
-		ccxt.AddElementToObject(orderbook, "nonce", func() any {
-			if spotConditon {
-				return seqNum
-			}
-			return version
-		}())
+		var branchValue *int64
+		if spotConditon {
+			branchValue = seqNum
+		} else {
+			branchValue = version
+		}
+		ccxt.AddElementToObject(orderbook, "nonce", branchValue)
 		orderbook.SetTimestamp(timestamp)
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
@@ -1644,7 +1645,7 @@ func (this *Htx) HandleOrder(client any, message map[string]any) {
 	} else {
 		// contract branch
 		parsedOrder = this.ParseWsOrder(message, market)
-		var rawTrades []any = ccxt.SafeListTypedDefault(message, "trade", []any{})
+		var rawTrades []any = this.SafeListSlice(message, "trade", []any{})
 		var tradesLength int = len(rawTrades)
 		if tradesLength > 0 {
 			var tradesObject map[string]any = map[string]any{
@@ -2213,7 +2214,7 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	if topic == "positions_cross" {
 		defaultMarginMode = "cross"
 	}
-	var rawPositions []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var rawPositions []any = this.SafeListSlice(message, "data", []any{})
 	if this.IsEmpty(rawPositions) {
 		var prefixes []string = []string{"cross:positions", "isolated:positions"}
 		for i := 0; i < len(prefixes); i++ {
@@ -2540,7 +2541,13 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "ch")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var timestamp *int64 = this.SafeInteger(data, "changeTime", this.SafeInteger(message, "ts"))
-	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	if this.Balance != nil {
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+	}
 	this.Balance["datetime"] = this.Iso8601(timestamp)
 	this.Balance["info"] = this.SafeList(message, "data", []any{})
 	if channel != nil {

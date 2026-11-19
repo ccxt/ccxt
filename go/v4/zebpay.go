@@ -492,8 +492,8 @@ func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		panic(r.Err)
 	}
 	var promises []any = r.Value
-	var spotMarkets []any = SafeListTypedDefault(promises, 0, []any{})
-	var futureMarkets []any = SafeListTypedDefault(promises, 1, []any{})
+	var spotMarkets []any = this.SafeListSlice(promises, 0, []any{})
+	var futureMarkets []any = this.SafeListSlice(promises, 1, []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(spotMarkets, futureMarkets))}
 	return nil
@@ -554,7 +554,7 @@ func (this *Zebpay) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//             ]
 	//     }
 	//
-	var rows []any = SafeListTypedDefault(response, "data", []any{})
+	var rows []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(rows)}
 	return nil
@@ -988,7 +988,7 @@ func (this *Zebpay) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	//        }
 	//     ]
 	//
-	var tickerList []any = SafeListTypedDefault(response, "data", []any{})
+	var tickerList []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickerList, symbolsNormalized))}
 	return nil
@@ -1114,7 +1114,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//                 ]
 	//             ]
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limitResolved))}
 	return nil
@@ -1188,7 +1188,7 @@ func (this *Zebpay) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	//         }
 	//     ]
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1245,7 +1245,7 @@ func (this *Zebpay) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		response = r1.Value
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var items []any = SafeListTypedDefault(data, "items", []any{})
+	var items []any = this.SafeListSlice(data, "items", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(items, market, since, limit))}
 	return nil
@@ -2042,7 +2042,7 @@ func (this *Zebpay) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage],
 	//         ]
 	//     }
 	//
-	var leveragePreferences []any = SafeListTypedDefault(response, "data", []any{})
+	var leveragePreferences []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(leveragePreferences, symbols, "symbol"))}
 	return nil
@@ -2197,7 +2197,7 @@ func (this *Zebpay) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	//        ],
 	//    }
 	//
-	var positions []any = SafeListTypedDefault(response, "data", []any{})
+	var positions []any = this.SafeListSlice(response, "data", []any{})
 	var result []any = this.ParsePositions(positions)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbols))}

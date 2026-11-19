@@ -1147,7 +1147,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 				}
 				response = r2.Raw
 				bars = this.SafeDict(response, "bars", map[string]any{})
-				var page []any = SafeListTypedDefault(bars, marketId, []any{})
+				var page []any = this.SafeListSlice(bars, marketId, []any{})
 				var pageLength int = len(page)
 				if pageLength == 0 {
 					break

@@ -2191,7 +2191,7 @@ func (this *Gate) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	}
 	var rawPromises []any = []any{}
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
-	var types []any = SafeListTypedDefault(fetchMarketsOptions, "types", []any{"spot", "swap", "future", "option"})
+	var types []any = this.SafeListSlice(fetchMarketsOptions, "types", []any{"spot", "swap", "future", "option"})
 	for i := 0; i < len(types); i++ {
 		var marketType *string = this.SafeString(types, i)
 		if marketType != nil && *marketType == "spot" {
@@ -3481,7 +3481,7 @@ func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var chains []any = SafeListTypedDefault(response, "multichain_addresses", []any{})
+	var chains []any = this.SafeListSlice(response, "multichain_addresses", []any{})
 	var currencyId *string = this.SafeString(response, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
 	var parsed []any = this.ParseDepositAddresses(chains, nil, false)
@@ -6432,19 +6432,19 @@ func (this *Gate) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) []any {
+func (this *Gate) CreateOrdersRequest(orders []any, optionalArgs ...any) []any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var ordersRequests []any = []any{}
 	var orderSymbols []any = []any{}
-	var ordersLength int = GetArrayLength(orders)
+	var ordersLength int = len(orders)
 	if ordersLength == 0 {
 		panic(BadRequest(this.Id + " createOrders() requires at least one order"))
 	}
 	if ordersLength > 10 {
 		panic(BadRequest(this.Id + " createOrders() accepts a maximum of 10 orders at a time"))
 	}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		orderSymbols = append(orderSymbols, marketId)
@@ -10532,7 +10532,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]
 		response = r2.Value
 	}
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTypedDefault(result, "list", []any{})
+	var data []any = this.SafeListSlice(result, "list", []any{})
 	var settlements []any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 

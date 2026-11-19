@@ -1455,7 +1455,7 @@ func (this *Nado) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 		request = r1.Value
 	}
 	var placeOrder map[string]any = this.SafeDictMap(request, "place_order", map[string]any{})
-	if ccxt.InOp(placeOrder, "trigger") {
+	if _, ok := placeOrder["trigger"]; ok {
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support trigger orders, use createOrder() instead"))
 	}
 
@@ -2715,8 +2715,8 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
 	}
-	var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
-	var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
+	var asks []any = this.SafeListSlice(message, "asks", []any{})
+	var bids []any = this.SafeListSlice(message, "bids", []any{})
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	var timestamp any = this.ParseWsTimestamp(message, "max_timestamp")

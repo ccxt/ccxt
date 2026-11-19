@@ -1549,8 +1549,8 @@ func (this *Bybit) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
 	} else {
-		var asks []any = ccxt.SafeListTypedDefault(data, "a", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(data, "b", []any{})
+		var asks []any = this.SafeListSlice(data, "a", []any{})
+		var bids []any = this.SafeListSlice(data, "b", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -1579,7 +1579,7 @@ func (this *Bybit) HandleDelta(bookside any, delta any) {
 }
 func (this *Bybit) HandleDeltas(bookside any, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
 
@@ -1656,12 +1656,7 @@ func (this *Bybit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	}
 	var paramsValue any = this.CleanParams(params)
 
-	r1 := <-this.GetUrlByMarketTypeAsync(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}(), false, "watchTrades", paramsValue)
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsNormalized[0], false, "watchTrades", paramsValue)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3216,7 +3211,7 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 		account = "spot"
 		var data []any = ccxt.SafeListTyped(message, "data")
 		for i := 0; i < len(data); i++ {
-			var B []any = ccxt.SafeListTypedDefault(data[i], "B", []any{})
+			var B []any = this.SafeListSlice(data[i], "B", []any{})
 			rawBalances = this.ArrayConcat(rawBalances, B)
 		}
 		info = rawBalances
@@ -3245,7 +3240,9 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 		messageHash = ccxt.Add("balances:", account)
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, account), messageHash)
 	} else {
-		ccxt.AddElementToObject(this.Balance, "info", info)
+		if this.Balance != nil {
+			this.Balance["info"] = info
+		}
 		var timestamp *int64 = this.SafeInteger(message, "ts")
 		ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 		this.Balance["datetime"] = this.Iso8601(timestamp)
@@ -3795,7 +3792,7 @@ func (this *Bybit) HandleUnSubscribe(client any, message map[string]any) any {
 			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 			for j := 0; j < len(messageHashes); j++ {
-				var unsubHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(messageHashes[j]))
+				var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
 				var subHash *string = this.SafeString(subMessageHashes, j)
 				var usePrefix bool = (subHash != nil && *subHash == "orders") || (subHash != nil && *subHash == "myTrades") || (subHash != nil && *subHash == "positions")
 				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, usePrefix)

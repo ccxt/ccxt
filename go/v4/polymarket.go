@@ -1113,7 +1113,7 @@ func (this *Polymarket) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 	//         "more": true
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1279,7 +1279,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	//         "more": false
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -2975,7 +2975,7 @@ func (this *Polymarket) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	//         "cursor": "..."
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -3224,7 +3224,7 @@ func (this *Polymarket) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3288,7 +3288,7 @@ func (this *Polymarket) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3790,7 +3790,7 @@ func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], sy
 	}
 	return nil
 }
-func (this *Polymarket) HashMessage(message any) any {
+func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, keccak, "hex")
 }
 func (this *Polymarket) SignHash(hash any, privateKey any) string {
@@ -3967,7 +3967,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[map[string]any], sig
 	}
 	credentials := r.Value
 	var packed any = this.Packb(signable)
-	var dataHash any = this.HashMessage(packed)
+	var dataHash string = this.HashMessage(packed)
 	var ts int64 = this.Milliseconds()
 	var salt int64 = this.RandNumber(9)
 	var chainId *int64 = this.SafeInteger(this.Options, "chainId", 137)

@@ -2998,7 +2998,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	//         "totalCount": 1
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)

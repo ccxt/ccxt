@@ -2108,8 +2108,8 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook ccxt.
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
-	var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
+	var asks []any = this.SafeListSlice(message, "asks", []any{})
+	var bids []any = this.SafeListSlice(message, "bids", []any{})
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	var marketId *string = this.SafeString(message, "instId")
@@ -3001,7 +3001,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 	this.HandleMyTrades(client, message)
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
-	var orders []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var orders []any = this.SafeListSlice(message, "data", []any{})
 	var ordersLength int = len(orders)
 	if ordersLength > 0 {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -3546,7 +3546,7 @@ func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = this.SafeListSlice(message, "data", []any{})
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
 func (this *Okx) HandleSubscriptionStatus(client any, message map[string]any) any {

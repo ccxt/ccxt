@@ -1534,7 +1534,7 @@ func (this *Xt) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var symbols []any = SafeListTypedDefault(data, "symbols", []any{})
+	var symbols []any = this.SafeListSlice(data, "symbols", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(symbols))}
 	return nil
@@ -2050,7 +2050,7 @@ func (this *Xt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opti
 	//         ]
 	//     }
 	//
-	var ohlcvs []any = SafeListTypedDefault(response, "result", []any{})
+	var ohlcvs []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limitResolved))}
 	return nil
@@ -2802,7 +2802,7 @@ func (this *Xt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, option
 	//         ]
 	//     }
 	//
-	var trades []any = SafeListTypedDefault(response, "result", []any{})
+	var trades []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market))}
 	return nil
@@ -2950,7 +2950,7 @@ func (this *Xt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var trades []any = SafeListTypedDefault(data, "items", []any{})
+	var trades []any = this.SafeListSlice(data, "items", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -4220,7 +4220,7 @@ func (this *Xt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...an
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var orders []any = SafeListTypedDefault(data, "items", []any{})
+	var orders []any = this.SafeListSlice(data, "items", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -5488,7 +5488,7 @@ func (this *Xt) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArgs
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var ledger []any = SafeListTypedDefault(data, "items", []any{})
+	var ledger []any = this.SafeListSlice(data, "items", []any{})
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(ledger, currency, since, limit))}
 	return nil
@@ -5707,7 +5707,7 @@ func (this *Xt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalAr
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var deposits []any = SafeListTypedDefault(data, "items", []any{})
+	var deposits []any = this.SafeListSlice(data, "items", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, currency, since, limit, params))}
 	return nil
@@ -5792,7 +5792,7 @@ func (this *Xt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optiona
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
-	var withdrawals []any = SafeListTypedDefault(data, "items", []any{})
+	var withdrawals []any = this.SafeListSlice(data, "items", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawals, currency, since, limit, params))}
 	return nil
@@ -6243,7 +6243,7 @@ func (this *Xt) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], optio
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "result", []any{})
+	var data []any = this.SafeListSlice(response, "result", []any{})
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(this.ParseLeverageTiers(data, symbolsNormalized, "symbol"))}
@@ -7384,7 +7384,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], optio
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var items []any = SafeListTypedDefault(result, "items", []any{})
+	var items []any = this.SafeListSlice(result, "items", []any{})
 	var positions []any = this.ParsePositions(items, symbolsNormalized)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}

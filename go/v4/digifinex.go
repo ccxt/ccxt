@@ -888,8 +888,8 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface]
 	//         ]
 	//     }
 	//
-	var spotData []any = SafeListTypedDefault(spotMarkets, "symbol_list", []any{})
-	var swapData []any = SafeListTypedDefault(swapMarkets, "data", []any{})
+	var spotData []any = this.SafeListSlice(spotMarkets, "symbol_list", []any{})
+	var swapData []any = this.SafeListSlice(swapMarkets, "data", []any{})
 	var response []any = this.ArrayConcat(spotData, swapData)
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
@@ -1244,7 +1244,7 @@ func (this *Digifinex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	if !isMargin && (marketType != nil && *marketType == "swap") {
 		balanceRequest = "data"
 	}
-	var balances []any = SafeListTypedDefault(response, balanceRequest, []any{})
+	var balances []any = this.SafeListSlice(response, balanceRequest, []any{})
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(balances))}
 	return nil
@@ -2005,7 +2005,7 @@ func (this *Digifinex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -2890,7 +2890,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 				return nil
 			}())
 			var marketId *string = SafeStringPtr(market["id"])
-			var orderId *string = SafeStringPtr(DerefScalar(ids[i]))
+			var orderId *string = SafeStringPtr(ids[i])
 			ordersRequests = append(ordersRequests, map[string]any{
 				"instrument_id": marketId,
 				"order_id":      orderId,
@@ -2912,10 +2912,10 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		//     }
 		//
 		// ids that were not canceled are absent from data
-		var data []any = SafeListTypedDefault(swapResponse, "data", []any{})
+		var data []any = this.SafeListSlice(swapResponse, "data", []any{})
 		var result []any = []any{}
 		for i := 0; i < len(ids); i++ {
-			var orderId *string = SafeStringPtr(DerefScalar(ids[i]))
+			var orderId *string = SafeStringPtr(ids[i])
 			var isCanceled bool = this.InArray(orderId, data)
 			var status string
 			if isCanceled {
@@ -3272,7 +3272,7 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3419,7 +3419,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3702,7 +3702,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	if !isMargin && (marketType != nil && *marketType == "swap") {
 		responseRequest = "data"
 	}
-	var data []any = SafeListTypedDefault(response, responseRequest, []any{})
+	var data []any = this.SafeListSlice(response, responseRequest, []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -3968,7 +3968,7 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddres
 	//         "code":200
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var addresses map[string]any = this.IndexBy(this.ParseDepositAddresses(data, []any{currency["code"]}, false), "currency")
 	var address map[string]any = SafeMapTyped(addresses, code)
 	if address == nil {
@@ -4046,7 +4046,7 @@ func (this *Digifinex) fetchTransactionsByTypeBody(ch chan AsyncResult[[]Transac
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": typeVar,
@@ -4487,7 +4487,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInter
 	//         "unrealized_pnl": "-0.049158102631998504"
 	//     }
 	//
-	var rows []any = SafeListTypedDefault(response, "positions", []any{})
+	var rows []any = this.SafeListSlice(response, "positions", []any{})
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
@@ -5548,7 +5548,7 @@ func (this *Digifinex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], 
 	//         ]
 	//     }
 	//
-	var transfers []any = SafeListTypedDefault(response, "data", []any{})
+	var transfers []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
 	return nil
@@ -5617,7 +5617,7 @@ func (this *Digifinex) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers]
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(this.ParseLeverageTiers(data, symbolsNormalized, "instrument_id"))}
@@ -5867,12 +5867,12 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 	var currencyIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyIdKey
 	var depositWithdrawFees map[string]any = map[string]any{}
-	var codesValue any = this.MarketCodes(codes)
+	var codesValue []any = this.MarketCodes(codes)
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
 		var entry map[string]any = SafeMapTyped(rows, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))
-		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
+		if (code != nil) && ((codesValue == nil) || (this.InArray(code, codesValue))) {
 			if _, ok := depositWithdrawFees[*code]; !ok {
 				var feeStructure map[string]any = this.DepositWithdrawFee(map[string]any{})
 				feeStructure["info"] = []any{}
@@ -6146,7 +6146,7 @@ func (this *Digifinex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHist
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(data, market, since, limit))}
 	return nil

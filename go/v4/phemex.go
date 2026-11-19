@@ -1355,10 +1355,10 @@ func (this *Phemex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//
 	var v2ProductsData map[string]any = SafeMapTyped(v2Products, "data")
 	var products any = this.SafeList(v2ProductsData, "products", []any{})
-	var perpetualProductsV2 []any = SafeListTypedDefault(v2ProductsData, "perpProductsV2", []any{})
+	var perpetualProductsV2 []any = this.SafeListSlice(v2ProductsData, "perpProductsV2", []any{})
 	products = this.ArrayConcat(products, perpetualProductsV2)
 	var riskLimits any = this.SafeList(v2ProductsData, "riskLimits", []any{})
-	var riskLimitsV2 []any = SafeListTypedDefault(v2ProductsData, "riskLimitsV2", []any{})
+	var riskLimitsV2 []any = this.SafeListSlice(v2ProductsData, "riskLimitsV2", []any{})
 	riskLimits = this.ArrayConcat(riskLimits, riskLimitsV2)
 	var currencies []any = SafeListTyped(v2ProductsData, "currencies")
 	var riskLimitsById map[string]any = this.IndexBy(riskLimits, "symbol")
@@ -1431,7 +1431,7 @@ func (this *Phemex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//         }
 	//     }
 	var data map[string]any = SafeMapTyped(response, "data")
-	var currencies []any = SafeListTypedDefault(data, "currencies", []any{})
+	var currencies []any = this.SafeListSlice(data, "currencies", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -1834,7 +1834,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 	// the from/to endpoint works in seconds and the parser receives that value
 	var sinceResolved any = since
 	if usesSpecialFromToEndpoint {
@@ -2102,7 +2102,7 @@ func (this *Phemex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		}
 		response = r3.Value
 	}
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(result, symbols))}
 	return nil
@@ -4138,7 +4138,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 		return nil
 	} else {
-		var rows []any = SafeListTypedDefault(data, "rows", []any{})
+		var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(rows, market, since, limit))}
 		return nil
@@ -4263,7 +4263,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 		return nil
 	} else {
-		var rows []any = SafeListTypedDefault(data, "rows", []any{})
+		var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(rows, market, since, limit))}
 		return nil
@@ -4610,7 +4610,7 @@ func (this *Phemex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -4679,7 +4679,7 @@ func (this *Phemex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -5081,7 +5081,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 	//        ]
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	var positions []any = this.ParsePositions(data, []any{symbolValue})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySymbolSinceLimit(positions, symbolValue, since, limit))}
@@ -6288,7 +6288,7 @@ func (this *Phemex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var transfers []any = SafeListTypedDefault(data, "rows", []any{})
+	var transfers []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
 	return nil
@@ -6907,7 +6907,7 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversio
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]Conversion]{Value: ConversionsFromList(this.ParseConversions(rows, code, "fromCurrency", "toCurrency", since, limit))}
 	return nil

@@ -1519,8 +1519,8 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 func (this *Binance) HandleOrderBookSubscription(client any, message any, subscription map[string]any) {
 	var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 	// const messageHash = this.safeString (subscription, 'messageHash')
-	var symbolOfSubscription *string = this.SafeString(subscription, "symbol")                          // watchOrderBook
-	var symbols []any = ccxt.SafeListTypedDefault(subscription, "symbols", []any{symbolOfSubscription}) // watchOrderBookForSymbols
+	var symbolOfSubscription *string = this.SafeString(subscription, "symbol")                   // watchOrderBook
+	var symbols []any = this.SafeListSlice(subscription, "symbols", []any{symbolOfSubscription}) // watchOrderBookForSymbols
 	var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 	// handle list of symbols
 	for i := 0; i < len(symbols); i++ {
@@ -5356,7 +5356,7 @@ func (this *Binance) HandleOrdersWs(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var result []any = ccxt.SafeListTypedDefault(message, "result", []any{})
+	var result []any = this.SafeListSlice(message, "result", []any{})
 	var orders []any = this.ParseOrders(result)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
@@ -7327,7 +7327,7 @@ func (this *Binance) HandleTradesWs(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var result []any = ccxt.SafeListTypedDefault(message, "result", []any{})
+	var result []any = this.SafeListSlice(message, "result", []any{})
 	var trades []any = this.ParseTrades(result)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
@@ -7535,7 +7535,10 @@ func (this *Binance) HandleOrder(client any, message any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var cachedOrders ccxt.WsArrayCache = this.Orders
-		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
+		var orders map[string]any = nil
+		if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+			orders = byKey[*symbol]
+		}
 		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")

@@ -308,7 +308,7 @@ func (this *Toobit) HandleTrades(client any, message map[string]any) {
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = this.SafeListSlice(message, "data", []any{})
 	var parsedTrades []any = this.ArrayConcat(this.ParseWsTrades(data, market), []any{})
 	for i := 0; i < len(parsedTrades); i++ {
 		stored.Append(parsedTrades[i])
@@ -818,8 +818,8 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 		}
 		var orderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.SafeInteger(entry, "t")
-		var bids []any = ccxt.SafeListTypedDefault(entry, "b", []any{})
-		var asks []any = ccxt.SafeListTypedDefault(entry, "a", []any{})
+		var bids []any = this.SafeListSlice(entry, "b", []any{})
+		var asks []any = this.SafeListSlice(entry, "a", []any{})
 		this.HandleDeltas(orderBook.GetAsks(), asks)
 		this.HandleDeltas(orderBook.GetBids(), bids)
 		orderBook.SetTimestamp(timestamp)

@@ -267,8 +267,8 @@ func (this *Bitstamp) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "microtimestamp"))
-	var bids []any = ccxt.SafeListTypedDefault(delta, "bids", []any{})
-	var asks []any = ccxt.SafeListTypedDefault(delta, "asks", []any{})
+	var bids []any = this.SafeListSlice(delta, "bids", []any{})
+	var asks []any = this.SafeListSlice(delta, "asks", []any{})
 	this.HandleBidAsks(orderbook.GetBids(), bids)
 	this.HandleBidAsks(orderbook.GetAsks(), asks)
 }

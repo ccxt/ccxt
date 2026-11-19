@@ -835,7 +835,7 @@ func (this *Lighter) Pow(n string, m any) any {
 	}
 	return r
 }
-func (this *Lighter) HashMessage(message any) any {
+func (this *Lighter) HashMessage(message any) string {
 	var binaryMessage string = this.Encode(message)
 	var binaryMessageLength int = this.BinaryLength(binaryMessage)
 	var x19 []byte = this.Base16ToBinary("19")
@@ -843,16 +843,16 @@ func (this *Lighter) HashMessage(message any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return "0x" + this.HashString(this.BinaryConcat(prefix, binaryMessage), keccak, "hex")
 }
-func (this *Lighter) SignHash(hash any, privateKey string) string {
+func (this *Lighter) SignHash(hash string, privateKey string) string {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
 func (this *Lighter) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey string) string {
-	var hashMessage any = this.HashMessage(message)
+	var hashMessage string = this.HashMessage(message)
 	var signature string = this.SignHash(hashMessage, privateKey)
 	var decTxInfo map[string]any = this.Extend(map[string]any{}, this.ParseJson(txInfo))
 	decTxInfo["L1Sig"] = signature
@@ -1828,8 +1828,8 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//        ]
 	//    }
 	//
-	var spotMarkets []any = SafeListTypedDefault(response, "spot_order_book_details", []any{})
-	var swapMarkets []any = SafeListTypedDefault(response, "order_book_details", []any{})
+	var spotMarkets []any = this.SafeListSlice(response, "spot_order_book_details", []any{})
+	var swapMarkets []any = this.SafeListSlice(response, "order_book_details", []any{})
 	var markets []any = this.ArrayConcat(spotMarkets, swapMarkets)
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
@@ -1995,7 +1995,7 @@ func (this *Lighter) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "asset_details", []any{})
+	var data []any = this.SafeListSlice(response, "asset_details", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(data)}
 	return nil
@@ -2297,8 +2297,8 @@ func (this *Lighter) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//         ]
 	//     }
 	//
-	var spotTickers []any = SafeListTypedDefault(response, "spot_order_book_details", []any{})
-	var swapTickers []any = SafeListTypedDefault(response, "order_book_details", []any{})
+	var spotTickers []any = this.SafeListSlice(response, "spot_order_book_details", []any{})
+	var swapTickers []any = this.SafeListSlice(response, "order_book_details", []any{})
 	var tickers []any = this.ArrayConcat(spotTickers, swapTickers)
 	var first map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 
@@ -2341,8 +2341,8 @@ func (this *Lighter) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var spotTickers []any = SafeListTypedDefault(response, "spot_order_book_details", []any{})
-	var swapTickers []any = SafeListTypedDefault(response, "order_book_details", []any{})
+	var spotTickers []any = this.SafeListSlice(response, "spot_order_book_details", []any{})
+	var swapTickers []any = this.SafeListSlice(response, "order_book_details", []any{})
 	var tickers []any = this.ArrayConcat(spotTickers, swapTickers)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
@@ -2474,7 +2474,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//     ]
 	// }
 	//
-	var ohlcvs []any = SafeListTypedDefault(response, "c", []any{})
+	var ohlcvs []any = this.SafeListSlice(response, "c", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
@@ -3008,7 +3008,7 @@ func (this *Lighter) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	//         ]
 	//     }
 	//
-	var accounts []any = SafeListTypedDefault(response, "accounts", []any{})
+	var accounts []any = this.SafeListSlice(response, "accounts", []any{})
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts, paramsAccountIndex))}
 	return nil
@@ -3163,7 +3163,7 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "orders", []any{})
+	var data []any = this.SafeListSlice(response, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3282,7 +3282,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "orders", []any{})
+	var data []any = this.SafeListSlice(response, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3708,7 +3708,7 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
 	//     }
 	//
-	var rows []any = SafeListTypedDefault(response, "transfers", []any{})
+	var rows []any = this.SafeListSlice(response, "transfers", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(rows, 0)
 	if (first != nil) && (cursor != nil) {
@@ -3861,7 +3861,7 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	//         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "deposits", []any{})
+	var data []any = this.SafeListSlice(response, "deposits", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (cursor != nil) {
@@ -3972,7 +3972,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	//         "cursor": "string"
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "withdraws", []any{})
+	var data []any = this.SafeListSlice(response, "withdraws", []any{})
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (cursor != nil) {
@@ -4212,7 +4212,7 @@ func (this *Lighter) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//         ]
 	//     }
 	//
-	var trades []any = SafeListTypedDefault(response, "trades", []any{})
+	var trades []any = this.SafeListSlice(response, "trades", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -4347,7 +4347,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "trades", []any{})
+	var data []any = this.SafeListSlice(response, "trades", []any{})
 	for i := 0; i < len(data); i++ {
 		AddElementToObject(data[i], "account_index", accountIndex)
 	}

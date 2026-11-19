@@ -704,7 +704,7 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 			// since te and tu updates are duplicated on the public stream
 			return
 		}
-		var trade []any = ccxt.SafeListTypedDefault(message, 2, []any{})
+		var trade []any = this.SafeListSlice(message, 2, []any{})
 		var parsed any = this.ParseWsTrade(map[string]any{
 			"result": trade,
 		}, market)
@@ -760,7 +760,7 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var trade []any = ccxt.SafeListTypedDefault(tradeResult, "result", []any{})
+	var trade []any = this.SafeListSlice(tradeResult, "result", []any{})
 	var numFields int = len(trade)
 	var isPublic bool = (numFields <= 8)
 	var marketId any = nil
@@ -1391,7 +1391,7 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(messageHashes[i]))
+		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var subHash *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(subMessageHashes) {
 				return subMessageHashes[i]
@@ -1607,7 +1607,7 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 	//        ]
 	//    ]
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, 2, []any{})
+	var data []any = this.SafeListSlice(message, 2, []any{})
 	var messageType *string = this.SafeString(message, 1)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)

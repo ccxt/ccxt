@@ -967,9 +967,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash string = "orderbook" + "::" + *this.SafeString(market, "symbol", "")
-	suffixparamsValueVariable := this.OrderBookSuffix(market, "watchOrderBook", params)
-	var suffix *string = ccxt.SafeStringPtr(suffixparamsValueVariable[0])
-	var paramsValue map[string]any = suffixparamsValueVariable[1].(map[string]any)
+	suffix, paramsValue := this.OrderBookSuffix(market, "watchOrderBook", params)
 
 	r1 := <-this.WatchPublicAsync(market, messageHash, "25", paramsValue, suffix)
 	if r1.Err != nil {
@@ -1010,9 +1008,7 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash string = "orderbook" + "::" + *this.SafeString(market, "symbol", "")
-	suffixparamsValueVariable := this.OrderBookSuffix(market, "unWatchOrderBook", params)
-	var suffix *string = ccxt.SafeStringPtr(suffixparamsValueVariable[0])
-	var paramsValue map[string]any = suffixparamsValueVariable[1].(map[string]any)
+	suffix, paramsValue := this.OrderBookSuffix(market, "unWatchOrderBook", params)
 	var subscription map[string]any = map[string]any{
 		"topic": "orderbook",
 	}
@@ -1024,7 +1020,7 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, optionalArgs ...any) []any {
+func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, optionalArgs ...any) (*string, map[string]any) {
 	// the 25-level book is published per price-aggregation level and the
 	// level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
 	// venue only serves the levels that exist for that market, from the
@@ -1050,7 +1046,8 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 		}
 		aggregation = this.NumberToString(tickSize)
 	}
-	return []any{"_" + *aggregation, paramsAggregation}
+	retStr := "_" + *aggregation
+	return &retStr, paramsAggregation
 }
 func (this *Deepcoin) HandleOrderBook(client any, message map[string]any) {
 	//
@@ -1155,7 +1152,7 @@ func (this *Deepcoin) HandleOrderBookMessage(client any, message any, orderbook 
 	var timestamp *int64 = this.SafeInteger(message, "mt", 0)
 	var currentTimestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 	if (currentTimestamp != nil) && (timestamp != nil && *timestamp > *currentTimestamp) {
-		var response []any = ccxt.SafeListTypedDefault(message, "r", []any{})
+		var response []any = this.SafeListSlice(message, "r", []any{})
 		this.HandleBookDeltas(orderbook, response)
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))

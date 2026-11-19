@@ -626,7 +626,7 @@ func (this *Bit2me) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 		var asset map[string]any = this.SafeDictMap(assets, id, map[string]any{})
 		var assetSettings map[string]any = SafeMapTyped(settingsById, id)
 		// an operation that is not listed for an asset is not available for it
-		var actions []any = SafeListTypedDefault(assetSettings, "actions", []any{})
+		var actions []any = this.SafeListSlice(assetSettings, "actions", []any{})
 		var currency map[string]any = this.ParseCurrency(this.Extend(asset, map[string]any{
 			"actions": actions,
 		}))
@@ -646,7 +646,7 @@ func (this *Bit2me) ParseCurrency(rawCurrency any) map[string]any {
 	var enabled *bool = this.SafeBool(rawCurrency, "enabled", false)
 	var removedAt *string = this.SafeString(rawCurrency, "removedAt")
 	var active bool = (enabled != nil && *enabled) && (removedAt == nil)
-	var actions []any = SafeListTypedDefault(rawCurrency, "actions", []any{})
+	var actions []any = this.SafeListSlice(rawCurrency, "actions", []any{})
 	var deposit bool = this.InArray("deposit", actions)
 	var withdraw bool = this.InArray("withdrawal", actions)
 	// the exponent is only published for a handful of assets, fall back to the usual decimals
@@ -2159,7 +2159,7 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//         "total": 12
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -2435,18 +2435,16 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		status = this.ParseTransferStatus(this.SafeString(transfer, "status"))
 		var wallet *string = this.SafeString(accountsById, "wallet")
 		var trading *string = this.SafeString(accountsById, "trading")
-		fromAccount = func() any {
-			if movementType != nil && *movementType == "deposit" {
-				return wallet
-			}
-			return trading
-		}()
-		toAccount = func() any {
-			if movementType != nil && *movementType == "deposit" {
-				return trading
-			}
-			return wallet
-		}()
+		if movementType != nil && *movementType == "deposit" {
+			fromAccount = wallet
+		} else {
+			fromAccount = trading
+		}
+		if movementType != nil && *movementType == "deposit" {
+			toAccount = trading
+		} else {
+			toAccount = wallet
+		}
 	} else {
 		// the trading wallet returned by deposit/withdraw, createdAt is the wallet creation date
 		statusStr := "ok"

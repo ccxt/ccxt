@@ -644,7 +644,7 @@ func (this *Bit2me) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var balances []any = ccxt.SafeListTypedDefault(data, "balance", []any{})
+	var balances []any = this.SafeListSlice(data, "balance", []any{})
 	this.Balance = this.ParseBalanceList(balances)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }

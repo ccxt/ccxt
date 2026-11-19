@@ -618,8 +618,8 @@ func (this *Myriad) fetchRawQuestionByIdBody(ch chan ccxt.AsyncResult[map[string
 							var qId string = *this.SafeString(q, "id", "")
 							var qSlug *string = this.SafeString(q, "slug", "")
 							var qTitle string = *this.SafeString(q, "title", "")
-							var qHandle any = this.ShortenSlug(qSlug)
-							if (strings.ToLower(qId) == idLower) || (strings.ToLower(*qSlug) == idLower) || (strings.ToLower(qTitle) == idLower) || ((qHandle != nil) && (ccxt.ToLower(qHandle) == idLower)) {
+							var qHandle string = this.ShortenSlug(qSlug)
+							if (strings.ToLower(qId) == idLower) || (strings.ToLower(*qSlug) == idLower) || (strings.ToLower(qTitle) == idLower) || ((true) && (strings.ToLower(qHandle) == idLower)) {
 
 								ch <- ccxt.AsyncResult[map[string]any]{Value: q}
 								chSent = true
@@ -2645,7 +2645,7 @@ func (this *Myriad) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 	//         }
 	//     }
 	//
-	var data []any = ccxt.SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 	// the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
 	// valid market), so parse every order — each self-resolves its outcome from the network/market/
 	// outcome ids — and filter by the requested outcome client-side
@@ -3925,27 +3925,31 @@ func (this *Myriad) ParseOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	var low *float64 = this.SafeNumber(ohlcv, "low")
 	var close *float64 = this.SafeNumber(ohlcv, "close")
 	var price *float64 = this.SafeNumber(ohlcv, "price", this.SafeNumber(ohlcv, "value")) // fallback single-value tick
-	return ccxt.OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "timestamp"), func() any {
-		if open != nil {
-			return open
-		}
-		return price
-	}(), func() any {
-		if high != nil {
-			return high
-		}
-		return price
-	}(), func() any {
-		if low != nil {
-			return low
-		}
-		return price
-	}(), func() any {
-		if close != nil {
-			return close
-		}
-		return price
-	}(), 0})
+	var branchValue *float64
+	if open != nil {
+		branchValue = open
+	} else {
+		branchValue = price
+	}
+	var branchValue2 *float64
+	if high != nil {
+		branchValue2 = high
+	} else {
+		branchValue2 = price
+	}
+	var branchValue3 *float64
+	if low != nil {
+		branchValue3 = low
+	} else {
+		branchValue3 = price
+	}
+	var branchValue4 *float64
+	if close != nil {
+		branchValue4 = close
+	} else {
+		branchValue4 = price
+	}
+	return ccxt.OHLCVFromList([]any{this.SafeTimestamp(ohlcv, "timestamp"), branchValue, branchValue2, branchValue3, branchValue4, 0})
 }
 
 /**

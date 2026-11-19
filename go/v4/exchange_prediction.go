@@ -624,12 +624,12 @@ func (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any
 	// resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
 	// event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
 	// already-unique handles stay clean.
-	var marketPart any = this.ShortenSlug(marketSlug)
-	var eventPart any = this.ShortenSlug(eventSlug)
-	if (eventPart == nil) || (eventPart == "") || (eventPart == marketPart) {
+	var marketPart string = this.ShortenSlug(marketSlug)
+	var eventPart string = this.ShortenSlug(eventSlug)
+	if (false) || (eventPart == "") || (eventPart == marketPart) {
 		return marketPart
 	}
-	return Add(Add(eventPart, "_"), marketPart)
+	return eventPart + "_" + marketPart
 }
 func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug any, outcome any) any {
 	// build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
@@ -1811,7 +1811,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var status *string = this.SafeString(outcomeOrder, "status")
 	var lastTradeTimestamp *int64 = this.SafeInteger(outcomeOrder, "lastTradeTimestamp")
 	// parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
-	var rawTrades []any = SafeListTypedDefault(outcomeOrder, "trades", []any{})
+	var rawTrades []any = this.SafeListSlice(outcomeOrder, "trades", []any{})
 	var trades []any = this.ParsePredictionTrades(rawTrades, outcomeObj)
 	var tradesLength int = len(trades)
 	var feeList []any = []any{}

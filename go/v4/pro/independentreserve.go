@@ -287,8 +287,8 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 			"receivedSnapshot": true,
 		}))
 	} else {
-		var asks []any = ccxt.SafeListTypedDefault(orderBook, "Offers", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(orderBook, "Bids", []any{})
+		var asks []any = this.SafeListSlice(orderBook, "Offers", []any{})
+		var bids []any = this.SafeListSlice(orderBook, "Bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -342,7 +342,7 @@ func (this *Independentreserve) HandleDelta(bookside any, delta any) {
 }
 func (this *Independentreserve) HandleDeltas(bookside any, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
 func (this *Independentreserve) HandleHeartbeat(client any, message map[string]any) any {

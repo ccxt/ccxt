@@ -803,7 +803,7 @@ func (this *Lbank) HandleTrades(client any, message map[string]any) {
 			this.Trades[*symbol] = stored
 		}
 	}
-	var rawTrades []any = ccxt.SafeListTypedDefault(message, "trades", []any{rawTrade})
+	var rawTrades []any = this.SafeListSlice(message, "trades", []any{rawTrade})
 	for i := 0; i < len(rawTrades); i++ {
 		var trade map[string]any = this.ParseWsTrade(rawTrades[i], market)
 		trade["symbol"] = symbol
@@ -1147,8 +1147,20 @@ func (this *Lbank) HandleBalance(client any, message map[string]any) {
 	var timestamp *int64 = this.Parse8601(this.SafeString(message, "TS"))
 	var datetime *string = this.Iso8601(timestamp)
 	this.Balance["info"] = data
-	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance, "datetime", datetime)
+	if this.Balance != nil {
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+	}
+	if this.Balance != nil {
+		if datetime != nil {
+			this.Balance["datetime"] = *datetime
+		} else {
+			this.Balance["datetime"] = nil
+		}
+	}
 	var currencyId *string = this.SafeString(data, "assetCode")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()

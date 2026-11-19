@@ -1092,7 +1092,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = SafeListTypedDefault(response, "orders", []any{})
+	var orders []any = this.SafeListSlice(response, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1529,7 +1529,7 @@ func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	//          ]
 	//      }
 	//
-	var trades []any = SafeListTypedDefault(response, "trades", []any{})
+	var trades []any = this.SafeListSlice(response, "trades", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1603,7 +1603,7 @@ func (this *Luno) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	//          "pair": "XBTEUR"
 	//     }
 	//
-	var ohlcvs []any = SafeListTypedDefault(response, "candles", []any{})
+	var ohlcvs []any = this.SafeListSlice(response, "candles", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
@@ -1696,7 +1696,7 @@ func (this *Luno) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	//          ]
 	//      }
 	//
-	var trades []any = SafeListTypedDefault(response, "trades", []any{})
+	var trades []any = this.SafeListSlice(response, "trades", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2019,7 +2019,7 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var entries []any = SafeListTypedDefault(response, "transactions", []any{})
+	var entries []any = this.SafeListSlice(response, "transactions", []any{})
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(entries, currency, since, limit))}
 	return nil

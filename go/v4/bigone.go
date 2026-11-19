@@ -589,7 +589,7 @@ func (this *Bigone) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//     ],
 	// }
 	//
-	var currenciesData []any = SafeListTypedDefault(data, "data", []any{})
+	var currenciesData []any = this.SafeListSlice(data, "data", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currenciesData)}
 	return nil
@@ -1535,7 +1535,7 @@ func (this *Bigone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	//         ]
 	//     }
 	//
-	var trades []any = SafeListTypedDefault(response, "data", []any{})
+	var trades []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1657,7 +1657,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limitResolved))}
 	return nil
@@ -2261,7 +2261,7 @@ func (this *Bigone) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	//        "page_token":"dxzef",
 	//    }
 	//
-	var orders []any = SafeListTypedDefault(response, "data", []any{})
+	var orders []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2351,7 +2351,7 @@ func (this *Bigone) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//         "page_token":"dxfv"
 	//     }
 	//
-	var trades []any = SafeListTypedDefault(response, "data", []any{})
+	var trades []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2763,7 +2763,7 @@ func (this *Bigone) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         ]
 	//     }
 	//
-	var deposits []any = SafeListTypedDefault(response, "data", []any{})
+	var deposits []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, currency, since, limit))}
 	return nil
@@ -2839,7 +2839,7 @@ func (this *Bigone) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//         "page_token":"dxvf"
 	//     }
 	//
-	var withdrawals []any = SafeListTypedDefault(response, "data", []any{})
+	var withdrawals []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawals, currency, since, limit))}
 	return nil

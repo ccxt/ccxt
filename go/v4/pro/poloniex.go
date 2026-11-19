@@ -448,7 +448,7 @@ func (this *Poloniex) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id
 	_ = params
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
-		var clientOrderIds []any = ccxt.SafeListTypedDefault(params, "clientOrderId", []any{})
+		var clientOrderIds []any = this.SafeListSlice(params, "clientOrderId", []any{})
 		params["clientOrderIds"] = this.ArrayConcat(clientOrderIds, []any{clientOrderId})
 	}
 
@@ -1892,7 +1892,13 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	this.Balance["info"] = this.SafeList(message, "data", []any{})
 	var firstBalance map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(firstBalance, "ts")
-	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	if this.Balance != nil {
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+	}
 	this.Balance["datetime"] = this.Iso8601(timestamp)
 	for i := 0; i < len(data); i++ {
 		var balance map[string]any = ccxt.SafeMapTyped(data, i)

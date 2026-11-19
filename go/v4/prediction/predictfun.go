@@ -1256,9 +1256,10 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string
 	var topicSlug *string = this.SafeString(rawMarket, "categorySlug")
 	// the same handle parseEvent () derives for the enclosing event - stamping it here is what
 	// lets every outcome-addressed structure (order, ticker, trade, position) report an event
-	var eventHandle any = nil
+	var eventHandle *string = nil
 	if topicSlug != nil {
-		eventHandle = this.ShortenSlug(topicSlug)
+		shortenSlugText := this.ShortenSlug(topicSlug)
+		eventHandle = &shortenSlugText
 	}
 	var title *string = this.SafeString(rawMarket, "title", marketId)
 	var topicMarkets []any = ccxt.SafeListTyped(rawTopic, "markets")
@@ -2007,7 +2008,7 @@ func (this *Predictfun) SetSandboxMode(enable bool) {
  * @param {string} message the message to hash
  * @returns {string} the 0x prefixed hash
  */
-func (this *Predictfun) HashMessage(message string) any {
+func (this *Predictfun) HashMessage(message string) string {
 	var binaryMessage string = this.Encode(message)
 	var binaryMessageLength int = this.BinaryLength(binaryMessage)
 	var x19 []byte = this.Base16ToBinary("19")
@@ -2025,8 +2026,8 @@ func (this *Predictfun) HashMessage(message string) any {
  * @param {string} privateKey the wallet private key
  * @returns {string} the 65 byte signature, 0x prefixed
  */
-func (this *Predictfun) SignHash(hash any, privateKey string) string {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
+func (this *Predictfun) SignHash(hash string, privateKey string) string {
+	var signature map[string]any = ccxt.Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the php str_pad regex matches, it only handles a bare identifier
 	var rRaw string = *this.SafeString(signature, "r", "")
 	var sRaw string = *this.SafeString(signature, "s", "")
@@ -2181,8 +2182,7 @@ func (this *Predictfun) SignPredictfunOrder(order map[string]any, isNegRisk bool
 	}, order)
 	// ccxt.EthEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
 	// the digest that gets signed - and that the venue indexes the order by - is its ccxt.Keccak
-	hashStr := "0x" + this.HashString(encoded, ccxt.Keccak, "hex")
-	var hash *string = &hashStr
+	var hash string = "0x" + this.HashString(encoded, ccxt.Keccak, "hex")
 	return map[string]any{
 		"hash":      hash,
 		"signature": this.SignHash(hash, this.PrivateKey),
@@ -2781,7 +2781,7 @@ func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	//         "success": true
 	//     }
 	//
-	var rejected []any = ccxt.SafeListTypedDefault(response, "rejected", []any{})
+	var rejected []any = this.SafeListSlice(response, "rejected", []any{})
 	var rejectedLength int = len(rejected)
 	if rejectedLength > 0 {
 		panic(ccxt.OrderNotFound(this.Id + " cancelOrders() was refused for " + this.Json(rejected)))
@@ -3075,7 +3075,7 @@ func (this *Predictfun) fetchOrdersHelperBody(ch chan ccxt.AsyncResult[[]ccxt.Pr
 	//         "success": true
 	//     }
 	//
-	var data []any = ccxt.SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	// since is deliberately not forwarded: the rows carry no timestamp, so the shared
 	// since filter would drop every one of them
@@ -4469,9 +4469,10 @@ func (this *Predictfun) WalletEventOutcome(details map[string]any) any {
 	// undefined rather than guessed - a handle that does not match the one the rest of the api
 	// reports is worse than none at all
 	var topicSlug *string = this.SafeString(details, "categorySlug")
-	var eventHandle any = nil
+	var eventHandle *string = nil
 	if topicSlug != nil {
-		eventHandle = this.ShortenSlug(topicSlug)
+		shortenSlugText := this.ShortenSlug(topicSlug)
+		eventHandle = &shortenSlugText
 	}
 	var label any = this.StripPriceFormatting(this.SafeStringUpper(details, "outcomeName"))
 	return map[string]any{

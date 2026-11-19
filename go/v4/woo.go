@@ -1070,7 +1070,7 @@ func (this *Woo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(rows))}
 	return nil
@@ -1229,7 +1229,7 @@ func (this *Woo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rows, market, since, limit))}
 	return nil
@@ -2586,7 +2586,7 @@ func (this *Woo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 		response = r3.Value
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "rows", []any{})
+	var orders []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -3248,7 +3248,7 @@ func (this *Woo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limit))}
 	return nil
@@ -3325,7 +3325,7 @@ func (this *Woo) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 	//       }
 	//     ]
 	// }
-	var trades []any = SafeListTypedDefault(response, "rows", []any{})
+	var trades []any = this.SafeListSlice(response, "rows", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, params))}
 	return nil
@@ -3434,7 +3434,7 @@ func (this *Woo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = SafeListTypedDefault(data, "rows", []any{})
+	var trades []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, paramsOmitted))}
 	return nil
@@ -3521,7 +3521,7 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	var mainData map[string]any = this.SafeDictMap(mainAccountResponse, "data", map[string]any{})
 	var mainRows []any = []any{mainData}
 	var subData map[string]any = SafeMapTyped(subAccountResponse, "data")
-	var subRows []any = SafeListTypedDefault(subData, "rows", []any{})
+	var subRows []any = this.SafeListSlice(subData, "rows", []any{})
 	var rows []any = this.ArrayConcat(mainRows, subRows)
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(rows, params))}
@@ -3832,7 +3832,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
@@ -4320,7 +4320,7 @@ func (this *Woo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit, paramsOmitted))}
 	return nil
@@ -4807,7 +4807,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(rows, market, since, limit))}
 	return nil
@@ -5016,7 +5016,7 @@ func (this *Woo) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRat
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rows, symbolsNormalized))}
 	return nil
@@ -5592,7 +5592,7 @@ func (this *Woo) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "data")
-	var positions []any = SafeListTypedDefault(result, "positions", []any{})
+	var positions []any = this.SafeListSlice(result, "positions", []any{})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbolsNormalized))}
 	return nil
@@ -5972,7 +5972,7 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversion],
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "tradeVos", []any{})
+	var rows []any = this.SafeListSlice(data, "tradeVos", []any{})
 
 	ch <- AsyncResult[[]Conversion]{Value: ConversionsFromList(this.ParseConversions(rows, code, "sellAsset", "buyAsset", since, limit))}
 	return nil
@@ -6197,7 +6197,7 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optionalA
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "data")
-	var positions []any = SafeListTypedDefault(result, "positions", []any{})
+	var positions []any = this.SafeListSlice(result, "positions", []any{})
 
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(positions, symbolsNormalized))}
 	return nil

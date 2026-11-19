@@ -403,7 +403,7 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 		str := *marketHash
 		return str[max(len(str)-6, 0):]
 	}()
-	var marketSlug any = this.ShortenSlug(outcomeOneName) + "_" + hashSuffix
+	var marketSlug string = this.ShortenSlug(outcomeOneName) + "_" + hashSuffix
 	var marketSymbol any = this.SlugToMarketSymbol(eventSlug, marketSlug)
 	var status *string = this.SafeStringUpper(raw, "status")
 	var active bool = (status != nil && *status == "ACTIVE")
@@ -417,7 +417,7 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 	var outcomeIds []any = []any{marketHash, *marketHash + "-2"}
 	var outcomes []any = []any{}
 	for oi := 0; oi < len(outcomeLabels); oi++ {
-		var label *string = ccxt.SafeStringPtr(ccxt.DerefScalar(outcomeLabels[oi]))
+		var label *string = ccxt.SafeStringPtr(outcomeLabels[oi])
 		var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, marketSlug, label)
 		outcomes = append(outcomes, map[string]any{
 			"id": func() any {
@@ -720,7 +720,7 @@ func (this *Sxbet) MatchesEventQuery(raw any, queries any) bool {
 			continue
 		}
 		for fi := 0; fi < len(fields); fi++ {
-			var field *string = ccxt.SafeStringPtr(ccxt.DerefScalar(fields[fi]))
+			var field *string = ccxt.SafeStringPtr(fields[fi])
 			if field == nil {
 				continue
 			}
@@ -777,7 +777,7 @@ func (this *Sxbet) ParseEvent(fixtureId any, rawMarkets any) map[string]any {
 	// some fixtures carry no team names on their market rows - fall back to the fixture id
 	// so the unified event handle is never empty or built from stringified nulls
 	var title *string = nil
-	var eventSlug any = nil
+	var eventSlug string
 	if (teamOneName != nil) && (teamTwoName != nil) {
 		titleStr := *teamOneName + " vs " + *teamTwoName
 		title = &titleStr
@@ -866,7 +866,7 @@ func (this *Sxbet) RoundOddsToLadder(probability *string, oddsLadderStepSize str
  * @param {Uint8Array} encoded the output of this.ethEncodeStructuredData (domain, types, message)
  * @returns {string} the 32-byte digest to ecdsa-sign, in '0x'-prefixed hex form
  */
-func (this *Sxbet) HashEip712Digest(encoded any) any {
+func (this *Sxbet) HashEip712Digest(encoded any) string {
 	return "0x" + this.HashString(encoded, ccxt.Keccak, "hex")
 }
 
@@ -879,8 +879,8 @@ func (this *Sxbet) HashEip712Digest(encoded any) any {
  * @param {string} privateKey the signer's private key
  * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
  */
-func (this *Sxbet) SignDigest(digest any, privateKey string) string {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(digest, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
+func (this *Sxbet) SignDigest(digest string, privateKey string) string {
+	var signature map[string]any = ccxt.Ecdsa(digest[max(len(digest)-64, 0):], privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign to bare locals before padStart — the php transpiler's str_pad regex only
 	// matches a simple identifier, an expression form leaks a raw padStart() call
 	var rRaw string = *this.SafeString(signature, "r", "")
@@ -1121,7 +1121,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 		"deadline": deadline,
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, messageData)
-	var digest any = this.HashEip712Digest(encoded)
+	var digest string = this.HashEip712Digest(encoded)
 	var signature string = this.SignDigest(digest, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"owner":        owner,
@@ -1294,7 +1294,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 		"isMakerBettingOutcomeOne": isMakerBettingOutcomeOne,
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, messageData)
-	var digest any = this.HashEip712Digest(encoded)
+	var digest string = this.HashEip712Digest(encoded)
 	var orderSignature string = this.SignDigest(digest, this.PrivateKey)
 	var orderItem map[string]any = map[string]any{
 		"marketHash":               marketHash,
@@ -1811,7 +1811,7 @@ func (this *Sxbet) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var rawOrders []any = ccxt.SafeListTypedDefault(data, "orders", []any{})
+	var rawOrders []any = this.SafeListSlice(data, "orders", []any{})
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(rawOrders, outcomeObj, since, limit))}
 	return nil
@@ -2691,7 +2691,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 	var hasApiKey bool = !this.IsEmptyString(this.ApiKey)
 	if !hasApiKey {
 		for i := 0; i < hashesLength; i++ {
-			var marketHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(hashesOrder[i]))
+			var marketHash *string = ccxt.SafeStringPtr(hashesOrder[i])
 
 			r1 := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 			if r1.Err != nil {
@@ -3421,7 +3421,7 @@ func (this *Sxbet) HandleOrderBook(client any, rows []any) {
 		var refreshed []any = this.ApplySxbetWsSnapshot(ccxt.DerefScalar(rows[i]))
 		var refreshedLength int = len(refreshed)
 		for j := 0; j < refreshedLength; j++ {
-			var sym *string = ccxt.SafeStringPtr(ccxt.DerefScalar(refreshed[j]))
+			var sym *string = ccxt.SafeStringPtr(refreshed[j])
 			client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*sym], "orderbook::"+*sym)
 		}
 	}

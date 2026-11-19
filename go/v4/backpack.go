@@ -1117,12 +1117,12 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 			var maximum *string = nil
 			var unbounded bool = false
 			for i := 0; i < len(sessions); i++ {
-				var sessionStep *string = this.SafeString(DerefScalar(sessions[i]), "stepSize")
+				var sessionStep *string = this.SafeString(sessions[i], "stepSize")
 				if (sessionStep != nil) && ((stepSize == nil) || Precise.StringLt(sessionStep, stepSize)) {
 					stepSize = sessionStep
 				}
-				var sessionMin *string = this.SafeString(DerefScalar(sessions[i]), "minQuantity")
-				var sessionMax *string = this.SafeString(DerefScalar(sessions[i]), "maxQuantity")
+				var sessionMin *string = this.SafeString(sessions[i], "minQuantity")
+				var sessionMax *string = this.SafeString(sessions[i], "maxQuantity")
 				if (sessionMin != nil) && ((minimum == nil) || Precise.StringLt(sessionMin, minimum)) {
 					minimum = sessionMin
 				}
@@ -1392,27 +1392,29 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 	var cost *float64 = this.SafeNumber(order, "cost")
 	var fee map[string]any = SafeMapTyped(order, "fee")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
+	var fromAmountValue *float64
+	if fromIsBase {
+		fromAmountValue = filled
+	} else {
+		fromAmountValue = cost
+	}
+	var toAmountValue *float64
+	if fromIsBase {
+		toAmountValue = cost
+	} else {
+		toAmountValue = filled
+	}
 	return ConversionFromMap(map[string]any{
 		"info":         this.SafeDict(order, "info"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"id":           this.SafeString(order, "id"),
 		"fromCurrency": this.SafeCurrencyCode(fromCode),
-		"fromAmount": func() any {
-			if fromIsBase {
-				return filled
-			}
-			return cost
-		}(),
-		"toCurrency": this.SafeCurrencyCode(toCode),
-		"toAmount": func() any {
-			if fromIsBase {
-				return cost
-			}
-			return filled
-		}(),
-		"price": this.SafeNumber2(order, "average", "price"),
-		"fee":   this.SafeNumber(fee, "cost"),
+		"fromAmount":   fromAmountValue,
+		"toCurrency":   this.SafeCurrencyCode(toCode),
+		"toAmount":     toAmountValue,
+		"price":        this.SafeNumber2(order, "average", "price"),
+		"fee":          this.SafeNumber(fee, "cost"),
 	})
 }
 
@@ -2145,7 +2147,6 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var maxLimit int = 2000
 	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var duration int64 = this.ParseTimeframe(timeframe) * 1000
@@ -2166,16 +2167,16 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
 	}
 	var defaultLimit int = 100
-	var limitResolved any = limit
-	if !IsEqual(limitResolved, nil) {
-		limitResolved = mathMin(limitResolved, maxLimit)
-	}
 	var windowLimit any = func() any {
-		if IsEqual(limitResolved, nil) {
+		if limit == nil {
 			return defaultLimit
 		}
-		return limitResolved
+		return mathMin(limit, 2000)
 	}()
+	var limitResolved any = nil
+	if limit != nil {
+		limitResolved = windowLimit
+	}
 	var now int64 = this.Milliseconds()
 	var startTime any = since
 	var untilValue any = until

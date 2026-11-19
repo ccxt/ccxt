@@ -2760,7 +2760,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 		//
 		response = this.ToArray(transfers)
 		for i := 0; i < len(response); i++ {
-			var account_id *string = this.SafeString(DerefScalar(response[i]), "account_id")
+			var account_id *string = this.SafeString(response[i], "account_id")
 			var account map[string]any = SafeMapTyped(this.AccountsById, account_id)
 			var codeInner *string = this.SafeString(account, "code")
 			AddElementToObject(GetValue(response, i), "currency", codeInner)

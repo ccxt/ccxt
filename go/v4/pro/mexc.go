@@ -1204,8 +1204,8 @@ func (this *Mexc) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) 
 		return
 	}
 	ccxt.AddElementToObject(orderbook, "nonce", deltaNonce)
-	var asks []any = ccxt.SafeListTypedDefault(delta, "asks", []any{})
-	var bids []any = ccxt.SafeListTypedDefault(delta, "bids", []any{})
+	var asks []any = this.SafeListSlice(delta, "asks", []any{})
+	var bids []any = this.SafeListSlice(delta, "bids", []any{})
 	var asksOrderSide ccxt.IOrderBookSide = orderbook.GetAsks()
 	var bidsOrderSide ccxt.IOrderBookSide = orderbook.GetBids()
 	this.HandleBooksideDelta(asksOrderSide, asks)

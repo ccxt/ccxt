@@ -229,7 +229,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = this.SafeListSlice(message, "data", []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for i := 0; i < len(parsedTrades); i++ {
 		stored.Append(this.SafeDict(parsedTrades, i))
@@ -589,7 +589,13 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 	}
 	var timestamp *int64 = this.SafeTimestamp(message, "time")
 	this.Balance["info"] = data
-	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	if this.Balance != nil {
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+	}
 	this.Balance["datetime"] = this.Iso8601(timestamp)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]

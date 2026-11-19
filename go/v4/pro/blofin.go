@@ -398,8 +398,8 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 		orderBookSnapshot["nonce"] = this.SafeInteger(data, "seqId")
 		orderbook.Reset(orderBookSnapshot)
 	} else {
-		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
+		var asks []any = this.SafeListSlice(data, "asks", []any{})
+		var bids []any = this.SafeListSlice(data, "bids", []any{})
 		this.HandleDeltasWithKeys(orderbook.GetAsks(), asks)
 		this.HandleDeltasWithKeys(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -1522,7 +1522,9 @@ func (this *Blofin) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		}},
 	}
 	var marketType string = "swap" // for now
-	var typeUrls map[string]any = ccxt.SafeMapTyped(this.UrlsApi["ws"], marketType)
+	var typeUrlsSrc, _ = this.UrlsApi["ws"].(map[string]any)
+	var typeUrls map[string]any
+	typeUrls, _ = typeUrlsSrc[marketType].(map[string]any)
 	var url *string = this.SafeString(typeUrls, "private")
 
 	r := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)

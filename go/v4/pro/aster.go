@@ -2635,7 +2635,10 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 		if (orderId != nil) && (tradeFee != nil) && (symbol != nil) {
 			var cachedOrders ccxt.WsArrayCache = this.Orders
 			if cachedOrders != nil {
-				var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
+				var orders map[string]any = nil
+				if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+					orders = byKey[*symbol]
+				}
 				var order map[string]any = this.SafeDictMap(orders, orderId)
 				if order != nil {
 					// accumulate order fees

@@ -905,8 +905,8 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var spotMarketsInfo []any = SafeListTypedDefault(response, 0, []any{})
-	var futuresMarketsInfo []any = SafeListTypedDefault(response, 1, []any{})
+	var spotMarketsInfo []any = this.SafeListSlice(response, 0, []any{})
+	var futuresMarketsInfo []any = this.SafeListSlice(response, 1, []any{})
 	var marginIds any = this.SafeList(response, 3, []any{})
 	var markets []any = this.ArrayConcat(spotMarketsInfo, futuresMarketsInfo)
 	this.Options["marginIds"] = marginIds
@@ -920,7 +920,7 @@ func (this *Bitfinex) ParseMarket(pairObj any) map[string]any {
 	//
 	var marginIds any = this.SafeList(this.Options, "marginIds", []any{})
 	var id *string = this.SafeStringUpper(pairObj, 0, "")
-	var market []any = SafeListTypedDefault(pairObj, 1, []any{})
+	var market []any = this.SafeListSlice(pairObj, 1, []any{})
 	var spot bool = true
 	var typeVar string
 	if strings.Index(*id, "F0") >= 0 {
@@ -1151,7 +1151,7 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	//         ]
 	//     ]
 	//
-	var networks []any = SafeListTypedDefault(response, 8, []any{})
+	var networks []any = this.SafeListSlice(response, 8, []any{})
 	var indexed map[string]any = map[string]any{
 		"sym":         this.IndexBy(this.SafeList(response, 1, []any{}), 0),
 		"label":       this.IndexBy(this.SafeList(response, 2, []any{}), 0),
@@ -1175,7 +1175,7 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		AppendToArray(&networksList, networkId)
 		AddElementToObject(indexedNetworks, networkName, networksList)
 	}
-	var ids []any = SafeListTypedDefault(response, 0, []any{})
+	var ids []any = this.SafeListSlice(response, 0, []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrenciesCustom(ids, indexed, indexedNetworks)}
 	return nil
@@ -1200,9 +1200,9 @@ func (this *Bitfinex) ParseCurrenciesCustom(ids []any, indexed map[string]any, i
 }
 func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexedNetworks map[string]any) any {
 	var code *string = this.SafeCurrencyCode(id)
-	var label []any = SafeListTypedDefault(indexed["label"], id, []any{})
+	var label []any = this.SafeListSlice(indexed["label"], id, []any{})
 	var name *string = this.SafeString(label, 1)
-	var pool []any = SafeListTypedDefault(indexed["pool"], id, []any{})
+	var pool []any = this.SafeListSlice(indexed["pool"], id, []any{})
 	var rawType *string = this.SafeString(pool, 1)
 	var explorer map[string]any = SafeMapTyped(indexed, "explorer")
 	var isCryptoCoin bool = (rawType != nil) || (InOp(explorer, id)) // "hacky" solution
@@ -1213,10 +1213,10 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 		}
 		return nil
 	}()
-	var feeValues []any = SafeListTypedDefault(indexed["fees"], id, []any{})
+	var feeValues []any = this.SafeListSlice(indexed["fees"], id, []any{})
 	var fees []any = SafeListTyped(feeValues, 1)
 	var fee *float64 = this.SafeNumber(fees, 1)
-	var undl []any = SafeListTypedDefault(indexed["undl"], id, []any{})
+	var undl []any = this.SafeListSlice(indexed["undl"], id, []any{})
 	var defaultCurrencyPrecision *string = this.SafeString(this.Options, "defaultCurrencyPrecision", "8") // kept here for backward-compatibility
 	// numberToString instead of an `as string` cast: the describe() default for this option is the
 	// NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
@@ -1892,7 +1892,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var tradeList []any = SafeListTypedDefault(trade, "result", []any{})
+	var tradeList []any = this.SafeListSlice(trade, "result", []any{})
 	var tradeLength int = len(tradeList)
 	var isPrivate bool = (tradeLength > 5)
 	var id *string = this.SafeString(tradeList, 0)
@@ -2199,7 +2199,7 @@ func (this *Bitfinex) ParseOrderFlags(flags *string) []any {
 		"4096": []any{"postOnly"},
 		"5120": []any{"reduceOnly", "postOnly"},
 	}
-	return SafeListTypedDefault(flagValues, flags, []any{})
+	return this.SafeListSlice(flagValues, flags, []any{})
 }
 func (this *Bitfinex) ParseTimeInForce(orderType *string) *string {
 	var orderTypes map[string]any = map[string]any{
@@ -5474,7 +5474,7 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		var errorText string = *this.SafeString(response, 7, "")
 		panic(ExchangeError(this.Id + " " + status + ": " + errorText + " (#" + errorCode + ")"))
 	}
-	var order []any = SafeListTypedDefault(response, 4, []any{})
+	var order []any = this.SafeListSlice(response, 4, []any{})
 	var newOrder map[string]any = map[string]any{
 		"result": order,
 	}

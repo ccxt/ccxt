@@ -379,7 +379,7 @@ func (this *Bitbank) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var pairs []any = SafeListTypedDefault(data, "pairs", []any{})
+	var pairs []any = this.SafeListSlice(data, "pairs", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(pairs))}
 	return nil
@@ -653,7 +653,7 @@ func (this *Bitbank) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = SafeListTypedDefault(data, "transactions", []any{})
+	var trades []any = this.SafeListSlice(data, "transactions", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -849,7 +849,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var data map[string]any = SafeMapTyped(response, "data")
 	var candlestick []any = SafeListTyped(data, "candlestick")
 	var first map[string]any = SafeMapTyped(candlestick, 0)
-	var ohlcv []any = SafeListTypedDefault(first, "ohlcv", []any{})
+	var ohlcv []any = this.SafeListSlice(first, "ohlcv", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcv, market, timeframe, sinceResolved, limitResolved))}
 	return nil
@@ -1237,7 +1237,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "orders", []any{})
+	var orders []any = this.SafeListSlice(data, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1296,7 +1296,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = SafeListTypedDefault(data, "trades", []any{})
+	var trades []any = this.SafeListSlice(data, "trades", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil

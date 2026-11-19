@@ -1016,8 +1016,8 @@ func (this *Hashkey) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         ]
 	//     }
 	//
-	var spotMarkets []any = SafeListTypedDefault(response, "symbols", []any{})
-	var swapMarkets []any = SafeListTypedDefault(response, "contracts", []any{})
+	var spotMarkets []any = this.SafeListSlice(response, "symbols", []any{})
+	var swapMarkets []any = this.SafeListSlice(response, "contracts", []any{})
 	var markets []any = this.ArrayConcat(spotMarkets, swapMarkets)
 	if this.IsEmpty(markets) {
 		markets = []any{response} // if user provides params.symbol the exchange returns a single object instead of list of objects
@@ -1338,7 +1338,7 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var coins []any = SafeListTypedDefault(response, "coins", []any{})
+	var coins []any = this.SafeListSlice(response, "coins", []any{})
 
 	//
 	//     {
@@ -5170,7 +5170,7 @@ func (this *Hashkey) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], 
 	}
 	var response map[string]any = r1.Value
 	// response is the same as in fetchMarkets()
-	var data []any = SafeListTypedDefault(response, "contracts", []any{})
+	var data []any = this.SafeListSlice(response, "contracts", []any{})
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(this.ParseLeverageTiers(data, symbolsNormalized, "symbol"))}

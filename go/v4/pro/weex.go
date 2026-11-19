@@ -1400,8 +1400,8 @@ func (this *Weex) HandleOrderBook(client any, message map[string]any) {
 		parsed["nonce"] = nonce
 		orderbook.Reset(parsed)
 	} else {
-		var asks []any = ccxt.SafeListTypedDefault(message, "a", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})
+		var asks []any = this.SafeListSlice(message, "a", []any{})
+		var bids []any = this.SafeListSlice(message, "b", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)

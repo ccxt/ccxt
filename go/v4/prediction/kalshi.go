@@ -446,16 +446,16 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 				flatMarkets = append(flatMarkets, m)
 				if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
 					var eventKey string = this.ShortenSlug(eventTitle)
-					if !(ccxt.InOp(eventsDict, eventKey)) {
-						ccxt.AddElementToObject(eventsDict, eventKey, map[string]any{
+					if _, ok := eventsDict[eventKey]; !ok {
+						eventsDict[eventKey] = map[string]any{
 							"id":      eventTicker,
 							"slug":    eventTicker,
 							"event":   eventKey,
 							"title":   eventTitle,
 							"markets": []any{},
-						})
+						}
 					}
-					var eventEntry any = ccxt.GetValue(eventsDict, eventKey)
+					var eventEntry any = eventsDict[eventKey]
 					// push through a local and write the slice back — the go transpiler's
 					// ccxt.AppendToArray reassigns only a local copy of a map-stored array, so a
 					// direct push on eventEntry['markets'] loses the element in go
@@ -1614,9 +1614,12 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	if periodMin == nil {
 		// reject an unsupported timeframe locally instead of silently returning 1-minute candles.
 		// hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-		var tfKeys []string = make([]string, 0, len(this.Timeframes))
-		for objectKey := range this.Timeframes {
-			tfKeys = append(tfKeys, objectKey)
+		var tfKeys []string = nil
+		if this.Timeframes != nil {
+			tfKeys = make([]string, 0, len(this.Timeframes))
+			for objectKey := range this.Timeframes {
+				tfKeys = append(tfKeys, objectKey)
+			}
 		}
 		var supported string = strings.Join(tfKeys, ", ")
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() does not support the " + timeframe + " timeframe (supported: " + supported + ")"))
@@ -2150,7 +2153,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var positions []any = ccxt.SafeListTypedDefault(response, "market_positions", []any{})
+	var positions []any = this.SafeListSlice(response, "market_positions", []any{})
 	// filter by the requested outcomes' market tickers — a kalshi position is per market
 	// ticker and covers both the YES and the NO leg
 	if outcomesLength == 0 {
@@ -2315,6 +2318,12 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) map[str
 		pnl = (*payout - *cost)
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(settlement, "settled_time"))
+	var amountValue *float64
+	if heldYes {
+		amountValue = yesCount
+	} else {
+		amountValue = noCount
+	}
 	return map[string]any{
 		"info":      settlement,
 		"id":        ticker,
@@ -2326,12 +2335,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) map[str
 		"event":     nil,
 		"result":    marketResult,
 		"won":       won,
-		"amount": func() any {
-			if heldYes {
-				return yesCount
-			}
-			return noCount
-		}(),
+		"amount": amountValue,
 		"price": func() int {
 			if won {
 				return 1
@@ -2454,7 +2458,7 @@ func (this *Kalshi) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
+	var orders []any = this.SafeListSlice(response, "orders", []any{})
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(orders, outcomeObj, since, limit))}
 	return nil
@@ -2510,7 +2514,7 @@ func (this *Kalshi) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
+	var orders []any = this.SafeListSlice(response, "orders", []any{})
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(orders, outcomeObj, since, limit))}
 	return nil
@@ -3644,9 +3648,10 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	var ticker *string = this.SafeString(rawEvent, "event_ticker")
 	var title *string = this.SafeString(rawEvent, "title")
 	var hasTitle bool = (title != nil) && (title == nil || *title != "")
-	var eventSlug any = nil
+	var eventSlug *string = nil
 	if hasTitle {
-		eventSlug = this.ShortenSlug(title)
+		shortenSlugText := this.ShortenSlug(title)
+		eventSlug = &shortenSlugText
 	}
 	var created *int64 = this.Parse8601(this.SafeString(rawEvent, "created_date_iso"))
 	if created == nil {

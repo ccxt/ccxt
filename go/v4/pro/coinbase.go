@@ -1446,7 +1446,7 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 	var datetime *string = this.SafeString(message, "timestamp")
 	for i := 0; i < len(events); i++ {
 		var event map[string]any = ccxt.SafeMapTyped(events, i)
-		var updates []any = ccxt.SafeListTypedDefault(event, "updates", []any{})
+		var updates []any = this.SafeListSlice(event, "updates", []any{})
 		var marketId *string = this.SafeString(event, "product_id")
 		// sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
 		var market map[string]any = this.SafeMarket(marketId)
@@ -1512,7 +1512,7 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]an
 		var messageHashes []any = ccxt.SafeListTyped(unSubObject, "messageHashes")
 		var subMessageHashes []any = ccxt.SafeListTyped(unSubObject, "subMessageHashes")
 		for i := 0; i < len(messageHashes); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(messageHashes[i]))
+			var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 			var subHash *string = ccxt.SafeStringPtr(func() any {
 				if i >= 0 && i < len(subMessageHashes) {
 					return subMessageHashes[i]

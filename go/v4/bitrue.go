@@ -894,7 +894,7 @@ func (this *Bitrue) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//         ],
 	//     }
 	//
-	var coins []any = SafeListTypedDefault(response, "coins", []any{})
+	var coins []any = this.SafeListSlice(response, "coins", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(coins)}
 	return nil
@@ -1004,8 +1004,8 @@ func (this *Bitrue) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	}
 	var promises []any = r.Value
 	var spotMarkets any = this.SafeList(this.SafeDict(promises, 0), "symbols", []any{})
-	var futureMarkets []any = SafeListTypedDefault(promises, 1, []any{})
-	var deliveryMarkets []any = SafeListTypedDefault(promises, 2, []any{})
+	var futureMarkets []any = this.SafeListSlice(promises, 1, []any{})
+	var deliveryMarkets []any = this.SafeListSlice(promises, 2, []any{})
 	var markets any = spotMarkets
 	markets = this.ArrayConcat(markets, futureMarkets)
 	markets = this.ArrayConcat(markets, deliveryMarkets)
@@ -2274,7 +2274,7 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) Order {
 	var id *string = this.SafeString(order, "orderId")
 	var typeVar *string = this.SafeStringLower(order, "type")
 	var side *string = this.SafeStringLower(order, "side")
-	var fills []any = SafeListTypedDefault(order, "fills", []any{})
+	var fills []any = this.SafeListSlice(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (timeInForce != nil && *timeInForce == "GTX") || (typeVar != nil && *typeVar == "post_only")
@@ -2473,7 +2473,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	} else if *this.SafeBool(market, "spot", false) {
 		request["symbol"] = market["id"]
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
-		var validOrderTypes []any = SafeListTypedDefault(market["info"], "orderTypes", []any{})
+		var validOrderTypes []any = this.SafeListSlice(market["info"], "orderTypes", []any{})
 		if !this.InArray(uppercaseType, validOrderTypes) {
 			panic(InvalidOrder(this.Id + " " + typeVar + " is not a valid order type in market " + symbol))
 		}
@@ -3265,7 +3265,7 @@ func (this *Bitrue) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -3348,7 +3348,7 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//        ]
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency))}
 	return nil
@@ -3797,7 +3797,7 @@ func (this *Bitrue) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	//         }]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(data, currency, since, limitResolved))}
 	return nil

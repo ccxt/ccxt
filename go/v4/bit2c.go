@@ -912,8 +912,8 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	}
 	var response map[string]any = r1.Value
 	var orders map[string]any = SafeMapTyped(response, market["id"])
-	var asks []any = SafeListTypedDefault(orders, "ask", []any{})
-	var bids []any = SafeListTypedDefault(orders, "bid", []any{})
+	var asks []any = this.SafeListSlice(orders, "ask", []any{})
+	var bids []any = this.SafeListSlice(orders, "bid", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.ArrayConcat(asks, bids), market, since, limit))}
 	return nil

@@ -242,7 +242,7 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId, nil, "_")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var event *string = this.SafeString(message, "event")
-	var rawData []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var rawData []any = this.SafeListSlice(message, "data", []any{})
 	var trades []any = this.ParseTrades(rawData, market)
 	var tradesCache ccxt.WsArrayCache = this.Trades[*symbol]
 	if tradesCache == nil {
@@ -645,8 +645,20 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	this.Balance["info"] = data
-	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance, "datetime", datetime)
+	if this.Balance != nil {
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+	}
+	if this.Balance != nil {
+		if datetime != nil {
+			this.Balance["datetime"] = *datetime
+		} else {
+			this.Balance["datetime"] = nil
+		}
+	}
 	for i := 0; i < len(currencies); i++ {
 		var currency *string = this.SafeString(currencies, i)
 		var balance map[string]any = ccxt.SafeMapTyped(data, currency)

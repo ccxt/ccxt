@@ -871,8 +871,8 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 	//
 	var spotFees map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 	var futuresFees map[string]any = SafeMapTyped(response, 1)
-	var spotFeeTiers []any = SafeListTypedDefault(spotFees, "fee_tiers", []any{})
-	var futuresFeeTiers []any = SafeListTypedDefault(futuresFees, "fee_tiers", []any{})
+	var spotFeeTiers []any = this.SafeListSlice(spotFees, "fee_tiers", []any{})
+	var futuresFeeTiers []any = this.SafeListSlice(futuresFees, "fee_tiers", []any{})
 	var spotTiers map[string]any = this.ParseFeeTiers(spotFeeTiers)
 	var futuresTiers map[string]any = this.ParseFeeTiers(futuresFeeTiers)
 	var firstSpotTier map[string]any = this.SafeDictMap(spotTiers, 0, map[string]any{})
@@ -1689,7 +1689,7 @@ func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) Order {
 	var typeVar *string = this.SafeStringLower(rawOrder, "type")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(rawOrder, "time_in_force"))
 	var postOnly *bool = this.SafeBool(rawOrder, "is_post_only")
-	var rawTrades []any = SafeListTypedDefault(order, "trades", []any{})
+	var rawTrades []any = this.SafeListSlice(order, "trades", []any{})
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -2220,7 +2220,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	//         "max_page_size": 100
 	//     }
 	//
-	var orderHistory []any = SafeListTypedDefault(response, "order_history", []any{})
+	var orderHistory []any = this.SafeListSlice(response, "order_history", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orderHistory, market, since, limit))}
 	return nil
@@ -2348,7 +2348,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id st
 	//         "cursor": "string"
 	//     }
 	//
-	var tradeHistory []any = SafeListTypedDefault(response, "trade_history", []any{})
+	var tradeHistory []any = this.SafeListSlice(response, "trade_history", []any{})
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2451,7 +2451,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	//         "cursor": "string"
 	//     }
 	//
-	var tradeHistory []any = SafeListTypedDefault(response, "trade_history", []any{})
+	var tradeHistory []any = this.SafeListSlice(response, "trade_history", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradeHistory, market, since, limit))}
 	return nil

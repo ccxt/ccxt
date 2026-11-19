@@ -608,7 +608,7 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 			this.Trades[*symbol] = stored
 		}
 	}
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = this.SafeListSlice(message, "data", []any{})
 	var dataLength int = len(data)
 	if dataLength == 0 {
 		return
@@ -1293,7 +1293,7 @@ func (this *Cryptocom) HandleOrders(client any, message any, optionalArgs ...any
 	_ = subscription
 	var channel *string = this.SafeString(message, "channel")
 	var symbolSpecificMessageHash *string = this.SafeString(message, "subscription")
-	var orders []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var orders []any = this.SafeListSlice(message, "data", []any{})
 	var ordersLength int = len(orders)
 	if ordersLength > 0 {
 		if this.Orders == nil {
@@ -2211,7 +2211,7 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 			for j := 0; j < len(messageHashes); j++ {
-				var unsubHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(messageHashes[j]))
+				var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
 				var subHash *string = ccxt.SafeStringPtr(func() any {
 					if j >= 0 && j < len(subMessageHashes) {
 						return subMessageHashes[j]

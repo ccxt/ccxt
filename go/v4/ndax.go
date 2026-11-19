@@ -2952,7 +2952,7 @@ func (this *Ndax) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	//     ]
 	//
 	var grouped map[string]any = this.GroupBy(response, "ChangeReason")
-	var trades []any = SafeListTypedDefault(grouped, "Trade", []any{})
+	var trades []any = this.SafeListSlice(grouped, "Trade", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil

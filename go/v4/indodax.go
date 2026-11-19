@@ -1707,8 +1707,8 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 		}
 	} else {
 		currency = this.Currency(code)
-		var withdraws []any = SafeListTypedDefault(withdraw, currency["id"], []any{})
-		var deposits []any = SafeListTypedDefault(deposit, currency["id"], []any{})
+		var withdraws []any = this.SafeListSlice(withdraw, currency["id"], []any{})
+		var deposits []any = this.SafeListSlice(deposit, currency["id"], []any{})
 		transactions = this.ArrayConcat(withdraws, deposits)
 	}
 

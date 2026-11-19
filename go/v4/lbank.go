@@ -690,8 +690,8 @@ func (this *Lbank) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		panic(r.Err)
 	}
 	var resolvedMarkets []any = r.Value
-	var spotMarkets []any = SafeListTypedDefault(resolvedMarkets, 0, []any{})
-	var swapMarkets []any = SafeListTypedDefault(resolvedMarkets, 1, []any{})
+	var spotMarkets []any = this.SafeListSlice(resolvedMarkets, 0, []any{})
+	var swapMarkets []any = this.SafeListSlice(resolvedMarkets, 1, []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(spotMarkets, swapMarkets))}
 	return nil
@@ -1165,7 +1165,7 @@ func (this *Lbank) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	//         "success": true
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -1485,7 +1485,7 @@ func (this *Lbank) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	//           "ts":1647021999308
 	//      }
 	//
-	var trades []any = SafeListTypedDefault(response, "data", []any{})
+	var trades []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1571,7 +1571,7 @@ func (this *Lbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var ohlcvs []any = SafeListTypedDefault(response, "data", []any{})
+	var ohlcvs []any = this.SafeListSlice(response, "data", []any{})
 
 	//
 	//
@@ -1891,7 +1891,7 @@ func (this *Lbank) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	//     "result": "true",
 	//     "success": True,
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
@@ -2681,7 +2681,7 @@ func (this *Lbank) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	//          "ts":1648509742164
 	//      }
 	//
-	var trades []any = SafeListTypedDefault(response, "data", []any{})
+	var trades []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, sinceValue, limit))}
 	return nil
@@ -2772,7 +2772,7 @@ func (this *Lbank) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ..
 	//      }
 	//
 	var result map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(result, "orders", []any{})
+	var orders []any = this.SafeListSlice(result, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limitResolved))}
 	return nil
@@ -2861,7 +2861,7 @@ func (this *Lbank) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(result, "orders", []any{})
+	var orders []any = this.SafeListSlice(result, "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limitResolved))}
 	return nil
@@ -2992,7 +2992,7 @@ func (this *Lbank) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//          "ts":1648506641468
 	//      }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
@@ -3458,7 +3458,7 @@ func (this *Lbank) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 	//      }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var deposits []any = SafeListTypedDefault(data, "depositOrders", []any{})
+	var deposits []any = this.SafeListSlice(data, "depositOrders", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, currency, since, limit))}
 	return nil
@@ -3540,7 +3540,7 @@ func (this *Lbank) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 	//      }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var withdraws []any = SafeListTypedDefault(data, "withdraws", []any{})
+	var withdraws []any = this.SafeListSlice(data, "withdraws", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdraws, currency, since, limit))}
 	return nil
@@ -3906,7 +3906,7 @@ func (this *Lbank) fetchPrivateDepositWithdrawFeesBody(ch chan AsyncResult[map[s
 	//        "code": 0
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(data, codes, "coin"))}
 	return nil
@@ -3960,7 +3960,7 @@ func (this *Lbank) fetchPublicDepositWithdrawFeesBody(ch chan AsyncResult[map[st
 	//        "ts": "1663364435973"
 	//    }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParsePublicDepositWithdrawFees(data, codes))}
 	return nil

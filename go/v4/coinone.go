@@ -474,7 +474,7 @@ func (this *Coinone) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//         ]
 	//     }
 	//
-	var currencies []any = SafeListTypedDefault(response, "currencies", []any{})
+	var currencies []any = this.SafeListSlice(response, "currencies", []any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -861,7 +861,7 @@ func (this *Coinone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "tickers", []any{})
+	var data []any = this.SafeListSlice(response, "tickers", []any{})
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -1149,7 +1149,7 @@ func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "transactions", []any{})
+	var data []any = this.SafeListSlice(response, "transactions", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1568,7 +1568,7 @@ func (this *Coinone) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//         ]
 	//     }
 	//
-	var completeOrders []any = SafeListTypedDefault(response, "completeOrders", []any{})
+	var completeOrders []any = this.SafeListSlice(response, "completeOrders", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(completeOrders, market, since, limit))}
 	return nil

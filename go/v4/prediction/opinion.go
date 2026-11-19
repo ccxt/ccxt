@@ -746,7 +746,7 @@ func (this *Opinion) ParseEvent(rawEvent any) map[string]any {
 	var eventId *string = this.SafeString(rawEvent, "marketId")
 	var slug *string = this.SafeString(rawEvent, "slug")
 	var title *string = this.SafeString(rawEvent, "marketTitle")
-	var eventHandle any = nil
+	var eventHandle string
 	if title != nil {
 		eventHandle = this.ShortenSlug(title)
 	} else {
@@ -766,7 +766,7 @@ func (this *Opinion) ParseEvent(rawEvent any) map[string]any {
 		end = this.SafeTimestamp(rawEvent, "cutoffAt")
 	}
 	var created *int64 = this.SafeTimestamp(rawEvent, "createdAt")
-	var labels []any = ccxt.SafeListTypedDefault(rawEvent, "labels", []any{})
+	var labels []any = this.SafeListSlice(rawEvent, "labels", []any{})
 	return this.Extend(map[string]any{
 		"id":              eventId,
 		"event":           eventHandle,
@@ -1065,9 +1065,12 @@ func (this *Opinion) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outc
 	_ = params
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 	if interval == nil {
-		var supportedKeys []string = make([]string, 0, len(this.Timeframes))
-		for objectKey := range this.Timeframes {
-			supportedKeys = append(supportedKeys, objectKey)
+		var supportedKeys []string = nil
+		if this.Timeframes != nil {
+			supportedKeys = make([]string, 0, len(this.Timeframes))
+			for objectKey := range this.Timeframes {
+				supportedKeys = append(supportedKeys, objectKey)
+			}
 		}
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe + ", supported timeframes are " + strings.Join(supportedKeys, ", ")))
 	}
@@ -1676,7 +1679,7 @@ func (this *Opinion) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	}
 	var response map[string]any = r2.Value
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
-	var orders []any = ccxt.SafeListTypedDefault(result, "list", []any{})
+	var orders []any = this.SafeListSlice(result, "list", []any{})
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(orders, outcomeObj, since, limit))}
 	return nil
@@ -1887,7 +1890,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	}
 	var response map[string]any = r2.Value
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
-	var trades []any = ccxt.SafeListTypedDefault(result, "list", []any{})
+	var trades []any = this.SafeListSlice(result, "list", []any{})
 	var tradesLength int = len(trades)
 	for i := 0; i < tradesLength; i++ {
 		var trade any = trades[i]
@@ -1902,12 +1905,13 @@ func (this *Opinion) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			var tradeMarket map[string]any = ccxt.StructResultMap(r3.Value, ccxt.MarketInterfaceToMap)
 			var info map[string]any = ccxt.SafeMapTyped(tradeMarket, "info")
 			var isYes bool = (this.SafeStringLower(trade, "outcomeSideEnum") != nil && *this.SafeStringLower(trade, "outcomeSideEnum") == "yes")
-			ccxt.AddElementToObject(trade, "tokenId", func() any {
-				if isYes {
-					return this.SafeString(info, "yesTokenId")
-				}
-				return this.SafeString(info, "noTokenId")
-			}())
+			var branchValue *string
+			if isYes {
+				branchValue = this.SafeString(info, "yesTokenId")
+			} else {
+				branchValue = this.SafeString(info, "noTokenId")
+			}
+			ccxt.AddElementToObject(trade, "tokenId", branchValue)
 		}
 	}
 
@@ -2127,7 +2131,7 @@ func (this *Opinion) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	}
 	var response map[string]any = r2.Value
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
-	var positions []any = ccxt.SafeListTypedDefault(result, "list", []any{})
+	var positions []any = this.SafeListSlice(result, "list", []any{})
 	if outcomesLength == 0 {
 
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(positions))}
@@ -2192,11 +2196,11 @@ func (this *Opinion) ParsePredictionPosition(position any, optionalArgs ...any) 
 		"info":          position,
 	})
 }
-func (this *Opinion) HashMessage(message any) any {
+func (this *Opinion) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
-func (this *Opinion) SignHash(hash any, privateKey string) map[string]any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
+func (this *Opinion) SignHash(hash string, privateKey string) map[string]any {
+	var signature map[string]any = ccxt.Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches
 	var rRaw string = *this.SafeString(signature, "r", "")
 	var sRaw string = *this.SafeString(signature, "s", "")

@@ -451,7 +451,7 @@ func (this *Hibachi) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//     "underlyingDecimals": 9,
 	//     "underlyingSymbol": "ETH"
 	// },
-	var rows []any = SafeListTypedDefault(response, "futureContracts", []any{})
+	var rows []any = this.SafeListSlice(response, "futureContracts", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(rows))}
 	return nil
@@ -2062,7 +2062,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], statu
 	//         ]
 	//     }
 	//
-	var orders []any = SafeListTypedDefault(response, "orders", []any{})
+	var orders []any = this.SafeListSlice(response, "orders", []any{})
 	var parsedOrders []any = this.ParseOrders(orders, market)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit))}
@@ -2224,7 +2224,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//     }
 	//   ]
 	//
-	var klines []any = SafeListTypedDefault(response, "klines", []any{})
+	var klines []any = this.SafeListSlice(response, "klines", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(klines, market, timeframeValue, since, limit))}
 	return nil
@@ -2310,7 +2310,7 @@ func (this *Hibachi) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	//     ],
 	//   }
 	//
-	var data []any = SafeListTypedDefault(response, "positions", []any{})
+	var data []any = this.SafeListSlice(response, "positions", []any{})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, symbolsNormalized))}
 	return nil
@@ -2613,7 +2613,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//     ]
 	// }
 	//
-	var rowsCapitalHistory []any = SafeListTypedDefault(responseCapitalHistory, "transactions", []any{})
+	var rowsCapitalHistory []any = this.SafeListSlice(responseCapitalHistory, "transactions", []any{})
 	var responseTradingHistory map[string]any = SafeMapTyped(promises, 1)
 	//
 	// {
@@ -2641,7 +2641,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//     ]
 	// }
 	//
-	var rowsTradingHistory []any = SafeListTypedDefault(responseTradingHistory, "tradingHistory", []any{})
+	var rowsTradingHistory []any = this.SafeListSlice(responseTradingHistory, "tradingHistory", []any{})
 	var rows []any = this.ArrayConcat(rowsCapitalHistory, rowsTradingHistory)
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}
@@ -2792,7 +2792,7 @@ func (this *Hibachi) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	//         },
 	//     ]
 	// }
-	var transactions []any = SafeListTypedDefault(response, "transactions", []any{})
+	var transactions []any = this.SafeListSlice(response, "transactions", []any{})
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit, params))}
 	return nil
@@ -2988,7 +2988,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[stri
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "settlements", []any{})
+	var data []any = this.SafeListSlice(response, "settlements", []any{})
 	var settlements []any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 

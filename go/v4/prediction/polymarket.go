@@ -638,7 +638,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 		var eventSlug *string = this.SafeString(rawEvent, "slug")
 		if (eventSlug != nil) && (eventSlug == nil || *eventSlug != "") {
 			var eventKey string = this.ShortenSlug(eventSlug)
-			ccxt.AddElementToObject(eventsDict, eventKey, parsedEvent)
+			eventsDict[eventKey] = parsedEvent
 		}
 	}
 	this.Events = eventsDict
@@ -1833,7 +1833,13 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	_ = params
 	_, has1 := this.Timeframes[timeframe]
 	if !has1 {
-		var supportedKeys []string = ccxt.ObjectKeys(this.Timeframes)
+		var supportedKeys []string = nil
+		if this.Timeframes != nil {
+			supportedKeys = make([]string, 0, len(this.Timeframes))
+			for objectKey := range this.Timeframes {
+				supportedKeys = append(supportedKeys, objectKey)
+			}
+		}
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe + ", supported timeframes are " + strings.Join(supportedKeys, ", ")))
 	}
 
@@ -2561,7 +2567,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var positions []any = ccxt.SafeListTypedDefault(response, "data", []any{})
+	var positions []any = this.SafeListSlice(response, "data", []any{})
 	// parse without the base outcome filter (it resolves standard markets, not outcome tokens),
 	// then filter by the requested outcomes' token ids ourselves
 	if outcomesLength == 0 {
@@ -2731,7 +2737,7 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var orders []any = ccxt.SafeListTypedDefault(response, "data", []any{})
+	var orders []any = this.SafeListSlice(response, "data", []any{})
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(orders, outcomeObj, since, limit))}
 	return nil
@@ -3366,14 +3372,12 @@ func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress st
 	// raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
 	var orderTypeHash any = this.Hash(this.Encode(orderTypeString), ccxt.Keccak, "binary")
 	var contentsData any = this.EthAbiEncode([]any{"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, []any{orderTypeHash, this.ConvertToBigInt(message["salt"]), message["maker"], message["signer"], this.ConvertToBigInt(message["tokenId"]), this.ConvertToBigInt(message["makerAmount"]), this.ConvertToBigInt(message["takerAmount"]), message["side"], message["signatureType"], this.ConvertToBigInt(message["timestamp"]), this.Base16ToBinary(this.Remove0xPrefix(message["metadata"])), this.Base16ToBinary(this.Remove0xPrefix(message["builder"]))})
-	contentsHashStr := "0x" + this.HashString(contentsData, ccxt.Keccak, "hex")
-	var contentsHash *string = &contentsHashStr
+	var contentsHash string = "0x" + this.HashString(contentsData, ccxt.Keccak, "hex")
 	var domainTypeHash any = this.Hash(this.Encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), ccxt.Keccak, "binary")
 	var nameHash any = this.Hash(this.Encode(domainName), ccxt.Keccak, "binary")
 	var versionHash any = this.Hash(this.Encode(domainVersion), ccxt.Keccak, "binary")
 	var appDomainData any = this.EthAbiEncode([]any{"bytes32", "bytes32", "bytes32", "uint256", "address"}, []any{domainTypeHash, nameHash, versionHash, this.ConvertToBigInt(this.NumberToString(chainIdValue)), exchangeAddress})
-	appDomainSepStr := "0x" + this.HashString(appDomainData, ccxt.Keccak, "hex")
-	var appDomainSep *string = &appDomainSepStr
+	var appDomainSep string = "0x" + this.HashString(appDomainData, ccxt.Keccak, "hex")
 	var typedDataSignStruct []any = []any{map[string]any{
 		"name": "contents",
 		"type": "Order",
@@ -4091,7 +4095,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersValue,
 	}
 }
-func (this *Polymarket) HashMessage(message any) any {
+func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
 func (this *Polymarket) EthChecksumAddress(address *string) string {

@@ -1164,7 +1164,7 @@ func (this *Aster) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opti
 		panic(r.Err)
 	}
 	var sapiResult map[string]any = r.Value
-	var sapiRows []any = SafeListTypedDefault(sapiResult, "assets", []any{})
+	var sapiRows []any = this.SafeListSlice(sapiResult, "assets", []any{})
 
 	//
 	//     [
@@ -1239,7 +1239,7 @@ func (this *Aster) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	}
 	var results []any = r.Value
 	var sapiResult map[string]any = SafeMapTyped(results, 0)
-	var sapiRows []any = SafeListTypedDefault(sapiResult, "symbols", []any{})
+	var sapiRows []any = this.SafeListSlice(sapiResult, "symbols", []any{})
 	var fapiResult map[string]any = SafeMapTyped(results, 1)
 	var fapiRows []any = SafeListTyped(fapiResult, "symbols")
 	//
@@ -5470,7 +5470,11 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})
 			}
-			AddElementToObject(this.Options["leverageBrackets"], symbol, result)
+			var leverageBracketsDict map[string]any = this.SafeDictMap(this.Options, "leverageBrackets", map[string]any{})
+			if symbol != nil {
+				leverageBracketsDict[*symbol] = result
+			}
+			this.Options["leverageBrackets"] = leverageBracketsDict
 		}
 	}
 
@@ -5485,7 +5489,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 	ch <- AsyncResult[map[string]any]{Value: resolved}
 	return nil
 }
-func (this *Aster) KeccakMessage(message any) any {
+func (this *Aster) KeccakMessage(message any) string {
 	return "0x" + this.HashString(message, keccak, "hex")
 }
 func (this *Aster) SignMessage(message any, privateKey string) string {
@@ -5728,7 +5732,7 @@ func (this *Aster) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Aster) HashMessage(binaryMessage any) any {
+func (this *Aster) HashMessage(binaryMessage any) string {
 	// const binaryMessage = this.encode (message);
 	var binaryMessageLength int = this.BinaryLength(binaryMessage)
 	var x19 []byte = this.Base16ToBinary("19")
@@ -5736,9 +5740,9 @@ func (this *Aster) HashMessage(binaryMessage any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return "0x" + this.HashString(this.BinaryConcat(prefix, binaryMessage), keccak, "hex")
 }
-func (this *Aster) SignHash(hash any, privateKey string) string {
+func (this *Aster) SignHash(hash string, privateKey string) string {
 	this.CheckRequiredCredentials()
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -5770,7 +5774,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) map[string]any {
 		var walletAddress *string = this.SafeString(this.Options, "cachedWalletAddress")
 		var privateKeyHash string = this.HashString(this.Encode(this.PrivateKey), keccak, "hex")
 		var cachedPrivateKeyHash *string = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
-		if (walletAddress == nil) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
+		if (walletAddress == nil) || (cachedPrivateKeyHash == nil || *cachedPrivateKeyHash != privateKeyHash) {
 			ethGetAddressFromPrivateKeyText := this.EthGetAddressFromPrivateKey(this.PrivateKey)
 			walletAddress = &ethGetAddressFromPrivateKeyText
 			this.Options["cachedWalletAddress"] = DerefScalar(walletAddress)

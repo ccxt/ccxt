@@ -368,7 +368,13 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		if this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var keys []string = ccxt.ObjectKeys(this.Timeframes)
+		var keys []string = nil
+		if this.Timeframes != nil {
+			keys = make([]string, 0, len(this.Timeframes))
+			for objectKey := range this.Timeframes {
+				keys = append(keys, objectKey)
+			}
+		}
 		for j := 0; j < len(keys); j++ {
 			var timeframe string = keys[j]
 			var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -621,7 +627,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	//         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
 	//     }
 	//
-	var payload []any = ccxt.SafeListTypedDefault(message, "o", []any{})
+	var payload []any = this.SafeListSlice(message, "o", []any{})
 	//
 	//     [
 	//         [

@@ -237,12 +237,12 @@ func (this *Gate) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) CreateOrdersWsAsync(orders any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Gate) CreateOrdersWsAsync(orders []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.createOrdersWsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Gate) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], orders any, optionalArgs ...any) any {
+func (this *Gate) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1078,8 +1078,8 @@ func (this *Gate) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) 
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
-	var bids []any = ccxt.SafeListTypedDefault(delta, "b", []any{})
-	var asks []any = ccxt.SafeListTypedDefault(delta, "a", []any{})
+	var bids []any = this.SafeListSlice(delta, "b", []any{})
+	var asks []any = this.SafeListSlice(delta, "a", []any{})
 	var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
 	var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
 	this.HandleBidAsks(storedBids, bids)
@@ -1915,7 +1915,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	//     ]
 	// }
 	//
-	var result []any = ccxt.SafeListTypedDefault(message, "result", []any{})
+	var result []any = this.SafeListSlice(message, "result", []any{})
 	var tradesLength int = len(result)
 	if tradesLength == 0 {
 		return
@@ -2075,7 +2075,13 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 		var currencyId string = *this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var timestamp *int64 = this.SafeInteger2(rawBalance, "time_ms", "timestamp_ms")
-		ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+		if this.Balance != nil {
+			if timestamp != nil {
+				this.Balance["timestamp"] = *timestamp
+			} else {
+				this.Balance["timestamp"] = nil
+			}
+		}
 		this.Balance["datetime"] = this.Iso8601(timestamp)
 		account["used"] = this.SafeString(rawBalance, "freeze")
 		account["free"] = this.SafeString(rawBalance, "available")
@@ -2514,7 +2520,7 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var orders []any = ccxt.SafeListTypedDefault(message, "result", []any{})
+	var orders []any = this.SafeListSlice(message, "result", []any{})
 	var channel string = *this.SafeString(message, "channel", "")
 	var isTrigger bool = (strings.Index(channel, "autoorders") >= 0) || (strings.Index(channel, "priceorders") >= 0)
 	var hashPrefix string = "orders"
@@ -2676,12 +2682,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]c
 		if symbolsLength != 1 {
 			panic(ccxt.BadRequest(this.Id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times."))
 		}
-		messageHash = ccxt.Add("myLiquidations::", func() any {
-			if 0 >= 0 && 0 < len(symbolsNormalized) {
-				return symbolsNormalized[0]
-			}
-			return nil
-		}())
+		messageHash = ccxt.Add("myLiquidations::", symbolsNormalized[0])
 		payload = append(payload, market["id"])
 	}
 	var channel any = ccxt.Add(typeId, ".liquidates")
@@ -3027,7 +3028,7 @@ func (this *Gate) HandleUnSubscribe(client any, message map[string]any) {
 			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 			for j := 0; j < len(messageHashes); j++ {
-				var unsubHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(messageHashes[j]))
+				var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
 				var subHash *string = ccxt.SafeStringPtr(func() any {
 					if j >= 0 && j < len(subMessageHashes) {
 						return subMessageHashes[j]
@@ -3603,7 +3604,7 @@ func (this *Gate) CreateOrdersWs(orders []ccxt.OrderRequest, options ...ccxt.Cre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersWsAsync(orders, opts.Params)
+	r := <-this.CreateOrdersWsAsync(ccxt.ConvertOrderRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

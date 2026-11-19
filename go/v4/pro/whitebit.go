@@ -291,8 +291,8 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 		orderbook.Reset(snapshot)
 	} else {
-		var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
+		var asks []any = this.SafeListSlice(data, "asks", []any{})
+		var bids []any = this.SafeListSlice(data, "bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 	}
@@ -543,7 +543,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 			this.Trades[*symbol] = stored
 		}
 	}
-	var data []any = ccxt.SafeListTypedDefault(params, 1, []any{})
+	var data []any = this.SafeListSlice(params, 1, []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for j := 0; j < len(parsedTrades); j++ {
 		stored.Append(parsedTrades[j])
@@ -634,7 +634,7 @@ func (this *Whitebit) HandleMyTrades(client any, message map[string]any, optiona
 	//
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
-	var trade []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	var trade []any = this.SafeListSlice(message, "params", []any{})
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCache(limit)

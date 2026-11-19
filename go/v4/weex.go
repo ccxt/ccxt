@@ -1183,8 +1183,8 @@ func (this *Weex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	var spotResponsecontractResponseVariable []any = r1.Value
 	spotResponse := spotResponsecontractResponseVariable[0]
 	contractResponse := spotResponsecontractResponseVariable[1]
-	var spotArray []any = SafeListTypedDefault(spotResponse, "symbols", []any{})
-	var contractArray []any = SafeListTypedDefault(contractResponse, "symbols", []any{})
+	var spotArray []any = this.SafeListSlice(spotResponse, "symbols", []any{})
+	var contractArray []any = this.SafeListSlice(contractResponse, "symbols", []any{})
 	var result []any = this.ArrayConcat(spotArray, contractArray)
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(result))}
@@ -3529,7 +3529,7 @@ func (this *Weex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		}
 		response = r2.Value
 	}
-	var ordersResponse []any = SafeListTypedDefault(response, "orderList", []any{})
+	var ordersResponse []any = this.SafeListSlice(response, "orderList", []any{})
 	var extendedParams map[string]any = map[string]any{
 		"status": "canceled",
 	}
@@ -4916,7 +4916,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	//         ]
 	//     }
 	//
-	var items []any = SafeListTypedDefault(response, "items", []any{})
+	var items []any = this.SafeListSlice(response, "items", []any{})
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(items, market, since, limit))}
 	return nil

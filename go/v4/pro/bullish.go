@@ -146,7 +146,9 @@ func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	var cookies map[string]any = map[string]any{
 		"JWT_COOKIE": token,
 	}
-	ccxt.AddElementToObject(this.Options["ws"], "cookies", cookies)
+	var wsDict map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	wsDict["cookies"] = cookies
+	this.Options["ws"] = wsDict
 	var id string = strconv.FormatInt(this.RequestId(), 10)
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -251,7 +253,7 @@ func (this *Bullish) HandleTrades(client any, message map[string]any) {
 		return
 	}
 	var market map[string]any = this.Market(symbol)
-	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
+	var rawTrades []any = this.SafeListSlice(data, "trades", []any{})
 	var trades []any = this.ParseTrades(rawTrades, market)
 	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -888,7 +890,7 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 	}
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {
-		var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+		var data []any = this.SafeListSlice(message, "data", []any{})
 		var parsed map[string]any = this.ParseBalanceList(data)
 		var parsedKeys []string = nil
 		if parsed != nil {

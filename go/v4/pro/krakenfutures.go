@@ -1124,7 +1124,10 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 		}
 		var symbol *string = this.SafeSymbol(marketId)
 		var orderId *string = this.SafeString(order, "order_id")
-		var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
+		var previousOrders map[string]any = nil
+		if byKey := orders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+			previousOrders = byKey[*symbol]
+		}
 		var previousOrder map[string]any = this.SafeDictMap(previousOrders, orderId)
 		var reason *string = this.SafeString(message, "reason")
 		if (previousOrder == nil) || (reason != nil && *reason == "edited_by_user") {
@@ -1318,7 +1321,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 	var cachedSymbols []string = ccxt.ObjectKeys(cachedOrders.(*ccxt.ArrayCache).Hashmap)
 	for i := 0; i < len(cachedSymbols); i++ {
 		var cachedSymbol string = cachedSymbols[i]
-		var ordersById map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, cachedSymbol)
+		var ordersById map[string]any = cachedOrders.(*ccxt.ArrayCache).Hashmap[cachedSymbol]
 		var cachedIds []string = nil
 		if ordersById != nil {
 			cachedIds = make([]string, 0, len(ordersById))

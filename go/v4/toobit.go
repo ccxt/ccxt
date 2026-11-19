@@ -1196,8 +1196,8 @@ func (this *Toobit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//            },
 	//          ...
 	//
-	var symbols []any = SafeListTypedDefault(response, "symbols", []any{})
-	var contracts []any = SafeListTypedDefault(response, "contracts", []any{})
+	var symbols []any = this.SafeListSlice(response, "symbols", []any{})
+	var contracts []any = this.SafeListSlice(response, "contracts", []any{})
 	var all []any = this.ArrayConcat(symbols, contracts)
 	var result []any = []any{}
 	for i := 0; i < len(all); i++ {
@@ -1624,8 +1624,9 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 	} else if (since != nil) && (limit != nil) {
 		// without an end time the exchange returns the latest candles, not the ones starting at since
-		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		request["endTime"] = mathMin(Subtract(this.Sum(since, duration**limit), 1), this.Milliseconds())
+		var durationMs int64 = this.ParseTimeframe(timeframe) * 1000
+		// last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+		request["endTime"] = mathMin((*since - (1 - (durationMs * *limit))), this.Milliseconds())
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2081,11 +2082,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes166219 []any = r1.Value
-		if retRes166219 == nil {
+		var retRes166319 []any = r1.Value
+		if retRes166319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166319)}
 		}
 		return nil
 	}
@@ -2237,9 +2238,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var market map[string]any = this.Market(symbol)
 	var response any = map[string]any{}
 	if *this.SafeBool(market, "spot", false) {
-		requestparamsRequestVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		request := requestparamsRequestVariable[0]
-		paramsRequest := requestparamsRequestVariable[1]
+		request, paramsRequest := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 		r1 := <-this.PrivatePostApiV1SpotOrder(this.Extend(request, paramsRequest))
 		if r1.Err != nil {
@@ -2247,9 +2246,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 		response = r1.Raw
 	} else {
-		requestparamsRequestVariable := this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
-		request := requestparamsRequestVariable[0]
-		paramsRequest := requestparamsRequestVariable[1]
+		request, paramsRequest := this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 
 		r2 := <-this.PrivatePostApiV1FuturesOrder(this.Extend(request, paramsRequest))
 		if r2.Err != nil {
@@ -2284,7 +2281,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) []any {
+func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2321,9 +2318,9 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 	} else {
 		request["type"] = strings.ToUpper(typeVar)
 	}
-	return []any{request, paramsPostOnly}
+	return request, MapTyped(paramsPostOnly)
 }
-func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) []any {
+func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2423,7 +2420,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 	if this.SafeString(paramsOmitted, "newClientOrderId") == nil {
 		request["newClientOrderId"] = this.Uuid()
 	}
-	return []any{request, paramsOmitted}
+	return request, MapTyped(paramsOmitted)
 }
 func (this *Toobit) ParseOrder(order any, optionalArgs ...any) Order {
 	//
@@ -2749,7 +2746,7 @@ func (this *Toobit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 		}
 		response = r2.Value
 	}
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market))}
 	return nil
@@ -3427,11 +3424,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277415 []any = TransactionsToList(r.Value)
-	if retRes277415 == nil {
+	var retRes277515 []any = TransactionsToList(r.Value)
+	if retRes277515 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277415)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277515)}
 	}
 	return nil
 }
@@ -3468,11 +3465,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278915 []any = TransactionsToList(r.Value)
-	if retRes278915 == nil {
+	var retRes279015 []any = TransactionsToList(r.Value)
+	if retRes279015 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279015)}
 	}
 	return nil
 }

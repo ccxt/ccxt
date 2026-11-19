@@ -737,7 +737,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	var data []any = this.SafeListSlice(message, "data", []any{})
 	var trade map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(trade, "symbol")
 	var messageHash string = this.GetMessageHash("trade", nil, symbol)
@@ -1466,8 +1466,8 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(first, "symbol")
-	var a []any = ccxt.SafeListTypedDefault(first, "asks", []any{})
-	var b []any = ccxt.SafeListTypedDefault(first, "bids", []any{})
+	var a []any = this.SafeListSlice(first, "asks", []any{})
+	var b []any = this.SafeListSlice(first, "bids", []any{})
 	var c *int64 = this.SafeInteger(first, "checksum")
 	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook ccxt.OrderBookInterface
@@ -1520,7 +1520,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		for i := 0; i < len(keys); i++ {
 			var key string = keys[i]
 			var bookside any = ccxt.GetValue(orderbook, key)
-			var deltas []any = ccxt.SafeListTypedDefault(first, key, []any{})
+			var deltas []any = this.SafeListSlice(first, key, []any{})
 			var deltasLength int = len(deltas)
 			if deltasLength > 0 {
 				this.CustomHandleDeltas(bookside, deltas)
@@ -2035,7 +2035,10 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 			var id *string = this.SafeString(order, "order_id")
 			var parsed map[string]any = this.ParseWsOrder(order)
 			var symbol *string = this.SafeString(order, "symbol")
-			var previousOrders map[string]any = ccxt.SafeMapTyped(stored.(*ccxt.ArrayCache).Hashmap, symbol)
+			var previousOrders map[string]any = nil
+			if byKey := stored.(*ccxt.ArrayCache).Hashmap; symbol != nil {
+				previousOrders = byKey[*symbol]
+			}
 			var previousOrder map[string]any = ccxt.SafeMapTyped(previousOrders, id)
 			var newOrder any = parsed
 			if previousOrder != nil {
