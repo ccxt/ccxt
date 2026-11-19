@@ -8355,7 +8355,7 @@ export default class okx extends Exchange {
      * @param {int} [params.until] the latest time in ms of the entries to fetch
      * @returns {object[]} the request and the remaining params
      */
-    handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict[] {
+    handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): [Dict, Dict] {
         const maxLimit = 100;
         let effectiveLimit = 100;
         if ((limit !== undefined) && (100 > limit)) {

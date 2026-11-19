@@ -6396,6 +6396,7 @@ const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ['order_request_ws', ''],
     ['fetch_order_request', ''],
     ['parse_create_edit_order_args', ''],
+    ['handle_trading_statistics_window', ''],
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
