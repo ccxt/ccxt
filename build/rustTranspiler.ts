@@ -6371,6 +6371,8 @@ const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ['prepare_orders_by_status_request', ''],
     ['multi_order_spot_prepare_request', ''],
     ['spot_order_prepare_request', ''],
+    ['handle_derive_subaccount_id', 'integer_'],
+    ['handle_derive_wallet_address', 'string_'],
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
@@ -8298,6 +8300,16 @@ function typeGateTupleTernaries(content: string): string {
 // unit slot 069
 //
 // unit slot 070
+// a venue tuple fn already retyped to `(slot 0, Dict)` whose returns build `[v, self.extend(..)]`: return the pair,
+// slot 1 through extend_t (a map on every input); an Option<i64> slot drops its box only for a typed local or parse_to_int
+function typeVenueTupleExtendReturns(content: string): string {
+    if (!RUST_TUPLE_VENUE_FNS.some(r => content.includes(`fn ${r[0]}(`))) return content;
+    return content.replace(new RegExp(String.raw`(\n {4}(?:pub )?fn (${RUST_TUPLE_VENUE_FNS.map(r => r[0]).join('|')})\([^\n]*\) -> \((Value|Option<i64>), crate::value::Dict\) \{\n)([\s\S]*?\n\})`, 'g'), (_m, sig, _name, t, body) => sig + body.replace(/return Value::from\(vec!\[([^\n]*), self\.extend\(([^\n]*), &\[\]\)\]\);/g, (r, v, d) => {
+        if (t === 'Value') return `return (${v}, self.extend_t(${d}, &[]));`;
+        const x = /^Value::from\((\w+|self\.parse_to_int\([^\n]*\))\)$/.exec(v);
+        return x !== null && (x[1].startsWith('self.parse_to_int(') || new RegExp(String.raw`let mut ${x[1]}: Option<i64> = `).test(body)) ? `return (${x[1]}, self.extend_t(${d}, &[]));` : r;
+    }));
+}
 //
 // unit slot 071
 //
@@ -8855,6 +8867,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 069
     //
     // pass slot 070
+    typeVenueTupleExtendReturns,
     //
     // pass slot 071
     //
