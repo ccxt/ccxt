@@ -306,7 +306,7 @@ func (this *Onetrading) HandleTicker(client any, message map[string]any) {
 	var tickers []any = ccxt.SafeListTyped(message, "ticker_updates")
 	var datetime *string = this.SafeString(message, "time")
 	for i := 0; i < len(tickers); i++ {
-		var ticker any = ccxt.DerefScalar(tickers[i])
+		var ticker any = tickers[i]
 		var marketId *string = this.SafeString(ticker, "instrument")
 		var symbol *string = this.SafeSymbol(marketId)
 		var parsedTicker any = this.ParseWSTicker(ticker)
@@ -571,10 +571,10 @@ func (this *Onetrading) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta
 	var typeVar *string = this.SafeString(delta, 0)
 	if typeVar != nil && *typeVar == "BUY" {
 		var bids ccxt.IOrderBookSide = orderbook.GetBids()
-		bids.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+		bids.StoreArray(bidAsk)
 	} else if typeVar != nil && *typeVar == "SELL" {
 		var asks ccxt.IOrderBookSide = orderbook.GetAsks()
-		asks.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+		asks.StoreArray(bidAsk)
 	} else {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook () received unknown change type " + this.Json(delta)))
 	}
@@ -1415,21 +1415,22 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbol+".", timeframe))
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
-	var symbolOhlcvs map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
-	if symbol != nil {
-		this.Ohlcvs[*symbol] = symbolOhlcvs
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
-	if timeframe != nil {
-		stored = symbolOhlcvs[*timeframe]
+	var stored ccxt.WsArrayCache
+	if symbol != nil && timeframe != nil {
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 	}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	if (symbol != nil) && (timeframe != nil) {
-		symbolOhlcvs[*timeframe] = stored
+		if this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][*timeframe] = stored
+		}
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
@@ -1450,10 +1451,10 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *strin
 		var key string = keys[i]
 		var timeframeResolved map[string]any = this.SafeDictMap(timeframesResolved, key, map[string]any{})
 		if ccxt.IsEqual(timeframeResolved["unit"], ccxt.GetValue(timeframe, "unit")) && ccxt.IsEqual(timeframeResolved["period"], ccxt.GetValue(timeframe, "period")) {
-			return ccxt.SafeStringPtr(key)
+			return &key
 		}
 	}
-	return ccxt.SafeStringPtr(nil)
+	return nil
 }
 func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) any {
 	//
@@ -1550,9 +1551,9 @@ func (this *Onetrading) HandleAuthenticationMessage(client any, message map[stri
 	//        "time": "2022-06-24T20:45:25.447488Z"
 	//    }
 	//
-	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	if future != nil {
-		future.(*ccxt.Future).Resolve(true)
+		future.Resolve(true)
 	}
 	return message
 }
@@ -1627,7 +1628,7 @@ func (this *Onetrading) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	if authenticated == nil {
 		this.CheckRequiredCredentials()
@@ -1638,7 +1639,7 @@ func (this *Onetrading) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 		this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}

@@ -1,5 +1,5 @@
 import Exchange from './abstract/paradex.js';
-import type { NullableDict, Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRate, FundingRates, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Status, AllGreeks, OpenInterest } from './base/types.js';
+import type { NullableDict, Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRate, FundingRates, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Status, AllGreeks, OpenInterest, MarketInterface, Option, OptionChain } from './base/types.js';
 /**
  * @class paradex
  * @description Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
@@ -32,10 +32,13 @@ export default class paradex extends Exchange {
      * @description retrieves data on all markets for paradex
      * @see https://docs.paradex.trade/api/prod/markets/get-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]|string} [params.types] the market types to load, any of 'swap', 'spot' and 'option' as a list or a comma separated string, default is options.fetchMarkets.types, which loads all of them
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
+    createExpiredOptionMarket(symbol: string): MarketInterface;
+    safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
      * @method
@@ -68,6 +71,7 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
@@ -82,6 +86,25 @@ export default class paradex extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    /**
+     * @method
+     * @ignore
+     * @name paradex#summaryMarketId
+     * @description the market a markets/summary request asks for, the endpoint takes one market id or ALL, which answers for every market on the venue in megabytes, so a single symbol is asked for by name
+     * @param {string[]|undefined} symbols unified market symbols
+     * @returns {string} the market id, or ALL
+     */
+    summaryMarketId(symbols?: Strings): string;
+    /**
+     * @method
+     * @ignore
+     * @name paradex#filterLoadedSummaries
+     * @description keeps the markets or markets/summary rows of loaded markets, the endpoints also answer for the USDC collateral and for market types left out by options.fetchMarkets.types
+     * @param {object[]} summaries the results of markets or markets/summary
+     * @param {string} [marketType] keep this market type only
+     * @returns {object[]} the rows of loaded markets
+     */
+    filterLoadedSummaries(summaries: Dict[], marketType?: Str): Dict[];
     /**
      * @method
      * @name paradex#fetchTicker
@@ -113,15 +136,16 @@ export default class paradex extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name paradex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, up to 100 per side, default is 20
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price_tick] aggregate the levels to this price increment, one of the values the market allows
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
@@ -461,12 +485,33 @@ export default class paradex extends Exchange {
      * @name paradex#fetchAllGreeks
      * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
      * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the option markets to fetch greeks for, all options are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     fetchAllGreeks(symbols?: Strings, params?: Dict): Promise<AllGreeks>;
     parseGreeks(greeks: Dict, market?: Market): Greeks;
+    /**
+     * @method
+     * @name paradex#fetchOption
+     * @description fetches option data that is commonly found in an option chain
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+     */
+    fetchOption(symbol: string, params?: Dict): Promise<Option>;
+    /**
+     * @method
+     * @name paradex#fetchOptionChain
+     * @description fetches data for an underlying asset that is commonly found in an option chain
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string} code base currency to fetch an option chain for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+     */
+    fetchOptionChain(code: string, params?: Dict): Promise<OptionChain>;
+    parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     /**
      * @method
      * @name paradex#fetchFundingHistory
@@ -493,6 +538,7 @@ export default class paradex extends Exchange {
      * @param {int} [limit] the maximum amount of funding rate structures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times, back from until (default now) to since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;

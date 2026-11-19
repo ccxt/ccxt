@@ -1071,19 +1071,19 @@ func (this *Hitbtc) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 	var currencyId *string = this.SafeString(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var entry any = currency
-	var rawNetworks []any = SafeListTyped(entry, "networks")
+	var rawNetworks []map[string]any = this.SafeListMapsTyped(currency, "networks")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(rawNetworks); j++ {
-		var rawNetwork any = rawNetworks[j]
+		var rawNetwork map[string]any = rawNetworks[j]
 		var networkId *string = this.SafeString2(rawNetwork, "protocol", "network")
 		var rawNetworkCode *string = this.NetworkIdToCode(networkId, code)
-		var networkCodeUpper any = func() any {
-			if rawNetworkCode != nil {
-				return strings.ToUpper(*rawNetworkCode)
-			}
-			return nil
-		}()
+		var networkCodeUpper *string
+		if rawNetworkCode != nil {
+			networkCodeUpperValue := strings.ToUpper(*rawNetworkCode)
+			networkCodeUpper = &networkCodeUpperValue
+		} else {
+			networkCodeUpper = nil
+		}
 		var networkCode *string = nil
 		if networkCodeUpper != nil {
 			networkCode = this.SafeString(this.NetworkAliases, networkCodeUpper, networkCodeUpper)
@@ -1112,14 +1112,14 @@ func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"info":      entry,
+		"info":      currency,
 		"code":      code,
 		"id":        currencyId,
-		"precision": this.SafeNumber(entry, "precision_transfer"),
-		"name":      this.SafeString(entry, "full_name"),
-		"active":    !(*this.SafeBool(entry, "delisted", false)),
-		"deposit":   this.SafeBool(entry, "payin_enabled"),
-		"withdraw":  this.SafeBool(entry, "payout_enabled"),
+		"precision": this.SafeNumber(currency, "precision_transfer"),
+		"name":      this.SafeString(currency, "full_name"),
+		"active":    !(*this.SafeBool(currency, "delisted", false)),
+		"deposit":   this.SafeBool(currency, "payin_enabled"),
+		"withdraw":  this.SafeBool(currency, "payout_enabled"),
 		"networks":  networks,
 		"fee":       nil,
 		"limits": map[string]any{
@@ -1163,12 +1163,12 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"currency": currency["id"],
 	}
 	var networkInput *string = this.SafeStringUpper(params, "network")
-	var network *string = func() *string {
-		if networkInput != nil {
-			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
-		}
-		return nil
-	}()
+	var network *string
+	if networkInput != nil {
+		network = this.SafeString(this.NetworkAliases, networkInput, networkInput)
+	} else {
+		network = nil
+	}
 	if (network != nil) && (code == "USDT") {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
@@ -1176,9 +1176,9 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 			request["currency"] = parsedNetwork
 		}
 	}
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if (network != nil) && (code == "USDT") {
-		paramsOmitted = this.Omit(params, "network")
+		paramsOmitted = this.OmitDict(params, "network")
 	}
 
 	r1 := <-this.PrivatePostWalletCryptoAddress(this.Extend(request, paramsOmitted))
@@ -1232,12 +1232,12 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		"currency": currency["id"],
 	}
 	var networkInput *string = this.SafeStringUpper(params, "network")
-	var network *string = func() *string {
-		if networkInput != nil {
-			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
-		}
-		return nil
-	}()
+	var network *string
+	if networkInput != nil {
+		network = this.SafeString(this.NetworkAliases, networkInput, networkInput)
+	} else {
+		network = nil
+	}
 	if (network != nil) && (code == "USDT") {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
@@ -1245,9 +1245,9 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			request["currency"] = parsedNetwork
 		}
 	}
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if (network != nil) && (code == "USDT") {
-		paramsOmitted = this.Omit(params, "network")
+		paramsOmitted = this.OmitDict(params, "network")
 	}
 
 	r1 := <-this.PrivateGetWalletCryptoAddress(this.Extend(request, paramsOmitted))
@@ -1314,12 +1314,12 @@ func (this *Hitbtc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	var typeVar *string = this.SafeStringLower(params, "type", "spot")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"type"})
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	var account *string = func() *string {
-		if typeVar == nil {
-			return nil
-		}
-		return this.SafeString(accountsByType, typeVar, typeVar)
-	}()
+	var account *string
+	if typeVar == nil {
+		account = nil
+	} else {
+		account = this.SafeString(accountsByType, typeVar, typeVar)
+	}
 	var response []any = nil
 	if account != nil && *account == "wallet" {
 
@@ -1453,8 +1453,8 @@ func (this *Hitbtc) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if symbolsNormalized != nil {
-		var marketIds any = this.MarketIds(symbolsNormalized)
-		var delimited string = Join(marketIds, ",")
+		var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
+		var delimited string = strings.Join(marketIds, ",")
 		request["symbols"] = delimited
 	}
 
@@ -1580,7 +1580,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["from"] = since
@@ -1825,12 +1825,12 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}, marketResolved)
 }
-func (this *Hitbtc) FetchTransactionsHelperAsync(types string, code any, since any, limit any, params any) <-chan AsyncResult[[]Transaction] {
+func (this *Hitbtc) FetchTransactionsHelperAsync(types string, code *string, since any, limit any, params any) <-chan AsyncResult[[]Transaction] {
 	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchTransactionsHelperBody(ch, types, code, since, limit, params)
 	return ch
 }
-func (this *Hitbtc) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], types string, code any, since any, limit any, params any) any {
+func (this *Hitbtc) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], types string, code *string, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	if this.Markets == nil {
@@ -1844,7 +1844,7 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		"types": types,
 	}
 	var currency map[string]any = nil
-	if !IsEqual(code, nil) {
+	if code != nil {
 		currency = this.Currency(code)
 		request["currencies"] = this.SafeString(currency, "id")
 	}
@@ -2152,8 +2152,8 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var marketIdsInner any = this.MarketIds(symbols)
-		request["symbols"] = Join(marketIdsInner, ",")
+		var marketIdsInner []string = this.MarketIdsStrings(symbols)
+		request["symbols"] = strings.Join(marketIdsInner, ",")
 	}
 	if limit != nil {
 		request["depth"] = limit
@@ -2431,11 +2431,11 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes189319 []any = r1.Value
-		if retRes189319 == nil {
+		var retRes189219 []any = r1.Value
+		if retRes189219 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes189319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes189219)}
 		}
 		return nil
 	}
@@ -2448,7 +2448,7 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		request["from"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
 	var price *string = this.SafeString(paramsUntil, "price")
@@ -3153,12 +3153,12 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
  * @param {bool} [params.margin] true for canceling a margin order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hitbtc) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hitbtc) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3676,7 +3676,7 @@ func (this *Hitbtc) transferBody(ch chan AsyncResult[TransferEntry], code string
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var requestAmount any = this.CurrencyToPrecision(code, amount)
+	var requestAmount *string = this.CurrencyToPrecision(code, amount)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromAccountValue string = strings.ToLower(fromAccount)
 	var toAccountValue string = strings.ToLower(toAccount)
@@ -3829,21 +3829,21 @@ func (this *Hitbtc) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkInput *string = this.SafeStringUpper(paramsWithdrawTag, "network")
-	var network *string = func() *string {
-		if networkInput != nil {
-			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
-		}
-		return nil
-	}()
+	var network *string
+	if networkInput != nil {
+		network = this.SafeString(this.NetworkAliases, networkInput, networkInput)
+	} else {
+		network = nil
+	}
 	if (network != nil) && (code == "USDT") {
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
 			request["network_code"] = parsedNetwork
 		}
 	}
-	var paramsOmitted any = paramsWithdrawTag
+	var paramsOmitted map[string]any = paramsWithdrawTag
 	if (network != nil) && (code == "USDT") {
-		paramsOmitted = this.Omit(paramsWithdrawTag, "network")
+		paramsOmitted = this.OmitDict(paramsWithdrawTag, "network")
 	}
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
@@ -3904,8 +3904,8 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 			}
 			return nil
 		}())
-		var queryMarketIds any = this.MarketIds(symbolsNormalized)
-		request["symbols"] = Join(queryMarketIds, ",")
+		var queryMarketIds []string = this.MarketIdsStrings(symbolsNormalized)
+		request["symbols"] = strings.Join(queryMarketIds, ",")
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
 	if typeVar == nil || *typeVar != "swap" {
@@ -3999,21 +3999,21 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 1000)
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297219 []any = r1.Value
-		if retRes297219 == nil {
+		var retRes297119 []any = r1.Value
+		if retRes297119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297119)}
 		}
 		return nil
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
+	requestUntil, paramsUntil := this.HandleUntilOption("till", request, paramsPaginate)
 	if symbol != nil {
 		market = this.Market(symbol)
 		requestUntil["symbols"] = market["id"]
@@ -4056,9 +4056,9 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	for i := 0; i < len(contracts); i++ {
 		var marketId string = contracts[i]
 		var marketInner map[string]any = this.SafeMarket(marketId)
-		var fundingRateData []any = SafeListTyped(response, marketId)
+		var fundingRateData []map[string]any = this.SafeListMapsTyped(response, marketId)
 		for j := 0; j < len(fundingRateData); j++ {
-			var entry any = fundingRateData[j]
+			var entry map[string]any = fundingRateData[j]
 			var symbolInner *string = this.SafeSymbol(marketInner["symbol"])
 			var fundingRate *float64 = this.SafeNumber(entry, "funding_rate")
 			var datetime *string = this.SafeString(entry, "timestamp")
@@ -4072,12 +4072,12 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		}
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
-	var symbolResolved *string = func() *string {
-		if market == nil {
-			return symbol
-		}
-		return this.SafeString(market, "symbol")
-	}()
+	var symbolResolved *string
+	if market == nil {
+		symbolResolved = symbol
+	} else {
+		symbolResolved = this.SafeString(market, "symbol")
+	}
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil
@@ -5104,12 +5104,13 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
 		var rawNetworkCode *string = this.NetworkIdToCode(networkId, code)
-		var networkCodeUpper any = func() any {
-			if rawNetworkCode != nil {
-				return strings.ToUpper(*rawNetworkCode)
-			}
-			return nil
-		}()
+		var networkCodeUpper *string
+		if rawNetworkCode != nil {
+			networkCodeUpperValue := strings.ToUpper(*rawNetworkCode)
+			networkCodeUpper = &networkCodeUpperValue
+		} else {
+			networkCodeUpper = nil
+		}
 		var networkCode *string = nil
 		if networkCodeUpper != nil {
 			networkCode = this.SafeString(this.NetworkAliases, networkCodeUpper, networkCodeUpper)
@@ -5520,7 +5521,7 @@ func (this *Hitbtc) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	var res []Trade = r.Value
 	return res, nil
 }
-func (this *Hitbtc) FetchTransactionsHelper(types string, code string, since int64, limit int64, options ...FetchTransactionsHelperOptions) ([]Transaction, error) {
+func (this *Hitbtc) FetchTransactionsHelper(types string, code *string, since int64, limit int64, options ...FetchTransactionsHelperOptions) ([]Transaction, error) {
 
 	opts := FetchTransactionsHelperOptionsStruct{}
 

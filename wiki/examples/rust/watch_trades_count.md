@@ -8,7 +8,7 @@
 use std::time::{Duration, Instant};
 
 use ccxt::Params;
-use ccxt_pro::{from_id, TypedExchange, TypedExchangeExt};
+use ccxt_pro::{ExchangeVisitor, TypedExchange};
 
 fn secs() -> u64 {
     std::env::var("CCXT_SECS")
@@ -41,15 +41,25 @@ fn peak_rss_mb() -> f64 {
 
 async fn run() {
     let id = exchange();
-    // Typed WS wrapper picked by id — `ccxt_pro::from_id` returns a boxed
-    // `TypedExchange`; the `watch_*` methods come from `TypedExchangeExt`.
-    let mut ex: Box<dyn TypedExchange> = match from_id(&id, None) {
-        Some(e) => e,
-        None => {
-            eprintln!("unknown/unsupported WS exchange: {id}");
-            return;
-        }
-    };
+    // WS exchange picked by id — `ccxt_pro::with_exchange` hands the concrete
+    // venue to `Count`, whose generic `visit` calls the typed `watch_*` methods.
+    if ccxt_pro::with_exchange(&id, None, Count { id: &id }).await.is_none() {
+        eprintln!("unknown/unsupported WS exchange: {id}");
+    }
+}
+
+struct Count<'a> {
+    id: &'a str,
+}
+
+impl ExchangeVisitor for Count<'_> {
+    type Output = ();
+    async fn visit<E: TypedExchange + 'static>(self, mut ex: E) {
+        count(&mut ex, self.id).await
+    }
+}
+
+async fn count<E: TypedExchange>(ex: &mut E, id: &str) {
     let sym = symbol(if id == "hyperliquid" {
         "BTC/USDC:USDC"
     } else {
@@ -57,7 +67,7 @@ async fn run() {
     });
 
     let t0 = Instant::now();
-    ex.load_markets(false).await;
+    let _ = ex.load_markets(false, ()).await;
     let load_s = t0.elapsed().as_secs_f64();
 
     let window = Duration::from_secs(secs());

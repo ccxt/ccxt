@@ -765,12 +765,18 @@ class dydx extends dydx$1["default"] {
             request['limit'] = Math.min(limit, 1000);
         }
         if (since !== undefined) {
-            request['fromIso'] = this.iso8601(since);
+            request['fromISO'] = this.iso8601(since);
         }
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
         if (until !== undefined) {
-            request['toIso'] = this.iso8601(until);
+            request['toISO'] = this.iso8601(until);
+        }
+        else if (since !== undefined) {
+            // the indexer returns the newest candles in the range, so the range ends where the limit does
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const count = (limit !== undefined) ? Math.min(limit, 1000) : 1000;
+            request['toISO'] = this.iso8601(this.sum(since, duration * count));
         }
         const response = await this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, paramsOmitted));
         //
@@ -1931,7 +1937,7 @@ class dydx extends dydx$1["default"] {
         const account = await this.fetchDydxAccount();
         const usd = this.parseToInt(Precise["default"].stringMul(this.numberToString(amount), '1000000'));
         let payload = undefined;
-        let signingPayload = undefined;
+        let signingPayload = {};
         if (fromAccount === 'main') {
             // deposit to subaccount
             if (toSubaccountId === undefined) {

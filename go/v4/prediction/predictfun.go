@@ -439,8 +439,8 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		}
 	} else {
 		var request map[string]any = map[string]any{}
-		var tags any = this.SafeList(paramsValue, "tags", []any{})
-		if ccxt.GetArrayLength(tags) > 0 {
+		var tags []any = ccxt.SafeListTyped(paramsValue, "tags")
+		if len(tags) > 0 {
 			request["tagIds"] = ccxt.Join(tags, ",")
 		}
 		postOmitKeys = append(postOmitKeys, "limit")
@@ -1168,7 +1168,7 @@ func (this *Predictfun) TitleForMarketSymbol(topicSlug *string, title *string, o
  * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
  * @returns {object} a market structure
  */
-func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
+func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string]any {
 	//
 	//     {
 	//         "boostEndsAt": "2026-08-27T14:15:00.000Z",
@@ -2109,8 +2109,8 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	this.Options["jwtToken"] = ccxt.DerefScalar(token)
 	// measured from before the round trip, so the cached window closes a little early rather
 	// than a little late
-	var tokenExpiresIn *int64 = this.SafeInteger(this.Options, "tokenExpiresIn", 86400000)
-	this.Options["jwtTokenExpiresAt"] = this.Sum(now, tokenExpiresIn)
+	var tokenExpiresIn int64 = *this.SafeInteger(this.Options, "tokenExpiresIn", 86400000)
+	this.Options["jwtTokenExpiresAt"] = now + tokenExpiresIn
 
 	ch <- ccxt.AsyncResult[*string]{Value: token}
 	return nil
@@ -2691,12 +2691,12 @@ func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Predictfun) CancelOrderAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id any, optionalArgs ...any) any {
+func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2704,14 +2704,14 @@ func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.CancelOrdersAsync([]any{id}, outcome, params)
+	r := <-this.CancelOrdersAsync([]string{id}, outcome, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
 	var orders []any = ccxt.PredictionOrdersToList(r.Value)
 	var order map[string]any = ccxt.SafeMapTyped(orders, 0)
 	if order == nil {
-		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrder() could not remove ", id)))
+		panic(ccxt.OrderNotFound(this.Id + " cancelOrder() could not remove " + id))
 	}
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(order)}
@@ -2728,12 +2728,12 @@ func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+func (this *Predictfun) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids any, optionalArgs ...any) any {
+func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2749,7 +2749,7 @@ func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		}
 		outcomeObj = this.Outcome(outcome)
 	}
-	var idsLength int = ccxt.GetArrayLength(ids)
+	var idsLength int = len(ids)
 	if idsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrders() requires at least one order hash"))
 	}
@@ -3675,7 +3675,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], out
  * @returns {string[]} the message hashes
  */
 func (this *Predictfun) OrderBookMessageHashes(marketId string) []any {
-	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(ccxt.SafeStringPtr(marketId)))
+	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(&marketId))
 	var outcomesLength int = len(outcomes)
 	var hashes []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
@@ -4190,7 +4190,7 @@ func (this *Predictfun) OutcomeForToken(tokenId *string, optionalArgs ...any) an
 	// for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
 	// back to it on any cache miss, which stamped the requested outcome onto rows from other
 	// markets - and the outcome filter afterwards then kept them, as they now matched
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var hintId *string = this.SafeString(market, "outcomeId")
 	if (tokenId == nil) || (hintId == tokenId || (hintId != nil && tokenId != nil && *hintId == *tokenId)) {
@@ -4730,7 +4730,7 @@ func (this *Predictfun) HandleMessage(client any, message map[string]any) {
 		// by it - see handleSubscriptionStatus in pro/binance.ts
 		var id *string = this.SafeString(message, "requestId")
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
+		var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 		var success *bool = this.SafeBool(message, "success", false)
 		if !(success != nil && *success) {
 			this.HandleSubscriptionError(client, message, subscription)
@@ -4799,8 +4799,6 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var existingHeaders map[string]any = map[string]any{}
-	var headersValue map[string]any = existingHeaders
 	var authHeaders map[string]any = map[string]any{}
 	if (apiKey != nil) && (!(sandboxMode != nil && *sandboxMode)) {
 		// the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -4830,7 +4828,7 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		bodyValue = &jsonText
 	}
-	var headersExtended map[string]any = this.Extend(headersValue, authHeaders)
+	var headersExtended map[string]any = this.Extend(map[string]any{}, authHeaders)
 	return map[string]any{
 		"url":     url,
 		"method":  method,

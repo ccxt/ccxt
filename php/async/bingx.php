@@ -647,6 +647,7 @@ class bingx extends Exchange {
                     '100490' => '\\ccxt\\BadSymbol', // spot trading pair is offline
                     '101481' => '\\ccxt\\DuplicateOrderId',
                     '109201' => '\\ccxt\\DuplicateOrderId',
+                    '104414' => '\\ccxt\\BadRequest', // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400' => '\\ccxt\\BadRequest', // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418' => '\\ccxt\\BadSymbol', // trading pair is offline and cannot be ordered through the api
                     '109421' => '\\ccxt\\OrderNotFound',
@@ -1269,7 +1270,9 @@ class bingx extends Exchange {
         $maxLimit = ($this->safe_bool($market, 'inverse', false)) ? 1000 : 1440;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            $paginationLimit = ($timeframe === '1m') ? $maxLimit : 1000;
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $paginationLimit));
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1285,7 +1288,13 @@ class bingx extends Exchange {
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'endTime');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
         if ($until !== null) {
-            $request['endTime'] = $until;
+            $endTime = $until;
+            if ($since !== null) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $endTime = min($until, $this->sum($since, $duration * $requestLimit));
+            }
+            $request['endTime'] = $endTime;
         } elseif (($this->safe_bool($market, 'inverse', false)) && ($since !== null)) {
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $request['endTime'] = $this->sum($since, $duration * $requestLimit);
@@ -1869,7 +1878,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rates($data, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -2215,7 +2224,7 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         if ($this->safe_bool($market, 'spot', false)) {
-            $response = Async\await($this->spotV1PublicGetTicker24hr($this->extend($request, $params)));
+            $response = Async\await($this->spotV2PublicGetQuoteTicker($this->extend($request, $params)));
         } else {
             if ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->cswapV1PublicGetMarketTicker($this->extend($request, $params)));
@@ -2338,7 +2347,7 @@ class bingx extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchTickers', $market, $paramsMarketType);
         if ($type === 'spot') {
-            $response = Async\await($this->spotV1PublicGetTicker24hr($paramsSubType));
+            $response = Async\await($this->spotV2PublicGetQuoteTicker($paramsSubType));
         } else {
             if ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PublicGetMarketTicker($paramsSubType));
@@ -4180,7 +4189,6 @@ class bingx extends Exchange {
         //         "workingType": ""
         //     }
         //
-        $info = $order;
         $newOrder = $this->safe_dict_2($order, 'newOrderResponse', 'orderOpenResponse');
         $orderData = ($newOrder !== null) ? $newOrder : $order;
         $positionSide = $this->safe_string_2($orderData, 'positionSide', 'ps');
@@ -4253,7 +4261,7 @@ class bingx extends Exchange {
             }
         }
         return $this->safe_order(array(
-            'info' => $info,
+            'info' => $order,
             'id' => $this->safe_string_n($orderData, array( 'orderId', 'i', 'mainOrderId' )),
             'clientOrderId' => $this->safe_string_n($orderData, array( 'clientOrderID', 'clientOrderId', 'origClientOrderId', 'c' )),
             'symbol' => $this->safe_symbol($marketId, $marketResolved, '-', $marketType),
@@ -5420,6 +5428,19 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($paramsStandard, 'twap', false);
             $paramsOmitted = $this->omit($paramsStandard, 'twap');
+            if (!$isTwapOrder) {
+                if ($limit !== null) {
+                    $request['limit'] = min($limit, 1000);
+                }
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+                $until = $this->safe_integer($paramsOmitted, 'until');
+                if ($until !== null) {
+                    $request['endTime'] = $until;
+                    $paramsOmitted = $this->omit($paramsOmitted, 'until');
+                }
+            }
             if ($isTwapOrder) {
                 $request['pageIndex'] = 1;
                 $request['pageSize'] = ($limit === null) ? 100 : $limit;
@@ -5761,7 +5782,7 @@ class bingx extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_list($this->safe_dict($response, 'data'), 'data');
+        $data = $this->safe_list($this->safe_dict($response, 'data'), 'data', array());
         $parsed = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
         return $this->index_by($parsed, 'network');
     }
@@ -7416,7 +7437,7 @@ class bingx extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommissionRate'),
             'taker' => $this->safe_number($fee, 'takerCommissionRate'),
-            'percentage' => false,
+            'percentage' => true,
             'tierBased' => false,
         );
     }
@@ -7607,9 +7628,7 @@ class bingx extends Exchange {
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
-        $bodyResult = $requestBody;
-        $headersResult = $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function nonce(): int {

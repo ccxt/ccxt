@@ -946,7 +946,7 @@ public class Weex extends WeexApi
             //     }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -1085,10 +1085,10 @@ public class Weex extends WeexApi
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String name = this.safeString(rawCurrency, "name");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> chains = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        List<Object> chains = this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
+        for (var j = 0; j < chains.size(); j++)
         {
-            Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
+            Map<String, Object> chain = this.safeDict(chains, j, null);
             String networkId = this.safeString(chain, "network");
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -1117,7 +1117,7 @@ public class Weex extends WeexApi
             }
         }
         List<String> networkKeys = new ArrayList<String>(networks.keySet());
-        Integer networksLength = ((List<?>)networkKeys).size();
+        Integer networksLength = networkKeys.size();
         Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
         Boolean valueForEmpty = ((Boolean.TRUE.equals(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1171,8 +1171,8 @@ public class Weex extends WeexApi
             var spotResponsecontractResponseVariable = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             var spotResponse = ((List<Object>) spotResponsecontractResponseVariable).get(0);
             var contractResponse = ((List<Object>) spotResponsecontractResponseVariable).get(1);
-            List<Object> spotArray = (List<Object>) this.safeList(spotResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
-            List<Object> contractArray = (List<Object>) this.safeList(contractResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotArray = this.safeList(spotResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> contractArray = this.safeList(contractResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = (List<Object>) this.arrayConcat(spotArray, contractArray);
             return this.parseMarkets(result);
         });
@@ -1274,12 +1274,12 @@ public class Weex extends WeexApi
         Double pricePrecision = this.safeNumber(market, "tickSize", (Object) null);
         if (java.util.Objects.equals(amountPrecision, null))
         {
-            String amountPrecisionString = (String) this.parsePrecision(this.safeString(market, "quantityPrecision"));
-            String pricePrecisionString = (String) this.parsePrecision(this.safeString(market, "pricePrecision"));
+            String amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
+            String pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
-        Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract", new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = this.safeDict(this.fees, ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(id, null))
         {
             throw new ExchangeError((this.id + " method() missing id")) ;
@@ -1371,7 +1371,7 @@ public class Weex extends WeexApi
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbolsLength, 1))
@@ -1474,9 +1474,9 @@ public class Weex extends WeexApi
                 response = new ArrayList<Object>(Arrays.asList(response));
             }
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
-                Object rawTicker = this.safeValue(response, i);
+                Map<String, Object> rawTicker = this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
                 Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
@@ -1912,8 +1912,8 @@ public class Weex extends WeexApi
             Pair<Boolean, Map<String, Object>> historicalparamsHistoricalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchOHLCV", "historical", false);
             Boolean historical = historicalparamsHistoricalVariable.first();
             Map<String, Object> paramsHistorical = historicalparamsHistoricalVariable.second();
-            Map<String, Object> timeframeOption = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-            Map<String, Object> contractTimeframes = (Map<String, Object>) this.safeDict(timeframeOption, "contract", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframeOption = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> contractTimeframes = this.safeDict(timeframeOption, "contract", new HashMap<String, Object>() {{}});
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -1952,7 +1952,7 @@ public class Weex extends WeexApi
                     {
                         historyLimit = this.parseToInt((limit == null || maxHistoricalLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxHistoricalLimit).doubleValue() ? (Object) (limit) : (Object) (maxHistoricalLimit))));
                     }
-                    Long timeDelta = this.parseToInt((historyLimit * duration));
+                    Long timeDelta = (historyLimit * duration);
                     if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
                     {
                         endTime = now;
@@ -2129,7 +2129,7 @@ public class Weex extends WeexApi
             tradeMarketType = "swap";
         }
         Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? tradeMarketId : null, market, (String) null, tradeMarketType);
-        Object isSpot = null;
+        Object isSpot = false;
         if (java.util.Objects.equals(market, null))
         {
             isSpot = java.util.Objects.equals(tradeMarketType, "spot");
@@ -2259,7 +2259,7 @@ public class Weex extends WeexApi
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbolsLength, 1))
@@ -2488,7 +2488,7 @@ public class Weex extends WeexApi
         Object balances = this.safeList(response, "balances", response);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> entry = this.safeDict(balances, i, null);
             String currencyId = this.safeString(entry, "asset");
             if (Boolean.TRUE.equals(sandboxMode) && (java.util.Objects.equals(currencyId, "SUSDT")))
             {
@@ -2844,9 +2844,9 @@ public class Weex extends WeexApi
             positionSide = "SHORT";
         }
         request.put("positionSide", positionSide);
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
+        Map<String, Object> takeProfit = this.safeDict(parameters, "takeProfit", null);
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
+        Map<String, Object> stopLoss = this.safeDict(parameters, "stopLoss", null);
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
         if (Boolean.TRUE.equals(hasTakeProfit) && (!java.util.Objects.equals(this.safeNumber(takeProfit, "price", (Object) null), null)))
@@ -3171,7 +3171,7 @@ public class Weex extends WeexApi
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
-            List<Object> clientOrderIds = (List<Object>) this.safeList(paramsMarketType, "clientOrderIds", (Object) null);
+            List<Object> clientOrderIds = this.safeList(paramsMarketType, "clientOrderIds", null);
             Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "clientOrderIds");
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
@@ -3203,7 +3203,7 @@ public class Weex extends WeexApi
             {
                 response = (this.contractPrivateDeleteCapiV3BatchOrders(this.extend(request, paramsOmitted))).join();
             }
-            List<Object> ordersResponse = (List<Object>) this.safeList(response, "orderList", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ordersResponse = this.safeList(response, "orderList", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> extendedParams = new HashMap<String, Object>() {{
                 put( "status", "canceled" );
             }};
@@ -4128,7 +4128,7 @@ public class Weex extends WeexApi
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, paramsPaginate, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String accountType = this.safeString(accountsByType, marketType, marketType);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> items = null;
@@ -4386,7 +4386,7 @@ public class Weex extends WeexApi
             //         ]
             //     }
             //
-            List<Object> items = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(items, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -4470,7 +4470,7 @@ public class Weex extends WeexApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Position> positions = (this.fetchPositionsForSymbol(symbol, parameters)).join();
-            return this.safeDict(positions, 0, (Object) null);
+            return this.safeDict(positions, 0, null);
         }).thenApply(Position::new);
 
     }
@@ -4705,7 +4705,7 @@ public class Weex extends WeexApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -4806,7 +4806,7 @@ public class Weex extends WeexApi
             //         }
             //     ]
             //
-            Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> marginMode = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseMarginMode(marginMode, market);
         }).thenApply(MarginMode::new);
 
@@ -4927,7 +4927,7 @@ public class Weex extends WeexApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
-            Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> marginMode = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(marginMode, market);
         }).thenApply(Leverage::new);
 
@@ -5067,7 +5067,7 @@ public class Weex extends WeexApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> entry = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             String separatedType = this.safeString(entry, "separatedType");
             {
                 HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();

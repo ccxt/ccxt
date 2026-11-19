@@ -297,12 +297,12 @@ func (this *Btcbox) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var id string = strings.ToLower(*baseCurr)
 		var res map[string]any = this.SafeDictMap(response1, marketId, map[string]any{})
 		var symbol string = *baseCurr + "/" + *quote
-		var fee *float64 = func() *float64 {
-			if id == "BTC" {
-				return this.ParseNumber("0.0005")
-			}
-			return this.ParseNumber("0.0010")
-		}()
+		var fee *float64
+		if id == "BTC" {
+			fee = this.ParseNumber("0.0005")
+		} else {
+			fee = this.ParseNumber("0.0010")
+		}
 		var details map[string]any = SafeMapTyped(result2Data, id)
 		var tradeDetails map[string]any = SafeMapTyped(details, "trade")
 		markets = append(markets, this.SafeMarketStructure(map[string]any{
@@ -803,12 +803,12 @@ func (this *Btcbox) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcbox) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Btcbox) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Btcbox) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Btcbox) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -823,12 +823,12 @@ func (this *Btcbox) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 		}
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	var symbolResolved string = func() string {
-		if symbol == nil {
-			return "BTC/JPY"
-		}
-		return *symbol
-	}()
+	var symbolResolved string
+	if symbol == nil {
+		symbolResolved = "BTC/JPY"
+	} else {
+		symbolResolved = *symbol
+	}
 	var market map[string]any = this.Market(symbolResolved)
 	var request map[string]any = map[string]any{
 		"id":   id,
@@ -950,12 +950,12 @@ func (this *Btcbox) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		}
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	var symbolResolved string = func() string {
-		if symbol == nil {
-			return "BTC/JPY"
-		}
-		return *symbol
-	}()
+	var symbolResolved string
+	if symbol == nil {
+		symbolResolved = "BTC/JPY"
+	} else {
+		symbolResolved = *symbol
+	}
 	var market map[string]any = this.Market(symbolResolved)
 	var request map[string]any = this.Extend(map[string]any{
 		"id":   id,
@@ -1007,12 +1007,12 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar 
 		}
 	}
 	// a special case for btcbox – default symbol is BTC/JPY
-	var symbolResolved string = func() string {
-		if symbol == nil {
-			return "BTC/JPY"
-		}
-		return *symbol
-	}()
+	var symbolResolved string
+	if symbol == nil {
+		symbolResolved = "BTC/JPY"
+	} else {
+		symbolResolved = *symbol
+	}
 	var market map[string]any = this.Market(symbolResolved)
 	var request map[string]any = map[string]any{
 		"type": typeVar,

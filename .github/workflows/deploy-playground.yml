@@ -240,6 +240,7 @@ jobs:
             smoke_lang '{"language":"php","code":"<?php echo 6*7;"}'               || return 1
             smoke_lang '{"language":"csharp","code":"System.Console.Write(6*7);"}' || return 1
             smoke_lang '{"language":"go","code":"package main\nimport \"fmt\"\nfunc main(){fmt.Print(6*7)}"}' || return 1
+            smoke_lang '{"language":"rust","code":"fn main(){print!(\"{}\", 6*7)}"}' || return 1
             echo "smoke: OK"
           }
 

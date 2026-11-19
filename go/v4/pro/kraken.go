@@ -795,9 +795,9 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var interval *int64 = this.SafeInteger(first, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash string = this.GetMessageHash("ohlcv", nil, symbol)
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
@@ -815,7 +815,7 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 		var datetime *string = this.SafeString(candle, "interval_begin")
 		var timestamp *int64 = this.Parse8601(datetime)
 		var parsed []any = []any{timestamp, this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1341,7 +1341,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	markets := r.Value
-	var marketsByWsName any = this.SafeDict(this.Options, "marketsByWsName")
+	var marketsByWsName map[string]any = this.SafeDictMap(this.Options, "marketsByWsName")
 	if (marketsByWsName == nil) || (reload == true) {
 		marketsByWsName = map[string]any{}
 		var symbols []string = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
@@ -1351,7 +1351,9 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 				var market map[string]any = this.Market(symbol)
 				var info map[string]any = ccxt.SafeMapTyped(market, "info")
 				var wsName *string = this.SafeString(info, "wsname")
-				ccxt.AddElementToObject(marketsByWsName, wsName, market)
+				if marketsByWsName != nil && wsName != nil {
+					marketsByWsName[*wsName] = market
+				}
 			}
 		}
 		this.Options["marketsByWsName"] = marketsByWsName
@@ -1532,7 +1534,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	}
 	orderbook.Limit()
 	// checksum temporarily disabled because the exchange checksum was not reliable
-	var checksum any = this.HandleOption("watchOrderBook", "checksum", false)
+	var checksum bool = this.HandleOption("watchOrderBook", "checksum", false) == true
 	if checksum == true {
 		var payloadArray []string = []string{}
 		if c != nil {
@@ -1664,7 +1666,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 			ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(subscription, "token")}
 			return nil
 		}
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Kraken) (ret_ any) {
@@ -1717,7 +1719,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// rethrows the leader's own failure and attaches the handler that
 		// keeps an alone leader's rejection from killing the process
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}

@@ -817,7 +817,7 @@ class derive extends Exchange {
     private function do_get_markets_paginated(array $request, $params = array()) {
         /**
          * @ignore
-         * fetches every $page of public/get_all_instruments for the given filter and parses the instruments; v3 paginates the endpoint, options alone exceed 5000 entries
+         * fetches every page of public/get_all_instruments for the given filter and parses the instruments; v3 paginates the endpoint, options alone exceed 5000 entries
          * @param {array} $request the base $request with the instrument_type filter
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of raw instrument entries
@@ -826,9 +826,8 @@ class derive extends Exchange {
         list($maxPages, $paramsMaxPages) = $this->handle_option_integer_and_params($params, 'getMarketsPaginated', 'maxMarketPages', 25);
         list($pageSize, $paramsOmitted) = $this->handle_option_integer_and_params($paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         for ($i = 0; $i < $maxPages; $i++) {
-            $page = $i + 1;
             $requestExtension = array(
-                'page' => $page,
+                'page' => $i + 1,
                 'page_size' => $pageSize,
             );
             $requestExtended = $this->extend($this->extend($request, $requestExtension), $paramsOmitted); // nested because the csharp base defines extend with two arguments only
@@ -1678,10 +1677,10 @@ class derive extends Exchange {
             $limitResolved = $this->parse_to_int($limit);
         }
         if ($limitResolved > 5000) {
-            $limitResolved = $this->parse_to_int(5000);
+            $limitResolved = 5000;
         }
         $span = $this->parse_to_int($limitResolved * $duration);
-        $windowStart = $this->parse_to_int($untilSeconds - $span);
+        $windowStart = $untilSeconds - $span;
         $start = $windowStart;
         $end = $untilSeconds;
         if ($since !== null) {
@@ -1964,7 +1963,7 @@ class derive extends Exchange {
         return $this->parse_funding_rate($data);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         $symbol = $this->safe_string($contract, 'symbol');
         $fundingTimestamp = $this->safe_integer($contract, 'timestamp');
         return array(

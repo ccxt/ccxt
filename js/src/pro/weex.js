@@ -86,7 +86,7 @@ export default class weex extends weexRest {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return this.numberToString(requestId);
+        return requestId;
     }
     async subscribePublic(messageHashes, channels, isContract = false, params = {}, subscription = {}) {
         const id = this.requestId();
@@ -100,7 +100,7 @@ export default class weex extends weexRest {
             'method': method,
             'params': channels,
         };
-        const subscriptionExtended = this.extend(subscription, { 'id': id });
+        const subscriptionExtended = this.extend(subscription, { 'id': id.toString() });
         let type = 'spot';
         if (isContract) {
             type = 'contract';
@@ -126,7 +126,7 @@ export default class weex extends weexRest {
             'method': method,
             'params': [channel],
         };
-        const subscriptionExtended = this.extend(subscription, { 'id': id });
+        const subscriptionExtended = this.extend(subscription, { 'id': id.toString() });
         return await this.watch(url, messageHash, this.deepExtend(message, params), subscribeHash, subscriptionExtended);
     }
     authenticate(url) {
@@ -236,8 +236,8 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol, params = {}) {
-        return this.unWatchTickers([symbol], params);
+    async unWatchTicker(symbol, params = {}) {
+        return await this.unWatchTickers([symbol], params);
     }
     /**
      * @method
@@ -384,8 +384,8 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([symbol], since, limit, params);
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -437,8 +437,8 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol, params = {}) {
-        return this.unWatchTradesForSymbols([symbol], params);
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
     }
     /**
      * @method

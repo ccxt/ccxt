@@ -253,7 +253,7 @@ class p2b(Exchange, ImplicitAPI):
                     'fetchMyTrades': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBack': 100000,  # todo
+                        'daysBack': 90,  # 3 months
                         'untilDays': 1,
                         'symbolRequired': True,
                     },
@@ -269,8 +269,8 @@ class p2b(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBack': 100000,  # todo
-                        'daysBackCanceled': 1 / 12,  # todo
+                        'daysBack': 90,  # 3 months
+                        'daysBackCanceled': None,  # the orders history endpoint returns only filled or partially filled orders
                         'untilDays': 1,
                         'trigger': False,
                         'trailing': False,
@@ -1107,8 +1107,8 @@ class p2b(Exchange, ImplicitAPI):
             await self.load_markets()
         untilParam = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
-        until = self.parse_to_int(0)
-        sinceResolved = self.parse_to_int(0)
+        until = 0
+        sinceResolved = 0
         if untilParam is not None:
             until = self.parse_to_int(untilParam)
             if since is not None:
@@ -1116,14 +1116,14 @@ class p2b(Exchange, ImplicitAPI):
                     raise BadRequest(self.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours')
                 sinceResolved = self.parse_to_int(since)
             else:
-                sinceResolved = self.parse_to_int(untilParam - 86400000)
+                sinceResolved = untilParam - 86400000
         elif since is not None:
             until = self.parse_to_int(since + 86400000)
             sinceResolved = self.parse_to_int(since)
         else:
             now = self.milliseconds()
             until = self.parse_to_int(now)
-            sinceResolved = self.parse_to_int(now - 86400000)
+            sinceResolved = now - 86400000
         market = self.market(symbol)
         sinceSec = self.parse_to_int(sinceResolved / 1000)
         untilSec = self.parse_to_int(until / 1000)
@@ -1188,8 +1188,8 @@ class p2b(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        until = self.parse_to_int(0)
-        sinceResolved = self.parse_to_int(0)
+        until = 0
+        sinceResolved = 0
         if untilParam is not None:
             until = self.parse_to_int(untilParam)
             if since is not None:
@@ -1197,14 +1197,14 @@ class p2b(Exchange, ImplicitAPI):
                     raise BadRequest(self.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours')
                 sinceResolved = self.parse_to_int(since)
             else:
-                sinceResolved = self.parse_to_int(untilParam - 86400000)
+                sinceResolved = untilParam - 86400000
         elif since is not None:
             until = self.parse_to_int(since + 86400000)
             sinceResolved = self.parse_to_int(since)
         else:
             now = self.milliseconds()
             until = self.parse_to_int(now)
-            sinceResolved = self.parse_to_int(now - 86400000)
+            sinceResolved = now - 86400000
         sinceSec = self.parse_to_int(sinceResolved / 1000)
         untilSec = self.parse_to_int(until / 1000)
         request = {

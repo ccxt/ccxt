@@ -654,6 +654,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100490': BadSymbol,  # spot trading pair is offline
                     '101481': DuplicateOrderId,
                     '109201': DuplicateOrderId,
+                    '104414': BadRequest,  # {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': BadRequest,  # {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': BadSymbol,  # trading pair is offline and cannot be ordered through the api
                     '109421': OrderNotFound,
@@ -1223,7 +1224,9 @@ class bingx(Exchange, ImplicitAPI):
         maxLimit = 1000 if (self.safe_bool(market, 'inverse', False)) else 1440
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+            # klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            paginationLimit = maxLimit if (timeframe == '1m') else 1000
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit)
         request = {
             'symbol': market['id'],
         }
@@ -1236,7 +1239,12 @@ class bingx(Exchange, ImplicitAPI):
         until = self.safe_integer_2(paramsPaginate, 'until', 'endTime')
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
         if until is not None:
-            request['endTime'] = until
+            endTime = until
+            if since is not None:
+                # the exchange aligns the window to endTime, so keep it within limit candles of since
+                duration = self.parse_timeframe(timeframe) * 1000
+                endTime = min(until, self.sum(since, duration * requestLimit))
+            request['endTime'] = endTime
         elif (self.safe_bool(market, 'inverse', False)) and (since is not None):
             duration = self.parse_timeframe(timeframe) * 1000
             request['endTime'] = self.sum(since, duration * requestLimit)
@@ -1772,7 +1780,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -2078,7 +2086,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         response: dict
         if self.safe_bool(market, 'spot', False):
-            response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
+            response = self.spotV2PublicGetQuoteTicker(self.extend(request, params))
         else:
             if self.safe_bool(market, 'inverse', False):
                 response = self.cswapV1PublicGetMarketTicker(self.extend(request, params))
@@ -2181,7 +2189,7 @@ class bingx(Exchange, ImplicitAPI):
         subType, paramsSubType = self.handle_sub_type_and_params('fetchTickers', market, paramsMarketType)
         response: dict
         if type == 'spot':
-            response = self.spotV1PublicGetTicker24hr(paramsSubType)
+            response = self.spotV2PublicGetQuoteTicker(paramsSubType)
         else:
             if subType == 'inverse':
                 response = self.cswapV1PublicGetMarketTicker(paramsSubType)
@@ -3872,7 +3880,6 @@ class bingx(Exchange, ImplicitAPI):
         #         "workingType": ""
         #     }
         #
-        info = order
         newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
         orderData = newOrder if (newOrder is not None) else order
         positionSide = self.safe_string_2(orderData, 'positionSide', 'ps')
@@ -3931,7 +3938,7 @@ class bingx(Exchange, ImplicitAPI):
                 takeProfitPrice = stopPrice
                 triggerPrice = None
         return self.safe_order({
-            'info': info,
+            'info': order,
             'id': self.safe_string_n(orderData, ['orderId', 'i', 'mainOrderId']),
             'clientOrderId': self.safe_string_n(orderData, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': self.safe_symbol(marketId, marketResolved, '-', marketType),
@@ -5007,6 +5014,15 @@ class bingx(Exchange, ImplicitAPI):
         else:
             isTwapOrder = self.safe_bool(paramsStandard, 'twap', False)
             paramsOmitted = self.omit(paramsStandard, 'twap')
+            if not isTwapOrder:
+                if limit is not None:
+                    request['limit'] = min(limit, 1000)
+                if since is not None:
+                    request['startTime'] = since
+                until = self.safe_integer(paramsOmitted, 'until')
+                if until is not None:
+                    request['endTime'] = until
+                    paramsOmitted = self.omit(paramsOmitted, 'until')
             if isTwapOrder:
                 request['pageIndex'] = 1
                 request['pageSize'] = 100 if (limit is None) else limit
@@ -5319,7 +5335,7 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_list(self.safe_dict(response, 'data'), 'data')
+        data = self.safe_list(self.safe_dict(response, 'data'), 'data', [])
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
@@ -6786,7 +6802,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerCommissionRate'),
             'taker': self.safe_number(fee, 'takerCommissionRate'),
-            'percentage': False,
+            'percentage': True,
             'tierBased': False,
         }
 
@@ -6949,9 +6965,7 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
-        bodyResult = requestBody
-        headersResult = requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def nonce(self) -> int:
         return self.milliseconds()

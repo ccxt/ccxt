@@ -977,10 +977,9 @@ class coinbaseexchange extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $entry = $this->safe_list($response, $marketId, array());
-            $first = $this->safe_list($entry, 0, array());
             $market = $this->safe_market($marketId, null, $delimiter);
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($first, $market);
+            $result[$symbol] = $this->parse_ticker($this->safe_list($entry, 0, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
@@ -1147,7 +1146,7 @@ class coinbaseexchange extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_value_2($paramsPaginate, 'until', 'end_date');
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_date');
         if ($until !== null) {
             $request['end_date'] = $this->iso8601($until);
         }
@@ -1284,7 +1283,7 @@ class coinbaseexchange extends Exchange {
         } else {
             $request['granularity'] = $timeframe;
         }
-        $until = $this->safe_value_2($paramsPaginate, 'until', 'end');
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'end');
         $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         $cappedLimit = $this->parse_to_int(($limit === null) ? 300 : min($limit, 300));
@@ -1522,7 +1521,7 @@ class coinbaseexchange extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_value_2($paramsPaginate, 'until', 'end_date');
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_date');
         if ($until !== null) {
             $request['end_date'] = $this->iso8601($until);
         }
@@ -1879,7 +1878,7 @@ class coinbaseexchange extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
-        $until = $this->safe_value_2($params, 'until', 'end_date');
+        $until = $this->safe_integer_2($params, 'until', 'end_date');
         if ($until !== null) {
             $request['end_date'] = $this->iso8601($until);
         }
@@ -2147,7 +2146,7 @@ class coinbaseexchange extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
+        $accounts = $this->safe_list($this->options, 'coinbaseAccounts');
         if ($accounts === null) {
             $accounts = $this->privateGetCoinbaseAccounts();
             $this->options['coinbaseAccounts'] = $accounts; // cache it

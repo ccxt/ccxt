@@ -671,7 +671,6 @@ class blofin(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'maxLeverage', '100')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         isActive = (self.safe_string(market, 'state') == 'live')
-        isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
         contractType = self.safe_string(market, 'contractType')
         maxLimitAmount = self.safe_number(market, 'maxLimitSize')
         maxSpotCost = self.safe_number(market, 'maxMarketSize')  # for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -687,7 +686,7 @@ class blofin(Exchange, ImplicitAPI):
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': isMargin,
+            'margin': (spot and Precise.string_gt(maxLeverage, '1')),
             'swap': swap,
             'future': future,
             'active': isActive,
@@ -1112,7 +1111,7 @@ class blofin(Exchange, ImplicitAPI):
         query = None
         paginate, query = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', query, 100)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, query, 100)
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1141,7 +1140,7 @@ class blofin(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -2038,8 +2037,7 @@ class blofin(Exchange, ImplicitAPI):
         currencies = list(dataByCurrencyId.values())
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, currency: dict) -> CurrencyInterface:
-        chains = currency
+    def parse_currency(self, chains: dict) -> CurrencyInterface:
         firstChain = self.safe_dict(chains, 0, {})
         currencyId = self.safe_string(firstChain, 'currency')
         code = self.safe_currency_code(currencyId)
@@ -2234,7 +2232,7 @@ class blofin(Exchange, ImplicitAPI):
         # venue ignores the filter and returns the latest records instead
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = self.safe_value(data, i)
+            entry = self.safe_dict(data, i, {})
             if self.safe_string(entry, 'depositId') == id:
                 return self.parse_transaction(entry, currency)
         raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + id)
@@ -2268,7 +2266,7 @@ class blofin(Exchange, ImplicitAPI):
         # case the venue ignores the filter and returns the latest records
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = self.safe_value(data, i)
+            entry = self.safe_dict(data, i, {})
             matches = False
             if id is not None:
                 matches = (self.safe_string(entry, 'withdrawId') == id)
@@ -2842,14 +2840,14 @@ class blofin(Exchange, ImplicitAPI):
         entryPriceString = self.safe_string_2(position, 'averagePrice', 'openAveragePrice')
         unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
         leverageString = self.safe_string(position, 'leverage')
-        initialMarginPercentage = None
+        initialMarginPercentageString = None
         collateralString = None
         marginString = None
         if marginMode == 'cross':
             initialMarginString = self.safe_string(position, 'initialMargin')
             collateralString = Precise.string_add(initialMarginString, unrealizedPnlString) if (unrealizedPnlString is not None) else initialMarginString
         elif marginMode == 'isolated':
-            initialMarginPercentage = Precise.string_div('1', leverageString)
+            initialMarginPercentageString = Precise.string_div('1', leverageString)
             isolatedMarginString = self.omit_zero(self.safe_string_2(position, 'margin', 'initialMargin'))
             if isolatedMarginString is not None:
                 initialMarginString = isolatedMarginString
@@ -2858,10 +2856,9 @@ class blofin(Exchange, ImplicitAPI):
         maintenanceMarginString = self.safe_string(position, 'maintenanceMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         maintenanceMarginPercentageString = Precise.string_div(maintenanceMarginString, notionalString)
-        if initialMarginPercentage is None:
-            initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
+        if initialMarginPercentageString is None:
+            initialMarginPercentageString = Precise.string_div(initialMarginString, notionalString, 4)
         elif initialMarginString is None:
-            initialMarginPercentageString = self.number_to_string(initialMarginPercentage)
             initialMarginString = Precise.string_mul(initialMarginPercentageString, notionalString)
         rounder = '0.00005'  # round to closest 0.01%
         maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4)) if (maintenanceMarginPercentageString is not None) else None
@@ -2906,7 +2903,7 @@ class blofin(Exchange, ImplicitAPI):
             'positionMargin': self.parse_number(marginString),
             'collateral': self.parse_number(collateralString),
             'initialMargin': self.parse_number(initialMarginString),
-            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
             'leverage': self.parse_number(leverageString),
             'marginRatio': marginRatio,
             'stopLossPrice': None,

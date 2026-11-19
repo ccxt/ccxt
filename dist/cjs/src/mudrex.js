@@ -1154,7 +1154,7 @@ class mudrex extends mudrex$1["default"] {
         }
         const market = this.market(symbol);
         let positionId = this.safeString(params, 'position_id');
-        const amount = this.safeValue(params, 'amount');
+        const amount = this.safeString(params, 'amount');
         if (positionId === undefined) {
             const positions = await this.fetchPositions([symbol], params);
             let candidates = this.filterBy(positions, 'symbol', market['symbol']);
@@ -1265,8 +1265,8 @@ class mudrex extends mudrex$1["default"] {
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         const pageSize = (limit === undefined) ? 0 : limit * 2;
         const allRows = [];
-        let transactionsCount = this.parseToInt(0);
-        let calls = this.parseToInt(0);
+        let transactionsCount = 0;
+        let calls = 0;
         let offset = 0;
         let paging = true;
         while (paging) {
@@ -1284,11 +1284,11 @@ class mudrex extends mudrex$1["default"] {
                 if (this.safeString(entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if ((market === undefined) || (this.safeString(entry, 'symbol') === market['id'])) {
-                        transactionsCount = this.parseToInt(transactionsCount + 1);
+                        transactionsCount = transactionsCount + 1;
                     }
                 }
             }
-            calls = this.parseToInt(calls + 1);
+            calls = calls + 1;
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if ((limit !== undefined) && (dataLength === pageSize)) {

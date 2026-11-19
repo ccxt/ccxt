@@ -434,19 +434,10 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
 	var hasSlash bool = (GetIndexOf(symbol, "/") > -1)
-	var partSource any = func() any {
-		if hasSlash {
-			return symbolBase
-		}
-		return optionParts
-	}()
-	var baseIndex int = func() int {
-		if hasSlash {
-			return 0
-		}
-		return 1
-	}()
-	var base *string = this.SafeString(partSource, baseIndex, "")
+	var base *string = this.SafeString(optionParts, 1, "")
+	if hasSlash {
+		base = this.SafeString(symbolBase, 0, "")
+	}
 	var optionType string = *this.SafeString(optionParts, func() int {
 		if hasSlash {
 			return 3
@@ -753,10 +744,10 @@ func (this *Delta) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var numericId *int64 = this.SafeInteger(rawCurrency, "id")
 	var code *string = this.SafeCurrencyCode(id)
-	var chains []any = SafeListTyped(rawCurrency, "networks")
+	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "networks")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -1057,10 +1048,10 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	//         "success":true
 	//     }
 	//
-	var markets []any = SafeListTyped(response, "result")
+	var markets []map[string]any = this.SafeListMapsTyped(response, "result")
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var typeVar *string = this.SafeString(market, "contract_type")
 		if (typeVar != nil && *typeVar == "options_combos") || (typeVar != nil && *typeVar == "binary_call_options") || (typeVar != nil && *typeVar == "binary_put_options") {
 			continue
@@ -1327,12 +1318,12 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
 	var quoteId *string = this.SafeStringUpper(marketResolved, "quoteId")
 	var baseDenominated bool = (turnoverSymbol != nil) && (quoteId != nil) && (turnoverSymbol != quoteId && (turnoverSymbol == nil || quoteId == nil || *turnoverSymbol != *quoteId))
-	var quoteVolume *float64 = func() *float64 {
-		if baseDenominated {
-			return this.SafeNumber(ticker, "turnover_usd")
-		}
-		return this.SafeNumber(ticker, "turnover")
-	}()
+	var quoteVolume *float64
+	if baseDenominated {
+		quoteVolume = this.SafeNumber(ticker, "turnover_usd")
+	} else {
+		quoteVolume = this.SafeNumber(ticker, "turnover")
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -2367,7 +2358,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	//         "product_symbol": "BTCUSD"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "id")
 	var clientOrderId *string = this.SafeString(order, "client_order_id")
@@ -2382,7 +2373,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var marketId *string = this.SafeString(order, "product_id")
 	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
-	var marketValue any = this.SafeValue(marketsByNumericId, marketId, market)
+	var marketValue any = this.SafeDict(marketsByNumericId, marketId, market)
 	var symbol *string = nil
 	if IsEqual(marketValue, nil) {
 		symbol = marketId
@@ -2628,12 +2619,12 @@ func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Delta) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Delta) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Delta) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Delta) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2864,11 +2855,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233015 []any = OrdersToList(r.Value)
-	if retRes233015 == nil {
+	var retRes233115 []any = OrdersToList(r.Value)
+	if retRes233115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233115)}
 	}
 	return nil
 }
@@ -2905,11 +2896,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes234515 []any = OrdersToList(r.Value)
-	if retRes234515 == nil {
+	var retRes234615 []any = OrdersToList(r.Value)
+	if retRes234615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234615)}
 	}
 	return nil
 }
@@ -3654,12 +3645,12 @@ func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
 	}
 	var market map[string]any = this.Market(symbol)
 	var amountString *string = this.NumberToString(amount)
-	var deltaMargin *string = func() *string {
-		if typeVar == "reduce" {
-			return Precise.StringMul(amountString, "-1")
-		}
-		return amountString
-	}()
+	var deltaMargin *string
+	if typeVar == "reduce" {
+		deltaMargin = Precise.StringMul(amountString, "-1")
+	} else {
+		deltaMargin = amountString
+	}
 	var request map[string]any = map[string]any{
 		"product_id":   market["numericId"],
 		"delta_margin": deltaMargin,

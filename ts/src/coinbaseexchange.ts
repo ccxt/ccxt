@@ -663,7 +663,7 @@ export default class coinbaseexchange extends Exchange {
         //     ]
         //
         const result: Market[] = [];
-        const rawMarkets = this.toArray (response);
+        const rawMarkets: Dict[] = this.toArray (response);
         for (let i = 0; i < rawMarkets.length; i++) {
             const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
@@ -987,10 +987,9 @@ export default class coinbaseexchange extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const entry = this.safeList (response, marketId, []);
-            const first = this.safeList (entry, 0, []);
             const market = this.safeMarket (marketId, undefined, delimiter);
             const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (first, market);
+            result[symbol] = this.parseTicker (this.safeList (entry, 0, []), market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
@@ -1157,7 +1156,7 @@ export default class coinbaseexchange extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const until = this.safeValue2 (paramsPaginate, 'until', 'end_date');
+        const until = this.safeInteger2 (paramsPaginate, 'until', 'end_date');
         if (until !== undefined) {
             request['end_date'] = this.iso8601 (until);
         }
@@ -1294,7 +1293,7 @@ export default class coinbaseexchange extends Exchange {
         } else {
             request['granularity'] = timeframe;
         }
-        const until = this.safeValue2 (paramsPaginate, 'until', 'end');
+        const until = this.safeInteger2 (paramsPaginate, 'until', 'end');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         const cappedLimit = this.parseToInt ((limit === undefined) ? 300 : Math.min (limit, 300));
@@ -1536,7 +1535,7 @@ export default class coinbaseexchange extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const until = this.safeValue2 (paramsPaginate, 'until', 'end_date');
+        const until = this.safeInteger2 (paramsPaginate, 'until', 'end_date');
         if (until !== undefined) {
             request['end_date'] = this.iso8601 (until);
         }
@@ -1893,7 +1892,7 @@ export default class coinbaseexchange extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const until = this.safeValue2 (params, 'until', 'end_date');
+        const until = this.safeInteger2 (params, 'until', 'end_date');
         if (until !== undefined) {
             request['end_date'] = this.iso8601 (until);
         }
@@ -2162,7 +2161,7 @@ export default class coinbaseexchange extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        let accounts = this.safeValue (this.options, 'coinbaseAccounts');
+        let accounts = this.safeList (this.options, 'coinbaseAccounts');
         if (accounts === undefined) {
             accounts = await this.privateGetCoinbaseAccounts ();
             this.options['coinbaseAccounts'] = accounts; // cache it

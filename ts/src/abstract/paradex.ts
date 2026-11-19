@@ -150,179 +150,179 @@ abstract class Exchange extends _Exchange {
     }
 
     privateGetAccount (params = {}): Promise<List> {
-        return this.request ('account', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountCompliance (params = {}): Promise<Dict> {
-        return this.request ('account/compliance', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/compliance', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountHistory (params = {}): Promise<Dict> {
-        return this.request ('account/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/history', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountInfo (params = {}): Promise<Dict> {
-        return this.request ('account/info', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/info', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountMargin (params = {}): Promise<Dict> {
-        return this.request ('account/margin', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/margin', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountProfile (params = {}): Promise<Dict> {
-        return this.request ('account/profile', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/profile', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountSettings (params = {}): Promise<Dict> {
-        return this.request ('account/settings', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/settings', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountSubaccounts (params = {}): Promise<Dict> {
-        return this.request ('account/subaccounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/subaccounts', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountSummary (params = {}): Promise<Dict> {
-        return this.request ('account/summary', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/summary', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetBalance (params = {}): Promise<Dict> {
-        return this.request ('balance', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('balance', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetFills (params = {}): Promise<Dict> {
-        return this.request ('fills', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('fills', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetFundingPayments (params = {}): Promise<Dict> {
-        return this.request ('funding/payments', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('funding/payments', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetPositions (params = {}): Promise<Dict> {
-        return this.request ('positions', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('positions', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetTradebusts (params = {}): Promise<Dict> {
-        return this.request ('tradebusts', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('tradebusts', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetTransactions (params = {}): Promise<Dict> {
-        return this.request ('transactions', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('transactions', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountKeysSubkeys (params = {}): Promise<Dict> {
-        return this.request ('account/keys/subkeys', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/keys/subkeys', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountKeysSubkeysPublicKey (params = {}): Promise<Dict> {
-        return this.request ('account/keys/subkeys/{public_key}', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/keys/subkeys/{public_key}', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAccountTokens (params = {}): Promise<Dict> {
-        return this.request ('account/tokens', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('account/tokens', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAlgoOrders (params = {}): Promise<Dict> {
-        return this.request ('algo/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('algo/orders', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAlgoOrdersHistory (params = {}): Promise<Dict> {
-        return this.request ('algo/orders-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('algo/orders-history', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetAlgoOrdersAlgoId (params = {}): Promise<Dict> {
-        return this.request ('algo/orders/{algo_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('algo/orders/{algo_id}', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetBlockTrades (params = {}): Promise<Dict> {
-        return this.request ('block-trades', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('block-trades', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetBlockTradesBlockTradeId (params = {}): Promise<Dict> {
-        return this.request ('block-trades/{block_trade_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('block-trades/{block_trade_id}', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetBlockTradesBlockTradeIdOffers (params = {}): Promise<Dict> {
-        return this.request ('block-trades/{block_trade_id}/offers', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('block-trades/{block_trade_id}/offers', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetBlockTradesBlockTradeIdOffersOfferId (params = {}): Promise<Dict> {
-        return this.request ('block-trades/{block_trade_id}/offers/{offer_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('block-trades/{block_trade_id}/offers/{offer_id}', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetLiquidations (params = {}): Promise<Dict> {
-        return this.request ('liquidations', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('liquidations', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetOrders (params = {}): Promise<Dict> {
-        return this.request ('orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('orders', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetOrdersHistory (params = {}): Promise<Dict> {
-        return this.request ('orders-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('orders-history', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetOrdersByClientIdClientId (params = {}): Promise<Dict> {
-        return this.request ('orders/by_client_id/{client_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('orders/by_client_id/{client_id}', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetOrdersOrderId (params = {}): Promise<Dict> {
-        return this.request ('orders/{order_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('orders/{order_id}', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetReferralsQrCode (params = {}): Promise<Dict> {
-        return this.request ('referrals/qr-code', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('referrals/qr-code', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetReferralsSummary (params = {}): Promise<Dict> {
-        return this.request ('referrals/summary', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('referrals/summary', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetRfqs (params = {}): Promise<Dict> {
-        return this.request ('rfqs', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('rfqs', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetRfqsDrafts (params = {}): Promise<Dict> {
-        return this.request ('rfqs/drafts', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('rfqs/drafts', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetRfqsMarkets (params = {}): Promise<Dict> {
-        return this.request ('rfqs/markets', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('rfqs/markets', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetRfqsRfqIdBbo (params = {}): Promise<Dict> {
-        return this.request ('rfqs/{rfq_id}/bbo', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('rfqs/{rfq_id}/bbo', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetStakingBalanceHistory (params = {}): Promise<Dict> {
-        return this.request ('staking/balance/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('staking/balance/history', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetStakingHistory (params = {}): Promise<Dict> {
-        return this.request ('staking/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('staking/history', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetStakingSummary (params = {}): Promise<Dict> {
-        return this.request ('staking/summary', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('staking/summary', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetTransfers (params = {}): Promise<Dict> {
-        return this.request ('transfers', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('transfers', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetVaultsAccountSummary (params = {}): Promise<Dict> {
-        return this.request ('vaults/account-summary', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('vaults/account-summary', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetVaultsMine (params = {}): Promise<Dict> {
-        return this.request ('vaults/mine', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('vaults/mine', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetXpAccountBalance (params = {}): Promise<Dict> {
-        return this.request ('xp/account-balance', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('xp/account-balance', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privateGetXpTransfers (params = {}): Promise<Dict> {
-        return this.request ('xp/transfers', [ 'private' ], 'GET', params, { 'cost': 1 });
+        return this.request ('xp/transfers', [ 'private' ], 'GET', params, { 'cost': 2.5 });
     }
 
     privatePostAccountCompliance (params = {}): Promise<Dict> {
@@ -394,7 +394,7 @@ abstract class Exchange extends _Exchange {
     }
 
     privatePostAuth (params = {}): Promise<Dict> {
-        return this.request ('auth', [ 'private' ], 'POST', params, { 'cost': 1 });
+        return this.request ('auth', [ 'private' ], 'POST', params, { 'cost': 2.5 });
     }
 
     privatePostBlockTrades (params = {}): Promise<Dict> {
@@ -414,7 +414,7 @@ abstract class Exchange extends _Exchange {
     }
 
     privatePostOnboarding (params = {}): Promise<Dict> {
-        return this.request ('onboarding', [ 'private' ], 'POST', params, { 'cost': 1 });
+        return this.request ('onboarding', [ 'private' ], 'POST', params, { 'cost': 2.5 });
     }
 
     privatePostOrders (params = {}): Promise<Dict> {
@@ -438,11 +438,11 @@ abstract class Exchange extends _Exchange {
     }
 
     privatePostV2Auth (params = {}): Promise<Dict> {
-        return this.request ('v2/auth', [ 'private' ], 'POST', params, { 'cost': 1 });
+        return this.request ('v2/auth', [ 'private' ], 'POST', params, { 'cost': 2.5 });
     }
 
     privatePostV2Onboarding (params = {}): Promise<Dict> {
-        return this.request ('v2/onboarding', [ 'private' ], 'POST', params, { 'cost': 1 });
+        return this.request ('v2/onboarding', [ 'private' ], 'POST', params, { 'cost': 2.5 });
     }
 
     privatePostVaults (params = {}): Promise<Dict> {

@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint } from './base/types.js';
+import type { Dictionary, Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -993,7 +993,7 @@ export default class luno extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         const rawTickers = this.safeList (response, 'tickers', []);
-        const tickers = this.indexBy (rawTickers, 'pair');
+        const tickers: Dictionary<Dict> = this.indexBy (rawTickers, 'pair');
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1404,12 +1404,11 @@ export default class luno extends Exchange {
         // by default without entry number or limit number, return most recent entry
         const entryValue = (entry === undefined) ? -1 : entry;
         const limitValue = (limit === undefined) ? 1 : limit;
-        const since: Int = undefined;
         const request: Dict = {
             'min_row': entryValue,
             'max_row': this.sum (entryValue, limitValue),
         };
-        return await this.fetchLedger (code, since, limitValue, this.extend (request, params));
+        return await this.fetchLedger (code, undefined, limitValue, this.extend (request, params));
     }
 
     /**
@@ -1736,7 +1735,7 @@ export default class luno extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const error = this.safeValue (response, 'error');
+        const error = this.safeString (response, 'error');
         if (error !== undefined) {
             const feedback = this.id + ' ' + this.json (response);
             const errorCode = this.safeString (response, 'error_code');

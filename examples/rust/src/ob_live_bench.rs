@@ -6,7 +6,7 @@
 //
 //   cargo run --release --features ws --bin ob_live_bench -- [run_secs]
 use ccxt::{Config, Params};
-use ccxt_pro::{from_id_with_config, TypedExchange, TypedExchangeExt};
+use ccxt_pro::{ExchangeVisitor, TypedExchange};
 use std::time::{Duration, Instant};
 
 fn cpu_secs() -> f64 {
@@ -29,8 +29,24 @@ async fn run() {
 
     // linear-only so the "BTCUSDT" WS id resolves to the perpetual, not spot.
     let cfg = Config::new().option("fetchMarkets", Params::new().with_strs("types", &["linear"]));
-    let mut ex: Box<dyn TypedExchange> = from_id_with_config(&id, cfg).expect("no typed WS wrapper");
-    ex.load_markets(false).await;
+    ccxt_pro::with_exchange_config(&id, cfg, Bench { id: &id, sym: &sym, run_secs }).await.expect("no typed WS wrapper");
+}
+
+struct Bench<'a> {
+    id: &'a str,
+    sym: &'a str,
+    run_secs: u64,
+}
+
+impl ExchangeVisitor for Bench<'_> {
+    type Output = ();
+    async fn visit<E: TypedExchange + 'static>(self, ex: E) {
+        bench(ex, self.id, self.sym, self.run_secs).await
+    }
+}
+
+async fn bench<E: TypedExchange>(mut ex: E, id: &str, sym: &str, run_secs: u64) {
+    ex.load_markets(false, ()).await.expect("load_markets failed");
     println!("Streaming {id} {sym} watch_order_book for {run_secs}s…");
 
     let start = Instant::now();
@@ -42,7 +58,7 @@ async fn run() {
         if start.elapsed().as_secs() >= run_secs {
             break;
         }
-        match ex.watch_order_book(&sym, None, Params::none()).await {
+        match ex.watch_order_book(sym, None, Params::none()).await {
             Ok(ob) => {
                 tick_frames += 1;
                 if last_tick.elapsed() >= Duration::from_secs(5) {

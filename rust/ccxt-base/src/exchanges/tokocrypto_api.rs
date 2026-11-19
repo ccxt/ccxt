@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::tokocrypto::TokocryptoCore;
+use super::tokocrypto::Tokocrypto;
 use crate::exchange::ExchangeRuntime;
 
-impl TokocryptoCore {
+impl Tokocrypto {
     /// Auto-generated wrapper for the `binanceGetPing` implicit endpoint.
     pub async fn binance_get_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("binance_get_ping".into()), optional_args).await

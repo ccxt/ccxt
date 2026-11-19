@@ -1778,27 +1778,27 @@ class deribit extends deribit$1["default"] {
         let futureFee = {};
         let optionFee = {};
         for (let i = 0; i < fees.length; i++) {
-            const fee = fees[i];
-            const instrumentType = this.safeString(fee, 'instrument_type');
+            const feeEntry = fees[i];
+            const instrumentType = this.safeString(feeEntry, 'instrument_type');
             if (instrumentType === 'future') {
                 futureFee = {
-                    'info': fee,
-                    'maker': this.safeNumber(fee, 'maker_fee'),
-                    'taker': this.safeNumber(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': this.safeNumber(feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber(feeEntry, 'taker_fee'),
                 };
             }
             else if (instrumentType === 'perpetual') {
                 perpetualFee = {
-                    'info': fee,
-                    'maker': this.safeNumber(fee, 'maker_fee'),
-                    'taker': this.safeNumber(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': this.safeNumber(feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber(feeEntry, 'taker_fee'),
                 };
             }
             else if (instrumentType === 'option') {
                 optionFee = {
-                    'info': fee,
-                    'maker': this.safeNumber(fee, 'maker_fee'),
-                    'taker': this.safeNumber(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': this.safeNumber(feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber(feeEntry, 'taker_fee'),
                 };
             }
         }
@@ -2247,7 +2247,7 @@ class deribit extends deribit$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
+        const order = this.extend(this.safeDict(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order, market);
     }
     /**
@@ -2295,7 +2295,7 @@ class deribit extends deribit$1["default"] {
         }
         const response = await this.privateGetEdit(this.extend(request, paramsOmitted));
         const result = this.safeDict(response, 'result', {});
-        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
+        const order = this.extend(this.safeDict(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order);
     }
     /**

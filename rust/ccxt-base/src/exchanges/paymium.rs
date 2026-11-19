@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct PaymiumCore {
+pub struct Paymium {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl PaymiumCore {
+impl Paymium {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = PaymiumCore::describe(self);
+        let described = Paymium::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,68 +47,317 @@ impl PaymiumCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for PaymiumCore {
-    fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::nonce(self, )
-    }
-    fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_ticker(self, ticker, &[market])
-    }
-    fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_trade(self, trade, &[market])
-    }
-    fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_balance(self, response)
-    }
-    fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_deposit_address(self, depositAddress, &[currency])
-    }
-    fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::parse_transfer(self, transfer, &[currency])
-    }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on PaymiumCore.
-        #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const PaymiumCore as *mut PaymiumCore) };
-        PaymiumCore::sign(me, path, &[api, method, params, headers, body])
-    }
-    fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on PaymiumCore.
-        PaymiumCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
-    }
+impl crate::exchange::DerivedExchange for Paymium {
+    fn nonce(&self) -> Value {
+        return Value::Int(self.milliseconds());
+
+    Value::Null
+}
+    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
+        //
+        // {
+        //     "high":"33740.82",
+        //     "low":"32185.15",
+        //     "volume":"4.7890433",
+        //     "bid":"33313.53",
+        //     "ask":"33497.97",
+        //     "midpoint":"33405.75",
+        //     "vwap":"32802.5263553",
+        //     "at":1643381654,
+        //     "price":"33143.91",
+        //     "open":"33116.86",
+        //     "variation":"0.0817",
+        //     "currency":"EUR",
+        //     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
+        //     "size":"0.00041087"
+        // }
+        //
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
+        let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "at", &[]).as_i64();
+        let mut vwap: Option<String> = self.safe_string_k_opt(ticker.clone(), "vwap", &[]);
+        let mut baseVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "volume", &[]);
+        let mut quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
+        let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "price", &[]);
+        return self.safe_ticker(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
+        m.insert("bidVolume".to_string(), Value::Null);
+        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "ask", &[]));
+        m.insert("askVolume".to_string(), Value::Null);
+        m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
+        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
+        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("previousClose".to_string(), Value::Null);
+        m.insert("change".to_string(), Value::Null);
+        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "variation", &[]));
+        m.insert("average".to_string(), Value::Null);
+        m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
+        m.insert("info".to_string(), ticker);
+    m
+}), market);
+
+    Value::Null
+}
+    fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut trade: Value = trade.into();
+        let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "created_at_int", &[]).as_i64();
+        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "uuid", &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut baseId: String = self.safe_string_k(&marketResolved, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut amountField: String = format!("{}{}", Value::Str("traded_".into()), Value::from(baseId.to_lowercase()));
+        let mut amount: Option<String> = self.safe_string_opt(trade.clone(), Value::from(amountField), &[]);
+        return self.safe_trade(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), trade);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+        m.insert("order".to_string(), Value::Null);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
+        m.insert("type".to_string(), Value::Null);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
+        m.insert("takerOrMaker".to_string(), Value::Null);
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), Value::Null);
+        m.insert("fee".to_string(), Value::Null);
+    m
+}), Some(&marketResolved));
+
+    Value::Null
+}
+    fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
+        let mut result: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("info".to_string(), response.clone());
+            m
+        });
+        let mut currencies: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_1081: bool = true;
+            while { if !__for_first_1081 { i += 1; } __for_first_1081 = false; i < (currencies.len() as i64) } {
+            let mut code: Option<&str> = currencies.get(i as usize).and_then(Value::as_str);
+            let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
+            let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
+            let mut freeAmount: Option<String> = self.safe_string_opt(response.clone(), Value::Str(format!("{}{}", "balance_", currencyId.as_deref().unwrap_or("null")).into()), &[]);
+            if (freeAmount.is_some()) {
+                let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+                account.insert("free".into(), freeAmount.map(Value::from).unwrap_or(Value::Null));
+                account.insert("used".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", "locked_", currencyId.as_deref().unwrap_or("null")).into()), &[]));
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
+            }
+        }
+        }
+        return self.safe_balance(Value::Map(result));
+
+    Value::Null
+}
+    fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+        let mut depositAddress: Value = depositAddress.into();
+        //
+        //     {
+        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
+        //         "valid_until": 1620041926,
+        //         "currency": "BTC",
+        //         "label": "Savings"
+        //     }
+        //
+        let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "currency", &[]);
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), depositAddress);
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
+        m.insert("network".to_string(), Value::Null);
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), Value::Null);
+    m
+});
+
+    Value::Null
+}
+    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+        let mut transfer: Value = transfer.into();
+        //
+        //     {
+        //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //         "type": "Transfer",
+        //         "currency": "BTC",
+        //         "currency_amount": "string",
+        //         "created_at": "2013-10-24T10:34:37.000Z",
+        //         "updated_at": "2013-10-24T10:34:37.000Z",
+        //         "amount": "1.0",
+        //         "state": "executed",
+        //         "currency_fee": "0.0",
+        //         "btc_fee": "0.0",
+        //         "comment": "string",
+        //         "traded_btc": "string",
+        //         "traded_currency": "string",
+        //         "direction": "buy",
+        //         "price": "string",
+        //         "account_operations": [
+        //             {
+        //                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
+        //                 "amount": "1.0",
+        //                 "currency": "BTC",
+        //                 "created_at": "2013-10-24T10:34:37.000Z",
+        //                 "created_at_int": 1389094259,
+        //                 "name": "account_operation",
+        //                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
+        //                 "tx_hash": "string",
+        //                 "is_trading_account": true
+        //             }
+        //         ]
+        //     }
+        //
+        let mut currencyId: Option<String> = self.safe_string_k_opt(transfer.clone(), "currency", &[]);
+        let mut updatedAt: Option<String> = self.safe_string_k_opt(transfer.clone(), "updated_at", &[]);
+        let mut timetstamp: Option<i64> = self.parse_date(updatedAt.map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
+        let mut accountOperations: crate::value::List = self.safe_list_k(transfer.clone(), "account_operations", &[]).into_list();
+        let mut firstOperation: crate::value::Dict = self.safe_dict(&accountOperations, Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
+        let mut status: Option<String> = self.safe_string_k_opt(transfer.clone(), "state", &[]);
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), transfer.clone());
+        m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "uuid", &[]));
+        m.insert("timestamp".to_string(), Value::from(timetstamp));
+        m.insert("datetime".to_string(), self.iso8601(timetstamp));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
+        m.insert("fromAccount".to_string(), Value::Null);
+        m.insert("toAccount".to_string(), self.safe_string_k(&firstOperation, "address", &[]));
+        m.insert("status".to_string(), self.parse_transfer_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
+    m
+});
+
+    Value::Null
+}
+    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
+        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut baseApiUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "rest", &[]);
+        if (baseApiUrl.is_none()) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
+        }
+        let mut baseUrl: Option<String> = baseApiUrl;
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
+        let mut hasQuery: bool = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64);
+        if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
+            if hasQuery {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
+            }
+        }  else {
+            self.check_required_credentials(&[]);
+            // paymium requires an increasing nonce
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
+            let mut auth: String = format!("{}{}", nonce, url);
+            let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("Api-Key".to_string(), self.apiKey.clone());
+                    m.insert("Api-Nonce".to_string(), Value::from(nonce.as_str()));
+                m
+            });
+            let mut signedBody: Option<String> = Some("".to_string());
+            if (method.as_str() == Some("POST")) && hasQuery {
+                signedBody = json_stringify(&query).as_str().map(str::to_owned);
+            }
+            if (method.as_str() == Some("POST")) {
+                if hasQuery {
+                    auth.push_str(signedBody.as_deref().unwrap_or("null"));
+                    signedHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
+                }
+            }  else {
+                if hasQuery {
+                    let mut queryString: String = self.urlencode(&query, &[]);
+                    auth = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
+                    url.push_str(&format!("{}{}", "?", queryString));
+                }
+            }
+            signedHeaders.insert("Api-Signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
+            return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("method".to_string(), method.clone());
+        m.insert("body".to_string(), signedBody.map(Value::from).unwrap_or(Value::Null));
+        m.insert("headers".to_string(), Value::Map(signedHeaders));
+    m
+});
+        }
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), Value::from(url));
+        m.insert("method".to_string(), method);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
+    m
+});
+
+    Value::Null
+}
+    fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+        if (response == Value::Null) {
+            return Value::Null;
+        }
+        let errors: bool = self.safe_value_k(response.clone(), "errors", &[]) != Value::Null;
+        if (errors) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response))));
+        }
+        return Value::Null;
+
+    Value::Null
+}
 }
 
-impl crate::exchange_generated::ExchangeBase for PaymiumCore {
+impl crate::exchange_generated::ExchangeBase for Paymium {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
-                "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "create_deposit_address" => self.create_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "fetch_balance" => self.fetch_balance(&args[..]).await,
-                "fetch_deposit_address" => self.fetch_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_deposit_addresses" => self.fetch_deposit_addresses(&args[..]).await,
-                "fetch_order_book" => self.fetch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
+                "create_deposit_address" => crate::types::IntoRaw::into_raw(self.create_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
+                "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
+                "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_deposit_addresses" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
+                "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
+                "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -111,16 +365,16 @@ impl crate::exchange_generated::ExchangeBase for PaymiumCore {
     }
 }
 
-impl std::ops::Deref for PaymiumCore {
+impl std::ops::Deref for Paymium {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for PaymiumCore {
+impl std::ops::DerefMut for Paymium {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl PaymiumCore {
+impl Paymium {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -414,33 +668,6 @@ impl PaymiumCore {
     Value::Null
 }
 
-    pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut result: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response.clone());
-            m
-        });
-        let mut currencies: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_1073: bool = true;
-            while { if !__for_first_1073 { i += 1; } __for_first_1073 = false; i < (currencies.len() as i64) } {
-            let mut code: Value = currencies.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
-            let mut currencyId: Value = currency.get("id").cloned().unwrap_or(Value::Null);
-            let mut freeAmount: Option<String> = self.safe_string_opt(response.clone(), Value::Str(format!("{}{}", Value::Str("balance_".into()), currencyId).into()), &[]);
-            if (freeAmount.is_some()) {
-                let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-                account.insert("free".into(), freeAmount.map(Value::from).unwrap_or(Value::Null));
-                account.insert("used".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("locked_".into()), currencyId).into()), &[]));
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
-            }
-        }
-        }
-        return self.safe_balance(Value::Map(result));
-
-    Value::Null
-}
 
 /*
  * @method
@@ -450,19 +677,24 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-    pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_balance(&mut self, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Balances> {
+        let __args: Vec<Value> = vec![params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_user(&[params]).await;
-        return self.parse_balance(response);
-
-    Value::Null
-}
+        let mut response: crate::value::Dict = self.private_get_user(&[params]).await.into_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -474,81 +706,34 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-    pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::OrderBook> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = self.market(symbol);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_data_currency_depth(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
+        let mut response: crate::value::Dict = self.public_get_data_currency_depth(&[__ws_arg_0]).await.into_dict();
+        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
+        Value::Null
+        }).await?))
+    }
 
-    Value::Null
-}
-
-    pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        //
-        // {
-        //     "high":"33740.82",
-        //     "low":"32185.15",
-        //     "volume":"4.7890433",
-        //     "bid":"33313.53",
-        //     "ask":"33497.97",
-        //     "midpoint":"33405.75",
-        //     "vwap":"32802.5263553",
-        //     "at":1643381654,
-        //     "price":"33143.91",
-        //     "open":"33116.86",
-        //     "variation":"0.0817",
-        //     "currency":"EUR",
-        //     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
-        //     "size":"0.00041087"
-        // }
-        //
-        let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_timestamp_k(ticker.clone(), "at", &[]);
-        let mut vwap: Option<String> = self.safe_string_k_opt(ticker.clone(), "vwap", &[]);
-        let mut baseVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "volume", &[]);
-        let mut quoteVolume: Value = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &vwap.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "price", &[]);
-        return self.safe_ticker(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
-        m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "ask", &[]));
-        m.insert("askVolume".to_string(), Value::Null);
-        m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
-        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
-        m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "variation", &[]));
-        m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteVolume".to_string(), quoteVolume);
-        m.insert("info".to_string(), ticker);
-    m
-}), &[market]);
-
-    Value::Null
-}
 
 /*
  * @method
@@ -559,57 +744,33 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-    pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_ticker(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Ticker> {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = self.market(symbol);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: Value = self.public_get_data_currency_ticker(&[__ws_arg_1]).await;
-        return self.parse_ticker(ticker, &[market]);
+        let mut ticker: crate::value::Dict = self.public_get_data_currency_ticker(&[__ws_arg_1]).await.into_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
+        Value::Null
+        }).await?))
+    }
 
-    Value::Null
-}
-
-    pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut timestamp: Value = self.safe_timestamp_k(trade.clone(), "created_at_int", &[]);
-        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "uuid", &[]);
-        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
-        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
-        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
-        let mut baseId: Value = self.safe_string_k(marketResolved.clone(), "base", &[Value::Str("".into())]);
-        let mut amountField: Value = Value::Str(format!("{}{}", Value::Str("traded_".into()), (if let Some(__s) = baseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
-        let mut amount: Option<String> = self.safe_string_opt(trade.clone(), amountField, &[]);
-        return self.safe_trade(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade);
-        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("order".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), Value::Null);
-        m.insert("fee".to_string(), Value::Null);
-    m
-}), &[marketResolved]);
-
-    Value::Null
-}
 
 /*
  * @method
@@ -622,7 +783,13 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-    pub async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_trades(&mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -630,20 +797,20 @@ impl PaymiumCore {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = self.market(symbol);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((market).id.as_deref()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_data_currency_trades(&[__ws_arg_2]).await;
-        return self.parse_trades(response, &[market, since, limit]);
-
-    Value::Null
-}
+        let mut response: crate::value::List = self.public_get_data_currency_trades(&[__ws_arg_2]).await.into_list();
+        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -654,19 +821,25 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-    pub async fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_deposit_address(&mut self, code: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::DepositAddress> {
+        let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_user_addresses(&[params]).await;
-        return self.parse_deposit_address(response, &[]);
-
-    Value::Null
-}
+        let mut response: crate::value::Dict = self.private_post_user_addresses(&[params]).await.into_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, None);
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -677,13 +850,19 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-    pub async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit_address(&mut self, code: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::DepositAddress> {
+        let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -691,11 +870,11 @@ impl PaymiumCore {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_user_addresses_address(&[__ws_arg_3]).await;
-        return self.parse_deposit_address(response, &[]);
-
-    Value::Null
-}
+        let mut response: crate::value::Dict = self.private_get_user_addresses_address(&[__ws_arg_3]).await.into_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, None);
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -706,45 +885,26 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
-    pub async fn fetch_deposit_addresses(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_deposit_addresses(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::DepositAddress>> {
+        let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_user_addresses(&[params]).await;
-        return self.parse_deposit_addresses(response, &[codes, Value::Bool(false)]);
+        let mut response: crate::value::List = self.private_get_user_addresses(&[params]).await.into_list();
+        return self.parse_deposit_addresses(&response, &[codes, Value::Bool(false)]);
+        Value::Null
+        }).await?))
+    }
 
-    Value::Null
-}
-
-    pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
-        let mut currency = get_arg(optional_args, 0, Value::Null);
-        //
-        //     {
-        //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
-        //         "valid_until": 1620041926,
-        //         "currency": "BTC",
-        //         "label": "Savings"
-        //     }
-        //
-        let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
-        let mut currencyId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "currency", &[]);
-        return Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), depositAddress);
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
-        m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), Value::Null);
-    m
-});
-
-    Value::Null
-}
 
 /*
  * @method
@@ -759,20 +919,29 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_order(&mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut type_var = __it.next().unwrap_or_default();
+        let mut side = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = self.market(symbol);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str(format!("{}{}", self.capitalize(type_var.clone()), Value::Str("Order".into())).into()));
-                m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from((market).id.as_deref()));
                 m.insert("direction".to_string(), side);
                 m.insert("amount".to_string(), amount);
             m
@@ -781,16 +950,16 @@ impl PaymiumCore {
             request.insert("price".into(), price);
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_user_orders(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_post_user_orders(&[__ws_arg_4]).await.into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string_k(response, "uuid", &[]));
+        m.insert("info".to_string(), Value::from(&response));
+        m.insert("id".to_string(), self.safe_string_k(&response, "uuid", &[]));
     m
-}), &[market]);
-
-    Value::Null
-}
+}), Some(&market));
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -802,7 +971,13 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_order(&mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -814,15 +989,15 @@ impl PaymiumCore {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_user_orders_uuid_cancel(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.private_delete_user_orders_uuid_cancel(&[__ws_arg_5]).await.into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
-}), &[]);
-
-    Value::Null
-}
+}), None);
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -836,190 +1011,55 @@ impl PaymiumCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-    pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
+    pub async fn transfer(&mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transfer> {
+        let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut code = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut fromAccount = __it.next().unwrap_or_default();
+        let mut toAccount = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: Value = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.clone());
         if !toAccount.as_str().unwrap_or("").contains("@") {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows transfers to an email address".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " transfer() only allows transfers to an email address")));
         }
         if (code.as_str() != Some("BTC")) && (code.as_str() != Some("EUR")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows BTC or EUR".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " transfer() only allows BTC or EUR")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("email".to_string(), toAccount);
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_user_email_transfers(&[__ws_arg_6]).await;
-        return self.parse_transfer(response, &[currency]);
+        let mut response: crate::value::Dict = self.private_post_user_email_transfers(&[__ws_arg_6]).await.into_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency));
+        Value::Null
+        }).await?))
+    }
 
-    Value::Null
-}
 
-    pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
-        let mut currency = get_arg(optional_args, 0, Value::Null);
-        //
-        //     {
-        //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //         "type": "Transfer",
-        //         "currency": "BTC",
-        //         "currency_amount": "string",
-        //         "created_at": "2013-10-24T10:34:37.000Z",
-        //         "updated_at": "2013-10-24T10:34:37.000Z",
-        //         "amount": "1.0",
-        //         "state": "executed",
-        //         "currency_fee": "0.0",
-        //         "btc_fee": "0.0",
-        //         "comment": "string",
-        //         "traded_btc": "string",
-        //         "traded_currency": "string",
-        //         "direction": "buy",
-        //         "price": "string",
-        //         "account_operations": [
-        //             {
-        //                 "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
-        //                 "amount": "1.0",
-        //                 "currency": "BTC",
-        //                 "created_at": "2013-10-24T10:34:37.000Z",
-        //                 "created_at_int": 1389094259,
-        //                 "name": "account_operation",
-        //                 "address": "1FPDBXNqSkZMsw1kSkkajcj8berxDQkUoc",
-        //                 "tx_hash": "string",
-        //                 "is_trading_account": true
-        //             }
-        //         ]
-        //     }
-        //
-        let mut currencyId: Option<String> = self.safe_string_k_opt(transfer.clone(), "currency", &[]);
-        let mut updatedAt: Option<String> = self.safe_string_k_opt(transfer.clone(), "updated_at", &[]);
-        let mut timetstamp: Value = self.parse_date(updatedAt.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut accountOperations: Value = self.safe_list_k(transfer.clone(), "account_operations", &[]);
-        let mut firstOperation: Value = self.safe_dict(accountOperations, Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut status: Option<String> = self.safe_string_k_opt(transfer.clone(), "state", &[]);
-        return Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transfer.clone());
-        m.insert("id".to_string(), self.safe_string_k(transfer.clone(), "uuid", &[]));
-        m.insert("timestamp".to_string(), timetstamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timetstamp));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
-        m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
-        m.insert("fromAccount".to_string(), Value::Null);
-        m.insert("toAccount".to_string(), self.safe_string_k(firstOperation, "address", &[]));
-        m.insert("status".to_string(), self.parse_transfer_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
-    m
-});
-
-    Value::Null
-}
-
-    pub fn parse_transfer_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_transfer_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("executed".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
 }
 
-    pub fn nonce(&self) -> Value {
-        return self.milliseconds();
 
-    Value::Null
-}
 
-    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
-        let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
-        let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
-        let __api_empty = Vec::new();
-        let api = api.as_array().unwrap_or(&__api_empty);
-        let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
-        if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
-        }
-        let mut baseUrl: Value = baseApiUrl.map(Value::from).unwrap_or(Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut hasQuery: bool = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64);
-        if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
-            if hasQuery {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
-            }
-        }  else {
-            self.check_required_credentials(&[]);
-            // paymium requires an increasing nonce
-            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
-            let mut auth: Value = Value::Str(format!("{}{}", nonce, url).into());
-            let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("Api-Key".to_string(), self.apiKey.clone());
-                    m.insert("Api-Nonce".to_string(), nonce.clone());
-                m
-            });
-            let mut signedBody: Value = Value::Str("".into());
-            if (method.as_str() == Some("POST")) && hasQuery {
-                signedBody = json_stringify(&query);
-            }
-            if (method.as_str() == Some("POST")) {
-                if hasQuery {
-                    auth = Value::Str(format!("{}{}", auth, signedBody).into());
-                    signedHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
-                }
-            }  else {
-                if hasQuery {
-                    let mut queryString: Value = self.urlencode(query, &[]);
-                    auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString).into());
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
-                }
-            }
-            signedHeaders.insert("Api-Signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
-            return Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
-        m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), signedBody);
-        m.insert("headers".to_string(), Value::Map(signedHeaders));
-    m
-});
-        }
-        return Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
-        m.insert("method".to_string(), method);
-        m.insert("body".to_string(), Value::Null);
-        m.insert("headers".to_string(), Value::Null);
-    m
-});
-
-    Value::Null
-}
-
-    pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if (response == Value::Null) {
-            return Value::Null;
-        }
-        let mut errors: Value = self.safe_value_k(response.clone(), "errors", &[]);
-        if (errors != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));
-        }
-        return Value::Null;
-
-    Value::Null
-}
 }

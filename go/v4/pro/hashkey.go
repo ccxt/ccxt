@@ -215,11 +215,12 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 		}
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var stored any = this.Ohlcvs[symbol][*timeframe]
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	for i := 0; i < len(data); i++ {
 		var candle map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed any = this.ParseWsOHLCV(candle, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string = "ohlcv:" + symbol + ":" + *timeframe
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -402,10 +403,10 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
-	var data any = this.SafeList(message, "data")
+	var data []any = ccxt.SafeListTyped(message, "data")
 	if data != nil {
 		data = this.SortBy(data, "t")
-		for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		for i := 0; i < len(data); i++ {
 			var trade map[string]any = ccxt.SafeMapTyped(data, i)
 			var parsed map[string]any = this.ParseWsTrade(trade, market)
 			stored.Append(parsed)
@@ -946,15 +947,15 @@ func (this *Hashkey) HandlePosition(client any, message any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var positions any = this.Positions
-	var parsed any = this.ParseWsPosition(message)
-	positions.(ccxt.Appender).Append(parsed)
+	var positions ccxt.WsArrayCache = this.Positions
+	var parsed map[string]any = this.ParseWsPosition(message)
+	positions.Append(parsed)
 	var messageHash string = "positions"
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	var symbol string = *this.SafeString(parsed, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash+":"+symbol)
 }
-func (this *Hashkey) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Hashkey) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
@@ -1084,8 +1085,8 @@ func (this *Hashkey) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve()
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], "balance:"+typeVar)
 	}
 	return nil
@@ -1178,7 +1179,7 @@ func (this *Hashkey) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	}
 	// register the flight BEFORE the first await, so a caller arriving
 	// during the fetch below finds it and waits instead of re-leading
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 	{
 		func(this *Hashkey) (ret_ any) {
@@ -1225,7 +1226,7 @@ func (this *Hashkey) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	// rethrows the failure to the leader and attaches the handler that
 	// keeps an alone-leader rejection from crashing the process
 
-	r2 := <-future.(*ccxt.Future).Await()
+	r2 := <-future.Await()
 	if r2.Err != nil {
 		panic(r2.Err)
 	}

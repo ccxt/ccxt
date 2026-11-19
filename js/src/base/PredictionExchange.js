@@ -133,11 +133,11 @@ export default class PredictionExchange extends BaseExchange {
         if ((eventId !== undefined) || (slug !== undefined)) {
             const filtered = [];
             for (let i = 0; i < result.length; i++) {
-                const event = this.safeValue(result, i);
+                const event = this.safeDict(result, i);
                 const idMatch = (eventId !== undefined) && (this.safeString(event, 'id') === eventId);
                 const slugMatch = (slug !== undefined) && (this.safeString(event, 'slug') === slug);
                 if (idMatch || slugMatch) {
-                    filtered.push(event);
+                    filtered.push(this.safeValue(result, i));
                 }
             }
             result = filtered;
@@ -196,11 +196,11 @@ export default class PredictionExchange extends BaseExchange {
         const wantActive = (status === 'active');
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = this.safeValue(events, i);
+            const event = this.safeDict(events, i);
             const isActive = this.safeBool(event, 'active');
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((isActive === undefined) || (isActive === wantActive)) {
-                result.push(event);
+                result.push(this.safeValue(events, i));
             }
         }
         return result;
@@ -219,7 +219,7 @@ export default class PredictionExchange extends BaseExchange {
         const checkDescription = (searchIn === 'description') || (searchIn === 'both');
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = this.safeValue(events, i);
+            const event = this.safeDict(events, i);
             const title = this.safeStringLower(event, 'title', '');
             const description = this.safeStringLower(event, 'description', '');
             let matched = false;
@@ -241,7 +241,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             if (matched) {
-                result.push(event);
+                result.push(this.safeValue(events, i));
             }
         }
         return result;
@@ -292,7 +292,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = this.safeValue(events, i);
+            const event = this.safeDict(events, i);
             const eventTags = this.safeList(event, 'tags', []);
             let matched = false;
             for (let ti = 0; ti < eventTags.length; ti++) {
@@ -318,7 +318,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             if (matched) {
-                result.push(event);
+                result.push(this.safeValue(events, i));
             }
         }
         return result;
@@ -340,7 +340,7 @@ export default class PredictionExchange extends BaseExchange {
             this.events_by_slug = {};
         }
         for (let i = 0; i < events.length; i++) {
-            const event = this.safeValue(events, i);
+            const event = this.safeDict(events, i);
             const id = this.safeString(event, 'id');
             const slug = this.safeString(event, 'slug');
             const handle = this.safeString(event, 'event');
@@ -395,10 +395,10 @@ export default class PredictionExchange extends BaseExchange {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
-            return this.safeValue(this.events, eventIdOrSlug);
+            return this.safeDict(this.events, eventIdOrSlug);
         }
         if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
-            return this.safeValue(this.events_by_slug, eventIdOrSlug);
+            return this.safeDict(this.events_by_slug, eventIdOrSlug);
         }
         throw new BadSymbol(this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
@@ -432,7 +432,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         return false;
     }
-    safeOutcome(outcomeIdOrSymbol, outcomeObj = undefined) {
+    safeOutcome(outcomeIdOrSymbol, market = undefined) {
         if (outcomeIdOrSymbol !== undefined) {
             if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
                 return this.safeValue(this.outcomes, outcomeIdOrSymbol);
@@ -441,15 +441,20 @@ export default class PredictionExchange extends BaseExchange {
                 return this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol);
             }
         }
-        if (outcomeObj !== undefined) {
-            return outcomeObj;
+        if (market !== undefined) {
+            return market;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         const outcomeObjValue = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
         return outcomeObjValue;
     }
     safeOutcomeSymbol(outcomeIdOrSymbol, outcomeObj = undefined) {
-        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if (!this.hasOutcome(outcomeIdOrSymbol) && (outcomeObj !== undefined)) {
+            return this.safeString(outcomeObj, 'outcome');
+        }
+        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol);
         return outcomeObjValue['outcome'];
     }
     shortenSlug(slug) {
@@ -620,7 +625,7 @@ export default class PredictionExchange extends BaseExchange {
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                const existing = this.safeValue(this.outcomes, ocSymbol);
+                const existing = this.safeDict(this.outcomes, ocSymbol);
                 if (existing !== undefined) {
                     const existingId = this.safeString(existing, 'outcomeId');
                     if ((existingId !== undefined) && (ocId !== undefined) && (existingId !== ocId)) {

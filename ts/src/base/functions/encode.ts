@@ -91,9 +91,7 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
 
     , urlencodeBase64 = (payload: string | Uint8Array) => {
         const payload64 = (typeof payload === 'string') ? stringToBase64 (payload) : binaryToBase64 (payload)
-        return payload64.replace (/[=]+$/, '')
-            .replace (/\+/g, '-')
-            .replace (/\//g, '_')
+        return base64ToBase64Url (payload64)
     }
 
     , numberToLE = (n: number, padding: number) => numberToBytesLE (BigInt (n), padding)

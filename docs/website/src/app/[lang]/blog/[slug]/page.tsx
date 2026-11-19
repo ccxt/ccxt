@@ -87,7 +87,7 @@ export async function generateMetadata(props: PageProps<'/[lang]/blog/[slug]'>):
       // a post's own image is used as-is (no declared size, since it varies per post)
       images: page.data.image
         ? [{ url: `${basePath}${page.data.image}` }]
-        : [{ url: `${basePath}/og/home`, width: 1200, height: 630 }],
+        : [{ url: `${basePath}/og/home.png`, width: 1200, height: 630 }],
     },
   };
 }

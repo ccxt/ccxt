@@ -95,7 +95,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
 
     public Long requestId(String url)
     {
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
@@ -181,7 +181,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
@@ -285,7 +285,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -324,7 +324,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic((String) (topic), message)).join();
+            Object tickers = (this.watchPublic(topic, message)).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -352,10 +352,10 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         String topic = this.safeString(message, "topic");
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -394,7 +394,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic((String) (topic), message)).join();
+            Object tickers = (this.watchPublic(topic, message)).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -418,10 +418,10 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         String topic = this.safeString(message, "topic");
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "ts", timestamp );
@@ -520,7 +520,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -529,7 +529,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String timeframe = this.findTimeframe(interval, (Object) null);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open", (Object) null), this.safeNumber(data, "high", (Object) null), this.safeNumber(data, "low", (Object) null), this.safeNumber(data, "close", (Object) null), this.safeNumber(data, "volume", (Object) null)));
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -599,7 +599,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         String topic = this.safeString(message, "topic");
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
@@ -737,18 +737,17 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             String messageHash = "authenticated";
             String eventVar = "auth";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 String ts = String.valueOf(this.nonce());
-                String auth = ts;
                 Object secret = this.secret;
                 if (((String)this.secret).indexOf("ed25519:") >= 0)
                 {
                     List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)this.secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                     secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 }
-                Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
+                Object signature = eddsa(this.encode(ts), this.base58ToBinary(secret), ed25519());
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new HashMap<String, Object>() {{
@@ -843,7 +842,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             request.put("event", "subscribe");
             request.put("topic", topic);
             Map<String, Object> message = this.extend(request, paramsOmitted);
-            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), message, new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1103,8 +1102,8 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
-            Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId, (Object) null);
+            Map<String, Object> orders = this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(orders, orderId, null);
             if (!java.util.Objects.equals(order, null))
             {
                 Object fee = this.safeValue(order, "fee");
@@ -1112,7 +1111,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 {
                     parsed.put("fee", fee);
                 }
-                List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
+                List<Object> fees = this.safeList(order, "fees", null);
                 if (!java.util.Objects.equals(fees, null))
                 {
                     parsed.put("fees", fees);
@@ -1203,7 +1202,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 {
                     throw new ArgumentsRequired((this.id + " watchPositions() symbols is required")) ;
                 }
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     if (java.util.Objects.equals(symbolsNormalized, null))
                     {
@@ -1219,9 +1218,9 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             String url = ((this.safeString(this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}}), "private", "") + "/") + this.accountId);
             Client client = this.client(url);
             this.setPositionsCache(client, symbolsNormalized);
-            Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-            Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(this.positions, null)))
+            boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+            boolean awaitPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
+            if ((fetchPositionsSnapshot) && (awaitPositionsSnapshot) && (java.util.Objects.equals(this.positions, null)))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
@@ -1242,8 +1241,8 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
 
     public void setPositionsCache(Client client, List<String> symbols)
     {
-        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (java.util.Objects.equals(fetchPositionsSnapshot, true))
+        boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
+        if (fetchPositionsSnapshot)
         {
             String messageHash = "fetchPositionsSnapshot";
             if (!(client.futures.containsKey(messageHash)))
@@ -1265,7 +1264,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String contracts = this.safeString(position, "contracts", "0");
@@ -1320,20 +1319,20 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //        }
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        List<Object> rawPositions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
+        for (var i = 0; i < rawPositions.size(); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+            Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString(rawPosition, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
             String positionSymbol = (String) market.get("symbol");
@@ -1443,7 +1442,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchPrivate((String) (messageHash), message, new HashMap<String, Object>() {{}})).join();
+            return (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 
     }
@@ -1477,22 +1476,22 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> balances = this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(balances.keySet());
         Long ts = this.safeInteger(message, "ts");
         this.balance.put("info", data);
         this.balance.put("timestamp", ts);
         this.balance.put("datetime", this.iso8601(ts));
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
+            Map<String, Object> value = this.safeDict(balances, key, null);
             String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
             {
-                Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.balance, code, (Object) null);
+                Map<String, Object> cachedAccount = this.safeDict(this.balance, code, null);
                 if (!java.util.Objects.equals(cachedAccount, null))
                 {
                     account = cachedAccount;
@@ -1677,7 +1676,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 return;
             }
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
-            Integer splitLength = ((List<?>)splitTopic).size();
+            Integer splitLength = splitTopic.size();
             if (java.util.Objects.equals(splitLength, 2))
             {
                 String name = this.safeString(splitTopic, 1);
@@ -1734,7 +1733,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                     return;
                 }
                 List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
-                Integer splitNameLength = ((List<?>)splitTopic).size();
+                Integer splitNameLength = splitTopic.size();
                 if (java.util.Objects.equals(splitNameLength, 2))
                 {
                     method = methods.get(this.safeString(splitName, 0));

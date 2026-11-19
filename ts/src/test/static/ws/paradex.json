@@ -4524,6 +4524,435 @@
                     }
                 ]
             }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "an unsubscribe request for the trades channel of the market",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "trades.BTC-USD-PERP"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "trades.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "an unsubscribe request per market, each sent once the previous one is acknowledged",
+                "input": [
+                    [
+                        "XRP/USD:USDC",
+                        "BTC/USD:USDC"
+                    ]
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "trades.XRP-USD-PERP"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": {
+                            "channel": "trades.BTC-USD-PERP"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "trades.XRP-USD-PERP"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "trades.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "a market not watched unsubscribes the snapshot feed by default",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "the deltas param picks the full-depth feed, and is not sent",
+                "input": [
+                    "BTC/USD:USDC",
+                    {
+                        "deltas": true
+                    }
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "order_book.BTC-USD-PERP.deltas"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "order_book.BTC-USD-PERP.deltas"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBookForSymbols": [
+            {
+                "description": "an unsubscribe request per market",
+                "input": [
+                    [
+                        "XRP/USD:USDC",
+                        "BTC/USD:USDC"
+                    ]
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "order_book.XRP-USD-PERP.snapshot@15@100ms"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "order_book.XRP-USD-PERP.snapshot@15@100ms"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "order_book.BTC-USD-PERP.snapshot@15@100ms"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTicker": [
+            {
+                "description": "the market is removed from the scoped markets summary subscription in place",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "markets_summary",
+                            "remove": [
+                                "BTC-USD-PERP"
+                            ]
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "modify_subscription",
+                        "params": {
+                            "channel": "markets_summary",
+                            "remove": [
+                                "BTC-USD-PERP"
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTickers": [
+            {
+                "description": "the markets are removed from the scoped markets summary subscription with one request",
+                "input": [
+                    [
+                        "BTC/USD:USDC",
+                        "ETH/USD:USDC"
+                    ]
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "markets_summary",
+                            "remove": [
+                                "BTC-USD-PERP",
+                                "ETH-USD-PERP"
+                            ]
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "modify_subscription",
+                        "params": {
+                            "channel": "markets_summary",
+                            "remove": [
+                                "BTC-USD-PERP",
+                                "ETH-USD-PERP"
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "no symbols unsubscribes the whole channel",
+                "input": [
+                    null
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "markets_summary"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "markets_summary"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchBidsAsks": [
+            {
+                "description": "an unsubscribe request per market",
+                "input": [
+                    [
+                        "XRP/USD:USDC",
+                        "BTC/USD:USDC"
+                    ]
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "bbo.XRP-USD-PERP"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": {
+                            "channel": "bbo.BTC-USD-PERP"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "bbo.XRP-USD-PERP"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "bbo.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "no symbols unsubscribes the all-markets channel",
+                "input": [
+                    null
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "bbo.ALL"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "bbo.ALL"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchFundingRate": [
+            {
+                "description": "an unsubscribe request for the funding data channel of the market",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "funding_data.BTC-USD-PERP"
+                        },
+                        "usIn": 1792242434831470,
+                        "usDiff": 103,
+                        "usOut": 1792242434831573
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "funding_data.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }

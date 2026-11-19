@@ -314,12 +314,12 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 25
-		}
-		return *limit
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = 25
+	} else {
+		limitValue = *limit
+	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -775,9 +775,9 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	if this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -788,7 +788,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	}
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseWsOHLCV(data[i])
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
 	var resolveData []any = []any{symbol, timeframe, stored}
@@ -930,7 +930,7 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		panic(r1.Err)
 	}
 	this.SetPositionsCache(client, symbolsNormalized2)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	if cache == nil {
 
 		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -1167,17 +1167,17 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	var promises []any = ccxt.ListTyped(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(promises); i++ {
 		var positions []any = ccxt.ArrayTyped(promises[i])
 		for ii := 0; ii < len(positions); ii++ {
-			cache.(ccxt.Appender).Append(positions[ii])
+			cache.Append(positions[ii])
 		}
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(cache)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}
 	return nil
@@ -1208,7 +1208,7 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(lists); i++ {
 		var rawPosition map[string]any = this.SafeDictMap(lists, i, map[string]any{})
@@ -1221,13 +1221,13 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 			// closing update, adding both sides to "reset" both sides
 			// since we don't know which side is being closed
 			position["side"] = "long"
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 			position["side"] = "short"
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 			position["side"] = nil
 		} else {
 			// regular update
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
@@ -1261,28 +1261,27 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, o
 	var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), ccxt.Sha256, "base64")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		// auth sign
-		var request map[string]any = map[string]any{
-			"type":        "login",
-			"topics":      []any{"ws_zk_accounts_v3"},
-			"httpMethod":  http_method,
-			"requestPath": request_path,
-			"apiKey":      this.ApiKey,
-			"passphrase":  this.Password,
-			"timestamp":   timestamp,
-			"signature":   signature,
-		}
 		var message map[string]any = map[string]any{
-			"op":   "login",
-			"args": []any{ccxt.JsonStringify(request)},
+			"op": "login",
+			"args": []any{ccxt.JsonStringify(map[string]any{
+				"type":        "login",
+				"topics":      []any{"ws_zk_accounts_v3"},
+				"httpMethod":  http_method,
+				"requestPath": request_path,
+				"apiKey":      this.ApiKey,
+				"passphrase":  this.Password,
+				"timestamp":   timestamp,
+				"signature":   signature,
+			})},
 		}
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1553,8 +1552,8 @@ func (this *Apex) HandleAuthenticate(client any, message map[string]any) any {
 	var code *int64 = this.SafeInteger(message, "retCode")
 	var messageHash string = "authenticated"
 	if (success != nil && *success) || (code != nil && *code == 0) {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(true)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)

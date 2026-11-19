@@ -566,7 +566,7 @@ func (this *Mexc) HandleBidAsk(client any, message any) {
 	//        "t": 1678643605721
 	//    }
 	//
-	var parsedTicker any = this.ParseWsBidAsk(message)
+	var parsedTicker map[string]any = this.ParseWsBidAsk(message)
 	var symbol *string = this.SafeString(parsedTicker, "symbol")
 	if symbol == nil {
 		return
@@ -575,7 +575,7 @@ func (this *Mexc) HandleBidAsk(client any, message any) {
 	var messageHash string = "bidask:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var data any = this.SafeDictN(ticker, []any{"d", "data", "publicAggreBookTicker"})
@@ -761,9 +761,9 @@ func (this *Mexc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var messageHash string = "candles:" + *symbolValue + ":" + timeframe
 	var ohlcv any = nil
 	if *this.SafeBool(market, "spot", false) {
-		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.kline.v3.api.pb@"+*this.SafeString(market, "id", "")+"@", timeframeId))
+		var spotChannel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.kline.v3.api.pb@"+*this.SafeString(market, "id", "")+"@", timeframeId))
 
-		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, params)
+		r1 := <-this.WatchSpotPublicAsync(spotChannel, messageHash, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -856,14 +856,14 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 	// }
 	//
 	var parsed any = nil
-	var symbol any = nil
+	var market map[string]any = nil
 	var timeframe *string = nil
 	if ccxt.InOp(message, "publicSpotKline") {
-		symbol = this.Symbol(this.SafeString(message, "symbol"))
+		market = this.SafeMarket(this.Symbol(this.SafeString(message, "symbol")))
 		var data map[string]any = this.SafeDictMap(message, "publicSpotKline", map[string]any{})
 		var timeframeId *string = this.SafeString(data, "interval")
 		timeframe = this.FindTimeframe(timeframeId, this.Options["timeframes"])
-		parsed = this.ParseWsOHLCV(data, this.SafeMarket(symbol))
+		parsed = this.ParseWsOHLCV(data, market)
 	} else {
 		var d map[string]any = ccxt.SafeDict2Typed(message, "d", "data", map[string]any{})
 		var rawOhlcv any = this.SafeDict(d, "k", d)
@@ -871,27 +871,28 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 		timeframe = this.FindTimeframe(timeframeId, timeframes)
 		var marketId *string = this.SafeString2(message, "s", "symbol")
-		var market map[string]any = this.SafeMarket(marketId)
-		symbol = market["symbol"]
+		market = this.SafeMarket(marketId)
 		parsed = this.ParseWsOHLCV(rawOhlcv, market)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe))
-	var symbolOhlcvs map[string]any = this.SafeDictMap(this.Ohlcvs, symbol, map[string]any{})
-	ccxt.AddElementToObject(this.Ohlcvs, symbol, symbolOhlcvs)
-	var stored any
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+symbol+":", timeframe))
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
+	}
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = symbolOhlcvs[*timeframe]
+		stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
-			if timeframe != nil {
-				symbolOhlcvs[*timeframe] = stored
+			if timeframe != nil && this.Ohlcvs[symbol] != nil {
+				this.Ohlcvs[symbol][*timeframe] = stored
 			}
 		}
 	}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Mexc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -985,9 +986,9 @@ func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	var orderbook any = nil
 	if *this.SafeBool(market, "spot", false) {
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
-		var channel string = "spot@public.aggre.depth.v3.api.pb@" + *frequency + "@" + *this.SafeString(market, "id", "")
+		var spotChannel string = "spot@public.aggre.depth.v3.api.pb@" + *frequency + "@" + *this.SafeString(market, "id", "")
 
-		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, paramsFrequency)
+		r1 := <-this.WatchSpotPublicAsync(spotChannel, messageHash, paramsFrequency)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1140,7 +1141,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{})
 		}
-		ccxt.AppendToArray(storedOrderBook.GetCache(), data)
+		storedOrderBook.AppendCache(data)
 		return
 	}
 
@@ -1248,9 +1249,9 @@ func (this *Mexc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	var messageHash string = "trades:" + *symbolValue
 	var trades any = nil
 	if *this.SafeBool(market, "spot", false) {
-		var channel string = "spot@public.aggre.deals.v3.api.pb@100ms@" + *this.SafeString(market, "id", "")
+		var spotChannel string = "spot@public.aggre.deals.v3.api.pb@100ms@" + *this.SafeString(market, "id", "")
 
-		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, params)
+		r1 := <-this.WatchSpotPublicAsync(spotChannel, messageHash, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}

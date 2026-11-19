@@ -2351,7 +2351,7 @@ class gate extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //    {
         //        "name": "BTC_USDT",
@@ -3110,7 +3110,7 @@ class gate extends Exchange {
         if ($this->safe_bool($market, 'option', false)) {
             $optionMarketId = $this->safe_string($market, 'id');
             for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
+                $entry = $this->safe_dict($response, $i);
                 $entryName = $this->safe_string($entry, 'name');
                 if ($entryName === $optionMarketId) {
                     $ticker = $entry;
@@ -3722,7 +3722,7 @@ class gate extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 1000));
         }
         $market = $this->market($symbol);
         if (!$this->safe_bool($market, 'swap', false)) {
@@ -7331,7 +7331,6 @@ class gate extends Exchange {
         if ($limit !== null) {
             $requestUntil['limit'] = $limit;
         }
-        $response = null;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $paramsUntil, 'cross');
         if ($isUnifiedAccount) {
             $response = Async\await($this->privateUnifiedGetInterestRecords($this->extend($requestUntil, $paramsMarginMode)));
@@ -7340,8 +7339,8 @@ class gate extends Exchange {
                 $requestUntil['currency_pair'] = $market['id'];
             }
             $response = Async\await($this->privateMarginGetUniInterestRecords($this->extend($requestUntil, $paramsMarginMode)));
-        } elseif ($marginMode === 'cross') {
-            // deprecated and not present in the exchange's docs but still works
+        } else {
+            // cross: deprecated and not present in the exchange's docs but still works
             $response = Async\await($this->privateMarginGetCrossInterestRecords($this->extend($requestUntil, $paramsMarginMode)));
         }
         $interest = $this->parse_borrow_interests($response, $market);
@@ -8433,19 +8432,21 @@ class gate extends Exchange {
             $quoteValueString = Precise::string_mul($baseValueString, $priceString);
         }
         // --- derive side ---
+        // gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        // is the side of the liquidation order: a long is closed by a sell, a short by a buy
         // 1) options payload has explicit 'side': 'long' | 'short'
         $optPos = $this->safe_string_lower($liquidation, 'side');
         $side = null;
         if ($optPos === 'long') {
-            $side = 'buy';
-        } elseif ($optPos === 'short') {
             $side = 'sell';
+        } elseif ($optPos === 'short') {
+            $side = 'buy';
         } else {
             if ($size !== null) { // 2) futures/perpetual (and fallback for options): infer from size
                 if (Precise::string_gt($size, '0')) {
-                    $side = 'buy';
-                } elseif (Precise::string_lt($size, '0')) {
                     $side = 'sell';
+                } elseif (Precise::string_lt($size, '0')) {
+                    $side = 'buy';
                 }
             }
         }

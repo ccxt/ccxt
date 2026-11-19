@@ -53,19 +53,19 @@ fn new_cache(kind: &str) -> Value {
 }
 pub struct ArrayCache;
 impl ArrayCache {
-    pub fn new(_max_length: Value) -> Value { new_cache("ArrayCache") }
+    pub fn new(_max_length: impl Into<Value>) -> Value { new_cache("ArrayCache") }
 }
 pub struct ArrayCacheByTimestamp;
 impl ArrayCacheByTimestamp {
-    pub fn new(_max_length: Value) -> Value { new_cache("ArrayCacheByTimestamp") }
+    pub fn new(_max_length: impl Into<Value>) -> Value { new_cache("ArrayCacheByTimestamp") }
 }
 pub struct ArrayCacheBySymbolById;
 impl ArrayCacheBySymbolById {
-    pub fn new(_max_length: Value) -> Value { new_cache("ArrayCacheBySymbolById") }
+    pub fn new(_max_length: impl Into<Value>) -> Value { new_cache("ArrayCacheBySymbolById") }
 }
 pub struct ArrayCacheBySymbolBySide;
 impl ArrayCacheBySymbolBySide {
-    pub fn new(_max_length: Value) -> Value { new_cache("ArrayCacheBySymbolBySide") }
+    pub fn new(_max_length: impl Into<Value>) -> Value { new_cache("ArrayCacheBySymbolBySide") }
 }
 
 pub mod shared {

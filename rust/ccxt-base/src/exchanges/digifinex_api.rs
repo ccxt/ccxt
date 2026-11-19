@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::digifinex::DigifinexCore;
+use super::digifinex::Digifinex;
 use crate::exchange::ExchangeRuntime;
 
-impl DigifinexCore {
+impl Digifinex {
     /// Auto-generated wrapper for the `publicSpotGetMarketSymbols` implicit endpoint.
     pub async fn public_spot_get_market_symbols(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_spot_get_market_symbols".into()), optional_args).await

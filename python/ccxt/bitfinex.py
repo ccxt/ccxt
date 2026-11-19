@@ -330,37 +330,9 @@ class bitfinex(Exchange, ImplicitAPI):
                 'trading': {
                     'feeSide': 'get',
                     'percentage': True,
-                    'tierBased': True,
-                    'maker': self.parse_number('0.001'),
-                    'taker': self.parse_number('0.002'),
-                    'tiers': {
-                        'taker': [
-                            [self.parse_number('0'), self.parse_number('0.002')],
-                            [self.parse_number('500000'), self.parse_number('0.002')],
-                            [self.parse_number('1000000'), self.parse_number('0.002')],
-                            [self.parse_number('2500000'), self.parse_number('0.002')],
-                            [self.parse_number('5000000'), self.parse_number('0.002')],
-                            [self.parse_number('7500000'), self.parse_number('0.002')],
-                            [self.parse_number('10000000'), self.parse_number('0.0018')],
-                            [self.parse_number('15000000'), self.parse_number('0.0016')],
-                            [self.parse_number('20000000'), self.parse_number('0.0014')],
-                            [self.parse_number('25000000'), self.parse_number('0.0012')],
-                            [self.parse_number('30000000'), self.parse_number('0.001')],
-                        ],
-                        'maker': [
-                            [self.parse_number('0'), self.parse_number('0.001')],
-                            [self.parse_number('500000'), self.parse_number('0.0008')],
-                            [self.parse_number('1000000'), self.parse_number('0.0006')],
-                            [self.parse_number('2500000'), self.parse_number('0.0004')],
-                            [self.parse_number('5000000'), self.parse_number('0.0002')],
-                            [self.parse_number('7500000'), self.parse_number('0')],
-                            [self.parse_number('10000000'), self.parse_number('0')],
-                            [self.parse_number('15000000'), self.parse_number('0')],
-                            [self.parse_number('20000000'), self.parse_number('0')],
-                            [self.parse_number('25000000'), self.parse_number('0')],
-                            [self.parse_number('30000000'), self.parse_number('0')],
-                        ],
-                    },
+                    'tierBased': False,
+                    'maker': self.parse_number('0'),
+                    'taker': self.parse_number('0'),
                 },
                 'funding': {
                     'withdraw': {},
@@ -656,97 +628,103 @@ class bitfinex(Exchange, ImplicitAPI):
         futuresMarketsInfo = self.safe_list(response, 1, [])
         marginIds = self.safe_list(response, 3, [])
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
-        result = []
-        for i in range(0, len(markets)):
-            pairObj = self.safe_list(markets, i)
-            id = self.safe_string_upper(pairObj, 0, '')
-            market = self.safe_list(pairObj, 1, [])
-            spot = True
-            type = None
-            if id.find('F0') >= 0:
-                spot = False
-                type = 'swap'
-            else:
-                type = 'spot'
-            swap = type == 'swap'
-            baseId = None
-            quoteId = None
-            if id.find(':') >= 0:
-                parts = id.split(':')
-                baseId = parts[0]
-                quoteId = parts[1]
-            else:
-                baseId = id[0:3]
-                quoteId = id[3:6]
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            splitBase = base.split('F0')
-            splitQuote = quote.split('F0')
-            base = self.safe_string(splitBase, 0)
-            quote = self.safe_string(splitQuote, 0)
-            if (base is None) or (quote is None):
-                continue
-            symbol = base + '/' + quote
-            # baseId = 'f' + baseId;
-            # quoteId = 'f' + quoteId;
-            settle = None
-            settleId = None
-            if swap:
-                settle = quote
-                settleId = quote
-                symbol = symbol + ':' + settle
-            minOrderSizeString = self.safe_string(market, 3)
-            maxOrderSizeString = self.safe_string(market, 4)
-            result.append({
-                'id': 't' + id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': (spot and self.in_array(id, marginIds)),
-                'swap': swap,
-                'future': False,
-                'option': False,
-                'active': True,
-                'contract': not spot,
-                'linear': True if swap else None,
-                'inverse': False if swap else None,
-                'contractSize': self.parse_number('1') if swap else None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': int('8'),  # https://github.com/ccxt/ccxt/issues/7310
-                    'price': int('5'),
+        self.options['marginIds'] = marginIds
+        return self.parse_markets(markets)
+
+    def parse_market(self, pairObj: dict) -> Market:
+        #
+        #     [ 'AAVE:USD', [ null, null, null, "0.02", "5000.0", null, null, null, null, null, null, null ] ]
+        #
+        marginIds = self.safe_list(self.options, 'marginIds', [])
+        id = self.safe_string_upper(pairObj, 0, '')
+        market = self.safe_list(pairObj, 1, [])
+        spot = True
+        type = None
+        if id.find('F0') >= 0:
+            spot = False
+            type = 'swap'
+        else:
+            type = 'spot'
+        swap = type == 'swap'
+        baseId = None
+        quoteId = None
+        if id.find(':') >= 0:
+            parts = id.split(':')
+            baseId = parts[0]
+            quoteId = parts[1]
+        else:
+            baseId = id[0:3]
+            quoteId = id[3:6]
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        splitBase = base.split('F0')
+        splitQuote = quote.split('F0')
+        base = self.safe_string(splitBase, 0)
+        quote = self.safe_string(splitQuote, 0)
+        if (base is None) or (quote is None):
+            return None
+        symbol = base + '/' + quote
+        # baseId = 'f' + baseId;
+        # quoteId = 'f' + quoteId;
+        settle = None
+        settleId = None
+        if swap:
+            settle = quote
+            settleId = quote
+            symbol = symbol + ':' + settle
+        minOrderSizeString = self.safe_string(market, 3)
+        maxOrderSizeString = self.safe_string(market, 4)
+        return {
+            'id': 't' + id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': (spot and self.in_array(id, marginIds)),
+            'swap': swap,
+            'future': False,
+            'option': False,
+            'active': True,
+            'contract': not spot,
+            'linear': True if swap else None,
+            'inverse': False if swap else None,
+            'maker': self.safe_number(self.fees['trading'], 'maker'),
+            'taker': self.safe_number(self.fees['trading'], 'taker'),
+            'contractSize': self.parse_number('1') if swap else None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': int('8'),  # https://github.com/ccxt/ccxt/issues/7310
+                'price': int('5'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.parse_number(minOrderSizeString),
-                        'max': self.parse_number(maxOrderSizeString),
-                    },
-                    'price': {
-                        'min': self.parse_number('1e-8'),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.parse_number(minOrderSizeString),
+                    'max': self.parse_number(maxOrderSizeString),
                 },
-                'created': None,  # todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': self.parse_number('1e-8'),
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,  # todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
+            'info': market,
+        }
 
     def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
@@ -1133,7 +1111,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def convert_derivatives_id(self, currency: dict, type: str) -> Str:
+    def convert_derivatives_id(self, currency: Currency, type: str) -> Str:
         # there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         # {
         #   "id": "fUSTF0",
@@ -1964,7 +1942,7 @@ class bitfinex(Exchange, ImplicitAPI):
             }
         paramsOmitted = self.omit(params, ['cid', 'clientOrderId']) if (cid is not None) else params
         response = self.privatePostAuthWOrderCancel(self.extend(request, paramsOmitted))
-        order = self.safe_value(response, 4)
+        order = self.safe_list(response, 4)
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
 
@@ -3214,7 +3192,7 @@ class bitfinex(Exchange, ImplicitAPI):
             reversedArray.append(valueAtIndex)
         return reversedArray
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #       [
         #          "tBTCF0:USTF0",

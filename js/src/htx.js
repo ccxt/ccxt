@@ -2922,9 +2922,9 @@ export default class htx extends Exchange {
         //         "ts": 1781066959396
         //     }
         //
-        let trades = this.safeValue(response, 'data');
-        if (!Array.isArray(trades)) {
-            trades = this.safeList(trades, 'trades');
+        let trades = this.safeList(response, 'data');
+        if (trades === undefined) {
+            trades = this.safeList(this.safeDict(response, 'data'), 'trades', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -3962,8 +3962,10 @@ export default class htx extends Exchange {
         //         "ts": 1780967407144
         //     }
         //
-        const rawOrder = this.safeValue(response, 'data');
-        const order = Array.isArray(rawOrder) ? this.safeDict(rawOrder, 0) : rawOrder;
+        let order = this.safeDict(response, 'data');
+        if (order === undefined) {
+            order = this.safeDict(this.safeList(response, 'data', []), 0, {});
+        }
         return this.parseOrder(order, market);
     }
     parseMarginBalanceHelper(balance, code, result) {
@@ -4227,8 +4229,10 @@ export default class htx extends Exchange {
                 }
             }
         }
-        const rawOrders = this.safeValue(response, 'data');
-        const orders = Array.isArray(rawOrders) ? rawOrders : this.safeList(rawOrders, 'orders', []);
+        let orders = this.safeList(response, 'data');
+        if (orders === undefined) {
+            orders = this.safeList(this.safeDict(response, 'data'), 'orders', []);
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchClosedContractOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4789,8 +4793,10 @@ export default class htx extends Exchange {
         //         "ts": 1780739390596
         //     }
         //
-        const rawOrders = this.safeValue(response, 'data');
-        const orders = Array.isArray(rawOrders) ? rawOrders : this.safeList(rawOrders, 'orders', []);
+        let orders = this.safeList(response, 'data');
+        if (orders === undefined) {
+            orders = this.safeList(this.safeDict(response, 'data'), 'orders', []);
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -5089,7 +5095,7 @@ export default class htx extends Exchange {
             };
         }
         const average = this.safeString(order, 'trade_avg_price');
-        const trades = this.safeValue(order, 'trades');
+        const trades = this.safeList(order, 'trades');
         let reduceOnly = undefined;
         if (isLinearOrder) {
             reduceOnly = this.safeBool(order, 'reduce_only');
@@ -5894,8 +5900,8 @@ export default class htx extends Exchange {
             result = this.safeList(response, 'data', []);
         }
         else {
-            const data = this.safeValue(response, 'data');
-            if (Array.isArray(data)) {
+            const data = this.safeList(response, 'data');
+            if (data !== undefined) {
                 result = data;
             }
             else {
@@ -7321,6 +7327,7 @@ export default class htx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate, linear swaps only
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -7328,14 +7335,17 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50);
-        }
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
+        if (paginate) {
+            if (market['linear']) {
+                return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100);
+            }
+            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50);
+        }
         const request = {
             'contract_code': market['id'],
         };
@@ -7382,7 +7392,8 @@ export default class htx extends Exchange {
             //
         }
         else if (this.safeBool(market, 'linear', false)) {
-            response = await this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, paramsPaginate));
+            const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
+            response = await this.contractPublicGetV5MarketFundingRateHistory(this.extend(requestUntil, paramsUntil));
             //
             //     {
             //         "code": 200,
@@ -7694,7 +7705,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const interest = this.parseBorrowInterests(data, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }

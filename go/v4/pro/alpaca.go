@@ -260,22 +260,22 @@ func (this *Alpaca) HandleOHLCV(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "S")
 	var symbol *string = this.SafeSymbol(marketId)
-	var stored any
+	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+		this.Ohlcvs[*symbol] = map[string]any{}
+	}
+	var stored ccxt.WsArrayCache
 	if symbol != nil {
-		stored = this.Ohlcvs[*symbol]["1m"]
+		stored, _ = this.Ohlcvs[*symbol]["1m"].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil {
-			if this.Ohlcvs[*symbol] == nil {
-				this.Ohlcvs[*symbol] = map[string]any{}
-			}
+		if symbol != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol]["1m"] = stored
 		}
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(message))
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -516,7 +516,7 @@ func (this *Alpaca) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 			panic(r1.Err)
 		}
 	}
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		var marketSymbol *string = this.SafeString(market, "symbol", "")
@@ -584,7 +584,7 @@ func (this *Alpaca) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		}
 	}
 	var messageHash string = "orders"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		var marketSymbol *string = this.SafeString(market, "symbol", "")
@@ -820,12 +820,12 @@ func (this *Alpaca) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 		"fee":    nil,
 	}, market))
 }
-func (this *Alpaca) AuthenticateAsync(url any, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+func (this *Alpaca) AuthenticateAsync(url *string, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, url, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, optionalArgs ...any) any {
+func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -833,9 +833,9 @@ func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any,
 	this.CheckRequiredCredentials()
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var request any = map[string]any{
 			"action": "auth",
 			"key":    this.ApiKey,
@@ -854,7 +854,7 @@ func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any,
 		this.Watch(url, messageHash, request, messageHash, future)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -974,8 +974,8 @@ func (this *Alpaca) HandleAuthenticate(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var status *string = this.SafeString(data, "status")
 	if (T != nil && *T == "success") || (status != nil && *status == "authorized") {
-		var promise any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-		promise.(*ccxt.Future).Resolve(ccxt.ToGetsLimit(message))
+		var promise *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		promise.Resolve(ccxt.ToGetsLimit(message))
 		return
 	}
 	panic(ccxt.AuthenticationError(this.Id + " failed to authenticate."))

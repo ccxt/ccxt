@@ -183,3 +183,154 @@ describe ('cs-string-annotated-param-copy', () => {
         assert.doesNotMatch (out, /object channelKey = channel;/);
     });
 });
+
+describe ('cs-77c6-callee-declared-result-locals', () => {
+    test('un-awaited endpoint task, sync same-file return, single-declaration awaited box', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const grvt = (transpiler as any).transpileCSharpByPath ('./ts/src/grvt.ts').content as string;
+        assert.match (grvt, /Task<Dictionary<string, object>> marketsPromise = this\.publicMarketPostFullV1AllInstruments\(/);
+        const kraken = (transpiler as any).transpileCSharpByPath ('./ts/src/krakenfutures.ts').content as string;
+        assert.match (kraken, /string\? accountName = this\.parseKrakenAccountName\(type\);/);
+        const poly = (transpiler as any).transpileCSharpByPath ('./ts/src/polymarket.ts').content as string;
+        assert.match (poly, /Dictionary<string, object> signed = \(\(Dictionary<string, object>\)await this\.signPerpsOp\(/);
+        assert.doesNotMatch (poly, /object signed = await this\.signPerpsOp\(/);
+    });
+});
+
+describe ('ral-77c8-literal-right-add-chain', () => {
+    test('pro kucoin / xt: `x + "<non-numeric literal>" [+ y]` over an object left prints string? behind the cast', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const kucoin = (transpiler as any).transpileCSharpByPath ('./ts/src/pro/kucoin.ts').content as string;
+        // ral-84c8 R3 types `type` (safeString with a non-null default) as `string`, so this concat is now native
+        assert.match (kucoin, /string messageHash = \(type \+ ":fetchBalanceSnapshot"\);/);
+        assert.doesNotMatch (kucoin, /object messageHash = add\(type, ":fetchBalanceSnapshot"\);/);
+        const xt = (transpiler as any).transpileCSharpByPath ('./ts/src/pro/xt.ts').content as string;
+        assert.match (xt, /string\? param = \(\(string\)\(add\(add\(name, "@"\), listenKey\)\)\);/);
+    });
+});
+
+describe ('cs-84c6-callee-returns-for-awaited-and-parse-locals', () => {
+    test('super.loadMarkets local, loadAccounts / parseFundingRateHistories / signPredictfunOrder returns', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const delta = (transpiler as any).transpileCSharpByPath ('./ts/src/delta.ts').content as string;
+        assert.match (delta, /IDictionary<string, object> markets = await base\.loadMarkets\(reload, parameters\);/);
+        assert.doesNotMatch (delta, /\(\(IDictionary<string, object>\)\(\(object\)\(markets\)\)\)/);
+        const btse = (transpiler as any).transpileCSharpByPath ('./ts/src/btse.ts').content as string;
+        assert.match (btse, /IList<object> rates = this\.parseFundingRateHistories\(/);
+        const htx = (transpiler as any).transpileCSharpByPath ('./ts/src/htx.ts').content as string;
+        assert.match (htx, /List<object> accounts = await this\.loadAccounts\(\);/);
+        const pf = (transpiler as any).transpileCSharpByPath ('./ts/src/prediction/predictfun.ts').content as string;
+        assert.match (pf, /Dictionary<string, object> signed = this\.signPredictfunOrder\(/);
+        const kucoin = (transpiler as any).transpileCSharpByPath ('./ts/src/kucoin.ts').content as string;
+        assert.match (kucoin, /public override List<object> parseMarketLeverageTiers\(/);
+        assert.match (kucoin, /List<object> tiers = this\.parseMarketLeverageTiers\(data\);/);
+        const deepcoin = (transpiler as any).transpileCSharpByPath ('./ts/src/deepcoin.ts').content as string;
+        assert.match (deepcoin, /IDictionary<string, object> result = base\.setMarkets\(markets, currencies\);/);
+    });
+});
+
+describe ('ral-84c8-guarded-concat-string-locals', () => {
+    test('gate / kraken: a safeString local read as the left of a guarded concat prints string? with native uses', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const gate = (transpiler as any).transpileCSharpByPath ('./ts/src/gate.ts').content as string;
+        assert.match (gate, /string\? price = this\.safeString\(paramsPaginate, "price"\);/);
+        assert.match (gate, /bool isMark = \(price == "mark"\);/);
+        assert.match (gate, /request\["contract"\] = \(price == null \? null : price \+ "_" \+ /);
+        const kraken = (transpiler as any).transpileCSharpByPath ('./ts/src/kraken.ts').content as string;
+        assert.match (kraken, /string\? part4 = this\.safeString\(parts, 4\);/);
+        assert.doesNotMatch (kraken, /object part4 = /);
+    });
+    test('okx: `x += r` on a safeString local prints the guarded write into string?', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const okx = (transpiler as any).transpileCSharpByPath ('./ts/src/okx.ts').content as string;
+        assert.match (okx, /string\? bar = this\.safeString\(this\.timeframes, timeframe, timeframe\);/);
+        assert.match (okx, /bar = \(bar == null \? null : bar \+ timezone\.ToLower\(\)\);/);
+    });
+});
+
+describe ('ral-84c8-nonnull-default-rewrite', () => {
+    test('bybit: a safeString-with-literal-default local rewritten from another such call prints string with native compares', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const bybit = (transpiler as any).transpileCSharpByPath ('./ts/src/bybit.ts').content as string;
+        assert.match (bybit, /string baseName = (\(\(string\))?this\.safeString\(optionParts, 0, ""\)\)?;/);
+        assert.match (bybit, /if \(baseName == "BTC"\)/);
+    });
+});
+
+describe ('ral-87c8-array-guarded-list-locals', () => {
+    test('hyperliquid: `let x = []` written from an Array.isArray-guarded response prints List<object> with native Count', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharpByPath ('./ts/src/hyperliquid.ts').content as string;
+        assert.match (out, /List<object> fundings = new List<object>\(\) \{\};/);
+        assert.match (out, /fundings = \(\(List<object>\)response\);/);
+        assert.match (out, /i < \(fundings\?\.Count \?\? 0\)/);
+        assert.doesNotMatch (out, /object fundings = /);
+    });
+});
+
+describe ('ral-87c8-bool-literal-row-write', () => {
+    test('kucoin: a bool literal local written from a market-row bool read prints bool? with a native compare', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharpByPath ('./ts/src/kucoin.ts').content as string;
+        assert.match (out, /bool\? isContractMarket = true;/);
+        assert.match (out, /isContractMarket = \(\(bool\?\)\(market\.ContainsKey\("contract"\) \? market\["contract"\] : null\)\);/);
+        assert.match (out, /if \(\(isContractMarket != true\)\)/);
+    });
+});
+
+describe ('ral-87c8-string-literal-split-element-write', () => {
+    test('prediction hyperliquid: a string literal local written from a split element prints string? with a native compare', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharpByPath ('./ts/src/prediction/hyperliquid.ts').content as string;
+        assert.match (out, /string\? expiryDate = "";/);
+        assert.match (out, /expiryDate = \(\(string\)\(expiryParts != null && 0 < expiryParts\.Count \? expiryParts\[0\] : null\)\);/);
+        assert.match (out, /if \(expiryDate != ""\)/);
+    });
+});
+
+describe ('ral-90c8-guarded-self-concat-write-native-use', () => {
+    type CsPrinter = { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } };
+    test('removeRepeatedTradesFromArray shape: `id = id + r` on a safeString local used as a dict key prints string? and a native ContainsKey', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const src = [
+            'class Test {',
+            '    safeString (o, k, d = undefined) { return d; }',
+            '    dedupe (input: any[]) {',
+            '        const uniqueResult = {};',
+            '        for (let i = 0; i < input.length; i++) {',
+            '            const entry = input[i];',
+            '            let id = this.safeString (entry, \'id\');',
+            '            if (id === undefined) {',
+            '                const price = this.safeString (entry, \'price\', \'\');',
+            '                id = \'t_\' + price + \'_\';',
+            '                id = id + (price + \'_\');',
+            '            }',
+            '            if (id !== undefined && !(id in uniqueResult)) {',
+            '                uniqueResult[id] = entry;',
+            '            }',
+            '        }',
+            '        return uniqueResult;',
+            '    }',
+            '}',
+        ].join ('\n');
+        const out = (transpiler as unknown as CsPrinter).transpileCSharp (src).content;
+        assert.match (out, /string\? id = this\.safeString\(entry, "id"\);/);
+        assert.match (out, /id = \(id == null \? null : id \+ /);
+    });
+    test('pro xt: a self-concat url only handed to client (url) stays object', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as unknown as CsPrinter).transpileCSharpByPath ('./ts/src/pro/xt.ts').content;
+        assert.match (out, /object url = this\.safeString\(apiUrls, tradeType\);/);
+    });
+});

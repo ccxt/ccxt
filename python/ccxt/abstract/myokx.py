@@ -61,6 +61,7 @@ class ImplicitAPI:
     public_get_public_vip_interest_rate_loan_quota = publicGetPublicVipInterestRateLoanQuota = Entry[_Dict]('public/vip-interest-rate-loan-quota', ['public'], 'GET', {'cost': 10})
     public_get_public_mm_instrument_types = publicGetPublicMmInstrumentTypes = Entry[_Dict]('public/mm-instrument-types', ['public'], 'GET', {'cost': 4})
     public_get_public_delta_hedge_currencies = publicGetPublicDeltaHedgeCurrencies = Entry[_Dict]('public/delta-hedge-currencies', ['public'], 'GET', {'cost': 1})
+    public_get_public_corporate_actions = publicGetPublicCorporateActions = Entry[_Dict]('public/corporate-actions', ['public'], 'GET', {'cost': 1})
     public_get_rubik_stat_trading_data_support_coin = publicGetRubikStatTradingDataSupportCoin = Entry[_Dict]('rubik/stat/trading-data/support-coin', ['public'], 'GET', {'cost': 4})
     public_get_rubik_stat_contracts_open_interest_history = publicGetRubikStatContractsOpenInterestHistory = Entry[_Dict]('rubik/stat/contracts/open-interest-history', ['public'], 'GET', {'cost': 2})
     public_get_rubik_stat_taker_volume = publicGetRubikStatTakerVolume = Entry[_Dict]('rubik/stat/taker-volume', ['public'], 'GET', {'cost': 4})

@@ -1,9 +1,9 @@
 import weexRest from '../weex.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class weex extends weexRest {
     describe(): Dict;
-    requestId(): Str;
+    requestId(): int;
     subscribePublic(messageHashes: string[], channels: Strings, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
     subscribePrivate(messageHash: string, subscribeHash: string, channel: Str, isContract?: boolean, params?: Dict, subscription?: Dict): Promise<any>;
     authenticate(url: string): void;
@@ -40,7 +40,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name weex#unWatchTickers
@@ -90,7 +90,7 @@ export default class weex extends weexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name weex#unWatchTradesForSymbols

@@ -2097,8 +2097,7 @@ export default class bittrade extends Exchange {
             if (method !== 'POST') {
                 request = this.extend(request, query);
             }
-            const requestSorted = this.keysort(request);
-            let auth = this.urlencode(requestSorted);
+            let auth = this.urlencode(this.keysort(request));
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             const payload = method + "\n" + this.hostname + "\n" + url + "\n" + auth;
