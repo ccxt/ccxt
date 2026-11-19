@@ -5685,7 +5685,17 @@ export default class kucoin extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrdersByStatus', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, paramsPaginate) as Order[];
+            // paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+            let paramsContract: Dict = this.extend (paramsPaginate, { 'paginate': false, 'uta': false });
+            if (symbol === undefined) {
+                paramsContract = this.extend (paramsContract, { 'type': 'contract' });
+            }
+            const paginatedMethods: Dict = {
+                'active': 'fetchOpenOrders',
+                'open': 'fetchOpenOrders',
+            };
+            const paginatedMethod = this.safeString (paginatedMethods, status, 'fetchClosedOrders');
+            return await this.fetchPaginatedCallDynamic (paginatedMethod, symbol, since, limit, paramsContract) as Order[];
         }
         const trigger = this.safeBool2 (paramsPaginate, 'stop', 'trigger');
         const until = this.safeInteger (paramsPaginate, 'until');
