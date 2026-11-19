@@ -7376,7 +7376,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                     // RHS may be another already-typed local / a ternary over such locals (context)
                     const written = typedCoreListFunnelWriteBox (csharp, declaration, parent.right) ?? csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context) ?? nullSeedStringConcatWriteType90c4 (csharp, declaration, parent.right, context)
                         ?? funnelListWriteType (declaration, parent.right)
-                        ?? (((csharpType === 'Int64' || csharpType === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined);
+                        ?? (((csharpType === 'Int64' || csharpType === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined)
+                        ?? int64CopySumWriteType (csharp, declaration, csharpType, parent.right, context);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -13032,6 +13033,16 @@ function nullSeedSumWriteType87c4 (csharp, declaration, node, context) {
     return integerBoxCastType (csharp, stripParens (node), context);
 }
 
+// `let x = <Int64 local>` read by `<`/`>`: a two-operand integer `this.sum` write binds the
+// Int64 sum twin (integerBoxCastType), the same Int64 box, so the copy keeps its Int64 spelling
+function int64CopySumWriteType (csharp, declaration, type, node, context) {
+    if ((type !== 'Int64' && type !== 'Int64?') || declaration.initializer?.kind !== ts.SyntaxKind.Identifier
+            || declaration.name?.kind !== ts.SyntaxKind.Identifier || !nullSeedRelationalRead87c4 (declaration)) {
+        return undefined;
+    }
+    return integerBoxCastType (csharp, stripParens (node), context);
+}
+
 const NULL_SEED_RELATIONAL_OPERATORS = [ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanEqualsToken ];
 
 function nullSeedRelationalRead87c4 (declaration) {
@@ -13944,6 +13955,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
         // `x = Math.min (x, y)` / `Math.max` on an Int64 local: native only when the printer itself prints
         // Math.Min/Max over Int64 / null-tested Int64? reads (no literal: the helper would keep its Int32 box)
         written ??= (type === 'Int64' && !sawNull) ? selfMinMaxInt64WriteType (csharp, context, declaration, parent.right) : undefined;
+        written ??= int64CopySumWriteType (csharp, declaration, type, parent.right, context);
         // `Int` local writes the printer types natively (int64AnnotatedLocalWriteType)
         written ??= ((type === 'Int64' || type === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined;
         if (written === undefined) {
