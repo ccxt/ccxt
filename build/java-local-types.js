@@ -2921,6 +2921,12 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         && resolvesToMethodNamed (printer, initializer, String (initializer.expression.name.text))) {
         return { type: JAVA_STRUCTURE_TYPE, valuePrefixes: [ 'this.', 'super.' ] };
     }
+    // `this.findTimeframe (..) as string`: a String venue callee, printed as the identity checkcast `((String)..)`
+    if (ts.isAsExpression (initializer) && initializer.type?.kind === ts.SyntaxKind.StringKeyword
+        && isThisCall (unwrapParens (initializer.expression)) && unwrapParens (initializer.expression).expression.name.text === 'findTimeframe'
+        && venueCallJavaType (printer, unwrapParens (initializer.expression)) === 'String') {
+        return { type: 'String', stringAsCast: true, valuePrefixes: [ '((String)this.' ] };
+    }
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
     }
@@ -3721,7 +3727,8 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isAsExpression (parent) || ts.isTypeAssertion (parent)) {
             // a TS cast prints a Java cast of the asserted type, possibly inconvertible: admit only
             // `as string` for stringAsCast families and casts that cannot fail (noCastAssertions)
-            const admitted = (info?.stringAsCast === true && parent.type?.kind === ts.SyntaxKind.StringKeyword)
+            const admitted = (info?.stringAsCast === true && (parent.type?.kind === ts.SyntaxKind.StringKeyword
+                    || (ts.isTypeReferenceNode (parent.type) && ts.isIdentifier (parent.type.typeName) && parent.type.typeName.text === 'IndexType')))
                 || (info?.noCastAssertions === true && assertedPrintsNoUnsatisfiableCast (parent.type, javaType));
             if (!admitted) {
                 return false;
@@ -10716,13 +10723,22 @@ function objectKeysDeclaredType (printer, declaration) {
         try {
             const native = typeof printer.printNativeObjectKeysCall === 'function'
                 ? printer.printNativeObjectKeysCall (unwrapParens (declaration.initializer)) : undefined;
-            ok = typeof native === 'string' && OBJECT_KEYS_NATIVE_COPY.test (native) && objectKeysStringListLocal (declaration);
+            ok = ((typeof native === 'string' && OBJECT_KEYS_NATIVE_COPY.test (native)) || objectKeysTimeframesInit (declaration))
+                && objectKeysStringListLocal (declaration);
         } catch (e) {
             ok = false;
         }
         objectKeysDecisions.set (declaration, ok);
     }
     return objectKeysDecisions.get (declaration) ? 'java.util.List<String>' : undefined;
+}
+
+const OBJECT_KEYS_TIMEFRAMES_COPY = /^(?:Helpers\.objectKeys\(this\.timeframes\)|\(this\.timeframes == null \? new (?:java\.util\.)?ArrayList<Object>\(\) : new (?:java\.util\.)?ArrayList<Object>\(this\.timeframes\.keySet\(\)\)\))(;?\s*)$/;
+function objectKeysTimeframesInit (declaration) {
+    const init = unwrapParens (declaration.initializer);
+    return ts.isCallExpression (init) && init.arguments.length === 1 && ts.isPropertyAccessExpression (init.expression)
+        && init.expression.name.text === 'keys' && ts.isIdentifier (init.expression.expression) && init.expression.expression.text === 'Object'
+        && thisPropName (unwrapParens (init.arguments[0])) === 'timeframes';
 }
 
 export function patchJavaObjectKeysStringLists (transpiler) {
@@ -10753,7 +10769,15 @@ export function patchJavaObjectKeysStringLists (transpiler) {
             return printed;
         }
         const match = OBJECT_KEYS_NATIVE_COPY.exec (printed.slice (at + head.length));
-        if (match === null || objectKeysDeclaredType (printer, declaration) === undefined) {
+        if (match === null) {
+            // `Object.keys (this.timeframes)`: the hand-written Map<String, Object> field's null-guarded key copy
+            const guarded = OBJECT_KEYS_TIMEFRAMES_COPY.exec (printed.slice (at + head.length));
+            if (guarded === null || !objectKeysTimeframesInit (declaration) || objectKeysDeclaredType (printer, declaration) === undefined) {
+                return printed;
+            }
+            return printed.slice (0, at) + `${iden}java.util.List<String> ${name} = (this.timeframes == null ? new java.util.ArrayList<String>() : new java.util.ArrayList<String>(this.timeframes.keySet()))${guarded[1]}`;
+        }
+        if (objectKeysDeclaredType (printer, declaration) === undefined) {
             return printed;
         }
         return printed.slice (0, at) + `${iden}java.util.List<String> ${name} = new java.util.ArrayList<String>(${match[1]}.keySet())${match[2]}`;
@@ -11145,6 +11169,11 @@ function javaTypedListElementLocalType (printer, declaration) {
         return undefined;
     }
     const info = element === 'String' ? { type: 'String', nonNull: false, strictPlus: true, stringListElement: true } : { type: element };
+    // a `keys[j]` of `Object.keys (this.timeframes)`: a same-named sibling binding is typed on its own
+    const keysDecl = printer.getChecker ().getSymbolAtLocation (read.expression)?.valueDeclaration?.resolve ();
+    if (element === 'String' && keysDecl !== undefined && ts.isVariableDeclaration (keysDecl) && objectKeysTimeframesInit (keysDecl)) {
+        info.ownBinding = true;
+    }
     if (!isSafeToNarrow (printer, declaration, declaration.name.text, info.type, /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info)) {
         return undefined;
     }
@@ -23398,6 +23427,15 @@ export function installJavaR92j3LongFixedParams (transpiler) {
         return type === 'Long' && printer.javaPrintedIntCounter (unwrapParens (arg)) && printed === unwrapParens (arg).text
             ? `((long) ${printed})` : upstreamCheckcast (arg, printed, type);
     };
+    const upstreamMethod = printer.printMethodDeclaration.bind (printer);
+    printer.printMethodDeclaration = function (node, identation) {
+        const printed = upstreamMethod (node, identation);
+        try {
+            return r92j3LongListProducer (printer, node) ? r92j3LongListProducerText (printed) : r92j3LongListCallerText (printer, node, printed);
+        } catch (e) {
+            return printed;
+        }
+    };
     // `xs[p]` over a checker string[]/array name and such a Long slot p: GetValue's null key, null
     // receiver and off-range answers (its index is p.intValue()) as explicit guards
     const upstreamRead = printer.printCheckerTypedElementAccessRead.bind (printer);
@@ -23405,6 +23443,115 @@ export function installJavaR92j3LongFixedParams (transpiler) {
         const read = r92j3LongSlotIndexRead (printer, node);
         return read ?? upstreamRead (node);
     };
+}
+
+// pro paradex `unsubscribedChannels (..): number[]` pushes only its int loop counter into a fresh `[]`: it prints
+// `List<Long>` (`(long) i` elements), its const result locals `List<Long>`, a never-written element-0 local `Long`,
+// and `channels[<Long>]` / `messageHashes[<Long>]` over `string[]` params GetValue's null / off-range answers
+const R92J3_LONG_LIST_PRODUCERS = [ 'unsubscribedChannels' ];
+
+function r92j3LongListProducer (printer, method) {
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (method.name ?? {})
+        || !R92J3_LONG_LIST_PRODUCERS.includes (method.name.text) || method.body === undefined
+        || !/[\\/]ts[\\/]src[\\/]pro[\\/]paradex\.ts$/.test (method.getSourceFile ().fileName.replace (/\\/g, '/'))
+        || String (method.type?.getText () ?? '').replace (/\s/g, '') !== 'number[]' || printer.getMethodOverride (method) !== undefined) {
+        return false;
+    }
+    const stmts = method.body.statements;
+    const last = stmts[stmts.length - 1];
+    const decl = stmts.find ((st) => ts.isVariableStatement (st) && st.declarationList.declarations.length === 1
+        && st.declarationList.declarations[0].name.getText () === 'result')?.declarationList.declarations[0];
+    const init = unwrapParens (decl?.initializer);
+    if (last === undefined || !ts.isReturnStatement (last) || last.expression?.getText () !== 'result'
+        || init === undefined || !ts.isArrayLiteralExpression (init) || init.elements.length !== 0) {
+        return false;
+    }
+    let ok = true;
+    let pushes = 0;
+    const visit = (n) => {
+        if ((ts.isReturnStatement (n) && n !== last) || ts.isArrowFunction (n) || ts.isFunctionExpression (n) || ts.isFunctionDeclaration (n)) {
+            ok = false;
+        }
+        if (ts.isIdentifier (n) && n.text === 'result' && n !== decl.name && n.parent !== last) {
+            const call = n.parent?.parent;
+            if (!ts.isPropertyAccessExpression (n.parent) || n.parent.expression !== n || n.parent.name.text !== 'push'
+                || !ts.isCallExpression (call) || call.arguments.length !== 1
+                || !printer.javaPrintedIntCounter (unwrapParens (call.arguments[0]))) {
+                ok = false;
+            }
+            pushes++;
+        }
+        n.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    return ok && pushes > 0;
+}
+
+function r92j3LongListProducerText (printed) {
+    const out = printed
+        .replace (/public (?:java\.util\.)?List<Object> unsubscribedChannels\(/, 'public java.util.List<Long> unsubscribedChannels(')
+        .replace (/(?:java\.util\.)?List<Object> result = new (?:java\.util\.)?ArrayList<Object>\((?:java\.util\.)?Arrays\.asList\(\)\);/, 'java.util.List<Long> result = new java.util.ArrayList<Long>();')
+        .replace (/\(\((?:java\.util\.)?List<Object>\)result\)\.add\((\w+)\);/, 'result.add(((long) $1));');
+    // all three rewrites or none
+    return /List<Long> unsubscribedChannels\(/.test (out) && out.includes ('new java.util.ArrayList<Long>()') && out.includes ('result.add(((long) ') ? out : printed;
+}
+
+function r92j3LongListCallerText (printer, node, printed) {
+    if (node?.body === undefined) {
+        return printed;
+    }
+    const calls = [];
+    const visit = (n) => {
+        if (isThisCall (n) && R92J3_LONG_LIST_PRODUCERS.includes (n.expression.name.text)) {
+            calls.push (n);
+        }
+        n.forEachChild (visit);
+    };
+    node.body.forEachChild (visit);
+    if (calls.length === 0) {
+        return printed;
+    }
+    let out = printed;
+    const longLocals = [];
+    for (const call of calls) {
+        const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        const holder = call.parent;
+        if (!r92j3LongListProducer (printer, declaration) || !ts.isVariableDeclaration (holder) || holder.initializer !== call
+            || (holder.parent.flags & ts.NodeFlags.Const) === 0 || !ts.isIdentifier (holder.name)) {
+            return printed;
+        }
+        const name = holder.name.text;
+        const head = new RegExp (`(?:java\\.util\\.)?List<Object> ${name} = (?:\\((?:java\\.util\\.)?List<Object>\\) )?this\\.${call.expression.name.text}\\(`);
+        if (!head.test (out)) {
+            return printed;
+        }
+        out = out.replace (head, `java.util.List<Long> ${name} = this.${call.expression.name.text}(`);
+        longLocals.push (name);
+    }
+    // receivers: never-written `string[]` params, read through GetValue's list branch
+    const listParam = (r) => (node.parameters ?? []).some ((p) => ts.isIdentifier (p.name) && p.name.text === r
+        && String (p.type?.getText () ?? '').replace (/\s/g, '') === 'string[]' && !printer.javaParameterIsWritten (p));
+    const receivers = [ 'channels', 'messageHashes' ].filter (listParam);
+    const listRead = (r, guard, k) => `(${r} == null || ${guard} ? null : ((java.util.List<?>)${r}).get(${k}.intValue()))`;
+    for (const l of longLocals) {
+        const first = `\\(${l} == null \\|\\| 0 >= \\(\\((?:java\\.util\\.)?List<\\?>\\)${l}\\)\\.size\\(\\) \\? null : \\(\\((?:java\\.util\\.)?List<\\?>\\)${l}\\)\\.get\\(0\\)\\)`;
+        // `const index = l[0]`: a Long element, or null for an empty list
+        const idx = new RegExp (`Object (\\w+) = (${first});`).exec (out);
+        if (idx !== null) {
+            out = out.replace (idx[0], `Long ${idx[1]} = (${l} == null || 0 >= ${l}.size() ? null : ${l}.get(0));`);
+            const k = idx[1];
+            for (const r of receivers) {
+                out = out.split (`Helpers.GetValue(${r}, ${k})`).join (listRead (r, `${k} == null || ${k}.intValue() < 0 || ${k}.intValue() >= ((java.util.List<?>)${r}).size()`, k));
+            }
+        }
+        // `r[l[0]]` inline: the guarded element-0 get is side-effect free, so it may repeat
+        for (const r of receivers) {
+            const site = new RegExp (`Helpers\\.GetValue\\(${r}, ${first}\\)`, 'g');
+            const e = `${l}.get(0)`;
+            out = out.replace (site, () => listRead (r, `${l} == null || 0 >= ${l}.size() || ${e} == null || ${e}.intValue() < 0 || ${e}.intValue() >= ((java.util.List<?>)${r}).size()`, e));
+        }
+    }
+    return out;
 }
 
 function r92j3LongSlotIndexRead (printer, node) {
@@ -23782,6 +23929,19 @@ export function installJavaR87j5CalleeStringArgs (transpiler) {
         return;
     }
     printer._javaR87j5CalleeStringArgsPatched = true;
+    // `k as IndexType` prints the bare key: a String-declared identifier stays a String key
+    const upstreamKey = printer.javaStringProvenKey;
+    if (typeof upstreamKey === 'function') {
+        printer.javaStringProvenKey = function (key) {
+            if (upstreamKey.call (this, key)) {
+                return true;
+            }
+            const node = unwrapParens (key);
+            return node !== undefined && ts.isAsExpression (node) && ts.isTypeReferenceNode (node.type) && ts.isIdentifier (node.type.typeName)
+                && node.type.typeName.text === 'IndexType' && ts.isIdentifier (unwrapParens (node.expression))
+                && this.javaDeclaredStringType (unwrapParens (node.expression)) && this.printNode (node, 0).trim () === unwrapParens (node.expression).text;
+        };
+    }
     const upstreamResolver = printer.javaExpressionTypeResolver;
     printer.javaExpressionTypeResolver = function (node) {
         const upstream = typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
