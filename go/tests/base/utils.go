@@ -120,7 +120,7 @@ func InjectWsMessage(exchange ccxt.ICoreExchange, url any, message any) {
 func GetWsSentMessages(exchange ccxt.ICoreExchange, url any) []any {
 	// the frames the exchange sent over the mocked transport, already parsed
 	client := exchange.(wsClientProvider).Client(url)
-	return client.MockSentMessages
+	return client.MockSent()
 }
 
 func WsClientHasPendingFutures(exchange ccxt.ICoreExchange, url any) bool {
