@@ -7240,6 +7240,52 @@ function lendBookSideToHandleDelta(content: string): string {
 // unit slot 052
 //
 // unit slot 053
+// Same-venue calls taking typed symbol lists: `Value::from(vec![x.clone()]).to_opt_str_vec()` is `Some(vec![x.to_string()])`
+// (an Arr is never Null; each element is its Display text), so copy each element once instead of clone-then-stringify.
+// Applies only when `x` is declared in the enclosing fn as `Value` / `String` (both Display as the bridge does).
+function singleCopySymbolListArgs(content: string): string {
+    const lines = content.split('\n');
+    const declType = (idx: number, name: string): string | undefined => {
+        const re = new RegExp('^\\s*let (?:mut )?' + name + '(?:: ([\\w:]+))? = (.*)$');
+        for (let j = idx - 1; j >= 0; j--) {
+            const m = re.exec(lines[j]);
+            if (m) {
+                if (m[1] === 'Value' || m[1] === 'String') {
+                    return m[1];
+                }
+                if (m[1] === undefined && /^(?:__it\.next\(\)\.unwrap_or_default\(\)|get_arg\()/.test(m[2])) {
+                    return 'Value';
+                }
+                return undefined;
+            }
+            if (/^\s*(?:pub )?(?:async )?fn /.test(lines[j])) {
+                return undefined;
+            }
+        }
+        return undefined;
+    };
+    const el = '(?:Value::from\\(([A-Za-z_]\\w*)\\.clone\\(\\)\\)|([A-Za-z_]\\w*)\\.clone\\(\\))';
+    const one = new RegExp('\\(Value::from\\(vec!\\[' + el + '\\]\\)\\)\\.to_opt_str_vec\\(\\)', 'g');
+    const pair = new RegExp('\\(Value::from\\(vec!\\[Value::from\\(vec!\\[' + el + ', ' + el + '\\]\\)\\]\\)\\)\\.to_str_vec_vec\\(\\)', 'g');
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.indexOf('.clone()]') < 0 && line.indexOf('.clone())]') < 0) {
+            continue;
+        }
+        const ok = (n: string) => declType(i, n) !== undefined;
+        lines[i] = line
+            .replace(one, (all, a, b) => {
+                const n = a ?? b;
+                return ok(n) ? 'Some(vec![' + n + '.to_string()])' : all;
+            })
+            .replace(pair, (all, a1, b1, a2, b2) => {
+                const n1 = a1 ?? b1;
+                const n2 = a2 ?? b2;
+                return ok(n1) && ok(n2) ? 'vec![vec![' + n1 + '.to_string(), ' + n2 + '.to_string()]]' : all;
+            });
+    }
+    return lines.join('\n');
+}
 //
 // unit slot 054
 //
@@ -7565,6 +7611,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 052
     //
     // pass slot 053
+    singleCopySymbolListArgs,
     //
     // pass slot 054
     //
