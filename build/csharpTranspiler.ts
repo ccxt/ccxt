@@ -5275,7 +5275,8 @@ class NewTranspiler {
 
     // a slot that takes List<object> exactly as it takes IList<object>: an IList<object> declaration or
     // assignment to such a local, or the first argument of a single-signature base method with an
-    // IList<object>/object parameter there (no overload can pick a different body)
+    // IList<object>/object parameter there (no overload can pick a different body); the lookbehind is
+    // the unrewritten text, so arrayConcat's first argument may still read `this.toArray(x)`
     csharpListWideningSlot (before: string, lists: Map<string, string>): boolean {
         if (/\bIList<object>\s+\w+\s*=\s*$/.test (before)) {
             return true;
@@ -5284,7 +5285,7 @@ class NewTranspiler {
         if (assigned) {
             return lists.get (assigned[1]) === 'IList<object>';
         }
-        return /(?:\bthis\.(?:parseOHLCVs|parseLeverages|parseLiquidations|parseMarginModes|parseMarginModifications|parseOptionChain|parsePredictionOrders|arrayConcat)|\bccxt\.BaseExchange\.(?:ToTransactionList|ToDepositAddressList))\($/.test (before) || /\bthis\.arrayConcat\([A-Za-z_]\w*,\s*$/.test (before);
+        return /(?:\bthis\.(?:parseOHLCVs|parseLeverages|parseLiquidations|parseMarginModes|parseMarginModifications|parseOptionChain|parsePredictionOrders|arrayConcat)|\bccxt\.BaseExchange\.(?:ToTransactionList|ToDepositAddressList))\($/.test (before) || /\bthis\.arrayConcat\((?:this\.toArray\()?[A-Za-z_]\w*\)?,\s*$/.test (before);
     }
 
     // `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
