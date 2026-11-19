@@ -906,20 +906,20 @@ impl Exchange {
     pub fn safe_dict_k_o(&self, obj: impl crate::value::KeyRead, key: &str) -> Option<crate::value::Dict> { if let Value::Dict(m) = self.safe_value_k(obj, key, &[]) { Some(m) } else { None } }
     pub fn safe_list_k_t(&self, obj: impl crate::value::KeyRead, key: &str) -> crate::value::List { self.safe_list_k_o(obj, key).unwrap_or_default() }
     pub fn safe_list_k_o(&self, obj: impl crate::value::KeyRead, key: &str) -> Option<crate::value::List> { if let Value::Arr(a) = self.safe_value_k(obj, key, &[]) { Some(a) } else { None } }
-    pub fn safe_dict_t(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> crate::value::Dict { self.safe_dict_o(obj, key).unwrap_or_default() }
-    pub fn safe_dict_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> Option<crate::value::Dict> { if let Value::Dict(m) = self.safe_value(obj, key.into(), &[]) { Some(m) } else { None } }
-    pub fn safe_list_t(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> crate::value::List { self.safe_list_o(obj, key).unwrap_or_default() }
-    pub fn safe_list_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> Option<crate::value::List> { if let Value::Arr(a) = self.safe_value(obj, key.into(), &[]) { Some(a) } else { None } }
+    pub fn safe_dict_t(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg) -> crate::value::Dict { self.safe_dict_o(obj, key).unwrap_or_default() }
+    pub fn safe_dict_o(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg) -> Option<crate::value::Dict> { if let Value::Dict(m) = self.safe_value(obj, scalar_key(&key), &[]) { Some(m) } else { None } }
+    pub fn safe_list_t(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg) -> crate::value::List { self.safe_list_o(obj, key).unwrap_or_default() }
+    pub fn safe_list_o(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg) -> Option<crate::value::List> { if let Value::Arr(a) = self.safe_value(obj, scalar_key(&key), &[]) { Some(a) } else { None } }
     /// Twins of the readers above with a one-value default: the member when it is a map / list, else what the
     /// default converts to (`Dict`/`List`: the default's container or the empty one; `_o`: `None` for a non-container).
-    pub fn safe_dict_k_or(&self, obj: impl crate::value::KeyRead, key: &str, d: Value) -> crate::value::Dict { self.safe_dict_k_or_o(obj, key, d).unwrap_or_default() }
-    pub fn safe_dict_k_or_o(&self, obj: impl crate::value::KeyRead, key: &str, d: Value) -> Option<crate::value::Dict> { match (self.safe_dict_k_o(obj, key), d) { (Some(m), _) | (None, Value::Dict(m)) => Some(m), _ => None } }
-    pub fn safe_list_k_or(&self, obj: impl crate::value::KeyRead, key: &str, d: Value) -> crate::value::List { self.safe_list_k_or_o(obj, key, d).unwrap_or_default() }
-    pub fn safe_list_k_or_o(&self, obj: impl crate::value::KeyRead, key: &str, d: Value) -> Option<crate::value::List> { match (self.safe_list_k_o(obj, key), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
-    pub fn safe_dict_or(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> crate::value::Dict { self.safe_dict_or_o(obj, key, d).unwrap_or_default() }
-    pub fn safe_dict_or_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> Option<crate::value::Dict> { match (self.safe_dict_o(obj, key), d) { (Some(m), _) | (None, Value::Dict(m)) => Some(m), _ => None } }
-    pub fn safe_list_or(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> crate::value::List { self.safe_list_or_o(obj, key, d).unwrap_or_default() }
-    pub fn safe_list_or_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> Option<crate::value::List> { match (self.safe_list_o(obj, key), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
+    pub fn safe_dict_k_or(&self, obj: impl crate::value::KeyRead, key: &str, d: impl std::borrow::Borrow<Value>) -> crate::value::Dict { self.safe_dict_k_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_dict_k_or_o(&self, obj: impl crate::value::KeyRead, key: &str, d: impl std::borrow::Borrow<Value>) -> Option<crate::value::Dict> { self.safe_dict_k_o(obj, key).or_else(|| if let Value::Dict(m) = d.borrow() { Some(m.clone()) } else { None }) }
+    pub fn safe_list_k_or(&self, obj: impl crate::value::KeyRead, key: &str, d: impl std::borrow::Borrow<Value>) -> crate::value::List { self.safe_list_k_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_list_k_or_o(&self, obj: impl crate::value::KeyRead, key: &str, d: impl std::borrow::Borrow<Value>) -> Option<crate::value::List> { self.safe_list_k_o(obj, key).or_else(|| if let Value::Arr(a) = d.borrow() { Some(a.clone()) } else { None }) }
+    pub fn safe_dict_or(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, d: impl std::borrow::Borrow<Value>) -> crate::value::Dict { self.safe_dict_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_dict_or_o(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, d: impl std::borrow::Borrow<Value>) -> Option<crate::value::Dict> { self.safe_dict_o(obj, key).or_else(|| if let Value::Dict(m) = d.borrow() { Some(m.clone()) } else { None }) }
+    pub fn safe_list_or(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, d: impl std::borrow::Borrow<Value>) -> crate::value::List { self.safe_list_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_list_or_o(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, d: impl std::borrow::Borrow<Value>) -> Option<crate::value::List> { self.safe_list_o(obj, key).or_else(|| if let Value::Arr(a) = d.borrow() { Some(a.clone()) } else { None }) }
 
     /// Twins of `safe_dict2` / `safe_list2`: the first key's member that is a map / list, else the second's, else the
     /// default's container (`_t`/`_or`: the empty one; `_o`: `None`), exactly what the boxed reader's `.into_*()` answered.

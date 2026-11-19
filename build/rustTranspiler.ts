@@ -6209,6 +6209,14 @@ const RUST_SCALAR_LENT_FNS: Array<[string, number, number?]> = [
     ['parse_number', 0],
     ['safe_string_opt', 1, 3],
     ['safe_string', 1, 3],
+    ['safe_dict_t', 1, 2],
+    ['safe_dict_o', 1, 2],
+    ['safe_list_t', 1, 2],
+    ['safe_list_o', 1, 2],
+    ['safe_dict_or', 1, 3],
+    ['safe_dict_or_o', 1, 3],
+    ['safe_list_or', 1, 3],
+    ['safe_list_or_o', 1, 3],
 ];
 // Lend a local to the scalar helpers that take `impl ScalarArg`: `f(x.clone())` (x declared a scalar or
 // `Value` in this fn) and `f(x.clone().map(Value::from).unwrap_or(Value::Null))` (x declared
@@ -6779,6 +6787,35 @@ function lendThrowMatchedArgs(content: string): string {
 // unit slot 015
 //
 // unit slot 016
+// The `_or` readers borrow their default (`impl Borrow<Value>`): lend a `Value` local given as `x.clone()`, and
+// `f(x.clone(), .., x)` (container and default the same local) lends both. The default is copied only when used.
+function lendReaderDefaults(content: string): string {
+    const site = /\bsafe_(?:dict|list)_(?:k_)?or(?:_o)?\(/g;
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(site)) {
+        const open = (m.index as number) + m[0].length;
+        const close = balancedCloseIndex(content, open);
+        const a = splitRustArgs(content.slice(open, close));
+        if (a.length !== 3) continue;
+        const fnAt = content.lastIndexOf('fn ', open);
+        const isValue = (x: string): boolean => {
+            const d = [...content.slice(fnAt, open).matchAll(new RegExp(`(?<![\\w.])${x}\\s*(?::\\s*([^=;,)]+?)\\s*[=;,)]| = __it\\.next\\(\\)\\.unwrap_or_default\\(\\);)`, 'g'))].pop();
+            return d !== undefined && (d[1] ?? 'Value').trim() === 'Value';
+        };
+        const objAt = open + (a[0].length - a[0].trimStart().length);
+        const dAt = open + a[0].length + 1 + a[1].length + 1 + (a[2].length - a[2].trimStart().length);
+        const obj = a[0].trim(), d = a[2].trim();
+        let v = /^([A-Za-z_]\w*)\.clone\(\)$/.exec(d);
+        if (v !== null && v[1] !== 'self' && isValue(v[1])) { edits.push([dAt, dAt + d.length, '&' + v[1]]); continue; }
+        v = /^([A-Za-z_]\w*)\.clone\(\)$/.exec(obj);
+        if (v !== null && v[1] !== 'self' && d === v[1] && isValue(v[1])) {
+            edits.push([objAt, objAt + obj.length, '&' + v[1]], [dAt, dAt + d.length, '&' + v[1]]);
+        }
+    }
+    let out = '', last = 0;
+    for (const [x, y, r] of edits) { out += content.slice(last, x) + r; last = y; }
+    return out + content.slice(last);
+}
 //
 // unit slot 017
 //
@@ -7092,6 +7129,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 015
     //
     // pass slot 016
+    lendReaderDefaults,
     //
     // pass slot 017
     //
