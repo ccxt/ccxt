@@ -2450,8 +2450,6 @@ impl Exchange {
         put("tokenBucket", &self.tokenBucket);
         put("verbose", &self.verbose);
         put("isSandboxModeEnabled", &self.isSandboxModeEnabled);
-        put("sandbox", &self.sandbox);
-        put("testnet", &self.testnet);
         put("proxy", &self.proxy);
         put("proxyUrl", &self.proxyUrl);
         put("proxy_url", &self.proxy_url);
