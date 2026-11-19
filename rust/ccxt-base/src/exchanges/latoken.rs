@@ -1695,7 +1695,7 @@ impl Latoken {
         }
         result.insert("timestamp".into(), Value::from(maxTimestamp));
         result.insert("datetime".into(), self.iso8601(maxTimestamp));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
         Value::Null
         }).await?))
     }

@@ -6934,7 +6934,7 @@ impl Okx {
         }
         result.insert("timestamp".into(), Value::from(timestamp));
         result.insert("datetime".into(), self.iso8601(timestamp));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }
@@ -6963,7 +6963,7 @@ impl Okx {
             }
         }
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

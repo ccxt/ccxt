@@ -2165,7 +2165,7 @@ if _try_result.is_err() {
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "updated_at", &[]).as_i64();
         result.insert("timestamp".into(), Value::from(timestamp));
         result.insert("datetime".into(), self.iso8601(timestamp));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
         Value::Null
         }).await?))
     }

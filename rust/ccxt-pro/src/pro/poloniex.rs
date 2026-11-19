@@ -1150,22 +1150,22 @@ impl Poloniex {
             if self.in_array(key.clone(), &reserved) {
                 continue;
             }
-            if !(matches!((&self.balance, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (response.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
+            if !(matches!(&key, Value::Str(__k) if self.balance.contains_key(__k.as_ref()))) {
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (response.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
             }
         }
         }
-        if !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"))) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), response.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), response.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), response.as_map().and_then(|__m| __m.get("datetime")).cloned().unwrap_or(Value::Null)); }
+        if !(self.balance.contains_key("info")) {
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), response.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)); }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), response.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), response.as_map().and_then(|__m| __m.get("datetime")).cloned().unwrap_or(Value::Null)); }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(Value::Null, None);
-            client.resolve(self.balance.clone(), &type_var);
+            client.resolve(Value::Dict(self.balance.clone()), &type_var);
         }
 
     Value::Null
@@ -1883,17 +1883,17 @@ impl Poloniex {
         // never reach that consumer (same class as kraken issue #26773)
         let mut data: crate::value::List = message.key_list("data");
         let mut messageHash: String = "balances".to_string();
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
         }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) })); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) })); }
         let mut firstBalance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut timestamp: Option<i64> = self.safe_integer_k(&firstBalance, "ts", &[]).as_i64();
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_653: bool = true;
@@ -1905,12 +1905,12 @@ impl Poloniex {
             newAccount.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             newAccount.insert("used".into(), self.safe_string_k(&balance, "hold", &[]));
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(newAccount)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(newAccount)); }
             }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), messageHash.as_str());
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
     pub fn handle_my_trades(&mut self, client: &Value, mut parsedTrade: Value) {

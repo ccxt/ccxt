@@ -2073,9 +2073,9 @@ impl Backpack {
                 }
             }
             }
-            return self.safe_balance(Value::Map(result));
+            return Value::Dict(self.safe_balance(Value::Map(result)));
         }
-        return self.safe_balance(Value::Dict(balances));
+        return Value::Dict(self.safe_balance(Value::Dict(balances)));
         Value::Null
         }).await?))
     }
@@ -2143,7 +2143,7 @@ impl Backpack {
         add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), Value::from(timestamp));
         add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(timestamp));
         if let Value::Dict(__d) = &mut parsed { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Map(assets)); }
-        self.balance = parsed.clone();
+        self.balance = if let Value::Dict(__m) = parsed.clone() { __m } else { Default::default() };
         client.resolve(parsed, "balance");
         return Value::Bool(true);
 

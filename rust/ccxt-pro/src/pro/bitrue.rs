@@ -327,7 +327,7 @@ impl Bitrue {
         let mut balances: crate::value::List = message.key_list("B");
         self.parse_ws_balances(&balances);
         let mut messageHash: String = "balance".to_string();
-        client.resolve(self.balance.clone(), messageHash.as_str());
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
     pub fn parse_ws_balances(&mut self, balances: impl Into<crate::Value>) {
@@ -348,7 +348,7 @@ impl Bitrue {
         //         "t": 1657799510000
         //     }]
         //
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), balances.clone()); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), balances.clone()); }
         {
                         let mut i: i64 = 0;
             let mut __for_first_138: bool = true;
@@ -371,12 +371,12 @@ impl Bitrue {
                     account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
                 }
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                    { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
                 }
             }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
 }
 
 /*

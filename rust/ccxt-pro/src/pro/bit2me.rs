@@ -695,8 +695,8 @@ impl Bit2me {
         //
         let mut data: crate::value::Dict = message.key_dict("data");
         let mut balances: crate::value::List = self.safe_list_k_t(&data, "balance");
-        { let __t = self.parent.parse_balance_list(&balances); self.balance = __t; }
-        client.resolve(self.balance.clone(), "balance");
+        { let __t = self.parent.parse_balance_list(&balances); self.balance = if let Value::Dict(__m) = __t { __m } else { Default::default() }; }
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
 /*

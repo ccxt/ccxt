@@ -12289,7 +12289,7 @@ impl Kucoin {
             }
             }
         }
-        return self.safe_balance(Value::Dict(result));
+        return Value::Dict(self.safe_balance(Value::Dict(result)));
         Value::Null
         }).await?))
     }
@@ -12358,7 +12358,7 @@ impl Kucoin {
         if (currencyCode.is_some()) {
             result.insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }
@@ -12519,7 +12519,7 @@ impl Kucoin {
             }
             }
         }
-        return self.safe_balance(Value::Dict(result));
+        return Value::Dict(self.safe_balance(Value::Dict(result)));
 
     Value::Null
 }

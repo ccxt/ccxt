@@ -303,7 +303,7 @@ impl crate::exchange::DerivedExchange for Dydx {
                 m.insert("USDC".to_string(), Value::Map(account));
             m
         });
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

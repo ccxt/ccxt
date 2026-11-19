@@ -2858,7 +2858,7 @@ impl Polymarket {
         account.insert("used".into(), self.safe_string_k(&margin, "total_initial_margin", &[]));
         // pUSD is the only collateral asset on the venue
         result.insert("PUSD".into(), Value::Map(account));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
         Value::Null
         }).await?))
     }

@@ -3894,7 +3894,7 @@ impl Phemex {
         }
         result.insert("timestamp".into(), timestamp.clone());
         result.insert("datetime".into(), self.iso8601(timestamp));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }
@@ -3949,7 +3949,7 @@ impl Phemex {
         account.insert("total".into(), (if needsConversion { self.from_en(accountBalanceEv.as_deref(), Some(valueScale)).map(Value::from).unwrap_or(Value::Null) } else { accountBalanceEv.clone().map(Value::from).unwrap_or(Value::Null) }));
         account.insert("used".into(), (if needsConversion { self.from_en(totalUsedBalanceEv.as_deref(), Some(valueScale)).map(Value::from).unwrap_or(Value::Null) } else { totalUsedBalanceEv.clone().map(Value::from).unwrap_or(Value::Null) }));
         result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

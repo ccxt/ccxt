@@ -6122,7 +6122,7 @@ impl Mexc {
                 }
             }
             }
-            return self.safe_balance(Value::from(&result));
+            return Value::Dict(self.safe_balance(Value::from(&result)));
         }  else if isSwapType {
             {
                                 let mut i: i64 = 0;
@@ -6139,7 +6139,7 @@ impl Mexc {
                 }
             }
             }
-            return self.safe_balance(Value::from(&result));
+            return Value::Dict(self.safe_balance(Value::from(&result)));
         }  else {
             {
                                 let mut i: i64 = 0;
@@ -6156,7 +6156,7 @@ impl Mexc {
                 }
             }
             }
-            return self.safe_balance(Value::Dict(result));
+            return Value::Dict(self.safe_balance(Value::Dict(result)));
         }
 
     Value::Null

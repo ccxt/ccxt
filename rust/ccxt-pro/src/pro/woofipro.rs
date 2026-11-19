@@ -1756,9 +1756,9 @@ impl Woofipro {
         let mut balances: crate::value::Dict = self.safe_dict_k_t(&data, "balances");
         let mut keys: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut ts: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Dict(data)); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(ts)); }
-        { let __be_tmp = self.iso8601(ts); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Dict(data)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(ts)); }
+        { let __be_tmp = self.iso8601(ts); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_734: bool = true;
@@ -1767,7 +1767,7 @@ impl Woofipro {
             let mut value: crate::value::Dict = self.safe_dict_t(&balances, Value::from(key.as_deref()));
             let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
             let mut account: Value = self.account();
-            if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            if (code.is_some()) && (matches!(code.as_deref(), Some(__k) if self.balance.contains_key(__k))) {
                 let mut cachedAccount: Value = self.safe_dict(&self.balance, Value::from(code.as_deref()), &[]);
                 if (cachedAccount != Value::Null) {
                     account = cachedAccount;
@@ -1782,12 +1782,12 @@ impl Woofipro {
         m.insert("used".to_string(), used.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("free".to_string(), crate::precise::Precise::stringSub(&total, &used));
     m
-})]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+})]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), "balance");
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
     pub fn handle_error_message(&self, client: &Value, mut message: Value) -> Value {

@@ -474,7 +474,7 @@ pub trait ExchangeBase:
 }
 
     fn clean_ws_data(&mut self) {
-        { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.balance = __t; }
+        { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.balance = if let Value::Dict(__m) = __t { __m } else { Default::default() }; }
         self.orderbooks = crate::pro::order_book::BookMap::new();
         { let __t = self.create_safe_dictionary(&[Value::Bool(true)]); self.tickers = __t; }
         self.liquidations = None;
@@ -3109,7 +3109,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_balance(&self, mut balance: Value) -> Value {
+    fn safe_balance(&self, balance: impl crate::value::ExtendHead) -> crate::value::Dict {
+        let mut balance: crate::value::Dict = std::sync::Arc::new(crate::value::ExtendHead::into_head(balance));
         let mut balances: indexmap::IndexMap<String, Value> = self.omit(&balance, &["info", "timestamp", "datetime", "free", "used", "total"], &[]).as_map().cloned().unwrap_or_default();
         let mut codes: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut freeBalance: indexmap::IndexMap<String, Value> = ({
@@ -3160,20 +3161,20 @@ pub trait ExchangeBase:
                 debtBalance.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_number(debt.map(Value::from).unwrap_or(Value::Null), &[]));
                 entry.insert("debt".into(), debtBalance.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
-            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), self.extend(balances.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::Map(entry)])); }
+            { let __d = &mut balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), self.extend(balances.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::Map(entry)])); }
         }
         }
-        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map(freeBalance)); }
-        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("used".into(), Value::Map(usedBalance)); }
-        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("total".into(), Value::Map(totalBalance)); }
+        { let __d = &mut balance; std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map(freeBalance)); }
+        { let __d = &mut balance; std::sync::Arc::make_mut(__d).insert("used".into(), Value::Map(usedBalance)); }
+        { let __d = &mut balance; std::sync::Arc::make_mut(__d).insert("total".into(), Value::Map(totalBalance)); }
         let mut debtBalanceArray: Vec<Value> = Value::Array(debtBalance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut length: i64 = debtBalanceArray.len() as i64;
         if (length != 0) {
-            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("debt".into(), Value::Map(debtBalance)); }
+            { let __d = &mut balance; std::sync::Arc::make_mut(__d).insert("debt".into(), Value::Map(debtBalance)); }
         }
         return balance;
 
-    Value::Null
+    Default::default()
 }
 
     fn safe_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {
@@ -13620,7 +13621,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "request" => self.request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "require_value" => self.require_value(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "resolve_path" => self.resolve_path(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "safe_balance" => self.safe_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "safe_balance" => Value::Dict(self.safe_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "safe_currency" => crate::types::IntoRaw::into_raw(self.safe_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "safe_currency_code" => crate::Value::from(self.safe_currency_code(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "safe_currency_structure" => self.safe_currency_structure(args.get(0).cloned().unwrap_or(crate::Value::Null)),

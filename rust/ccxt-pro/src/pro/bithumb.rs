@@ -1113,8 +1113,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut messageHash: String = "myAsset".to_string();
         let mut assets: crate::value::List = __pro_message.key_list("assets");
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -1130,16 +1130,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             account.insert("free".into(), self.safe_string_k(&asset, "balance", &[]));
             account.insert("used".into(), self.safe_string_k(&asset, "locked", &[]));
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
         }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message.clone()); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), message.clone()); }
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), messageHash.as_str());
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
 /*

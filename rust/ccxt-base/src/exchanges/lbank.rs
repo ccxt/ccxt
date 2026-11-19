@@ -490,7 +490,7 @@ impl crate::exchange::DerivedExchange for Lbank {
                 }
             }
             }
-            return self.safe_balance(Value::Map(result.clone()));
+            return Value::Dict(self.safe_balance(Value::Map(result.clone())));
         }
         // from spotPrivatePostSupplementUserInfoAccount
         let mut balances: Option<crate::value::List> = self.safe_list_k_o(&data, "balances");
@@ -510,7 +510,7 @@ impl crate::exchange::DerivedExchange for Lbank {
                 }
             }
             }
-            return self.safe_balance(Value::Map(result.clone()));
+            return Value::Dict(self.safe_balance(Value::Map(result.clone())));
         }
         // from spotPrivatePostSupplementUserInfo
         let mut isArray: bool = matches!(&data, Value::Arr(_));
@@ -530,9 +530,9 @@ impl crate::exchange::DerivedExchange for Lbank {
                 }
             }
             }
-            return self.safe_balance(Value::Map(result.clone()));
+            return Value::Dict(self.safe_balance(Value::Map(result.clone())));
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

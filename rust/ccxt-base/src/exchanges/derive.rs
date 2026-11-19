@@ -5101,7 +5101,7 @@ impl Derive {
             if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&totalUsdc, &used)); }
             result.insert("USDC".into(), usdcAccount.map_or(Value::Null, Value::Dict));
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

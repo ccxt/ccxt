@@ -261,7 +261,7 @@ impl Blockchaincom {
         // nobody is awaiting, so a replaced object would make updates landing
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), message); }
         let mut balances: crate::value::List = __pro_message.key_list("balances");
         {
                         let mut i: i64 = 0;
@@ -274,13 +274,13 @@ impl Blockchaincom {
             account.insert("free".into(), self.safe_string_k(&entry, "available", &[]));
             account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
         }
         let mut messageHash: String = "balance".to_string();
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), messageHash.as_str());
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
 /*

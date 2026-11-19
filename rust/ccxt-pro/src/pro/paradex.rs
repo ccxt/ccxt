@@ -2541,8 +2541,8 @@ if _try_result.is_err() {
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
         let mut balance: crate::value::Dict = self.parse_ws_balance(&data).into_dict();
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -2557,11 +2557,11 @@ if _try_result.is_err() {
             if self.in_array(Value::from(key.as_deref()), &reserved) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&balance, &Value::from(key))); }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&balance, &Value::from(key))); }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), "balance");
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
     pub fn parse_ws_balance(&self, data: impl Into<crate::Value>) -> Value {
@@ -2585,7 +2585,7 @@ if _try_result.is_err() {
         if (code.is_some()) {
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

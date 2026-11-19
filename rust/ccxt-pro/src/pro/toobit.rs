@@ -1215,15 +1215,15 @@ impl Toobit {
         if (channel.as_deref() == Some("outboundContractAccountInfo")) {
             type_var = "contract".to_string();
         }
-        if !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key(type_var.as_str()))) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), Value::Map({
+        if !(self.balance.contains_key(type_var.as_str())) {
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), (match message.get("B") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) })); } }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
+        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), (match message.get("B") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) })); } }
+        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
+        { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_679: bool = true;
@@ -1236,12 +1236,12 @@ impl Toobit {
             account.insert("used".into(), self.safe_string_k(&balance, "l", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "f", &[]));
             if (code.is_some()) {
-                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
+                { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
             }
         }
         }
-        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
-        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
+        { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
+        client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
 }
 
     pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut marketType: Value) -> Value {
@@ -1259,13 +1259,13 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_6]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
+        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_6]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(Value::Null, None);
-            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":fetchBalanceSnapshot").into())));
-            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into()))); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+            client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":fetchBalanceSnapshot").into())));
+            client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into()))); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
         }
 
     Value::Null

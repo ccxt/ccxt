@@ -382,7 +382,7 @@ impl crate::exchange::DerivedExchange for P2b {
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

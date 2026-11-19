@@ -530,7 +530,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         }
         result.insert("timestamp".into(), Value::from(timestamp));
         result.insert("datetime".into(), self.iso8601(timestamp));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }
@@ -2939,7 +2939,7 @@ impl Blofin {
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

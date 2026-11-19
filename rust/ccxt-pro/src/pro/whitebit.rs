@@ -1121,12 +1121,12 @@ impl Whitebit {
         m.insert("type".to_string(), type_var);
     m
 })).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        { let __t = self.extend(crate::types::IntoRaw::into_raw(response), &[self.balance.clone()]); self.balance = __t; }
+        { let __t = self.extend_t(crate::types::IntoRaw::into_raw(response), &[Value::Dict(self.balance.clone())]); self.balance = __t; }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(Value::Null, None);
-            client.resolve(self.balance.clone(), &subscriptionHash);
+            client.resolve(Value::Dict(self.balance.clone()), &subscriptionHash);
         }
 
     Value::Null
@@ -1185,7 +1185,7 @@ impl Whitebit {
             { let __be_tmp = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), __be_tmp); } }
+})]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), __be_tmp); } }
             if isMargin {
                 let mut currencyId: Option<String> = self.safe_string_k_opt(&balanceDict, "a", &[]);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1194,7 +1194,7 @@ impl Whitebit {
                 std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&balanceDict, "B", &[]));
                 std::sync::Arc::make_mut(&mut account).insert("debt".into(), self.safe_string_k(&balanceDict, "b", &[]));
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
+                    { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
                 }
             }  else {
                 let mut keys: Vec<Value> = Value::Array(balanceDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -1209,21 +1209,21 @@ impl Whitebit {
                     std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&rawBalance, "available", &[]));
                     std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&rawBalance, "freeze", &[]));
                     if (code.is_some()) {
-                        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
+                        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
                     }
                 }
                 }
             }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
         let mut messageHash: String = "wallet:".to_string();
         if method.as_deref().unwrap_or_default().contains("Spot") {
             messageHash.push_str("spot");
         }  else {
             messageHash.push_str("margin");
         }
-        client.resolve(self.balance.clone(), messageHash.as_str());
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
     pub async fn watch_public(&mut self, messageHash: &str, method: &str, optional_args: &[Value]) -> Value {

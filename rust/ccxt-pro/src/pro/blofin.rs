@@ -1006,7 +1006,7 @@ impl Blofin {
         { let __be_tmp = self.safe_dict(&self.balance, Value::from(marketType.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
+})]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
         let mut parsed: crate::value::Dict = self.parse_ws_balance(message).into_dict();
         let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
         let mut keys: Vec<Value> = Value::Array(parsed.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -1018,12 +1018,12 @@ impl Blofin {
             if self.in_array(key.clone(), &reserved) {
                 continue;
             }
-            if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(marketType.clone()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&parsed, &key)); } }
+            { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(marketType.clone()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&parsed, &key)); } }
         }
         }
-        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(marketType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
+        { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = Some(marketType.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
         let mut messageHash: String = format!("{}{}", marketType, ":balance");
-        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(marketType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+        client.resolve((if let Some(__k) = Some(marketType.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
     pub fn parse_ws_balance(&self, mut message: Value) -> Value {

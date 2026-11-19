@@ -326,7 +326,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
             account.insert("free".into(), self.safe_string_k(&data, "withdrawable", &[]));
         }
         result.insert(currency, Value::Map(account));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

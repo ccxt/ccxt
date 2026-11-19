@@ -325,15 +325,15 @@ impl Deribit {
         //
         let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
         let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
         let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         let mut balance: crate::value::Dict = self.parse_balance(Value::Dict(data)).into_dict();
         if (currencyCode.is_some()) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Dict(balance)); }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Dict(balance)); }
         }
         let mut messageHash: String = "balance".to_string();
-        client.resolve(self.balance.clone(), messageHash.as_str());
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
 /*

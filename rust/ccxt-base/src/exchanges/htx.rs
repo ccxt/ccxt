@@ -7563,7 +7563,7 @@ impl Htx {
                 }
             }
             }
-            result = self.safe_balance(result);
+            result = Value::Dict(self.safe_balance(result));
         }  else if spot || margin {
             if isolated {
                 {
@@ -7599,7 +7599,7 @@ impl Htx {
                     }
                 }
                 }
-                result = self.safe_balance(result);
+                result = Value::Dict(self.safe_balance(result));
             }  else {
                 let mut balances: crate::value::List = self.safe_list_k_t(&data, "list");
                 {
@@ -7614,7 +7614,7 @@ impl Htx {
                     }
                 }
                 }
-                result = self.safe_balance(result);
+                result = Value::Dict(self.safe_balance(result));
             }
         }  else if inverse {
             {
@@ -7632,7 +7632,7 @@ impl Htx {
                 }
             }
             }
-            result = self.safe_balance(result);
+            result = Value::Dict(self.safe_balance(result));
         }
         return result;
         Value::Null

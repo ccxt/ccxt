@@ -1665,9 +1665,9 @@ impl Lighter {
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         balance.insert("timestamp".into(), Value::from(timestamp));
         balance.insert("datetime".into(), self.iso8601(timestamp));
-        { let __be_tmp = self.safe_balance(Value::Map(balance)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
+        { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(balance))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
         let mut messageHash: Option<String> = self.get_message_hash("balances", &[Value::Null, Value::from(type_var.as_str())]);
-        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_deref());
+        client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_deref());
         return Value::Bool(true);
 
     Value::Null

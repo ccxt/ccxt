@@ -1867,8 +1867,8 @@ impl Hyperliquid {
         //     }
         // }
         //
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -1900,19 +1900,19 @@ impl Hyperliquid {
             self.parse_ws_balance(rawBalances.get(i as usize).cloned().unwrap_or(Value::Null), &[account.clone()]);
         }
         }
-        if !(matches!((&self.balance, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), Value::Map({
+        if !(matches!(&account, Value::Str(__k) if self.balance.contains_key(__k.as_ref()))) {
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), info); } }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
-        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
+        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), info); } }
+        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
+        { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
+        { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = account.as_str() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
         if (topic.is_some()) {
             let mut messageHash: String = format!("{}{}", topic.as_deref().unwrap_or("null"), "::balance");
-            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+            client.resolve((if let Some(__k) = account.as_str() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
         }
 }
 
@@ -1963,17 +1963,17 @@ impl Hyperliquid {
         }
         if (accountType != Value::Null) {
             if (self.safe_value(&self.balance, accountType.clone(), &[]) == Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
             }
             if (accountType != Value::Null) && (code.is_some()) {
-                if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType) { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account.clone())); }
+                if let Value::Dict(__r05d) = std::sync::Arc::make_mut(&mut self.balance).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null) { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account.clone())); }
             }
         }  else {
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
 }
@@ -2608,8 +2608,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         self.clean_cache(Value::Map(topicStructure));
         // clean swap balance if it existed
-        if (matches!(&self.balance, Value::Dict(__d) if __d.contains_key("swap"))) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).shift_remove("swap"); }
+        if (self.balance.contains_key("swap")) {
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).shift_remove("swap"); }
         }
 }
 
@@ -2617,8 +2617,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subHash: String = "spotState".to_string();
         let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
-        if (matches!(&self.balance, Value::Dict(__d) if __d.contains_key("spot"))) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).shift_remove("spot"); }
+        if (self.balance.contains_key("spot")) {
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).shift_remove("spot"); }
         }
 }
 

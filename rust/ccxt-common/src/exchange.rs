@@ -423,8 +423,8 @@ pub struct Exchange {
     pub bidsasks:          Value,
     pub ohlcvs:            crate::pro::cache::CacheShelf,
     pub clients:           Value,
-    /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
-    pub balance:           Value,
+    /// Plain dict, never tagged: reads and writes are the stdlib map ops.
+    pub balance:           crate::value::Dict,
     pub liquidations:      Option<crate::pro::cache::Cache>,
     pub myLiquidations:    Option<crate::pro::cache::Cache>,
     pub fundingRates:      Value,
@@ -489,7 +489,7 @@ pub struct Exchange {
 /// `__live_id`), so reading and writing them is the stdlib map op and nothing
 /// else. The Rust transpiler emits those ops natively for the generated
 /// tiers; the test below holds the invariant they are proven from.
-pub const PLAIN_DICT_FIELDS: [&str; 2] = ["markets", "balance"];
+pub const PLAIN_DICT_FIELDS: [&str; 1] = ["markets"];
 
 /// The container invariant above, checked against the real constructor and
 /// against the runtime's own write-through helper.
@@ -500,7 +500,6 @@ mod plain_dict_container_proof {
     fn slot<'a>(ex: &'a mut Exchange, name: &str) -> &'a mut Value {
         match name {
             "markets" => &mut ex.markets,
-            "balance" => &mut ex.balance,
             other => panic!("not a plain-dict field: {other}"),
         }
     }
@@ -784,7 +783,7 @@ impl Exchange {
             bidsasks:      Value::Map(HashMap::new()),
             ohlcvs:        crate::pro::cache::CacheShelf::new(),
             clients:       Value::Map(HashMap::new()),
-            balance:       Value::Map(HashMap::new()),
+            balance:       crate::value::Dict::default(),
             liquidations:  None,
             myLiquidations: None,
             fundingRates:  Value::Null,

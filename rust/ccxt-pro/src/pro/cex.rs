@@ -299,13 +299,13 @@ impl Cex {
         let mut data: crate::value::Dict = message.key_dict("data");
         let mut freeBalance: crate::value::Dict = self.safe_dict_k_t(&data, "balance");
         let mut usedBalance: crate::value::Dict = self.safe_dict_k_t(&data, "obalance");
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
         }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Dict(data)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Dict(data)); }
         let mut currencyIds: Vec<Value> = Value::Array(freeBalance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -317,13 +317,13 @@ impl Cex {
             account.insert("used".into(), self.safe_string(&usedBalance, Value::from(currencyId.as_deref()), &[]));
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
         let mut messageHash: Option<String> = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(self.balance.clone(), messageHash.as_deref());
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_deref());
 }
 
 /*

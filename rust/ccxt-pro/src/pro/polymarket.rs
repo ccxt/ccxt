@@ -1411,7 +1411,7 @@ impl Polymarket {
         self.set_balance_cache(client.as_value());
         let mut fetchBalanceSnapshot: Option<bool> = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitBalanceSnapshot: Option<bool> = self.handle_option(Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(true)]).as_bool();
-        if (fetchBalanceSnapshot == Some(true)) && (awaitBalanceSnapshot == Some(true)) && !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"))) {
+        if (fetchBalanceSnapshot == Some(true)) && (awaitBalanceSnapshot == Some(true)) && !(self.balance.contains_key("info")) {
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchBalanceSnapshot".into()))).await;
@@ -1429,7 +1429,7 @@ impl Polymarket {
 
     pub fn set_balance_cache(&mut self, mut client: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        if (matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"))) {
+        if (self.balance.contains_key("info")) {
             return;
         }
         let mut fetchBalanceSnapshot: Option<bool> = self.handle_option(Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_bool();
@@ -1445,13 +1445,13 @@ impl Polymarket {
     pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut balance: crate::types::Balances = (match self.fetch_balance(Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        { let __t = self.extend(self.balance.clone(), &[crate::types::IntoRaw::into_raw(balance.clone())]); self.balance = __t; }
+        { let __t = self.extend_t(Value::Dict(self.balance.clone()), &[crate::types::IntoRaw::into_raw(balance.clone())]); self.balance = __t; }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
-            future.resolve(self.balance.clone(), None);
+            future.resolve(Value::Dict(self.balance.clone()), None);
         }
-        client.resolve(self.balance.clone(), "balance");
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
 
     Value::Null
 }
@@ -1535,7 +1535,7 @@ impl Polymarket {
         // pUSD is the only collateral asset on the venue
         result.insert("PUSD".into(), Value::Map(account));
         { let __t = self.safe_balance(Value::Map(result)); self.balance = __t; }
-        client.resolve(self.balance.clone(), "balance");
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
     pub fn handle_ack(&mut self, mut client: Value, mut message: Value) {

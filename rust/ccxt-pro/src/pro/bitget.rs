@@ -3248,7 +3248,7 @@ impl Bitget {
                     let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
                     let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                     let mut account: Value = self.account();
-                    if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    if (code.is_some()) && (matches!(code.as_deref(), Some(__k) if self.balance.contains_key(__k))) {
                         account = self.safe_dict(&self.balance, Value::from(code.as_deref()), &[std::mem::take(&mut account)]);
                     }
                     let mut borrow: Option<String> = self.safe_string_k_opt(&entry, "borrow", &[]);
@@ -3260,7 +3260,7 @@ impl Bitget {
                     if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("used".to_string(), self.safe_string_k(&entry, "locked", &[])); }
                     if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("total".to_string(), self.safe_string_k(&entry, "balance", &[])); }
                     if (code.is_some()) {
-                        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account.clone()); }
+                        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account.clone()); }
                     }
                 }
                 }
@@ -3268,7 +3268,7 @@ impl Bitget {
                 let mut currencyId: Option<String> = self.safe_string2_opt(&rawBalance, Value::Str("coin".into()), Value::Str("marginCoin".into()), &[]);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: Value = self.account();
-                if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                if (code.is_some()) && (matches!(code.as_deref(), Some(__k) if self.balance.contains_key(__k))) {
                     account = self.safe_dict(&self.balance, Value::from(code.as_deref()), &[std::mem::take(&mut account)]);
                 }
                 let mut borrow: Option<String> = self.safe_string_k_opt(&rawBalance, "borrow", &[]);
@@ -3284,17 +3284,17 @@ impl Bitget {
                 if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("total".to_string(), self.safe_string_k(&rawBalance, "equity", &[])); }
                 if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert("used".to_string(), self.safe_string_k(&rawBalance, "frozen", &[])); }
                 if (code.is_some()) {
-                    if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
+                    { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
                 }
             }
         }
         }
         // REST parseBalance sets info, keep the ws structure at parity,
         // see https://github.com/ccxt/ccxt/issues/21973
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message); }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), message); }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
         let mut messageHash: String = format!("{}{}", "balance:", instType.as_deref().unwrap_or("null"));
-        client.resolve(self.balance.clone(), messageHash.as_str());
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
     pub async fn watch_public(&mut self, uta: bool, messageHash: &str, args: impl Into<crate::Value>, optional_args: &[Value]) -> Value {

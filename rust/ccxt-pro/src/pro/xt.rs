@@ -2041,14 +2041,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         account.insert("used".into(), self.safe_string_k(&data, "f", &[]));
         account.insert("total".into(), self.safe_string2(&data, Value::Str("b".into()), Value::Str("walletBalance".into()), &[]));
         if (code.is_some()) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
         let mut tradeType: String = "spot".to_string();
         if (data.contains_key("coin")) {
             tradeType = "contract".to_string();
         }
-        client.resolve(self.balance.clone(), &(Value::Str(format!("{}{}", "balance::", tradeType).into())));
+        client.resolve(Value::Dict(self.balance.clone()), &(Value::Str(format!("{}{}", "balance::", tradeType).into())));
 }
 
     pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {

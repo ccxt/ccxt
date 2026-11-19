@@ -3024,7 +3024,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         account.insert("free".into(), Value::from(balanceString.as_deref()));
         account.insert("total".into(), balanceString.map(Value::from).unwrap_or(Value::Null));
         result.insert(currency.as_deref().unwrap_or("null").to_string(), Value::Map(account));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
         Value::Null
         }).await?))
     }

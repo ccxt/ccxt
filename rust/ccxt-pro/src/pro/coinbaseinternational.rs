@@ -564,8 +564,8 @@ impl Coinbaseinternational {
         let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut parsed: crate::value::Dict = self.parent.parse_balance_list(&data).into_dict();
-        { let __t = self.deep_extend(self.balance.clone(), &[&parsed]); self.balance = __t; }
-        client.resolve(self.balance.clone(), "balance");
+        { let __t = self.deep_extend_t(Value::Dict(self.balance.clone()), &[&parsed]); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
 /*
@@ -2916,7 +2916,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             balance = self.deep_extend(balance, &[self.parent.parse_balance_list(summaries.get(i as usize).cloned().unwrap_or(Value::Null))]);
         }
         }
-        return self.safe_balance(balance);
+        return Value::Dict(self.safe_balance(balance));
         Value::Null
         }).await?))
     }

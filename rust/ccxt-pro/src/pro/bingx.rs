@@ -1659,7 +1659,7 @@ impl Bingx {
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client, Value::from(messageHash), Value::from(type_var), subType]);
             }
         }  else {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(type_var)), Value::Map({
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(type_var)), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
@@ -1678,12 +1678,12 @@ impl Bingx {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_5]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_5]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(Value::Null, None);
-            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
+            client.resolve((if let Some(__k) = type_var.as_str() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
         }
 
     Value::Null
@@ -2366,15 +2366,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if isSpot {
             type_var = "spot".to_string();
         }
-        if !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key(type_var.as_str()))) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), Value::Map({
+        if !(self.balance.contains_key(type_var.as_str())) {
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), Value::from(&data)); } }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
+        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), Value::from(&data)); } }
+        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
+        { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_98: bool = true;
@@ -2387,12 +2387,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             account.insert("used".into(), self.safe_string_k(&balance, "lk", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "wb", &[]));
             if (code.is_some()) {
-                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
+                { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
             }
         }
         }
-        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
-        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
+        { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
+        client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
 }
 
 // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them

@@ -57,7 +57,7 @@ pub fn testMergeBalanceAccount() {
     // the merged dict is a regular safeBalance input. safeBalance parses to a number,
     // and each port spells that number differently (JS "3", PHP "3.0"), so assert on
     // the parsed value rather than on its string form
-    let mut balance: Value = exchange.safe_balance(result);
+    let mut balance: Value = Value::Dict(exchange.safe_balance(result));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_f64() == exchange.parse_number(Value::Str("3".into()), &[]).as_f64()))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), Value::Str("USDT".into()), &[]).as_f64() == exchange.parse_number(Value::Str("5".into()), &[]).as_f64()))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("debt")).cloned().unwrap_or(Value::Null), Value::Str("BTC".into()), &[]).as_f64() == exchange.parse_number(Value::Str("0.1".into()), &[]).as_f64()))));

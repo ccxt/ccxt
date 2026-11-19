@@ -1293,7 +1293,7 @@ impl Bitfinex {
                 oldBalance.insert(code.as_deref().unwrap_or("null").to_string(), balance.clone());
             }
             oldBalance.insert("info".into(), message.clone());
-            { let __be_tmp = self.safe_balance(Value::Map(oldBalance)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(balanceType.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+            { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(oldBalance))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(balanceType.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             updatedTypes.insert(balanceType.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
         }
         }
@@ -1304,7 +1304,7 @@ impl Bitfinex {
             while { if !__for_first_111 { i += 1; } __for_first_111 = false; i < (updatesKeys.len() as i64) } {
             let mut type_var: Option<String> = updatesKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut messageHash: String = format!("{}{}", "balance:", type_var.as_deref().unwrap_or("null"));
-            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+            client.resolve((if let Some(__k) = type_var.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
         }
         }
 }

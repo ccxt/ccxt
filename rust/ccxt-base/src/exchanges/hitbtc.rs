@@ -2576,7 +2576,7 @@ impl Hitbtc {
             }
         }
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

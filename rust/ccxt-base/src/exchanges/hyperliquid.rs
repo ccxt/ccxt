@@ -2491,7 +2491,7 @@ impl Hyperliquid {
                 }
             }
             }
-            return self.safe_balance(Value::Map(spotBalances));
+            return Value::Dict(self.safe_balance(Value::Map(spotBalances)));
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "marginSummary");
         let mut usdcBalance: indexmap::IndexMap<String, Value> = ({
@@ -2513,7 +2513,7 @@ impl Hyperliquid {
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "time", &[]).as_i64();
         result.insert("timestamp".into(), Value::from(timestamp));
         result.insert("datetime".into(), self.iso8601(timestamp));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
         Value::Null
         }).await?))
     }

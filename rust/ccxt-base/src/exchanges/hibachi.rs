@@ -345,7 +345,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
         if (code.is_some()) {
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

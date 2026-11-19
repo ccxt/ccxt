@@ -1769,9 +1769,9 @@ impl Modetrade {
         let mut balances: crate::value::Dict = self.safe_dict_k_t(&data, "balances");
         let mut keys: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut ts: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Dict(data)); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(ts)); }
-        { let __be_tmp = self.iso8601(ts); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Dict(data)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(ts)); }
+        { let __be_tmp = self.iso8601(ts); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_505: bool = true;
@@ -1786,12 +1786,12 @@ impl Modetrade {
             account.insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("free".into(), crate::precise::Precise::stringSub(&total, &used));
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), "balance");
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
     pub fn handle_error_message(&self, client: &Value, mut message: Value) -> Value {

@@ -3620,7 +3620,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         account.insert("free".into(), self.safe_string_k(&response, "availableQuantity", &[]));
         account.insert("used".into(), self.safe_string_k(response, "lockedQuantity", &[]));
         result.insert(crate::runtime::stringify_param(&Value::from(code)), Value::Map(account));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }
@@ -3648,7 +3648,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

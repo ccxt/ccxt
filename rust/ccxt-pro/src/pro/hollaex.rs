@@ -678,9 +678,9 @@ impl Hollaex {
         let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut keys: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(message, "time", &[]).as_i64();
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_388: bool = true;
@@ -690,19 +690,19 @@ impl Hollaex {
             let mut currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: Value = self.account();
-            if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                account = (if let (Some(__m), Some(__k)) = (self.balance.as_map(), code.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            if (code.is_some()) && (matches!(code.as_deref(), Some(__k) if self.balance.contains_key(__k))) {
+                account = (if let Some(__k) = code.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
             let mut second: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
             let mut freeOrTotal: String = (if (second.as_deref() == Some("available")) { "free".to_string() } else { "total".to_string() });
             add_element_to_object(&mut account, &Value::from(freeOrTotal.as_str()), self.safe_string(&data, Value::from(key.as_deref()), &[]));
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
             }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), messageHash.as_deref());
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_deref());
 }
 
     pub async fn watch_public(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {

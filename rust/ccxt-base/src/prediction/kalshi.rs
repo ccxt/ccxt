@@ -356,7 +356,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         m.insert("total".to_string(), Value::from(total));
     m
 }));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

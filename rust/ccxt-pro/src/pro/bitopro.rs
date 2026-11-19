@@ -728,15 +728,15 @@ impl Bitopro {
         // nobody is awaiting, so a replaced object would make updates landing
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
         }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null)); }
         {
                         let mut i: i64 = 0;
             let mut __for_first_137: bool = true;
@@ -749,12 +749,12 @@ impl Bitopro {
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("total".into(), self.safe_string_k(&balance, "amount", &[]));
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), event.as_deref());
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), event.as_deref());
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

@@ -376,7 +376,7 @@ impl crate::exchange::DerivedExchange for Apex {
         account.insert("free".into(), self.safe_string_k(&response, "availableBalance", &[]));
         account.insert("total".into(), self.safe_string_k(response, "totalEquityValue", &[]));
         result.insert(code, Value::Map(account));
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

@@ -463,14 +463,14 @@ impl Extended {
         // to this.balance, and Client.resolve is a no-op while nobody is
         // awaiting, so a replaced object would make updates landing in that
         // window invisible to the consumer forever (issue #26773)
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
         }
         let mut data: crate::value::Dict = message.key_dict("data");
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
         let mut balance: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "balance");
         if (balance.is_some()) {
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "collateralName", &[]);
@@ -479,7 +479,7 @@ impl Extended {
                 let mut account: crate::value::Dict = self.account().into_dict();
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&balance, "availableForWithdrawal", &[]));
                 std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
             }
         }
         let mut spotBalances: crate::value::List = self.safe_list_k_t(&data, "spotBalances");
@@ -494,15 +494,15 @@ impl Extended {
                 let mut account: crate::value::Dict = self.account().into_dict();
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&spotBalance, "availableToWithdraw", &[]));
                 std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&spotBalance, "balance", &[]));
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
             }
         }
         }
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        client.resolve(self.balance.clone(), "balance");
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
 /*

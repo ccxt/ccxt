@@ -4054,7 +4054,7 @@ impl Poloniex {
                 }
             }
             }
-            return self.safe_balance(Value::Map(result.clone()));
+            return Value::Dict(self.safe_balance(Value::Map(result.clone())));
         }
         {
                         let mut i: i64 = 0;
@@ -4079,7 +4079,7 @@ impl Poloniex {
             }
         }
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

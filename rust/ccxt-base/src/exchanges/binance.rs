@@ -10635,7 +10635,7 @@ impl Binance {
         }
         std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
         std::sync::Arc::make_mut(&mut result).insert("datetime".into(), self.iso8601(timestamp));
-        return self.safe_balance(Value::Dict(result));
+        return Value::Dict(self.safe_balance(Value::Dict(result)));
 
     Value::Null
 }

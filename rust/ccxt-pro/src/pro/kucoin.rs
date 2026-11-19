@@ -3493,7 +3493,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn set_balance_cache(&mut self, mut client: Value, type_var: &str) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        if (__ch.has_subscription(&Value::from(type_var))) && (matches!((&self.balance, &Value::from(type_var)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (__ch.has_subscription(&Value::from(type_var))) && (matches!(&Value::from(type_var), Value::Str(__k) if self.balance.contains_key(__k.as_ref()))) {
             return;
         }
         let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchBalance");
@@ -3505,7 +3505,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client, Value::from(messageHash), Value::from(type_var)]);
             }
         }  else {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(type_var)), Value::Map({
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(type_var)), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
@@ -3526,12 +3526,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_5]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_5]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
             future.resolve(Value::Null, None);
-            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
+            client.resolve((if let Some(__k) = type_var.as_str() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
         }
 
     Value::Null
@@ -3622,16 +3622,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut uniformType: String = self.safe_string(&accountsByType, requestAccountType.map(Value::from).unwrap_or(Value::Null), &[Value::Str("trade".into())]).as_str().unwrap_or("trade").to_string();
         if (true) {
-            if !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key(uniformType.as_str()))) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(uniformType.to_string(), Value::Map({
+            if !(self.balance.contains_key(uniformType.as_str())) {
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(uniformType.to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
             }
-            if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(uniformType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), Value::from(&data)); } }
+            { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(uniformType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), Value::from(&data)); } }
             let mut timestamp: Option<i64> = self.safe_integer2(&data, Value::Str("time".into()), Value::Str("timestamp".into()), &[]).as_i64();
-            if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(uniformType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-            { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(uniformType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
+            { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(uniformType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
+            { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(uniformType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut used: Option<String> = self.safe_string2_opt(&data, Value::Str("hold".into()), Value::Str("holdBalance".into()), &[]);
@@ -3643,10 +3643,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
             account.insert("total".into(), self.safe_string_k(&data, "total", &[]));
             if (code.is_some()) {
-                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(uniformType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
+                { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(uniformType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
             }
-            { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(uniformType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(uniformType.to_string(), __be_tmp); } }
-            client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(uniformType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", uniformType, ":balance").into())));
+            { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = Some(uniformType.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(uniformType.to_string(), __be_tmp); } }
+            client.resolve((if let Some(__k) = Some(uniformType.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", uniformType, ":balance").into())));
         }
 }
 
@@ -3672,26 +3672,26 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut data: crate::value::Dict = message.key_dict("d");
         let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "c", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-        if !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key(type_var.as_str()))) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), Value::Map({
+        if !(self.balance.contains_key(type_var.as_str())) {
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), Value::from(&data)); } }
+        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), Value::from(&data)); } }
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&data, "U", Value::Float(0.000001), &[]).as_i64();
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
+        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
+        { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("free".into(), self.safe_string_k(&data, "a", &[]));
         account.insert("used".into(), self.safe_string_k(&data, "h", &[]));
         account.insert("total".into(), self.safe_string_k(&data, "b", &[]));
         if (code.is_some()) {
-            if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
+            { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
         }
-        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
+        { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
         let mut messageHash: String = format!("{}{}", type_var, ":balance");
-        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(type_var.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+        client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
 /*

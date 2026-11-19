@@ -1321,19 +1321,19 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchBalance", &paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (self.balance == Value::Null) {
+        if (self.balance.is_empty()) {
             let mut emptyBalances: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            self.balance = Value::Map(emptyBalances);
+            self.balance = std::sync::Arc::new(emptyBalances);
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         let mut subaccountIdKey: Option<String> = self.number_to_string(Value::from(subaccountId));
         if (subaccountIdKey.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " watchBalance() could not resolve the subaccount id")));
         }
-        if fetchSnapshot && !(matches!((&self.balance, subaccountIdKey.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+        if fetchSnapshot && !(matches!(subaccountIdKey.as_deref(), Some(__k) if self.balance.contains_key(__k))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), Value::from(subaccountId));
@@ -1346,7 +1346,7 @@ impl Derive {
                 m
             }); // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
             let mut seeded: crate::value::Dict = self.extend_t(crate::types::IntoRaw::into_raw(snapshot), &[Value::Map(emptyBalance)]); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), Value::Dict(seeded)); }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), Value::Dict(seeded)); }
         }
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
         let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), ".balances");
@@ -1540,8 +1540,8 @@ impl Derive {
         let mut topicParts: crate::value::List = crate::value::List::new(topic.split(".").map(Value::from).collect());
         let mut subaccountIdKey: Option<String> = self.safe_string_opt(&topicParts, Value::Int(0), &[]);
         let mut data: crate::value::List = self.safe_list_k_t(&params, "data");
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -1584,7 +1584,7 @@ impl Derive {
         }
         }
         if updated {
-            { let __be_tmp = self.safe_balance(subBalance); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+            { let __be_tmp = Value::Dict(self.safe_balance(subBalance)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             client.resolve(self.safe_value(&self.balance, subaccountIdKey.map(Value::from).unwrap_or(Value::Null), &[]), topic.as_str());
         }
         let mut positionUpdatesLength: i64 = positionUpdates.len() as i64;

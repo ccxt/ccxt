@@ -4389,7 +4389,7 @@ if _try_result.is_err() {
         m.insert("total".to_string(), usdTotal.map(Value::from).unwrap_or(Value::Null));
     m
 }));
-            return self.safe_balance(Value::Map(balanceResult));
+            return Value::Dict(self.safe_balance(Value::Map(balanceResult)));
         }
         let mut balances: crate::value::List = self.safe_list2_t(&response, Value::Str("data".into()), Value::Str("accounts".into()));
         let mut accounts: Value = (match params.get("type") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => self.options.get("accounts").cloned().unwrap_or(Value::Null) });
@@ -4473,7 +4473,7 @@ if _try_result.is_err() {
             }
         }
         }
-        return self.safe_balance(Value::Map(result));
+        return Value::Dict(self.safe_balance(Value::Map(result)));
 
     Value::Null
 }

@@ -313,8 +313,8 @@ impl Onetrading {
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
         let mut balance: crate::value::Dict = self.parse_balance(message).into_dict();
-        if (self.balance == Value::Null) {
-            self.balance = Value::Map({
+        if (self.balance.is_empty()) {
+            self.balance = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -329,12 +329,12 @@ impl Onetrading {
             if self.in_array(Value::from(key.as_deref()), &reserved) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&balance, &Value::from(key))); }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&balance, &Value::from(key))); }
         }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
         let mut messageHash: String = "balance".to_string();
-        client.resolve(self.balance.clone(), messageHash.as_str());
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
 /*
@@ -1340,7 +1340,7 @@ impl Onetrading {
             }
         }
         }
-        client.resolve(self.balance.clone(), "balance");
+        client.resolve(Value::Dict(self.balance.clone()), "balance");
         // update trades
         if (updateType.as_deref() == Some("TRADE_SETTLED")) {
             let mut parsed: crate::value::Dict = self.parse_trade(Value::Dict(update), None).into_dict();
@@ -1379,9 +1379,9 @@ impl Onetrading {
         account.insert("free".into(), self.safe_string_k(&balance, "new_available", &[]));
         account.insert("used".into(), self.safe_string_k(balance, "new_locked", &[]));
         if (code.is_some()) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
         }
-        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        { let __t = self.safe_balance(&self.balance); self.balance = __t; }
 }
 
 /*

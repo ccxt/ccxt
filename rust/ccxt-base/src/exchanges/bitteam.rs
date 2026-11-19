@@ -618,7 +618,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
             }
         }
         }
-        return self.safe_balance(Value::Map(balance));
+        return Value::Dict(self.safe_balance(Value::Map(balance)));
 
     Value::Null
 }

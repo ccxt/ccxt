@@ -1058,8 +1058,8 @@ impl Upbit {
         //
         let mut data: crate::value::List = __pro_message.key_list("assets");
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_687: bool = true;
@@ -1073,13 +1073,13 @@ impl Upbit {
             account.insert("free".into(), available.map(Value::from).unwrap_or(Value::Null));
             account.insert("used".into(), frozen.map(Value::from).unwrap_or(Value::Null));
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
-            { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+            { let __t = self.safe_balance(&self.balance); self.balance = __t; }
         }
         }
         let mut messageHash: Option<String> = (match __pro_message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        client.resolve(self.balance.clone(), messageHash.as_deref());
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_deref());
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

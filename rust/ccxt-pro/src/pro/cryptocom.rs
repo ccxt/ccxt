@@ -1676,7 +1676,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut messageHash: Option<String> = (match message.get("subscription") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::List = message.key_list("data");
         let mut positionBalances: crate::value::List = self.safe_list_t(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("position_balances".into()));
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(data)); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(data)); }
         {
                         let mut i: i64 = 0;
             let mut __for_first_286: bool = true;
@@ -1688,15 +1688,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             account.insert("total".into(), self.safe_string_k(&balance, "quantity", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "reserved_qty", &[]));
             if (code.is_some()) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
-            { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+            { let __t = self.safe_balance(&self.balance); self.balance = __t; }
         }
         }
-        client.resolve(self.balance.clone(), messageHash.as_deref());
+        client.resolve(Value::Dict(self.balance.clone()), messageHash.as_deref());
         let mut messageHashRequest: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (messageHashRequest.is_some()) {
-            client.resolve(self.balance.clone(), messageHashRequest.as_deref());
+            client.resolve(Value::Dict(self.balance.clone()), messageHashRequest.as_deref());
         }
 }
 

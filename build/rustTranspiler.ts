@@ -3953,7 +3953,7 @@ function typedUrlsField(content: string): string {
 // `options`, `fees`, `userAgents` are typed `Dict`s too (always a dict, never tagged): the same
 // map ops as `typedUrlsField`; a value the `Dict` cannot satisfy is boxed back as `Value::Dict`.
 function typedBaseDictFields(content: string): string {
-    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions']) {
+    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance']) {
         const r = 'self\\.' + f;
         const k = '("[^"\\\\]*")';
         const make = 'std::sync::Arc::make_mut(';
@@ -3973,6 +3973,37 @@ function typedBaseDictFields(content: string): string {
             .replace(new RegExp('&mut ' + r + '\\.clone\\(\\)', 'g'), 'unsafe { crate::runtime::coerce_value_to_mut(&self.' + f + ') }');
     }
     return content;
+}
+
+// `balance` is a typed `Dict` (exchange.rs) and `safeBalance` takes any map operand and returns the `Dict` it fills:
+// a `Value` slot boxes the answer, a `Value` store into the field keeps its map (a non-map is the empty map).
+function typedBalanceField(content: string): string {
+    content = content
+        .replace(/fn safe_balance\(&self, mut balance: Value\) -> Value \{\n/, 'fn safe_balance(&self, balance: impl crate::value::ExtendHead) -> crate::value::Dict {\n        let mut balance: crate::value::Dict = std::sync::Arc::new(crate::value::ExtendHead::into_head(balance));\n')
+        .replace(/(let mut debtBalanceArray[^\n]*\n[\s\S]*?return balance;\n\n\s*)Value::Null\n/, '$1Default::default()\n')
+        .replace(/\(self\.balance == Value::Null\)/g, '(self.balance.is_empty())')
+        .replace(/self\.balance = Value::Map\(/g, 'self.balance = std::sync::Arc::new(')
+        .replace(/let __t = self\.(extend|deep_extend)\(([^;]*)\); self\.balance = __t;/g, 'let __t = self.$1_t($2); self.balance = __t;')
+        .replace(/let __t = ((?!self\.(?:safe_balance|extend_t|deep_extend_t)\()[^;]*); self\.balance = __t;/g, 'let __t = $1; self.balance = if let Value::Dict(__m) = __t { __m } else { Default::default() };')
+        .replace(/self\.balance = (\w+)\.clone\(\);/g, 'self.balance = if let Value::Dict(__m) = $1.clone() { __m } else { Default::default() };')
+        .replace(/get_value_mut\(unsafe \{ crate::runtime::coerce_value_to_mut\(&self\.balance\) \}, &(\w+)\)/g, 'std::sync::Arc::make_mut(&mut self.balance).entry(crate::runtime::stringify_param(&$1)).or_insert(Value::Null)')
+        .replace(/unsafe \{ crate::runtime::coerce_value_to_mut\(&self\.balance\) \}/g, '&mut self.balance')
+        .replace(/matches!\(&self\.balance, Value::Dict\(__d\) if __d\.contains_key\(([\w.()]+)\)\)/g, 'self.balance.contains_key($1)');
+    const sig = content.indexOf('fn safe_balance(&self, balance: impl');
+    if (sig >= 0) {
+        const end = balancedCloseIndex(content, content.indexOf('{', sig) + 1);
+        content = content.slice(0, sig) + content.slice(sig, end).replace(/if let Value::Dict\(__d\) = &mut balance \{/g, '{ let __d = &mut balance;') + content.slice(end);
+    }
+    const head = /(let __t = )?\b(?:self|exchange)(?:\.parent)?\.safe_balance\(/g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec(content)) !== null) {
+        if (m[1] !== undefined || content.slice(Math.max(0, m.index - 3), m.index) === 'fn ') continue;
+        const close = balancedCloseIndex(content, m.index + m[0].length);
+        out += content.slice(last, m.index) + 'Value::Dict(' + content.slice(m.index, close + 1) + ')';
+        last = close + 1;
+        head.lastIndex = last;
+    }
+    return out + content.slice(last);
 }
 
 function plainDictChains(content: string): string {
@@ -5142,7 +5173,7 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))));
+    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -11736,7 +11767,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))));
+        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 

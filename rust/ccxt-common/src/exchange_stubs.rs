@@ -2563,7 +2563,7 @@ impl Exchange {
         put("bidsasks", &self.bidsasks);
         put("ohlcvs", &Value::from(&self.ohlcvs));
         put("clients", &self.clients);
-        put("balance", &self.balance);
+        put("balance", &Value::from(&self.balance));
         put("liquidations", &Value::from(&self.liquidations));
         put("myLiquidations", &Value::from(&self.myLiquidations));
         put("transactions", &self.transactions);
