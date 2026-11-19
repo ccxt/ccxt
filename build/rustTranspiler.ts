@@ -6321,12 +6321,13 @@ function splitLongRustLines(content: string, max = 400): string {
 // become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
 // Base handle{Option*,MarketType,MarginMode,SubType}AndParams, handleParam{String,Bool,Integer}(2) and handlePostOnly share the shape
 const RUST_TUPLE_FN_CORE = String.raw`(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params|handle_stock_params|is_unified_enabled|get_bybit_type`;
-// venue request/option helpers answering a `[slot 0, Dict]` pair, one name per line
-const RUST_TUPLE_VENUE_FNS: string[] = [
+// venue request/option helpers answering a `[slot 0, Dict]` pair: [name, slot-0 family key of RUST_OPTION_TUPLE_SLOT0]
+const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
 ];
-const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS].join('|')})`;
+const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
+const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
 // handleStockParams and hyperliquid isUnifiedEnabled answer [Bool, Dict]; bybit isUnifiedEnabled answers [boolean, boolean]
-const rustTupleFam = (name: string, src = ''): string => (name === 'is_unified_enabled' && /\bpub struct Bybit\b/.test(src) ? 'bool_pair_' : /bool|_stock_|unified/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : /margin_mode/.test(name) ? 'margin_mode_' : /sub_type/.test(name) ? 'sub_type_' : '');
+const rustTupleFam = (name: string, src = ''): string => RUST_TUPLE_VENUE_FAM.get(name) ?? (name === 'is_unified_enabled' && /\bpub struct Bybit\b/.test(src) ? 'bool_pair_' : /bool|_stock_|unified/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : /margin_mode/.test(name) ? 'margin_mode_' : /sub_type/.test(name) ? 'sub_type_' : '');
 const RUST_OPTION_TUPLE_FNS = new RegExp(String.raw`\b(?:self|exchange)(?:\.parent)?\.(${RUST_TUPLE_FN_NAME})\(`, 'g');
 const RUST_OPTION_TUPLE_SLOT0: { [fam: string]: [string, string | undefined, (v: string) => string] } = {
     '': ['Value', undefined, (v) => v], 'string_': ['Value', undefined, (v) => v],
@@ -6392,7 +6393,7 @@ function typeOptionTupleLocals(src: string): string {
 }
 function typeHandleOptionTuples(input: string): string {
     let content = input;
-    if (!/handle_(?:option_|param_|post_only|market_type_and_params|margin_mode_|sub_type_|network_code_|product_type_|uta_|trigger_direction_|max_entries_per_request_|stock_params|is_unified_enabled|get_bybit_type)/.test(content)) return content;
+    if (!/handle_(?:option_|param_|post_only|market_type_and_params|margin_mode_|sub_type_|network_code_|product_type_|uta_|trigger_direction_|max_entries_per_request_|stock_params|is_unified_enabled|get_bybit_type)/.test(content) && !RUST_TUPLE_VENUE_FNS.some(r => content.includes(r[0] + '('))) return content;
     const SLOT = /\.get\(([01])\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/;
     let out = '';
     let last = 0;
