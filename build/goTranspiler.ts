@@ -6734,6 +6734,9 @@ function goTernaryIifeStatements (content: string): string {
 
 // `var x any = func() any { if c { return a }; return b }()` whose arms both have one Go type T from their producer
 // (typed local/param, literal, SafeString* -> *string, SafeInteger* -> *int64): `var x T` + if/else, uses unchanged
+// base methods whose declaration and every go/v4 override return this type; BaseExchange fields of this declared type
+const GO_TERNARY_CALL_TYPES: Record<string, string> = { 'PriceToPrecision': '*string', 'AmountToPrecision': '*string', 'NumberToString': '*string', 'ParseNumber': '*float64', 'SafeNumber': '*float64', 'SafeNumber2': '*float64', 'SafeNumberN': '*float64', 'SafeTimestamp': '*int64', 'Milliseconds': 'int64', 'Json': 'string' };
+const GO_TERNARY_FIELD_TYPES: Record<string, string> = { 'this.Timeframes': 'map[string]any', 'this.TokenBucket': 'map[string]any', 'this.Symbols': '[]string', 'this.Ids': '[]string' };
 const GO_TERNARY_ANY_STMT = /^([ \t]*)(?:var (\w+) any = |(\w+) := )func\(\) any \{\n([ \t]+)if ([^\n]+) \{\n([ \t]+)return ([^\n]+)\n\4\}\n\4return ([^\n]+)\n\1\}\(\)$/gm;
 function goTernaryAnyArmType (arm: string, fn: string): string | undefined {
     if (arm === 'nil') { return 'nil'; }
@@ -6749,7 +6752,10 @@ function goTernaryAnyArmType (arm: string, fn: string): string | undefined {
     if (call && !/[()]/.test (call[2].replace (/"[^"]*"/g, ''))) {
         if (/^SafeString(?:Lower|Upper)?(?:2|N|LowerN|UpperN)?$/.test (call[1])) { return '*string'; }
         if (/^SafeInteger(?:2|N)?$/.test (call[1])) { return '*int64'; }
+        if (arm.startsWith ('this.') && (GO_TERNARY_CALL_TYPES[call[1]] !== undefined)) { return GO_TERNARY_CALL_TYPES[call[1]]; }
     }
+    if (GO_TERNARY_FIELD_TYPES[arm] !== undefined) { return GO_TERNARY_FIELD_TYPES[arm]; }
+    if (arm === '[]any{}') { return '[]any'; }
     // Omit of a map[string]any operand always yields a fresh map: the arm is printed as OmitDict
     const omit = /^(?:this|exchange)\.Omit\((\w+), [^()]*\)$/.exec (arm);
     if (omit && (goTernaryAnyArmType (omit[1], fn) === 'map[string]any')) { return 'omitdict'; }
@@ -6825,6 +6831,9 @@ function goTernaryAnyTypedCheck (): string[] {
     const iife = (x: string, a: string, b: string) => '\tvar ' + x + ' any = func() any {\n\t\tif r == nil {\n\t\t\treturn ' + a + '\n\t\t}\n\t\treturn ' + b + '\n\t}()\n';
     const problems: string[] = [];
     const ok = f (iife ('o', 'map[string]any{}', 'r') + '\treturn this.ParseOrder(o)\n');
+    if (!f (iife ('s', 'this.PriceToPrecision(p, e)', 'this.NumberToString(e)') + '\treturn this.M(s)\n').includes ('var s *string\n')) { problems.push ('ternary any typed: precision *string'); }
+    if (!f (iife ('o', 'this.Timeframes', 'r') + '\treturn this.M(o)\n').includes ('var o map[string]any\n')) { problems.push ('ternary any typed: field'); }
+    if (f (iife ('s', 'exchange.PriceToPrecision(p, e)', 'this.NumberToString(e)') + '\treturn this.M(s)\n').includes ('var s *string\n')) { problems.push ('ternary any typed: exchange. kept'); }
     if (!ok.includes ('\tvar o map[string]any\n\tif r == nil {\n\t\to = map[string]any{}\n\t} else {\n\t\to = r\n\t}\n')) { problems.push ('ternary any typed: ' + ok); }
     if (!f (iife ('o', 'this.Omit(r, []any{\"a\"})', 'r') + '\treturn this.M(o)\n').includes ('var o map[string]any\n\tif r == nil {\n\t\to = this.OmitDict(r, []any{\"a\"})\n')) { problems.push ('ternary any typed: OmitDict'); }
     if (!f (iife ('s', 'this.SafeString(r, \"a\")', 'this.SafeStringUpper(r, \"b\")') + '\treturn this.M(s)\n').includes ('var s *string\n')) { problems.push ('ternary any typed: *string'); }
