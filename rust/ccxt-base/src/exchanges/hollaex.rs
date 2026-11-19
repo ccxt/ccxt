@@ -77,7 +77,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string2(&ticker, Value::Str("time".into()), Value::Str("timestamp".into()), &[]));
         let mut close: Option<String> = self.safe_string_k_opt(&ticker, "close", &[]);
@@ -133,7 +133,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         //  }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string_k_opt(&trade, "timestamp", &[]);
         let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
@@ -148,11 +148,11 @@ impl crate::exchange::DerivedExchange for Hollaex {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), self.safe_currency_code(feeCoin.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), self.safe_currency_code(feeCoin.as_deref(), None).map(Value::from).unwrap_or(Value::Null));
                 m
             }));
         }
-        return self.safe_trade(Value::Map({
+        return Value::Dict(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), Value::Null);
@@ -168,11 +168,11 @@ impl crate::exchange::DerivedExchange for Hollaex {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
@@ -203,7 +203,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         //      }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&order, "created_at", &[]));
         let mut type_var: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
@@ -211,10 +211,10 @@ impl crate::exchange::DerivedExchange for Hollaex {
         let mut price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(&order, "size", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(&order, "filled", &[]);
-        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(&order, "status", &[])).as_str());
+        let mut status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str());
         let mut meta: crate::value::Dict = self.safe_dict_k_t(&order, "meta");
         let mut postOnly: bool = self.safe_bool_k_opt(&meta, "post_only", &[Value::Bool(false)]).unwrap_or(false);
-        return Value::Dict(self.safe_order(Value::Map({
+        return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
@@ -240,7 +240,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
     m
 }), market));
 
-    Value::Null
+    None
 }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![Value::from(self.parse8601(self.safe_string_k(&ohlcv, "time", &[]))), self.safe_number_k(&ohlcv, "open", &[]), self.safe_number_k(&ohlcv, "high", &[]), self.safe_number_k(&ohlcv, "low", &[]), self.safe_number_k(&ohlcv, "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
@@ -267,7 +267,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             let mut __for_first_767: bool = true;
             while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: String = self.safe_string(&currencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.clone()), None);
+            let mut code: Option<String> = self.safe_currency_code(Some(currencyId.as_str()), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(&response, Value::Str(format!("{}{}", currencyId, "_available").into()), &[]));
             account.insert("total".into(), self.safe_string(&response, Value::Str(format!("{}{}", currencyId, "_balance").into()), &[]));
@@ -299,7 +299,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             address = self.safe_string_opt(&parts, Value::Int(0), &[]);
             tag = self.safe_string_opt(&parts, Value::Int(1), &[]);
         }
-        self.check_address(&[Value::from(address.as_deref())]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(&depositAddress, "currency", &[]);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut networkId: Option<String> = self.safe_string_k_opt(&depositAddress, "network", &[]);
@@ -318,7 +318,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
     fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
         let mut id: Option<String> = self.safe_string_k_opt(&rawCurrency, "symbol", &[]);
-        let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut code: Option<String> = self.safe_currency_code(id.as_deref(), None);
         let mut withdrawalLimits: crate::value::List = self.safe_list_k_t(&rawCurrency, "withdrawal_limits");
         let mut rawType: Option<String> = self.safe_string_k_opt(&rawCurrency, "type", &[]);
         let mut type_var: String = "other".to_string();
@@ -467,7 +467,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             status = Some("pending".to_string());
         }
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(&transaction, "fee_coin", &[]);
-        let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), Some(&currencyResolved));
+        let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrencyId.as_deref(), Some(&currencyResolved));
         let mut feeCost: Option<f64> = self.safe_number_k(&transaction, "fee", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
@@ -578,7 +578,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
                 let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let mut value: crate::value::Dict = self.safe_dict_t(&withdrawalFees, Value::from(key.as_deref()));
                 let mut currencyId: Option<String> = self.safe_string_k_opt(&value, "symbol", &[]);
-                let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+                let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(key.as_deref()), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
                 if (networkCode.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a networkCode argument")));
@@ -724,7 +724,7 @@ impl crate::exchange_generated::ExchangeBase for Hollaex {
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_tickers" => self.parse_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1242,7 +1242,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[&params]).await;
         //
         //     {
         //         "coins": {
@@ -1388,7 +1388,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[&params]).await;
         //
         //    {
         //        "coins": {
@@ -1491,7 +1491,7 @@ impl Hollaex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("public_get_orderbooks", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_orderbooks", &[&params]).await;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1503,7 +1503,7 @@ impl Hollaex {
             while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut orderbook: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
-            let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp)])));
         }
@@ -1545,7 +1545,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_orderbook", &[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_orderbook", &[&__ws_arg_0]).await;
         //
         //     {
         //         "btc-usdt": {
@@ -1602,7 +1602,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_ticker", &[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -1632,7 +1632,7 @@ impl Hollaex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tickers", &[&params]).await;
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -1657,7 +1657,7 @@ impl Hollaex {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::from(key.as_deref()));
             let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[Value::from(key.as_deref())]);
-            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
+            let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let __ws_arg_2 = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.extend(__ws_arg_2, &[&params]));
@@ -1703,7 +1703,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[&__ws_arg_3]).await;
         //
         //     {
         //         "btc-usdt": [
@@ -1745,7 +1745,7 @@ impl Hollaex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("public_get_tiers", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_tiers", &[&params]).await;
         //
         //     {
         //         "1": {
@@ -1865,7 +1865,7 @@ impl Hollaex {
         request.insert("to".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))))); // convert to seconds
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]);
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::List = self.public_get_chart(&[__ws_arg_4]).await;
+        let mut response: crate::value::List = self.public_get_chart(&[&__ws_arg_4]).await.unwrap_or_default();
         return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
@@ -1894,7 +1894,7 @@ impl Hollaex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_balance", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_balance", &[&params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1931,8 +1931,8 @@ impl Hollaex {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_order", &[__ws_arg_5]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        let mut response: crate::value::Dict = self.call_method_t("private_get_order", &[&__ws_arg_5]).await;
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2038,7 +2038,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Option<crate::value::Dict> = self.call_method_o("private_get_order", &[__ws_arg_8]).await;
+        let mut response: Option<crate::value::Dict> = self.call_method_o("private_get_order", &[&__ws_arg_8]).await;
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -2064,7 +2064,7 @@ impl Hollaex {
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order id ").into()), id)));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2112,7 +2112,7 @@ impl Hollaex {
             request.insert("limit".into(), limit.clone()); // default 50, max 100
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_orders", &[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_orders", &[&__ws_arg_9]).await;
         //
         //     {
         //         "count": 1,
@@ -2207,7 +2207,7 @@ impl Hollaex {
         let mut meta: crate::value::Dict = self.safe_dict_k_t(&params, "meta");
         let mut exchangeSpecificParam: bool = self.safe_bool_k_opt(&meta, "post_only", &[Value::Bool(false)]).unwrap_or(false);
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[&params]);
         if !isMarketOrder {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
@@ -2223,8 +2223,8 @@ impl Hollaex {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"], &[]);
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_order", &[__ws_arg_10]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        let mut response: crate::value::Dict = self.call_method_t("private_post_order", &[&__ws_arg_10]).await;
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2260,8 +2260,8 @@ impl Hollaex {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_delete_order", &[__ws_arg_11]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_order", &[&__ws_arg_11]).await;
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2300,7 +2300,7 @@ impl Hollaex {
         market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.private_delete_order_all(&[__ws_arg_12]).await;
+        let mut response: crate::value::List = self.private_delete_order_all(&[&__ws_arg_12]).await.unwrap_or_default();
         return self.parse_orders(&response, market.as_ref(), &[]);
         Value::Null
         }).await?))
@@ -2349,7 +2349,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_trades", &[__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_trades", &[&__ws_arg_13]).await;
         //
         //     {
         //         "count": 1,
@@ -2397,7 +2397,7 @@ impl Hollaex {
         }
         let mut network: Option<String> = self.safe_string_k_opt(&params, "network", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user", &[Value::Dict(paramsOmitted)]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user", &[&Value::Dict(paramsOmitted)]).await;
         //
         //     {
         //         "id":620,
@@ -2496,7 +2496,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_deposits", &[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_deposits", &[&__ws_arg_14]).await;
         //
         //     {
         //         "count": 1,
@@ -2555,7 +2555,7 @@ impl Hollaex {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_withdrawals", &[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_withdrawals", &[&__ws_arg_15]).await;
         //
         //     {
         //         "count": 1,
@@ -2629,7 +2629,7 @@ impl Hollaex {
             request.insert("start_date".into(), self.iso8601(since.clone()));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_withdrawals", &[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_withdrawals", &[&__ws_arg_16]).await;
         //
         //     {
         //         "count": 1,
@@ -2685,10 +2685,10 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.0.as_str().map(str::to_owned);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.1;
+        self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2710,7 +2710,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[])]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_user_withdrawal", &[__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_post_user_withdrawal", &[&__ws_arg_17]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -2737,7 +2737,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[&params]).await;
         //
         //     {
         //         "coins":{

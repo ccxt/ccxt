@@ -13,102 +13,102 @@ use crate::exchange::ExchangeRuntime;
 
 impl Bit2me {
     /// Auto-generated wrapper for the `publicGetV2TradingMarketConfig` implicit endpoint.
-    pub async fn public_get_v2_trading_market_config(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v2_trading_market_config".into()), optional_args).await { a } else { Default::default() }
+    pub async fn public_get_v2_trading_market_config(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v2_trading_market_config".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV2TradingTickers` implicit endpoint.
-    pub async fn public_get_v2_trading_tickers(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v2_trading_tickers".into()), optional_args).await { a } else { Default::default() }
+    pub async fn public_get_v2_trading_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v2_trading_tickers".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV2TradingOrderBook` implicit endpoint.
-    pub async fn public_get_v2_trading_order_book(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v2_trading_order_book(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("public_get_v2_trading_order_book".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1TradingCandle` implicit endpoint.
-    pub async fn public_get_v1_trading_candle(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_trading_candle".into()), optional_args).await { a } else { Default::default() }
+    pub async fn public_get_v1_trading_candle(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_trading_candle".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV1TradingTradeLast` implicit endpoint.
-    pub async fn public_get_v1_trading_trade_last(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_trading_trade_last".into()), optional_args).await { a } else { Default::default() }
+    pub async fn public_get_v1_trading_trade_last(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_trading_trade_last".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV2CurrencyAssets` implicit endpoint.
-    pub async fn public_get_v2_currency_assets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v2_currency_assets(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("public_get_v2_currency_assets".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV2CurrencyAssetsSymbol` implicit endpoint.
-    pub async fn public_get_v2_currency_assets_symbol(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn public_get_v2_currency_assets_symbol(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("public_get_v2_currency_assets_symbol".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1WalletSettingsAssets` implicit endpoint.
-    pub async fn public_get_v1_wallet_settings_assets(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_wallet_settings_assets".into()), optional_args).await { a } else { Default::default() }
+    pub async fn public_get_v1_wallet_settings_assets(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("public_get_v1_wallet_settings_assets".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV1TradingOrder` implicit endpoint.
-    pub async fn private_get_v1_trading_order(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_order".into()), optional_args).await { a } else { Default::default() }
+    pub async fn private_get_v1_trading_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_order".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV1TradingOrderId` implicit endpoint.
-    pub async fn private_get_v1_trading_order_id(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v1_trading_order_id(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_get_v1_trading_order_id".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV1TradingOrderIdTrades` implicit endpoint.
-    pub async fn private_get_v1_trading_order_id_trades(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_order_id_trades".into()), optional_args).await { a } else { Default::default() }
+    pub async fn private_get_v1_trading_order_id_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_order_id_trades".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV1TradingTrade` implicit endpoint.
-    pub async fn private_get_v1_trading_trade(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_get_v1_trading_trade(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_get_v1_trading_trade".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetV1TradingWalletBalance` implicit endpoint.
-    pub async fn private_get_v1_trading_wallet_balance(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_wallet_balance".into()), optional_args).await { a } else { Default::default() }
+    pub async fn private_get_v1_trading_wallet_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_wallet_balance".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV1TradingWorkingCapital` implicit endpoint.
-    pub async fn private_get_v1_trading_working_capital(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_working_capital".into()), optional_args).await { a } else { Default::default() }
+    pub async fn private_get_v1_trading_working_capital(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_working_capital".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV1TradingMovement` implicit endpoint.
-    pub async fn private_get_v1_trading_movement(&mut self, optional_args: &[Value]) -> crate::value::List {
-        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_movement".into()), optional_args).await { a } else { Default::default() }
+    pub async fn private_get_v1_trading_movement(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
+        if let Value::Arr(a) = self.call_method(Value::Str("private_get_v1_trading_movement".into()), optional_args).await { Some(a) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV1TradingOrder` implicit endpoint.
-    pub async fn private_post_v1_trading_order(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v1_trading_order(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_post_v1_trading_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1TradingWalletDeposit` implicit endpoint.
-    pub async fn private_post_v1_trading_wallet_deposit(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v1_trading_wallet_deposit(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_post_v1_trading_wallet_deposit".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1TradingWalletWithdraw` implicit endpoint.
-    pub async fn private_post_v1_trading_wallet_withdraw(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v1_trading_wallet_withdraw(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_post_v1_trading_wallet_withdraw".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1SigninApikey` implicit endpoint.
-    pub async fn private_post_v1_signin_apikey(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_post_v1_signin_apikey(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_post_v1_signin_apikey".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteV1TradingOrderId` implicit endpoint.
-    pub async fn private_delete_v1_trading_order_id(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn private_delete_v1_trading_order_id(&mut self, optional_args: &[&Value]) -> Value {
         self.call_method(Value::Str("private_delete_v1_trading_order_id".into()), optional_args).await
     }
 

@@ -51,7 +51,7 @@ impl crate::exchange::DerivedExchange for Nado {
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "product_id", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut timestamp: Option<String> = None;
         let mut last: Option<String> = self.safe_string_k_opt(&ticker, "last_price", &[]);
         return self.safe_ticker(Value::Map({
@@ -113,7 +113,7 @@ impl crate::exchange::DerivedExchange for Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&trade, "product_id", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&trade, "timestamp", &[]).as_i64();
         let mut rawOrder: Option<crate::value::Dict> = self.safe_dict_k_o(&trade, "order");
         let mut isArchiveMatch: bool = rawOrder.is_some();
@@ -180,7 +180,7 @@ impl crate::exchange::DerivedExchange for Nado {
                 parsedCost = absoluteCost.map(Value::from).unwrap_or(Value::Null);
             }
         }
-        return self.safe_trade(Value::Map({
+        return Value::Dict(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -196,11 +196,11 @@ impl crate::exchange::DerivedExchange for Nado {
         m.insert("cost".to_string(), parsedCost);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
         //
         // create order
@@ -289,7 +289,7 @@ impl crate::exchange::DerivedExchange for Nado {
         if (archiveFilled.is_some()) {
             id = cancelOrderDigest.clone();
             let mut marketId: Option<String> = self.safe_string_k_opt(&order, "product_id", &[]);
-            marketResolved = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
+            marketResolved = Some(self.safe_market(marketId.as_deref(), market, &[]));
             let mut amountString: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
             if (amountString.is_some()) {
                 side = (if crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
@@ -325,7 +325,7 @@ impl crate::exchange::DerivedExchange for Nado {
         }  else if (cancelOrderDigest.is_some()) {
             id = cancelOrderDigest;
             let mut marketId: Option<String> = self.safe_string_k_opt(&order, "product_id", &[]);
-            marketResolved = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
+            marketResolved = Some(self.safe_market(marketId.as_deref(), market, &[]));
             let mut amountString: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
             if (amountString.is_some()) {
                 side = (if crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
@@ -345,7 +345,7 @@ impl crate::exchange::DerivedExchange for Nado {
             let mut placeOrder: crate::value::Dict = self.safe_dict2_t(&order, Value::Str("place_order".into()), Value::Str("order".into()));
             let mut rawOrder: crate::value::Dict = self.safe_dict_k_t(&placeOrder, "order");
             let mut marketId: Option<String> = self.safe_string_k_opt(&placeOrder, "product_id", &[]);
-            marketResolved = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
+            marketResolved = Some(self.safe_market(marketId.as_deref(), market, &[]));
             let mut data: crate::value::Dict = self.safe_dict_k_t(&order, "data");
             id = self.safe_string_k_opt(&data, "digest", &[]);
             if (id.is_none()) {
@@ -375,7 +375,7 @@ impl crate::exchange::DerivedExchange for Nado {
             }
             price = self.parse_x18(self.safe_string_k(&rawOrder, "priceX18", &[])).as_f64();
         }
-        return Value::Dict(self.safe_order(Value::Map({
+        return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -403,7 +403,7 @@ impl crate::exchange::DerivedExchange for Nado {
     m
 }), marketResolved.as_ref()));
 
-    Value::Null
+    None
 }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![self.safe_timestamp_k(&ohlcv, "timestamp", &[]), self.parse_x18(self.safe_string_k(&ohlcv, "open_x18", &[])), self.parse_x18(self.safe_string_k(&ohlcv, "high_x18", &[])), self.parse_x18(self.safe_string_k(&ohlcv, "low_x18", &[])), self.parse_x18(self.safe_string_k(&ohlcv, "close_x18", &[])), self.parse_x18(self.safe_string_k(ohlcv, "volume", &[]))]);
@@ -439,11 +439,11 @@ impl crate::exchange::DerivedExchange for Nado {
             while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (balances.len() as i64) } {
             let mut rawBalance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&rawBalance, "product_id", &[]);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (code.as_deref() == Some("0")) {
                 code = Some("USDT0".to_string());
             }  else if (code == currencyId) {
-                let mut market: crate::types::Market = self.safe_market(currencyId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("spot".into())]);
+                let mut market: crate::types::Market = self.safe_market(currencyId.as_deref(), None, &[Value::Null, Value::Str("spot".into())]);
                 if (market).spot {
                     code = self.safe_string_k_opt(&market, "base", &[code.map(Value::from).unwrap_or(Value::Null)]);
                 }
@@ -483,7 +483,7 @@ impl crate::exchange::DerivedExchange for Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&position, "product_id", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut balance: crate::value::Dict = self.safe_dict_k_t(&position, "balance");
         let mut amountString: Option<String> = self.safe_string_k_opt(&balance, "amount", &[]);
         let mut product: crate::value::Dict = self.safe_dict_k_t(&position, "product");
@@ -567,7 +567,7 @@ impl crate::exchange::DerivedExchange for Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&contract, "product_id", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut fundingTimestamp: Option<i64> = self.safe_timestamp_k(&contract, "next_funding_rate_timestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -600,7 +600,7 @@ impl crate::exchange::DerivedExchange for Nado {
         let mut canWithdraw: bool = self.safe_bool_k_opt(&rawCurrency, "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);
         let mut id: Option<String> = self.safe_string_k_opt(&rawCurrency, "product_id", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "symbol", &[]);
-        let mut code: Option<String> = self.safe_currency_code(self.remove_market_suffix(currencyId.as_deref()).map(Value::from).unwrap_or(Value::Null), None);
+        let mut code: Option<String> = self.safe_currency_code(self.remove_market_suffix(currencyId.as_deref()).as_deref(), None);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -662,7 +662,7 @@ impl crate::exchange::DerivedExchange for Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&interest, "product_id", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -703,7 +703,7 @@ impl crate::exchange::DerivedExchange for Nado {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_k_opt(&transaction, "product_id", &[]);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&transaction, "timestamp", &[]).as_i64();
         let mut preBalance: crate::value::Dict = self.safe_dict_k_t(&transaction, "pre_balance");
         let mut postBalance: crate::value::Dict = self.safe_dict_k_t(&transaction, "post_balance");
@@ -871,7 +871,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1528,16 +1528,16 @@ impl Nado {
         let mut isTriggerOrder: bool = placeOrder.contains_key("trigger");
         let mut response: Option<crate::value::Dict> = None;
         if isTriggerOrder {
-            response = self.call_method_o("trigger_private_post_execute", &[Value::from(&request)]).await;
+            response = self.call_method_o("trigger_private_post_execute", &[&Value::from(&request)]).await;
         }  else {
-            response = self.call_method_o("gateway_private_post_execute", &[Value::Dict(request)]).await;
+            response = self.call_method_o("gateway_private_post_execute", &[&Value::Dict(request)]).await;
         }
         let __ws_arg_0 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("place_order".to_string(), Value::Dict(placeOrder));
     m
 }), &[&response]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_0, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_0, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1736,7 +1736,7 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, params]).await.into_dict();
-        let mut response: crate::value::Dict = self.call_method_t("gateway_private_post_execute", &[Value::from(&request)]).await;
+        let mut response: crate::value::Dict = self.call_method_t("gateway_private_post_execute", &[&Value::from(&request)]).await;
         //
         //     {
         //         "status": "success",
@@ -1757,7 +1757,7 @@ impl Nado {
         m.insert("place_order".to_string(), Value::Map(placeOrder));
     m
 }), &[&response]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_1, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_1, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1950,9 +1950,9 @@ impl Nado {
         let mut request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.call_method_o("trigger_private_post_execute", &[Value::from(&request)]).await;
+            response = self.call_method_o("trigger_private_post_execute", &[&Value::from(&request)]).await;
         }  else {
-            response = self.call_method_o("gateway_private_post_execute", &[Value::Dict(request)]).await;
+            response = self.call_method_o("gateway_private_post_execute", &[&Value::Dict(request)]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut cancelledOrders: crate::value::List = self.safe_list_k_t(&data, "cancelled_orders");
@@ -1966,7 +1966,7 @@ impl Nado {
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
             }), &[cancelledOrders.get(i as usize).cloned().unwrap_or(Value::Null)]);
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_2, market.as_ref()));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_2, market.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::from(result);
@@ -2073,9 +2073,9 @@ impl Nado {
         let mut request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.call_method_o("trigger_private_post_execute", &[Value::from(&request)]).await;
+            response = self.call_method_o("trigger_private_post_execute", &[&Value::from(&request)]).await;
         }  else {
-            response = self.call_method_o("gateway_private_post_execute", &[Value::Dict(request)]).await;
+            response = self.call_method_o("gateway_private_post_execute", &[&Value::Dict(request)]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut cancelledOrders: crate::value::List = self.safe_list_k_t(&data, "cancelled_orders");
@@ -2089,7 +2089,7 @@ impl Nado {
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
             }), &[cancelledOrders.get(i as usize).cloned().unwrap_or(Value::Null)]);
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_3, Some(&market)));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_3, Some(&market)).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::from(result);
@@ -2208,7 +2208,7 @@ impl Nado {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[&__ws_arg_4]).await;
         //
         //     {
         //         "status": "success",
@@ -2229,7 +2229,7 @@ impl Nado {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2301,7 +2301,7 @@ impl Nado {
         let mut signature: Option<String> = self.sign_fetch_trigger_orders(Value::Map(tx), chainId.as_deref(), endpointAddress.as_deref());
         request.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsRecvWindow]);
-        let mut response: crate::value::Dict = self.call_method_t("trigger_private_post_query", &[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.call_method_t("trigger_private_post_query", &[&__ws_arg_5]).await;
         //
         // {
         //     "status": "success",
@@ -2394,7 +2394,7 @@ impl Nado {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsSubaccount]);
-        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[&__ws_arg_7]).await;
         //
         // single product
         //
@@ -2501,7 +2501,7 @@ impl Nado {
                 m.insert("orders".to_string(), Value::Dict(ordersRequestUntil));
             m
         });
-        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[&self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
         //
         //     {
         //         "orders": [
@@ -2668,7 +2668,7 @@ impl Nado {
                 m.insert("matches".to_string(), Value::Dict(matchesRequestUntil));
             m
         });
-        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[&self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
         //
         //     {
         //         "matches": [
@@ -2749,7 +2749,7 @@ impl Nado {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsSubaccount]);
-        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[&__ws_arg_11]).await;
         //
         //     {
         //         "status": "success",
@@ -2879,7 +2879,7 @@ impl Nado {
                 m.insert("events".to_string(), Value::Dict(eventsRequestUntil));
             m
         });
-        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[&self.deep_extend(Value::Map(request), &[&paramsUntil])]).await;
         //
         //     {
         //         "events": [
@@ -2987,7 +2987,7 @@ impl Nado {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSubaccount]);
-        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[&__ws_arg_12]).await;
         //
         //     {
         //         "status": "success",
@@ -3083,7 +3083,7 @@ impl Nado {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_edge_query", &[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_edge_query", &[&__ws_arg_14]).await;
         return self.safe_integer_k(&response, "server_time", &[]);
         Value::Null
         }).await?))
@@ -3113,7 +3113,7 @@ impl Nado {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[&__ws_arg_15]).await;
         //
         //     {
         //         "status": "success",
@@ -3155,9 +3155,9 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsRequest: crate::value::List = self.gateway_public_get_symbols(&[params.clone()]).await;
-        let mut pairsRequest: crate::value::List = self.gateway_v2_public_get_pairs(&[params.clone()]).await;
-        let mut assetsRequest: crate::value::List = self.gateway_v2_public_get_assets(&[params]).await;
+        let mut symbolsRequest: crate::value::List = self.gateway_public_get_symbols(&[&params]).await.unwrap_or_default();
+        let mut pairsRequest: crate::value::List = self.gateway_v2_public_get_pairs(&[&params]).await.unwrap_or_default();
+        let mut assetsRequest: crate::value::List = self.gateway_v2_public_get_assets(&[&params]).await.unwrap_or_default();
         let mut responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(symbolsRequest), Value::Arr(pairsRequest), Value::Arr(assetsRequest)])).await.into_list();
         let mut symbols: crate::value::List = self.safe_list_t(&responses, Value::Int(0));
         let mut pairs: crate::value::List = self.safe_list_t(&responses, Value::Int(1));
@@ -3204,7 +3204,7 @@ impl Nado {
             while { if !__for_first_992 { i += 1; } __for_first_992 = false; i < (assets.len() as i64) } {
             let mut rawAsset: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut assetSymbol: Option<String> = self.safe_string_k_opt(&rawAsset, "symbol", &[]);
-            let mut assetCode: Option<String> = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).map(Value::from).unwrap_or(Value::Null), None);
+            let mut assetCode: Option<String> = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).as_deref(), None);
             if (assetCode.is_none()) {
                 continue;
             }
@@ -3243,8 +3243,8 @@ impl Nado {
             }
             let mut rawBaseId: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let mut rawQuoteId: String = self.safe_string_k(&pair, "quote", &[Value::Str("USDT0".into())]).as_str().unwrap_or("USDT0").to_string();
-            let mut base: Option<String> = self.safe_currency_code(self.remove_market_suffix(rawBaseId.as_deref()).map(Value::from).unwrap_or(Value::Null), None);
-            let mut quote: Option<String> = self.safe_currency_code(Value::from(rawQuoteId.clone()), None);
+            let mut base: Option<String> = self.safe_currency_code(self.remove_market_suffix(rawBaseId.as_deref()).as_deref(), None);
+            let mut quote: Option<String> = self.safe_currency_code(Some(rawQuoteId.as_str()), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
@@ -3362,7 +3362,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::List = self.gateway_v2_public_get_assets(&[params]).await;
+        let mut response: crate::value::List = self.gateway_v2_public_get_assets(&[&params]).await.unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3419,7 +3419,7 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_tickers", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_tickers", &[&params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3500,7 +3500,7 @@ impl Nado {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " fetchFundingRate() supports swap contracts only")));
         }
         let mut tickerId: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&market, "info"), "ticker_id", &[]);
-        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[&params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3584,7 +3584,7 @@ impl Nado {
                 m.insert("interest_and_funding".to_string(), Value::Map(fundingRequest));
             m
         });
-        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsSubaccount])]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[&self.deep_extend(Value::Map(request), &[&paramsSubaccount])]).await;
         //
         //     {
         //         "interest_payments": [],
@@ -3640,7 +3640,7 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]);
-        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[&params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3709,7 +3709,7 @@ impl Nado {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " fetchOpenInterest() supports swap contracts only")));
         }
         let mut tickerId: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&market, "info"), "ticker_id", &[]);
-        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[&params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3762,7 +3762,7 @@ impl Nado {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]);
-        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_v2_public_get_contracts", &[&params]).await;
         //
         //     {
         //         "BTC-PERP_USDT0": {
@@ -3836,7 +3836,7 @@ impl Nado {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("gateway_v2_public_get_orderbook", &[__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.call_method_t("gateway_v2_public_get_orderbook", &[&__ws_arg_17]).await;
         //
         //     {
         //         "product_id": 1,
@@ -3895,7 +3895,7 @@ impl Nado {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.archive_v2_public_get_trades(&[__ws_arg_18]).await;
+        let mut response: crate::value::List = self.archive_v2_public_get_trades(&[&__ws_arg_18]).await.unwrap_or_default();
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -3949,7 +3949,7 @@ impl Nado {
                 m.insert("candlesticks".to_string(), Value::Map(candlesticks));
             m
         });
-        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
+        let mut response: crate::value::Dict = self.call_method_t("archive_post", &[&self.deep_extend(Value::Map(request), &[&paramsOmitted])]).await;
         //
         //     {
         //         "candlesticks": [
@@ -3989,7 +3989,7 @@ impl Nado {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&funding, "product_id", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&funding, "timestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4073,7 +4073,7 @@ impl Nado {
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         let mut reduceOnly: bool = self.safe_bool_k_opt(&params, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(false), Value::Null, &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(false), Value::Null, &[&params]);
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params, "timeInForce", &[]);
         let mut orderType: i64 = 0;
         if (timeInForce.as_deref() == Some("IOC")) {
@@ -4135,7 +4135,7 @@ impl Nado {
                 m
             });
             let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-            let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[__ws_arg_19]).await;
+            let mut response: crate::value::Dict = self.call_method_t("gateway_public_get_query", &[&__ws_arg_19]).await;
             { let __be_tmp = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4359,7 +4359,7 @@ impl Nado {
                 return get_value(&byType, &queryType);
             }
         }
-        let mut byQuery: Option<crate::value::Dict> = config.get("byQuery").cloned().unwrap_or_default().into_opt_dict();
+        let mut byQuery: Option<crate::value::Dict> = self.safe_dict_k_o(&config, "byQuery");
         if (byQuery.is_some()) {
             let mut queryNames: Vec<Value> = Value::Array(byQuery.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
@@ -4385,7 +4385,7 @@ impl Nado {
             }
             }
         }
-        let mut byRows: Option<crate::value::List> = config.get("byRows").cloned().unwrap_or_default().into_opt_list();
+        let mut byRows: Option<crate::value::List> = self.safe_list_k_o(&config, "byRows");
         if (byRows.is_some()) {
             // distinct local names: the C# emitter rejects a name already used in a sibling block
             let mut rowsBaseWeight: i64 = self.safe_integer(&byRows, Value::Int(0), &[Value::Int(2)]).as_i64().unwrap_or(2);

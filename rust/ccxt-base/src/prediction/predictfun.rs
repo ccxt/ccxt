@@ -196,7 +196,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_order_status((self.safe_string_k(&order, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_lower_k(&order, "strategy", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1004,7 +1004,7 @@ impl Predictfun {
                     m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[&rest]);
-            let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_categories_slug", &[__ws_arg_1]).await;
+            let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_categories_slug", &[&__ws_arg_1]).await;
             let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
             rawTopics = std::sync::Arc::new(vec![data.map_or(Value::Null, Value::Dict)]);
         }  else if queriesLength > 0 {
@@ -1024,7 +1024,7 @@ impl Predictfun {
             postOmitKeys.push(Value::Str("limit".into()));
             let mut paramsCategories: crate::value::Dict = self.omit_t(&paramsValue, &["limit", "tags"], &[]);
             let mut extendedRequest: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsCategories]);
-            let mut rawTopicsResponse: Value = self.predictfun_get_v1_categories(&[Value::from(&extendedRequest)]).await;
+            let mut rawTopicsResponse: Value = self.predictfun_get_v1_categories(&[&Value::from(&extendedRequest)]).await;
             //
             //     {
             //         "cursor": "NDA1MDA0",
@@ -1199,7 +1199,7 @@ impl Predictfun {
                     break;
                 }
                 std::sync::Arc::make_mut(&mut extendedRequest).insert("after".into(), nextPageToken.map(Value::from).unwrap_or(Value::Null));
-                rawTopicsResponse = self.predictfun_get_v1_categories(&[Value::from(&extendedRequest)]).await;
+                rawTopicsResponse = self.predictfun_get_v1_categories(&[&Value::from(&extendedRequest)]).await;
                 data = self.safe_list_k(&rawTopicsResponse, "data", &[Value::from(vec![])]);
                 rawTopics = self.array_concat_t(Value::Arr(rawTopics), data.clone());
                 topicsLength = rawTopics.len() as i64;
@@ -1313,7 +1313,7 @@ impl Predictfun {
                 m
             });
             let __ws_arg_2 = self.extend(Value::Map(request), &[&rest]);
-            let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_search", &[__ws_arg_2]).await;
+            let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_search", &[&__ws_arg_2]).await;
             //
             //     {
             //         "data": {
@@ -2028,7 +2028,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_markets_id_orderbook", &[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_markets_id_orderbook", &[&__ws_arg_3]).await;
         //
         //     {
         //         "data":
@@ -2130,7 +2130,7 @@ impl Predictfun {
         // outcome - last price and volume live behind /last-sale and /stats, one request each,
         // so they are left undefined rather than spending extra calls on them
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_markets_id", &[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_markets_id", &[&__ws_arg_4]).await;
         //
         //     {
         //         "data": {
@@ -2314,7 +2314,7 @@ impl Predictfun {
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
         let __ws_arg_5 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_matches", &[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_matches", &[&__ws_arg_5]).await;
         // the venue answers with the shape documented in fetchTrades below
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut wallet: Option<String> = signerAddress.as_deref().map(str::to_lowercase);
@@ -2411,7 +2411,7 @@ impl Predictfun {
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_matches", &[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_matches", &[&__ws_arg_6]).await;
         //
         //     {
         //         "cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTA1VDIzOjU1OjU2WiJ9",
@@ -2638,7 +2638,7 @@ impl Predictfun {
         if (cached.is_some()) && (now < expiresAt) {
             return cached.map(Value::from).unwrap_or(Value::Null);
         }
-        let mut messageResponse: crate::value::Dict = self.call_method_t("predictfun_get_v1_auth_message", &[params]).await;
+        let mut messageResponse: crate::value::Dict = self.call_method_t("predictfun_get_v1_auth_message", &[&params]).await;
         //
         //     { "data": { "message": "Sign this message to authenticate ..." }, "success": true }
         //
@@ -2655,7 +2655,7 @@ impl Predictfun {
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_auth", &[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_auth", &[&Value::Map(request)]).await;
         //
         //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
         //
@@ -2942,9 +2942,9 @@ impl Predictfun {
             m
         });
         let mut postOnly: bool = self.safe_bool_k_opt(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[Value::from(&paramsTaker)]).as_array().cloned().unwrap_or_default();
-        let mut postOnlyOption: Option<bool> = postOnlyOptionparamsPostOnlyVariable.get(0).and_then(Value::as_bool);
-        let mut paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let postOnlyOptionparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[Value::from(&paramsTaker)]);
+        let mut postOnlyOption: Option<bool> = postOnlyOptionparamsPostOnlyVariable.0.as_bool();
+        let mut paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.1;
         if (postOnlyOption == Some(true)) {
             data.insert("isPostOnly".into(), postOnlyOption.map_or(Value::Null, Value::Bool));
         }
@@ -2967,7 +2967,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_orders", &[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_orders", &[&__ws_arg_9]).await;
         //
         //     {
         //         "data": {
@@ -3051,11 +3051,11 @@ impl Predictfun {
             });
             let mut rest: crate::value::Dict = self.omit_t(params.clone(), Value::Str("address".into()), &[]);
             let __ws_arg_10 = self.extend(Value::Map(request), &[&rest]);
-            response = self.call_method_o("predictfun_get_v1_positions_address", &[__ws_arg_10]).await;
+            response = self.call_method_o("predictfun_get_v1_positions_address", &[&__ws_arg_10]).await;
         }  else {
             // the JWT is what names the wallet whose positions come back
             self.authenticate(&[]).await;
-            response = self.call_method_o("predictfun_get_v1_positions", &[params]).await;
+            response = self.call_method_o("predictfun_get_v1_positions", &[&params]).await;
         }
         //
         //     {
@@ -3245,7 +3245,7 @@ impl Predictfun {
         });
         // this only pulls the orders off the book, it does not cancel them on chain
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_orders_remove_by_hash", &[__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_post_v1_orders_remove_by_hash", &[&__ws_arg_12]).await;
         //
         //     {
         //         "removed": [ "0xebf11bdff189b8609c9ae66bebb20b94742865a2d94970856f3fb6b0896f9ec0" ],
@@ -3331,7 +3331,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_hash", &[__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders_hash", &[&__ws_arg_13]).await;
         //
         //     {
         //         "data": {
@@ -3475,7 +3475,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders", &[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.call_method_t("predictfun_get_v1_orders", &[&__ws_arg_16]).await;
         //
         //     {
         //         "cursor": null,
@@ -3968,8 +3968,7 @@ impl Predictfun {
  * @param {object} message the raw rejection
  * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
  */
-    pub fn handle_subscription_error(&self, mut client: Value, mut message: Value, subscription: impl Into<crate::Value>) {
-        let mut subscription: Value = subscription.into();
+    pub fn handle_subscription_error(&self, mut client: Value, mut message: Value, mut subscription: Value) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -4013,8 +4012,7 @@ impl Predictfun {
  * @param {Client} client the websocket client
  * @param {object} subscription the subscription the acknowledged request id belongs to
  */
-    pub fn handle_un_subscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
-        let mut subscription: Value = subscription.into();
+    pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
@@ -4616,7 +4614,7 @@ impl Predictfun {
         // yet and a failed one never did, so neither belongs in myTrades
         let mut eventType: Option<String> = self.safe_string_k_opt(&data, "type", &[]);
         if (eventType.as_deref() == Some("orderTransactionSuccess")) {
-            self.handle_wallet_event_trade(client, &data, Value::Dict(order));
+            self.handle_wallet_event_trade(client, Value::Dict(data), Value::Dict(order));
         }
 }
 
@@ -4653,8 +4651,7 @@ impl Predictfun {
  * @param {object} event the raw event
  * @param {object} order the order the same event was parsed into
  */
-    pub fn handle_wallet_event_trade(&mut self, mut client: Value, event: impl Into<crate::Value>, mut order: Value) {
-        let mut event: Value = event.into();
+    pub fn handle_wallet_event_trade(&mut self, mut client: Value, mut event: Value, mut order: Value) {
         let mut trade: crate::value::Dict = self.parse_wallet_event_trade(event, order).into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -4708,7 +4705,7 @@ impl Predictfun {
         if (topicSlug.is_some()) {
             eventHandle = self.shorten_slug(topicSlug.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
-        let mut label: Option<String> = self.strip_price_formatting((self.safe_string_upper_k(&details, "outcomeName", &[])).as_str()).as_str().map(str::to_owned);
+        let mut label: Option<String> = self.strip_price_formatting(self.safe_string_upper_k(&details, "outcomeName", &[]).as_str()).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), Value::Null);
@@ -4960,11 +4957,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, id.map(Value::from).unwrap_or(Value::Null));
             let mut success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
             if !success {
-                self.handle_subscription_error(client.clone(), message.clone(), &subscription);
+                self.handle_subscription_error(client.clone(), message.clone(), Value::from(&subscription));
                 return;
             }
             if matches!(self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]), Value::Bool(true)) {
-                self.handle_un_subscription(client.clone(), &subscription);
+                self.handle_un_subscription(client.clone(), Value::Dict(subscription));
             }
             return;
         }

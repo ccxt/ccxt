@@ -74,11 +74,11 @@ impl crate::exchange_generated::ExchangeBase for Cex {
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_ohlcv24" => self.handle_ohlcv24(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "pair_to_symbol" => self.pair_to_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "pair_to_symbol" => self.pair_to_symbol(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_ws_old_trade" => self.parse_ws_old_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -131,11 +131,11 @@ impl Cex {
             "handle_trades_inner" => { self.handle_trades_inner(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_trades_snapshot" => { self.handle_trades_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_transaction" => { self.handle_transaction(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "pair_to_symbol" => self.pair_to_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "pair_to_symbol" => self.pair_to_symbol(args.get(0).and_then(crate::Value::as_text).as_deref()),
             "parse_ws_old_trade" => self.parse_ws_old_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "request_id" => crate::Value::from(self.request_id()),
             "resolve_data" => { self.resolve_data(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
@@ -315,7 +315,7 @@ impl Cex {
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(&freeBalance, Value::from(currencyId.as_deref()), &[]));
             account.insert("used".into(), self.safe_string(&usedBalance, Value::from(currencyId.as_deref()), &[]));
-            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (code.is_some()) {
                 { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
@@ -434,7 +434,7 @@ impl Cex {
         let mut amount: Option<String> = self.safe_string_opt(&tradeParts, Value::Int(2), &[]);
         let mut price: Option<String> = self.safe_string_opt(&tradeParts, Value::Int(3), &[]);
         let mut id: Option<String> = self.safe_string_opt(&tradeParts, Value::Int(4), &[]);
-        return self.safe_trade(Value::Map({
+        return Value::Dict(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), tradeParts);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -450,7 +450,7 @@ impl Cex {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -706,8 +706,8 @@ impl Cex {
         if (quoteId.is_none()) {
             quoteId = self.safe_string_opt(&pair, Value::Int(1), &[]);
         }
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
+        let mut base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
@@ -950,14 +950,14 @@ impl Cex {
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut trade: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
+        let mut trade: crate::value::Dict = self.parse_ws_trade(&data, None);
         stored.append(Value::from(&trade));
         let mut tradeSymbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "myTrades:", tradeSymbol);
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
-    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut trade: Value = trade.into();
         //
         //     {
@@ -987,8 +987,8 @@ impl Cex {
         let mut datetime: Option<String> = self.safe_string_k_opt(&trade, "time", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(&trade, "symbol2", &[]);
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
+        let mut base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
@@ -1027,9 +1027,9 @@ impl Cex {
     m
 }));
         }
-        return self.safe_trade(Value::Map(parsedTrade), market);
+        return self.safe_trade(std::sync::Arc::new(parsedTrade), market);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_order_update(&mut self, client: &Value, mut message: Value) {
@@ -1114,13 +1114,13 @@ impl Cex {
             baseId = self.safe_string_k_opt(&pair, "symbol1", &[]);
             quoteId = self.safe_string_k_opt(&pair, "symbol2", &[]);
         }
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
+        let mut base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        let mut market: crate::types::Market = self.safe_market(Value::from(symbol.clone()), None, &[]);
+        let mut market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
         remains = self.currency_from_precision(base.map(Value::from).unwrap_or(Value::Null), remains.map(Value::from).unwrap_or(Value::Null));
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1220,13 +1220,13 @@ impl Cex {
             baseId = self.safe_string_k_opt(&order, "symbol1", &[]);
             quoteId = self.safe_string_k_opt(&order, "symbol2", &[]);
         }
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
+        let mut base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
-        let mut marketResolved: crate::types::Market = self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(symbol.as_deref(), market, &[]);
         let mut time: Option<i64> = self.safe_integer_k(&order, "time", &[]).as_i64();
         let mut timestamp: Option<i64> = time;
         if isTransaction {
@@ -1272,7 +1272,7 @@ impl Cex {
             m
         });
         if isTransaction {
-            parsedOrder.insert("trades".into(), self.parse_ws_trade(order, Some(&marketResolved)));
+            parsedOrder.insert("trades".into(), Value::Dict(self.parse_ws_trade(order, Some(&marketResolved))));
         }
         return Value::Dict(self.safe_order(Value::Map(parsedOrder), Some(&marketResolved)));
 
@@ -1292,7 +1292,7 @@ impl Cex {
 
     pub fn currency_from_precision(&self, mut currency: Value, amount: impl Into<crate::Value>) -> Option<String> {
         let mut amount: Value = amount.into();
-        let mut scale: i64 = self.safe_integer((if let (Some(__m), Some(__k)) = (self.currencies.as_map(), currency.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("precision".into()), &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut scale: i64 = self.safe_integer((if let Some(__k) = currency.as_str() { self.currencies.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("precision".into()), &[Value::Int(0)]).as_i64().unwrap_or(0);
         return self.from_precision(amount, Value::from(scale));
 }
 
@@ -1326,8 +1326,8 @@ impl Cex {
             let mut __for_first_223: bool = true;
             while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (rawOrders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut market: crate::types::Market = self.safe_market(Value::from(symbol.clone()), None, &[]);
-            let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), Some(&market)).into_dict();
+            let mut market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
+            let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), Some(&market));
             std::sync::Arc::make_mut(&mut order).insert("status".into(), Value::Str("open".into()));
             myOrders.append(Value::Dict(order));
         }
@@ -1417,7 +1417,7 @@ impl Cex {
         //
         let mut data: crate::value::Dict = message.key_dict("data");
         let mut pair: Option<String> = self.safe_string_k_opt(&data, "pair", &[]);
-        let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.pair_to_symbol(pair.as_deref()).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
             return;
         }
@@ -1449,13 +1449,12 @@ impl Cex {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn pair_to_symbol(&self, pair: impl Into<crate::Value>) -> Value {
-        let mut pair: Value = pair.into();
-        let mut parts: Value = split(&pair, &Value::Str(":".into()));
+    pub fn pair_to_symbol(&self, pair: Option<&str>) -> Value {
+        let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = pair { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
+        let mut base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Str("".into());
         }
@@ -1486,7 +1485,7 @@ impl Cex {
         let mut data: crate::value::Dict = message.key_dict("data");
         let mut incrementalId: Option<i64> = self.safe_integer_k(&data, "id", &[]).as_i64();
         let mut pair: String = self.safe_string_k(&data, "pair", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut symbol: Option<String> = self.pair_to_symbol(Value::from(pair)).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.pair_to_symbol(Some(pair.as_str())).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
             return;
         }
@@ -1607,13 +1606,13 @@ impl Cex {
         let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = pair.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let mut baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
-        let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
+        let mut base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        let mut market: crate::types::Market = self.safe_market(Value::from(symbol.as_str()), None, &[]);
+        let mut market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
         let mut messageHash: String = format!("{}{}", "ohlcv:", symbol);
         let mut data: crate::value::List = message.key_list("data");
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
@@ -1666,7 +1665,7 @@ impl Cex {
         //
         let mut data: crate::value::Dict = message.key_dict("data");
         let mut pair: Option<String> = self.safe_string_k_opt(&data, "pair", &[]);
-        let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.pair_to_symbol(pair.as_deref()).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
             return;
         }
@@ -1691,7 +1690,7 @@ impl Cex {
         //
         let mut data: crate::value::List = message.key_list("data");
         let mut pair: Option<String> = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.pair_to_symbol(pair.as_deref()).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
             return;
         }
@@ -1758,7 +1757,7 @@ impl Cex {
             m
         });
         let mut response: Value = self.watch(url.as_str(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
-        return self.parse_order(response, market.as_ref());
+        return Value::Dict(self.parse_order(response, market.as_ref()));
         Value::Null
         }).await?))
     }
@@ -1870,7 +1869,7 @@ impl Cex {
             m
         });
         let mut rawOrder: Value = self.watch(url.as_str(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
-        return self.parse_order(rawOrder, Some(&market));
+        return Value::Dict(self.parse_order(rawOrder, Some(&market)));
         Value::Null
         }).await?))
     }
@@ -1935,7 +1934,7 @@ impl Cex {
             m
         });
         let mut response: Value = self.watch(url.as_str(), &messageHash[..], Value::Map(request), &messageHash[..], Value::from(messageHash.as_str())).await;
-        return self.parse_order(response, Some(&market));
+        return Value::Dict(self.parse_order(response, Some(&market)));
         Value::Null
         }).await?))
     }
@@ -1985,7 +1984,7 @@ impl Cex {
             m
         });
         let mut response: Value = self.watch(url.as_str(), &messageHash[..], Value::Map(request), &messageHash[..], Value::from(messageHash.as_str())).await;
-        return self.parse_order(response, market.as_ref());
+        return Value::Dict(self.parse_order(response, market.as_ref()));
         Value::Null
         }).await?))
     }
@@ -2070,7 +2069,7 @@ impl Cex {
         //    "ok": "ok"
         //    }
         //
-        let mut data: Option<crate::value::List> = message.get("data").cloned().unwrap_or_default().into_opt_list();
+        let mut data: Option<crate::value::List> = self.safe_list_k_o(&message, "data");
         let mut messageHash: Option<String> = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         client.resolve(&data, messageHash.as_deref());
 }

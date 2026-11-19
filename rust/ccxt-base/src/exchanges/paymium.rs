@@ -73,7 +73,7 @@ impl crate::exchange::DerivedExchange for Paymium {
         //     "size":"0.00041087"
         // }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&ticker, "at", &[]).as_i64();
         let mut vwap: Option<String> = self.safe_string_k_opt(&ticker, "vwap", &[]);
         let mut baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "volume", &[]);
@@ -110,13 +110,13 @@ impl crate::exchange::DerivedExchange for Paymium {
         let mut trade: Value = trade.into();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&trade, "created_at_int", &[]).as_i64();
         let mut id: Option<String> = self.safe_string_k_opt(&trade, "uuid", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(None, market, &[]);
         let mut side: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
         let mut baseId: String = self.safe_string_k(&marketResolved, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut amountField: String = format!("{}{}", Value::Str("traded_".into()), Value::from(baseId.to_lowercase()));
         let mut amount: Option<String> = self.safe_string_opt(&trade, Value::from(amountField), &[]);
-        return self.safe_trade(Value::Map({
+        return Value::Dict(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -132,7 +132,7 @@ impl crate::exchange::DerivedExchange for Paymium {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
@@ -143,7 +143,7 @@ impl crate::exchange::DerivedExchange for Paymium {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut currencies: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencies: Vec<Value> = Value::Array(self.currencies.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1078: bool = true;
@@ -179,7 +179,7 @@ impl crate::exchange::DerivedExchange for Paymium {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
@@ -234,7 +234,7 @@ impl crate::exchange::DerivedExchange for Paymium {
         m.insert("id".to_string(), self.safe_string_k(&transfer, "uuid", &[]));
         m.insert("timestamp".to_string(), Value::from(timetstamp));
         m.insert("datetime".to_string(), self.iso8601(timetstamp));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), Value::Null);
         m.insert("toAccount".to_string(), self.safe_string_k(&firstOperation, "address", &[]));
@@ -686,7 +686,7 @@ impl Paymium {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user", &[&params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -724,7 +724,7 @@ impl Paymium {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_data_currency_depth", &[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_data_currency_depth", &[&__ws_arg_0]).await;
         return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]));
         Value::Null
         }).await?))
@@ -761,7 +761,7 @@ impl Paymium {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ticker: crate::value::Dict = self.call_method_t("public_get_data_currency_ticker", &[__ws_arg_1]).await;
+        let mut ticker: crate::value::Dict = self.call_method_t("public_get_data_currency_ticker", &[&__ws_arg_1]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
         }).await?))
@@ -802,7 +802,7 @@ impl Paymium {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.public_get_data_currency_trades(&[__ws_arg_2]).await;
+        let mut response: crate::value::List = self.public_get_data_currency_trades(&[&__ws_arg_2]).await.unwrap_or_default();
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -831,7 +831,7 @@ impl Paymium {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_post_user_addresses", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_post_user_addresses", &[&params]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, None);
         Value::Null
         }).await?))
@@ -866,7 +866,7 @@ impl Paymium {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_addresses_address", &[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_user_addresses_address", &[&__ws_arg_3]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, None);
         Value::Null
         }).await?))
@@ -895,7 +895,7 @@ impl Paymium {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::List = self.private_get_user_addresses(&[params]).await;
+        let mut response: crate::value::List = self.private_get_user_addresses(&[&params]).await.unwrap_or_default();
         return self.parse_deposit_addresses(&response, &[codes, Value::Bool(false)]);
         Value::Null
         }).await?))
@@ -946,7 +946,7 @@ impl Paymium {
             request.insert("price".into(), price);
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_user_orders", &[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_post_user_orders", &[&__ws_arg_4]).await;
         return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&response));
@@ -985,7 +985,7 @@ impl Paymium {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_delete_user_orders_uuid_cancel", &[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_delete_user_orders_uuid_cancel", &[&__ws_arg_5]).await;
         return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -1039,7 +1039,7 @@ impl Paymium {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_user_email_transfers", &[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_post_user_email_transfers", &[&__ws_arg_6]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency));
         Value::Null
         }).await?))

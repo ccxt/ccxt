@@ -757,7 +757,7 @@ impl Coinbase {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Str("-".into())]));
         m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp.as_deref())));
         m.insert("high".to_string(), self.safe_string_k(&ticker, "high_24_h", &[]));
@@ -864,7 +864,7 @@ impl Coinbase {
                 while { if !__for_first_231 { j += 1; } __for_first_231 = false; j < (candles.len() as i64) } {
                 let mut candle: crate::value::Dict = candles.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut marketId: Option<String> = self.safe_string_k_opt(&candle, "product_id", &[]);
-                let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+                let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
                 let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
                 let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp_k(&candle, "start", &[]), self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
                 CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -1218,7 +1218,7 @@ impl Coinbase {
         let mut trades: crate::value::List = self.safe_list_k_t(&event, "trades");
         let mut trade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let mut marketId: Option<String> = self.safe_string_k_opt(&trade, "product_id", &[]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "market_trades::", symbol.as_deref().unwrap_or("null"));
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesArray.is_none()) {
@@ -1323,7 +1323,7 @@ impl Coinbase {
             let mut __for_first_237: bool = true;
             while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", "user::", symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.orders), messageHash.as_str());
             self.try_resolve_usdc(client, messageHash.as_str(), Value::from(&self.orders));
@@ -1353,7 +1353,7 @@ impl Coinbase {
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "client_order_id", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "product_id", &[]);
         let mut datetime: Option<String> = self.safe_string2_opt(&order, Value::Str("time".into()), Value::Str("creation_time".into()), &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut stopPrice: Option<String> = self.safe_string_k_opt(&order, "stop_price", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1376,7 +1376,7 @@ impl Coinbase {
         m.insert("average".to_string(), self.safe_string_k(&order, "avg_price", &[]));
         m.insert("filled".to_string(), self.safe_string_k(&order, "cumulative_quantity", &[]));
         m.insert("remaining".to_string(), self.safe_string_k(&order, "leaves_quantity", &[]));
-        m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(&order, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_string_k(order, "total_fees", &[]));
@@ -1452,7 +1452,7 @@ impl Coinbase {
             let mut updates: crate::value::List = self.safe_list_k_t(&event, "updates");
             let mut marketId: Option<String> = self.safe_string_k_opt(&event, "product_id", &[]);
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
-            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+            let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: String = format!("{}{}", "level2::", symbol);
             let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(messageHash.clone()));

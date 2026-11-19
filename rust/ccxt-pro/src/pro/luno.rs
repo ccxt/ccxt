@@ -70,7 +70,7 @@ impl crate::exchange::DerivedExchange for Luno {
         }  else {
             symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
-        return self.safe_trade(Value::Map({
+        return Value::Dict(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), Value::Null);
@@ -86,7 +86,7 @@ impl crate::exchange::DerivedExchange for Luno {
         m.insert("cost".to_string(), self.safe_string_k(trade, "counter", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
-}), market);
+}), market));
 
     Value::Null
 }
@@ -668,14 +668,8 @@ impl Luno {
         if (subscriptionsLength == 0) {
             return;
         }
-        let mut handlers: crate::value::List = std::sync::Arc::new(vec![Value::Str("handle_order_book".into()).clone(), Value::Str("handle_trades".into()).clone()]);
-        {
-                        let mut j: i64 = 0;
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { j += 1; } __for_first_489 = false; j < (handlers.len() as i64) } {
-            let mut handler: Option<String> = handlers.get(j as usize).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.get(0).cloned().unwrap_or(Value::Null)]);
-        }
-        }
+        let mut subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, Value::Int(0));
+        self.handle_order_book(client.clone(), message.clone(), Value::from(&subscription));
+        self.handle_trades(&client, message, Value::Dict(subscription));
 }
 }

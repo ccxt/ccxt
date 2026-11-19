@@ -171,7 +171,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let mut tokenId: Option<String> = self.safe_string_k_opt(&order, "asset_id", &[]);
         let mut mkt: Option<crate::types::Market> = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), market);
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
-        let mut status: Option<String> = self.parse_order_status((self.safe_string2(&order, Value::Str("status".into()), Value::Str("type".into()), &[])).as_str());
+        let mut status: Option<String> = self.parse_order_status(self.safe_string2(&order, Value::Str("status".into()), Value::Str("type".into()), &[]).as_str());
         let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
         let mut price: Option<f64> = self.safe_number_k(&order, "price", &[]).as_f64();
         let mut amount: Option<f64> = self.safe_number_k(&order, "original_size", &[]).as_f64();
@@ -1536,7 +1536,7 @@ impl Polymarket {
             });
             let __ws_arg_0 = self.extend(firstRequest, &[Value::Map(baseRequest.clone())]);
             firstRequest = self.extend(__ws_arg_0, &[&rest]);
-            let mut first: crate::value::Dict = self.call_method_t("gamma_public_get_public_search", &[firstRequest]).await;
+            let mut first: crate::value::Dict = self.call_method_t("gamma_public_get_public_search", &[&firstRequest]).await;
             let mut firstEvents: crate::value::List = self.safe_list_k_t(&first, "events");
             let mut firstEventsLength: i64 = firstEvents.len() as i64;
             let mut pagination: crate::value::Dict = self.safe_dict_k_t(&first, "pagination");
@@ -1576,7 +1576,7 @@ impl Polymarket {
                 });
                 let __ws_arg_1 = self.extend(pageRequest, &[Value::Map(baseRequest.clone())]);
                 pageRequest = self.extend(__ws_arg_1, &[&rest]);
-                std::sync::Arc::make_mut(&mut restPromises).push(self.gamma_public_get_public_search(&[pageRequest]).await);
+                std::sync::Arc::make_mut(&mut restPromises).push(self.gamma_public_get_public_search(&[&pageRequest]).await);
             }
             }
             let mut restResponses: Vec<Value> = promise_all(&Value::Arr(restPromises)).await.as_array().cloned().unwrap_or_default();
@@ -1740,7 +1740,7 @@ impl Polymarket {
         if requestedTagsLength > 0 {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
-            std::sync::Arc::make_mut(&mut baseRequest).insert("tag_slug".into(), self.tag_to_slug((self.safe_string(&requestedTags, Value::Int(0), &[])).as_str().unwrap_or_default()));
+            std::sync::Arc::make_mut(&mut baseRequest).insert("tag_slug".into(), self.tag_to_slug(self.safe_string(&requestedTags, Value::Int(0), &[]).as_str().unwrap_or_default()));
         }
         if (status.as_deref() == Some("active")) {
             std::sync::Arc::make_mut(&mut baseRequest).insert("active".into(), Value::Bool(true));
@@ -1757,7 +1757,7 @@ impl Polymarket {
             m
         }).into_dict();
         firstPageRequest = self.extend_t(firstPageRequest, &[&baseRequest]);
-        let mut firstPageResponse: Option<crate::value::List> = self.call_method_lo("gamma_public_get_events", &[Value::Dict(firstPageRequest)]).await;
+        let mut firstPageResponse: Option<crate::value::List> = self.gamma_public_get_events(&[&Value::Dict(firstPageRequest)]).await;
         let mut firstPageIsArray: bool = firstPageResponse.is_some();
         let mut firstPage: crate::value::List = (if (firstPageIsArray) { firstPageResponse.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         let mut firstPageLength: i64 = firstPage.len() as i64;
@@ -1789,7 +1789,7 @@ impl Polymarket {
                     m
                 }).into_dict();
                 pageRequest = self.extend_t(pageRequest, &[&baseRequest]);
-                restPromises.push(self.call_method(Value::Str("gamma_public_get_events".into()), &[Value::Dict(pageRequest)]).await);
+                restPromises.push(self.call_method(Value::Str("gamma_public_get_events".into()), &[&Value::Dict(pageRequest)]).await);
             }
             }
             let mut restPages: crate::value::List = promise_all(&Value::from(restPromises)).await.into_list();
@@ -2040,7 +2040,7 @@ impl Polymarket {
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
         if (!outcomeSymbol.as_str().unwrap_or("").contains(":")) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
-            let mut response: Option<crate::value::List> = self.call_method_lo("gamma_public_get_markets", &[Value::Map({
+            let mut response: Option<crate::value::List> = self.gamma_public_get_markets(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("clob_token_ids".to_string(), outcomeSymbol.clone());
     m
@@ -2127,7 +2127,7 @@ impl Polymarket {
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
-                let mut response: Option<crate::value::List> = self.call_method_lo("gamma_public_get_markets", &[Value::Map({
+                let mut response: Option<crate::value::List> = self.gamma_public_get_markets(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("clob_token_ids".to_string(), Value::from(chunk));
         m.insert("limit".to_string(), Value::from(chunkSize));
@@ -2192,15 +2192,15 @@ impl Polymarket {
 }));
         let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
-        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.clob_public_get_midpoint(&[Value::Map({
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.clob_public_get_midpoint(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
-})]).await, self.clob_public_get_book(&[Value::Map({
+})]).await, self.clob_public_get_book(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
-})]).await, self.clob_public_get_last_trade_price(&[Value::Map({
+})]).await, self.clob_public_get_last_trade_price(&[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
@@ -2297,7 +2297,7 @@ impl Polymarket {
                 }));
             }
             }
-            let mut promises: crate::value::List = std::sync::Arc::new(vec![self.call_method(Value::Str("clob_public_post_books".into()), &[Value::from(bookParams.clone())]).await, self.clob_public_post_midpoints(&[Value::from(bookParams.clone())]).await, self.call_method(Value::Str("clob_public_post_last_trades_prices".into()), &[Value::from(bookParams)]).await]);
+            let mut promises: crate::value::List = std::sync::Arc::new(vec![self.call_method(Value::Str("clob_public_post_books".into()), &[&Value::from(bookParams.clone())]).await, self.clob_public_post_midpoints(&[&Value::from(bookParams.clone())]).await, self.call_method(Value::Str("clob_public_post_last_trades_prices".into()), &[&Value::from(bookParams)]).await]);
             let mut responses: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
             let mut booksResponse: Value = responses.get(0).cloned().unwrap_or(Value::Null);
             let mut midpoints: Value = responses.get(1).cloned().unwrap_or(Value::Null);
@@ -2490,7 +2490,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("clob_public_get_book", &[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_public_get_book", &[&__ws_arg_2]).await;
         //
         //     {
         //         "market": "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
@@ -2586,7 +2586,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("clob_public_get_prices_history", &[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_public_get_prices_history", &[&__ws_arg_3]).await;
         //
         //     {
         //         "history": [
@@ -2674,7 +2674,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.clob_public_get_time(&[params]).await;
+        let mut response: Value = self.clob_public_get_time(&[&params]).await;
         //
         //     1781273248
         //
@@ -2706,7 +2706,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.gamma_public_get_status(&[params]).await;
+        let mut response: Value = self.gamma_public_get_status(&[&params]).await;
         //
         //     OK
         //
@@ -2756,7 +2756,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::List = self.data_public_get_oi(&[__ws_arg_4]).await;
+        let mut response: crate::value::List = self.data_public_get_oi(&[&__ws_arg_4]).await.unwrap_or_default();
         //
         //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
         //
@@ -2820,7 +2820,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("clob_public_get_fee_rate", &[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_public_get_fee_rate", &[&__ws_arg_5]).await;
         //
         //     { "base_fee": 30 }   // base fee in basis points
         //
@@ -2885,7 +2885,7 @@ impl Polymarket {
         });
         request.insert("limit".into(), self.safe_integer_k(&self.options, "tradesPageSize", &[Value::Int(500)]));
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.call_method(Value::Str("data_public_get_trades".into()), &[__ws_arg_6]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.call_method(Value::Str("data_public_get_trades".into()), &[&__ws_arg_6]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut rawTrades: crate::value::List = (if (response.is_some()) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) }).into_list();
         let mut filteredTrades: Vec<Value> = Vec::new();
         {
@@ -2939,7 +2939,7 @@ impl Polymarket {
             request.insert("asset_id".into(), self.safe_string_k(&outcomeObj, "outcomeId", &[]));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.clob_private_get_data_trades(&[__ws_arg_7]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.clob_private_get_data_trades(&[&__ws_arg_7]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut rawTrades: Value = (if (response.is_some()) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
         return self.parse_prediction_trades(rawTrades, &[crate::Value::from(outcomeObj.as_ref()), since, limit]);
         Value::Null
@@ -3044,7 +3044,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&rest]);
-        let mut response: crate::value::Dict = self.call_method_t("clob_private_get_balance_allowance", &[__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_private_get_balance_allowance", &[&__ws_arg_8]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -3095,7 +3095,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("data_public_get_positions", &[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.call_method_t("data_public_get_positions", &[&__ws_arg_9]).await;
         let mut positions: crate::value::List = self.safe_list_k_t(&response, "data");
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
@@ -3207,7 +3207,7 @@ impl Polymarket {
             request.insert("asset_id".into(), self.safe_string_k(&outcomeObj, "outcomeId", &[]));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("clob_private_get_data_orders", &[__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_private_get_data_orders", &[&__ws_arg_10]).await;
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_prediction_orders(Value::Arr(orders), &[crate::Value::from(outcomeObj.as_ref()), since, limit]);
         Value::Null
@@ -3245,7 +3245,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("clob_private_get_data_order_id", &[__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_private_get_data_order_id", &[&__ws_arg_11]).await;
         return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &response, None);
         Value::Null
         }).await?))
@@ -3331,7 +3331,7 @@ impl Polymarket {
         self.load_api_credentials().await;
         self.load_outcome(outcome.clone(), &[]).await;
         let mut built: crate::value::Dict = self.build_clob_order_body(outcome.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).into_dict();
-        let mut response: crate::value::Dict = self.call_method_t("clob_private_post_order", &[self.safe_dict_k(&built, "body", &[])]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_private_post_order", &[&self.safe_dict_k(&built, "body", &[])]).await;
         // request echo first so the response's real orderID/status/success win on overlap
         let __ws_arg_12 = self.safe_dict_k(&built, "request", &[]);
         let mut enriched: crate::value::Dict = self.extend_t(__ws_arg_12, &[&response]);
@@ -3397,7 +3397,7 @@ impl Polymarket {
     m
 })]);
             }
-            let mut built: crate::value::Dict = self.build_clob_order_body((self.safe_string_k(&o, "outcome", &[])).as_str(), (self.safe_string_k(&o, "type", &[])).as_str(), (self.safe_string_k(&o, "side", &[])).as_str(), self.safe_number_k(&o, "amount", &[]), &[self.safe_number_k(&o, "price", &[]), Value::Dict(orderParams)]).into_dict();
+            let mut built: crate::value::Dict = self.build_clob_order_body(self.safe_string_k(&o, "outcome", &[]).as_str(), self.safe_string_k(&o, "type", &[]).as_str(), self.safe_string_k(&o, "side", &[]).as_str(), self.safe_number_k(&o, "amount", &[]), &[self.safe_number_k(&o, "price", &[]), Value::Dict(orderParams)]).into_dict();
             bodies.push(self.safe_dict_k(&built, "body", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3412,7 +3412,7 @@ impl Polymarket {
             })]));
         }
         }
-        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.call_method(Value::Str("clob_private_post_orders".into()), &[Value::from(bodies)]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.call_method(Value::Str("clob_private_post_orders".into()), &[&Value::from(bodies)]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut result: Vec<Value> = Vec::new();
         if (response.is_some()) {
             {
@@ -3923,7 +3923,7 @@ impl Polymarket {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("clob_private_delete_order", &[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_private_delete_order", &[&__ws_arg_14]).await;
         // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
         let mut notCanceled: crate::value::Dict = self.safe_dict_k_t(&response, "not_canceled");
@@ -3967,7 +3967,7 @@ impl Polymarket {
 }));
         self.load_api_credentials().await;
         // the request body is the bare array of order ids (DELETE /orders), so params are not merged
-        let mut response: crate::value::Dict = self.call_method_t("clob_private_delete_orders", &[ids]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_private_delete_orders", &[&ids]).await;
         let mut canceled: crate::value::List = self.safe_list_k_t(&response, "canceled");
         let mut orders: Vec<Value> = Vec::new();
         {
@@ -4020,10 +4020,10 @@ impl Polymarket {
                 m
             });
             let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
-            response = self.call_method_o("clob_private_delete_cancel_market_orders", &[__ws_arg_15]).await;
+            response = self.call_method_o("clob_private_delete_cancel_market_orders", &[&__ws_arg_15]).await;
         }  else {
             // cancel every open order via DELETE /cancel-all (no body, no market data needed)
-            response = self.call_method_o("clob_private_delete_cancel_all", &[params]).await;
+            response = self.call_method_o("clob_private_delete_cancel_all", &[&params]).await;
         }
         let mut canceled: crate::value::List = self.safe_list_k_t(&response, "canceled");
         let mut orders: Vec<Value> = Vec::new();
@@ -4096,7 +4096,7 @@ impl Polymarket {
             }  else {
                 lookup.insert("slug".into(), requestedSlug.map(Value::from).unwrap_or(Value::Null));
             }
-            let mut response: Option<crate::value::List> = self.call_method_lo("gamma_public_get_events", &[Value::Map(lookup)]).await;
+            let mut response: Option<crate::value::List> = self.gamma_public_get_events(&[&Value::Map(lookup)]).await;
             let mut responseIsArray: bool = response.is_some();
             rawEvents = (if (responseIsArray) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
@@ -4129,13 +4129,13 @@ impl Polymarket {
                 let mut rawEventSlug: Option<String> = self.safe_string_k_opt(&rawEvent, "slug", &[]);
                 let mut detailedEvent: Option<crate::value::Dict> = None;
                 if (eventId.is_some()) {
-                    detailedEvent = self.call_method_o("gamma_public_get_events_id", &[Value::Map({
+                    detailedEvent = self.call_method_o("gamma_public_get_events_id", &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), eventId.map(Value::from).unwrap_or(Value::Null));
     m
 })]).await;
                 }  else if (rawEventSlug.is_some()) {
-                    detailedEvent = self.call_method_o("gamma_public_get_events_slug_slug", &[Value::Map({
+                    detailedEvent = self.call_method_o("gamma_public_get_events_slug_slug", &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("slug".to_string(), rawEventSlug.map(Value::from).unwrap_or(Value::Null));
     m
@@ -4211,14 +4211,14 @@ impl Polymarket {
         m.insert("slug".to_string(), id.clone());
     m
 }), &[&params]);
-            response = self.call_method_o("gamma_public_get_events_slug_slug", &[__ws_arg_16]).await;
+            response = self.call_method_o("gamma_public_get_events_slug_slug", &[&__ws_arg_16]).await;
         }  else {
             let __ws_arg_17 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
     m
 }), &[params]);
-            response = self.call_method_o("gamma_public_get_events_id", &[__ws_arg_17]).await;
+            response = self.call_method_o("gamma_public_get_events_id", &[&__ws_arg_17]).await;
         }
         let mut eventForParsing: Option<crate::value::Dict> = self.safe_dict_k_or_o(&response, "event", response.clone().map_or(Value::Null, Value::Dict));
         if (eventForParsing.is_none()) {
@@ -4518,7 +4518,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("clob_private_get_auth_derive_api_key", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_private_get_auth_derive_api_key", &[&params]).await;
         return self.set_api_credentials(&response);
 
     Value::Null
@@ -4538,7 +4538,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("clob_private_post_auth_api_key", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("clob_private_post_auth_api_key", &[&params]).await;
         return self.set_api_credentials(&response);
 
     Value::Null
@@ -4694,7 +4694,7 @@ if _try_result.is_err() {
             CacheStore::put(&mut self.orderbooks.clone(), &outcome, seededBook);
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
-        let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str()).as_i64();
+        let mut timestamp: Option<i64> = self.parse_poly_timestamp(self.safe_string_k(event, "timestamp", &[]).as_str()).as_i64();
         let mut rawBids: crate::value::List = __pro_message.key_list("bids");
         let mut rawAsks: crate::value::List = __pro_message.key_list("asks");
         let mut bids: Vec<Value> = Vec::new();
@@ -4734,7 +4734,7 @@ if _try_result.is_err() {
     pub fn handle_order_book_delta(&self, mut client: Value, mut event: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &event { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str()).as_i64();
+        let mut timestamp: Option<i64> = self.parse_poly_timestamp(self.safe_string_k(event, "timestamp", &[]).as_str()).as_i64();
         let mut changes: crate::value::List = __pro_message.key_list("price_changes");
         let mut updated: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4784,7 +4784,7 @@ if _try_result.is_err() {
         if (outcome == Value::Null) {
             return;
         }
-        let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(&event, "timestamp", &[])).as_str()).as_i64();
+        let mut timestamp: Option<i64> = self.parse_poly_timestamp(self.safe_string_k(&event, "timestamp", &[]).as_str()).as_i64();
         let mut price: Option<f64> = (match __pro_message.get("price") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
         let mut amount: Option<f64> = (match __pro_message.get("size") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
         let mut market: Option<crate::types::Market> = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), None);
@@ -5173,7 +5173,7 @@ if _try_result.is_err() {
         }
         // safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
         // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-        let mut market: crate::value::Dict = self.safe_dict_t(self.markets_by_id.clone(), Value::from(tokenId));
+        let mut market: crate::value::Dict = self.safe_dict_t(&self.markets_by_id, Value::from(tokenId));
         return self.safe_string2_opt(&market, Value::Str("market".into()), Value::Str("symbol".into()), &[]);
 }
 

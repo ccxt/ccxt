@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                 "handle_subscription" => self.handle_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "helper_for_watch_multiple_construct" => self.helper_for_watch_multiple_construct(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -105,7 +105,7 @@ impl Gemini {
             "handle_trades_for_multidata" => { self.handle_trades_for_multidata(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "helper_for_watch_multiple_construct" => { crate::exchange_stubs::enqueue_spawn("helper_for_watch_multiple_construct", args.to_vec()); crate::Value::Null },
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.to_vec()); crate::Value::Null },
             "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
@@ -263,7 +263,7 @@ impl Gemini {
         }).await?))
     }
 
-    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut trade: Value = trade.into();
         //
         // regular v2 trade
@@ -303,8 +303,8 @@ impl Gemini {
             }
         }
         let mut marketId: Option<String> = self.safe_string_lower_k_opt(&trade, "symbol", &[]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
-        return self.safe_trade(Value::Map({
+        let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
+        return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
@@ -322,7 +322,7 @@ impl Gemini {
     m
 }), market);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
@@ -337,7 +337,7 @@ impl Gemini {
         //         "side": "buy"
         //     }
         //
-        let mut trade: crate::value::Dict = self.parse_ws_trade(message, None).into_dict();
+        let mut trade: crate::value::Dict = self.parse_ws_trade(message, None);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
         let mut tradesLimit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -393,7 +393,7 @@ impl Gemini {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_lower_k_opt(message, "symbol", &[]);
-        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut trades: Option<crate::value::List> = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
         if (trades.is_some()) {
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -407,7 +407,7 @@ impl Gemini {
                                 let mut i: i64 = 0;
                 let mut __for_first_347: bool = true;
                 while { if !__for_first_347 { i += 1; } __for_first_347 = false; i < (trades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut trade: crate::value::Dict = self.parse_ws_trade(self.safe_value(&trades, Value::Int(i), &[]), Some(&market)).into_dict();
+                let mut trade: crate::value::Dict = self.parse_ws_trade(self.safe_value(&trades, Value::Int(i), &[]), Some(&market));
                 stored.append(Value::Dict(trade));
             }
             }
@@ -428,10 +428,10 @@ impl Gemini {
             let mut __for_first_348: bool = true;
             while { if !__for_first_348 { i += 1; } __for_first_348 = false; i < (trades.len() as i64) } {
             let mut rawTrade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
-            let mut marketId: Value = (self.safe_string_k(&rawTrade, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-            let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
+            let mut marketId: String = self.safe_string_k(&rawTrade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
+            let mut market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market)).into_dict();
+            let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market));
             std::sync::Arc::make_mut(&mut trade).insert("timestamp".into(), timestamp.clone());
             std::sync::Arc::make_mut(&mut trade).insert("datetime".into(), self.iso8601(timestamp.clone()));
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -546,9 +546,9 @@ impl Gemini {
         let mut timeframeIdFull: String = type_var.chars().skip(8).collect::<String>();
         let mut timeframeEndIndex: i64 = (if let (Some(__h), Some(__n)) = (Some(timeframeIdFull.as_str()), Some("_")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
         let mut timeframeId: String = ({ let (__l, __b, __e) = (timeframeIdFull.chars().count() as i64, 0, timeframeEndIndex); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); timeframeIdFull.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() });
-        let mut marketId: Value = (self.safe_string_k(&message, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId, Some(&market), &[]).as_str().map(str::to_owned);
+        let mut marketId: String = self.safe_string_k(&message, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
+        let mut market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
+        let mut symbol: Option<String> = self.safe_symbol(Some(marketId.as_str()), Some(&market), &[]).as_str().map(str::to_owned);
         let mut changes: crate::value::List = __pro_message.key_list("changes");
         let mut timeframe: Option<String> = self.find_timeframe(Value::from(timeframeId.clone()), &[]);
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
@@ -638,7 +638,7 @@ impl Gemini {
         let mut isInitial: bool = (matches!(&message, Value::Dict(__d) if __d.contains_key("auction_events"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("trades"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("changes")));
         let mut changes: crate::value::List = __pro_message.key_list("changes");
         let mut marketId: Option<String> = self.safe_string_lower_k_opt(message, "symbol", &[]);
-        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         if !(self.orderbooks.has(&symbol)) {
@@ -776,8 +776,8 @@ impl Gemini {
         // }
         //
         let mut firstBidAsk: crate::value::Dict = rawBidAskChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
-        let mut marketId: Value = (self.safe_string_k(&firstBidAsk, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
+        let mut marketId: String = self.safe_string_k(&firstBidAsk, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
+        let mut market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         // read-modify-write: the cached entry is copied out, updated, and stored back whole
         let mut currentBidAsk: crate::value::Dict = Value::Map({
@@ -898,8 +898,8 @@ impl Gemini {
         //   ...
         //
         let mut firstChange: crate::value::Dict = rawOrderBookChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
-        let mut marketId: Value = (self.safe_string_k(&firstChange, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
+        let mut marketId: String = self.safe_string_k(&firstChange, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
+        let mut market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         if !(self.orderbooks.has(&symbol)) {
@@ -1138,7 +1138,7 @@ impl Gemini {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_ws_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("type".to_string(), self.parse_ws_order_type(typeId.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), Value::Bool(postOnly));

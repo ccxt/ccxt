@@ -69,8 +69,8 @@ impl crate::exchange::DerivedExchange for Apex {
         // }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k_opt(&ticker, "lastPrice", &[]);
         let mut percentage: Option<String> = self.safe_string_k_opt(&ticker, "price24hPcnt", &[]);
         let mut quoteVolume: Option<String> = self.safe_string_k_opt(&ticker, "turnover24h", &[]);
@@ -121,7 +121,7 @@ impl crate::exchange::DerivedExchange for Apex {
         //  ]
         //
         let mut marketId: Option<String> = self.safe_string2_opt(&trade, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut id: Option<String> = self.safe_string2_opt(&trade, Value::Str("i".into()), Value::Str("id".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_n(&trade, Value::from(vec![Value::Str("t".into()), Value::Str("T".into()), Value::Str("createdAt".into())]), &[]).as_i64();
         let mut priceString: Option<String> = self.safe_string2_opt(&trade, Value::Str("p".into()), Value::Str("price".into()), &[]);
@@ -129,7 +129,7 @@ impl crate::exchange::DerivedExchange for Apex {
         let mut side: Option<String> = self.safe_string_lower2_opt(&trade, Value::Str("S".into()), Value::Str("side".into()), &[]);
         let mut type_var: Option<String> = self.safe_string_k_opt(&trade, "type", &[]);
         let mut fee: Option<String> = self.safe_string_k_opt(&trade, "fee", &[]);
-        return self.safe_trade(Value::Map({
+        return Value::Dict(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -145,11 +145,11 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map(Value::from).unwrap_or(Value::Null));
     m
-}), Some(&marketResolved));
+}), Some(&marketResolved)));
 
     Value::Null
 }
-    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut order: Value = order.into();
         //
         // {
@@ -209,7 +209,7 @@ impl crate::exchange::DerivedExchange for Apex {
         let mut orderId: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientId", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(&order, "size", &[]);
@@ -219,7 +219,7 @@ impl crate::exchange::DerivedExchange for Apex {
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         let mut remaining: Option<String> = self.omit_zero(self.safe_string_k(&order, "remainingSize", &[]));
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(&order, "updatedTime", &[]).as_i64();
-        return Value::Dict(self.safe_order(Value::Map({
+        return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -230,7 +230,7 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(&order, "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(&order, "timeInForce", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), self.safe_bool_k(&order, "postOnly", &[]));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Apex {
     m
 }), Some(&marketResolved)));
 
-    Value::Null
+    None
 }
     fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
@@ -263,9 +263,9 @@ impl crate::exchange::DerivedExchange for Apex {
         let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "l2PairId", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseTokenId", &[]);
         let mut quote: Option<String> = self.safe_string_k_opt(&market, "settleAssetId", &[]);
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let mut settleId: Option<String> = self.safe_string_k_opt(&market, "settleAssetId", &[]);
-        let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut settle: Option<String> = self.safe_currency_code(settleId.as_deref(), None);
         if (baseId.is_none()) || (quote.is_none()) || (settle.is_none()) {
             return Value::Null;
         }
@@ -398,7 +398,7 @@ impl crate::exchange::DerivedExchange for Apex {
         //     "customInitialMarginRate": "0"
         // }
         let mut marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k_opt(&position, "side", &[]);
         let mut quantity: Option<String> = self.safe_string_k_opt(&position, "size", &[]);
@@ -450,7 +450,7 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("id".to_string(), self.safe_string2(&transfer, Value::Str("transferId".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
@@ -463,7 +463,7 @@ impl crate::exchange::DerivedExchange for Apex {
     fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
         let mut currency: Value = currency.into();
         let mut currencyId: Option<String> = self.safe_string_k_opt(&currency, "token", &[]);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
         let mut name: Option<String> = self.safe_string_k_opt(&currency, "displayName", &[]);
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -585,8 +585,8 @@ impl crate::exchange::DerivedExchange for Apex {
         // }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&interest, "symbol", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -631,13 +631,13 @@ impl crate::exchange::DerivedExchange for Apex {
         // }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&income, "symbol", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("contract".into())]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]);
         let mut code: String = "USDT".to_string();
         let mut timestamp: Option<i64> = self.safe_integer_k(&income, "fundingTime", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
         m.insert("code".to_string(), Value::from(code));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -769,12 +769,12 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
+                "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -1300,7 +1300,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_time", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_time", &[&params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return self.safe_integer_k(&data, "time", &[]);
         Value::Null
@@ -1329,7 +1329,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account_balance", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account_balance", &[&params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &data);
         Value::Null
@@ -1353,7 +1353,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account", &[&params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_account(self, &data);
 
@@ -1378,7 +1378,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[&params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut spotConfig: crate::value::Dict = self.safe_dict_k_t(&data, "spotConfig");
         let mut multiChain: crate::value::Dict = self.safe_dict_k_t(&spotConfig, "multiChain");
@@ -1500,7 +1500,7 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[&params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut contractConfig: crate::value::Dict = self.safe_dict_k_t(&data, "contractConfig");
         let mut perpetualContract: crate::value::List = self.safe_list_k_t(&contractConfig, "perpetualContract");
@@ -1541,7 +1541,7 @@ impl Apex {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_ticker", &[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_ticker", &[&__ws_arg_0]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, Some(&market));
@@ -1572,7 +1572,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_data_all_ticker_info", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_data_all_ticker_info", &[&params]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_tickers(&tickers, &[symbols]);
         Value::Null
@@ -1626,7 +1626,7 @@ impl Apex {
             std::sync::Arc::make_mut(&mut requestUntil).insert("start".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_klines", &[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_klines", &[&__ws_arg_1]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut OHLCVs: crate::value::List = self.safe_list_t(&data, self.safe_string_k(&market, "id2", &[]));
         return self.parse_ohlc_vs(&OHLCVs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
@@ -1668,7 +1668,7 @@ impl Apex {
         });
         request.insert("limit".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit })); // max 100, default 100
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_depth", &[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_depth", &[&__ws_arg_2]).await;
         //
         // {
         //     "a": [
@@ -1742,7 +1742,7 @@ impl Apex {
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(500); // default is 50
         request.insert("limit".into(), Value::from(limitResolved));
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_trades", &[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_trades", &[&__ws_arg_3]).await;
         //
         // [
         //  {
@@ -1800,7 +1800,7 @@ impl Apex {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_ticker", &[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_ticker", &[&__ws_arg_4]).await;
         let mut tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &rawTicker, Some(&market));
@@ -1862,7 +1862,7 @@ impl Apex {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_history_funding", &[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.call_method_t("public_get_v3_history_funding", &[&__ws_arg_5]).await;
         //
         // {
         //     "historyFunds": [
@@ -1890,7 +1890,7 @@ impl Apex {
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&entry));
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&market), &[]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1948,22 +1948,22 @@ impl Apex {
         return self.safe_string_opt(&types, Value::from(type_var), &[Value::from(type_var)]);
 }
 
-    pub fn safe_market(&self, mut marketId: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::types::Market {
+    pub fn safe_market(&self, marketId: Option<&str>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::types::Market {
         let mut delimiter = get_arg(optional_args, 0, Value::Null);
         let mut marketType = get_arg(optional_args, 1, Value::Null);
         let mut marketResolved: Value = crate::Value::from(market);
-        if (market.is_none()) && (marketId != Value::Null) {
-            if (self.markets != Value::Null) && (matches!((&self.markets, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                marketResolved = (if let (Some(__m), Some(__k)) = (self.markets.as_map(), marketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            }  else if (self.markets_by_id != Value::Null) && (matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                marketResolved = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_map(), marketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        if (market.is_none()) && (marketId.is_some()) {
+            if (self.markets != Value::Null) && (matches!((&self.markets, &Value::from(marketId)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                marketResolved = (if let (Some(__m), Some(__k)) = (self.markets.as_map(), marketId) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            }  else if (self.markets_by_id.is_some()) && (matches!((&self.markets_by_id, &Value::from(marketId)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                marketResolved = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_deref(), marketId) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }  else {
-                let mut newMarketId: Option<String> = self.add_hyphen_before_usdt(marketId.as_str().unwrap_or_default());
-                if (self.markets_by_id != Value::Null) && (matches!((&self.markets_by_id, newMarketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                    let mut markets: Value = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_map(), newMarketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut newMarketId: Option<String> = self.add_hyphen_before_usdt(marketId.unwrap_or_default());
+                if (self.markets_by_id.is_some()) && (matches!((&self.markets_by_id, newMarketId.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
+                    let mut markets: Value = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_deref(), newMarketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                     let mut numMarkets: i64 = get_array_length(&markets).as_i64().unwrap_or_default();
                     if numMarkets > 0 {
-                        if is_equal(&crate::value::get_value_k(&get_value(&markets, &Value::Int(0)), "id2"), &marketId) {
+                        if is_equal(&crate::value::get_value_k(&get_value(&markets, &Value::Int(0)), "id2"), &Value::from(marketId)) {
                             marketResolved = get_value(&markets, &Value::Int(0));
                         }
                     }
@@ -2087,7 +2087,7 @@ impl Apex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a price argument for market orders")));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&params]);
         if (timeInForce.is_none()) {
             timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }
@@ -2144,9 +2144,9 @@ impl Apex {
         }
         request.insert("signature".into(), signature);
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted3]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_order", &[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_order", &[&__ws_arg_6]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2180,7 +2180,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut configResponse: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[params.clone()]).await;
+        let mut configResponse: crate::value::Dict = self.call_method_t("public_get_v3_symbols", &[&params]).await;
         let mut configData: crate::value::Dict = self.safe_dict_k_t(&configResponse, "data");
         let mut contractConfig: crate::value::Dict = self.safe_dict_k_t(&configData, "contractConfig");
         let mut spotConfig: crate::value::Dict = self.safe_dict_k_t(&configData, "spotConfig");
@@ -2189,7 +2189,7 @@ impl Apex {
         let mut receiverZkAccountId: String = self.safe_string_k(&globalConfig, "contractAssetPoolZkAccountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut receiverSubAccountId: String = self.safe_string_k(&globalConfig, "contractAssetPoolSubAccount", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut receiverAccountId: String = self.safe_string_k(&globalConfig, "contractAssetPoolAccountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut accountResponse: crate::value::Dict = self.call_method_t("private_get_v3_account", &[params.clone()]).await;
+        let mut accountResponse: crate::value::Dict = self.call_method_t("private_get_v3_account", &[&params]).await;
         let mut accountData: crate::value::Dict = self.safe_dict_k_t(&accountResponse, "data");
         let mut spotAccount: crate::value::Dict = self.safe_dict_k_t(&accountData, "spotAccount");
         let mut zkAccountId: String = self.safe_string_k(&spotAccount, "zkAccountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2231,7 +2231,7 @@ impl Apex {
         let mut amountNumber: Option<i64> = self.parse_to_int(Value::Float((amountValue * mathPowResult)));
         let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
-        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni((self.safe_string_k(&self.options, "accountId", &[])).as_str()) });
+        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni(self.safe_string_k(&self.options, "accountId", &[]).as_str()) });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientId", "clientOrderId", "client_order_id"], &[]);
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();
@@ -2263,7 +2263,7 @@ impl Apex {
                 m
             }).into_dict();
             let __ws_arg_7 = self.extend(request, &[&paramsOmitted]);
-            let mut response: crate::value::Dict = self.call_method_t("private_post_v3_contract_transfer_out", &[__ws_arg_7]).await;
+            let mut response: crate::value::Dict = self.call_method_t("private_post_v3_contract_transfer_out", &[&__ws_arg_7]).await;
             let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let mut currentTime: i64 = self.milliseconds();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
@@ -2313,7 +2313,7 @@ impl Apex {
                 m
             }).into_dict();
             let __ws_arg_10 = self.extend(request, &[&paramsOmitted]);
-            let mut response: crate::value::Dict = self.call_method_t("private_post_v3_transfer_out", &[__ws_arg_10]).await;
+            let mut response: crate::value::Dict = self.call_method_t("private_post_v3_transfer_out", &[&__ws_arg_10]).await;
             let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let mut currentTime: i64 = self.milliseconds();
             let __ws_arg_11 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&self.currency(code)));
@@ -2367,9 +2367,9 @@ impl Apex {
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_delete_open_orders", &[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_delete_open_orders", &[&__ws_arg_14]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return Value::from(vec![<Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref())]);
+        return Value::from(vec![<Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref()).map_or(Value::Null, Value::Dict)]);
         Value::Null
         }).await?))
     }
@@ -2405,11 +2405,11 @@ impl Apex {
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_15 = self.extend(&request, &[self.omit(&params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
-            response = self.call_method_o("private_post_v3_delete_client_order_id", &[__ws_arg_15]).await;
+            response = self.call_method_o("private_post_v3_delete_client_order_id", &[&__ws_arg_15]).await;
         }  else {
             request.insert("id".into(), id);
             let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("private_post_v3_delete_order", &[__ws_arg_16]).await;
+            response = self.call_method_o("private_post_v3_delete_order", &[&__ws_arg_16]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return Value::Dict(self.safe_order(Value::Dict(data), None));
@@ -2453,14 +2453,14 @@ impl Apex {
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_17 = self.extend(&request, &[self.omit(&params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
-            response = self.call_method_o("private_get_v3_order_by_client_order_id", &[__ws_arg_17]).await;
+            response = self.call_method_o("private_get_v3_order_by_client_order_id", &[&__ws_arg_17]).await;
         }  else {
             request.insert("id".into(), id);
             let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("private_get_v3_order", &[__ws_arg_18]).await;
+            response = self.call_method_o("private_get_v3_order", &[&__ws_arg_18]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2492,7 +2492,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_open_orders", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_open_orders", &[&params]).await;
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_orders(&orders, None, &[since, limit]);
         Value::Null
@@ -2553,7 +2553,7 @@ impl Apex {
         }
         let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_history_orders", &[__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_history_orders", &[&__ws_arg_19]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
         return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
@@ -2602,7 +2602,7 @@ impl Apex {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "clientId"], &[]);
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_order_fills", &[__ws_arg_20]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_order_fills", &[&__ws_arg_20]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
         return self.parse_trades(&orders, None, &[since, limit]);
@@ -2662,7 +2662,7 @@ impl Apex {
         }
         let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_fills", &[__ws_arg_21]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_fills", &[&__ws_arg_21]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
         return self.parse_trades(&orders, market.as_ref(), &[since, limit]);
@@ -2721,7 +2721,7 @@ impl Apex {
         }
         let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_funding", &[__ws_arg_22]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_funding", &[&__ws_arg_22]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut fundingValues: crate::value::List = self.safe_list_k_t(&data, "fundingValues");
         return self.parse_incomes(&fundingValues, &[crate::Value::from(market.as_ref()), since, limit]);
@@ -2768,7 +2768,7 @@ impl Apex {
             m
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_set_initial_margin_rate", &[__ws_arg_23]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_post_v3_set_initial_margin_rate", &[&__ws_arg_23]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return Value::Dict(data);
         Value::Null
@@ -2798,7 +2798,7 @@ impl Apex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account", &[params]).await;
+        let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account", &[&params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut positions: crate::value::List = self.safe_list_k_t(&data, "positions");
         return self.parse_positions(&positions, &[symbols]);

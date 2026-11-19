@@ -836,7 +836,7 @@ impl Coinbaseinternational {
         if (matches!(&data, Value::Arr(_))) {
             orders = self.parse_orders(data.clone(), None, &[]).into_list();
         }  else {
-            orders = std::sync::Arc::new(vec![self.parse_order(data, None)]);
+            orders = std::sync::Arc::new(vec![Value::Dict(self.parse_order(data, None))]);
         }
         let mut ordersLength: i64 = orders.len() as i64;
         {
@@ -1530,7 +1530,7 @@ impl Coinbaseinternational {
     pub fn parse_ws_bid_ask(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument_name", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "timestamp", &[]).as_i64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1733,7 +1733,7 @@ impl Coinbaseinternational {
         let mut messageHash: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(messageHash.split(".").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(2), &[]);
-        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut resolution: Option<String> = self.safe_string_opt(&parts, Value::Int(3), &[]);
         let mut wsOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "ws");
@@ -1928,7 +1928,7 @@ impl Coinbaseinternational {
         let mut data: crate::value::List = self.safe_list_k_t(&params, "data");
         let mut parts: crate::value::List = crate::value::List::new(channel.split(".").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
-        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+        let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (true) && !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2141,7 +2141,7 @@ impl Coinbaseinternational {
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut type_var: Option<String> = self.safe_string_k_opt(&data, "type", &[Value::Str("snapshot".into())]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "instrument_name", &[]);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut channelParts: Vec<Value> = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
@@ -2578,7 +2578,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Value = self.request_ws(Value::Str(format!("{}{}", "private/", side).into()), &[__ws_arg_6, Value::Bool(true)]).await;
         let mut order: crate::value::Dict = self.safe_dict_k_t(&result, "order");
         std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(&result, "trades", &[Value::from(vec![])]));
-        return self.parse_order(Value::Dict(order), Some(&market));
+        return Value::Dict(self.parse_order(Value::Dict(order), Some(&market)));
         Value::Null
         }).await?))
     }
@@ -2640,7 +2640,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Value = self.request_ws(Value::Str("private/edit".into()), &[__ws_arg_7, Value::Bool(true)]).await;
         let mut order: crate::value::Dict = self.safe_dict_k_t(&result, "order");
         std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(&result, "trades", &[Value::from(vec![])]));
-        return self.parse_order(Value::Dict(order), Some(&market));
+        return Value::Dict(self.parse_order(Value::Dict(order), Some(&market)));
         Value::Null
         }).await?))
     }
@@ -2683,7 +2683,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }), &[&paramsResolved]);
         let mut result: Value = self.request_ws(Value::Str("private/cancel".into()), &[__ws_arg_8, Value::Bool(true)]).await;
-        return self.parse_order(result, market.as_ref());
+        return Value::Dict(self.parse_order(result, market.as_ref()));
         Value::Null
         }).await?))
     }
@@ -2775,7 +2775,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }), &[&paramsResolved]);
         let mut result: Value = self.request_ws(Value::Str("private/get_order_state".into()), &[__ws_arg_9, Value::Bool(true)]).await;
-        return self.parse_order(result, market.as_ref());
+        return Value::Dict(self.parse_order(result, market.as_ref()));
         Value::Null
         }).await?))
     }

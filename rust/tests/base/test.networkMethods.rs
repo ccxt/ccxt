@@ -19,10 +19,10 @@ fn helperTestNetworkCodeToId(mut networksMap: Value) {
 }));
         m
     }));
-    { let __sv_tmp = exchange.map_to_safe_map(Value::Map({
+    exchange.currencies = std::sync::Arc::new({
         let mut m = indexmap::IndexMap::new();
         m
-    })); exchange.currencies = __sv_tmp; } // go fix + c# uninitialized prop fix
+    }); // go fix + c# uninitialized prop fix
     // unified code and its alias resolve to the same id, regardless of which one options.networks uses
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_code_to_id(Value::Str("ERC20".into()), &[]).as_str() == Some("Ether")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.network_code_to_id(Value::Str("ETH".into()), &[]).as_str() == Some("Ether")))));
@@ -55,10 +55,10 @@ fn helperTestNetworkIdToCode(mut networksMap: Value) {
 }));
         m
     }));
-    { let __sv_tmp = exchange.map_to_safe_map(Value::Map({
+    exchange.currencies = std::sync::Arc::new({
         let mut m = indexmap::IndexMap::new();
         m
-    })); exchange.currencies = __sv_tmp; } // go fix + c# uninitialized prop fix
+    }); // go fix + c# uninitialized prop fix
     // always the unified code, never an alias, regardless of currency
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Ether".into())])).as_str() == Some("ERC20")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.network_id_to_code(&[Value::Str("Ether".into()), Value::Str("USDC".into())])).as_str() == Some("ERC20")))));
@@ -91,10 +91,10 @@ fn helperTestNetworkAliases() {
 }));
         m
     }));
-    { let __sv_tmp = exchange.map_to_safe_map(Value::Map({
+    exchange.currencies = std::sync::Arc::new({
         let mut m = indexmap::IndexMap::new();
         m
-    })); exchange.currencies = __sv_tmp; } // go fix + c# uninitialized prop fix
+    }); // go fix + c# uninitialized prop fix
     let mut aliases: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("ETH".to_string(), Value::Str("ERC20".into()));
