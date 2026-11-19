@@ -7982,6 +7982,57 @@ function parsedPositionsList (proof: Proof, list: string, body: string): boolean
 // unit slot 093
 //
 // unit slot 094
+// `remove(&mut d, key)` with a string key on a fn-local `Value` none of whose writes reads a ws client: only a
+// client subscriptions snapshot carries the live-registry tag, so the helper's answer is the dict's own ordered
+// delete (and nothing for a non-dict or a missing key); any other receiver or key keeps the helper call.
+function nativeLocalStrKeyRemove (content: string): string {
+    if (!/(?<![A-Za-z0-9_:.])remove\(&mut [a-z_]/.test (content)) return content;
+    const masked = containerOpMask (content);
+    const heads = [ 0 ];
+    for (const m of masked.matchAll (/\n[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g)) heads.push ((m.index as number) + 1);
+    heads.push (content.length);
+    const untaggedLocal = (name: string, pos: number): boolean => {
+        let lo = 0;
+        while (heads[lo + 1] <= pos) lo++;
+        const real = content.slice (heads[lo], heads[lo + 1]);
+        const header = real.slice (0, Math.max (0, real.indexOf ('{')));
+        if (new RegExp (`[^A-Za-z0-9_]${name}\\s*:`).test (header)) return false;
+        const region = masked.slice (heads[lo], heads[lo + 1]);
+        if (new RegExp (`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\||\\bfor [^\\n]*\\b${name}\\b[^\\n]* in |\\blet \\([^)]*\\b${name}\\b|\\b${name}\\s*@`).test (region)) return false;
+        let lets = 0;
+        for (const w of region.matchAll (new RegExp (`(?<![A-Za-z0-9_.*])(let (?:mut )?)?${name}\\b(\\s*:\\s*([^=;\\n]*?))?\\s*=(?!=)`, 'g'))) {
+            if (w[1] !== undefined) { lets++; if ((w[3] ?? '').trim () !== 'Value') return false; }
+            const at = (w.index as number) + w[0].length;
+            const end = containerOpStmtEnd (real, at);
+            const rhs = containerOpParens (real.slice (at, end < 0 ? at : end));
+            // An alias of another local could share a snapshot: rejected.
+            if (end < 0 || /subscriptions|client|__ch\b|__ws|get_value/.test (rhs) || /^&?[a-z_][A-Za-z0-9_]*(?:\.clone\(\))?$/.test (rhs)) return false;
+        }
+        return lets > 0;
+    };
+    const rx = /(?<![A-Za-z0-9_:.])remove\(&mut ([a-z_][A-Za-z0-9_]*), /g;
+    let out = '';
+    let at = 0;
+    for (const m of masked.matchAll (rx)) {
+        const start = m.index as number;
+        const open = start + 'remove'.length;
+        const close = containerOpClose (content, open);
+        if (close < 0 || !/^\s*;/.test (content.slice (close + 1))) continue;
+        const args = containerOpSplit (content.slice (open + 1, close)).map (x => x.trim ());
+        if (args.length !== 2 || !untaggedLocal (m[1], start)) continue;
+        const d = m[1];
+        const lit = CONTAINER_OP_LITERAL_KEY.exec (args[1]);
+        const opt = /^&Value::from\(([a-z_][A-Za-z0-9_]*)\.(as_deref|as_str)\(\)\)$/.exec (args[1]);
+        let text: string;
+        if (lit !== null) text = `if let Value::Dict(__d) = &mut ${d} { std::sync::Arc::make_mut(__d).shift_remove(${lit[1]}); }`;
+        else if (opt !== null && opt[2] === 'as_deref') text = `if let (Value::Dict(__d), Some(__k)) = (&mut ${d}, ${opt[1]}.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }`;
+        else if (opt !== null) text = `if let Value::Dict(__d) = &mut ${d} { std::sync::Arc::make_mut(__d).shift_remove(${opt[1]}.as_str()); }`;
+        else continue;
+        out += content.slice (at, start) + text;
+        at = close + 1;
+    }
+    return at === 0 ? content : out + content.slice (at);
+}
 //
 // unit slot 095
 //
@@ -8251,6 +8302,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 093
     //
     // pass slot 094
+    nativeLocalStrKeyRemove,
     //
     // pass slot 095
     //
