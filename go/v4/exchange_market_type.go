@@ -12,7 +12,7 @@ func (this *BaseExchange) HandleMarketTypeAndParams(methodName any, optionalArgs
 	}
 	// type from market
 	if market != nil {
-		return SafeStringPtr(GetValue(market, "type")), params
+		return SafeStringPtr(market["type"]), params
 	}
 	// type from default-argument
 	if derefScalar(defaultValue) != nil {
@@ -210,11 +210,11 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
 				panic(BadRequest(this.Id + " symbols must be of the same subType, either linear or inverse."))
 			}
 		}
-		if (typeVar != nil) && derefScalar(GetValue(market, "type")) != any(*typeVar) {
+		if (typeVar != nil) && derefScalar(market["type"]) != any(*typeVar) {
 			panic(BadRequest(this.Id + " symbols must be of the same type " + *typeVar + ". If the type is incorrect you can change it in options or the params of the request"))
 		}
 		marketType = this.SafeString(market, "type")
-		if GetValue(market, "spot") != true {
+		if derefScalar(market["spot"]) != true {
 			isLinearSubType = this.SafeBool(market, "linear")
 		}
 		result = append(result, *this.SafeString(market, "symbol", symbolIn))
