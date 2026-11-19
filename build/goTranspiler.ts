@@ -7128,13 +7128,10 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'createOrdersWs': { 0: '[]any' },
     // venue createOrdersRequest (gate, hyperliquid, pacifica): callers are createOrders/createOrdersWs cores
     'createOrdersRequest': { 0: '[]any' },
-<<<<<<< merged
     // symbols-and-timeframes rows (string[][]): literals print `[][]any{[]any{..}}`, the wrapper converts its [][]string
     'watchOHLCVForSymbols': { 0: '[][]any' }, 'unWatchOHLCVForSymbols': { 0: '[][]any' },
-=======
     // base List params every ts/src caller hands a `[]any` local; ParseDepositAddresses' interface line matches
     'parseDepositAddresses': { 0: '[]any' }, 'parseBorrowInterests': { 0: '[]any' },
->>>>>>> G17
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`

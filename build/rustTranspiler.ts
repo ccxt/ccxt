@@ -4200,9 +4200,6 @@ function typedUrlsField(content: string): string {
 // `options`, `fees`, `userAgents` are typed `Dict`s too (always a dict, never tagged): the same
 // map ops as `typedUrlsField`; a value the `Dict` cannot satisfy is boxed back as `Value::Dict`.
 function typedBaseDictFields(content: string): string {
-<<<<<<< merged
-    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance']) {
-=======
     // `tickers` holds only dicts too (init and `create_safe_dictionary` are empty maps; keys are symbols, never tags).
     content = content
         .replace(/\{ let __t = self\.create_safe_dictionary\(&\[[^\]]*\]\); self\.tickers = __t; \}/g, 'self.tickers = crate::value::Dict::default();')
@@ -4213,8 +4210,7 @@ function typedBaseDictFields(content: string): string {
         .replace(/if let \(Some\(__m\), Some\(__k\)\) = \(self\.tickers\.as_map\(\), /g, 'if let (__m, Some(__k)) = (&self.tickers, ')
         .replace(/self\.tickers\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.tickers'))
         .replace(/\(self\.tickers != Value::Null\)/g, 'true');
-    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'tickers']) {
->>>>>>> R02
+    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance', 'tickers']) {
         const r = 'self\\.' + f;
         const k = '("[^"\\\\]*")';
         const make = 'std::sync::Arc::make_mut(';
@@ -4236,7 +4232,6 @@ function typedBaseDictFields(content: string): string {
     return content;
 }
 
-<<<<<<< merged
 // `balance` is a typed `Dict` (exchange.rs) and `safeBalance` takes any map operand and returns the `Dict` it fills:
 // a `Value` slot boxes the answer, a `Value` store into the field keeps its map (a non-map is the empty map).
 function typedBalanceField(content: string): string {
@@ -4266,7 +4261,8 @@ function typedBalanceField(content: string): string {
         head.lastIndex = last;
     }
     return out + content.slice(last);
-=======
+}
+
 // In a `&mut self` method the store-back borrows the real field; kept when the rest of the statement reads `self`.
 function mutSelfFieldStoreBacks(content: string): string {
     const lines = content.split('\n');
@@ -4289,7 +4285,6 @@ function mutSelfFieldStoreBacks(content: string): string {
         lines[i] = lines[i].slice(0, m.index) + '&mut self.' + m[1] + lines[i].slice(m.index + m[0].length);
     }
     return lines.join('\n');
->>>>>>> X03
 }
 
 function plainDictChains(content: string): string {
@@ -4736,7 +4731,6 @@ function rustTypedIndexBy (content: string): string {
     return content;
 }
 
-<<<<<<< merged
 // `parseOrderBook` always builds a book map: the base returns `Dict`, an override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden). `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
 function rustTypedParseOrderBook (content: string): string {
@@ -4782,7 +4776,8 @@ function rustTypedParseOrderBook (content: string): string {
         else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + after;
     }
     return content;
-=======
+}
+
 // `safeOrder` ends in `this.extend (orderDict, {..})`, a map on every input, so it returns `Dict` (`extend_t`). A venue
 // `parseWsOrder` whose every return is `this.safeOrder (..)` returns `Dict` too; `.into_dict()` drops, any other use boxes it.
 function rustTypedSafeOrder (content: string): string {
@@ -4818,7 +4813,6 @@ function rustTypedSafeOrder (content: string): string {
     if (base >= 0 || /(?<![\w.])self\.safe_order\(/.test (content)) box ('safe_order', true);
     if (typedWs) box ('parse_ws_order', true);
     return content.replace (/self\.\u0000safe_order\(/g, 'self.safe_order(');
->>>>>>> R07
 }
 
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
@@ -5676,19 +5670,7 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-<<<<<<< merged
-<<<<<<< merged
-<<<<<<< merged
-    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
-=======
-    content = splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
->>>>>>> R08
-=======
-    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
->>>>>>> R11
-=======
-    content = splitLongRustLines(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
->>>>>>> X03
+    content = splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -12289,11 +12271,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedImplicitApiResults(finalFile);
         finalFile = rustTypedListAndOmitBranches(finalFile);
         finalFile = rustTypedIndexBy(finalFile);
-<<<<<<< merged
         finalFile = rustTypedParseOrderBook(finalFile);
-=======
         finalFile = rustTypedSafeOrder(finalFile);
->>>>>>> R07
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);
@@ -12321,19 +12300,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-<<<<<<< merged
-<<<<<<< merged
-<<<<<<< merged
-        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
-=======
-        fs.writeFileSync(outFile, splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
->>>>>>> R08
-=======
-        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
->>>>>>> R11
-=======
-        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
->>>>>>> X03
+        fs.writeFileSync(outFile, splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
