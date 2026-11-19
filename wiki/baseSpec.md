@@ -7744,6 +7744,7 @@ unWatches a mark price for a specific market
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchmarkprice)
 [kucoin](/exchanges/kucoin.md#unwatchmarkprice)
 [lighter](/exchanges/lighter.md#unwatchmarkprice)
+[okx](/exchanges/okx.md#unwatchmarkprice)
 
 ---
 
@@ -7767,6 +7768,7 @@ watches the mark price for all markets
 [binance](/exchanges/binance.md#unwatchmarkprices)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchmarkprices)
 [lighter](/exchanges/lighter.md#unwatchmarkprices)
+[okx](/exchanges/okx.md#unwatchmarkprices)
 
 ---
 

@@ -21,6 +21,7 @@ pub async fn baseTestsInit() {
     testDecimalToPrecision();
     testCapitalize();
     testIncrementingNonce();
+    testArraySlice();
     testIsDictionary();
     testNumberToString();
     testPrecise();

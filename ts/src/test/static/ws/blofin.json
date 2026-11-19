@@ -3,6 +3,98 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchTicker": [
+            {
+                "description": "watchTicker with a symbol",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "tickers",
+                            "instId": "BTC-USDT"
+                        }
+                    },
+                    {
+                        "arg": {
+                            "channel": "tickers",
+                            "instId": "BTC-USDT"
+                        },
+                        "data": [
+                            {
+                                "askPrice": "63536.5",
+                                "askSize": "7",
+                                "bidPrice": "63536.3",
+                                "bidSize": "0.1",
+                                "high24h": "65230",
+                                "instId": "BTC-USDT",
+                                "last": "63544.6",
+                                "lastSize": "2.2",
+                                "low24h": "63050.1",
+                                "open24h": "64599.9",
+                                "ts": "1795014489374",
+                                "vol24h": "6371988.2",
+                                "volCurrency24h": "6371.9882"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "tickers",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1795014489374,
+                        "datetime": "2026-11-18T15:08:09.374Z",
+                        "high": 65230,
+                        "low": 63050.1,
+                        "bid": 63536.3,
+                        "bidVolume": 0.1,
+                        "ask": 63536.5,
+                        "askVolume": 7,
+                        "vwap": null,
+                        "open": 64599.9,
+                        "close": 63544.6,
+                        "last": 63544.6,
+                        "previousClose": null,
+                        "change": -1055.3,
+                        "percentage": -1.633593860052415,
+                        "average": 64072.2,
+                        "baseVolume": 6371988.2,
+                        "quoteVolume": null,
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "info": {
+                            "askPrice": "63536.5",
+                            "askSize": "7",
+                            "bidPrice": "63536.3",
+                            "bidSize": "0.1",
+                            "high24h": "65230",
+                            "instId": "BTC-USDT",
+                            "last": "63544.6",
+                            "lastSize": "2.2",
+                            "low24h": "63050.1",
+                            "open24h": "64599.9",
+                            "ts": "1795014489374",
+                            "vol24h": "6371988.2",
+                            "volCurrency24h": "6371.9882"
+                        }
+                    }
+                ]
+            }
+        ],
         "watchBalance": [
             {
                 "description": "account snapshot followed by a partial update - updates arriving while no consumer is awaiting must still reach the object handed to the consumer, and currencies absent from the partial update must be kept (same class as issue 26773); frame shape from the documented account channel payload",

@@ -3886,7 +3886,7 @@ class woo(Exchange, ImplicitAPI):
             return await self.v3PrivatePutFuturesLeverage(self.extend(request, paramsMarginMode))
         else:
             marketType = self.safe_string(market, 'type', '')
-            raise NotSupported(self.id + ' fetchLeverage() is not supported for ' + marketType + ' markets')
+            raise NotSupported(self.id + ' setLeverage() is not supported for ' + marketType + ' markets')
 
     async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """

@@ -2768,7 +2768,7 @@ public class Toobit extends ToobitApi
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                throw new NotSupported((((this.id + " fetchOrders() is not supported for ") + marketType) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchClosedOrders() is not supported for ") + marketType) + " markets")) ;
             } else
             {
                 response = (this.privateGetApiV1FuturesHistoryOrders(requestUntil)).join();

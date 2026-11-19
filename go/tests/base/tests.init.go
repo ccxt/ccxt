@@ -34,6 +34,7 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	TestDecimalToPrecision()
 	TestCapitalize()
 	TestIncrementingNonce()
+	TestArraySlice()
 	TestIsDictionary()
 	TestNumberToString()
 	TestPrecise()

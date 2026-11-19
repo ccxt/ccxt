@@ -5336,7 +5336,7 @@ func (this *Woo) setLeverageBody(ch chan AsyncResult[map[string]any], leverage i
 		return nil
 	} else {
 		var marketType string = *this.SafeString(market, "type", "")
-		panic(NotSupported(this.Id + " fetchLeverage() is not supported for " + marketType + " markets"))
+		panic(NotSupported(this.Id + " setLeverage() is not supported for " + marketType + " markets"))
 	}
 }
 

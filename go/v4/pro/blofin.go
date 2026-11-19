@@ -1285,7 +1285,13 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 	}
 	var rawSubscriptions []any = []any{}
 	var messageHashes []any = []any{}
-	if (symbols != nil) && (len(symbols) > 0) {
+	var symbolsLength int
+	if symbols == nil {
+		symbolsLength = 0
+	} else {
+		symbolsLength = len(symbols)
+	}
+	if symbolsLength > 0 {
 		for i := 0; i < len(symbols); i++ {
 			var current string = symbols[i]
 			var market map[string]any = nil

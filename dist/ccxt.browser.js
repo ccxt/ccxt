@@ -477210,7 +477210,7 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
      */ async setLeverage(leverage, symbol = undefined, params = {}) {
         const operationType = 'update_leverage';
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -551910,7 +551910,8 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         }
         let rawSubscriptions = [];
         const messageHashes = [];
-        if (symbols !== undefined && symbols.length > 0) {
+        const symbolsLength = symbols === undefined ? 0 : symbols.length;
+        if (symbolsLength > 0) {
             for(let i = 0; i < symbols.length; i++){
                 const current = symbols[i];
                 let market = undefined;
@@ -599190,6 +599191,8 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
                 'watchFundingRates': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchMarkPrice': true,
+                'unWatchMarkPrices': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': true,
@@ -599698,6 +599701,54 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             return newTickers;
         }
         return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+    }
+    /**
+     * @method
+     * @name okx#unWatchMarkPrice
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches a mark price
+     * @param {string} symbol unified symbol of the market to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */ unWatchMarkPrice(symbol, params = {}) {
+        return this.unWatchMarkPrices([
+            symbol
+        ], params);
+    }
+    /**
+     * @method
+     * @name okx#unWatchMarkPrices
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches mark prices
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */ async unWatchMarkPrices(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const channel = this.handleOptionStringAndParams(params, 'watchMarkPrices', 'channel', 'mark-price')[0];
+        const topics = [];
+        const messageHashes = [];
+        for(let i = 0; i < symbolsNormalized.length; i++){
+            const symbol = symbolsNormalized[i];
+            messageHashes.push('unsubscribe:mark-price:' + symbol);
+            const marketId = this.marketId(symbol);
+            const topic = {
+                'channel': channel,
+                'instId': marketId
+            };
+            topics.push(topic);
+        }
+        const request = {
+            'op': 'unsubscribe',
+            'args': topics
+        };
+        const url = this.getUrl(channel, 'public');
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
     /**
      * @method
@@ -601938,6 +601989,14 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             delete this.tickers[symbol];
         }
     }
+    handleUnsubscriptionMarkPrice(client, symbol, channel) {
+        const subMessageHash = channel + '::' + symbol;
+        const messageHash = 'unsubscribe:mark-price:' + symbol;
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+    }
     handleUnsubscription(client, message) {
         //
         // {
@@ -601963,6 +602022,8 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             this.handleUnSubscriptionTrades(client, symbol, channel);
         } else if (channel.startsWith('bbo') || channel.startsWith('book')) {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
+        } else if (channel === 'mark-price') {
+            this.handleUnsubscriptionMarkPrice(client, symbol, channel);
         } else if (channel.indexOf('tickers') > -1) {
             this.handleUnsubscriptionTicker(client, symbol, channel);
         } else if (channel.startsWith('candle')) {
@@ -634041,7 +634102,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         const marketType = this.handleMarketTypeAndParams('fetchClosedOrders', market, paramsUntil)[0];
         let response = [];
         if (marketType === 'spot') {
-            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchClosedOrders() is not supported for ' + marketType + ' markets');
         } else {
             response = await this.privateGetApiV1FuturesHistoryOrders(requestUntil);
         //
@@ -651360,7 +651421,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             return await this.v3PrivatePutFuturesLeverage(this.extend(request, paramsMarginMode));
         } else {
             const marketType = this.safeString(market, 'type', '');
-            throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' fetchLeverage() is not supported for ' + marketType + ' markets');
+            throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' setLeverage() is not supported for ' + marketType + ' markets');
         }
     }
     /**
@@ -660846,6 +660907,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */ async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
@@ -661349,7 +661411,6 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
      * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */ async fetchFundingInterval(symbol, params = {}) {
         return await this.fetchFundingRate(symbol, params);
