@@ -945,7 +945,7 @@ function createImplicitMethodsRust(){
             return [[
                 `${IDEN}/// Auto-generated wrapper for the \`${camel}\` implicit endpoint.`,
                 `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[&Value]) -> ${list ? 'Option<crate::value::List>' : 'Value'} {`,
-                `${IDEN}${IDEN}${list ? `if let Value::Arr(a) = ${call} { Some(a) } else { None }` : call}`,
+                `${IDEN}${IDEN}${list ? `self.call_method_as("${snake}", optional_args).await` : call}`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')];

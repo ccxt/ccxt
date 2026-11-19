@@ -7575,9 +7575,8 @@ function lendBookSideToHandleDelta(content: string): string {
         return sig.includes(`mut bookside: ${side},`) ? `${head}&mut bookside, ` : line;
     });
 }
-// Dict literal `"info"` row `m.insert("info".to_string(), x.clone());` with x an owned local named nowhere after the
-// literal: move x. If later rows still read x, the row inserts `Value::Null` (fixing key order) and x is moved into
-// the same key right after the last row that reads it (IndexMap::insert keeps an existing key's position).
+// Dict literal `"info"` row `m.insert("info".to_string(), x.clone());` with x an owned local named nowhere after
+// the row (rest of the literal and fn): move x.
 function moveDictLiteralInfoRows(content: string): string {
     const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
     const fnStarts = [...code.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
@@ -7600,16 +7599,14 @@ function moveDictLiteralInfoRows(content: string): string {
         if (word.test(code.slice(litClose, fnClose))) continue;
         const body = code.slice(open + 1, litOpen);
         const decl = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
-        let declAt: number, ty = '';
+        let declAt: number;
         if (decl !== undefined) {
             if (decl[1] === undefined ? decl[2] === undefined : /^&|\bimpl\b/.test(decl[1].trim())) continue;
             declAt = (decl.index as number) + decl[0].length;
-            ty = decl[2] !== undefined ? 'Value' : decl[1].trim();
         } else {
             const param = new RegExp(`[(,]\\s*(?:mut )?${name}\\s*:\\s*([^,)]+)`).exec(code.slice(fnStarts[fi], open));
             if (param === null || /^&|\bimpl\b|^\[/.test(param[1].trim())) continue;
             declAt = 0;
-            ty = param[1].trim();
         }
         const after = body.slice(declAt);
         if (new RegExp(`\\bfor (?:mut )?${name}\\b|[(|,]\\s*(?:ref )?(?:mut )?${name}\\s*[)|,]`).test(after)) continue;
@@ -7626,115 +7623,13 @@ function moveDictLiteralInfoRows(content: string): string {
         if (heads.some(h => /\b(?:loop|while|for)\b|\|/.test(h))) continue;
         word.lastIndex = 0;
         if (word.test(after.slice(stmtStart + 1))) continue;
-        // the literal's own rows before the "info" row may borrow x; they finish before the move
-        const rest = code.slice(rowEnd, litClose);
-        let lastUse = -1;
-        let owned = false;
-        const lends: number[] = [];
-        for (const u of rest.matchAll(new RegExp(`(?<![\\w.])${name}\\b`, 'g'))) {
-            lastUse = u.index as number;
-            if (rest[lastUse - 1] === '&' || rest.startsWith(`${name}.clone()`, lastUse)) continue;
-            // a by-value first argument of a self method this file also calls with a borrowed first argument
-            const callee = /self\.(\w+)\($/.exec(rest.slice(Math.max(0, lastUse - 60), lastUse));
-            if (callee !== null && rest[lastUse + name.length] === ',' && code.slice(open, fnClose).includes(`self.${callee[1]}(&${name},`)) lends.push(rowEnd + lastUse);
-            else owned = true;
-        }
-        if (owned) continue;
+        // rows before the "info" row may borrow x (they finish before the move); a later row naming x keeps the clone
+        word.lastIndex = 0;
+        if (word.test(code.slice(rowEnd, litClose))) continue;
         const at = pos + m[1].length + 'm.insert("info".to_string(), '.length;
-        if (lastUse < 0) { edits.push([at, at + name.length + 8, name]); continue; }
-        // end of the top-level row holding the last read: next `;` at literal depth
-        const useLine = code.lastIndexOf('\n', rowEnd + lastUse) + 1;
-        if (!/^\s*m\.insert\(/.test(code.slice(useLine, rowEnd + lastUse))) continue;
-        // the reading row must be a row of this literal, not of a nested one
-        let net = 0, q = false;
-        for (let j = rowEnd; j < useLine; j++) {
-            const c = code[j];
-            if (q) { if (c === '\\') j++; else if (c === '"') q = false; continue; }
-            if (c === '"') q = true; else if ('([{'.includes(c)) net++; else if (')]}'.includes(c)) net--;
-        }
-        if (net !== 0) continue;
-        let depth = 0, k = useLine, s = false;
-        for (; k < litClose; k++) {
-            const c = code[k];
-            if (s) { if (c === '\\') k++; else if (c === '"') s = false; continue; }
-            if (c === '"') s = true; else if ('([{'.includes(c)) depth++; else if (')]}'.includes(c)) depth--;
-            else if (c === ';' && depth === 0) break;
-        }
-        if (k >= litClose || depth !== 0) continue;
-        if (!/^(?:crate::)?Value$/.test(ty)) continue;
-        for (const l of lends) edits.push([l, l, '&']);
-        edits.push([at, at + name.length + 8, 'Value::Null']);
-        edits.push([k + 1, k + 1, `\n${m[1]}m.insert("info".to_string(), ${name});`]);
+        edits.push([at, at + name.length + 8, name]);
     }
     edits.sort((a, b) => a[0] - b[0]);
-    let out = '', last = 0;
-    for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
-    return out + content.slice(last);
-}
-// Dict-literal row boxing an owned `Option<String>` local that later rows of the same literal only borrow:
-// insert `Value::Null` at the row (keeps key order) and overwrite it with the moved local after the last
-// borrowing row. Skipped when the local is named after the literal, or inside a loop / closure.
-function moveOptionRowsAfterLastRead(content: string): string {
-    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
-    const fnStarts = [...code.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
-    const edits: [number, number, string][] = [];
-    for (const lit of code.matchAll(/\{\s*let mut m = indexmap::IndexMap::new\(\);/g)) {
-        const bodyAt = (lit.index as number) + lit[0].length, litEnd = balancedCloseIndex(code, (lit.index as number) + 1);
-        const stmts: [number, number][] = [];
-        let depth = 0, inStr = false, start = bodyAt;
-        for (let j = bodyAt; j < litEnd; j++) {
-            const c = code[j];
-            if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
-            if (c === '"') inStr = true; else if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--; else if (c === ';' && depth === 0) { stmts.push([start, j]); start = j + 1; }
-        }
-        const fi = fnStarts.filter(s => s < bodyAt).length - 1;
-        if (fi < 0) continue;
-        const open = code.indexOf('{', fnStarts[fi]);
-        const fnEnd = balancedCloseIndex(code, open + 1);
-        stmts.forEach(([a, b], i) => {
-            const row = /^\s*m\.insert\(("[^"\\]*")\.to_string\(\), ([A-Za-z_]\w*)\.clone\(\)\.map\(Value::from\)\.unwrap_or\(Value::Null\)\)$/.exec(code.slice(a, b));
-            if (row === null) return;
-            const x = row[2], word = new RegExp(`(?<![\\w.])${x}\\b`, 'g');
-            if (word.test(code.slice(litEnd, fnEnd))) return;
-            const before = code.slice(open + 1, a);
-            const decl = [...before.matchAll(new RegExp(`\\blet (?:mut )?${x}\\s*:\\s*([^=;]+?)\\s*=`, 'g'))].pop();
-            let after: string;
-            if (decl !== undefined) {
-                if (decl[1].trim() !== 'Option<String>') return;
-                after = before.slice((decl.index as number) + decl[0].length);
-            } else {
-                const p = new RegExp(`[(,]\\s*(?:mut )?${x}\\s*:\\s*([^,)]+)`).exec(code.slice(fnStarts[fi], open));
-                if (p === null || p[1].trim() !== 'Option<String>') return;
-                after = before;
-            }
-            if (new RegExp(`\\bfor (?:mut )?${x}\\b|[(|,]\\s*(?:ref )?(?:mut )?${x}\\s*[)|,]|\\b${x} =[^=]`).test(after)) return;
-            const stack: number[] = [];
-            let s = false;
-            for (let j = 0; j < after.length; j++) {
-                const c = after[j];
-                if (s) { if (c === '\\') j++; else if (c === '"') s = false; continue; }
-                if (c === '"') s = true; else if (c === '{') stack.push(j); else if (c === '}') stack.pop();
-            }
-            if (stack.map(o => after.slice(after.lastIndexOf('\n', o) + 1, o)).some(h => /\b(?:loop|while|for)\b|\|/.test(h))) return;
-            // last later row naming x; every mention up to it must only borrow x
-            let last = -1;
-            for (let k = i + 1; k < stmts.length; k++) if (new RegExp(word.source).test(code.slice(stmts[k][0], stmts[k][1]))) last = k;
-            if (last < 0) return;
-            const span = code.slice(stmts[i + 1][0], stmts[last][1]);
-            for (const w of span.matchAll(word)) {
-                const at = w.index as number;
-                const tail = span.slice(at + x.length);
-                if (!(span[at - 1] === '&' && /^[^.\w]/.test(tail)) && !/^\.(?:as_deref|as_ref|is_some|is_none)\(\)/.test(tail)) return;
-            }
-            if (span.includes(`m.insert(${row[1]}.`) || new RegExp(`(?<![\\w.])m\\.(?!insert\\()`).test(span.replace(/let mut m = indexmap[\s\S]*?\n\s*m\n/g, ''))) return;
-            const v = content.indexOf(`${x}.clone()`, a);
-            edits.push([v, b - 1, 'Value::Null']);
-            const ind = /\n([ \t]*)$/.exec(content.slice(0, a + (code.slice(a, b).length - code.slice(a, b).trimStart().length)))?.[1] ?? '        ';
-            edits.push([stmts[last][1] + 1, stmts[last][1] + 1, `\n${ind}m.insert(${row[1]}.to_string(), ${x}.map(Value::from).unwrap_or(Value::Null));`]);
-        });
-    }
-    edits.sort((p, q) => p[0] - q[0]);
     let out = '', last = 0;
     for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
@@ -9244,7 +9139,7 @@ function rustTypedDictEndpointsCrate (): Map<string, string> {
         let n2: string;
         if (f.endsWith ('_api.rs')) {
             n2 = c.replace (wrapper, (s, n: string, ind: string) => (!typed.has (n) ? s
-                : `pub async fn ${n}(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {\n${ind}if let Value::Dict(m) = self.call_method(Value::Str("${n}".into()), optional_args).await { Some(m) } else { None }\n`));
+                : `pub async fn ${n}(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {\n${ind}self.call_method_as("${n}", optional_args).await\n`));
         } else {
             // a WS core reaches its own REST core's endpoints only through `call_method`'s runtime dispatch: those stay
             if (f.includes ('/ccxt-pro/')) n2 = c.replace (/\bself\.parent\.call_method_([to])\("([a-z0-9_]+)", /g, (s, k: string, n: string) => (typed.has (n) ? `self.parent.${n}(${k}` : s));
@@ -9395,7 +9290,6 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendRequiredArgument,
     lendBookSideToHandleDelta,
     moveDictLiteralInfoRows,
-    moveOptionRowsAfterLastRead,
     moveInsertedLocalsOnPath,
     moveInsertKeysAtLastUse,
     typeOptionalIntArgs,
@@ -15036,10 +14930,8 @@ impl ${coreName} {
         let described = ${coreName}::describe(self);
         self.exchange.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        // moved out for the &mut self call (nothing else reads the field there), then put back
-        let mut user_config = [std::mem::take(&mut self.userConfig)];
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
-        self.userConfig = std::mem::take(&mut user_config[0]);
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move

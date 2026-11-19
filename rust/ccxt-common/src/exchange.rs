@@ -1958,7 +1958,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     } }
     /// `call_method` by name taken back as an optional dict: `None` for anything but a map (as `.into_opt_dict()`).
     fn call_method_o(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = Option<crate::value::Dict>> + Send { async move {
-        if let Value::Dict(m) = self.call_method(Value::Str(name.into()), args).await { Some(m) } else { None }
+        self.call_method_as(name, args).await
+    } }
+    /// `call_method` by name with the body taken as its declared shape: `None` for any other body.
+    fn call_method_as<T: crate::value::EndpointBody>(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = Option<T>> + Send { async move {
+        T::from_body(self.call_method(Value::Str(name.into()), args).await)
     } }
 
     /// Loads markets (and currencies), dispatching `fetch_markets` /

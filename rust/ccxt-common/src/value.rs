@@ -748,6 +748,10 @@ pub fn get_value_k(obj: &Value, key: &str) -> Value {
 pub type Dict = Arc<HashMap<String, Value>>;
 /// The shared list a list-typed local holds; a non-list value reads like an empty list.
 pub type List = Arc<Vec<Value>>;
+/// Declared shape of an implicit-endpoint body (`Dict` or `List`).
+pub trait EndpointBody: Sized + Send { fn from_body(v: Value) -> Option<Self>; }
+impl EndpointBody for Dict { fn from_body(v: Value) -> Option<Self> { if let Value::Dict(m) = v { Some(m) } else { None } } }
+impl EndpointBody for List { fn from_body(v: Value) -> Option<Self> { if let Value::Arr(a) = v { Some(a) } else { None } } }
 
 /// A byte buffer (TS `Uint8Array`): the port's existing binary form, a list of `Value::Int` bytes,
 /// behind a typed handle. Boxing it (`Value::from`) moves or shares the same list; nothing is copied.
