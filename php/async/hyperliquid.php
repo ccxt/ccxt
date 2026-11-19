@@ -699,10 +699,12 @@ class hyperliquid extends Exchange {
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     $safeCode = $this->safe_currency_code($name);
                     $hip3Code = ($safeCode === null) ? $name : str_replace(':', '-', $safeCode);
-                    $this->options['hip3TokensByName'][$name] = array(
+                    $hip3TokensByName = $this->safe_dict($this->options, 'hip3TokensByName', array());
+                    $hip3TokensByName[$name] = array(
                         'quote' => $collateralTokenCode,
                         'code' => $hip3Code,
                     );
+                    $this->options['hip3TokensByName'] = $hip3TokensByName;
                 }
                 $result[] = $data;
             }

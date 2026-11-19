@@ -5859,7 +5859,17 @@ class kucoin extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrdersByStatus', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchOrdersByStatus', $symbol, $since, $limit, $paramsPaginate));
+            // paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+            $paramsContract = $this->extend($paramsPaginate, array( 'paginate' => false, 'uta' => false ));
+            if ($symbol === null) {
+                $paramsContract = $this->extend($paramsContract, array( 'type' => 'contract' ));
+            }
+            $paginatedMethods = array(
+                'active' => 'fetchOpenOrders',
+                'open' => 'fetchOpenOrders',
+            );
+            $paginatedMethod = $this->safe_string($paginatedMethods, $status, 'fetchClosedOrders');
+            return Async\await($this->fetch_paginated_call_dynamic($paginatedMethod, $symbol, $since, $limit, $paramsContract));
         }
         $trigger = $this->safe_bool_2($paramsPaginate, 'stop', 'trigger');
         $until = $this->safe_integer($paramsPaginate, 'until');
@@ -9727,12 +9737,8 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $assets = null;
-        if ($marginMode === 'isolated') {
-            $assets = $this->safe_list($data, 'assets', array());
-        } else {
-            $assets = $this->safe_list($data, 'accounts', array());
-        }
+        $assetsKey = ($marginMode === 'isolated') ? 'assets' : 'accounts';
+        $assets = $this->safe_list($data, $assetsKey, array());
         $interest = $this->parse_borrow_interests($assets, $market);
         $filteredByCurrency = $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
         return $this->filter_by_symbol_since_limit($filteredByCurrency, $symbol, $since, $limit);
@@ -12229,7 +12235,13 @@ class kucoin extends Exchange {
     }
 
     public function set_deposit_addresses_version(string $version) {
-        $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
+        $versions = $this->safe_dict($this->options, 'versions', array());
+        $privateVersions = $this->safe_dict($versions, 'private', array());
+        $getVersions = $this->safe_dict($privateVersions, 'GET', array());
+        $getVersions['deposit-addresses'] = $version;
+        $privateVersions['GET'] = $getVersions;
+        $versions['private'] = $privateVersions;
+        $this->options['versions'] = $versions;
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {

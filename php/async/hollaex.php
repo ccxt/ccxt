@@ -1702,12 +1702,10 @@ class hollaex extends Exchange {
         //     }
         //
         $wallet = $this->safe_list($response, 'wallet', array());
-        $addresses = null;
         if ($network === null) {
-            $addresses = $wallet;
-        } else {
-            $addresses = $this->filter_by($wallet, 'network', $this->network_code_to_id($network));
+            return $this->parse_deposit_addresses($wallet, $codes, false);
         }
+        $addresses = $this->filter_by($wallet, 'network', $this->network_code_to_id($network));
         return $this->parse_deposit_addresses($addresses, $codes, false);
     }
 

@@ -1360,7 +1360,7 @@ class bingx extends \ccxt\async\bingx {
         return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
-    public function set_positions_cache(Client $client, ?string $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, string $type, ?array $symbols = null) {
         if ($this->positions !== null) {
             return;
         }
@@ -1376,11 +1376,11 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_positions_snapshot(Client $client, string $messageHash, ?string $type) {
+    public function load_positions_snapshot(Client $client, string $messageHash, string $type) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_positions_snapshot(Client $client, string $messageHash, ?string $type) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, string $type) {
         $positions = Async\await($this->fetch_positions(null, array( 'type' => $type, 'subType' => 'linear' )));
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;

@@ -972,10 +972,10 @@ class lighter extends Exchange {
                 }
             }
         }
-        $order = null;
-        if ($totalOrderRequests > 0) {
-            $order = $orderRequests[0];
+        if ($totalOrderRequests < 1) {
+            throw new InvalidOrder($this->id . ' createOrder() built no order request');
         }
+        $order = $orderRequests[0];
         // the nonce could be updated
         if ($this->safe_integer($order, 'nonce') === null) {
             $order['nonce'] = $this->fetch_nonce($accountIndex, $apiKeyIndex);

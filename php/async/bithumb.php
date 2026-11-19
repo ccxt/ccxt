@@ -785,7 +785,6 @@ class bithumb extends Exchange {
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
-        $response = null;
         $data = null;
         $timestamp = null;
         if ($generation === 2) {
@@ -1214,7 +1213,6 @@ class bithumb extends Exchange {
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTicker', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
-        $response = null;
         $data = array();
         if ($generation === 2) {
             $request['markets'] = $this->get_gen2_market_id($market);

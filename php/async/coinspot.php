@@ -297,7 +297,7 @@ class coinspot extends Exchange {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if ((gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances)))) {
-            $rows = $this->to_array($balances);
+            $rows = $this->safe_list_2($response, 'balance', 'balances', array());
             $numRows = count($rows);
             for ($i = 0; $i < $numRows; $i++) {
                 $currencies = $this->safe_dict($rows, $i, array());

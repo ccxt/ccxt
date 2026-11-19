@@ -260,12 +260,7 @@ class gate extends \ccxt\async\gate {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = null;
-        if ($symbol === null) {
-            $market = null;
-        } else {
-            $market = $this->market($symbol);
-        }
+        $market = $this->market($symbol);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.order_cancel_cp';
@@ -2454,16 +2449,14 @@ class gate extends \ccxt\async\gate {
     public function get_url_by_market(mixed $market): string {
         if ($this->safe_bool($market, 'contract', false)) {
             $settleKey = ($this->safe_bool($market, 'linear', false)) ? 'usdt' : 'btc';
-            return $this->safe_string($this->urls['api'][$market['type']], $settleKey, '');
-        } else {
-            return $this->safe_string($this->urls['api'], $market['type'], '');
+            $contractUrl = $this->safe_string($this->urls['api'][$market['type']], $settleKey, '');
+            return $contractUrl;
         }
+        $spotUrl = $this->safe_string($this->urls['api'], $market['type'], '');
+        return $spotUrl;
     }
 
-    public function get_type_by_market(array $market): ?string {
-        if ($market === null) {
-            return null;
-        }
+    public function get_type_by_market(array $market): string {
         if ($this->safe_bool($market, 'spot', false)) {
             return 'spot';
         } elseif ($this->safe_bool($market, 'option', false)) {

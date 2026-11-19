@@ -84,7 +84,11 @@ class pacifica extends \ccxt\async\pacifica {
                 $headers['PF-API-KEY'] = $this->options['apiKey'];
             }
         }
-        $this->options['ws']['options']['headers'] = $headers;
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $wsSubOptions = $this->safe_dict($wsOptions, 'options', array());
+        $wsSubOptions['headers'] = $headers;
+        $wsOptions['options'] = $wsSubOptions;
+        $this->options['ws'] = $wsOptions;
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {

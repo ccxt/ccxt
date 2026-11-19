@@ -1424,8 +1424,12 @@ class aster extends \ccxt\async\aster {
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
-                $this->options['listenKey'][$type] = $listenKey;
-                $this->options['lastAuthenticatedTime'][$type] = $time;
+                $listenKeys = $this->safe_dict($this->options, 'listenKey', array());
+                $listenKeys[$type] = $listenKey;
+                $this->options['listenKey'] = $listenKeys;
+                $lastAuthenticatedTimes = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
+                $lastAuthenticatedTimes[$type] = $time;
+                $this->options['lastAuthenticatedTime'] = $lastAuthenticatedTimes;
                 $keepAliveParams = $this->extend(array( 'type' => $type ), $params);
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $keepAliveParams);
                 // settle the flight: client.resolve () removes the future from
@@ -1467,7 +1471,9 @@ class aster extends \ccxt\async\aster {
                 $client->reject($error, $messageHash);
             }
             $this->options['listenKey'][$type] = null;
-            $this->options['lastAuthenticatedTime'][$type] = 0;
+            $lastAuthenticatedTimes = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
+            $lastAuthenticatedTimes[$type] = 0;
+            $this->options['lastAuthenticatedTime'] = $lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request

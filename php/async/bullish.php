@@ -2596,7 +2596,6 @@ class bullish extends Exchange {
         $request = array(
             'tradingAccountId' => $tradingAccountId,
         );
-        $response = null;
         $code = $this->safe_string($params, 'code');
         if ($code !== null) {
             $currency = $this->currency($code);

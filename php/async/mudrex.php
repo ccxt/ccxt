@@ -408,7 +408,7 @@ class mudrex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $rows = array();
         if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $rows = $this->to_array($data);
+            $rows = $this->safe_list($response, 'data', array());
         } else {
             $rows = $this->safe_list($data, 'items', array());
         }

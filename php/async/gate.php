@@ -7065,8 +7065,9 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
+        $currencyId = $this->safe_string($currency, 'id', '');
         $request = array(
-            'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
+            'currency' => strtoupper($currencyId), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $market = $this->market($symbol);
@@ -7102,8 +7103,9 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $currency = $this->currency($code);
+        $currencyId = $this->safe_string($currency, 'id', '');
         $request = array(
-            'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
+            'currency' => strtoupper($currencyId), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'repayCrossMargin', 'unifiedAccount', false);
@@ -7155,8 +7157,9 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
+        $currencyId = $this->safe_string($currency, 'id', '');
         $request = array(
-            'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
+            'currency' => strtoupper($currencyId), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $market = $this->market($symbol);
@@ -7207,8 +7210,9 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $currency = $this->currency($code);
+        $currencyId = $this->safe_string($currency, 'id', '');
         $request = array(
-            'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
+            'currency' => strtoupper($currencyId), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'borrowCrossMargin', 'unifiedAccount', false);

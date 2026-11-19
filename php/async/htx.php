@@ -3417,7 +3417,9 @@ class htx extends Exchange {
             $type = 'crypto';
         }
         if ($code !== null) {
-            $this->options['networkChainIdsByNames'][$code] = array();
+            $chainIdsByNames = $this->safe_dict($this->options, 'networkChainIdsByNames', array());
+            $chainIdsByNames[$code] = array();
+            $this->options['networkChainIdsByNames'] = $chainIdsByNames;
         }
         $chains = $this->safe_list($rawCurrency, 'chains', array());
         $networks = array();
@@ -3426,7 +3428,11 @@ class htx extends Exchange {
             $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             $title = $this->safe_string_2($chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if ($code !== null && $title !== null) {
-                $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
+                $chainIdsByNamesDict = $this->safe_dict($this->options, 'networkChainIdsByNames', array());
+                $chainIdsByTitle = $this->safe_dict($chainIdsByNamesDict, $code, array());
+                $chainIdsByTitle[$title] = $uniqueChainId;
+                $chainIdsByNamesDict[$code] = $chainIdsByTitle;
+                $this->options['networkChainIdsByNames'] = $chainIdsByNamesDict;
             }
             if ($uniqueChainId !== null) {
                 $networkNamesByChainIdsDict3 = $this->safe_dict($this->options, 'networkNamesByChainIds', array());

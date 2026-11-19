@@ -1371,15 +1371,16 @@ class aster extends Exchange {
         if ($sinceDefined) {
             $request['startTime'] = $since;
         }
+        $paramsUntil = $params;
         if ($untilDefined) {
-            $request = $this->handle_until_option('endTime', $request, $params);
+            list($request, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         }
         // use historical endpoint for targeted requests
         if ($sinceDefined) {
             if ($this->safe_bool($market, 'swap', false)) {
-                $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $params)));
+                $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $paramsUntil)));
             } else {
-                $response = Async\await($this->sapiPublicGetV3AggTrades($this->extend($request, $params)));
+                $response = Async\await($this->sapiPublicGetV3AggTrades($this->extend($request, $paramsUntil)));
             }
             //
             // both FAPI and SAPI have same response format
@@ -1398,9 +1399,9 @@ class aster extends Exchange {
             //
         } else {
             if ($this->safe_bool($market, 'swap', false)) {
-                $response = Async\await($this->fapiPublicGetV3Trades($this->extend($request, $params)));
+                $response = Async\await($this->fapiPublicGetV3Trades($this->extend($request, $paramsUntil)));
             } else {
-                $response = Async\await($this->sapiPublicGetV3Trades($this->extend($request, $params)));
+                $response = Async\await($this->sapiPublicGetV3Trades($this->extend($request, $paramsUntil)));
             }
             //
             // SAPI & FAPI have only one field difference
