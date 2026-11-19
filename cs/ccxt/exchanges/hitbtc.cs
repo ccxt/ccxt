@@ -1612,8 +1612,9 @@ public partial class hitbtc : Exchange
         }, marketResolved);
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? types, string? code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? types, string? code, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1627,11 +1628,11 @@ public partial class hitbtc : Exchange
             currency = this.currency(code);
             request["currencies"] = this.safeString(currency, "id");
         }
-        if (!(since == null))
+        if ((since != null))
         {
             request["from"] = this.iso8601(since);
         }
-        if (!(limit == null))
+        if ((limit != null))
         {
             request["limit"] = limit;
         }

@@ -1139,19 +1139,19 @@ public partial class binance : ccxt.binance
                 if (type == "linear")
                 {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if ((u < snapshotNonce))
+                    if (u.Value < snapshotNonce.Value)
                     {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if (((U == null || U <= snapshotNonce)) && ((snapshotNonce == null || u >= snapshotNonce)) || ((pu == snapshotNonce)))
+                    if ((U.Value <= snapshotNonce.Value) && (u.Value >= snapshotNonce.Value) || ((pu == snapshotNonce)))
                     {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 } else
                 {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if ((u == null || u <= snapshotNonce))
+                    if (u.Value <= snapshotNonce.Value)
                     {
                         continue;
                     }
@@ -1273,7 +1273,7 @@ public partial class binance : ccxt.binance
                 {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if ((u != null && (nonce == null || u > nonce)))
+                    if (u.Value > nonce.Value)
                     {
                         Int64? timestamp = this.safeInteger(orderbook, "timestamp");
                         bool? conditional = null;
@@ -1307,11 +1307,11 @@ public partial class binance : ccxt.binance
                 {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if ((nonce == null || u >= nonce))
+                    if (u.Value >= nonce.Value)
                     {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if (((U == null || U <= nonce)) || ((pu == nonce)))
+                        if ((U.Value <= nonce.Value) || ((pu == nonce)))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
                             Int64? newNonce = this.safeInteger(orderbook, "nonce", 0);
@@ -3504,7 +3504,7 @@ public partial class binance : ccxt.binance
                 if ((expirationTime != null))
                 {
                     Int64? renewalTime = ((expirationTime - time) - 60000); // Renew 1 minute before expiration
-                    if ((renewalTime > 0))
+                    if (renewalTime > 0)
                     {
                         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
                             { "type", marketTypeVar },
@@ -3932,7 +3932,7 @@ public partial class binance : ccxt.binance
         //
         string? messageHash = this.safeString(message, "id");
         List<object> rawBalance = null;
-        if (((getValue(message, "result") is IList<object>) || (getValue(message, "result").GetType().IsGenericType && getValue(message, "result").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (((getValue(message, "result")) is var hxArr189431 && ((hxArr189431 is IList<object>) || (hxArr189431.GetType().IsGenericType && hxArr189431.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             rawBalance = this.safeList(message, "result", new List<object>() {});

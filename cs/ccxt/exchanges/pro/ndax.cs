@@ -335,7 +335,7 @@ public partial class ndax : ccxt.ndax
                     if ((parsedHigh != null))
                     {
                         high = parsedHigh;
-                        if (((previousHigh != null)) && ((previousHigh != null && (parsedHigh == null || previousHigh > parsedHigh))))
+                        if (((previousHigh != null)) && (previousHigh.Value > parsedHigh.Value))
                         {
                             high = previousHigh;
                         }
@@ -346,7 +346,7 @@ public partial class ndax : ccxt.ndax
                     if ((parsedLow != null))
                     {
                         low = parsedLow;
-                        if (((previousLow != null)) && ((parsedLow != null && (previousLow == null || parsedLow > previousLow))))
+                        if (((previousLow != null)) && (parsedLow.Value > previousLow.Value))
                         {
                             low = previousLow;
                         }

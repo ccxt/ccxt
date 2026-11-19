@@ -394,14 +394,14 @@ public partial class myriad : PredictionExchange
             }
             for (int i = 0; i < rawMarketsLength; i++)
             {
-                if ((collected < maxMarkets))
+                if (collected < maxMarkets)
                 {
                     allRawMarkets.Add((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null));
                     collected = (allRawMarkets?.Count ?? 0);
                 }
             }
             page = this.sum(page, 1);
-            if ((rawMarketsLength < limit) || (maxMarkets == null || collected >= maxMarkets))
+            if (rawMarketsLength < limit || (maxMarkets == null || collected >= maxMarkets))
             {
                 break;
             }
@@ -601,14 +601,14 @@ public partial class myriad : PredictionExchange
                 {
                     seen[(string)questionId] = true;
                 }
-                if ((collected < maxQuestions))
+                if (collected < maxQuestions)
                 {
                     allRawQuestions.Add(rawQuestion);
                     collected = (allRawQuestions?.Count ?? 0);
                 }
             }
             page = this.sum(page, 1);
-            if (((rawQuestionsLength < limit)) || ((maxQuestions == null || collected >= maxQuestions)))
+            if ((rawQuestionsLength < limit) || ((maxQuestions == null || collected >= maxQuestions)))
             {
                 break;
             }
@@ -2324,7 +2324,7 @@ public partial class myriad : PredictionExchange
             throw new ExchangeError ((this.id + " fromWeiWithDecimals() missing decimals")) ;
         }
         Int64? decimalsCount = this.parseToInt(decimals);
-        for (int i = 0; (i < decimalsCount); i++)
+        for (int i = 0; i < decimalsCount; i++)
         {
             scale = (scale + "0");
         }

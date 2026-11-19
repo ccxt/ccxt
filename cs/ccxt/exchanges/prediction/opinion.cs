@@ -209,7 +209,7 @@ public partial class opinion : PredictionExchange
         List<object> eventsList = new List<object>() {};
         // every raw (unflattened) row fetched so far, so its length is the raw fetched count
         List<object> fetchedRawRows = new List<object>() {};
-        for (int page = 1; (page <= maxPages); page++)
+        for (int page = 1; page <= maxPages; page++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "marketType", 2 },
@@ -251,14 +251,14 @@ public partial class opinion : PredictionExchange
             }
             int collectedLength = (flatMarkets?.Count ?? 0);
             int fetchedRawCount = (fetchedRawRows?.Count ?? 0);
-            if (((rawMarketsLength < pageLimit)) || ((maxPages == null || page >= maxPages)) || (((total != null)) && ((total == null || fetchedRawCount >= total))) || (((userLimit != null)) && ((userLimit == null || collectedLength >= userLimit))))
+            if ((rawMarketsLength < pageLimit) || ((maxPages == null || page >= maxPages)) || (((total != null)) && (fetchedRawCount >= total.Value)) || (((userLimit != null)) && (collectedLength >= userLimit.Value)))
             {
                 break;
             }
         }
         this.setEvents(eventsList);
         int flatMarketsLength = (flatMarkets?.Count ?? 0);
-        if (((userLimit != null)) && (((userLimit == null || flatMarketsLength > userLimit))))
+        if (((userLimit != null)) && (flatMarketsLength > userLimit.Value))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(flatMarkets, 0, userLimit));
         }
@@ -486,7 +486,7 @@ public partial class opinion : PredictionExchange
         Int64? fetchCap = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchEventsResults", 100));
         Int64? maxPages = this.safeInteger(this.options, "maxEventsPages", 50);
         List<object> rawEvents = new List<object>() {};
-        for (int page = 1; (page <= maxPages); page++)
+        for (int page = 1; page <= maxPages; page++)
         {
             int fetchedSoFar = (rawEvents?.Count ?? 0);
             Int64? remaining = this.parseToInt((fetchCap - fetchedSoFar));
@@ -511,7 +511,7 @@ public partial class opinion : PredictionExchange
             // rawEvents holds every row fetched so far, so its length is the raw fetched count
             int fetchedRawCount = (rawEvents?.Count ?? 0);
             Int64? total = this.safeInteger(result, "total");
-            if (((pageEventsLength < reqLimit)) || ((maxPages == null || page >= maxPages)) || (((total != null)) && ((total == null || fetchedRawCount >= total))) || ((fetchCap == null || fetchedRawCount >= fetchCap)))
+            if ((pageEventsLength < reqLimit) || ((maxPages == null || page >= maxPages)) || (((total != null)) && (fetchedRawCount >= total.Value)) || ((fetchCap == null || fetchedRawCount >= fetchCap)))
             {
                 break;
             }
@@ -1104,7 +1104,7 @@ public partial class opinion : PredictionExchange
         if (!(decimals == null))
         {
             Int64? decimalsCount = this.parseToInt(decimals);
-            for (int i = 0; (i < decimalsCount); i++)
+            for (int i = 0; i < decimalsCount; i++)
             {
                 decimalsStr = (decimalsStr + "0");
             }

@@ -831,7 +831,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         Int64? nonce = this.safeInteger(message, "nonce");
         Int64? currentNonce = this.safeInteger(orderbook, "nonce");
-        if (((nonce != null)) && ((currentNonce != null)) && ((nonce != null && (currentNonce == null || nonce > currentNonce))))
+        if (((nonce != null)) && ((currentNonce != null)) && (nonce.Value > currentNonce.Value))
         {
             this.handleDeltas(orderbook?.asks, this.safeList(message, "asks", new List<object>() {}));
             this.handleDeltas(orderbook?.bids, this.safeList(message, "bids", new List<object>() {}));

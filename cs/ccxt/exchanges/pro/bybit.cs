@@ -2013,7 +2013,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null) is IList<object>) || ((message != null && message.ContainsKey("data") ? message["data"] : null).GetType().IsGenericType && (message != null && message.ContainsKey("data") ? message["data"] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88039 && ((hxArr88039 is IList<object>) || (hxArr88039.GetType().IsGenericType && hxArr88039.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)

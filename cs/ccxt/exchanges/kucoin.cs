@@ -10575,13 +10575,13 @@ public partial class kucoin : Exchange
             if ((depth == null))
             {
                 return 500;
-            } else if ((depth > 500))
+            } else if (depth > 500)
             {
                 return 500;
-            } else if ((depth > 100))
+            } else if (depth > 100)
             {
                 return 100;
-            } else if ((depth > 20))
+            } else if (depth > 20)
             {
                 return 40;
             }
@@ -10983,7 +10983,7 @@ public partial class kucoin : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> rows = this.safeList(data, "items", new List<object>() {});
-        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(rows,code, since, limit));
+        return this.parseBorrowRateHistory(rows,code, since, limit);
     }
 
     public virtual Dictionary<string, object> parseBorrowRateHistories(IList<object> response, object codes, Int64? since, Int64? limit)

@@ -1885,7 +1885,7 @@ public partial class bingx : ccxt.bingx
         {
             // The envelope T is the order update time; o.T is the trade time.
             Int64? updateTimestamp = this.safeInteger(message, "T");
-            if (((updateTimestamp != null)) && ((updateTimestamp > 0)))
+            if (((updateTimestamp != null)) && (updateTimestamp > 0))
             {
                 string? orderId = this.safeString(parsedOrder, "id");
                 if ((orderId != null))
@@ -1898,7 +1898,7 @@ public partial class bingx : ccxt.bingx
                         if (((this.safeString(previousOrder, "id") == orderId)) && ((this.safeString(previousOrder, "symbol") == this.safeString(parsedOrder, "symbol"))))
                         {
                             Int64? previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");
-                            if (((previousTimestamp != null)) && ((updateTimestamp < previousTimestamp)))
+                            if (((previousTimestamp != null)) && (updateTimestamp.Value < previousTimestamp.Value))
                             {
                                 return;
                             }

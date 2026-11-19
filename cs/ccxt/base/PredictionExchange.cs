@@ -196,7 +196,7 @@ public partial class PredictionExchange : BaseExchange
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             int resultLength = (result?.Count ?? 0);
             Int64? sliceEnd = limit;
-            if ((sliceEnd > resultLength))
+            if (sliceEnd > resultLength)
             {
                 sliceEnd = resultLength;
             }

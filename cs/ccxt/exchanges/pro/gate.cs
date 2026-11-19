@@ -819,7 +819,7 @@ public partial class gate : ccxt.gate
         Int64? nonce = this.safeInteger(orderBook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
-        if (((nonce != null)) && ((firstDeltaStart != null)) && ((nonce < firstDeltaStart)))
+        if (((nonce != null)) && ((firstDeltaStart != null)) && (nonce.Value < firstDeltaStart.Value))
         {
             return -1;
         }
@@ -828,7 +828,7 @@ public partial class gate : ccxt.gate
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && ((nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && ((nonce >= (deltaStart - 1))) && (nonce.Value < deltaEnd.Value))
             {
                 return i;
             }
@@ -2674,22 +2674,26 @@ public partial class gate : ccxt.gate
 
     public virtual string? getMarketTypeByUrl(string url)
     {
-        Dictionary<string, object> findBy = new Dictionary<string, object>() {
-            { "op-", "option" },
-            { "/ws/options/", "option" },
-            { "delivery", "future" },
-            { "fx", "swap" },
-            { "/ws/futures/", "swap" },
-        };
-        List<object> keys = new List<object>(findBy.Keys);
-        for (int i = 0; i < keys.Count; i++)
+        // same order as the url table: delivery urls also contain 'fx'
+        if (url.IndexOf("op-", StringComparison.Ordinal) >= 0)
         {
-            string? key = ((string)keys[i]);
-            object value = (key != null && findBy.ContainsKey(key) ? findBy[key] : null);
-            if (url.IndexOf(key, StringComparison.Ordinal) >= 0)
-            {
-                return ((string?)((object)(value)));
-            }
+            return "option";
+        }
+        if (url.IndexOf("/ws/options/", StringComparison.Ordinal) >= 0)
+        {
+            return "option";
+        }
+        if (url.IndexOf("delivery", StringComparison.Ordinal) >= 0)
+        {
+            return "future";
+        }
+        if (url.IndexOf("fx", StringComparison.Ordinal) >= 0)
+        {
+            return "swap";
+        }
+        if (url.IndexOf("/ws/futures/", StringComparison.Ordinal) >= 0)
+        {
+            return "swap";
         }
         return "spot";
     }

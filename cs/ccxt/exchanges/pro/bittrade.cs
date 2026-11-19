@@ -502,7 +502,7 @@ public partial class bittrade : ccxt.bittrade
             return orderbook;
         }
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        if (((nonce != null)) && ((prevSeqNum == null || prevSeqNum <= nonce)) && ((seqNum != null && (nonce == null || seqNum > nonce))))
+        if (((nonce != null)) && (prevSeqNum.Value <= nonce.Value) && (seqNum.Value > nonce.Value))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});
             List<object> bids = this.safeList(tick, "bids", new List<object>() {});

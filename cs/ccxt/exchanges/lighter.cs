@@ -593,7 +593,7 @@ public partial class lighter : Exchange
         var apiKeyIndexOption = apiKeyIndexOptionparamsApiKeyIndexVariable[0];
         var paramsApiKeyIndex = apiKeyIndexOptionparamsApiKeyIndexVariable[1];
         Int64? apiKeyIndex = this.safeInteger(new List<object>() {apiKeyIndexOption}, 0);
-        if (((apiKeyIndex != null)) && ((apiKeyIndex >= 4)) && ((apiKeyIndex == null || apiKeyIndex <= 254)))
+        if (((apiKeyIndex != null)) && (apiKeyIndex >= 4) && (apiKeyIndex.Value <= 254))
         {
             return new List<object> {this.parseToInt(apiKeyIndex), paramsApiKeyIndex};
         }
@@ -750,11 +750,11 @@ public partial class lighter : Exchange
         {
             return "1";
         }
-        if ((c > 100))
+        if (c > 100)
         {
             throw new BadRequest ((this.id + " pow() requires m < 100.")) ;
         }
-        for (int i = 1; (i < c); i++)
+        for (int i = 1; i < c; i++)
         {
             r = Precise.stringMul(r, n);
         }
@@ -2400,7 +2400,7 @@ public partial class lighter : Exchange
         if ((imfStr != null))
         {
             Int64? imf = this.parseToInt(imfStr);
-            if ((imf > 0))
+            if (imf > 0)
             {
                 leverage = ((double)100 / imf);
             }

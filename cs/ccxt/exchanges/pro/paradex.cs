@@ -153,7 +153,7 @@ public partial class paradex : ccxt.paradex
      */
     public async virtual Task<object> sendRequest(object url, IDictionary<string, object> request, object subscribeHash = null)
     {
-        string requestHash = ("request:" + this.safeString(request, "id"));
+        string requestHash = ("request:" + this.safeString(request, "id", ""));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {requestHash} },
@@ -1127,7 +1127,7 @@ public partial class paradex : ccxt.paradex
         // the whole connection
         Dictionary<string, object> unsubscribe = this.unsubscribeRequest(channel);
         Dictionary<string, object> subscribe = this.subscribeRequest(channel);
-        string unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id"));
+        string unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id", ""));
         ((IDictionary<string,object>)client.subscriptions)[unsubscribeHash] = new Dictionary<string, object>() {
             { "id", (unsubscribe != null && unsubscribe.ContainsKey("id") ? unsubscribe["id"] : null) },
             { "messageHashes", new List<object>() {} },
@@ -2309,7 +2309,7 @@ public partial class paradex : ccxt.paradex
         Int64? count = this.parseToInt(length);
         Int64? start = this.parseToInt(offset);
         Int64? position = (start * 2);
-        for (int i = 0; (i < count); i++)
+        for (int i = 0; i < count; i++)
         {
             // plain variables as slice bounds, php gets end - start unparenthesized
             Int64? middle = (position + 1);
@@ -2413,7 +2413,7 @@ public partial class paradex : ccxt.paradex
         Int64? end = this.parseToInt(frameLength);
         Int64? total = this.parseToInt(count);
         Int64? position = this.parseToInt(offset);
-        for (int i = 0; (i < total); i++)
+        for (int i = 0; i < total; i++)
         {
             if ((end == null || position >= end))
             {
@@ -2539,7 +2539,7 @@ public partial class paradex : ccxt.paradex
             {
                 return ((Dictionary<string, object>)((object)(null)));
             }
-            for (int j = 0; (j < numInGroup); j++)
+            for (int j = 0; j < numInGroup; j++)
             {
                 levels.Add(new Dictionary<string, object>() {
                     { "side", sides[i] },
@@ -2598,7 +2598,7 @@ public partial class paradex : ccxt.paradex
         }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         object settlementTwapEstimate = null;
-        if ((blockSize >= 248))
+        if (blockSize >= 248)
         {
             settlementTwapEstimate = this.sbeReadDecimal(frameHex, 248);
         }
@@ -2806,7 +2806,7 @@ public partial class paradex : ccxt.paradex
             { "size", this.sbeReadDecimal(frameHex, 35) },
             { "underlying_price", this.sbeReadDecimal(frameHex, 99) },
         };
-        if ((blockSize >= 116))
+        if (blockSize >= 116)
         {
             // lowercase, as the JSON feed spells fill flags
             fill["flags"] = this.sbeReadFlags(frameHex, 115, new List<object>() {"interactive", "rpi", "fastfill", "", "", "", "", "unknown"});
@@ -2914,7 +2914,7 @@ public partial class paradex : ccxt.paradex
             { "total_collateral", this.sbeReadDecimal(frameHex, 24) },
             { "updated_at", this.sbeReadTimestamp(frameHex, 72) },
         };
-        if ((blockSize >= 121))
+        if (blockSize >= 121)
         {
             account["last_seen_notification"] = this.sbeReadTimestamp(frameHex, 121);
         }

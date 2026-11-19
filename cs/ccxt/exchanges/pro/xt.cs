@@ -167,7 +167,7 @@ public partial class xt : ccxt.xt
         {
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaNonce = this.safeInteger2(delta, "i", "u");
-            if (((deltaNonce != null)) && ((nonce != null)) && ((nonce == null || deltaNonce >= nonce)))
+            if (((deltaNonce != null)) && ((nonce != null)) && (deltaNonce.Value >= nonce.Value))
             {
                 return i;
             }

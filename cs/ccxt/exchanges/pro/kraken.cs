@@ -1341,7 +1341,7 @@ public partial class kraken : ccxt.kraken
         Int64 now = this.seconds();
         Int64? start = this.safeInteger(subscription, "start");
         Int64? expires = this.safeInteger(subscription, "expires", -1);
-        bool expired = ((start != null)) && ((expires >= 0)) && ((start <= (now - expires)));
+        bool expired = ((start != null)) && (expires >= 0) && ((start <= (now - expires)));
         if (((subscription == null)) || expired)
         {
             // single-flight leader election, see

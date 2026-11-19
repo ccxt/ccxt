@@ -1902,7 +1902,7 @@ public partial class kucoin : ccxt.kucoin
                 }
                 (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;
-            } else if (((deltaEnd != null)) && ((deltaEnd == null || nonce >= deltaEnd)))
+            } else if (((deltaEnd != null)) && (nonce.Value >= deltaEnd.Value))
             {
                 return;
             }
@@ -1969,7 +1969,7 @@ public partial class kucoin : ccxt.kucoin
                 }
                 (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;
-            } else if (((deltaEnd != null)) && ((deltaEnd == null || nonce >= deltaEnd)))
+            } else if (((deltaEnd != null)) && (nonce.Value >= deltaEnd.Value))
             {
                 return;
             }
@@ -2001,7 +2001,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 continue;
             }
-            if (((nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if (((nonce >= (deltaStart - 1))) && (nonce.Value < deltaEnd.Value))
             {
                 return i;
             }

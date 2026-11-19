@@ -8685,7 +8685,7 @@ public partial class binance : Exchange
         {
             // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
             Int64? workingTime = this.safeInteger(order, "workingTime");
-            if (((workingTime != null)) && ((workingTime > 0)))
+            if (((workingTime != null)) && (workingTime > 0))
             {
                 timestamp = workingTime;
             } else
@@ -11822,7 +11822,7 @@ public partial class binance : Exchange
         List<object> results = this.safeList(response, "userAssetDribblets", new List<object>() {});
         Int64? rows = this.safeInteger(response, "total", 0);
         List<object> data = new List<object>() {};
-        for (int i = 0; (i < rows); i++)
+        for (int i = 0; i < rows; i++)
         {
             List<object> logs = this.safeList((results != null && i < results.Count ? results[i] : null), "userAssetDribbletDetails", new List<object>() {});
             for (int j = 0; j < logs.Count; j++)
@@ -14823,8 +14823,7 @@ public partial class binance : Exchange
         }
         await this.loadLeverageBrackets(false, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? defaultType = "swap";
-        defaultType = this.safeString(this.options, "defaultType", defaultType);
+        string? defaultType = this.safeString(this.options, "defaultType", "swap");
         string? type = this.safeString(parameters, "type", defaultType);
         string? subType = null;
         IDictionary<string, object> paramsSubType = null;
@@ -16571,7 +16570,7 @@ public partial class binance : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(response,code, since, limitResolved));
+        return this.parseBorrowRateHistory(response,code, since, limitResolved);
     }
 
     public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
@@ -18731,7 +18730,7 @@ public partial class binance : Exchange
         {
             if ((longNum != null) && (shortNum != null))
             {
-                if ((longNum != null && (shortNum == null || longNum > shortNum)))
+                if (longNum.Value > shortNum.Value)
                 {
                     rank = longNum;
                 } else

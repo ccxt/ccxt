@@ -383,7 +383,7 @@ public partial class mudrex : Exchange
         Int64? windowEnd = this.parseToInt((startTime + (duration * requestLimit)));
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
-        Int64? cappedEnd = ((windowEnd > now)) ? now : windowEnd;
+        Int64? cappedEnd = (windowEnd > now) ? now : windowEnd;
         Int64? endTime = this.parseToInt(((until != null)) ? (((double?)until / 1000)) : cappedEnd);
         request["start_time"] = startTime;
         request["end_time"] = endTime;

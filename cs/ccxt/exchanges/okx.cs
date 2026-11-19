@@ -8821,7 +8821,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? lever = this.safeInteger2(parameters, "lever", "leverage");
-        if (((lever == null)) || (((lever == null || lever < 1))) || ((lever > 125)))
+        if (((lever == null)) || (((lever == null || lever < 1))) || (lever > 125))
         {
             throw new BadRequest ((this.id + " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
         }
@@ -9085,7 +9085,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(data,code, since, limit));
+        return this.parseBorrowRateHistory(data,code, since, limit);
     }
 
     public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, IDictionary<string, object> parameters = null)
@@ -9748,7 +9748,7 @@ public partial class okx : Exchange
             };
             IList<object> instrumentRequestWindowparamsWindowVariable = (IList<object>)this.handleTradingStatisticsWindow(instrumentRequest, timeframeValue, since, limit, paramsMarketType);
             var instrumentRequestWindow = instrumentRequestWindowparamsWindowVariable[0];
-            var paramsWindow = instrumentRequestWindowparamsWindowVariable[1];
+            IDictionary<string, object> paramsWindow = ((IDictionary<string, object>)instrumentRequestWindowparamsWindowVariable[1]);
             response = await this.publicGetRubikStatContractsOpenInterestHistory(this.extend(instrumentRequestWindow, paramsWindow));
             //
             //    {
@@ -11461,7 +11461,7 @@ public partial class okx : Exchange
         }
         IList<object> requestWindowparamsWindowVariable = (IList<object>)this.handleTradingStatisticsWindow(request, period, since, limit, parameters);
         var requestWindow = requestWindowparamsWindowVariable[0];
-        var paramsWindow = requestWindowparamsWindowVariable[1];
+        IDictionary<string, object> paramsWindow = ((IDictionary<string, object>)requestWindowparamsWindowVariable[1]);
         Dictionary<string, object> response = await this.publicGetRubikStatContractsLongShortAccountRatioContract(this.extend(requestWindow, paramsWindow));
         //
         //     {

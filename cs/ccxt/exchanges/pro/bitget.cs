@@ -1906,7 +1906,7 @@ public partial class bitget : ccxt.bitget
             messageHash = "triggerOrder";
         }
         string subscriptionHash = "order:trades";
-        string? symbolResolved = null;
+        string? symbolResolved = symbol;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -2506,7 +2506,7 @@ public partial class bitget : ccxt.bitget
         }
         IDictionary<string, object> market = null;
         string messageHash = "myTrades";
-        string? symbolResolved = null;
+        string? symbolResolved = symbol;
         if ((symbol != null))
         {
             market = this.market(symbol);

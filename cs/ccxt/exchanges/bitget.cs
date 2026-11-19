@@ -6798,7 +6798,7 @@ public partial class bitget : Exchange
         // the per-timeframe cap only applies to a user-supplied limit
         Int64? timeframeLimit = ((timeframeLimitValue == null)) ? maxLimitForRecentEndpoint : timeframeLimitValue;
         Int64? requestedLimit = ((limit == null)) ? defaultLimit : limit;
-        Int64? limitCapped = ((requestedLimit > maxLimitForRecentEndpoint)) ? maxLimitForRecentEndpoint : requestedLimit;
+        Int64? limitCapped = (requestedLimit > maxLimitForRecentEndpoint) ? maxLimitForRecentEndpoint : requestedLimit;
         // the per-timeframe cap only applies to a user-supplied limit
         Int64? recentLimit = (((limit != null)) && ((limitCapped != null && (timeframeLimit == null || limitCapped > timeframeLimit)))) ? timeframeLimit : limitCapped;
         Int64? limitResolved = recentLimit;
@@ -6830,7 +6830,7 @@ public partial class bitget : Exchange
         }
         if ((until != null))
         {
-            Int64? untilEndTime = ((until > now)) ? now : until;
+            Int64? untilEndTime = (until > now) ? now : until;
             calculatedEndTime = untilEndTime;
             request["endTime"] = untilEndTime;
             if ((since == null))
@@ -6847,7 +6847,7 @@ public partial class bitget : Exchange
         if (historicalEndpointNeeded)
         {
             // only for "historical-candles" - ensure we use correct max limit
-            Int64? historicalLimit = ((recentLimit > maxLimitForHistoryEndpoint)) ? maxLimitForHistoryEndpoint : recentLimit;
+            Int64? historicalLimit = (recentLimit > maxLimitForHistoryEndpoint) ? maxLimitForHistoryEndpoint : recentLimit;
             limitResolved = historicalLimit;
             Int64? historicalDuration = (historicalLimit * duration);
             calculatedStartTime = (calculatedEndTime - historicalDuration);
@@ -6857,7 +6857,7 @@ public partial class bitget : Exchange
             {
                 Int64 maxDistanceForContracts = (90L * msInDay);
                 // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if (((calculatedEndTime != null)) && ((historicalDuration > maxDistanceForContracts)))
+                if (((calculatedEndTime != null)) && (historicalDuration > maxDistanceForContracts))
                 {
                     calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
                     request["endTime"] = calculatedEndTime;

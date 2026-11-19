@@ -3694,7 +3694,7 @@ public partial class coinbaseinternational : Exchange
         Int64 now = this.milliseconds();
         string? token = this.getV2AccessToken();
         Int64? tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
-        if (forceRefresh != true && ((token != null)) && (token != "") && ((tokenExpires != null)) && ((now < tokenExpires)))
+        if (forceRefresh != true && ((token != null)) && (token != "") && ((tokenExpires != null)) && (now < tokenExpires))
         {
             return token;
         }

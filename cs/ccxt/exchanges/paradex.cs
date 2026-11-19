@@ -1034,7 +1034,7 @@ public partial class paradex : Exchange
         {
             Int64 now = this.milliseconds();
             bool isOpen = ((openAt == null)) || ((openAt == null || openAt <= now));
-            bool isLive = ((expiry == null)) || ((expiry == 0)) || ((expiry > now));
+            bool isLive = ((expiry == null)) || ((expiry == 0)) || (expiry > now);
             active = (tradingMode != "RFQ_ONLY") && isOpen && isLive;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -1413,7 +1413,7 @@ public partial class paradex : Exchange
             // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
             Int64 windowEnd = this.sum(this.parseToInt(since), (windowLength - 1));
             Int64? endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
-            if (!hasEnd || ((endAt > windowEnd)))
+            if (!hasEnd || (endAt > windowEnd))
             {
                 requestUntil["end_at"] = windowEnd;
             }
@@ -4624,7 +4624,7 @@ public partial class paradex : Exchange
             // rows and skip since, the range is cut to one page of rows from since
             Int64 windowEnd = this.sum(since, (pageSize * rowSpacing));
             Int64? endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
-            if (!((requestUntil != null && requestUntil.ContainsKey("end_at"))) || ((endAt > windowEnd)))
+            if (!((requestUntil != null && requestUntil.ContainsKey("end_at"))) || (endAt > windowEnd))
             {
                 requestUntil["end_at"] = windowEnd;
             }

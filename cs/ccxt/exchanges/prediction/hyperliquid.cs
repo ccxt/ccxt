@@ -357,7 +357,7 @@ public partial class hyperliquid : PredictionExchange
                         if ((index == null || index <= 0))
                         {
                             bucketLabel = ("BELOW_" + ((thresholds != null && 0 < thresholds.Count ? thresholds[0] : null)));
-                        } else if ((index >= thresholdsLength))
+                        } else if (index >= thresholdsLength)
                         {
                             int lastIdx = (thresholdsLength - 1);
                             bucketLabel = ("ABOVE_" + ((thresholds != null && lastIdx < thresholds.Count ? thresholds[lastIdx] : null)));
@@ -704,7 +704,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? cappedDecimals = (((maxDecimals == null || maxDecimals < digitsLeft))) ? maxDecimals : digitsLeft;
         // appends max (1, cappedDecimals) - 1 zeros
         string zeros = "";
-        for (int zi = 1; (zi < cappedDecimals); zi++)
+        for (int zi = 1; zi < cappedDecimals; zi++)
         {
             zeros = (zeros + "0");
         }

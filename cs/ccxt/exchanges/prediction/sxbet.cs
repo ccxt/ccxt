@@ -244,7 +244,7 @@ public partial class sxbet : PredictionExchange
             markets.Add(this.parseSxbetMarket((rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null)));
         }
         int marketsLength = (markets?.Count ?? 0);
-        if (((userLimit != null)) && (((userLimit == null || marketsLength > userLimit))))
+        if (((userLimit != null)) && (marketsLength > userLimit.Value))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(markets, 0, userLimit));
         }
@@ -291,7 +291,7 @@ public partial class sxbet : PredictionExchange
             paginationKey = this.safeString(result, "nextKey");
             page = (page + 1);
             Int64? collectedLength = this.parseToInt((rawMarkets?.Count ?? 0));
-            if (((pageMarketsLength < pageSize)) || ((maxPages == null || page >= maxPages)) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
+            if ((pageMarketsLength < pageSize) || ((maxPages == null || page >= maxPages)) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
             {
                 break;
             }
@@ -1296,7 +1296,7 @@ public partial class sxbet : PredictionExchange
         Int64? chunkSize = this.safeInteger(this.options, "cancelOrdersBatchSize", 100);
         Int64? chunkCount = this.parseToInt(((double?)this.sum(idsLength, (chunkSize - 1)) / chunkSize));
         List<object> result = new List<object>() {};
-        for (int c = 0; (c < chunkCount); c++)
+        for (int c = 0; c < chunkCount; c++)
         {
             Int64? chunkIndex = this.parseToInt(c);
             Int64? chunkWidth = this.parseToInt(chunkSize);
@@ -1304,7 +1304,7 @@ public partial class sxbet : PredictionExchange
             Int64? nextChunkIndex = (chunkIndex + 1);
             Int64? chunkEnd = (nextChunkIndex * chunkWidth);
             Int64? end = chunkEnd;
-            if ((chunkEnd > idsLength))
+            if (chunkEnd > idsLength)
             {
                 end = this.parseToInt(idsLength);
             }
@@ -1497,7 +1497,7 @@ public partial class sxbet : PredictionExchange
             return limit;
         }
         Int64? requested = this.parseToInt(limit);
-        if ((requested >= 100))
+        if (requested >= 100)
         {
             return 100;
         }
@@ -2184,7 +2184,7 @@ public partial class sxbet : PredictionExchange
         }
         Int64? chunkSize = this.safeInteger(this.options, "bestOddsBatchSize", 100);
         Int64? chunkCount = this.parseToInt(((double?)this.sum(hashesLength, (chunkSize - 1)) / chunkSize));
-        for (int c = 0; (c < chunkCount); c++)
+        for (int c = 0; c < chunkCount; c++)
         {
             Int64? chunkIndex = this.parseToInt(c);
             Int64? chunkWidth = this.parseToInt(chunkSize);
@@ -2192,7 +2192,7 @@ public partial class sxbet : PredictionExchange
             Int64? nextChunkIndex = (chunkIndex + 1);
             Int64? chunkEnd = (nextChunkIndex * chunkWidth);
             Int64? end = chunkEnd;
-            if ((chunkEnd > hashesLength))
+            if (chunkEnd > hashesLength)
             {
                 end = this.parseToInt(hashesLength);
             }

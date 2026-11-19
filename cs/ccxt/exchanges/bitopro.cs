@@ -2131,7 +2131,7 @@ public partial class bitopro : Exchange
             return null;  // fallback to the default error handler
         }
         Int64? statusCode = this.parseToInt(code);
-        if ((statusCode >= 200) && ((statusCode == null || statusCode < 300)))
+        if (statusCode >= 200 && ((statusCode == null || statusCode < 300)))
         {
             return null;
         }

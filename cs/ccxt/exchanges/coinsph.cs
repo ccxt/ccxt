@@ -828,7 +828,7 @@ public partial class coinsph : Exchange
             {
                 object entry = byNumberOfSymbols[i];
                 Int64? threshold = this.safeInteger(entry, 0);
-                if (!(threshold == null) && (threshold == null || symbolsAmount >= threshold))
+                if (!(threshold == null) && symbolsAmount >= threshold.Value)
                 {
                     return this.safeInteger(entry, 1);
                 }
@@ -840,7 +840,7 @@ public partial class coinsph : Exchange
             {
                 object entry = byLimit[i];
                 Int64? threshold = this.safeInteger(entry, 0);
-                if (!(threshold == null) && (threshold == null || limit >= threshold))
+                if (!(threshold == null) && limit.Value >= threshold.Value)
                 {
                     return this.safeInteger(entry, 1);
                 }
@@ -2549,7 +2549,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null) is IList<object>) || ((query != null && key != null && query.ContainsKey(key) ? query[key] : null).GetType().IsGenericType && (query != null && key != null && query.ContainsKey(key) ? query[key] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr111984 && ((hxArr111984 is IList<object>) || (hxArr111984.GetType().IsGenericType && hxArr111984.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {

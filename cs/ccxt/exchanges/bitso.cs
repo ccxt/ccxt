@@ -1404,8 +1404,12 @@ public partial class bitso : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < payload.Count; i++)
         {
-            IDictionary<string, object> id = ((IDictionary<string, object>)payload[i]);
-            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(id, market)));
+            string? id = this.safeString(payload, i);
+            orders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
+                { "info", this.safeString(payload, i) },
+                { "id", id },
+                { "symbol", this.safeSymbol(null, market, "_") },
+            }, market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1437,8 +1441,12 @@ public partial class bitso : Exchange
         List<object> canceledOrders = new List<object>() {};
         for (int i = 0; i < payload.Count; i++)
         {
-            ccxt.Order order = this.parseOrder(payload[i]);
-            canceledOrders.Add(ccxt.BaseExchange.FromOrder(order));
+            string? id = this.safeString(payload, i);
+            canceledOrders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
+                { "info", this.safeString(payload, i) },
+                { "id", id },
+                { "symbol", this.safeSymbol(null, null, "_") },
+            })));
         }
         return ccxt.BaseExchange.ToOrderList(canceledOrders);
     }
@@ -1456,19 +1464,7 @@ public partial class bitso : Exchange
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
-        //
-        //
-        // canceledOrder
-        // yWTQGxDMZ0VimZgZ
-        //
-        string? id = null;
-        if ((order is string))
-        {
-            id = ((string)order);
-        } else
-        {
-            id = this.safeString(order, "oid");
-        }
+        string? id = this.safeString(order, "oid");
         string? side = this.safeString(order, "side");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? marketId = this.safeString(order, "book");

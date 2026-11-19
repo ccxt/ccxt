@@ -6015,7 +6015,7 @@ public partial class gate : Exchange
                         triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     Int64? priceType = this.safeInteger(query, "price_type", 0);
-                    if (((priceType == null || priceType < 0)) || (priceType > 2))
+                    if (((priceType == null || priceType < 0)) || priceType > 2)
                     {
                         throw new BadRequest ((this.id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
                     }
@@ -8150,7 +8150,7 @@ public partial class gate : Exchange
             tiers = this.extend(tiers, grouped);
             List<object> contracts = new List<object>(grouped.Keys);
             int numContracts = contracts.Count;
-            if ((contract != "") || ((numContracts < limit)))
+            if ((contract != "") || (numContracts < limit))
             {
                 break;
             }

@@ -18,7 +18,7 @@ public partial class BaseTest
             ((IDictionary<string,object>)exchange.options)["lastNonce"] = seed;
             Int64? first = exchange.incrementingNonce();
             Int64? second = exchange.incrementingNonce();
-            Assert((first > seed), "incrementingNonce should bump past the stored lastNonce");
+            Assert(first > seed, "incrementingNonce should bump past the stored lastNonce");
             Assert(isEqual(second, (first + 1)), "two incrementingNonce calls in the same tick should return n and n + 1");
             Assert((second != null && (first == null || second > first)), "incrementingNonce should be strictly increasing");
         }

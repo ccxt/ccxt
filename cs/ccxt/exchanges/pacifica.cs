@@ -1492,7 +1492,7 @@ public partial class pacifica : Exchange
         if ((untilEnd == null))
         {
             Int64? windowEnd = this.parseToInt(this.sum((startTime - 1), (limitValue * duration)));
-            Int64? until = ((windowEnd > nowMs)) ? nowMs : windowEnd;
+            Int64? until = (windowEnd > nowMs) ? nowMs : windowEnd;
             requestUntil["end_time"] = until;
         }
         requestUntil["start_time"] = startTime;

@@ -448,7 +448,7 @@ public partial class kalshi : PredictionExchange
             }
             cursor = this.safeString(response, "cursor");
             int collectedLength = (flatMarkets?.Count ?? 0);
-            if (((cursor == null) || cursor == "") || (rawMarketsLength < limit) || (maxMarkets == null || collectedLength >= maxMarkets))
+            if (((cursor == null) || cursor == "") || rawMarketsLength < limit || (maxMarkets == null || collectedLength >= maxMarkets))
             {
                 break;
             }
@@ -609,7 +609,7 @@ public partial class kalshi : PredictionExchange
         {
             chunk.Add((tickers != null && ti < tickers.Count ? tickers[ti] : null));
             int chunkLength = (chunk?.Count ?? 0);
-            if (((chunkLength < chunkSize)) && (ti < lastTickerIndex))
+            if ((chunkLength < chunkSize) && (ti < lastTickerIndex))
             {
                 continue;
             }
@@ -1246,7 +1246,7 @@ public partial class kalshi : PredictionExchange
         {
             chunk.Add((tickers != null && ti < tickers.Count ? tickers[ti] : null));
             int chunkLength = (chunk?.Count ?? 0);
-            if (((chunkLength < chunkSize)) && (ti < lastTickerIndex))
+            if ((chunkLength < chunkSize) && (ti < lastTickerIndex))
             {
                 continue;
             }
@@ -2853,7 +2853,7 @@ public partial class kalshi : PredictionExchange
                 break;
             }
             string? cursor = null;
-            for (int page = 0; (page < maxPages); page++)
+            for (int page = 0; page < maxPages; page++)
             {
                 Int64? reqLimit = pageLimit;
                 if (hasLimit)
@@ -2892,7 +2892,7 @@ public partial class kalshi : PredictionExchange
                 {
                     break;
                 }
-                if (((cursor == null)) || (cursor == "") || ((pageEventsLength < reqLimit)))
+                if (((cursor == null)) || (cursor == "") || (pageEventsLength < reqLimit))
                 {
                     break;
                 }

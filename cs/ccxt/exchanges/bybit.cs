@@ -9323,7 +9323,7 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "result");
         List<object> rows = this.safeList(data, "list", new List<object>() {});
-        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(rows,code, sinceResolved, limit));
+        return this.parseBorrowRateHistory(rows,code, sinceResolved, limit);
     }
 
     public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)

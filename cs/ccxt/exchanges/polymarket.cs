@@ -2960,7 +2960,7 @@ public partial class polymarket : Exchange
                 return credentials;
             }
             Int64? refreshAfter = this.parseToInt((expires - margin));
-            if ((this.milliseconds() < refreshAfter))
+            if (this.milliseconds() < refreshAfter)
             {
                 return credentials;
             }

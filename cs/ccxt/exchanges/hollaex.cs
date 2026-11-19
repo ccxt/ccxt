@@ -2282,7 +2282,7 @@ public partial class hollaex : Exchange
             return null;
         }
         Int64? statusCode = this.parseToInt(code);
-        if (((statusCode >= 400)) && ((statusCode == null || statusCode <= 503)))
+        if ((statusCode >= 400) && ((statusCode == null || statusCode <= 503)))
         {
             //
             //  { "message": "Invalid token" }

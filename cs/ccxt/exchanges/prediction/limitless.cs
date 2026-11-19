@@ -318,7 +318,7 @@ public partial class limitless : PredictionExchange
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
             Int64? limit = 50;
-            if (((requestedLimit != null)) && ((requestedLimit < 50)))
+            if (((requestedLimit != null)) && (requestedLimit.Value < 50))
             {
                 limit = requestedLimit;
             }
@@ -358,7 +358,7 @@ public partial class limitless : PredictionExchange
             double cappedPages = Math.Ceiling(Convert.ToDouble(((double?)maxMarkets / pageSize)));
             Int64? knownTotal = this.safeInteger(firstPageResponse, "totalMarketsCount", 0);
             Int64? allPages = this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)knownTotal / pageSize))));
-            for (int i = 2; (i <= allPages); i++)
+            for (int i = 2; i <= allPages; i++)
             {
                 if ((i > cappedPages))
                 {
@@ -380,7 +380,7 @@ public partial class limitless : PredictionExchange
             List<object> lastPageData = this.safeList(lastPageResponse, "data", new List<object>() {});
             int lastPageLength = lastPageData.Count;
             int allRawLength = (allRaw?.Count ?? 0);
-            if ((pageSize == null || lastPageLength >= pageSize) && (allRawLength < maxMarkets))
+            if ((pageSize == null || lastPageLength >= pageSize) && allRawLength < maxMarkets)
             {
                 while (true)
                 {
@@ -404,7 +404,7 @@ public partial class limitless : PredictionExchange
                         allRaw.Add(raw);
                     }
                     int allRawCount = (allRaw?.Count ?? 0);
-                    if ((pageMarketsLength < pageSize) || (maxMarkets == null || allRawCount >= maxMarkets))
+                    if (pageMarketsLength < pageSize || (maxMarkets == null || allRawCount >= maxMarkets))
                     {
                         break;
                     }
@@ -3366,7 +3366,7 @@ public partial class limitless : PredictionExchange
             Int64? requestedLimit = this.safeInteger(parameters, "limit", 50);
             // the search endpoint rejects limit > 50 - cap the per-query request
             Int64? limit = 50;
-            if (((requestedLimit != null)) && ((requestedLimit < 50)))
+            if (((requestedLimit != null)) && (requestedLimit.Value < 50))
             {
                 limit = requestedLimit;
             }
@@ -3526,14 +3526,14 @@ public partial class limitless : PredictionExchange
             for (int i = 0; i < dataLength; i++)
             {
                 int collected = (allRaw?.Count ?? 0);
-                if ((collected < maxMarkets))
+                if (collected < maxMarkets)
                 {
                     allRaw.Add((data != null && i < data.Count ? data[i] : null));
                 }
             }
             page = this.sum(page, 1);
             int collectedTotal = (allRaw?.Count ?? 0);
-            if ((dataLength < pageSize) || (maxMarkets == null || collectedTotal >= maxMarkets))
+            if (dataLength < pageSize || (maxMarkets == null || collectedTotal >= maxMarkets))
             {
                 break;
             }
@@ -3695,7 +3695,7 @@ public partial class limitless : PredictionExchange
             return null;
         }
         Int64? statusCodeInt = this.parseToInt(code);
-        if (((statusCodeInt >= 200)) && (((statusCodeInt == null || statusCodeInt < 300))))
+        if ((statusCodeInt >= 200) && (((statusCodeInt == null || statusCodeInt < 300))))
         {
             return null;
         }

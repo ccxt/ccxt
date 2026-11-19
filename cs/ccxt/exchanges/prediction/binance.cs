@@ -302,7 +302,7 @@ public partial class binance : PredictionExchange
                 collected.Add((pageTopics != null && i < pageTopics.Count ? pageTopics[i] : null));
             }
             bool? hasMore = this.safeBool(response, "hasMore", false);
-            if ((hasMore != true) || ((pageTopicsLength < reqLimit)))
+            if ((hasMore != true) || (pageTopicsLength < reqLimit))
             {
                 break;
             }
@@ -521,7 +521,7 @@ public partial class binance : PredictionExchange
             limitValue = this.parseToInt(limit);
         }
         Int64? limitResolved = limitValue;
-        if ((limitValue > 50))
+        if (limitValue > 50)
         {
             limitResolved = 50;
         }
@@ -1203,7 +1203,7 @@ public partial class binance : PredictionExchange
         Int64? page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", (page * maxEntriesPerRequest));
-        if ((offSet > 0))
+        if (offSet > 0)
         {
             request["offset"] = offSet;
         }
@@ -1212,7 +1212,7 @@ public partial class binance : PredictionExchange
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
-            Dictionary<string, object> market = this.market((outcomeObj != null && outcomeObj.ContainsKey("market") ? outcomeObj["market"] : null));
+            Dictionary<string, object> market = this.market(this.safeString(outcomeObj, "market"));
             request["marketId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if ((limit != null))
@@ -1296,7 +1296,7 @@ public partial class binance : PredictionExchange
         Int64? page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", (page * maxEntriesPerRequest));
-        if ((offSet > 0))
+        if (offSet > 0)
         {
             request["offset"] = offSet;
         }
@@ -1480,7 +1480,7 @@ public partial class binance : PredictionExchange
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
-            Dictionary<string, object> market = this.market((outcomeObj != null && outcomeObj.ContainsKey("market") ? outcomeObj["market"] : null));
+            Dictionary<string, object> market = this.market(this.safeString(outcomeObj, "market"));
             request["marketTopicId"] = getValue((market.ContainsKey("info") ? market["info"] : null), "marketTopicId");
         }
         Dictionary<string, object> wallet = await this.FetchWallet("fetchOrders", parameters);
@@ -1584,7 +1584,7 @@ public partial class binance : PredictionExchange
             { "status", "FILLED" },
         };
         Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", (page * maxEntriesPerRequest));
-        if ((offSet > 0))
+        if (offSet > 0)
         {
             request["offset"] = offSet;
         }

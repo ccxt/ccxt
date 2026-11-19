@@ -3486,7 +3486,7 @@ public partial class lbank : Exchange
         int secretLength = getArrayLength(secret);
         Int64? fullLines = this.parseToInt(((double)secretLength / 64));
         string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for (int i = 0; (i <= fullLines); i++)
+        for (int i = 0; i <= fullLines; i++)
         {
             Int64 start = (i * 64L);
             Int64 end = this.sum(start, 64);

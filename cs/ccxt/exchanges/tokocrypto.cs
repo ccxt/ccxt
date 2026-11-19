@@ -3123,7 +3123,7 @@ public partial class tokocrypto : Exchange
             {
                 object entry = byLimit[i];
                 Int64? entryLimit = this.safeInteger(entry, 0);
-                if (((limit != null)) && ((entryLimit != null)) && ((limit == null || limit <= entryLimit)))
+                if (((limit != null)) && ((entryLimit != null)) && (limit.Value <= entryLimit.Value))
                 {
                     return this.safeInteger(entry, 1);
                 }

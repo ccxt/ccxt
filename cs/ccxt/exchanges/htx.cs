@@ -2960,7 +2960,7 @@ public partial class htx : Exchange
         string? askVolume = null;
         if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bid")))
         {
-            if (((((IDictionary<string,object>)ticker)["bid"] is IList<object>) || (((IDictionary<string,object>)ticker)["bid"].GetType().IsGenericType && ((IDictionary<string,object>)ticker)["bid"].GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((((IDictionary<string,object>)ticker)["bid"]) is var hxArr119934 && ((hxArr119934 is IList<object>) || (hxArr119934.GetType().IsGenericType && hxArr119934.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 bid = this.safeString(((IDictionary<string,object>)ticker)["bid"], 0);
                 bidVolume = this.safeString(((IDictionary<string,object>)ticker)["bid"], 1);
@@ -2972,7 +2972,7 @@ public partial class htx : Exchange
         }
         if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("ask")))
         {
-            if (((((IDictionary<string,object>)ticker)["ask"] is IList<object>) || (((IDictionary<string,object>)ticker)["ask"].GetType().IsGenericType && ((IDictionary<string,object>)ticker)["ask"].GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (((((IDictionary<string,object>)ticker)["ask"]) is var hxArr120301 && ((hxArr120301 is IList<object>) || (hxArr120301.GetType().IsGenericType && hxArr120301.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 ask = this.safeString(((IDictionary<string,object>)ticker)["ask"], 0);
                 askVolume = this.safeString(((IDictionary<string,object>)ticker)["ask"], 1);

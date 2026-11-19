@@ -190,7 +190,7 @@ public partial class bitstamp : ccxt.bitstamp
             }
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(delta);
             return;
-        } else if ((deltaNonce == null || nonce >= deltaNonce))
+        } else if (nonce.Value >= deltaNonce.Value)
         {
             return;
         }

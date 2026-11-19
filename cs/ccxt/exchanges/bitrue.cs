@@ -3617,7 +3617,7 @@ public partial class bitrue : Exchange
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         Int64? statusCode = this.parseToInt(code);
-        if ((statusCode >= 400))
+        if (statusCode >= 400)
         {
             if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
@@ -3697,7 +3697,7 @@ public partial class bitrue : Exchange
             {
                 object entry = byLimit[i];
                 Int64? threshold = this.safeInteger(entry, 0);
-                if ((limit != null) && (threshold != null) && (limit == null || limit <= threshold))
+                if ((limit != null) && (threshold != null) && limit.Value <= threshold.Value)
                 {
                     return this.safeNumber(entry, 1);
                 }

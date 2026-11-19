@@ -697,7 +697,7 @@ public partial class polymarket : PredictionExchange
                 }
             }
             List<object> remainingPages = new List<object>() {};
-            for (int p = 2; (p <= totalPages); p++)
+            for (int p = 2; p <= totalPages; p++)
             {
                 remainingPages.Add(p);
             }
@@ -3347,7 +3347,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i]) is IList<object>) || (getValue(query, queryKeys[i]).GetType().IsGenericType && getValue(query, queryKeys[i]).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                if (((getValue(query, queryKeys[i])) is var hxArr151160 && ((hxArr151160 is IList<object>) || (hxArr151160.GetType().IsGenericType && hxArr151160.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }

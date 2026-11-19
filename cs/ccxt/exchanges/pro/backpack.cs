@@ -829,7 +829,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr35751 && ((hxArr35751 is IList<object>) || (hxArr35751.GetType().IsGenericType && hxArr35751.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -878,7 +878,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr38249 && ((hxArr38249 is IList<object>) || (hxArr38249.GetType().IsGenericType && hxArr38249.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -1350,7 +1350,7 @@ public partial class backpack : ccxt.backpack
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
             }
             return;
-        } else if (((deltaNonce != null)) && ((nonce != null && (deltaNonce == null || nonce > deltaNonce))))
+        } else if (((deltaNonce != null)) && (nonce.Value > deltaNonce.Value))
         {
             return;
         }
@@ -1411,7 +1411,7 @@ public partial class backpack : ccxt.backpack
             {
                 return cacheLength;
             }
-            if (((nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if (((nonce >= (deltaStart - 1))) && (nonce.Value < deltaEnd.Value))
             {
                 return i;
             }

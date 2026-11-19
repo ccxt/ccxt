@@ -5810,7 +5810,7 @@ public partial class coinbase : Exchange
             string? totalBalanceFiatStr = this.safeString(position, "total_balance_fiat", "0");
             double? totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
             object holdAmount = 0;
-            if (((totalBalanceFiat != null)) && ((availableBalance != null)) && ((totalBalanceFiat != null && (availableBalance == null || totalBalanceFiat > availableBalance))))
+            if (((totalBalanceFiat != null)) && ((availableBalance != null)) && (totalBalanceFiat.Value > availableBalance.Value))
             {
                 holdAmount = (totalBalanceFiat - availableBalance);
             }

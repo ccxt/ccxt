@@ -2901,7 +2901,7 @@ public partial class bingx : Exchange
         {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType));
         }
-        if ((((response != null && response.ContainsKey("data") ? response["data"] : null) is IList<object>) || ((response != null && response.ContainsKey("data") ? response["data"] : null).GetType().IsGenericType && (response != null && response.ContainsKey("data") ? response["data"] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((((response != null && response.ContainsKey("data") ? response["data"] : null)) is var hxArr112189 && ((hxArr112189 is IList<object>) || (hxArr112189.GetType().IsGenericType && hxArr112189.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             return this.parseTicker(this.safeDict((response != null && response.ContainsKey("data") ? response["data"] : null), 0, new Dictionary<string, object>() {}), market);
         }

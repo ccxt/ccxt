@@ -269,7 +269,7 @@ public partial class woo : ccxt.woo
                     {
                         return;
                     }
-                    if ((ts != null && (timestamp == null || ts > timestamp)))
+                    if (ts.Value > timestamp.Value)
                     {
                         this.handleOrderBookMessage(client, message, orderbook);
                         client.resolve(orderbook, topic);
@@ -349,7 +349,7 @@ public partial class woo : ccxt.woo
                     continue;
                 }
                 Int64? orderbookTimestamp = this.safeInteger(orderbook, "timestamp");
-                if (((orderbookTimestamp != null)) && ((ts < orderbookTimestamp)))
+                if (((orderbookTimestamp != null)) && (ts.Value < orderbookTimestamp.Value))
                 {
                     continue;
                 } else

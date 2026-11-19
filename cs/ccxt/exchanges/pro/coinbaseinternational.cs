@@ -124,7 +124,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
         bool isPrivateClient = ((client.url == this.getWsUrl(true)));
-        if (isPrivateClient && ((refreshAt != null)) && ((refreshAt == null || this.milliseconds() >= refreshAt)))
+        if (isPrivateClient && ((refreshAt != null)) && (this.milliseconds() >= refreshAt.Value))
         {
             // re-authenticate in-band before the session expires, also while no watch call is pending
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
@@ -1075,7 +1075,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49641 && ((hxArr49641 is IList<object>) || (hxArr49641.GetType().IsGenericType && hxArr49641.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }
@@ -1723,7 +1723,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         if ((future != null))
         {
             Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
-            if (((refreshAt != null)) && ((refreshAt == null || this.milliseconds() >= refreshAt)) && !((client.futures != null && client.futures.ContainsKey(messageHash))))
+            if (((refreshAt != null)) && (this.milliseconds() >= refreshAt.Value) && !((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 future = null;

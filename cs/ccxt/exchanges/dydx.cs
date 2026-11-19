@@ -1507,7 +1507,7 @@ public partial class dydx : Exchange
         string? r = Precise.stringMul(n, "1");
         Int64? c = this.parseToInt(m);
         // TODO: cap
-        for (int i = 1; (i < c); i++)
+        for (int i = 1; i < c; i++)
         {
             r = Precise.stringMul(r, n);
         }
@@ -1841,13 +1841,13 @@ public partial class dydx : Exchange
         {
             throw new InvalidOrder ((this.id + " invalid orderFlags, allowed values are (0, 64, 32).")) ;
         }
-        if ((orderFlags > 0))
+        if (orderFlags > 0)
         {
             if ((goodTillBlockTimeInSecondsOption == null))
             {
                 throw new ArgumentsRequired ((this.id + " goodTillBlockTimeInSeconds is required in params for long term or conditional order.")) ;
             }
-            if ((goodTillBlockOption != null) && (goodTillBlockOption > 0))
+            if ((goodTillBlockOption != null) && goodTillBlockOption > 0)
             {
                 throw new InvalidOrder ((this.id + " goodTillBlock should be 0 for long term or conditional order.")) ;
             }
@@ -2894,7 +2894,7 @@ public partial class dydx : Exchange
         if (((errorCode != null)) && (errorCode != ""))
         {
             Int64? errorCodeNum = this.parseToInt(errorCode);
-            if ((errorCodeNum > 0))
+            if (errorCodeNum > 0)
             {
                 string feedback = ((this.id + " ") + this.json(response));
                 this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);

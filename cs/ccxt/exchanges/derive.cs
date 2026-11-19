@@ -1936,7 +1936,7 @@ public partial class derive : Exchange
         {
             limitResolved = this.parseToInt(limit);
         }
-        if ((limitResolved > 5000))
+        if (limitResolved > 5000)
         {
             limitResolved = 5000;
         }

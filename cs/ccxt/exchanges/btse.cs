@@ -1660,7 +1660,7 @@ public partial class btse : Exchange
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
-        if (((fundingIntervalMinutes != null)) && ((fundingIntervalMinutes >= 60)))
+        if (((fundingIntervalMinutes != null)) && (fundingIntervalMinutes >= 60))
         {
             Int64? hours = this.parseToInt(((double?)fundingIntervalMinutes / 60));
             interval = (((object)hours).ToString() + "h");

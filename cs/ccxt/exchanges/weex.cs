@@ -1877,7 +1877,7 @@ public partial class weex : Exchange
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if ((endTime > now))
+            if (endTime > now)
             {
                 endTime = now;
             }

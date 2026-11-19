@@ -1494,7 +1494,7 @@ public partial class bithumb : Exchange
             {
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
                 Int64 sinceEnd = this.sum(since, (duration * count));
-                if (((to == null)) || ((sinceEnd < to)))
+                if (((to == null)) || (sinceEnd < to))
                 {
                     to = sinceEnd;
                 }

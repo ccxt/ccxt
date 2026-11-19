@@ -2129,7 +2129,7 @@ public partial class cryptocom : Exchange
         return this.parseOrder(result);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object amount = null, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -3990,7 +3990,7 @@ public partial class cryptocom : Exchange
     {
         int maxLevel = 3;
         Int64? depth = this.parseToInt(level);
-        if ((depth >= maxLevel))
+        if (depth >= maxLevel)
         {
             return obj.ToString();
         }

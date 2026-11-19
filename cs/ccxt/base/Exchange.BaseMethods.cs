@@ -870,7 +870,7 @@ public partial class BaseExchange
                     double? last = this.safeFloat((array != null && (arrayLength - 1) < array.Count ? array[(arrayLength - 1)] : default), key);
                     if ((first != null) && (last != null))
                     {
-                        ascending = isGreaterThanOrEqual(last, first); // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = last.Value >= first.Value; // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if (fromStart == true)
@@ -2270,11 +2270,11 @@ public partial class BaseExchange
                     }
                     if ((this.precisionMode == TICK_SIZE))
                     {
-                        if ((highestPrecision != null && (currentPrecision == null || highestPrecision > currentPrecision)))
+                        if (highestPrecision.Value > currentPrecision.Value)
                         {
                             highestPrecisionCurrency = currentCurrency;
                         }
-                    } else if ((currentPrecision != null && (highestPrecision == null || currentPrecision > highestPrecision)))
+                    } else if (currentPrecision.Value > highestPrecision.Value)
                     {
                         highestPrecisionCurrency = currentCurrency;
                     }
@@ -3425,7 +3425,7 @@ public partial class BaseExchange
             Int64? maxRetries = this.safeInteger(options, "webApiRetries", 10);
             object response = null;
             bool shouldBreak = false;
-            for (int retry = 0; (retry < maxRetries); retry++)
+            for (int retry = 0; retry < maxRetries; retry++)
             {
                 try
                 {
@@ -3679,7 +3679,7 @@ public partial class BaseExchange
         return this.toArray(ohlcv);
     }
 
-    public virtual Dictionary<string, object> safeNetwork(object network)
+    public virtual Dictionary<string, object> safeNetwork(IDictionary<string, object> network)
     {
         bool? withdrawEnabled = this.safeBool(network, "withdraw");
         bool? depositEnabled = this.safeBool(network, "deposit");
@@ -3692,7 +3692,7 @@ public partial class BaseExchange
             isEnabled = depositEnabled;
         }
         return new Dictionary<string, object>() {
-            { "info", getValue(network, "info") },
+            { "info", (network != null && network.ContainsKey("info") ? network["info"] : null) },
             { "id", this.safeString(network, "id") },
             { "name", this.safeString(network, "name") },
             { "network", this.safeString(network, "network") },
@@ -6066,7 +6066,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " createExpiredOptionMarket () is not supported yet")) ;
     }
 
-    public virtual bool isLeveragedCurrency(object currencyCode, bool? checkBaseCoin = null, object existingCurrencies = null)
+    public virtual bool isLeveragedCurrency(object currencyCode, bool? checkBaseCoin = null, IDictionary<string, object> existingCurrencies = null)
     {
         checkBaseCoin ??= false;
         List<object> leverageSuffixes = new List<object>() {"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"};
@@ -6083,7 +6083,7 @@ public partial class BaseExchange
                 {
                     // check if base currency is inside dict
                     string baseCurrencyCode = ((string)currencyCode).Replace(leverageSuffix, (string)"");
-                    if (((existingCurrencies != null)) && (inOp(existingCurrencies, baseCurrencyCode)))
+                    if (((existingCurrencies != null)) && ((existingCurrencies != null && existingCurrencies.ContainsKey(baseCurrencyCode))))
                     {
                         return true;
                     }
@@ -6225,7 +6225,7 @@ public partial class BaseExchange
         {
             return ((string?)((object)("1")));
         }
-        if ((precisionNumber > 0))
+        if (precisionNumber > 0)
         {
             string parsedPrecision = "0.";
             for (int i = 0; (i < (precisionNumber - 1)); i++)
@@ -6471,16 +6471,16 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseBorrowRate() is not supported yet")) ;
     }
 
-    public virtual object parseBorrowRateHistory(IList<object> response, string code, object since, object limit)
+    public virtual List<Dictionary<string, object>> parseBorrowRateHistory(IList<object> response, string code, object since, object limit)
     {
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> item = this.safeDict(response, i);
             Dictionary<string, object> borrowRate = this.parseBorrowRate(item);
             result.Add(borrowRate);
         }
-        List<object> sorted = this.sortBy(result, "timestamp");
+        List<Dictionary<string, object>> sorted = this.sortBy(result, "timestamp");
         return this.filterByCurrencySinceLimit(sorted,code, since, limit);
     }
 
@@ -7276,7 +7276,7 @@ public partial class BaseExchange
                     int responseLength = getArrayLength(response);
                     if (this.verbose)
                     {
-                        string backwardMessage = ((((("Dynamic pagination call " + this.numberToString((i + 1L))) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
+                        string backwardMessage = ((((("Dynamic pagination call " + ((object)((i + 1L))).ToString()) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
                         if (!(paginationTimestamp == null))
                         {
                             backwardMessage = backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
@@ -7309,7 +7309,7 @@ public partial class BaseExchange
                     int responseLength = getArrayLength(response);
                     if (this.verbose)
                     {
-                        string forwardMessage = ((((("Dynamic pagination call " + this.numberToString((i + 1L))) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
+                        string forwardMessage = ((((("Dynamic pagination call " + ((object)((i + 1L))).ToString()) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
                         if (!(paginationTimestamp == null))
                         {
                             forwardMessage = forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
@@ -7447,7 +7447,7 @@ public partial class BaseExchange
                 throw new BadRequest (((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + ((object)maxCallsLimit).ToString()) + " required calls is ") + ((object)requiredCalls).ToString())) ;
             }
         }
-        for (int i = 0; (i < maxCallsLimit); i++)
+        for (int i = 0; i < maxCallsLimit; i++)
         {
             if (((until != null)) && (isGreaterThanOrEqual(currentSince, until)))
             {
@@ -7618,7 +7618,7 @@ public partial class BaseExchange
         Int64 errors = 0;
         List<object> result = new List<object>() {};
         bool shouldBreak = false;
-        for (int i = 0; (i < maxCallsLimit); i++)
+        for (int i = 0; i < maxCallsLimit; i++)
         {
             try
             {
@@ -7628,8 +7628,7 @@ public partial class BaseExchange
                 int responseLength = getArrayLength(response);
                 if (this.verbose)
                 {
-                    Int64 iteration = ((i + 1L));
-                    string incrementalMessage = ((((("Incremental pagination call " + ((object)iteration).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString());
+                    string incrementalMessage = ((((("Incremental pagination call " + ((object)((i + 1L))).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString());
                     this.log(incrementalMessage);
                 }
                 if ((responseLength == 0))

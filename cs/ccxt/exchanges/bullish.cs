@@ -3222,7 +3222,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(response,code, since, limit));
+        return this.parseBorrowRateHistory(response,code, since, limit);
     }
 
     public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)

@@ -470,7 +470,7 @@ public partial class luno : ccxt.luno
         {
             return true;
         }
-        if ((messageSequence == null || messageSequence <= storedNonce))
+        if (messageSequence.Value <= storedNonce.Value)
         {
             // an old or replayed frame, discard it
             return false;
