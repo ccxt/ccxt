@@ -504,7 +504,7 @@ class BaseExchange(object):
         exts = ['ccxtfile', 'pem', 'wasm']
         if any(sanitized.endswith('.' + ext) for ext in exts):
             return
-        raise ValueError(f'invalid file path: {file_path}')
+        raise ValueError(f'invalid file path: {file_path}, allowed extensions are: ' + ' | '.join(exts))
 
     def add_fetch_cache(self, data):
         if self.fetchHistoryCacheSize <= 0:

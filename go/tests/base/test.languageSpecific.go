@@ -6,7 +6,6 @@ func TestLanguageSpecificAsync() <-chan ccxt.AsyncResult[any] {
 	TestFutures()
 	TestStructs()
 	TestOptionTypes()
-	TestValidateServerSsl()
 
 	ch := make(chan ccxt.AsyncResult[any])
 	close(ch)

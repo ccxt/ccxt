@@ -27,7 +27,7 @@ func (this *BaseExchange) ReadFile(path any, args ...any) string {
 
 // WriteFile writes data to a file
 func (this *BaseExchange) WriteFile(path any, data any, args ...any) bool {
-	this.EnsureWhitelistedFile(path, true)
+	this.EnsureWhitelistedFile(path)
 	pathStr := derefScalar(path).(string)
 	dataStr := derefScalar(data).(string)
 	dir := filepath.Dir(pathStr)
@@ -50,29 +50,19 @@ func (this *BaseExchange) ExistsFile(path any) bool {
 	return err == nil
 }
 
-// EnsureWhitelistedFile ensures the file path is permitted, so users would be safeguarded:
-// .ccxtfile (cache files) can be read and written, but only inside the temp dir
-// .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
-// the optional second argument is true when the file is about to be written
-func (this *BaseExchange) EnsureWhitelistedFile(filePath any, args ...any) {
-	isWrite := false
-	if len(args) > 0 {
-		if b, ok := args[0].(bool); ok {
-			isWrite = b
-		}
-	}
+// EnsureWhitelistedFile ensures the file path is ccxt file, so users would be safeguarded
+func (this *BaseExchange) EnsureWhitelistedFile(filePath any) {
 	sanitized, err := filepath.Abs(derefScalar(filePath).(string))
 	if err != nil {
 		panic("invalid file path: " + derefScalar(filePath).(string))
 	}
-	if strings.HasSuffix(sanitized, ".ccxtfile") {
-		if strings.HasPrefix(sanitized, this.GetTempDir()) {
+	exts := []string{"ccxtfile", "pem", "wasm"}
+	for _, ext := range exts {
+		if strings.HasSuffix(sanitized, "."+ext) {
 			return
 		}
-	} else if strings.HasSuffix(sanitized, ".pem") && !isWrite {
-		return
 	}
-	panic("invalid file path: " + derefScalar(filePath).(string) + ", allowed are .ccxtfile (inside the temp dir) and read-only .pem")
+	panic("invalid file path: " + derefScalar(filePath).(string) + ", allowed extensions are: " + strings.Join(exts, " | "))
 }
 
 // GetTempDir returns the temporary directory

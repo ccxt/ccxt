@@ -499,6 +499,7 @@ export default class interactivebrokers extends Exchange {
                     'forexCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'defaultMinCost': 1,
                     'endpointRetries': 3,
+                    'retryDelay': 1000,
                 },
                 'fetchTickers': {
                     // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
@@ -620,6 +621,7 @@ export default class interactivebrokers extends Exchange {
                     'Please query /accounts first': AuthenticationError, // {"error":"Please query /accounts first"}
                     'Cash Quantity cannot be used for this order': InvalidOrder, // {"error":"Cash Quantity cannot be used for this order"}
                     'No Contracts retrieved': NullResponse, // {"error":"No Contracts retrieved "}
+                    'Finished: EMPTY response is received': NullResponse, // {"error":"Finished: EMPTY response is received."} from Iserver/Scanner/Run
                 },
             },
             'commonCurrencies': {},
@@ -1382,22 +1384,6 @@ export default class interactivebrokers extends Exchange {
         return result;
     }
 
-    async secdefEnpointCall (secdefRequest: Dict) {
-        const retries = this.safeInteger (this.options['fetchMarkets'], 'endpointRetries', 3);
-        const lastRetryIndex = retries - 1;
-        for (let i = 0; i < retries; i++) {
-            const isLastRetry = (i >= lastRetryIndex);
-            try {
-                return await this.webapiGetV1ApiTrsrvSecdef (secdefRequest);
-            } catch (e) {
-                if (isLastRetry) {
-                    throw e;
-                }
-            }
-        }
-        return undefined;
-    }
-
     async fetchSecWithDetails (plainEntries: Dict) {
         const detailIds = Object.keys (plainEntries);
         const entries: Dict[] = [];
@@ -1414,7 +1400,7 @@ export default class interactivebrokers extends Exchange {
             const secdefRequest: Dict = {
                 'conids': chunk.join (','),
             };
-            promises.push (this.secdefEnpointCall (secdefRequest));
+            promises.push (this.marketsEndpointCall (secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}));
             offset = end;
         }
         const responses = await Promise.all (promises);
@@ -1455,7 +1441,7 @@ export default class interactivebrokers extends Exchange {
             const pairsRequest: Dict = {
                 'currency': fxCurrency,
             };
-            promises.push (this.webapiGetV1ApiIserverCurrencyPairs (this.extend (pairsRequest, params)));
+            promises.push (this.marketsEndpointCall (this.extend (pairsRequest, params), 'webapiGetV1ApiIserverCurrencyPairs', {}));
             //
             //    { "USD": [ { "symbol": "EUR.USD", "conid": 12087792, "ccyPair": "EUR" } ] }
             //
@@ -1488,7 +1474,7 @@ export default class interactivebrokers extends Exchange {
                 'symbol': cryptoSymbol,
                 'secType': 'CRYPTO',
             };
-            promises.push (this.webapiPostV1ApiIserverSecdefSearch (this.extend (searchRequest, params)));
+            promises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', []));
             //
             //     [
             //         {
@@ -1536,13 +1522,35 @@ export default class interactivebrokers extends Exchange {
         const result: string[] = [];
         // the scans are run one by one, the scanner rejects concurrent requests
         for (let i = 0; i < scanTypes.length; i++) {
+            if (i !== 0) {
+                await this.sleep (1000); // wait for 1 second before running the next scan
+            }
             const request: Dict = {
                 'instrument': 'FUT.US',
                 'location': 'FUT.COINDERIV',
                 'type': scanTypes[i],
                 'filter': [],
             };
-            const contracts = await this.fetchScannerContracts (request);
+            const response = await this.marketsEndpointCall (request, 'webapiPostV1ApiIserverScannerRun', {});
+            //
+            //     {
+            //         "contracts": [
+            //             {
+            //                 "server_id": "0",
+            //                 "column_name": "Volume",
+            //                 "symbol": "BIP",
+            //                 "conidex": "805366677@COINDERIV",
+            //                 "con_id": 805366677,
+            //                 "company_name": "nano Bitcoin BTC Perpetual Futures",
+            //                 "contract_description_1": "Dec'30",
+            //                 "listing_exchange": "COINDERIV",
+            //                 "sec_type": "FUT"
+            //             }
+            //         ],
+            //         "scan_data_column_name": "Volume"
+            //     }
+            //
+            const contracts = this.safeList (response, 'contracts', []);
             for (let j = 0; j < contracts.length; j++) {
                 const contract = contracts[j];
                 const listingExchange = this.safeString (contract, 'listing_exchange');
@@ -1553,70 +1561,6 @@ export default class interactivebrokers extends Exchange {
             }
         }
         return result;
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#fetchScannerContracts
-     * @description runs one market scan, spaced options.fetchMarkets.scannerDelay ms from the previous scan and retried options.fetchMarkets.endpointRetries times, a scan without matches returns no contracts, a scan that keeps failing (e.g. no brokerage session on free-trial accounts) throws
-     * @ignore
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#scanner-run
-     * @param {object} request the iserver/scanner/run request
-     * @returns {object[]} the scanned contracts
-     */
-    async fetchScannerContracts (request: Dict): Promise<Dict[]> {
-        const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const retries = this.safeInteger (options, 'endpointRetries', 3);
-        // the scanner is rate limited (about one request per second), concurrent or fast repeated scans fail
-        const scannerDelay = this.safeInteger (options, 'scannerDelay', 1000);
-        const lastScan = this.safeInteger (this.options, 'scannerLastRequest', 0);
-        const wait = this.sum (lastScan, scannerDelay) - this.milliseconds ();
-        if (wait > 0) {
-            await this.sleep (wait);
-        }
-        // no break / return inside try-catch, the go transpiler emits the try-catch as a closure (break is not in a loop there)
-        let contracts: List = [];
-        let scanDone = false;
-        for (let i = 0; i < retries; i++) {
-            if (scanDone) {
-                continue;
-            }
-            if (i > 0) {
-                await this.sleep (scannerDelay);
-            }
-            this.options['scannerLastRequest'] = this.milliseconds ();
-            try {
-                const response = await this.webapiPostV1ApiIserverScannerRun (request);
-                //
-                //     {
-                //         "contracts": [
-                //             {
-                //                 "server_id": "0",
-                //                 "column_name": "Volume",
-                //                 "symbol": "BIP",
-                //                 "conidex": "805366677@COINDERIV",
-                //                 "con_id": 805366677,
-                //                 "company_name": "nano Bitcoin BTC Perpetual Futures",
-                //                 "contract_description_1": "Dec'30",
-                //                 "listing_exchange": "COINDERIV",
-                //                 "sec_type": "FUT"
-                //             }
-                //         ],
-                //         "scan_data_column_name": "Volume"
-                //     }
-                //
-                contracts = this.safeList (response, 'contracts', []);
-                scanDone = true;
-            } catch (e) {
-                const message = this.exceptionMessage (e, false);
-                if (message.indexOf ('EMPTY response') >= 0) {
-                    scanDone = true; // {"error":"Finished: EMPTY response is received."} when no contract matches
-                } else if (i >= retries - 1) {
-                    throw new ExchangeError (this.id + ' fetchScannerContracts() ' + this.json (request) + ' failed: ' + message);
-                }
-            }
-        }
-        return contracts as Dict[];
     }
 
     /**
@@ -1634,23 +1578,15 @@ export default class interactivebrokers extends Exchange {
         const types = this.safeList (options, 'types', []);
         const cryptoCmeFutureSymbols = this.safeDict (options, 'cryptoCmeFutureSymbols', {});
         const cryptoCboeFutureSymbols = this.safeDict (options, 'cryptoCboeFutureSymbols', {});
-        const symbols = await this.fetchCoinbaseDerivativesSymbols ();
+        const coinbaseDerivSymbols = await this.fetchCoinbaseDerivativesSymbols ();
         const cmeSymbols = Object.keys (cryptoCmeFutureSymbols);
         const cfeSymbols = Object.keys (cryptoCboeFutureSymbols);
-        const targetSymbols = this.arrayConcat (cmeSymbols, cfeSymbols);
-        for (let i = 0; i < targetSymbols.length; i++) {
-            if (!this.inArray (targetSymbols[i], symbols)) {
-                symbols.push (targetSymbols[i]);
-            }
-        }
-        const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
-            return [];
-        }
+        const targetSymbols = this.arraysConcat ([ coinbaseDerivSymbols, cmeSymbols, cfeSymbols ]);
+        const symbols = this.unique (targetSymbols);
         const request: Dict = {
             'symbols': symbols.join (','),
         };
-        const response = await this.webapiGetV1ApiTrsrvFutures (this.extend (request, params));
+        const response = await this.marketsEndpointCall (this.extend (request, params), 'webapiGetV1ApiTrsrvFutures', {});
         //
         //     {
         //         "MBT": [
@@ -1726,7 +1662,7 @@ export default class interactivebrokers extends Exchange {
                 'exchange': cfdExchanges[i],
                 'assetClass': 'CFD',
             };
-            promises.push (this.webapiGetV1ApiTrsrvAllConids (request));
+            promises.push (this.marketsEndpointCall (request, 'webapiGetV1ApiTrsrvAllConids', []));
             //
             //     [ { "ticker": "AAPL", "conid": 120549942, "exchange": null } ]
             //
@@ -1756,29 +1692,6 @@ export default class interactivebrokers extends Exchange {
 
     /**
      * @method
-     * @name interactivebrokers#fetchBondContracts
-     * @description retrieves the bonds of a single issuer, an issuer without bonds matching the filters returns an empty list
-     * @ignore
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-info-and-rules
-     * @param {object} request the iserver/secdef/info request, with sectype, issuerId and optionally filters
-     * @returns {object[]} a list of bond contracts
-     */
-    async fetchBondContracts (request: Dict): Promise<List> {
-        let response = undefined;
-        try {
-            response = await this.webapiGetV1ApiIserverSecdefInfo (request);
-        } catch (e) {
-            if (e instanceof NullResponse) {
-                response = []; // {"error":"No Contracts retrieved "}
-            } else {
-                throw e;
-            }
-        }
-        return this.toArray (response);
-    }
-
-    /**
-     * @method
      * @name interactivebrokers#fetchBondMarkets
      * @description retrieves the bonds of the issuers of options.fetchMarkets.bondSymbols, narrowed by options.fetchMarkets.bondFilters
      * @ignore
@@ -1799,7 +1712,7 @@ export default class interactivebrokers extends Exchange {
                 'symbol': bondSymbols[i],
                 'secType': 'BOND',
             };
-            searchPromises.push (this.webapiPostV1ApiIserverSecdefSearch (this.extend (searchRequest, params)));
+            searchPromises.push (this.marketsEndpointCall (this.extend (searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', []));
             //
             //     [
             //         {
@@ -1837,7 +1750,7 @@ export default class interactivebrokers extends Exchange {
                     if (filterPartsLength > 0) {
                         contractsRequest['filters'] = filterParts.join (',');
                     }
-                    contractPromises.push (this.fetchBondContracts (contractsRequest));
+                    contractPromises.push (this.marketsEndpointCall (contractsRequest, 'webapiGetV1ApiIserverSecdefInfo', []));
                 }
             }
         }
@@ -1907,7 +1820,7 @@ export default class interactivebrokers extends Exchange {
                 'exchange': exchange,
                 'assetClass': 'STK',
             };
-            const stocks: List = await this.webapiGetV1ApiTrsrvAllConids (this.extend (stockRequest, params));
+            const stocks: List = await this.marketsEndpointCall (this.extend (stockRequest, params), 'webapiGetV1ApiTrsrvAllConids', []) as List;
             //
             //     [ { "ticker": "AAPL", "conid": 265598, "exchange": "NMS" } ]
             //
@@ -1921,6 +1834,48 @@ export default class interactivebrokers extends Exchange {
         }
         const markets = await this.fetchSecWithDetails (entries);
         return this.parseMarkets (markets);
+    }
+
+    async marketsEndpointCall (request: Dict, ep: string, defaultValue: any = undefined) {
+        const opts = this.safeDict (this.options, 'fetchMarkets', {});
+        const retries = this.safeInteger (opts, 'endpointRetries', 3);
+        let retryDelay = this.safeInteger (opts, 'retryDelay', 1000);
+        for (let i = 0; i < retries; i++) {
+            const isLastRetry = (i >= retries - 1);
+            let data: any = undefined;
+            try {
+                if (ep === 'webapiGetV1ApiTrsrvSecdef') {
+                    data = await this.webapiGetV1ApiTrsrvSecdef (request);
+                } else if (ep === 'webapiPostV1ApiIserverScannerRun') {
+                    retryDelay = Math.max (retryDelay, 1000);
+                    data = await this.webapiPostV1ApiIserverScannerRun (request);
+                } else if (ep === 'webapiGetV1ApiTrsrvFutures') {
+                    data = await this.webapiGetV1ApiTrsrvFutures (request);
+                } else if (ep === 'webapiPostV1ApiIserverSecdefSearch') {
+                    data = await this.webapiPostV1ApiIserverSecdefSearch (request);
+                } else if (ep === 'webapiGetV1ApiTrsrvAllConids') {
+                    data = await this.webapiGetV1ApiTrsrvAllConids (request);
+                } else if (ep === 'webapiGetV1ApiIserverCurrencyPairs') {
+                    data = await this.webapiGetV1ApiIserverCurrencyPairs (request);
+                } else if (ep === 'webapiGetV1ApiIserverSecdefInfo') {
+                    data = await this.webapiGetV1ApiIserverSecdefInfo (request);
+                }
+            } catch (e) {
+                if (e instanceof NullResponse) {
+                    data = defaultValue;
+                }
+                if (data === undefined) {
+                    if (isLastRetry) {
+                        throw e;
+                    }
+                    await this.sleep (retryDelay);
+                }
+            }
+            if (data !== undefined) {
+                return data;
+            }
+        }
+        return undefined;
     }
 
     override parseMarket (market: Dict): Market {

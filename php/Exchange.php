@@ -1440,7 +1440,7 @@ class BaseExchange {
                 return;
             }
         }
-        throw new \RuntimeException('invalid file path: ' . $filePath);
+        throw new \RuntimeException('invalid file path: ' . $filePath . ', allowed extensions are: ' . implode(' | ', $exts));
     }
 
     public function read_file(string $filePath) {

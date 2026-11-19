@@ -8,29 +8,24 @@ public partial class BaseExchange
         return tmp.EndsWith(Path.DirectorySeparatorChar.ToString()) ? tmp : tmp + Path.DirectorySeparatorChar;
     }
 
-    // .ccxtfile (cache files) can be read and written, but only inside the temp dir
-    // .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
-    public void ensureWhitelistedFile(object filePath, bool isWrite = false)
+    // no-op: file io is synchronous in c#, nothing to load before the first readFile call
+    public virtual Task<object> initFileSystem()
+    {
+        return Task.FromResult<object>(null);
+    }
+
+    public void ensureWhitelistedFile(object filePath)
     {
         var sanitized = Path.GetFullPath(filePath as string);
-        if (sanitized.EndsWith(".ccxtfile"))
+        var exts = new[] { "ccxtfile", "pem", "wasm" };
+        foreach (var ext in exts)
         {
-            if (sanitized.StartsWith(getTempDir()))
+            if (sanitized.EndsWith("." + ext))
             {
                 return;
             }
         }
-        else if (sanitized.EndsWith(".pem") && !isWrite)
-        {
-            return;
-        }
-        throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed are .ccxtfile (inside the temp dir) and read-only .pem");
-    }
-
-    // file IO is synchronous in .NET, nothing to load before the first readFile call
-    public Task<object> initFileSystem()
-    {
-        return Task.FromResult<object>(null);
+        throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed extensions are: {string.Join(" | ", exts)}");
     }
 
     public string readFile(object filePath)
@@ -45,7 +40,7 @@ public partial class BaseExchange
 
     public bool writeFile(object filePath, object data)
     {
-        ensureWhitelistedFile(filePath, true);
+        ensureWhitelistedFile(filePath);
         var directory = Path.GetDirectoryName(filePath as string);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {

@@ -65,8 +65,8 @@ import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
 import testIsDictionary from './test.isDictionary.js';
 import testEncodeDecode from './test.encodeDecode.js';
-import testModPow from './test.modPow.js';
 // import testParseMarkets from './test.parseMarkets.js';
+import testModPow from './test.modPow.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();

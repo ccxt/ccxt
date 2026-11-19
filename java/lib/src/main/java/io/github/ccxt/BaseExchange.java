@@ -921,7 +921,7 @@ public class BaseExchange {
 
     // ------------------------------------------------------------------------
     // file io (read-only in java, same whitelist as the other ports):
-    // .ccxtfile (cache files) only inside the temp dir, .pem (user-supplied keys, e.g. the ibkr oauth keys) from any location
+    // only files with whitelisted extensions (.ccxtfile, .pem) can be accessed
 
     public String getTempDir() {
         String tmp = java.nio.file.Paths.get(System.getProperty("java.io.tmpdir")).toAbsolutePath().normalize().toString();
@@ -930,14 +930,13 @@ public class BaseExchange {
 
     public String ensureWhitelistedFile(Object filePath) {
         String resolved = java.nio.file.Paths.get((String) filePath).toAbsolutePath().normalize().toString();
-        if (resolved.endsWith(".ccxtfile")) {
-            if (resolved.startsWith(this.getTempDir())) {
+        String[] exts = { "ccxtfile", "pem", "wasm" };
+        for (String ext : exts) {
+            if (resolved.endsWith("." + ext)) {
                 return resolved;
             }
-        } else if (resolved.endsWith(".pem")) {
-            return resolved;
         }
-        throw new IllegalArgumentException("invalid file path: " + filePath + ", allowed are .ccxtfile (inside the temp dir) and read-only .pem");
+        throw new IllegalArgumentException("invalid file path: " + filePath + ", allowed extensions are: " + String.join(" | ", exts));
     }
 
     // file io is synchronous in java, nothing to load before the first readFile call
