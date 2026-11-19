@@ -17257,6 +17257,10 @@ function goStringAnyLocalsCheck (ok: SelfTestOk): void {
 
 function goNativeStringAddSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = '') => goNativeStringAdds ('package ccxt\n\nfunc (this *X) f(' + sig + ') any {\n' + body + '}\n');
+    const g = '\tvar n *string = this.SafeString(p, "k")\n\tif n != nil {\n\t\tn = this.SafeString(m, *n, n)\n\t\treturn Add("c-", n)\n\t}\n';
+    ok (f (g + '\treturn nil\n').includes ('return "c-" + *n'), 'self-default rewrite inside nil guard derefs');
+    ok (f (g.replace ('*n, n)', '*n)') + '\treturn nil\n').includes ('Add("c-", n)'), 'defaultless rewrite keeps Add');
+    ok (f ('\tvar n *string = this.SafeString(p, "k")\n\tif n != nil {\n\t\tn = this.SafeString(m, *n, n)\n\t}\n\treturn Add("c-", n)\n').includes ('Add("c-", n)'), 'unguarded read keeps Add');
     ok (f ('\tvar s string = this.Json(p)\n\tvar u any = Add(Add(s, ":"), this.Id)\n\treturn u\n').indexOf ('var u any = s + ":" + this.Id') >= 0, 'string chain goes native');
     ok (f ('\treturn Add("?", q)\n', 'q string').indexOf ('return "?" + q') >= 0, 'string param goes native');
     ok (f ('\treturn Add(Add(this.Id+" x ", this.Urlencode(p)), "y")\n').indexOf ('this.Id + " x " + this.Urlencode(p) + "y"') >= 0, 'native sub-sum and string method');
@@ -20114,7 +20118,12 @@ function goNilGuardedStringLocals (masked: string, at: number, locals: Set<strin
         }
         if (found < 0) { continue; }
         // any write after the test, up to the end of the function (a loop can carry it back to the read)
-        if (all.slice (found + 1).some ((l) => write.test (l)) || write.test (all[found].replace (/==|!=/g, '  '))) { continue; }
+        // inside an `if x != nil {` block, `x = this.SafeString(.., x)` keeps x non-nil (the default is x itself)
+        let end = found;
+        for (let d = 0; end < all.length; end++) { d += (all[end].split ('{').length - 1) - (all[end].split ('}').length - 1); if (end > found && d <= 0) { break; } }
+        const selfDefault = (l: string, i: number): boolean => (i < end - found - 1) && (lines[found] !== undefined) && /!=/.test (all[found])
+            && goNonNilStringCall (l.replace (new RegExp ('^\\s*' + name + ' = '), '').replace (/\s*\/\/.*$/, '').trim (), (a) => a === name);
+        if (all.slice (found + 1).some ((l, i) => write.test (l) && !selfDefault (l, i)) || write.test (all[found].replace (/==|!=/g, '  '))) { continue; }
         out.add ('!' + name);
     }
     return out;
