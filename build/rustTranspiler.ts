@@ -6929,6 +6929,45 @@ function rustBorrowWsControlHandlers (files: Map<string, string>, outside: strin
 }
 //
 // unit slot 024
+// Data handlers whose first use of `message` is `let message = message.as_map()..` only read it: the param
+// becomes `message: &Value` when the file holds one such definition and every other mention is a `self.` call,
+// and those calls lend the argument (`x.clone()` / `x` become `&x`).
+const RUST_LENT_DATA_HANDLERS = [ 'handle_order_book', 'handle_ticker', 'handle_trades', 'handle_ohlcv', 'handle_balance', 'handle_order', 'handle_my_trade' ];
+function lendDataHandlerMessage(content: string): string {
+    if (!/\bfn handle_/.test(content)) return content;
+    const m = rustBorrowMask(content);
+    const edits: Array<[number, number, string]> = [];
+    for (const name of RUST_LENT_DATA_HANDLERS) {
+        const hdr = new RegExp(`^    pub fn ${name}\\(&mut self, (?:client: &Value|mut client: Value), (mut message: Value)\\) \\{\\n`, 'gm');
+        const defs = [...m.matchAll(hdr)];
+        if (defs.length !== 1 || m.split(new RegExp(`\\bfn ${name}\\(`)).length !== 2) continue;
+        const d = defs[0], open = d.index! + d[0].length - 2, end = rustBorrowClose(m, open);
+        const body = m.slice(open, end);
+        const shadow = body.indexOf('\n        let message = message.as_map().unwrap_or(&__message_empty);\n');
+        if (shadow < 0 || /(?<![\w.])message\b/.test(body.slice(0, shadow)) || /\bmove\b|\bspawn\b/.test(body)) continue;
+        const local: Array<[number, number, string]> = [];
+        let ok = true;
+        for (const c of m.matchAll(new RegExp(`([\\w.:>]*)\\b${name}\\(`, 'g'))) {
+            if (c.index! === d.index! + d[0].indexOf(name)) continue;
+            if (c[1] !== 'self.') { ok = false; break; }
+            const o = c.index! + c[0].length - 1;
+            const spans = rustBorrowArgs(m, o, rustBorrowClose(m, o));
+            if (spans.length !== 2) { ok = false; break; }
+            const raw = content.slice(spans[1][0], spans[1][1]), text = raw.trim(), at = spans[1][0] + raw.indexOf(text);
+            const id = /^([A-Za-z_]\w*)(\.clone\(\))?$/.exec(text);
+            const got = /^args\.get\((\d+)\)\.cloned\(\)\.unwrap_or\(crate::Value::Null\)$/.exec(text);
+            if (text.startsWith('&') || /^self\.[\w.]+$/.test(text)) { ok = false; break; }
+            if (got) local.push([at, text.length, `args.get(${got[1]}).unwrap_or(&crate::Value::Null)`]);
+            else if (id) local.push([at, text.length, `&${id[1]}`]);
+            else local.push([at, 0, '&']);
+        }
+        if (!ok) continue;
+        edits.push([d.index! + d[0].length - 4 - d[1].length, d[1].length, 'message: &Value'], ...local);
+    }
+    let out = content;
+    for (const [at, len, text] of edits.sort((a, b) => b[0] - a[0])) out = out.slice(0, at) + text + out.slice(at + len);
+    return out;
+}
 //
 // unit slot 025
 //
@@ -7246,6 +7285,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 023
     //
     // pass slot 024
+    lendDataHandlerMessage,
     //
     // pass slot 025
     //
