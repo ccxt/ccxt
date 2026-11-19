@@ -8485,6 +8485,76 @@ function unboxDictRewraps(content: string): string {
 }
 //
 // unit slot 078
+// `safeLiquidation` writes keys into its map argument and returns it, and every caller passes a map literal, so it takes
+// and returns `Dict`. A pro `parse_ws_*` whose every return is a map returns `Dict`: callers drop `.into_dict()`, an
+// `.as_map()` copy unwraps, any other use boxes it with `Value::Dict(..)`. An unproven body keeps `Value`.
+function typedWsParseProducers (content: string): string {
+    const sig = 'fn safe_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {', tail = '\n    Value::Null\n}';
+    const put = /if let Value::Dict\(__d\) = &mut liquidation \{ std::sync::Arc::make_mut\(__d\)\.insert\(([^\n]*)\); \}/g;
+    const base = content.indexOf (sig), bend = base < 0 ? -1 : content.indexOf (tail, base);
+    if (bend >= 0) {
+        const body = content.slice (base + sig.length, bend);
+        const rest = body.replace (put, '').replace (/&liquidation\b/g, '').replace ('return liquidation;', '').replace (/^ *\/\/.*$/gm, '');
+        if (body.split (/\breturn\b/).length !== 2 || !body.includes ('return liquidation;') || /\bliquidation\b(?!:)/.test (rest.replace ('mut liquidation', ''))) throw new Error ('safeLiquidation: unproven body');
+        content = content.slice (0, base) + sig.replace ('mut liquidation: Value', 'mut liquidation: crate::value::Dict').replace (') -> Value {', ') -> crate::value::Dict {') + body.replace (put, 'std::sync::Arc::make_mut(&mut liquidation).insert($1);') + '\n    Default::default()\n}' + content.slice (bend + tail.length);
+    }
+    const copy = '.as_map().cloned().unwrap_or_default()';
+    const box = (name: string, argFix?: (open: number) => boolean) => {
+        const head = new RegExp ('(?<![\\w.])self\\.' + name + '\\(', 'g'), starts: number[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = head.exec (content)) !== null) starts.push (m.index);
+        for (const s of starts.reverse ()) {
+            const open = s + 'self.'.length + name.length + 1;
+            if (argFix && !argFix (open)) continue;
+            const close = balancedCloseIndex (content, open);
+            if (close >= content.length) continue;
+            const rest = content.slice (close + 1);
+            if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            else if (rest.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice (copy.length);
+            else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
+        }
+    };
+    const arm = '"safe_liquidation" => self.safe_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), ';
+    if (content.includes (arm)) {
+        const at = content.indexOf (arm), close = balancedCloseIndex (content, at + arm.length - 'args.get(0).cloned().unwrap_or(crate::Value::Null), '.length);
+        const more = content.slice (at + arm.length, close);
+        content = content.slice (0, at) + '"safe_liquidation" => match args.get(0).cloned().unwrap_or(crate::Value::Null) { crate::Value::Dict(l) => crate::Value::Dict(self.safe_liquidation(l, ' + more + ')), other => other }' + content.slice (close + 1);
+    }
+    if (bend >= 0 || /(?<![\w.])self\.safe_liquidation\(/.test (content)) {
+        box ('safe_liquidation', (open) => {
+            if (content.startsWith ('l, ', open) && content.slice (open - 80, open).endsWith ('crate::Value::Dict(l) => crate::Value::Dict(self.safe_liquidation(')) return false;
+            if (!content.startsWith ('Value::Map(', open)) throw new Error ('safeLiquidation: unproven argument ' + content.slice (open, open + 60));
+            content = content.slice (0, open) + 'std::sync::Arc::new(' + content.slice (open + 'Value::Map('.length);
+            return true;
+        });
+    }
+    const head = /\n    pub fn (parse_ws_\w+)\(&self[^\n]*\) -> Value \{\n/g, end = '\n\n    Value::Null\n}';
+    const typed = new Set<string> (), failed = new Set<string> ();
+    let h: RegExpExecArray | null;
+    while ((h = head.exec (content)) !== null) {
+        const open = h.index + h[0].length, e = content.indexOf (end, open);
+        if (e < 0) { failed.add (h[1]); continue; }
+        const body = content.slice (open, e), ret = /(?<=^ *)return (?=\S)/gm;
+        let out = '', last = 0, ok = true, n = 0, r: RegExpExecArray | null;
+        while ((r = ret.exec (body)) !== null) {
+            const p = r.index + r[0].length;
+            const lead = [ 'Value::Dict(', 'Value::Map(' ].find ((x) => body.startsWith (x, p));
+            const close = lead ? balancedCloseIndex (body, p + lead.length) : -1;
+            if (!lead || body[close + 1] !== ';') { ok = false; break; }
+            const inner = body.slice (p + lead.length, close);
+            out += body.slice (last, p) + (lead === 'Value::Dict(' ? inner : 'std::sync::Arc::new(' + inner + ')');
+            last = ret.lastIndex = close + 1;
+            n++;
+        }
+        if (!ok || n === 0 || n !== body.split (/\breturn\b/).length - 1 || /\|[^|\n]*\|\s*\{/.test (body)) { failed.add (h[1]); continue; }
+        const sigOut = h[0].replace (') -> Value {', ') -> crate::value::Dict {');
+        content = content.slice (0, h.index) + sigOut + out + body.slice (last) + '\n\n    Default::default()\n}' + content.slice (e + end.length);
+        head.lastIndex = h.index + sigOut.length;
+        typed.add (h[1]);
+    }
+    for (const name of typed) if (!failed.has (name)) box (name);
+    return content;
+}
 //
 // unit slot 079
 //
@@ -8974,6 +9044,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     unboxDictRewraps,
     //
     // pass slot 078
+    typedWsParseProducers,
     //
     // pass slot 079
     //
