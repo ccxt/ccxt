@@ -43,7 +43,7 @@ public class Cryptocom extends CryptocomApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "cryptocom" );
@@ -856,7 +856,7 @@ public class Cryptocom extends CryptocomApi
                 response = (this.v1PrivatePostPrivateGetCurrencyNetworks(paramsSkipFetchCurrencies)).join();
             } catch(Exception e)
             {
-                Object erString = this.exceptionMessage(e, true);
+                String erString = this.exceptionMessage(e, true);
                 if (((String)erString).indexOf("SYS_ERROR") >= 0)
                 {
                     // sub-accounts can't access this endpoint
@@ -907,8 +907,8 @@ public class Cryptocom extends CryptocomApi
             //        }
             //    }
             //
-            Map<String, Object> resultData = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> currencyMap = (Map<String, Object>) this.safeDict(resultData, "currency_map", new HashMap<String, Object>() {{}});
+            Map<String, Object> resultData = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> currencyMap = this.safeDict(resultData, "currency_map", new HashMap<String, Object>() {{}});
             List<Object> enhancedArray = (List<Object>) this.addKeyInArrayItems(currencyMap, "_coin_id");
             return this.parseCurrencies(enhancedArray);
         });
@@ -920,8 +920,8 @@ public class Cryptocom extends CryptocomApi
         String id = this.safeString(currency, "_coin_id");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> chains = (List<Object>) this.safeList(currency, "network_list", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        List<Object> chains = this.safeList(currency, "network_list", new ArrayList<Object>(Arrays.asList()));
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "network_id");
@@ -1068,10 +1068,10 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> resultResponse = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(resultResponse, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> resultResponse = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(resultResponse, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String inst_type = this.safeString(market, "inst_type");
@@ -1091,8 +1091,8 @@ public class Cryptocom extends CryptocomApi
                 String settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId, (Map<String, Object>) null);
                 String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
-                Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled", (Object) null);
-                Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled", (Object) null);
+                Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled", false);
+                Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled", false);
                 Long expiryRaw = this.safeInteger(market, "expiry_timestamp_ms");
                 Long expiry = ((((expiryRaw != null && expiryRaw == 0)))) ? null : expiryRaw;
                 String symbol = ((base + "/") + quote);
@@ -1105,51 +1105,51 @@ public class Cryptocom extends CryptocomApi
                 } else if (java.util.Objects.equals(inst_type, "PERPETUAL_SWAP"))
                 {
                     type = "swap";
-                    symbol = ((symbol + ":") + quote);
+                    symbol = ((((base + "/") + quote) + ":") + quote);
                     contract = true;
                 } else if (java.util.Objects.equals(inst_type, "FUTURE"))
                 {
                     type = "future";
-                    symbol = ((((symbol + ":") + quote) + "-") + this.yymmdd(expiry));
+                    symbol = ((((((base + "/") + quote) + ":") + quote) + "-") + this.yymmdd(expiry));
                     contract = true;
                 } else if (java.util.Objects.equals(inst_type, "WARRANT"))
                 {
                     type = "option";
                     String symbolOptionType = (((java.util.Objects.equals(optionType, "call")))) ? "C" : "P";
-                    symbol = ((((((((symbol + ":") + quote) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + symbolOptionType);
+                    symbol = ((((((((((base + "/") + quote) + ":") + quote) + "-") + this.yymmdd(expiry)) + "-") + this.safeString(market, "strike", "")) + "-") + symbolOptionType);
                     contract = true;
                 }
                 Boolean isLinear = (((java.util.Objects.equals(contract, true)))) ? true : null;
                 Boolean isInverse = (((java.util.Objects.equals(contract, true)))) ? false : null;
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", this.safeString(market, "symbol"));
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", settle);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", settleId);
-                    j39v1.put("type", type);
-                    j39v1.put("spot", spot);
-                    j39v1.put("margin", ((java.util.Objects.equals(marginBuyEnabled, true)) || (java.util.Objects.equals(marginSellEnabled, true))));
-                    j39v1.put("swap", swap);
-                    j39v1.put("future", future);
-                    j39v1.put("option", option);
-                    j39v1.put("active", this.safeBool(market, "tradable", (Object) null));
-                    j39v1.put("contract", contract);
-                    j39v1.put("linear", isLinear);
-                    j39v1.put("inverse", isInverse);
-                    j39v1.put("contractSize", this.safeNumber(market, "contract_size", (Object) null));
-                    j39v1.put("expiry", expiry);
-                    j39v1.put("expiryDatetime", this.iso8601(expiry));
-                    j39v1.put("strike", this.parseNumber(strike));
-                    j39v1.put("optionType", optionType);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", this.safeString(market, "symbol"));
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", spot);
+                j39v1.put("margin", (Boolean.TRUE.equals(marginBuyEnabled) || Boolean.TRUE.equals(marginSellEnabled)));
+                j39v1.put("swap", swap);
+                j39v1.put("future", future);
+                j39v1.put("option", option);
+                j39v1.put("active", this.safeBool(market, "tradable", (Object) null));
+                j39v1.put("contract", contract);
+                j39v1.put("linear", isLinear);
+                j39v1.put("inverse", isInverse);
+                j39v1.put("contractSize", this.safeNumber(market, "contract_size", (Object) null));
+                j39v1.put("expiry", expiry);
+                j39v1.put("expiryDatetime", this.iso8601(expiry));
+                j39v1.put("strike", this.parseNumber(strike));
+                j39v1.put("optionType", optionType);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "price", Cryptocom.this.parseNumber(Cryptocom.this.safeString(market, "price_tick_size")) );
                         put( "amount", Cryptocom.this.parseNumber(Cryptocom.this.safeString(market, "qty_tick_size")) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Cryptocom.this.parseNumber("1") );
                             put( "max", Cryptocom.this.safeNumber(market, "max_leverage", (Object) null) );
@@ -1167,9 +1167,9 @@ public class Cryptocom extends CryptocomApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -1202,12 +1202,12 @@ public class Cryptocom extends CryptocomApi
                 Object symbol = null;
                 if ((symbols instanceof List))
                 {
-                    Integer symbolsLength = ((List<?>)symbols).size();
+                    Integer symbolsLength = symbols.size();
                     if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
+                    symbol = this.safeString(symbols, 0);
                 } else
                 {
                     symbol = symbols;
@@ -1240,8 +1240,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -1267,7 +1267,7 @@ public class Cryptocom extends CryptocomApi
             }
             String symbolValue = this.symbol(symbol);
             Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolValue, (Object) null);
+            Map<String, Object> ticker = this.safeDict(tickers, symbolValue, null);
             return ticker;
         }).thenApply(Ticker::new);
 
@@ -1363,8 +1363,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1438,8 +1438,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1485,7 +1485,7 @@ public class Cryptocom extends CryptocomApi
             {
                 limitResolved = 300L;
             }
-            if (!java.util.Objects.equals(limitResolved, null))
+            if (!java.util.Objects.equals(limit, null))
             {
                 request.put("count", limitResolved);
             }
@@ -1530,8 +1530,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1583,26 +1583,26 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> orderBook = this.safeDict(data, 0, null);
             Long timestamp = this.safeInteger(orderBook, "t");
             return this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
-        Map<String, Object> responseResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        List<Object> data = (List<Object>) this.safeList(responseResult, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> positionBalances = (List<Object>) this.safeList(this.safeDict(data, 0, (Object) null), "position_balances", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> responseResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> data = this.safeList(responseResult, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positionBalances = this.safeList(this.safeDict(data, 0, null), "position_balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < ((List<?>)positionBalances).size(); i++)
+        for (var i = 0; i < positionBalances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(positionBalances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(positionBalances, i, null);
             String currencyId = this.safeString(balance, "instrument_name");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1743,7 +1743,7 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -1751,19 +1751,11 @@ public class Cryptocom extends CryptocomApi
 
     public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        if (java.util.Objects.equals(type, null))
-        {
-            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
-        }
-        if (java.util.Objects.equals(side, null))
-        {
-            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
-        }
         Map<String, Object> market = this.market(symbol);
         String uppercaseType = ((String)type).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("instrument_name", market.get("id"));
-        request.put("side", ((String)((String)side)).toUpperCase());
+        request.put("side", ((String)side).toUpperCase());
         request.put("quantity", this.amountToPrecision(symbol, amount));
         if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
         {
@@ -1929,7 +1921,7 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
@@ -1957,13 +1949,13 @@ public class Cryptocom extends CryptocomApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+                Double price = this.safeNumber(rawOrder, "price", (Object) null);
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = (Map<String, Object>) this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -2213,15 +2205,15 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = this.editOrderRequest(id, (String) (symbol), amount, price, parameters);
+            Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), amount, price, parameters);
             Map<String, Object> response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
 
-    public Map<String, Object> editOrderRequest(Object id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> editOrderRequest(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(id, null))
@@ -2321,7 +2313,7 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
@@ -2354,10 +2346,10 @@ public class Cryptocom extends CryptocomApi
             List<Object> orderRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+                String id = this.safeString(ids, i);
                 Map<String, Object> order = new HashMap<String, Object>() {{
                     put( "instrument_name", market.get("id") );
-                    put( "order_id", String.valueOf(id) );
+                    put( "order_id", id );
                 }};
                 ((List<Object>)orderRequests).add(order);
             }
@@ -2366,7 +2358,7 @@ public class Cryptocom extends CryptocomApi
                 put( "order_list", orderRequests );
             }};
             Map<String, Object> response = (this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters))).join();
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, (Long) null, (Long) null, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2393,7 +2385,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> orderRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> order = this.safeDict(orders, i, null);
                 String id = this.safeString(order, "id");
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = this.market(symbol);
@@ -2408,7 +2400,7 @@ public class Cryptocom extends CryptocomApi
                 put( "order_list", orderRequests );
             }};
             Map<String, Object> response = (this.v1PrivatePostPrivateCancelOrderList(this.extend(request, parameters))).join();
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, (Map<String, Object>) null, (Long) null, (Long) null, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2479,8 +2471,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2566,8 +2558,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2577,10 +2569,10 @@ public class Cryptocom extends CryptocomApi
     {
         if (!java.util.Objects.equals(addressString, null) && ((String)addressString).indexOf("?") > 0)
         {
-            var addressrawTagVariable = new ArrayList<Object>(Arrays.asList(((String)addressString).split(java.util.regex.Pattern.quote("?"))));
-            var address = ((List<Object>) addressrawTagVariable).get(0);
-            var rawTag = ((List<Object>) addressrawTagVariable).get(1);
-            List<Object> splitted = new ArrayList<Object>(Arrays.asList(((String)rawTag).split(java.util.regex.Pattern.quote("="))));
+            List<Object> addressParts = new ArrayList<Object>(Arrays.asList(((String)addressString).split(java.util.regex.Pattern.quote("?"))));
+            String address = (String) (addressParts == null || 0 >= addressParts.size() ? null : addressParts.get(0));
+            String rawTag = (String) (addressParts == null || 1 >= addressParts.size() ? null : addressParts.get(1));
+            List<Object> splitted = new ArrayList<Object>(Arrays.asList(rawTag.split(java.util.regex.Pattern.quote("="))));
             return new ArrayList<Object>(Arrays.asList(address, (splitted == null || 1 >= splitted.size() ? null : splitted.get(1))));
         }
         return new ArrayList<Object>(Arrays.asList(addressString, null));
@@ -2624,7 +2616,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsWithdrawTag));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode, code);
+            String networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
                 request.put("network_id", networkId);
@@ -2646,7 +2638,7 @@ public class Cryptocom extends CryptocomApi
             //        }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
             return this.parseTransaction((Map<String, Object>) (result), currency);
         }).thenApply(Transaction::new);
 
@@ -2661,7 +2653,7 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2694,9 +2686,9 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> addresses = (List<Object>) this.safeList(data, "deposit_address_list", new ArrayList<Object>(Arrays.asList()));
-            Integer addressesLength = ((List<?>)addresses).size();
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> addresses = this.safeList(data, "deposit_address_list", new ArrayList<Object>(Arrays.asList()));
+            Integer addressesLength = addresses.size();
             if (java.util.Objects.equals(addressesLength, 0))
             {
                 throw new ExchangeError((this.id + " fetchDepositAddressesByNetwork() generating address...")) ;
@@ -2704,7 +2696,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; (addressesLength != null && i < addressesLength); i++)
             {
-                Map<String, Object> value = (Map<String, Object>) this.safeDict(addresses, i, (Object) null);
+                Map<String, Object> value = this.safeDict(addresses, i, null);
                 String addressString = this.safeString(value, "address");
                 String currencyId = this.safeString(value, "currency");
                 String responseCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -2746,18 +2738,18 @@ public class Cryptocom extends CryptocomApi
 
             String networkParam = this.safeStringUpper(parameters, "network");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
-            Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
-            Object depositAddresses = depositAddressesRaw;
+            Map<String, Object> depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
+            Map<String, Object> depositAddresses = depositAddressesRaw;
             if (!java.util.Objects.equals(networkParam, null))
             {
                 String network = this.safeString(this.networkAliases, networkParam, networkParam);
-                if (((Map<?, ?>)depositAddresses).containsKey(network))
+                if (depositAddresses.containsKey(network))
                 {
-                    return this.safeDict(depositAddresses, network, (Object) null);
+                    return this.safeDict(depositAddresses, network, null);
                 }
             }
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)depositAddresses).keySet());
-            return this.safeDict(depositAddresses, this.safeString(keys, 0), (Object) null);
+            List<String> keys = new ArrayList<String>(depositAddresses.keySet());
+            return this.safeDict(depositAddresses, this.safeString(keys, 0), null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2828,8 +2820,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> depositList = (List<Object>) this.safeList(data, "deposit_list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> depositList = this.safeList(data, "deposit_list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(depositList, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2903,8 +2895,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> withdrawalList = (List<Object>) this.safeList(data, "withdrawal_list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> withdrawalList = this.safeList(data, "withdrawal_list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawalList, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3131,12 +3123,12 @@ public class Cryptocom extends CryptocomApi
         Long created = this.safeInteger(order, "create_time");
         String marketId = this.safeString(order, "instrument_name");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        List<Object> execInst = (List<Object>) this.safeList(order, "exec_inst", (Object) null);
+        List<Object> execInst = this.safeList(order, "exec_inst", null);
         Boolean postOnly = null;
         if (!java.util.Objects.equals(execInst, null))
         {
             postOnly = false;
-            for (var i = 0; i < ((List<?>)execInst).size(); i++)
+            for (var i = 0; i < execInst.size(); i++)
             {
                 String inst = this.safeString(execInst, i);
                 if (java.util.Objects.equals(inst, "POST_ONLY"))
@@ -3300,7 +3292,7 @@ public class Cryptocom extends CryptocomApi
         }
     }
 
-    public Object customHandleMarginModeAndParams(Object methodName, Map<String, Object> parameters)
+    public Object customHandleMarginModeAndParams(String methodName, Map<String, Object> parameters)
     {
         /**
          * @ignore
@@ -3351,31 +3343,24 @@ public class Cryptocom extends CryptocomApi
         //        ]
         //    }
         //
-        List<Object> networkList = (List<Object>) this.safeList(fee, "network_list", new ArrayList<Object>(Arrays.asList()));
-        Integer networkListLength = ((List<?>)networkList).size();
-        Map<String, Object> result = new HashMap<String, Object>() {{
-            put( "info", fee );
-            put( "withdraw", new HashMap<String, Object>() {{
-                put( "fee", null );
-                put( "percentage", null );
-            }} );
-            put( "deposit", new HashMap<String, Object>() {{
-                put( "fee", null );
-                put( "percentage", null );
-            }} );
-            put( "networks", new HashMap<String, Object>() {{}} );
+        List<Object> networkList = this.safeList(fee, "network_list", new ArrayList<Object>(Arrays.asList()));
+        Integer networkListLength = networkList.size();
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
+        Map<String, Object> withdrawFees = new HashMap<String, Object>() {{
+            put( "fee", null );
+            put( "percentage", null );
         }};
         if (!java.util.Objects.equals(networkList, null))
         {
             for (var i = 0; (networkListLength != null && i < networkListLength); i++)
             {
-                Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(networkList, i, (Object) null);
+                Map<String, Object> networkInfo = this.safeDict(networkList, i, null);
                 String networkId = this.safeString(networkInfo, "network_id");
                 String currencyCode = this.safeString(currency, "code");
                 String networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                    networks.put(networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -3388,11 +3373,20 @@ public class Cryptocom extends CryptocomApi
                 }
                 if (java.util.Objects.equals(networkListLength, 1))
                 {
-                    Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(networkInfo, "withdrawal_fee", (Object) null));
-                    Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
+                    withdrawFees.put("fee", this.safeNumber(networkInfo, "withdrawal_fee", (Object) null));
+                    withdrawFees.put("percentage", false);
                 }
             }
         }
+        Map<String, Object> result = new HashMap<String, Object>() {{
+            put( "info", fee );
+            put( "withdraw", withdrawFees );
+            put( "deposit", new HashMap<String, Object>() {{
+                put( "fee", null );
+                put( "percentage", null );
+            }} );
+            put( "networks", networks );
+        }};
         return result;
     }
 
@@ -3415,8 +3409,8 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.v1PrivatePostPrivateGetCurrencyNetworks(parameters)).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            List<Object> currencyMap = (List<Object>) this.safeList(data, "currency_map", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "result", null);
+            List<Object> currencyMap = this.safeList(data, "currency_map", null);
             return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");
         }).thenApply(DepositWithdrawFees::new);
 
@@ -3493,8 +3487,8 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> ledger = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> ledger = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(ledger, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -3635,9 +3629,9 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> masterAccount = (Map<String, Object>) this.safeDict(result, "master_account", new HashMap<String, Object>() {{}});
-            List<Object> accounts = (List<Object>) this.safeList(result, "sub_account_list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> masterAccount = this.safeDict(result, "master_account", new HashMap<String, Object>() {{}});
+            List<Object> accounts = this.safeList(result, "sub_account_list", new ArrayList<Object>(Arrays.asList()));
             ((List<Object>)accounts).add(masterAccount);
             return this.parseAccounts(accounts, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
@@ -3735,9 +3729,9 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> settlements = (List<Object>) this.parseSettlements(data, market);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
         });
@@ -3765,7 +3759,7 @@ public class Cryptocom extends CryptocomApi
         }};
     }
 
-    public Object parseSettlements(Object settlements, Map<String, Object> market)
+    public List<Object> parseSettlements(Object settlements, Map<String, Object> market)
     {
         //
         //     [
@@ -3780,7 +3774,7 @@ public class Cryptocom extends CryptocomApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (this.safeDict(settlements, i, new HashMap<String, Object>() {{}})), market));
         }
         return result;
     }
@@ -3804,7 +3798,7 @@ public class Cryptocom extends CryptocomApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -3830,9 +3824,9 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
 
@@ -3907,10 +3901,10 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new BadSymbol((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
             }
@@ -3949,11 +3943,11 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
             String marketId = this.safeString(result, "instrument_name");
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(entry, "t");
@@ -4016,9 +4010,9 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePosition((Map<String, Object>) (this.safeDict(data, 0, (Object) null)), market);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parsePosition((Map<String, Object>) (this.safeDict(data, 0, null)), market);
         }).thenApply(Position::new);
 
     }
@@ -4049,7 +4043,7 @@ public class Cryptocom extends CryptocomApi
                 Object symbol = null;
                 if ((symbolsNormalized instanceof List))
                 {
-                    Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                    Integer symbolsLength = symbolsNormalized.size();
                     if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -4085,15 +4079,15 @@ public class Cryptocom extends CryptocomApi
             //         }
             //     }
             //
-            Map<String, Object> responseResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> positions = (List<Object>) this.safeList(responseResult, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> responseResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> positions = this.safeList(responseResult, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
-                Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+                Map<String, Object> entry = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String marketId = this.safeString(entry, "instrument_name");
                 Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (entry), marketInner));
+                ((List<Object>)result).add(this.parsePosition(entry, marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", (Object) null);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -4166,7 +4160,7 @@ public class Cryptocom extends CryptocomApi
         {
             return obj;
         }
-        Object returnString = "";
+        String returnString = "";
         Object paramsKeys = null;
         if ((obj instanceof List))
         {
@@ -4178,8 +4172,8 @@ public class Cryptocom extends CryptocomApi
         }
         for (var i = 0; i < ((List<?>)(List<String>)(paramsKeys)).size(); i++)
         {
-            Object key = Helpers.GetValue((List<String>)(paramsKeys), i);
-            returnString = ((java.util.function.BinaryOperator<Object>) (hx4J40v3A, hx4J40v3B) -> { Object hx4J40v3P = hx4J40v3A instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3A; Object hx4J40v3Q = hx4J40v3B instanceof Integer hx4J40v3i ? (Object) Long.valueOf(hx4J40v3i.longValue()) : hx4J40v3B; if (hx4J40v3P instanceof Long hx4J40v3l && hx4J40v3Q instanceof Long hx4J40v3r) { return hx4J40v3l + hx4J40v3r; } if (hx4J40v3P instanceof Double || hx4J40v3Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v3D = hx4J40v3o -> { if (hx4J40v3o instanceof Double || hx4J40v3o instanceof Float || hx4J40v3o instanceof Long || hx4J40v3o instanceof Integer || hx4J40v3o instanceof java.math.BigDecimal) { return ((Number) hx4J40v3o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v3o)); } catch (NumberFormatException hx4J40v3e) { return 0.0; } }; return hx4J40v3D.applyAsDouble(hx4J40v3P) + hx4J40v3D.applyAsDouble(hx4J40v3Q); } if (hx4J40v3P instanceof String || hx4J40v3Q instanceof String) { return String.valueOf(hx4J40v3P) + String.valueOf(hx4J40v3Q); } return null; }).apply(returnString, key);
+            String key = this.safeString(paramsKeys, i, "");
+            returnString = (returnString + key);
             Object value = Helpers.GetValue(obj, key);
             if (java.util.Objects.equals(value, "undefined"))
             {
@@ -4188,11 +4182,11 @@ public class Cryptocom extends CryptocomApi
             {
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
-                    returnString = ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(returnString, this.paramsToString((value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j)), ((Object) (switch ((Object) (level)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; }))));
+                    returnString = (returnString + this.paramsToString((value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j)), (depth + 1L)));
                 }
             } else
             {
-                returnString = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(returnString, String.valueOf(value));
+                returnString = (returnString + String.valueOf(value));
             }
         }
         return returnString;
@@ -4248,7 +4242,7 @@ public class Cryptocom extends CryptocomApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
             return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
@@ -4292,7 +4286,7 @@ public class Cryptocom extends CryptocomApi
             //        }
             //    }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -4331,13 +4325,13 @@ public class Cryptocom extends CryptocomApi
             //       }
             //   }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFees((Map<String, Object>) (result));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            return this.parseTradingFees(result);
         }).thenApply(TradingFees::new);
 
     }
 
-    public Object parseTradingFees(Map<String, Object> response)
+    public Map<String, Object> parseTradingFees(Map<String, Object> response)
     {
         //
         // {
@@ -4353,16 +4347,16 @@ public class Cryptocom extends CryptocomApi
         result.put("info", response);
         for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
         {
-            Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
+            String symbol = this.safeString(this.symbols, i, "");
             Map<String, Object> market = this.market(symbol);
-            Boolean isSwap = (Boolean) market.get("swap");
+            Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
             String takerFeeKey = "effective_spot_taker_rate_bps";
-            if (java.util.Objects.equals(isSwap, true))
+            if (Boolean.TRUE.equals(isSwap))
             {
                 takerFeeKey = "effective_deriv_taker_rate_bps";
             }
             String makerFeeKey = "effective_spot_maker_rate_bps";
-            if (java.util.Objects.equals(isSwap, true))
+            if (Boolean.TRUE.equals(isSwap))
             {
                 makerFeeKey = "effective_deriv_maker_rate_bps";
             }
@@ -4373,7 +4367,7 @@ public class Cryptocom extends CryptocomApi
             tradingFee.put("taker", this.parseNumber(Precise.stringDiv(this.safeString(response, takerFeeKey), "10000")));
             tradingFee.put("percentage", null);
             tradingFee.put("tierBased", null);
-            result.put((String)symbol, tradingFee);
+            result.put(symbol, tradingFee);
         }
         return result;
     }
@@ -4403,8 +4397,8 @@ public class Cryptocom extends CryptocomApi
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
-        String type = this.safeString(api, 0);
-        String access = this.safeString(api, 1);
+        String type = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -4414,20 +4408,20 @@ public class Cryptocom extends CryptocomApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials(true);
-            String nonce = String.valueOf(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
             List<String> paramsKeys = new ArrayList<String>(requestParams.keySet());
             Object strSortKey = this.paramsToString(requestParams, 0);
             String payload = ((((path + nonce) + this.apiKey) + strSortKey) + nonce);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
-            Integer paramsKeysLength = ((List<?>)paramsKeys).size();
+            Integer paramsKeysLength = paramsKeys.size();
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("id", nonce);
             mapLiteral6.put("method", path);
@@ -4461,13 +4455,13 @@ public class Cryptocom extends CryptocomApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         String errorCode = this.safeString(response, "code");
         if (!java.util.Objects.equals(errorCode, "0"))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
         return null;

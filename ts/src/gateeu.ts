@@ -2,11 +2,12 @@
 //  ---------------------------------------------------------------------------
 
 import gate from './abstract/gateeu.js';
+import type { Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class gateeu extends gate {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'gateeu',
             'name': 'Gate EU',

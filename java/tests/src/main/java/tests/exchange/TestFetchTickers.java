@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchTickers extends BaseTest {
-    public CompletableFuture<Object> testFetchTickers(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchTickers(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -47,20 +47,20 @@ public class TestFetchTickers extends BaseTest {
         String method = "fetchTickers";
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{Helpers.toStringListArg(argSymbols), Helpers.toMapArg(argParams)})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
-        Object values = Helpers.objectValues(response);
+        List<Object> values = Helpers.objectValues(response);
         Object checkedSymbol = null;
         if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
         {
             checkedSymbol = (argSymbols == null || 0 >= ((List<?>)argSymbols).size() ? null : ((List<?>)argSymbols).get(0));
         }
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-        for (var i = 0; i < ((List<?>)values).size(); i++)
+        for (var i = 0; i < values.size(); i++)
         {
             // todo: symbol check here
-            Object ticker = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
+            Object ticker = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
             try
             {
-                TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                TestTicker.testTicker(exchange, skippedProperties, method, ticker, (String) (checkedSymbol));
             } catch(Exception ex)
             {
                 Object ohlcv = null;
@@ -78,7 +78,7 @@ public class TestFetchTickers extends BaseTest {
     }
     public static void fetchTickersAmountsTest(BaseExchange exchange, Object skippedProperties, Object tickers)
     {
-        Object tickersValues = Helpers.objectValues(tickers);
+        List<Object> tickersValues = Helpers.objectValues(tickers);
         if (!(Helpers.inOp(skippedProperties, "checkActiveSymbols")))
         {
             //
@@ -86,7 +86,7 @@ public class TestFetchTickers extends BaseTest {
             //
             Object nonInactiveMarkets = TestSharedMethods.getActiveMarkets(exchange);
             Integer notInactiveSymbolsLength = Helpers.getArrayLength(nonInactiveMarkets);
-            Integer obtainedTickersLength = ((List<?>)tickersValues).size();
+            Integer obtainedTickersLength = tickersValues.size();
             Double minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
             Assert(Helpers.isGreaterThanOrEqual(obtainedTickersLength, Helpers.multiply(notInactiveSymbolsLength, minRatio)), (((((((exchange.id + " ") + "fetchTickers") + " must return tickers for all active markets. but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, ") + String.valueOf(notInactiveSymbolsLength)) + " active markets"));
             //

@@ -7,7 +7,7 @@ import type { Dict, Str, Strings, TransferEntry, Tickers } from '../base/types.j
 // ---------------------------------------------------------------------------
 
 export default class kucoinfutures extends kucoin {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',

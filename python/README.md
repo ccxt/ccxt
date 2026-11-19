@@ -71,6 +71,7 @@ Current feature list:
 | [![binanceusdm](https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a)](https://accounts.binance.com/register?ref=CCXTCOM)                                                | binanceusdm           | [Binance USDⓈ-M](https://accounts.binance.com/register?ref=CCXTCOM)                         | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/futures/en/)                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bingx](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg)](https://bingx.com/invite/OHETOM)                                | bingx                 | [BingX](https://bingx.com/invite/OHETOM)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bingx-api.github.io/docs/)                                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bit2c](https://github.com/user-attachments/assets/db0bce50-6842-4c09-a1d5-0c87d22118aa)](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                                           | bit2c                 | [Bit2C](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.bit2c.co.il/home/api)                                                           | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
+| [![bit2me](https://github.com/user-attachments/assets/d7c1790a-7e3d-453f-8c31-a7e800f56aaf)](https://bit2me.com/)                                                                                   | bit2me                | [Bit2Me](https://bit2me.com/)                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.bit2me.com/docs/pro/overview)                                                   | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bitbank](https://github.com/user-attachments/assets/9d616de0-8a88-4468-8e38-d269acab0348)](https://bitbank.cc/)                                                                                  | bitbank               | [bitbank](https://bitbank.cc/)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitbank.cc/)                                                                   | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![bitbns](https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9)](https://ref.bitbns.com/1090961)                                                                        | bitbns                | [Bitbns](https://ref.bitbns.com/1090961)                                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitbns.com/trade/#/api-trading/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![bitfinex](https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178)](https://www.bitfinex.com)                                                                            | bitfinex              | [Bitfinex](https://www.bitfinex.com)                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
@@ -94,7 +95,6 @@ Current feature list:
 | [![bybit](https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed)](https://www.bybit.com/invite?ref=XDK12WP)                                                               | bybit                 | [Bybit](https://www.bybit.com/invite?ref=XDK12WP)                                           | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://bybit-exchange.github.io/docs/inverse/)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bybiteu](https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed)](https://www.bybit.com/invite?ref=XDK12WP)                                                             | bybiteu               | [Bybit EU](https://www.bybit.com/invite?ref=XDK12WP)                                        | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://bybit-exchange.github.io/docs/inverse/)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bybitid](https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed)](https://www.bybit.id)                                                                                 | bybitid               | [Bybit Indonesia](https://www.bybit.id)                                                     | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://bybit-exchange.github.io/docs/v5/intro)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
-| [![bydfi](https://github.com/user-attachments/assets/0e9319dc-b5f5-458b-bcfd-b21b50e162ea)](https://partner.bydfi.com/j/DilWutCI)                                                                   | bydfi                 | [BYDFi](https://partner.bydfi.com/j/DilWutCI)                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://developers.bydfi.com/en/)                                                           | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![cex](https://github.com/user-attachments/assets/6105a195-3bae-4a08-a1bd-b2a86e3e8f99)](https://cex.io/r/0/up105393824/0/)                                                                        | cex                   | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://trade.cex.io/docs/)                                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                          | coinbase              | [Coinbase Advanced](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                 | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome)                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![coinbaseexchange](https://github.com/user-attachments/assets/a99ef849-a4b2-4dd4-87fe-458ef17db7fd)](https://coinbase.com/)                                                                       | coinbaseexchange      | [Coinbase Exchange](https://coinbase.com/)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.cloud.coinbase.com/exchange/docs/)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
@@ -263,13 +263,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.91/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.91/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.93/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.93/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.91/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.93/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -440,13 +440,13 @@ ccxt = { version = "4.5.75", default-features = false, features = ["binance", "k
 ccxt-pro = { version = "4.5.75", default-features = false, features = ["binance"] }
 ```
 
-With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `from_id` only knows the exchanges compiled in.
+With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `with_exchange` only knows the exchanges compiled in.
 
 ```rust
-use ccxt::{Binance, Params};
+use ccxt::{Binance, Params, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::new(None);
-exchange.load_markets(false).await;
+exchange.load_markets(false, ()).await?;
 
 let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
 println!("{} {:?}", ticker.symbol, ticker.last);
@@ -907,10 +907,10 @@ You can check different examples in the `java/examples` folder.
 
 ### Rust
 
-Every exchange has a typed wrapper returning native Rust types — `Ticker`, `Order`, `Market`, `OrderBook` — instead of a dynamic value. Methods are `async` and return `Result<T, ExchangeError>`.
+Every exchange is a struct whose unified methods return native Rust types — `Ticker`, `Order`, `Market`, `OrderBook` — instead of a dynamic value. Methods are `async` and return `Result<T, ExchangeError>`.
 
 ```rust
-use ccxt::{Binance, Config, Params};
+use ccxt::{Binance, Config, Params, ExchangeBase, ExchangeRuntime};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -919,7 +919,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .api_key("MY KEY")
             .secret("MY SECRET"),
     );
-    exchange.load_markets(false).await;
+    exchange.load_markets(false, ()).await?;
 
     let order = exchange
         .create_order("BTC/USDT", "limit", "buy", 0.001, Some(50000.0), Params::none())
@@ -934,7 +934,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 Neither construction nor the trailing `params` argument requires touching a dynamic value — both are builders over Rust primitives. `Config` nests `options` exactly as the other bindings do.
 
 ```rust
-use ccxt::{Binance, Config, Params};
+use ccxt::{Binance, Config, Params, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::with_config(
     Config::new()
@@ -961,11 +961,11 @@ let order = exchange
     .await?;
 ```
 
-Settings can also be changed after construction; the setters chain.
+Settings can also be changed after construction.
 
 ```rust
 exchange.set_verbose(true);
-exchange.set_sandbox_mode(true);
+exchange.set_sandbox_mode(true)?;
 ```
 
 #### Markets
@@ -1000,18 +1000,28 @@ match exchange.create_order("BTC/USDT", "limit", "buy", 0.001, Some(50000.0), Pa
 
 #### Choosing an exchange at runtime
 
-`from_id_with_config` builds any supported venue from its id, and the typed API is still available through the trait object.
+Code over any venue is generic over `E: TypedExchange`. `with_exchange_config` builds the compiled-in venue named by an id and hands the concrete type to your `ExchangeVisitor`, so the unified methods keep their typed returns without boxing.
 
 ```rust
-use ccxt::{from_id_with_config, Config, Params, TypedExchangeExt};
+use ccxt::{Config, ExchangeBase, ExchangeVisitor, Params, Result, TypedExchange};
+
+struct Quote;
+
+impl ExchangeVisitor for Quote {
+    type Output = Result<()>;
+    async fn visit<E: TypedExchange + 'static>(self, mut exchange: E) -> Result<()> {
+        exchange.load_markets(false, ()).await?;
+        let market = ExchangeBase::market(&exchange, "BTC/USDT")?;
+        let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+        println!("{} {:?} {:?}", ticker.symbol, ticker.last, market.limits.cost.min);
+        Ok(())
+    }
+}
 
 for id in ["binance", "bybit", "okx"] {
-    let Some(mut exchange) = from_id_with_config(id, Config::new()) else { continue };
-    exchange.load_markets(false).await;
-
-    let market = exchange.market("BTC/USDT")?;
-    let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
-    println!("{id} {:?} {:?}", ticker.last, market.limits.cost.min);
+    if let Some(done) = ccxt::exchanges::with_exchange_config(id, Config::new(), Quote).await {
+        done?;
+    }
 }
 ```
 
@@ -1021,10 +1031,10 @@ WebSocket support lives in the `ccxt-pro` crate, with the same typed returns.
 
 ```rust
 use ccxt::Params;
-use ccxt_pro::Binance;
+use ccxt_pro::{Binance, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::new(None);
-exchange.load_markets(false).await;
+exchange.load_markets(false, ()).await?;
 
 loop {
     let orderbook = exchange.watch_order_book("BTC/USDT", Some(10), Params::none()).await?;

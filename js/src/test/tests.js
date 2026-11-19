@@ -254,7 +254,7 @@ class testMainClass {
         }
         let skipMessage = undefined;
         const supportedByExchange = (methodName in exchange.has) && (exchange.has[methodName] !== undefined) && (exchange.has[methodName] !== false);
-        if (!isLoadMarkets && ((this.onlySpecificTests.length > 0) && (exchange.inArray(methodName, this.onlySpecificTests) !== true))) {
+        if (!isLoadMarkets && ((this.onlySpecificTests.length > 0) && !exchange.inArray(methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
         }
         else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest) {
@@ -1303,7 +1303,7 @@ class testMainClass {
                 tests['fetchPositions'] = [symbol]; // this test fetches all positions for 1 symbol
                 tests['fetchPosition'] = [symbol];
                 tests['fetchPositionRisk'] = [symbol];
-                tests['setPositionMode'] = [symbol];
+                tests['setPositionMode'] = [false, symbol];
                 tests['setMarginMode'] = [symbol];
                 tests['fetchOpenInterestHistory'] = [symbol];
                 tests['fetchFundingRateHistory'] = [symbol];
@@ -2423,7 +2423,8 @@ class testMainClass {
         }
         const accounts = exchange.safeList(exchangeData, 'accounts');
         if (accounts !== undefined && accounts !== null) {
-            exchange.accounts = accounts;
+            // the field is a List<object>: assign the call, not the untyped local
+            exchange.accounts = exchange.safeList(exchangeData, 'accounts');
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);
@@ -2719,7 +2720,7 @@ class testMainClass {
             this.testBingx(),
             this.testPhemex(),
             this.testBlofin(),
-            // this.testHyperliquid (),
+            this.testHyperliquid(),
             this.testCoinbaseinternational(),
             this.testCoinbaseAdvanced(),
             this.testWoofiPro(),
@@ -2734,12 +2735,40 @@ class testMainClass {
             this.testWeex(),
             this.testFoxbit(),
             this.testBithumb(),
-            this.testExtended()
+            this.testExtended(),
+            this.testBit2me(),
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' + successMessage);
         exitScript(0);
+        return true;
+    }
+    async testBit2me() {
+        const exchange = this.initOfflineExchange('bit2me');
+        const id = 'CCXT';
+        await exchange.loadMarkets();
+        assert(exchange.options['brokerId'] === id, 'bit2me - brokerId not in options');
+        let request = {};
+        try {
+            await exchange.createOrder('BTC/USDC', 'limit', 'buy', 0.0001, 36000);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const clientOrderId = request['clientOrderId'];
+        assert(clientOrderId.startsWith(id + '-'), 'bit2me - clientOrderId: ' + clientOrderId + ' does not start with the broker id ' + id);
+        try {
+            await exchange.createOrder('BTC/USDC', 'limit', 'buy', 0.0001, 36000, { 'clientOrderId': 'my-order' });
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const customClientOrderId = request['clientOrderId'];
+        assert(customClientOrderId === 'my-order', 'bit2me - custom clientOrderId: ' + customClientOrderId + ' should be sent as given, the broker id is only added when none is provided');
+        if (!isSync()) {
+            await close(exchange);
+        }
         return true;
     }
     async testBinance() {
@@ -3593,22 +3622,24 @@ class testMainClass {
         }
         return true;
     }
-    // async testHyperliquid () {
-    //     const exchange = this.initOfflineExchange ('hyperliquid');
-    //     const id = '1';
-    //     let request: NullableDict = undefined;
-    //     try {
-    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-    //     } catch (e) {
-    //         request = jsonParse (exchange.last_request_body);
-    //     }
-    //     const brokerId = (request['action']['brokerCode']).toString ();
-    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-    //     if (!isSync ()) {
-    //         await close (exchange);
-    //     }
-    //     return true;
-    // }
+    async testHyperliquid() {
+        const exchange = this.initOfflineExchange('hyperliquid');
+        exchange.options['approvedBuilderFee'] = true;
+        const id = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6'.toLowerCase();
+        let request = {};
+        try {
+            await exchange.createOrder('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+        }
+        catch (e) {
+            request = jsonParse(exchange.last_request_body);
+        }
+        const brokerId = (request['action']['builder']['b']).toString();
+        assert(brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
     async testCoinbaseinternational() {
         const exchange = this.initOfflineExchange('coinbaseinternational');
         // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one

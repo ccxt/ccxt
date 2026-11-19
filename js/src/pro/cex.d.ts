@@ -1,9 +1,9 @@
 import cexRest from '../cex.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
-    describe(): any;
-    requestId(): string;
+    describe(): Dict;
+    requestId(): int;
     /**
      * @method
      * @name cex#watchBalance
@@ -116,7 +116,7 @@ export default class cex extends cexRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
-    pairToSymbol(pair: any): Str;
+    pairToSymbol(pair: any): string;
     handleOrderBookUpdate(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;

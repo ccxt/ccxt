@@ -1,7 +1,5 @@
 package ccxt
 
-import "sync"
-
 // IPredictionDispatch lets PredictionExchange's base parse loops (parsePredictionTrades →
 // parsePredictionTrade, etc.) reach the venue override via this.DerivedExchange instead of calling
 // the base NotSupported stub. These parsers are prediction-only (regular cores lack them), so they
@@ -19,7 +17,7 @@ type IPredictionCreateOrder interface {
 	CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
 }
 type IPredictionCancelOrder interface {
-	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
+	CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
 }
 
 // Per-method interfaces for the 62 symbol-based methods that were trimmed from ICoreExchange/
@@ -33,7 +31,7 @@ type ICreateOrder interface {
 	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type ICancelOrder interface {
-	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
+	CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IEditOrder interface {
 	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order]
@@ -57,7 +55,7 @@ type IFetchOpenOrders interface {
 	FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type IFetchOrder interface {
-	FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
+	FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IFetchOrderWithClientOrderId interface {
 	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[Order]
@@ -136,10 +134,10 @@ type IFetchMyTrades interface { // W3
 	FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade]
 }
 type ICreateOrders interface { // W3
-	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order]
+	CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type ICancelOrders interface { // W3
-	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order]
+	CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type IWatchMyTrades interface { // W3
 	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade]
@@ -165,7 +163,7 @@ type IBaseExchange interface {
 	GetAlias() any
 	GetTimeframes() map[string]any
 	GetFeatures() map[string]any
-	GetCache() *sync.Map
+	GetCache() map[string]any
 	GetRequiredCredentials() map[string]any
 	SetTimeout(timeout any)
 	SetHttpsProxy(httpsProxy any)
@@ -193,12 +191,12 @@ type IBaseExchange interface {
 	GetHostname() string
 	GetUrls() any
 	GetApi() map[string]any
-	GetOptions() *sync.Map
-	GetCurrencies() *sync.Map
-	GetMarkets() *sync.Map
+	GetOptions() map[string]any
+	GetCurrencies() map[string]any
+	GetMarkets() map[string]any
 	GetNetworkAliases() map[string]any
-	SetSandboxMode(enable any)
-	EnableDemoTrading(enable any)
+	SetSandboxMode(enable bool)
+	EnableDemoTrading(enable bool)
 	LoadMarkets(params ...any) (map[string]MarketInterface, error)
 	SetProxyUrl(proxyUrl any)
 	SetSocksProxy(proxyUrl any)
@@ -226,7 +224,7 @@ type ICoreExchange interface {
 	GetAlias() any
 	GetTimeframes() map[string]any
 	GetFeatures() map[string]any
-	GetCache() *sync.Map
+	GetCache() map[string]any
 	GetRequiredCredentials() map[string]any
 	SetTimeout(timeout any)
 	SetHttpsProxy(httpsProxy any)
@@ -253,9 +251,9 @@ type ICoreExchange interface {
 	GetHostname() string
 	GetUrls() any
 	GetApi() map[string]any
-	GetOptions() *sync.Map
-	GetCurrencies() *sync.Map
-	GetMarkets() *sync.Map
+	GetOptions() map[string]any
+	GetCurrencies() map[string]any
+	GetMarkets() map[string]any
 	GetNetworkAliases() map[string]any
 	CheckRequiredCredentials(optionalArgs ...any) bool
 	Sleep(milliseconds any) <-chan bool
@@ -266,7 +264,8 @@ type ICoreExchange interface {
 	NumberToString(num any) *string
 	Base16ToBinary(str any) []byte
 	ParseToNumeric(value any) any
-	LoadMarketsAsync(params ...any) <-chan AsyncResult[*sync.Map]
+	IsRoundNumber(value any) bool
+	LoadMarketsAsync(params ...any) <-chan AsyncResult[map[string]any]
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
 	SafeDictMap(dictionaryOrList any, key any, optionalArgs ...any) map[string]any
@@ -279,12 +278,12 @@ type ICoreExchange interface {
 	SafeValue(value any, key any, defaultValue ...any) any
 	SafeBool(value any, key any, defaultValue ...any) *bool
 	SafeString(obj any, key any, defaultValue ...any) *string
-	Describe() any
-	SetSandboxMode(enable any)
+	Describe() map[string]any
+	SetSandboxMode(enable bool)
 	FeatureValue(symbol any, optionalArgs ...any) any
 	Market(symbol any) map[string]any
-	Nonce() any
-	IncrementingNonce() any
+	Nonce() int64
+	IncrementingNonce() int64
 	Unique(obj any) []any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -312,10 +311,10 @@ type ICoreExchange interface {
 	FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]
 	Milliseconds() int64
 	GetCcxtVersion() string
-	ParseNumber(v any, a ...any) any
+	ParseNumber(v any, a ...any) *float64
 	ParsePrecision(precision any) any
 	PrecisionFromString(str2 any) int
-	OmitZero(v any) any
+	OmitZero(v any) *string
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers]
 	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode]
 	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier]
@@ -345,7 +344,7 @@ type ICoreExchange interface {
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
 	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) string
-	NetworkCodeToId(networkCode any, optionalArgs ...any) any
+	NetworkCodeToId(networkCode any, optionalArgs ...any) *string
 	NetworkIdToCode(optionalArgs ...any) *string
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
@@ -398,7 +397,7 @@ type ICoreExchange interface {
 	WarmUpCache()
 	GetItf() any
 	ConvertToSafeDictionary(data any) any
-	CreateSafeDictionary(isWs ...bool) *sync.Map
+	CreateSafeDictionary(isWs ...bool) map[string]any
 	SetOptions(options any)
 	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction]
 	// WS methods
@@ -415,14 +414,14 @@ type ICoreExchange interface {
 	UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[bool]
-	UnWatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[bool]
+	UnWatchOrderBookForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchMarkPricesAsync(optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[bool]
-	UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[bool]
+	UnWatchTradesForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[bool]
 	WatchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances]
 	WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	WatchLiquidationsForSymbolsAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
@@ -438,20 +437,20 @@ type ICoreExchange interface {
 }
 
 type IDerivedExchange interface {
-	Nonce() any
+	Nonce() int64
 	SignInAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	HandleDelta(bookside any, delta any)
 	GetCacheIndex(orderbook any, deltas any) any
 	Ping(client any) any
 	HandleDeltas(bookside any, deltas any)
-	HandleBookDelta(orderbook any, delta any)
-	HandleBookDeltas(orderbook any, deltas any)
+	HandleBookDelta(orderbook OrderBookInterface, delta any)
+	HandleBookDeltas(orderbook OrderBookInterface, deltas any)
 	ParseLeverage(leverage any, optionalArgs ...any) Leverage
 	ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV
 	ParseTrade(trade any, optionalArgs ...any) Trade
 	ParseTrades(trades any, optionalArgs ...any) []any
 	ParseGreeks(greeks any, optionalArgs ...any) Greeks
-	ParseMarket(market any) any
+	ParseMarket(market any) map[string]any
 	ParseCurrency(rawCurrency any) map[string]any
 	ParseTransaction(transaction any, optionalArgs ...any) Transaction
 	ParseTransfer(transfer any, optionalArgs ...any) TransferEntry
@@ -476,7 +475,7 @@ type IDerivedExchange interface {
 	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
 	FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Leverage]
 	SafeMarket(optionalArgs ...any) map[string]any
-	Sign(path string, optionalArgs ...any) any
+	Sign(path string, optionalArgs ...any) map[string]any
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances]
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]DepositWithdrawFee]
 	CreateExpiredOptionMarket(symbol any) any
@@ -499,18 +498,19 @@ type IDerivedExchange interface {
 	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]Account]
-	SetSandboxMode(enabled any)
+	SetSandboxMode(enabled bool)
 	Market(symbol any) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) Conversion
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
-	HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
-	HandleMessage(client any, message any)
+	HandleErrors(statusCode int64, statusText string, url string, method string, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
+	// HandleMessage is not here: a venue declares its ws frame shape (map[string]any for an
+	// object frame, any for an array/text frame), so the dispatch loop binds it by assertion.
 	OnError(client any, err any)
 	OnClose(client any, err any)
 	OnConnected(client any, err any)
 	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
-	ParseWsTrade(trade any, optionalArgs ...any) any
+	ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[[]ADL]
 	ParseADLRank(info any, optionalArgs ...any) map[string]any
 	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan AsyncResult[map[string]DepositAddress]
@@ -518,5 +518,5 @@ type IDerivedExchange interface {
 }
 
 type Describer interface {
-	Describe() any
+	Describe() map[string]any
 }

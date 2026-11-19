@@ -17,17 +17,17 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchMarginModes extends BaseTest {
-    public CompletableFuture<Object> testFetchMarginModes(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchMarginModes(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMarginModes";
-        Object marginModes = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginModes", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+        Object marginModes = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginModes", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, marginModes, symbol);
         List<String> marginModeKeys = new ArrayList<String>(((Map<String, Object>)marginModes).keySet());
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
-        for (var i = 0; i < ((List<?>)marginModeKeys).size(); i++)
+        for (var i = 0; i < marginModeKeys.size(); i++)
         {
             Object marginMode = Helpers.GetValue(marginModes, (marginModeKeys == null || i < 0 || i >= marginModeKeys.size() ? null : marginModeKeys.get(i)));
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol);

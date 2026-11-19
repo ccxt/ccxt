@@ -13,16 +13,16 @@ pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Val
     let mut method: Value = Value::Str("fetchOrderBooks".into());
     let mut symbols: Value = get_value(&exchange, &Value::Str("symbols".into()));
     assert!(ccxt::runtime::is_true(&((symbols != Value::Null))));
-    let mut symbol: Value = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::from(vec![symbol.clone()])]).await;
+    let mut symbol: Option<String> = symbols.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+    let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null)])]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), orderBooks.clone()]);
     let mut orderBookKeys: Value = object_keys(&orderBooks);
     assert!(ccxt::runtime::is_true(&((Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1576: bool = true;
-        while { if !__for_first_1576 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1576 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut symbolInner: Value = orderBookKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut i: i64 = 0;
+        let mut __for_first_1591: bool = true;
+        while { if !__for_first_1591 { i += 1; } __for_first_1591 = false; i < (orderBookKeys.len() as i64) } {
+        let mut symbolInner: Value = orderBookKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), orderBooks.as_map().and_then(|__m| symbolInner.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), symbolInner.clone());
     }
     }

@@ -19,19 +19,19 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
     'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
-    'Position': { 'names': [ 'ParsePosition', 'SafePosition' ] }, // U28
-    'Transaction': { 'names': [ 'ParseTransaction' ] }, // U29
-    'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] }, // U29
-    'DepositAddress': { 'names': [ 'ParseDepositAddress' ] }, // gochan32-U30
-    'TransferEntry': { 'names': [ 'ParseTransfer' ] }, // gochan32-U30
-    'FundingRate': { 'names': [ 'ParseFundingRate' ] }, // gochan32 U31
-    'OpenInterest': { 'names': [ 'ParseOpenInterest', 'SafeOpenInterest' ] }, // gochan32 U31
-    'TradingFeeInterface': { 'names': [ 'ParseTradingFee' ] }, // U32
-    'Leverage': { 'names': [ 'ParseLeverage' ] }, // U32
-    'MarginMode': { 'names': [ 'ParseMarginMode' ] }, // U32
-    'Greeks': { 'names': [ 'ParseGreeks' ] }, // U32
-    'Option': { 'names': [ 'ParseOption' ] }, // U32
-    'Conversion': { 'names': [ 'ParseConversion' ] }, // U32
+    'Position': { 'names': [ 'ParsePosition', 'SafePosition' ] },
+    'Transaction': { 'names': [ 'ParseTransaction' ] },
+    'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] },
+    'DepositAddress': { 'names': [ 'ParseDepositAddress' ] },
+    'TransferEntry': { 'names': [ 'ParseTransfer' ] },
+    'FundingRate': { 'names': [ 'ParseFundingRate' ] },
+    'OpenInterest': { 'names': [ 'ParseOpenInterest', 'SafeOpenInterest' ] },
+    'TradingFeeInterface': { 'names': [ 'ParseTradingFee' ] },
+    'Leverage': { 'names': [ 'ParseLeverage' ] },
+    'MarginMode': { 'names': [ 'ParseMarginMode' ] },
+    'Greeks': { 'names': [ 'ParseGreeks' ] },
+    'Option': { 'names': [ 'ParseOption' ] },
+    'Conversion': { 'names': [ 'ParseConversion' ] },
 };
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
@@ -375,8 +375,8 @@ export function goStructReturnsSelfTest (): string[] {
     if (goStructReturnsPass (posGot) !== posGot) {
         problems.push ('GOSTRUCT Position not idempotent');
     }
-    // gochan32 U31: FundingRate / OpenInterest (package ccxt: unqualified helpers)
-    const src31 = [
+    // FundingRate / OpenInterest (package ccxt: unqualified helpers)
+    const fundingOpenInterestSrc = [
         'package ccxt',
         '',
         'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {',
@@ -420,7 +420,7 @@ export function goStructReturnsSelfTest (): string[] {
         '}',
         '',
     ].join ('\n');
-    const got31 = goStructReturnsPass (src31);
+    const got31 = goStructReturnsPass (fundingOpenInterestSrc);
     if (got31 !== want31) {
         problems.push ('GOSTRUCT U31 self-test mismatch:\n' + got31);
     }
@@ -442,7 +442,7 @@ if (process.argv[1] && fileURLToPath (import.meta.url) === path.resolve (process
         console.log (problems.length ? problems.join ('\n') : 'GOSTRUCT SELF-TEST PASSED');
         process.exit (problems.length ? 3 : 0);
     }
-    // --apply <files...>: replay on already-generated files (census / dry run only)
+    // --apply <files...>: replay on already-generated files (dry run only)
     const i = process.argv.indexOf ('--apply');
     if (i >= 0) {
         for (const f of process.argv.slice (i + 1)) {

@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class mudrex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mudrex, self).describe(), {
             'id': 'mudrex',
             'name': 'Mudrex',
@@ -212,11 +212,11 @@ class mudrex(Exchange, ImplicitAPI):
                     return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
                 bodyStr = self.json(query)
                 return {'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders}
-        if len(query) > 0:
+        if not self.is_empty(query):
             url += '?' + self.urlencode(query)
         return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None or not isinstance(response, dict):
             return None
         success = self.safe_bool(response, 'success', True)
@@ -275,7 +275,9 @@ class mudrex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         priceType = self.safe_string(params, 'price')
         # the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        assetPair = market['baseId'] + '/' + market['quoteId']
+        baseIdString = self.safe_string(market, 'baseId', '')
+        quoteIdString = self.safe_string(market, 'quoteId', '')
+        assetPair = baseIdString + '/' + quoteIdString
         request = {
             'assets': assetPair,
             'aggregation': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -365,7 +367,11 @@ class mudrex(Exchange, ImplicitAPI):
         request = {}
         response = await self.privateGetFutures(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
-        rows = data if isinstance(data, list) else self.safe_list(data, 'items', [])
+        rows = []
+        if isinstance(data, list):
+            rows = self.to_array(data)
+        else:
+            rows = self.safe_list(data, 'items', [])
         resultTickers = {}
         for i in range(0, len(rows)):
             t = rows[i]
@@ -544,10 +550,9 @@ class mudrex(Exchange, ImplicitAPI):
             currency = 'USDT'
         if response is None:
             raise NullResponse(self.id + ' fetchBalance() returned empty response')
-        response['currency'] = currency
-        return self.parse_balance(response)
+        return self.parse_balance(self.extend(response, {'currency': currency}))
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         data = self.safe_dict(response, 'data', {})
         currency = self.safe_string(response, 'currency', 'USDT')
         result = {
@@ -1069,16 +1074,16 @@ class mudrex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         positionId = self.safe_string(params, 'position_id')
-        amount = self.safe_value(params, 'amount')
+        amount = self.safe_string(params, 'amount')
         if positionId is None:
             positions = await self.fetch_positions([symbol], params)
-            for i in range(0, len(positions)):
-                p = positions[i]
-                if side is not None and p['side'] != side:
-                    continue
-                if p['symbol'] == market['symbol']:
-                    positionId = self.safe_string(p, 'id')
-                    break
+            candidates = self.filter_by(positions, 'symbol', market['symbol'])
+            if side is not None:
+                candidates = self.filter_by(candidates, 'side', side)
+            numCandidates = len(candidates)
+            if numCandidates > 0:
+                found = candidates[0]
+                positionId = self.safe_string(found, 'id')
         if positionId is None:
             raise OrderNotFound(self.id + ' closePosition() could not resolve position_id')
         request = {
@@ -1117,11 +1122,11 @@ class mudrex(Exchange, ImplicitAPI):
         positionId = self.safe_string(params, 'position_id')
         if positionId is None:
             positions = await self.fetch_positions([symbol], params)
-            for i in range(0, len(positions)):
-                p = positions[i]
-                if p['symbol'] == symbol:
-                    positionId = self.safe_string(p, 'id')
-                    break
+            matches = self.filter_by(positions, 'symbol', symbol)
+            numMatches = len(matches)
+            if numMatches > 0:
+                found = matches[0]
+                positionId = self.safe_string(found, 'id')
         if positionId is None:
             raise OrderNotFound(self.id + ' addMargin() could not resolve position_id')
         request = {
@@ -1217,7 +1222,7 @@ class mudrex(Exchange, ImplicitAPI):
                 if rebateKeys[j] == transactionKeys[i]:
                     rebate = self.safe_string(rebateAmounts, j)
                     # blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-                    rebateKeys[j] = None
+                    rebateKeys[j] = ''
                     break
             if rebate is None:
                 rows.append(transactions[i])

@@ -16,7 +16,7 @@ class ImplicitAPI:
     public_get_getfundingrate = publicGetGetfundingrate = Entry[_Dict]('getfundingrate', ['public'], 'GET', {'cost': 1})
     public_get_getfundingratehistory = publicGetGetfundingratehistory = Entry[_List]('getfundingratehistory', ['public'], 'GET', {'cost': 1})
     private_get_getpermissions = privateGetGetpermissions = Entry[_List]('getpermissions', ['private'], 'GET', {'cost': 1})
-    private_get_getbalance = privateGetGetbalance = Entry[_Dict]('getbalance', ['private'], 'GET', {'cost': 1})
+    private_get_getbalance = privateGetGetbalance = Entry[_List]('getbalance', ['private'], 'GET', {'cost': 1})
     private_get_getbalancehistory = privateGetGetbalancehistory = Entry[_List]('getbalancehistory', ['private'], 'GET', {'cost': 1})
     private_get_getcollateral = privateGetGetcollateral = Entry[_Dict]('getcollateral', ['private'], 'GET', {'cost': 1})
     private_get_getcollateralhistory = privateGetGetcollateralhistory = Entry[_List]('getcollateralhistory', ['private'], 'GET', {'cost': 1})

@@ -26,7 +26,7 @@ use const ccxt\DECIMAL_PLACES;
 use const ccxt\TICK_SIZE;
 
 class sxbet extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'sxbet',
             'name' => 'SX Bet',
@@ -261,7 +261,7 @@ class sxbet extends Exchange {
         $rawMarkets = array();
         $collectCap = $this->safe_integer(array( 'limit' => $userLimit ), 'limit');
         $paginationKey = null;
-        $page = $this->parse_to_int(0);
+        $page = 0;
         while (true) {
             $request = array( 'pageSize' => $pageSize );
             if ($paginationKey !== null) {
@@ -275,7 +275,7 @@ class sxbet extends Exchange {
                 $rawMarkets[] = $pageMarkets[$i];
             }
             $paginationKey = $this->safe_string($result, 'nextKey');
-            $page = $this->parse_to_int($page + 1);
+            $page = $page + 1;
             $collectedLength = $this->parse_to_int(strlen($rawMarkets));
             if (($pageMarketsLength < $pageSize) || ($page >= $maxPages) || ($paginationKey === null) || (($collectCap !== null) && ($collectedLength >= $collectCap))) {
                 break;
@@ -606,7 +606,7 @@ class sxbet extends Exchange {
                 throw new ExchangeError($this->id . ' parseEvent() could not resolve parsed market');
             }
             $marketsList[] = $parsed;
-            if ($parsed['active'] === true) {
+            if ($this->safe_bool($parsed, 'active', false)) {
                 $anyActive = true;
             }
             if ($teamOneName === null) {
@@ -752,7 +752,7 @@ class sxbet extends Exchange {
         $digits = '0123456789abcdef';
         $lowerHex = strtolower($hex);
         $hexLength = count($lowerHex);
-        $result = $this->parse_to_int(0);
+        $result = 0;
         for ($i = 0; $i < $hexLength; $i++) {
             $ch = $lowerHex[$i];
             $digitValue = $this->parse_to_int(mb_strpos($digits, $ch));
@@ -1835,7 +1835,7 @@ class sxbet extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($settlement, 'settleDate'));
         $settlePrice = null;
         if ($won !== null) {
-            $settlePrice = ($won === true) ? 1 : 0;
+            $settlePrice = $won ? 1 : 0;
         }
         return array(
             'info' => $trade,
@@ -2051,8 +2051,7 @@ class sxbet extends Exchange {
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        $marketAny = $market;
-        $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
+        $outcomeObj = $this->safe_outcome($this->safe_string($market, 'outcome'), $market);
         $outcomeId = $this->safe_string($outcomeObj, 'outcomeId');
         $marketHash = $this->safe_string($raw, 'marketHash');
         $isOutcomeOne = ($outcomeId === $marketHash);
@@ -2194,7 +2193,13 @@ class sxbet extends Exchange {
         );
     }
 
-    public function request_id(?string $url): float {
+    public function set_ws_option(string $group, string $key, mixed $value) {
+        $entry = array();
+        $entry[$key] = $value;
+        $this->options[$group] = $this->extend($this->safe_dict($this->options, $group, array()), $entry);
+    }
+
+    public function request_id(?string $url): int {
         $existing = $this->safe_value($this->options, 'requestId');
         if ($existing === null) {
             $this->options['requestId'] = $this->create_safe_dictionary();
@@ -2216,12 +2221,8 @@ class sxbet extends Exchange {
          * @param {string} $messageHash the future hash the caller awaits
          * @param {string} $subscription the $subscription hash registered by watch() ('connect' or the channel name)
          */
-        $existing = $this->safe_dict($this->options, 'wsPendingRequests');
-        if ($existing === null) {
-            $this->options['wsPendingRequests'] = $this->create_safe_dictionary();
-        }
         $requestIdString = $this->number_to_string($requestId);
-        $this->options['wsPendingRequests'][$requestIdString] = array( 'messageHash' => $messageHash, 'subscription' => $subscription );
+        $this->set_ws_option('wsPendingRequests', $requestIdString, array( 'messageHash' => $messageHash, 'subscription' => $subscription ));
     }
 
     public function fetch_sxbet_realtime_token(): PromiseInterface {
@@ -2294,21 +2295,21 @@ class sxbet extends Exchange {
         return Async\await($this->watch($url, $messageHash, $subscribeMsg, $channel));
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_text_message(Client $client, string $message) {
+        $lines = explode('\n', $message);
+        $linesLength = count($lines);
+        for ($i = 0; $i < $linesLength; $i++) {
+            $line = $lines[$i];
+            if (strlen($line) > 0) {
+                $parsed = json_decode($line, $as_associative_array = true);
+                $this->handle_centrifugo_frame($client, $parsed);
+            }
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if (gettype($message) === 'string') {
-            $lines = explode('\n', $message);
-            $linesLength = count($lines);
-            for ($i = 0; $i < $linesLength; $i++) {
-                $line = $lines[$i];
-                if (strlen($line) > 0) {
-                    $parsed = json_decode($line, $as_associative_array = true);
-                    $this->handle_centrifugo_frame($client, $parsed);
-                }
-            }
-            return;
-        }
         $this->handle_centrifugo_frame($client, $message);
     }
 
@@ -2412,8 +2413,8 @@ class sxbet extends Exchange {
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
-        $sym = $this->safe_string($outcomeObj, 'outcome');
-        $marketHash = $this->safe_string($outcomeObj['info'], 'marketHash');
+        $sym = $this->safe_string($outcomeObj, 'outcome', '');
+        $marketHash = $this->safe_string($outcomeObj['info'], 'marketHash', '');
         $channel = 'orderbook_v3:' . $marketHash;
         $messageHash = 'orderbook::' . $sym;
         $url = $this->safe_string($this->urls['api'], 'ws');
@@ -2422,11 +2423,7 @@ class sxbet extends Exchange {
         $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
         if ($this->safe_value($this->orderbooks, $sym) === null) {
             // seed from the REST snapshot so the book is served before the first publication
-            $watchedBooks = $this->safe_dict($this->options, 'wsWatchedBooks');
-            if ($watchedBooks === null) {
-                $this->options['wsWatchedBooks'] = $this->create_safe_dictionary();
-            }
-            $this->options['wsWatchedBooks'][$sym] = $marketHash;
+            $this->set_ws_option('wsWatchedBooks', $sym, $marketHash);
             $snapshot = Async\await($this->fetch_sxbet_book_snapshot($marketHash));
             $this->apply_sxbet_ws_snapshot($snapshot);
             if ($this->safe_value($this->orderbooks, $sym) === null) {
@@ -2459,16 +2456,12 @@ class sxbet extends Exchange {
         if ($marketHash === null) {
             return $refreshed;
         }
-        $versionsAll = $this->safe_dict($this->options, 'wsBookVersions');
-        if ($versionsAll === null) {
-            $this->options['wsBookVersions'] = $this->create_safe_dictionary();
-        }
-        $held = $this->safe_string($this->options['wsBookVersions'], $marketHash, '');
+        $held = $this->safe_string($this->safe_dict($this->options, 'wsBookVersions', array()), $marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
         if (($held !== '') && ($version <= $held)) {
             return $refreshed;
         }
-        $this->options['wsBookVersions'][$marketHash] = $version;
+        $this->set_ws_option('wsBookVersions', $marketHash, $version);
         $watchedBooks = $this->safe_dict($this->options, 'wsWatchedBooks', array());
         $watchedSyms = is_array($watchedBooks) ? array_keys($watchedBooks) : array();
         $timestamp = $this->milliseconds();
@@ -2536,27 +2529,23 @@ class sxbet extends Exchange {
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
-        $sym = $this->safe_string($outcomeObj, 'outcome');
+        $sym = $this->safe_string($outcomeObj, 'outcome', '');
         $marketHash = $this->safe_string($outcomeObj['info'], 'marketHash');
         $messageHash = 'ticker::' . $sym;
-        $watchedTickers = $this->safe_dict($this->options, 'wsWatchedTickers');
-        if ($watchedTickers === null) {
-            $this->options['wsWatchedTickers'] = $this->create_safe_dictionary();
-        }
-        $this->options['wsWatchedTickers'][$sym] = $marketHash;
+        $this->set_ws_option('wsWatchedTickers', $sym, $marketHash);
         $url = $this->safe_string($this->urls['api'], 'ws');
         Async\await($this->connect_sxbet_centrifugo($url));
         $client = $this->client($url);
         $channel = 'best_odds_v3:global';
         $hydrated = false;
-        if ($this->safe_value($this->tickers, $sym) === null) {
+        if ($this->safe_dict($this->safe_dict($this->options, 'wsTickers', array()), $sym) === null) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             $snapshot = Async\await($this->fetch_sxbet_book_snapshot($marketHash));
             $raw = $this->parse_sxbet_snapshot_best_odds($snapshot);
             $ticker = $this->parse_prediction_ticker($raw, $outcomeObj);
-            $this->tickers[$sym] = $ticker;
+            $this->set_ws_option('wsTickers', $sym, $ticker);
             $hydrated = true;
         }
         $requestId = $this->request_id($url);
@@ -2564,7 +2553,7 @@ class sxbet extends Exchange {
         $subscribeMsg = array( 'subscribe' => array( 'channel' => $channel ), 'id' => $requestId );
         $future = $this->watch($url, $messageHash, $subscribeMsg, $channel);
         if ($hydrated) {
-            $client->resolve($this->safe_value($this->tickers, $sym), $messageHash);
+            $client->resolve($this->safe_dict($this->safe_dict($this->options, 'wsTickers', array()), $sym), $messageHash);
         }
         $tickerResult = Async\await($future);
         return $tickerResult;
@@ -2604,7 +2593,7 @@ class sxbet extends Exchange {
                 }
                 $outcomeObj = $this->outcome($sym);
                 $ticker = $this->parse_prediction_ticker($raw, $outcomeObj);
-                $this->tickers[$sym] = $ticker;
+                $this->set_ws_option('wsTickers', $sym, $ticker);
                 $client->resolve($ticker, 'ticker::' . $sym);
             }
         }
@@ -2628,7 +2617,7 @@ class sxbet extends Exchange {
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
-        $sym = $this->safe_string($outcomeObj, 'outcome');
+        $sym = $this->safe_string($outcomeObj, 'outcome', '');
         $messageHash = 'trades::' . $sym;
         $trades = Async\await($this->subscribe_sxbet_channel($messageHash, 'recent_trades_v3:global'));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
@@ -2729,7 +2718,7 @@ class sxbet extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $sym = $this->safe_string($outcomeObj, 'outcome');
+            $sym = $this->safe_string($outcomeObj, 'outcome', '');
             $messageHash = 'myTrades::' . $sym;
         }
         $channel = 'account:fills_v3_#' . $this->walletAddress;
@@ -2784,7 +2773,7 @@ class sxbet extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $sym = $this->safe_string($outcomeObj, 'outcome');
+            $sym = $this->safe_string($outcomeObj, 'outcome', '');
             $messageHash = 'orders::' . $sym;
         }
         $channel = 'account:orders_v3_#' . $this->walletAddress;
@@ -2815,7 +2804,7 @@ class sxbet extends Exchange {
         }
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
@@ -2856,7 +2845,7 @@ class sxbet extends Exchange {
          * @return {array} a dict with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $accessLevel = $this->safe_string($api, 1, 'public');
+        $accessLevel = $api[1];
         if (($accessLevel === 'private') && ($this->apiKey === null)) {
             throw new AuthenticationError($this->id . ' ' . $path . ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
@@ -2876,8 +2865,7 @@ class sxbet extends Exchange {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         $sendAsQuery = ($method === 'GET');
         if ($method === 'DELETE') {
-            $hasOrdersList = (is_array($query) && array_key_exists('orders' ?? '', $query));
-            $sendAsQuery = !$hasOrdersList;
+            $sendAsQuery = !(is_array($query) && array_key_exists('orders' ?? '', $query));
         }
         $bodyValue = null;
         if ($sendAsQuery) {
@@ -2886,9 +2874,7 @@ class sxbet extends Exchange {
                 $url .= '?' . $querystring;
             }
         } else {
-            $queryKeys = is_array($query) ? array_keys($query) : array();
-            $queryKeysLength = count($queryKeys);
-            if ($queryKeysLength > 0) {
+            if (count($query) > 0) {
                 $bodyValue = $this->json($query);
             }
         }

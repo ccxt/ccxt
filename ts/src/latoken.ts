@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market,
  * @augments Exchange
  */
 export default class latoken extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'latoken',
             'name': 'Latoken',
@@ -394,7 +394,7 @@ export default class latoken extends Exchange {
         });
     }
 
-    override nonce (): number {
+    override nonce (): int {
         const timeDifference = this.safeInteger (this.options, 'timeDifference');
         if (timeDifference === undefined) {
             throw new ExchangeError (this.id + ' nonce() requires a numeric options["timeDifference"]');
@@ -458,7 +458,7 @@ export default class latoken extends Exchange {
         const result: List = [];
         const rawMarkets = this.toArray (response);
         for (let i = 0; i < rawMarkets.length; i++) {
-            const market = rawMarkets[i];
+            const market = this.safeDict (rawMarkets, i);
             const id = this.safeString (market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
@@ -600,7 +600,7 @@ export default class latoken extends Exchange {
         const rawCurrencies = this.toArray (response);
         const merged: List = [];
         for (let i = 0; i < rawCurrencies.length; i++) {
-            const rawCurrency = rawCurrencies[i];
+            const rawCurrency = this.safeDict (rawCurrencies, i);
             const bindingEntry = this.safeDict (bindingsById, this.safeString (rawCurrency, 'id'));
             const bindings = this.safeList (bindingEntry, 'bindings');
             let mergedCurrency = rawCurrency;
@@ -618,7 +618,7 @@ export default class latoken extends Exchange {
         const code = this.safeCurrencyCode (tag);
         const currencyType = this.safeString (currency, 'type');
         const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
-        const bindings = this.safeList (currency, 'bindings', []);
+        const bindings: Dict[] = this.safeList (currency, 'bindings', []);
         const networks: Dict = {};
         for (let i = 0; i < bindings.length; i++) {
             const binding = bindings[i];
@@ -722,11 +722,12 @@ export default class latoken extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        let maxTimestamp: Int = undefined;
         const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
         const balances: Dict[] = this.safeList (balancesByType, accountType, []);
+        const firstBalance = this.safeDict (balances, 0);
+        let maxTimestamp = this.safeInteger (firstBalance, 'timestamp');
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency');
@@ -856,6 +857,16 @@ export default class latoken extends Exchange {
         }
         const last = this.safeString (ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero (ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        let bidVolume = this.safeString (ticker, 'bestBidQuantity');
+        if ((bidVolume !== undefined) && Precise.stringLt (bidVolume, '0')) {
+            bidVolume = undefined;
+        }
+        let askVolume = this.safeString (ticker, 'bestAskQuantity');
+        if ((askVolume !== undefined) && Precise.stringLt (askVolume, '0')) {
+            askVolume = undefined;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -863,9 +874,9 @@ export default class latoken extends Exchange {
             'low': undefined,
             'high': undefined,
             'bid': this.safeString (ticker, 'bestBid'),
-            'bidVolume': this.safeString (ticker, 'bestBidQuantity'),
+            'bidVolume': bidVolume,
             'ask': this.safeString (ticker, 'bestAsk'),
-            'askVolume': this.safeString (ticker, 'bestAskQuantity'),
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -999,10 +1010,10 @@ export default class latoken extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
         const costString = this.safeString (trade, 'cost');
-        const makerBuyer = this.safeBool (trade, 'makerBuyer');
+        const makerBuyer = this.safeBool (trade, 'makerBuyer', false);
         let side = this.safeString (trade, 'direction');
         if (side === undefined) {
-            side = (makerBuyer === true) ? 'sell' : 'buy';
+            side = makerBuyer ? 'sell' : 'buy';
         } else {
             if (side === 'TRADE_DIRECTION_BUY') {
                 side = 'buy';
@@ -1011,7 +1022,7 @@ export default class latoken extends Exchange {
             }
         }
         const isBuy = (side === 'buy');
-        const isMaker = (makerBuyer === true) && isBuy;
+        const isMaker = makerBuyer && isBuy;
         const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString (trade, 'baseCurrency');
         const quoteId = this.safeString (trade, 'quoteCurrency');
@@ -1377,7 +1388,7 @@ export default class latoken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let response: Dict;
+        let response: List;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1447,7 +1458,7 @@ export default class latoken extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response: Dict;
+        let response: List;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
@@ -2002,7 +2013,7 @@ export default class latoken extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const urlencodedQuery = this.urlencode (query);
         if (method === 'GET') {
-            if (Object.keys (query).length > 0) {
+            if (urlencodedQuery !== '') {
                 requestString += '?' + urlencodedQuery;
             }
         }
@@ -2028,7 +2039,7 @@ export default class latoken extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

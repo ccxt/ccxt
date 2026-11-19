@@ -22,8 +22,9 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     // todo: remove fee from empty
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("name".into()), Value::Str("fee".into())]);
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    let mut isNative: bool = (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null) && (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) && (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated"));
-    let mut currencyType: Value = exchange.safe_string(entry.clone(), Value::Str("type".into()), &[]);
+    let mut isNative: bool = (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null) && (get_value(&exchange,
+        &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) && (get_value(&exchange, &Value::Str("has".into())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated"));
+    let mut currencyType: Option<String> = exchange.safe_string_opt(&entry, Value::Str("type".into()), &[]);
     if isNative {
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -32,7 +33,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("withdraw".into(), Value::Bool(true)); }; // withdraw enabled
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("deposit".into(), Value::Bool(true)); }; // deposit enabled
-        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("precision".into(), exchange.parse_number(Value::Str("0.0001".into()), &[])); }; // in case of Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS) it will be 4 - number of digits "after the dot"
+        if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("precision".into(), exchange.parse_number(Value::Str("0.0001".into()), &[])); }; // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("fee".into(), exchange.parse_number(Value::Str("0.001".into()), &[])); }
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("networks".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -57,42 +58,42 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("crypto".into())); }; // crypto, fiat, leverage, other
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("fiat".into()), Value::Str("crypto".into()), Value::Str("leveraged".into()), Value::Str("other".into()), Value::Null]).clone()]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if (currencyType.as_str() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("depositForNonCrypto".into()))) {
+        if (currencyType.as_deref() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("depositForNonCrypto".into()))) {
             append_to_array(&mut emptyAllowedFor, Value::Str("deposit".into()));
         }
-        if (currencyType.as_str() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("withdrawForNonCrypto".into()))) {
+        if (currencyType.as_deref() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("withdrawForNonCrypto".into()))) {
             append_to_array(&mut emptyAllowedFor, Value::Str("withdraw".into()));
         }
-        if (currencyType.as_str() == Some("leveraged")) || (currencyType.as_str() == Some("other")) {
+        if (currencyType.as_deref() == Some("leveraged")) || (currencyType.as_deref() == Some("other")) {
             append_to_array(&mut emptyAllowedFor, Value::Str("precision".into()));
         }
     }
     //
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);
     // check if empty networks should be skipped
-    let mut networks: Value = exchange.safe_dict(entry.clone(), Value::Str("networks".into()), &[Value::Map({
+    let mut networks: Value = exchange.safe_dict(&entry, Value::Str("networks".into()), &[Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
     })]);
     let mut networkKeys: Value = object_keys(&networks);
-    let mut networkKeysLength: Value = Value::Int(networkKeys.len() as i64);
+    let mut networkKeysLength: i64 = networkKeys.len() as i64;
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1539: bool = true;
-        while { if !__for_first_1539 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1539 = false; i.as_f64().unwrap_or(f64::NAN) < networkKeysLength.as_f64().unwrap_or(f64::NAN) } {
-        crate::tests_support::shared::assert_unified_network_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), networkKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).clone()]);
+                let mut i: i64 = 0;
+        let mut __for_first_1551: bool = true;
+        while { if !__for_first_1551 { i += 1; } __for_first_1551 = false; i < networkKeysLength } {
+        crate::tests_support::shared::assert_unified_network_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), networkKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).clone()]);
     }
     }
-    if (networkKeysLength.as_f64() == Some(0.0)) && (in_op(&skippedProperties, &Value::Str("skipCurrenciesWithoutNetworks".into()))) {
+    if (networkKeysLength == 0) && (in_op(&skippedProperties, &Value::Str("skipCurrenciesWithoutNetworks".into()))) {
         return;
     }
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
      #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-        let mut message: Value = exchange.exception_message(e.clone());
+        let mut message: Value = exchange.exception_message(e);
         // check structure if key is numeric, not string
-        if Value::Int(message.as_str().and_then(|__s| __s.find("\"id\" key")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if message.as_str().unwrap_or("").contains("\"id\" key") {
             // @ts-ignore
             if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("id".into(), Value::Int(123)); }
             crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
@@ -104,15 +105,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     crate::tests_support::shared::check_precision_accuracy(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("precision".into()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".into()).clone(), Value::Str("0".into()).clone()]);
     if !(in_op(&skippedProperties, &Value::Str("limits".into()))) {
-        let mut limits: Value = exchange.safe_value(entry.clone(), Value::Str("limits".into()), &[Value::Map({
+        let mut limits: Value = exchange.safe_value(&entry, Value::Str("limits".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut withdrawLimits: Value = exchange.safe_value(limits.clone(), Value::Str("withdraw".into()), &[Value::Map({
+        let mut withdrawLimits: Value = exchange.safe_value(&limits, Value::Str("withdraw".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut depositLimits: Value = exchange.safe_value(limits.clone(), Value::Str("deposit".into()), &[Value::Map({
+        let mut depositLimits: Value = exchange.safe_value(&limits, Value::Str("deposit".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -121,14 +122,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("min".into()).clone(), Value::Str("0".into()).clone()]);
         crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("max".into()).clone(), Value::Str("0".into()).clone()]);
         // max should be more than min (withdrawal limits)
-        let mut minStringWithdrawal: Value = exchange.safe_string(withdrawLimits.clone(), Value::Str("min".into()), &[]);
-        if (minStringWithdrawal != Value::Null) {
-            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits.clone(), Value::Str("max".into()).clone(), minStringWithdrawal.clone()]);
+        let mut minStringWithdrawal: Option<String> = exchange.safe_string_opt(&withdrawLimits, Value::Str("min".into()), &[]);
+        if (minStringWithdrawal.is_some()) {
+            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits.clone(), Value::Str("max".into()).clone(), minStringWithdrawal.map(Value::from).unwrap_or(Value::Null).clone()]);
         }
         // max should be more than min (deposit limits)
-        let mut minStringDeposit: Value = exchange.safe_string(depositLimits.clone(), Value::Str("min".into()), &[]);
-        if (minStringDeposit != Value::Null) {
-            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("max".into()).clone(), minStringDeposit.clone()]);
+        let mut minStringDeposit: Option<String> = exchange.safe_string_opt(&depositLimits, Value::Str("min".into()), &[]);
+        if (minStringDeposit.is_some()) {
+            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("max".into()).clone(), minStringDeposit.map(Value::from).unwrap_or(Value::Null).clone()]);
         }
         // check valid ID & CODE
         crate::tests_support::shared::assert_valid_currency_id_and_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);

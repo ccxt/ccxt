@@ -1,11 +1,11 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRateHistory, FundingRate, NullableDict, DepositWithdrawFees } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
  */
 export default class bitstamp extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitstamp#fetchMarkets
@@ -26,7 +26,7 @@ export default class bitstamp extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
-    parseCurrencies(rawCurrencies: any): Currencies;
+    parseCurrencies(rawCurrencies: List): Currencies;
     /**
      * @method
      * @name bitstamp#fetchOrderBook
@@ -89,7 +89,7 @@ export default class bitstamp extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name bitstamp#fetchBalance
@@ -110,7 +110,7 @@ export default class bitstamp extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    parseTradingFees(fees: any[]): Dict;
+    parseTradingFees(fees: Dict[]): Dict;
     /**
      * @method
      * @name bitstamp#fetchTradingFees
@@ -295,7 +295,7 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(fundingRate: any, market?: Market): FundingRate;
+    parseFundingRate(fundingRate: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name bitstamp#fetchOpenOrders
@@ -351,7 +351,7 @@ export default class bitstamp extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

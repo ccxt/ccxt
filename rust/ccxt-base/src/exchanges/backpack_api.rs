@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::backpack::BackpackCore;
+use super::backpack::Backpack;
 use crate::exchange::ExchangeRuntime;
 
-impl BackpackCore {
+impl Backpack {
     /// Auto-generated wrapper for the `publicGetApiV1Assets` implicit endpoint.
     pub async fn public_get_api_v1_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_api_v1_assets".into()), optional_args).await

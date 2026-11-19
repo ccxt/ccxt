@@ -5,7 +5,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  * @augments Exchange
  */
 export default class extended extends Exchange {
-    describe(): any;
+    describe(): Dict;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
     indexByStringifiedNumericId(input: Dict): NullableDict;
     /**
@@ -13,6 +13,7 @@ export default class extended extends Exchange {
      * @name extended#fetchMarkets
      * @description retrieves data on all markets for extended
      * @see https://api.docs.extended.exchange/#get-markets
+     * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -99,7 +100,7 @@ export default class extended extends Exchange {
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     parseFundingHistory(history: Dict, market?: Market): FundingHistory;
-    parseFundingHistories(histories: any[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
+    parseFundingHistories(histories: Dict[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -159,7 +160,7 @@ export default class extended extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name extended#fetchAccount
@@ -527,12 +528,12 @@ export default class extended extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     getExtendedStringToFelt(value: string): bigint;
     getExtendedEncodeI64(value: any): any;
-    getExtendedDecimalToBase16(value: any): string;
-    getExtendedSignatureHex(signature: any): string;
+    getExtendedDecimalToBase16(value: string): string;
+    getExtendedSignatureHex(signature: string): string;
     getExtendedDomainHash(): bigint;
     getExtendedOrderMsgHash(settlement: Dict): string;
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;
     getExtendedTransferMsgHash(settlement: Dict): string;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

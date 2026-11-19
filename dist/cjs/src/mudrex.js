@@ -210,7 +210,7 @@ class mudrex extends mudrex$1["default"] {
                 return { 'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders };
             }
         }
-        if (Object.keys(query).length > 0) {
+        if (!this.isEmpty(query)) {
             url += '?' + this.urlencode(query);
         }
         return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
@@ -281,7 +281,9 @@ class mudrex extends mudrex$1["default"] {
         const market = this.market(symbol);
         const priceType = this.safeString(params, 'price');
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        const assetPair = market['baseId'] + '/' + market['quoteId'];
+        const baseIdString = this.safeString(market, 'baseId', '');
+        const quoteIdString = this.safeString(market, 'quoteId', '');
+        const assetPair = baseIdString + '/' + quoteIdString;
         const request = {
             'assets': assetPair,
             'aggregation': this.safeString(this.timeframes, timeframe, timeframe),
@@ -375,7 +377,13 @@ class mudrex extends mudrex$1["default"] {
         const request = {};
         const response = await this.privateGetFutures(this.extend(request, params));
         const data = this.safeValue(response, 'data', []);
-        const rows = Array.isArray(data) ? data : this.safeList(data, 'items', []);
+        let rows = [];
+        if (Array.isArray(data)) {
+            rows = this.toArray(data);
+        }
+        else {
+            rows = this.safeList(data, 'items', []);
+        }
         const resultTickers = {};
         for (let i = 0; i < rows.length; i++) {
             const t = rows[i];
@@ -576,8 +584,7 @@ class mudrex extends mudrex$1["default"] {
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' fetchBalance() returned empty response');
         }
-        response['currency'] = currency;
-        return this.parseBalance(response);
+        return this.parseBalance(this.extend(response, { 'currency': currency }));
     }
     parseBalance(response) {
         const data = this.safeDict(response, 'data', {});
@@ -1147,18 +1154,17 @@ class mudrex extends mudrex$1["default"] {
         }
         const market = this.market(symbol);
         let positionId = this.safeString(params, 'position_id');
-        const amount = this.safeValue(params, 'amount');
+        const amount = this.safeString(params, 'amount');
         if (positionId === undefined) {
             const positions = await this.fetchPositions([symbol], params);
-            for (let i = 0; i < positions.length; i++) {
-                const p = positions[i];
-                if (side !== undefined && p['side'] !== side) {
-                    continue;
-                }
-                if (p['symbol'] === market['symbol']) {
-                    positionId = this.safeString(p, 'id');
-                    break;
-                }
+            let candidates = this.filterBy(positions, 'symbol', market['symbol']);
+            if (side !== undefined) {
+                candidates = this.filterBy(candidates, 'side', side);
+            }
+            const numCandidates = candidates.length;
+            if (numCandidates > 0) {
+                const found = candidates[0];
+                positionId = this.safeString(found, 'id');
             }
         }
         if (positionId === undefined) {
@@ -1203,12 +1209,11 @@ class mudrex extends mudrex$1["default"] {
         let positionId = this.safeString(params, 'position_id');
         if (positionId === undefined) {
             const positions = await this.fetchPositions([symbol], params);
-            for (let i = 0; i < positions.length; i++) {
-                const p = positions[i];
-                if (p['symbol'] === symbol) {
-                    positionId = this.safeString(p, 'id');
-                    break;
-                }
+            const matches = this.filterBy(positions, 'symbol', symbol);
+            const numMatches = matches.length;
+            if (numMatches > 0) {
+                const found = matches[0];
+                positionId = this.safeString(found, 'id');
             }
         }
         if (positionId === undefined) {
@@ -1319,7 +1324,7 @@ class mudrex extends mudrex$1["default"] {
                 if (rebateKeys[j] === transactionKeys[i]) {
                     rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-                    rebateKeys[j] = undefined;
+                    rebateKeys[j] = '';
                     break;
                 }
             }

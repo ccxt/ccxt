@@ -141,7 +141,7 @@ function goErrWrappers (content: string): string {
         (_m: string, ind: string, n: string, call: string, zero: string) => ind + n + ' := <-' + call + '\n' + ind + 'if ' + n + '.Err != nil {\n' + ind + '\treturn ' + zero + ', ' + n + '.Err\n' + ind + '}\n');
 }
 
-// `listEp := (<-X)` + `PanicOnError(listEp.Raw)`: the holder is the result itself
+// `xRecv := (<-X)` + `PanicOnError(xRecv.Raw)`: the holder is the result itself
 function goErrListHolders (content: string): string {
     return content.replace (/^(\t+)(\w+) := \(<-([^\n]+)\)\n\1(?:ccxt\.)?PanicOnError\(\2\.Raw\)\n/gm,
         (_m: string, ind: string, n: string, call: string) => ind + n + ' := <-' + call + '\n' + ind + 'if ' + n + '.Err != nil {\n' + ind + '\tpanic(' + n + '.Err)\n' + ind + '}\n');
@@ -381,8 +381,8 @@ export function goErrSelfTest (): string[] {
     ok (out.includes ('\tr := <-promiseAll([]any{this.L(), <-this.S()})\n'), 'nested receive: ' + out);
     out = run ('\tPanicOnError((<-this.G())) // note\n');
     ok (out.includes ('\tr := <-this.G() // note\n' + check ('\t') + '\treturn nil'), 'trailing comment: ' + out);
-    out = run ('\tlistEp1 := (<-this.E(a))\n\tPanicOnError(listEp1.Raw)\n\tvar h []any = listEp1.Value\n\tvar m map[string]any = this.M(a)\n\tPanicOnError(m)\n\tvar v any = this.M(a)\n\tPanicOnError(v)\n');
-    ok (out.includes ('\tlistEp1 := <-this.E(a)\n' + check ('\t', 'listEp1') + '\tvar h []any = listEp1.Value\n'), 'listEp: ' + out);
+    out = run ('\tdataRecv := (<-this.E(a))\n\tPanicOnError(dataRecv.Raw)\n\tvar h []any = dataRecv.Value\n\tvar m map[string]any = this.M(a)\n\tPanicOnError(m)\n\tvar v any = this.M(a)\n\tPanicOnError(v)\n');
+    ok (out.includes ('\tdataRecv := <-this.E(a)\n' + check ('\t', 'dataRecv') + '\tvar h []any = dataRecv.Value\n'), 'listEp: ' + out);
     ok (!out.includes ('PanicOnError(m)') && out.includes ('PanicOnError(v)'), 'no-op check dropped only when typed: ' + out);
     const wrap = 'package ccxt\n\nfunc (this *ExchangeTyped) F(params ...any) (Balances, error) {\n\traw := <-this.Exchange.FAsync(params...)\n\tif IsError(raw) {\n\t\treturn Balances{}, CreateReturnError(raw)\n\t}\n\tvar res Balances = NewBalances(raw)\n\treturn res, nil\n}\nfunc (this *ExchangeTyped) S(params ...any) (Status, error) {\n\tr := <-this.Exchange.SAsync(params...)\n\tif IsError(r.Raw) {\n\t\treturn Status{}, CreateReturnError(r.Raw)\n\t}\n\tvar res Status = NewStatus(r.Raw)\n\treturn res, nil\n}\n';
     out = goErrValuePass (wrap);

@@ -384,11 +384,10 @@ class deepcoin extends deepcoin$1["default"] {
         const instType = this.safeString(params, 'instType');
         const paramsOmitted = this.omit(params, 'instType');
         const type = this.safeString(paramsOmitted, 'type');
-        let paramsExtended = paramsOmitted;
         if ((type === undefined) && (instType !== undefined)) {
-            paramsExtended = this.extend(paramsOmitted, { 'type': instType });
+            return super.handleMarketTypeAndParams(methodName, market, this.extend(paramsOmitted, { 'type': instType }), defaultValue);
         }
-        return super.handleMarketTypeAndParams(methodName, market, paramsExtended, defaultValue);
+        return super.handleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue);
     }
     convertToInstrumentType(type) {
         const exchangeTypes = this.safeDict(this.options, 'exchangeType', {});
@@ -414,7 +413,7 @@ class deepcoin extends deepcoin$1["default"] {
         const promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
-            promises.push(this.fetchMarketsByType(types[i], params));
+            promises.push(this.fetchMarketsByType(this.safeString(types, i), params));
         }
         const responses = await Promise.all(promises);
         for (let i = 0; i < responses.length; i++) {
@@ -524,7 +523,10 @@ class deepcoin extends deepcoin$1["default"] {
             isLinear = (quoteId !== 'USD');
             settleId = isLinear ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = symbol + ':' + settle;
+            if (settle === undefined) {
+                return undefined;
+            }
+            symbol = base + '/' + quote + ':' + settle;
         }
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
@@ -590,8 +592,9 @@ class deepcoin extends deepcoin$1["default"] {
         const symbols = Object.keys(result);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = result[symbol];
-            if ((market !== undefined) && (market['swap'] === true)) {
+            const market = this.safeDict(result, symbol, {});
+            const isSwap = this.safeBool(market, 'swap', false);
+            if (isSwap) {
                 const additionalId = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
                 if (this.markets_by_id !== undefined) {
                     this.markets_by_id[additionalId] = [market]; // some endpoints return swap market id as base+quote
@@ -665,7 +668,7 @@ class deepcoin extends deepcoin$1["default"] {
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         const price = this.safeString(paramsPaginate, 'price');
         let maxLimit = 300;
-        if (market['swap'] === true && price === undefined) {
+        if (this.safeBool(market, 'swap', false) && price === undefined) {
             maxLimit = 1000;
         }
         if (paginate) {
@@ -685,7 +688,10 @@ class deepcoin extends deepcoin$1["default"] {
             request['after'] = until;
         }
         const calculateUntil = this.safeBool(paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = (calculateUntil) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
+        const keysToOmit = ['price', 'until'];
+        if (calculateUntil) {
+            keysToOmit.push('calculateUntil');
+        }
         const paramsOmitted = this.omit(paramsPaginate, keysToOmit);
         if (calculateUntil) {
             if (since !== undefined) {
@@ -693,7 +699,7 @@ class deepcoin extends deepcoin$1["default"] {
                 // we calculate until (after) for correct pagination
                 const duration = this.parseTimeframe(timeframe);
                 const numberOfCandles = (limit === undefined) ? maxLimit : limit;
-                let endTime = since + (duration * numberOfCandles) * 1000;
+                let endTime = this.parseToInt(since + (duration * numberOfCandles) * 1000);
                 if (until !== undefined) {
                     endTime = Math.min(endTime, until);
                 }
@@ -792,7 +798,7 @@ class deepcoin extends deepcoin$1["default"] {
         const open = this.safeString(ticker, 'open24h');
         let quoteVolume = this.safeString(ticker, 'volCcy24h');
         let baseVolume = this.safeString(ticker, 'vol24h');
-        if ((marketResolved['swap'] === true) && (marketResolved['inverse'] === true)) {
+        if ((this.safeBool(marketResolved, 'swap', false)) && (this.safeBool(marketResolved, 'inverse', false))) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
@@ -1544,7 +1550,7 @@ class deepcoin extends deepcoin$1["default"] {
         const isTriggerOrder = (triggerPrice !== undefined);
         const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
-            if ((market['spot'] !== true) || (triggerPrice !== undefined)) {
+            if ((!this.safeBool(market, 'spot', false)) || (triggerPrice !== undefined)) {
                 throw new errors.BadRequest(this.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
@@ -1631,7 +1637,7 @@ class deepcoin extends deepcoin$1["default"] {
             throw new errors.BadRequest(this.id + ' createOrder() requires a price argument for limit orders');
         }
         let paramsRequest = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const cost = this.safeString(paramsOrderType, 'cost');
             if (cost !== undefined) {
                 if (!isMarketOrder) {
@@ -1743,7 +1749,7 @@ class deepcoin extends deepcoin$1["default"] {
         const paramsOmitted = this.omit(paramsMarginMode, 'reduceOnly');
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
@@ -1768,17 +1774,15 @@ class deepcoin extends deepcoin$1["default"] {
     }
     handleTypePostOnlyAndTimeInForce(type, params) {
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 'post_only', params);
-        let typePostOnly = type;
-        if (postOnly) {
-            typePostOnly = 'post_only';
-        }
         const timeInForce = this.handleTimeInForce(paramsPostOnly);
         const paramsOmitted = this.omit(paramsPostOnly, 'timeInForce');
-        let typeValue = typePostOnly;
-        if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
-            typeValue = 'ioc';
+        if (timeInForce === 'IOC') {
+            return ['ioc', paramsOmitted];
         }
-        return [typeValue, paramsOmitted];
+        if (postOnly) {
+            return ['post_only', paramsOmitted];
+        }
+        return [type, paramsOmitted];
     }
     /**
      * @method
@@ -1950,7 +1954,8 @@ class deepcoin extends deepcoin$1["default"] {
             return await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate);
         }
         const trigger = this.safeBool(paramsPaginate, 'trigger', false);
-        const [methodName, paramsMethodName] = this.handleParamString(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const methodName = this.safeString(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const paramsMethodName = this.omit(paramsPaginate, 'methodName');
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -2264,7 +2269,7 @@ class deepcoin extends deepcoin$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported for spot markets');
         }
         const productGroup = this.getProductGroupFromMarket(market);
@@ -2311,7 +2316,7 @@ class deepcoin extends deepcoin$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' editOrder() is not supported for spot markets');
             }
             symbolResolved = market['symbol'];
@@ -2371,7 +2376,7 @@ class deepcoin extends deepcoin$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' cancelOrders() is not supported for spot markets');
             }
         }
@@ -2792,7 +2797,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -3064,7 +3069,7 @@ class deepcoin extends deepcoin$1["default"] {
         if (method === 'GET') {
             const query = this.urlencode(params);
             if (query.length > 0) {
-                requestPath += '?' + query;
+                requestPath = path + '?' + query;
             }
         }
         const apiUrl = this.safeString(this.urls['api'], apiName);
@@ -3083,8 +3088,9 @@ class deepcoin extends deepcoin$1["default"] {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json(params) : undefined;
+            let requestBody = undefined;
             if (method !== 'GET') {
+                requestBody = this.json(params);
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
             }

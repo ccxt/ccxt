@@ -21,7 +21,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class xt extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'xt',
             'name' => 'XT',
@@ -882,7 +882,7 @@ class xt extends Exchange {
         ));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
@@ -1226,10 +1226,10 @@ class xt extends Exchange {
         return $this->parse_markets($swapAndFutureMarkets);
     }
 
-    public function parse_markets(mixed $markets) {
+    public function parse_markets(array $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $parsed = $this->parse_market($markets[$i]);
+            $parsed = $this->parse_market($this->safe_value($markets, $i));
             if ($parsed !== null) {
                 $result[] = $parsed;
             }
@@ -1537,7 +1537,7 @@ class xt extends Exchange {
         }
         $limitResolved = $limit;
         if ($limit !== null) {
-            $maxLimit = ($market['spot'] === true) ? 1000 : 1500; // spot : derivatives max limit
+            $maxLimit = ($this->safe_bool($market, 'spot', false)) ? 1000 : 1500; // spot : derivatives max limit
             $limitResolved = min($limit, $maxLimit);
             $request['limit'] = $limitResolved;
         } else {
@@ -1549,9 +1549,9 @@ class xt extends Exchange {
             $request['endTime'] = $until;
         }
         $response = null;
-        if ($market['linear'] === true) {
+        if ($this->safe_bool($market, 'linear', false)) {
             $response = Async\await($this->publicLinearGetFutureMarketV1PublicQKline($this->extend($request, $paramsOmitted)));
-        } elseif ($market['inverse'] === true) {
+        } elseif ($this->safe_bool($market, 'inverse', false)) {
             $response = Async\await($this->publicInverseGetFutureMarketV1PublicQKline($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->publicSpotGetKline($this->extend($request, $paramsOmitted)));
@@ -1629,9 +1629,9 @@ class xt extends Exchange {
         //         "v": "702461.58895"
         //     }
         //
-        $isInverse = $this->safe_bool($market, 'inverse');
+        $isInverse = $this->safe_bool($market, 'inverse', false);
         $volumeIndex = 'a';
-        if ($isInverse === true) {
+        if ($isInverse) {
             $volumeIndex = 'v';
         }
         return array(
@@ -1668,7 +1668,7 @@ class xt extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             if ($limit !== null) {
                 $request['limit'] = min($limit, 500);
             }
@@ -1679,9 +1679,9 @@ class xt extends Exchange {
             } else {
                 $request['level'] = 50;
             }
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->publicLinearGetFutureMarketV1PublicQDepth($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->publicInverseGetFutureMarketV1PublicQDepth($this->extend($request, $params)));
             }
         }
@@ -1733,7 +1733,7 @@ class xt extends Exchange {
         //
         $orderBook = $this->safe_dict($response, 'result', array());
         $timestamp = $this->safe_integer_2($orderBook, 'timestamp', 't');
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $ob = $this->parse_order_book($orderBook, $symbol, $timestamp);
             $ob['nonce'] = $this->safe_integer($orderBook, 'lastUpdateId');
             return $ob;
@@ -1766,9 +1766,9 @@ class xt extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['linear'] === true) {
+        if ($this->safe_bool($market, 'linear', false)) {
             $response = Async\await($this->publicLinearGetFutureMarketV1PublicQAggTicker($this->extend($request, $params)));
-        } elseif ($market['inverse'] === true) {
+        } elseif ($this->safe_bool($market, 'inverse', false)) {
             $response = Async\await($this->publicInverseGetFutureMarketV1PublicQAggTicker($this->extend($request, $params)));
         } else {
             $response = Async\await($this->publicSpotGetTicker24h($this->extend($request, $params)));
@@ -1819,10 +1819,11 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->safe_value($response, 'result');
-        if ($market['spot'] === true) {
-            return $this->parse_ticker($ticker[0], $market);
+        if ($this->safe_bool($market, 'spot', false)) {
+            $tickers = $this->safe_list($response, 'result', array());
+            return $this->parse_ticker($tickers[0], $market);
         }
+        $ticker = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -2063,7 +2064,7 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 's');
         $marketType = $this->safe_string($market, 'type');
-        $hasSpotKeys = (is_array($ticker) && array_key_exists('cv' ?? '', $ticker)) || (is_array($ticker) && array_key_exists('aq' ?? '', $ticker));
+        $hasSpotKeys = ($this->safe_string($ticker, 'cv') !== null) || ($this->safe_string($ticker, 'aq') !== null);
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
@@ -2082,10 +2083,10 @@ class xt extends Exchange {
         $baseVolume = $this->safe_string_2($ticker, 'a', 'q');
         $quoteVolume = $this->safe_string($ticker, 'v');
         $contractSize = $this->safe_string($marketResolved, 'contractSize');
-        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
+        if (($this->safe_bool($marketResolved, 'contract', false)) && ($contractSize !== null)) {
             // 'a' counts contracts, 'v' is in the settle currency
             $contractVolume = Precise::string_mul($baseVolume, $contractSize);
-            if ($marketResolved['inverse'] === true) {
+            if ($this->safe_bool($marketResolved, 'inverse', false)) {
                 $baseVolume = $quoteVolume;
                 $quoteVolume = $contractVolume;
             } else {
@@ -2141,7 +2142,7 @@ class xt extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             if ($limit !== null) {
                 $request['limit'] = min($limit, 1000);
             }
@@ -2150,9 +2151,9 @@ class xt extends Exchange {
             if ($limit !== null) {
                 $request['num'] = min($limit, 1000);
             }
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->publicLinearGetFutureMarketV1PublicQDeal($this->extend($request, $params)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->publicInverseGetFutureMarketV1PublicQDeal($this->extend($request, $params)));
             }
         }
@@ -2422,7 +2423,7 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $marketType = $this->safe_string($market, 'type');
-        $hasSpotKeys = (is_array($trade) && array_key_exists('b' ?? '', $trade)) || (is_array($trade) && array_key_exists('bizType' ?? '', $trade)) || (is_array($trade) && array_key_exists('oi' ?? '', $trade));
+        $hasSpotKeys = ($this->safe_bool($trade, 'b') !== null) || ($this->safe_string($trade, 'bizType') !== null) || ($this->safe_string($trade, 'oi') !== null);
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
@@ -2564,10 +2565,10 @@ class xt extends Exchange {
             $data = $this->safe_dict($response, 'result', array());
             $balances = $this->safe_list($data, 'assets', array());
         }
-        return $this->parse_balance($balances);
+        return $this->parse_balance_list($balances);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(mixed $response): array {
         //
         // spot
         //
@@ -2636,7 +2637,7 @@ class xt extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
@@ -2681,7 +2682,7 @@ class xt extends Exchange {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $isTrailing = (is_array($params) && array_key_exists('trailingPercent' ?? '', $params)) || (is_array($params) && array_key_exists('trailingAmount' ?? '', $params)) || (is_array($params) && array_key_exists('trailingTriggerPrice' ?? '', $params));
             if ($isTrailing) {
                 // do not silently place a regular spot order when a trailing order was requested
@@ -2821,7 +2822,7 @@ class xt extends Exchange {
         $isStopLoss = ($stopLoss !== null);
         $isTakeProfit = ($takeProfit !== null);
         $isTrailing = ($trailingPercent !== null) || ($trailingAmount !== null);
-        if ($isTrailing && ($market['swap'] !== true)) {
+        if ($isTrailing && (!$this->safe_bool($market, 'swap', false))) {
             throw new NotSupported($this->id . ' createOrder() trailing orders are only supported on swap markets');
         }
         if (($trailingTriggerPrice !== null) && !$isTrailing) {
@@ -2849,9 +2850,9 @@ class xt extends Exchange {
                 $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
             }
             $paramsOmitted3 = $this->omit($paramsMarginMode, array( 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ));
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCreateTrack($this->extend($request, $paramsOmitted3)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCreateTrack($this->extend($request, $paramsOmitted3)));
             }
         } elseif ($isTrigger) {
@@ -2865,9 +2866,9 @@ class xt extends Exchange {
             }
             $request['entrustType'] = $entrustType;
             $paramsOmitted2 = $this->omit($paramsOmitted4, 'triggerPrice');
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCreatePlan($this->extend($request, $paramsOmitted2)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCreatePlan($this->extend($request, $paramsOmitted2)));
             }
         } elseif ($isStopLoss || $isTakeProfit) {
@@ -2877,17 +2878,17 @@ class xt extends Exchange {
                 $request['triggerProfitPrice'] = $this->price_to_precision($symbol, $takeProfit);
             }
             $paramsOmitted = $this->omit($paramsOmitted4, array( 'stopLoss', 'takeProfit' ));
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCreateProfit($this->extend($request, $paramsOmitted)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCreateProfit($this->extend($request, $paramsOmitted)));
             }
         } else {
             $request['orderSide'] = strtoupper($side);
             $request['orderType'] = strtoupper($type);
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $response = Async\await($this->privateLinearPostFutureTradeV1OrderCreate($this->extend($request, $paramsOmitted4)));
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->privateInversePostFutureTradeV1OrderCreate($this->extend($request, $paramsOmitted4)));
             }
         }
@@ -2936,9 +2937,9 @@ class xt extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchOrder', $market, $paramsMarketType);
         $trigger = $this->safe_bool_2($paramsSubType, 'trigger', 'stop');
-        $stopLossTakeProfit = $this->safe_bool($paramsSubType, 'stopLossTakeProfit');
-        $trailing = $this->safe_bool($paramsSubType, 'trailing');
-        if ($trailing === true) {
+        $stopLossTakeProfit = $this->safe_bool($paramsSubType, 'stopLossTakeProfit', false);
+        $trailing = $this->safe_bool($paramsSubType, 'trailing', false);
+        if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
                 throw new NotSupported($this->id . ' fetchOrder() trailing orders are only supported on swap and future markets');
@@ -2946,9 +2947,9 @@ class xt extends Exchange {
         }
         if ($trigger === true) {
             $request['entrustId'] = $id;
-        } elseif ($stopLossTakeProfit === true) {
+        } elseif ($stopLossTakeProfit) {
             $request['profitId'] = $id;
-        } elseif ($trailing === true) {
+        } elseif ($trailing) {
             $request['trackId'] = $id;
         } else {
             $request['orderId'] = $id;
@@ -2960,14 +2961,14 @@ class xt extends Exchange {
             } else {
                 $response = Async\await($this->privateLinearGetFutureTradeV1EntrustPlanDetail($this->extend($request, $paramsOmitted3)));
             }
-        } elseif ($stopLossTakeProfit === true) {
+        } elseif ($stopLossTakeProfit) {
             $paramsOmitted2 = $this->omit($paramsSubType, 'stopLossTakeProfit');
             if ($subType === 'inverse') {
                 $response = Async\await($this->privateInverseGetFutureTradeV1EntrustProfitDetail($this->extend($request, $paramsOmitted2)));
             } else {
                 $response = Async\await($this->privateLinearGetFutureTradeV1EntrustProfitDetail($this->extend($request, $paramsOmitted2)));
             }
-        } elseif ($trailing === true) {
+        } elseif ($trailing) {
             $paramsOmitted = $this->omit($paramsSubType, 'trailing');
             if ($subType === 'inverse') {
                 $response = Async\await($this->privateInverseGetFutureTradeV1EntrustTrackDetail($this->extend($request, $paramsOmitted)));
@@ -3142,8 +3143,8 @@ class xt extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchOrders', $market, $paramsMarketType);
         $trigger = $this->safe_bool_2($paramsSubType, 'trigger', 'stop');
-        $trailing = $this->safe_bool($paramsSubType, 'trailing');
-        if ($trailing === true) {
+        $trailing = $this->safe_bool($paramsSubType, 'trailing', false);
+        if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
                 throw new NotSupported($this->id . ' fetchOrders() trailing orders are only supported on swap and future markets');
@@ -3156,7 +3157,7 @@ class xt extends Exchange {
             } else {
                 $response = Async\await($this->privateLinearGetFutureTradeV1EntrustPlanListHistory($this->extend($request, $paramsOmitted2)));
             }
-        } elseif ($trailing === true) {
+        } elseif ($trailing) {
             $paramsOmitted = $this->omit($paramsSubType, 'trailing');
             if ($subType === 'inverse') {
                 $response = Async\await($this->privateInverseGetFutureTradeV1EntrustTrackListHistory($this->extend($request, $paramsOmitted)));
@@ -3315,9 +3316,9 @@ class xt extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchOrdersByStatus', $market, $paramsMarketType);
         $trigger = $this->safe_bool_2($paramsSubType, 'stop', 'trigger');
-        $stopLossTakeProfit = $this->safe_bool($paramsSubType, 'stopLossTakeProfit');
-        $trailing = $this->safe_bool($paramsSubType, 'trailing');
-        if ($trailing === true) {
+        $stopLossTakeProfit = $this->safe_bool($paramsSubType, 'stopLossTakeProfit', false);
+        $trailing = $this->safe_bool($paramsSubType, 'trailing', false);
+        if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
                 throw new NotSupported($this->id . ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets');
@@ -3327,19 +3328,19 @@ class xt extends Exchange {
             // filter runs, so the limit is only applied locally after filtering
             $request = $this->omit($request, array( 'state', 'size' ));
         } elseif ($status === 'open') {
-            if (($trigger === true) || ($stopLossTakeProfit === true)) {
+            if (($trigger === true) || $stopLossTakeProfit) {
                 $request['state'] = 'NOT_TRIGGERED';
             } elseif ($type === 'swap') {
                 $request['state'] = 'UNFINISHED'; // NEW & PARTIALLY_FILLED
             }
         } elseif ($status === 'closed') {
-            if (($trigger === true) || ($stopLossTakeProfit === true)) {
+            if (($trigger === true) || $stopLossTakeProfit) {
                 $request['state'] = 'TRIGGERED';
             } else {
                 $request['state'] = 'FILLED';
             }
         } elseif ($status === 'canceled') {
-            if (($trigger === true) || ($stopLossTakeProfit === true)) {
+            if (($trigger === true) || $stopLossTakeProfit) {
                 $request['state'] = 'USER_REVOCATION';
             } else {
                 $request['state'] = 'CANCELED';
@@ -3347,11 +3348,11 @@ class xt extends Exchange {
         } else {
             $request['state'] = $status;
         }
-        if (($trigger === true) || ($stopLossTakeProfit === true) || ($subType !== null) || ($type === 'swap') || ($type === 'future')) {
+        if (($trigger === true) || $stopLossTakeProfit || ($subType !== null) || ($type === 'swap') || ($type === 'future')) {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            if (($limit !== null) && ($trailing !== true)) {
+            if (($limit !== null) && !$trailing) {
                 $request['size'] = $limit;
             }
         }
@@ -3362,14 +3363,14 @@ class xt extends Exchange {
             } else {
                 $response = Async\await($this->privateLinearGetFutureTradeV1EntrustPlanList($this->extend($request, $paramsOmitted3)));
             }
-        } elseif ($stopLossTakeProfit === true) {
+        } elseif ($stopLossTakeProfit) {
             $paramsOmitted2 = $this->omit($paramsSubType, 'stopLossTakeProfit');
             if ($subType === 'inverse') {
                 $response = Async\await($this->privateInverseGetFutureTradeV1EntrustProfitList($this->extend($request, $paramsOmitted2)));
             } else {
                 $response = Async\await($this->privateLinearGetFutureTradeV1EntrustProfitList($this->extend($request, $paramsOmitted2)));
             }
-        } elseif ($trailing === true) {
+        } elseif ($trailing) {
             $paramsOmitted = $this->omit($paramsSubType, 'trailing');
             if ($status === 'open') {
                 if ($subType === 'inverse') {
@@ -3595,7 +3596,7 @@ class xt extends Exchange {
         } else {
             $orders = $this->safe_list($response, 'result', array());
         }
-        if ($trailing === true) {
+        if ($trailing) {
             // the track endpoints do not support a server-side state filter
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
@@ -3718,9 +3719,9 @@ class xt extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('cancelOrder', $market, $paramsMarketType);
         $trigger = $this->safe_bool_2($paramsSubType, 'trigger', 'stop');
-        $stopLossTakeProfit = $this->safe_bool($paramsSubType, 'stopLossTakeProfit');
-        $trailing = $this->safe_bool($paramsSubType, 'trailing');
-        if ($trailing === true) {
+        $stopLossTakeProfit = $this->safe_bool($paramsSubType, 'stopLossTakeProfit', false);
+        $trailing = $this->safe_bool($paramsSubType, 'trailing', false);
+        if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
                 throw new NotSupported($this->id . ' cancelOrder() trailing orders are only supported on swap and future markets');
@@ -3728,9 +3729,9 @@ class xt extends Exchange {
         }
         if ($trigger === true) {
             $request['entrustId'] = $id;
-        } elseif ($stopLossTakeProfit === true) {
+        } elseif ($stopLossTakeProfit) {
             $request['profitId'] = $id;
-        } elseif ($trailing === true) {
+        } elseif ($trailing) {
             $request['trackId'] = $id;
         } else {
             $request['orderId'] = $id;
@@ -3742,14 +3743,14 @@ class xt extends Exchange {
             } else {
                 $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCancelPlan($this->extend($request, $paramsOmitted3)));
             }
-        } elseif ($stopLossTakeProfit === true) {
+        } elseif ($stopLossTakeProfit) {
             $paramsOmitted2 = $this->omit($paramsSubType, 'stopLossTakeProfit');
             if ($subType === 'inverse') {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCancelProfitStop($this->extend($request, $paramsOmitted2)));
             } else {
                 $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCancelProfitStop($this->extend($request, $paramsOmitted2)));
             }
-        } elseif ($trailing === true) {
+        } elseif ($trailing) {
             $paramsOmitted = $this->omit($paramsSubType, 'trailing');
             if ($subType === 'inverse') {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCancelTrack($this->extend($request, $paramsOmitted)));
@@ -3823,9 +3824,9 @@ class xt extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $paramsMarketType);
         $trigger = $this->safe_bool_2($paramsSubType, 'trigger', 'stop');
-        $stopLossTakeProfit = $this->safe_bool($paramsSubType, 'stopLossTakeProfit');
-        $trailing = $this->safe_bool($paramsSubType, 'trailing');
-        if ($trailing === true) {
+        $stopLossTakeProfit = $this->safe_bool($paramsSubType, 'stopLossTakeProfit', false);
+        $trailing = $this->safe_bool($paramsSubType, 'trailing', false);
+        if ($trailing) {
             $isContract = ($subType !== null) || ($type === 'swap') || ($type === 'future');
             if (!$isContract) {
                 throw new NotSupported($this->id . ' cancelAllOrders() trailing orders are only supported on swap and future markets');
@@ -3838,14 +3839,14 @@ class xt extends Exchange {
             } else {
                 $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCancelAllPlan($this->extend($request, $paramsOmitted3)));
             }
-        } elseif ($stopLossTakeProfit === true) {
+        } elseif ($stopLossTakeProfit) {
             $paramsOmitted2 = $this->omit($paramsSubType, 'stopLossTakeProfit');
             if ($subType === 'inverse') {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCancelAllProfitStop($this->extend($request, $paramsOmitted2)));
             } else {
                 $response = Async\await($this->privateLinearPostFutureTradeV1EntrustCancelAllProfitStop($this->extend($request, $paramsOmitted2)));
             }
-        } elseif ($trailing === true) {
+        } elseif ($trailing) {
             $paramsOmitted = $this->omit($paramsSubType, 'trailing');
             if ($subType === 'inverse') {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCancelAllTrack($this->extend($request, $paramsOmitted)));
@@ -4066,10 +4067,20 @@ class xt extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $this->safe_symbol($marketId, $marketResolved, null, $marketType);
         $timestamp = $this->safe_integer_2($order, 'time', 'createdTime');
-        $quantity = $this->safe_number($order, 'origQty');
-        $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($this->number_to_string($quantity), $this->number_to_string($marketResolved['contractSize']));
-        $filledQuantity = $this->safe_number($order, 'executedQty');
-        $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($marketResolved['contractSize']));
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        $quantity = $this->safe_string($order, 'origQty');
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        $filledQuantity = $this->safe_string_2($order, 'tradeBase', 'executedQty');
+        $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($quantity, $contractSize);
+        $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($filledQuantity, $contractSize);
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        $remaining = null;
+        if ($quantity !== null) {
+            $remaining = $this->safe_string($order, 'leavingQty');
+        }
         $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = null;
@@ -4104,7 +4115,7 @@ class xt extends Exchange {
             'lastTradeTimestamp' => $lastUpdatedTimestamp,
             'lastUpdateTimestamp' => $lastUpdatedTimestamp,
             'symbol' => $symbol,
-            'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
+            'type' => $this->parse_order_type($this->safe_string_lower_n($order, array( 'type', 'orderType', 'entrustType' ))),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
@@ -4114,8 +4125,8 @@ class xt extends Exchange {
             'takeProfitPrice' => $this->safe_number($order, 'triggerProfitPrice'),
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $this->safe_number($order, 'leavingQty'),
-            'cost' => null,
+            'remaining' => $remaining,
+            'cost' => $this->safe_string($order, 'tradeQuote'),
             'average' => $this->safe_number($order, 'avgPrice'),
             'status' => $this->parse_order_status($this->safe_string($order, 'state')),
             'fee' => array(
@@ -4124,6 +4135,17 @@ class xt extends Exchange {
             ),
             'trades' => null,
         ), $marketResolved);
+    }
+
+    public function parse_order_type(?string $type): ?string {
+        $types = array(
+            'stop' => 'limit',
+            'stop_market' => 'market',
+            'take_profit' => 'limit',
+            'take_profit_market' => 'market',
+            'trailing_stop_market' => 'market',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -4472,6 +4494,7 @@ class xt extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
         if ($this->markets === null) {
@@ -4547,7 +4570,7 @@ class xt extends Exchange {
         //         "id": 950898
         //     }
         //
-        $type = (is_array($transaction) && array_key_exists('fromAddr' ?? '', $transaction)) ? 'deposit' : 'withdraw';
+        $type = ($this->safe_string($transaction, 'fromAddr') !== null) ? 'deposit' : 'withdraw';
         $timestamp = $this->safe_integer($transaction, 'createdTime');
         $address = $this->safe_string($transaction, 'address');
         $memo = $this->safe_string($transaction, 'memo');
@@ -4624,7 +4647,7 @@ class xt extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new NotSupported($this->id . ' setLeverage() supports contract markets only');
         }
         $request = array(
@@ -4823,7 +4846,7 @@ class xt extends Exchange {
                     $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
                 }
             } else {
-                $result[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
+                $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
             }
         }
         return $result;
@@ -4950,7 +4973,7 @@ class xt extends Exchange {
             return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'id', 'id', 1, 200));
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
@@ -5020,7 +5043,6 @@ class xt extends Exchange {
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         return Async\await($this->fetch_funding_rate($symbol, $params));
@@ -5044,7 +5066,7 @@ class xt extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -5074,7 +5096,7 @@ class xt extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -5126,7 +5148,7 @@ class xt extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' fetchOpenInterest() supports swap contracts only');
         }
         $request = array(
@@ -5194,7 +5216,7 @@ class xt extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new NotSupported($this->id . ' fetchTradingFee() supports contract markets only');
         }
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchTradingFee', $market, $params);
@@ -5263,7 +5285,7 @@ class xt extends Exchange {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $matchesSubType = ($isInverse) ? $market['inverse'] : $market['linear'];
-            if (($market['contract'] === true) && ($matchesSubType === true)) {
+            if (($this->safe_bool($market, 'contract', false)) && ($matchesSubType === true)) {
                 $result[$symbol] = $this->parse_trading_fee($fee, $market);
             }
         }
@@ -5271,7 +5293,7 @@ class xt extends Exchange {
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $symbol = $this->safe_string($market, 'symbol');
         return array(
             'info' => $fee,
             'symbol' => $symbol,
@@ -5302,7 +5324,7 @@ class xt extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' fetchFundingHistory() supports swap contracts only');
         }
         $request = array(
@@ -5392,8 +5414,7 @@ class xt extends Exchange {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            $key = $this->safe_string($breakEntry, 'symbol') . '_' . $this->safe_string($breakEntry, 'positionSide');
-            $breakBySymbolSide[$key] = $breakEntry;
+            $breakBySymbolSide[$this->safe_string($breakEntry, 'symbol', '') . '_' . $this->safe_string($breakEntry, 'positionSide', '')] = $breakEntry;
         }
         return $breakBySymbolSide;
     }
@@ -5404,9 +5425,7 @@ class xt extends Exchange {
          * @param {array} $entry a single $entry from a position/list response
          * @param {array} $breakBySymbolSide the result of indexPositionBreakList()
          */
-        $marketId = $this->safe_string($entry, 'symbol');
-        $key = $marketId . '_' . $this->safe_string($entry, 'positionSide');
-        $breakEntry = $this->safe_dict($breakBySymbolSide, $key);
+        $breakEntry = $this->safe_dict($breakBySymbolSide, $this->safe_string($entry, 'symbol', '') . '_' . $this->safe_string($entry, 'positionSide', ''));
         if ($breakEntry === null) {
             return $entry;
         }
@@ -5854,7 +5873,7 @@ class xt extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' setMarginMode() supports contract markets only');
         }
         $marginModeLower = strtolower($marginMode);
@@ -5933,7 +5952,7 @@ class xt extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = null;
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             if ($isStopLoss) {
                 $request['triggerStopPrice'] = $this->price_to_precision($symbol, $stopLoss);
             } elseif ($takeProfit !== null) {
@@ -5987,11 +6006,11 @@ class xt extends Exchange {
             //     }
             //
         }
-        $result = ($market['swap'] === true) ? $response : $this->safe_dict($response, 'result', array());
+        $result = ($this->safe_bool($market, 'swap', false)) ? $response : $this->safe_dict($response, 'result', array());
         return $this->parse_order($result, $market);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         //
         // spot: error
         //
@@ -6078,7 +6097,7 @@ class xt extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $payload;
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->extend($this->omit($params, $this->extract_params($path)));
         $urlencoded = $this->urlencode($this->keysort($query));
         $headersValue = array(
             'Content-Type' => 'application/json',
@@ -6086,8 +6105,7 @@ class xt extends Exchange {
         $signedBody = null;
         if ($signed) {
             $this->check_required_credentials();
-            $defaultRecvWindow = $this->safe_string($this->options, 'recvWindow');
-            $recvWindow = $this->safe_string($query, 'recvWindow', $defaultRecvWindow);
+            $recvWindow = $this->safe_string($query, 'recvWindow', $this->safe_string($this->options, 'recvWindow', '5000'));
             $timestamp = $this->number_to_string($this->nonce());
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
                 $id = 'CCXT';
@@ -6101,48 +6119,45 @@ class xt extends Exchange {
             if (($method === 'PUT') && ($endpoint === 'spot')) {
                 $isUndefinedBody = false;
             }
-            $signedBody = $isUndefinedBody ? null : $this->json($query);
-            $payloadString = null;
+            $jsonBody = $this->json($query);
+            $signedBody = $isUndefinedBody ? null : $jsonBody;
+            $payloadString = '';
+            $timestampPart = '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
             if (($endpoint === 'spot') || ($endpoint === 'user')) {
-                $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
+                $spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . $timestampPart;
                 if ($isUndefinedBody) {
                     if ($urlencoded !== '') {
-                        $url .= '?' . $urlencoded;
-                        $payloadString .= '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
+                        $url = $apiUrl . $payload . '?' . $urlencoded;
+                        $payloadString = $spotPrefix . '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
                     } else {
-                        $payloadString .= '#' . $method . '#' . $payload;
+                        $payloadString = $spotPrefix . '#' . $method . '#' . $payload;
                     }
                 } else {
-                    $payloadString .= '#' . $method . '#' . $payload . '#' . $signedBody;
+                    $payloadString = $spotPrefix . '#' . $method . '#' . $payload . '#' . $jsonBody;
                 }
                 $headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 $headersValue['xt-validate-recvwindow'] = $recvWindow;
             } else {
-                $payloadString = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
+                $futurePrefix = 'xt-validate-appkey=' . $this->apiKey . $timestampPart;
                 if ($method === 'GET') {
                     if ($urlencoded !== '') {
-                        $url .= '?' . $urlencoded;
-                        $payloadString .= '#' . $payload . '#' . $urlencoded;
+                        $url = $apiUrl . $payload . '?' . $urlencoded;
+                        $payloadString = $futurePrefix . '#' . $payload . '#' . $urlencoded;
                     } else {
-                        $payloadString .= '#' . $payload;
+                        $payloadString = $futurePrefix . '#' . $payload;
                     }
                 } else {
-                    $payloadString .= '#' . $payload . '#' . $signedBody;
+                    $payloadString = $futurePrefix . '#' . $payload . '#' . $jsonBody;
                 }
             }
-            $signature = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256');
             $headersValue['xt-validate-appkey'] = $this->apiKey;
             $headersValue['xt-validate-timestamp'] = $timestamp;
-            $headersValue['xt-validate-signature'] = $signature;
+            $headersValue['xt-validate-signature'] = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256');
         } else {
             if ($urlencoded !== '') {
-                $url .= '?' . $urlencoded;
+                $url = $apiUrl . $payload . '?' . $urlencoded;
             }
         }
-        $bodyValue = null;
-        if ($signed) {
-            $bodyValue = $signedBody;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
+        return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $headersValue );
     }
 }

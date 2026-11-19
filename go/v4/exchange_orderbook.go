@@ -15,7 +15,8 @@ type OrderBookInterface interface {
 	Limit() OrderBookInterface
 	Update(snapshot any) any
 	Reset(optionalArgs ...any) any
-	GetCache() *any
+	GetCache() []any
+	AppendCache(message any)
 	SetCache(cache any)
 	GetNonce() any
 	GetAsks() IOrderBookSide
@@ -23,6 +24,10 @@ type OrderBookInterface interface {
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
 	Copy() OrderBookInterface
+	SetTimestamp(timestamp *int64)
+	SetDatetime(datetime *string)
+	SetNonce(nonce *int64)
+	SetSymbol(symbol *string)
 }
 
 type WsOrderBook struct {
@@ -202,9 +207,16 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	return this
 }
 
-// Might need if IndexedOrder and CountedOrderBook access the cache
-func (this *WsOrderBook) GetCache() *any {
-	return &this.Cache
+// GetCache returns the buffered deltas; a cache that is not a list reads as an empty (nil) list.
+func (this *WsOrderBook) GetCache() []any {
+	cache, _ := this.Cache.([]any)
+	return cache
+}
+
+// AppendCache buffers a delta like AppendToArray did; a scalar pointer is stored as its value
+// (every reader derefs it), so the cached elements never hold a Go pointer.
+func (this *WsOrderBook) AppendCache(message any) {
+	AppendToArray(&this.Cache, derefScalar(message))
 }
 
 func (this *WsOrderBook) SetCache(cache any) {
@@ -521,6 +533,32 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 	return copy
 }
 
+// field setters: a nil pointer is a no-op, like AddElementToObject on a typed-nil Safe* result
+func (this *WsOrderBook) SetTimestamp(timestamp *int64) {
+	if timestamp != nil {
+		ts := *timestamp
+		this.Timestamp = &ts
+	}
+}
+
+func (this *WsOrderBook) SetDatetime(datetime *string) {
+	if datetime != nil {
+		this.Datetime = *datetime
+	}
+}
+
+func (this *WsOrderBook) SetNonce(nonce *int64) {
+	if nonce != nil {
+		this.Nonce = *nonce
+	}
+}
+
+func (this *WsOrderBook) SetSymbol(symbol *string) {
+	if symbol != nil {
+		this.Symbol = *symbol
+	}
+}
+
 func (this *WsOrderBook) GetNonce() any {
 	return this.Nonce
 }
@@ -549,8 +587,11 @@ func (this *CountedOrderBook) Update(snapshot any) any {
 func (this *CountedOrderBook) Reset(optionalArgs ...any) any {
 	return this.WsOrderBook.Reset(optionalArgs...)
 }
-func (this *CountedOrderBook) GetCache() *any {
+func (this *CountedOrderBook) GetCache() []any {
 	return this.WsOrderBook.GetCache()
+}
+func (this *CountedOrderBook) AppendCache(message any) {
+	this.WsOrderBook.AppendCache(message)
 }
 func (this *CountedOrderBook) SetCache(cache any) {
 	this.WsOrderBook.SetCache(cache)
@@ -567,8 +608,11 @@ func (this *IndexedOrderBook) Update(snapshot any) any {
 func (this *IndexedOrderBook) Reset(optionalArgs ...any) any {
 	return this.WsOrderBook.Reset(optionalArgs...)
 }
-func (this *IndexedOrderBook) GetCache() *any {
+func (this *IndexedOrderBook) GetCache() []any {
 	return this.WsOrderBook.GetCache()
+}
+func (this *IndexedOrderBook) AppendCache(message any) {
+	this.WsOrderBook.AppendCache(message)
 }
 func (this *IndexedOrderBook) SetCache(cache any) {
 	this.WsOrderBook.SetCache(cache)

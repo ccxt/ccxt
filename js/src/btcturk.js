@@ -738,15 +738,16 @@ export default class btcturk extends Exchange {
         else if (since === undefined) {
             limitResolved = 100; // default value
         }
-        if (limitResolved !== undefined) {
+        if ((limit !== undefined) || (since === undefined)) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe(timeframe);
             const limitCount = (limit === undefined) ? 100 : Math.min(limit, 11000);
-            const limitSeconds = seconds * (limitCount - 1);
+            const limitSeconds = this.parseToInt(seconds * (limitCount - 1));
             if (since !== undefined) {
-                const to = this.parseToInt(since / 1000) + limitSeconds;
+                const sinceSeconds = this.parseToInt(since / 1000);
+                const to = sinceSeconds + limitSeconds;
                 if (to < untilSeconds) {
                     request['to'] = to;
                 }
@@ -791,26 +792,30 @@ export default class btcturk extends Exchange {
         //        ]
         //    }
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limitResolved);
-    }
-    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
-        const results = [];
-        const timestamp = this.safeList(ohlcvs, 't', []);
-        const high = this.safeList(ohlcvs, 'h', []);
-        const open = this.safeList(ohlcvs, 'o', []);
-        const low = this.safeList(ohlcvs, 'l', []);
-        const close = this.safeList(ohlcvs, 'c', []);
-        const volume = this.safeList(ohlcvs, 'v', []);
+        const timestamp = this.safeList(response, 't', []);
+        const high = this.safeList(response, 'h', []);
+        const open = this.safeList(response, 'o', []);
+        const low = this.safeList(response, 'l', []);
+        const close = this.safeList(response, 'c', []);
+        const volume = this.safeList(response, 'v', []);
+        const rows = [];
         for (let i = 0; i < timestamp.length; i++) {
-            const ohlcv = {
+            rows.push({
                 'timestamp': this.safeInteger(timestamp, i),
                 'high': this.safeNumber(high, i),
                 'open': this.safeNumber(open, i),
                 'low': this.safeNumber(low, i),
                 'close': this.safeNumber(close, i),
                 'volume': this.safeNumber(volume, i),
-            };
-            results.push(this.parseOHLCV(ohlcv, market));
+            });
+        }
+        return this.parseOHLCVs(rows, market, timeframe, since, limitResolved);
+    }
+    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
+        const rows = this.toArray(ohlcvs);
+        const results = [];
+        for (let i = 0; i < rows.length; i++) {
+            results.push(this.parseOHLCV(this.safeDict(rows, i, {}), market));
         }
         const sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
@@ -1093,8 +1098,9 @@ export default class btcturk extends Exchange {
         let url = apiUrl + '/' + path;
         const isQueryMethod = (method === 'GET') || (method === 'DELETE');
         if (isQueryMethod) {
-            if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+            const query = this.urlencode(params);
+            if (query.length > 0) {
+                url += '?' + query;
             }
         }
         let requestBody = undefined;
@@ -1117,19 +1123,18 @@ export default class btcturk extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = privateHeaders;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code', '0');
         const message = this.safeString(response, 'message');
-        let output = message;
-        if (message === undefined) {
-            output = body;
+        let feedback = this.id + ' ' + body;
+        if (message !== undefined) {
+            feedback = this.id + ' ' + message;
         }
-        this.throwExactlyMatchedException(this.exceptions['exact'], message, this.id + ' ' + output);
+        this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
-            throw new ExchangeError(this.id + ' ' + output);
+            throw new ExchangeError(feedback);
         }
         return undefined;
     }

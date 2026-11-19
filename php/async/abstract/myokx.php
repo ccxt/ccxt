@@ -358,6 +358,12 @@ abstract class myokx extends \ccxt\async\okx {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_public_corporate_actions($params = array()) {
+        return $this->request('public/corporate-actions', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_rubik_stat_trading_data_support_coin($params = array()) {
         return $this->request('rubik/stat/trading-data/support-coin', array('public'), 'GET', $params, array("cost" => 4));
     }
@@ -3174,6 +3180,12 @@ abstract class myokx extends \ccxt\async\okx {
      */
     public function publicGetPublicDeltaHedgeCurrencies($params = array()) {
         return $this->request('public/delta-hedge-currencies', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetPublicCorporateActions($params = array()) {
+        return $this->request('public/corporate-actions', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

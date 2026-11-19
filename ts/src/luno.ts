@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint } from './base/types.js';
+import type { Dictionary, Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict, List, DepositWithdrawFee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Marke
  * @augments Exchange
  */
 export default class luno extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'luno',
             'name': 'Luno',
@@ -483,7 +483,7 @@ export default class luno extends Exchange {
     }
 
     override parseCurrency (rawCurrency: Dict[]): CurrencyInterface {
-        const id = this.safeString (rawCurrency[0], 'native_currency'); // first item is guaranteed
+        const id = this.safeString (this.safeDict (rawCurrency, 0), 'native_currency'); // first item is guaranteed
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
         for (let i = 0; i < rawCurrency.length; i++) {
@@ -688,7 +688,7 @@ export default class luno extends Exchange {
         return result;
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const wallets: Dict[] = this.safeList (response, 'balance', []);
         const result: Dict = {
             'info': response,
@@ -705,8 +705,10 @@ export default class luno extends Exchange {
             const reservedUnconfirmed = Precise.stringAdd (reserved, unconfirmed);
             const balanceUnconfirmed = Precise.stringAdd (balance, unconfirmed);
             if ((code !== undefined) && (code in result)) {
-                result[code]['used'] = Precise.stringAdd (result[code]['used'], reservedUnconfirmed);
-                result[code]['total'] = Precise.stringAdd (result[code]['total'], balanceUnconfirmed);
+                result[code] = this.extend (result[code], {
+                    'used': Precise.stringAdd (this.safeString (result[code], 'used'), reservedUnconfirmed),
+                    'total': Precise.stringAdd (this.safeString (result[code], 'total'), balanceUnconfirmed),
+                });
             } else if (code !== undefined) {
                 const account = this.account ();
                 account['used'] = reservedUnconfirmed;
@@ -799,8 +801,7 @@ export default class luno extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (order, 'creation_timestamp');
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        status = (status === 'open') ? status : status;
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side: Str = undefined;
         const orderType = this.safeString (order, 'type');
         if ((orderType === 'ASK') || (orderType === 'SELL')) {
@@ -992,7 +993,7 @@ export default class luno extends Exchange {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         const rawTickers = this.safeList (response, 'tickers', []);
-        const tickers = this.indexBy (rawTickers, 'pair');
+        const tickers: Dictionary<Dict> = this.indexBy (rawTickers, 'pair');
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1364,9 +1365,10 @@ export default class luno extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' createOrder() returned empty response');
         }
+        const orderId = this.safeString (response, 'order_id');
         return this.safeOrder ({
             'info': response,
-            'id': response['order_id'],
+            'id': orderId,
         }, market);
     }
 
@@ -1402,12 +1404,11 @@ export default class luno extends Exchange {
         // by default without entry number or limit number, return most recent entry
         const entryValue = (entry === undefined) ? -1 : entry;
         const limitValue = (limit === undefined) ? 1 : limit;
-        const since = undefined;
         const request: Dict = {
             'min_row': entryValue,
             'max_row': this.sum (entryValue, limitValue),
         };
-        return await this.fetchLedger (code, since, limitValue, this.extend (request, params));
+        return await this.fetchLedger (code, undefined, limitValue, this.extend (request, params));
     }
 
     /**
@@ -1449,7 +1450,10 @@ export default class luno extends Exchange {
         const minRowBase = this.safeInteger (params, 'min_row', -1000); // Maximum number of records supported
         const limitApplies = (limit !== undefined) && (maxRowBase - minRowBase > limit);
         const min_row = (limitApplies && (limit !== undefined) && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
-        const max_row = (limitApplies && maxRowBase > 0 && minRowBase > 0) ? minRowBase + limit : maxRowBase;
+        let max_row: Int = maxRowBase;
+        if (limitApplies && maxRowBase > 0 && minRowBase > 0) {
+            max_row = minRowBase + limit;
+        }
         const limitAdjusts = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
         if ((limitAdjusts && limit > 1000) || (!limitAdjusts && maxRowBase - minRowBase > 1000)) {
             throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
@@ -1464,7 +1468,7 @@ export default class luno extends Exchange {
         return this.parseLedger (entries, currency, since, limit);
     }
 
-    parseLedgerComment (comment: any) {
+    parseLedgerComment (comment: string): Dict {
         const words = comment.split (' ');
         const types: Dict = {
             'Withdrawal': 'fee',
@@ -1507,12 +1511,12 @@ export default class luno extends Exchange {
         const available_delta = this.safeString (entry, 'available_delta');
         const balance_delta = this.safeString (entry, 'balance_delta');
         const after = this.safeString (entry, 'balance');
-        const comment = this.safeString (entry, 'description');
+        const comment = this.safeString (entry, 'description', '');
         let before = after;
         let amount: Str = '0.0';
         const result = this.parseLedgerComment (comment);
-        const type = result['type'];
-        const referenceId = result['referenceId'];
+        const resultType = this.safeString (result, 'type');
+        const resultReferenceId = this.safeString (result, 'referenceId');
         let direction: Str = undefined;
         let status: Str = undefined;
         if (!Precise.stringEquals (balance_delta, '0.0')) {
@@ -1536,9 +1540,9 @@ export default class luno extends Exchange {
             'id': id,
             'direction': direction,
             'account': account_id,
-            'referenceId': referenceId,
+            'referenceId': resultReferenceId,
             'referenceAccount': undefined,
-            'type': type,
+            'type': resultType,
             'currency': code,
             'amount': this.parseToNumeric (amount),
             'timestamp': timestamp,
@@ -1697,8 +1701,10 @@ export default class luno extends Exchange {
         //     }
         //
         const result = this.depositWithdrawFee (response);
-        result['withdraw']['fee'] = this.safeNumber (response, 'fee');
-        result['withdraw']['percentage'] = false;
+        result['withdraw'] = {
+            'fee': this.safeNumber (response, 'fee'),
+            'percentage': false,
+        };
         return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
@@ -1725,11 +1731,11 @@ export default class luno extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
-        const error = this.safeValue (response, 'error');
+        const error = this.safeString (response, 'error');
         if (error !== undefined) {
             const feedback = this.id + ' ' + this.json (response);
             const errorCode = this.safeString (response, 'error_code');

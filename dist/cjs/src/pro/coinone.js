@@ -312,7 +312,7 @@ class coinone extends coinone$1["default"] {
         //
         const data = this.safeDict(message, 'data', {});
         const trade = this.parseWsTrade(data);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString(trade, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -406,7 +406,7 @@ class coinone extends coinone$1["default"] {
             const keys = Object.keys(methods);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                if (topic.indexOf(keys[i]) >= 0) {
+                if (topic.indexOf(key) >= 0) {
                     const method = methods[key];
                     method.call(this, client, message);
                     return;

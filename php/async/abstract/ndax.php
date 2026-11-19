@@ -272,7 +272,7 @@ abstract class ndax extends \ccxt\async\Exchange {
         return $this->request('GetAccountInfo', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_getaccountpositions($params = array()) {
         return $this->request('GetAccountPositions', array('private'), 'GET', $params, array("cost" => 1));
@@ -896,7 +896,7 @@ abstract class ndax extends \ccxt\async\Exchange {
         return $this->request('GetAccountInfo', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetGetAccountPositions($params = array()) {
         return $this->request('GetAccountPositions', array('private'), 'GET', $params, array("cost" => 1));

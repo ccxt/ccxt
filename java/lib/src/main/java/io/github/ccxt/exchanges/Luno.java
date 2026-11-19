@@ -37,7 +37,7 @@ public class Luno extends LunoApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "luno" );
@@ -540,9 +540,9 @@ public class Luno extends LunoApi
             //         ]
             //     }
             //
-            List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> grouped = this.groupBy(currenciesData, "native_currency");
-            Object values = new ArrayList<Object>(grouped.values());
+            List<Object> values = new ArrayList<Object>(grouped.values());
             return this.parseCurrencies(values);
         });
 
@@ -550,12 +550,12 @@ public class Luno extends LunoApi
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
-        String id = this.safeString((rawCurrency == null || 0 >= ((List<?>)rawCurrency).size() ? null : ((List<?>)rawCurrency).get(0)), "native_currency"); // first item is guaranteed
+        String id = this.safeString(this.safeDict(rawCurrency, 0, null), "native_currency"); // first item is guaranteed
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawCurrency).size(); i++)
         {
-            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawCurrency, i, (Object) null);
+            Map<String, Object> networkEntry = this.safeDict(rawCurrency, i, null);
             String networkId = this.safeString(networkEntry, "name");
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -641,8 +641,8 @@ public class Luno extends LunoApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            List<Object> markets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            List<Object> markets = this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market_id");
@@ -685,37 +685,37 @@ public class Luno extends LunoApi
                     taker = this.parseNumber("0.001");
                     maker = this.parseNumber("0.0008");
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("taker", taker);
-                    j39v1.put("maker", maker);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", (java.util.Objects.equals(status, "ACTIVE")));
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("taker", taker);
+                j39v1.put("maker", maker);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", (java.util.Objects.equals(status, "ACTIVE")));
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Luno.this.parseNumber(Luno.this.parsePrecision(Luno.this.safeString(market, "volume_scale"))) );
                         put( "price", Luno.this.parseNumber(Luno.this.parsePrecision(Luno.this.safeString(market, "price_scale"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -733,9 +733,9 @@ public class Luno extends LunoApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -756,9 +756,9 @@ public class Luno extends LunoApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.privateGetBalance(parameters)).join();
-            List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
+            List<Object> wallets = this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)wallets).size(); i++)
+            for (var i = 0; i < wallets.size(); i++)
             {
                 Object account = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
                 String accountId = this.safeString(account, "account_id");
@@ -776,17 +776,17 @@ public class Luno extends LunoApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
-        List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
+        List<Object> wallets = this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < ((List<?>)wallets).size(); i++)
+        for (var i = 0; i < wallets.size(); i++)
         {
-            Map<String, Object> wallet = (Map<String, Object>) this.safeDict(wallets, i, (Object) null);
+            Map<String, Object> wallet = this.safeDict(wallets, i, null);
             String currencyId = this.safeString(wallet, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String reserved = this.safeString(wallet, "reserved");
@@ -796,8 +796,10 @@ public class Luno extends LunoApi
             String balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if ((!java.util.Objects.equals(code, null)) && (result.containsKey(code)))
             {
-                Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "used", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
-                Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "total", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
+                result.put(code, this.extend((result == null || code == null ? null : result.get(code)), (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("used", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
+                    j39v2.put("total", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
+                    yield j39v2; } })));
             } else if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> account = this.account();
@@ -909,7 +911,6 @@ public class Luno extends LunoApi
         //
         Long timestamp = this.safeInteger(order, "creation_timestamp");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
-        status = (((java.util.Objects.equals(status, "open")))) ? status : status;
         String side = null;
         String orderType = this.safeString(order, "type");
         if ((java.util.Objects.equals(orderType, "ASK")) || (java.util.Objects.equals(orderType, "SELL")))
@@ -1020,7 +1021,7 @@ public class Luno extends LunoApi
                 request.put("pair", market.get("id"));
             }
             Map<String, Object> response = (this.privateGetListorders(this.extend(request, parameters))).join();
-            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
@@ -1148,11 +1149,11 @@ public class Luno extends LunoApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            List<Object> rawTickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> tickers = this.indexBy(rawTickers, "pair");
             List<String> ids = new ArrayList<String>(tickers.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
@@ -1346,7 +1347,7 @@ public class Luno extends LunoApi
             //          ]
             //      }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1403,7 +1404,7 @@ public class Luno extends LunoApi
             //          "pair": "XBTEUR"
             //     }
             //
-            List<Object> ohlcvs = (List<Object>) this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1480,7 +1481,7 @@ public class Luno extends LunoApi
             //          ]
             //      }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1580,9 +1581,10 @@ public class Luno extends LunoApi
             {
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
+            String orderId = this.safeString(response, "order_id");
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
             mapLiteral5.put("info", response);
-            mapLiteral5.put("id", response.get("order_id"));
+            mapLiteral5.put("id", orderId);
             return this.safeOrder(mapLiteral5, market);
         }).thenApply(Order::new);
 
@@ -1630,8 +1632,7 @@ public class Luno extends LunoApi
 
             // by default without entry number or limit number, return most recent entry
             Object entryValue = (((java.util.Objects.equals(entry, null)))) ? -1 : entry;
-            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 1L : limit;
-            List<String> since = null;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 1 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "min_row", entryValue );
                 put( "max_row", Luno.this.sum(entryValue, limitValue) );
@@ -1674,7 +1675,7 @@ public class Luno extends LunoApi
                 }
                 currency = this.currency((String) (code));
                 Map<String,Object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
-                Map<String, Object> account = (Map<String, Object>) this.safeDict(accountsByCurrencyCode, code, (Object) null);
+                Map<String, Object> account = this.safeDict(accountsByCurrencyCode, code, null);
                 if (java.util.Objects.equals(account, null))
                 {
                     throw new ExchangeError(((this.id + " fetchLedger() could not find account id for ") + code)) ;
@@ -1688,8 +1689,12 @@ public class Luno extends LunoApi
             Long maxRowBase = this.safeInteger(parameters, "max_row", 0); // Default to most recent transactions
             Long minRowBase = this.safeInteger(parameters, "min_row", -1000); // Maximum number of records supported
             Boolean limitApplies = (!java.util.Objects.equals(limit, null)) && (((maxRowBase - minRowBase) > limit));
-            Object min_row = (((Boolean.TRUE.equals(limitApplies) && (!java.util.Objects.equals(limit, null)) && (maxRowBase == null || maxRowBase <= 0)))) ? (maxRowBase - limit) : minRowBase;
-            Object max_row = (((Boolean.TRUE.equals(limitApplies) && (maxRowBase != null && maxRowBase > 0) && (minRowBase != null && minRowBase > 0)))) ? ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(minRowBase, limit) : maxRowBase;
+            Long min_row = (((Boolean.TRUE.equals(limitApplies) && (!java.util.Objects.equals(limit, null)) && (maxRowBase == null || maxRowBase <= 0)))) ? (maxRowBase - limit) : minRowBase;
+            Long max_row = maxRowBase;
+            if (Boolean.TRUE.equals(limitApplies) && (maxRowBase != null && maxRowBase > 0) && (minRowBase != null && minRowBase > 0))
+            {
+                max_row = (Long) ((minRowBase == null || limit == null) ? null : (minRowBase + limit));
+            }
             Boolean limitAdjusts = Boolean.TRUE.equals(limitApplies) && ((maxRowBase == null || maxRowBase <= 0) || (minRowBase != null && minRowBase > 0)); // max_row - min_row becomes limit
             if ((Boolean.TRUE.equals(limitAdjusts) && (limit != null && limit > 1000)) || (!Boolean.TRUE.equals(limitAdjusts) && (maxRowBase - minRowBase) > 1000))
             {
@@ -1700,15 +1705,15 @@ public class Luno extends LunoApi
             request.put("min_row", min_row);
             request.put("max_row", max_row);
             Map<String, Object> response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
-            List<Object> entries = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> entries = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(entries, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseLedgerComment(Object comment)
+    public Map<String, Object> parseLedgerComment(String comment)
     {
-        List<Object> words = (List<Object>) Helpers.split(comment, " ");
+        List<Object> words = new ArrayList<Object>(Arrays.asList(((String)comment).split(java.util.regex.Pattern.quote(" "))));
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Withdrawal", "fee" );
             put( "Trading", "fee" );
@@ -1755,12 +1760,12 @@ public class Luno extends LunoApi
         String available_delta = this.safeString(entry, "available_delta");
         String balance_delta = this.safeString(entry, "balance_delta");
         String after = this.safeString(entry, "balance");
-        String comment = this.safeString(entry, "description");
+        String comment = this.safeString(entry, "description", "");
         String before = after;
         String amount = "0.0";
-        Map<String, Object> result = (Map<String, Object>) this.parseLedgerComment(comment);
-        Object type = result.get("type");
-        Object referenceId = result.get("referenceId");
+        Map<String, Object> result = this.parseLedgerComment(comment);
+        String resultType = this.safeString(result, "type");
+        String resultReferenceId = this.safeString(result, "referenceId");
         String direction = null;
         String status = null;
         if (!Precise.stringEquals(balance_delta, "0.0"))
@@ -1789,9 +1794,9 @@ public class Luno extends LunoApi
         mapLiteral6.put("id", id);
         mapLiteral6.put("direction", direction);
         mapLiteral6.put("account", account_id);
-        mapLiteral6.put("referenceId", referenceId);
+        mapLiteral6.put("referenceId", resultReferenceId);
         mapLiteral6.put("referenceAccount", null);
-        mapLiteral6.put("type", type);
+        mapLiteral6.put("type", resultType);
         mapLiteral6.put("currency", code);
         mapLiteral6.put("amount", this.parseToNumeric(amount));
         mapLiteral6.put("timestamp", timestamp);
@@ -1849,7 +1854,7 @@ public class Luno extends LunoApi
             //         "total_unconfirmed": "string"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1899,7 +1904,7 @@ public class Luno extends LunoApi
             //         "total_unconfirmed": "string"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1970,8 +1975,10 @@ public class Luno extends LunoApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(response);
-            Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(response, "fee", (Object) null));
-            Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
+            result.put("withdraw", new HashMap<String, Object>() {{
+        put( "fee", Luno.this.safeNumber(response, "fee", (Object) null) );
+        put( "percentage", false );
+    }});
             return this.assignDefaultDepositWithdrawFees(result, currency);
         }).thenApply(DepositWithdrawFee::new);
 
@@ -1979,16 +1986,16 @@ public class Luno extends LunoApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
         Map<String, Object> requestHeaders = null;
-        if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+        if (query.size() > 0)
         {
             url = (url + ("?" + this.urlencode(query)));
         }
@@ -2011,18 +2018,18 @@ public class Luno extends LunoApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;
         }
-        Object error = this.safeValue(response, "error");
+        String error = this.safeString(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
             String feedback = ((this.id + " ") + this.json(response));
             String errorCode = this.safeString(response, "error_code");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

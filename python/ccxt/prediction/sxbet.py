@@ -7,7 +7,7 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.sxbet import ImplicitAPI
 import json
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Any, Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionSettlement
+from ccxt.base.types import Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionSettlement
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class sxbet(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(sxbet, self).describe(), {
             'id': 'sxbet',
             'name': 'SX Bet',
@@ -241,7 +241,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             return self.array_slice(markets, 0, userLimit)
         return markets
 
-    async def fetch_raw_markets_paged(self, extra: dict = {}, userLimit: Int = None) -> list[object]:
+    async def fetch_raw_markets_paged(self, extra: dict = {}, userLimit: Int = None) -> list[dict]:
         """
  @ignore
         pages through GET /markets/active(cursor-based via paginationKey/nextKey), stopping once options.maxMarketsPages pages or userLimit raw markets have been collected
@@ -254,7 +254,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         rawMarkets = []
         collectCap = self.safe_integer({'limit': userLimit}, 'limit')
         paginationKey = None
-        page = self.parse_to_int(0)
+        page = 0
         while(True):
             request = {'pageSize': pageSize}
             if paginationKey is not None:
@@ -266,13 +266,13 @@ class sxbet(PredictionExchange, ImplicitAPI):
             for i in range(0, pageMarketsLength):
                 rawMarkets.append(pageMarkets[i])
             paginationKey = self.safe_string(result, 'nextKey')
-            page = self.parse_to_int(page + 1)
+            page = page + 1
             collectedLength = self.parse_to_int(len(rawMarkets))
             if (pageMarketsLength < pageSize) or (page >= maxPages) or (paginationKey is None) or ((collectCap is not None) and (collectedLength >= collectCap)):
                 break
         return rawMarkets
 
-    def filter_raw_markets_by_fixture(self, rawMarkets: list[object], sportXeventId: str) -> list[object]:
+    def filter_raw_markets_by_fixture(self, rawMarkets: list[dict], sportXeventId: str) -> list[dict]:
         """
  @ignore
         keeps only the raw markets belonging to one fixture — the venue's own sportXeventId filter on /markets/active is unreliable (observed live returning every fixture), so the scope is enforced client-side
@@ -436,7 +436,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         for i in range(0, tagsLength):
             queries.append(tags[i])
         rest = self.omit(params, ['eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit'])
-        rawMarkets: list[Any]
+        rawMarkets: list[dict]
         if eventId is not None:
             rawMarkets = await self.fetch_raw_markets_paged(self.extend({'sportXeventId': eventId}, rest), None)
             # the venue's sportXeventId filter on /markets/active is unreliable (observed live
@@ -539,7 +539,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                     return True
         return False
 
-    def parse_event(self, fixtureId: str, rawMarkets: list[object]) -> PredictionEvent:
+    def parse_event(self, fixtureId: str, rawMarkets: list[dict]) -> PredictionEvent:
         """
  @ignore
         groups a fixture's raw markets (all sharing one sportXeventId) into one unified event structure
@@ -560,7 +560,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             if parsed is None:
                 raise ExchangeError(self.id + ' parseEvent() could not resolve parsed market')
             marketsList.append(parsed)
-            if parsed['active'] is True:
+            if self.safe_bool(parsed, 'active', False):
                 anyActive = True
             if teamOneName is None:
                 teamOneName = self.safe_string(raw, 'teamOneName')
@@ -686,7 +686,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         digits = '0123456789abcdef'
         lowerHex = hex.lower()
         hexLength = len(lowerHex)
-        result = self.parse_to_int(0)
+        result = 0
         for i in range(0, hexLength):
             ch = lowerHex[i]
             digitValue = self.parse_to_int(digits.find(ch))
@@ -1625,7 +1625,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(settlement, 'settleDate'))
         settlePrice = None
         if won is not None:
-            settlePrice = 1 if (won is True) else 0
+            settlePrice = 1 if won else 0
         return {
             'info': trade,
             'id': self.safe_string(trade, 'tradeId'),
@@ -1677,7 +1677,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         raw = self.parse_sxbet_snapshot_best_odds(snapshot)
         return self.parse_prediction_ticker(raw, outcomeObj)
 
-    async def fetch_sxbet_best_odds(self, marketHashes: list[str], params: dict = {}) -> list[object]:
+    async def fetch_sxbet_best_odds(self, marketHashes: list[str], params: dict = {}) -> list[dict]:
         """
  @ignore
         fetches the best resting level of both sides for a set of markets in one request
@@ -1805,8 +1805,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         #     }
         #
-        marketAny = market
-        outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
+        outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
         outcomeId = self.safe_string(outcomeObj, 'outcomeId')
         marketHash = self.safe_string(raw, 'marketHash')
         isOutcomeOne = (outcomeId == marketHash)
@@ -1933,7 +1932,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'asks': self.sort_by(asks, 0),
         }
 
-    def request_id(self, url: Str) -> float:
+    def set_ws_option(self, group: str, key: str, value: Str | dict):
+        entry = {}
+        entry[key] = value
+        self.options[group] = self.extend(self.safe_dict(self.options, group, {}), entry)
+
+    def request_id(self, url: Str) -> int:
         existing = self.safe_value(self.options, 'requestId')
         if existing is None:
             self.options['requestId'] = self.create_safe_dictionary()
@@ -1952,11 +1956,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :param str messageHash: the future hash the caller awaits
         :param str subscription: the subscription hash registered by watch()('connect' or the channel name)
         """
-        existing = self.safe_dict(self.options, 'wsPendingRequests')
-        if existing is None:
-            self.options['wsPendingRequests'] = self.create_safe_dictionary()
         requestIdString = self.number_to_string(requestId)
-        self.options['wsPendingRequests'][requestIdString] = {'messageHash': messageHash, 'subscription': subscription}
+        self.set_ws_option('wsPendingRequests', requestIdString, {'messageHash': messageHash, 'subscription': subscription})
 
     async def fetch_sxbet_realtime_token(self) -> Str:
         """
@@ -2005,18 +2006,18 @@ class sxbet(PredictionExchange, ImplicitAPI):
         subscribeMsg = {'subscribe': {'channel': channel}, 'id': requestId}
         return await self.watch(url, messageHash, subscribeMsg, channel)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_text_message(self, client: Client, message: str):
+        lines = message.split('\n')
+        linesLength = len(lines)
+        for i in range(0, linesLength):
+            line = lines[i]
+            if len(line) > 0:
+                parsed = json.loads(line)
+                self.handle_centrifugo_frame(client, parsed)
+
+    def handle_message(self, client: Client, message: dict):
         # Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         # base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if isinstance(message, str):
-            lines = message.split('\n')
-            linesLength = len(lines)
-            for i in range(0, linesLength):
-                line = lines[i]
-                if len(line) > 0:
-                    parsed = json.loads(line)
-                    self.handle_centrifugo_frame(client, parsed)
-            return
         self.handle_centrifugo_frame(client, message)
 
     def handle_centrifugo_frame(self, client: Client, msg: dict):
@@ -2101,8 +2102,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
-        sym = self.safe_string(outcomeObj, 'outcome')
-        marketHash = self.safe_string(outcomeObj['info'], 'marketHash')
+        sym = self.safe_string(outcomeObj, 'outcome', '')
+        marketHash = self.safe_string(outcomeObj['info'], 'marketHash', '')
         channel = 'orderbook_v3:' + marketHash
         messageHash = 'orderbook::' + sym
         url = self.safe_string(self.urls['api'], 'ws')
@@ -2111,10 +2112,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         isNewSubscription = self.safe_value(client.subscriptions, channel) is None
         if self.safe_value(self.orderbooks, sym) is None:
             # seed from the REST snapshot so the book is served before the first publication
-            watchedBooks = self.safe_dict(self.options, 'wsWatchedBooks')
-            if watchedBooks is None:
-                self.options['wsWatchedBooks'] = self.create_safe_dictionary()
-            self.options['wsWatchedBooks'][sym] = marketHash
+            self.set_ws_option('wsWatchedBooks', sym, marketHash)
             snapshot = await self.fetch_sxbet_book_snapshot(marketHash)
             self.apply_sxbet_ws_snapshot(snapshot)
             if self.safe_value(self.orderbooks, sym) is None:
@@ -2142,14 +2140,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         refreshed = []
         if marketHash is None:
             return refreshed
-        versionsAll = self.safe_dict(self.options, 'wsBookVersions')
-        if versionsAll is None:
-            self.options['wsBookVersions'] = self.create_safe_dictionary()
-        held = self.safe_string(self.options['wsBookVersions'], marketHash, '')
+        held = self.safe_string(self.safe_dict(self.options, 'wsBookVersions', {}), marketHash, '')
         # versions are fixed-width numeric strings - replace only on a strictly newer publication
         if (held != '') and (version <= held):
             return refreshed
-        self.options['wsBookVersions'][marketHash] = version
+        self.set_ws_option('wsBookVersions', marketHash, version)
         watchedBooks = self.safe_dict(self.options, 'wsWatchedBooks', {})
         watchedSyms = list(watchedBooks.keys())
         timestamp = self.milliseconds()
@@ -2206,33 +2201,30 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
-        sym = self.safe_string(outcomeObj, 'outcome')
+        sym = self.safe_string(outcomeObj, 'outcome', '')
         marketHash = self.safe_string(outcomeObj['info'], 'marketHash')
         messageHash = 'ticker::' + sym
-        watchedTickers = self.safe_dict(self.options, 'wsWatchedTickers')
-        if watchedTickers is None:
-            self.options['wsWatchedTickers'] = self.create_safe_dictionary()
-        self.options['wsWatchedTickers'][sym] = marketHash
+        self.set_ws_option('wsWatchedTickers', sym, marketHash)
         url = self.safe_string(self.urls['api'], 'ws')
         await self.connect_sxbet_centrifugo(url)
         client = self.client(url)
         channel = 'best_odds_v3:global'
         hydrated = False
-        if self.safe_value(self.tickers, sym) is None:
+        if self.safe_dict(self.safe_dict(self.options, 'wsTickers', {}), sym) is None:
             # hydrate from the REST snapshot so the first call does not hang until the
             # market's next top-of-book change - the channel is global, so the seed must fire
             # for every newly watched market, not only on a fresh subscription
             snapshot = await self.fetch_sxbet_book_snapshot(marketHash)
             raw = self.parse_sxbet_snapshot_best_odds(snapshot)
             ticker = self.parse_prediction_ticker(raw, outcomeObj)
-            self.tickers[sym] = ticker
+            self.set_ws_option('wsTickers', sym, ticker)
             hydrated = True
         requestId = self.request_id(url)
         self.register_sxbet_ws_request(requestId, messageHash, channel)
         subscribeMsg = {'subscribe': {'channel': channel}, 'id': requestId}
         future = self.watch(url, messageHash, subscribeMsg, channel)
         if hydrated:
-            client.resolve(self.safe_value(self.tickers, sym), messageHash)
+            client.resolve(self.safe_dict(self.safe_dict(self.options, 'wsTickers', {}), sym), messageHash)
         tickerResult = await future
         return tickerResult
 
@@ -2268,7 +2260,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                     continue
                 outcomeObj = self.outcome(sym)
                 ticker = self.parse_prediction_ticker(raw, outcomeObj)
-                self.tickers[sym] = ticker
+                self.set_ws_option('wsTickers', sym, ticker)
                 client.resolve(ticker, 'ticker::' + sym)
 
     async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
@@ -2285,7 +2277,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
-        sym = self.safe_string(outcomeObj, 'outcome')
+        sym = self.safe_string(outcomeObj, 'outcome', '')
         messageHash = 'trades::' + sym
         trades = await self.subscribe_sxbet_channel(messageHash, 'recent_trades_v3:global')
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -2373,7 +2365,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
-            sym = self.safe_string(outcomeObj, 'outcome')
+            sym = self.safe_string(outcomeObj, 'outcome', '')
             messageHash = 'myTrades::' + sym
         channel = 'account:fills_v3_#' + self.walletAddress
         trades = await self.subscribe_sxbet_channel(messageHash, channel)
@@ -2417,7 +2409,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
-            sym = self.safe_string(outcomeObj, 'outcome')
+            sym = self.safe_string(outcomeObj, 'outcome', '')
             messageHash = 'orders::' + sym
         channel = 'account:orders_v3_#' + self.walletAddress
         orders = await self.subscribe_sxbet_channel(messageHash, channel)
@@ -2442,7 +2434,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             if sym is not None:
                 client.resolve(stored, 'orders::' + sym)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         # map the known codes to ccxt errors so callers can distinguish a rejected order or a
         # validation problem from a transport outage (the base otherwise maps a bare 4xx to the
@@ -2478,7 +2470,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :returns dict: a dict with url, method, body and headers
         """
         apiGroup = api[0]
-        accessLevel = self.safe_string(api, 1, 'public')
+        accessLevel = api[1]
         if (accessLevel == 'private') and (self.apiKey is None):
             raise AuthenticationError(self.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)')
         baseUrls = self.urls['api']
@@ -2496,16 +2488,13 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         sendAsQuery = (method == 'GET')
         if method == 'DELETE':
-            hasOrdersList = ('orders' in query)
-            sendAsQuery = not hasOrdersList
+            sendAsQuery = not ('orders' in query)
         bodyValue = None
         if sendAsQuery:
             querystring = self.urlencode(query)
             if querystring != '':
                 url += '?' + querystring
         else:
-            queryKeys = list(query.keys())
-            queryKeysLength = len(queryKeys)
-            if queryKeysLength > 0:
+            if len(query) > 0:
                 bodyValue = self.json(query)
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended}

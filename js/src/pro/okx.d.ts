@@ -1,10 +1,10 @@
 import okxRest from '../okx.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool, Market } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class okx extends okxRest {
-    describe(): any;
-    getUrl(channel: Str, access?: string): string;
+    describe(): Dict;
+    getUrl(channel: string, access?: string): string;
     subscribeMultiple(access: string, channel: string, symbols?: Strings, params?: Dict): Promise<any>;
     subscribe(access: string, messageHash: string, channel: string, symbol: Str, params?: Dict): Promise<any>;
     /**
@@ -52,7 +52,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -96,7 +96,7 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name okx#watchTickers
@@ -207,7 +207,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name okx#watchOHLCVForSymbols
@@ -278,7 +278,7 @@ export default class okx extends okxRest {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook, messageHash: string, market?: Market): WsOrderBook;
@@ -341,7 +341,7 @@ export default class okx extends okxRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrders(client: Client, message: Dict): void;
     handleMyTrades(client: Client, message: Dict): void;
-    requestId(): string;
+    requestId(): int;
     /**
      * @method
      * @name okx#createOrderWs
@@ -414,7 +414,8 @@ export default class okx extends okxRest {
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     handleUnSubscriptionTrades(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOrderBook(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOHLCV(client: Client, symbol: string, channel: string): void;

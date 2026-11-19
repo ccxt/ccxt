@@ -14,20 +14,20 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchMyTrades extends BaseTest {
-    public CompletableFuture<Object> testFetchMyTrades(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchMyTrades(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMyTrades";
-        Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMyTrades", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMyTrades", new Object[]{symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, trades, symbol);
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            TestTrade.testTrade(exchange, skippedProperties, method, (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), symbol, now, false);
+            TestTrade.testTrade(exchange, skippedProperties, method, (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), (String) (symbol), now, false);
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), trades);
         return true;
         });
 

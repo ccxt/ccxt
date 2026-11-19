@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class kalshi(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(kalshi, self).describe(), {
             'id': 'kalshi',
             'name': 'Kalshi',
@@ -270,11 +270,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_binary_market_to_outcomes(raw)
                 eventTicker = self.safe_string(raw, 'event_ticker')
                 eventTitle = self.safe_string(raw, 'title', eventTicker)
-                eventKey = self.shorten_slug(eventTitle) if (eventTitle is not None and eventTitle != '') else ''
                 for j in range(0, len(parsed)):
                     m = parsed[j]
                     flatMarkets.append(m)
-                    if eventKey != '':
+                    if eventTitle is not None and eventTitle != '':
+                        eventKey = self.shorten_slug(eventTitle)
                         if not (eventKey in eventsDict):
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -381,7 +381,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         tickers = []
         seen = {}
-        for i in range(0, len(outcomeSymbols)):
+        outcomeSymbolsLength = len(outcomeSymbols)
+        for i in range(0, outcomeSymbolsLength):
             outcomeSymbol = outcomeSymbols[i]
             if outcomeSymbol.find(':') >= 0:
                 continue
@@ -416,12 +417,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     raise ExchangeError(self.id + ' fetchOutcomes() could not resolve parsed')
                 self.markets[parsed['market']] = parsed
                 self.index_market_outcomes(parsed)
-        for i in range(0, len(outcomeSymbols)):
+        for i in range(0, outcomeSymbolsLength):
             if not self.has_outcome(outcomeSymbols[i]):
                 await self.fetch_outcome(outcomeSymbols[i])
         return self.outcomes
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         # errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         # outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -518,19 +519,18 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         result = self.safe_string_lower(raw, 'result')
         resolved = (status == 'settled') or ((result is not None) and (result != ''))
-        endDate = self.safe_string(raw, 'expiration_time')
+        endDate = self.safe_string_2(raw, 'latest_expiration_time', 'expiration_time')
         volume = self.safe_number_2(raw, 'volume_fp', 'volume')
         liquidity = self.safe_number_2(raw, 'liquidity_dollars', 'liquidity')
         openInt = self.safe_number_2(raw, 'open_interest_fp', 'open_interest')
         # Derive series ticker: drop last hyphen-segment from event_ticker
-        eventParts = []
+        seriesTicker = eventTicker
         if (eventTicker is not None) and (eventTicker != ''):
             eventParts = eventTicker.split('-')
-        seriesTicker = eventTicker
-        eventPartsLength = len(eventParts)
-        if eventPartsLength > 1:
-            seriesParts = self.array_slice(eventParts, 0, eventPartsLength - 1)
-            seriesTicker = '-'.join(seriesParts)
+            eventPartsLength = len(eventParts)
+            if eventPartsLength > 1:
+                seriesParts = self.array_slice(eventParts, 0, eventPartsLength - 1)
+                seriesTicker = '-'.join(seriesParts)
         # market symbol (no outcome suffix)
         subtitleOrTicker = ticker
         if subtitle is not None:
@@ -843,8 +843,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #         }
         #     }
         #
-        marketAny = market
-        outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
+        outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
         outcomeLabel = self.safe_string_upper(market, 'label', self.safe_string_upper(market['info'], 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
         isNo = outcomeLabel == 'NO'
         timestamp = self.parse8601(self.safe_string(raw, 'updated_time'))
@@ -927,14 +926,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())')
         # batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await self.load_outcomes(outcomes)
-        targets = []
-        for i in range(0, len(outcomes)):
-            targets.append(outcomes[i])
         # group requested outcomes by their market ticker, yes and no outcomes share one market
         outcomesByTicker = {}
         tickers = []
-        for i in range(0, len(targets)):
-            outcomeObj = self.outcome(targets[i])
+        for i in range(0, len(outcomes)):
+            outcomeObj = self.outcome(outcomes[i])
             ticker = self.safe_string(outcomeObj['info'], 'ticker')
             if ticker is None:
                 continue
@@ -942,7 +938,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 outcomesByTicker[ticker] = []
                 tickers.append(ticker)
             # reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            grouped = outcomesByTicker[ticker]
+            grouped = self.safe_list(outcomesByTicker, ticker, [])
             grouped.append(outcomeObj)
             outcomesByTicker[ticker] = grouped
         chunkSize = self.safe_integer(self.options, 'fetchTickersBatchSize', 100)
@@ -1256,8 +1252,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         amountFp = self.safe_number_2(trade, 'count_fp', 'size_fp')
         amount = self.safe_number(trade, 'count', amountFp)
         rawSide = self.safe_string_lower(trade, 'taker_side')
-        marketAny = market
-        outcomeObj = self.safe_outcome(self.safe_string(marketAny, 'outcome'), marketAny)
+        outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
         marketInfo = self.safe_dict(outcomeObj, 'info', {})
         requestedOutcomeLabel = self.safe_string_lower(outcomeObj, 'label', self.safe_string_lower(marketInfo, 'outcomeLabel'))
         outcomeSymbol = self.safe_string(outcomeObj, 'outcome')
@@ -1410,7 +1405,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateGetPortfolioBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         """
  @ignore
         parses a kalshi balance response(cents) into a unified balances object with a USD entry
@@ -1867,7 +1862,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         filledCount = self.safe_number(response, 'fill_count')
         if filledCount is not None:
             order['filled'] = filledCount
-        elif (remainingCount is not None) and (amount is not None):
+        elif remainingCount is not None:
             order['filled'] = amount - remainingCount
         if remainingCount is not None:
             order['remaining'] = remainingCount
@@ -2378,9 +2373,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        access = self.safe_string(api, 1, 'public')
+        access = api[1]
         baseUrls = self.urls['api']
-        baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['kalshi'])
+        baseUrl = self.safe_string(baseUrls, apiGroup, self.safe_string(baseUrls, 'kalshi', ''))
         implodedPath = self.implode_params(path, params)
         url = baseUrl + '/' + implodedPath
         query = self.omit(params, self.extract_params(path))

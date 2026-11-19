@@ -13,7 +13,7 @@ from ccxt.base.errors import BadRequest
 
 class p2b(ccxt.async_support.p2b):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(p2b, self).describe(), {
             'has': {
                 'ws': True,
@@ -135,8 +135,7 @@ class p2b(ccxt.async_support.p2b):
         self.options['tickerSubs'][market['id']] = True  # we need to re-subscribe to all tickers upon watching a new ticker
         tickerSubs = self.options['tickerSubs']
         request = list(tickerSubs.keys())
-        messageHash = nameOption + '::' + market['symbol']
-        return await self.subscribe(nameOption + '.subscribe', messageHash, request, paramsName)
+        return await self.subscribe(nameOption + '.subscribe', nameOption + '::' + self.safe_string(market, 'symbol', ''), request, paramsName)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -158,9 +157,9 @@ class p2b(ccxt.async_support.p2b):
         nameOption, paramsName = self.handle_option_string_and_params(params, 'watchTickers', 'name', name)
         messageHashes = []
         args = []
-        for i in range(0, len((symbolsNormalized))):
-            market = self.market((symbolsNormalized)[i])
-            messageHashes.append(nameOption + '::' + market['symbol'])
+        for i in range(0, len(symbolsNormalized)):
+            market = self.market(symbolsNormalized[i])
+            messageHashes.append(nameOption + '::' + self.safe_string(market, 'symbol', ''))
             args.append(market['id'])
         url = self.urls['api']['ws']
         request = {
@@ -171,7 +170,7 @@ class p2b(ccxt.async_support.p2b):
         await self.watch_multiple(url, messageHashes, self.extend(request, paramsName), messageHashes)
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -183,7 +182,7 @@ class p2b(ccxt.async_support.p2b):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.watch_trades_for_symbols([symbol], since, limit, params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -311,17 +310,17 @@ class p2b(ccxt.async_support.p2b):
         #    }
         #
         data = self.safe_list(message, 'params', [])
-        trades = self.safe_list(data, 1)
+        trades = self.safe_list(data, 1, [])
         marketId = self.safe_string(data, 0)
         market = self.safe_market(marketId)
-        symbol = self.safe_string(market, 'symbol')
+        symbol = self.safe_string(market, 'symbol', '')
         tradesArray = self.safe_value(self.trades, symbol)
         if tradesArray is None:
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesArray = ArrayCache(tradesLimit)
             self.trades[symbol] = tradesArray
-        for i in range(0, len((trades))):
-            item = (trades)[i]
+        for i in range(0, len(trades)):
+            item = trades[i]
             trade = self.parse_trade(item, market)
             tradesArray.append(trade)
         messageHash = 'deals::' + symbol
@@ -378,7 +377,7 @@ class p2b(ccxt.async_support.p2b):
             })
         else:
             ticker = self.parse_ticker(tickerData, market)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol', '')
         self.tickers[symbol] = ticker
         if messageHashStart is not None:
             messageHash = messageHashStart + '::' + symbol
@@ -411,8 +410,8 @@ class p2b(ccxt.async_support.p2b):
         bids = self.safe_list(data, 'bids')
         marketId = self.safe_string(params, 2)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
-        messageHash = 'orderbook::' + market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
+        messageHash = 'orderbook::' + symbol
         subscription = self.safe_dict(client.subscriptions, messageHash, {})
         limit = self.safe_integer(subscription, 'limit')
         orderbook = self.safe_value(self.orderbooks, symbol)

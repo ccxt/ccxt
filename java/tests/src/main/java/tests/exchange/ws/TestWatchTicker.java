@@ -44,7 +44,7 @@ public class TestWatchTicker extends BaseTest {
             if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
-                TestTicker.testTicker(exchange, skippedProperties, method, response, symbol);
+                TestTicker.testTicker(exchange, skippedProperties, method, response, (String) (symbol));
                 if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {
                     idle = true;

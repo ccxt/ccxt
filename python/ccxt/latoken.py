@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class latoken(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(latoken, self).describe(), {
             'id': 'latoken',
             'name': 'Latoken',
@@ -404,7 +404,7 @@ class latoken(Exchange, ImplicitAPI):
             },
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         timeDifference = self.safe_integer(self.options, 'timeDifference')
         if timeDifference is None:
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
@@ -464,7 +464,7 @@ class latoken(Exchange, ImplicitAPI):
         result = []
         rawMarkets = self.to_array(response)
         for i in range(0, len(rawMarkets)):
-            market = rawMarkets[i]
+            market = self.safe_dict(rawMarkets, i)
             id = self.safe_string(market, 'id')
             # the exchange shows them inverted
             baseId = self.safe_string(market, 'baseCurrency')
@@ -602,7 +602,7 @@ class latoken(Exchange, ImplicitAPI):
         rawCurrencies = self.to_array(response)
         merged = []
         for i in range(0, len(rawCurrencies)):
-            rawCurrency = rawCurrencies[i]
+            rawCurrency = self.safe_dict(rawCurrencies, i)
             bindingEntry = self.safe_dict(bindingsById, self.safe_string(rawCurrency, 'id'))
             bindings = self.safe_list(bindingEntry, 'bindings')
             mergedCurrency = rawCurrency
@@ -717,11 +717,12 @@ class latoken(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        maxTimestamp = None
         types = self.safe_dict(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
         balances = self.safe_list(balancesByType, accountType, [])
+        firstBalance = self.safe_dict(balances, 0)
+        maxTimestamp = self.safe_integer(firstBalance, 'timestamp')
         for i in range(0, len(balances)):
             balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'currency')
@@ -837,6 +838,14 @@ class latoken(Exchange, ImplicitAPI):
                 marketResolved = self.market(symbol)
         last = self.safe_string(ticker, 'lastPrice')
         timestamp = self.safe_integer_omit_zero(ticker, 'updateTimestamp')  # sometimes latoken provided '0' ts from /ticker endpoint
+        # during venue incidents a deleted level leaks a signed aggregate into the
+        # best sizes - the quoted prices stay usable, so only negatives are dropped
+        bidVolume = self.safe_string(ticker, 'bestBidQuantity')
+        if (bidVolume is not None) and Precise.string_lt(bidVolume, '0'):
+            bidVolume = None
+        askVolume = self.safe_string(ticker, 'bestAskQuantity')
+        if (askVolume is not None) and Precise.string_lt(askVolume, '0'):
+            askVolume = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -844,9 +853,9 @@ class latoken(Exchange, ImplicitAPI):
             'low': None,
             'high': None,
             'bid': self.safe_string(ticker, 'bestBid'),
-            'bidVolume': self.safe_string(ticker, 'bestBidQuantity'),
+            'bidVolume': bidVolume,
             'ask': self.safe_string(ticker, 'bestAsk'),
-            'askVolume': self.safe_string(ticker, 'bestAskQuantity'),
+            'askVolume': askVolume,
             'vwap': None,
             'open': None,
             'close': last,
@@ -975,17 +984,17 @@ class latoken(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
         costString = self.safe_string(trade, 'cost')
-        makerBuyer = self.safe_bool(trade, 'makerBuyer')
+        makerBuyer = self.safe_bool(trade, 'makerBuyer', False)
         side = self.safe_string(trade, 'direction')
         if side is None:
-            side = 'sell' if (makerBuyer is True) else 'buy'
+            side = 'sell' if makerBuyer else 'buy'
         else:
             if side == 'TRADE_DIRECTION_BUY':
                 side = 'buy'
             elif side == 'TRADE_DIRECTION_SELL':
                 side = 'sell'
         isBuy = (side == 'buy')
-        isMaker = (makerBuyer is True) and isBuy
+        isMaker = makerBuyer and isBuy
         takerOrMaker = 'maker' if isMaker else 'taker'
         baseId = self.safe_string(trade, 'baseCurrency')
         quoteId = self.safe_string(trade, 'quoteCurrency')
@@ -1323,7 +1332,7 @@ class latoken(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        response: dict
+        response: List
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1389,7 +1398,7 @@ class latoken(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         if limit is not None:
             request['limit'] = limit  # default 100
-        response: dict
+        response: List
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1911,7 +1920,7 @@ class latoken(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         urlencodedQuery = self.urlencode(query)
         if method == 'GET':
-            if len(query) > 0:
+            if urlencodedQuery != '':
                 requestString += '?' + urlencodedQuery
         if apiName == 'private':
             self.check_required_credentials()
@@ -1931,7 +1940,7 @@ class latoken(Exchange, ImplicitAPI):
         url = apiUrl + requestString
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

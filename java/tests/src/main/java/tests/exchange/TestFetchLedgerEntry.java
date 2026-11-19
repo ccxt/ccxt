@@ -15,24 +15,24 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchLedgerEntry extends BaseTest {
-    public CompletableFuture<Object> testFetchLedgerEntry(BaseExchange exchange, Object skippedProperties, Object code)
+    public CompletableFuture<Object> testFetchLedgerEntry(BaseExchange exchange, Object skippedProperties, String code)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLedgerEntry";
-        Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{Helpers.toStringArg(code), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         Integer length = ((List<?>)items).size();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if ((length != null && length > 0))
         {
-            Object firstItem = (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
-            Object id = ((Map<String, Object>)firstItem).get("id");
+            Map<String, Object> firstItem = (Map<String, Object>) (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
+            Object id = firstItem.get("id");
             if (!java.util.Objects.equals(id, null))
             {
                 Object item = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedgerEntry", new Object[]{id, (String) null, new HashMap<String, Object>() {{}}})).join();
                 Object now = exchange.milliseconds();
-                TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, code, now);
+                TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, (String) (code), now);
             }
         }
         return true;

@@ -5,7 +5,7 @@ import type { TransferEntry, Balances, Currency, CurrencyInterface, FundingHisto
  * @augments Exchange
  */
 export default class phemex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     parseSafeNumber(value?: Str): Num;
     parseSwapMarket(market: Dict): Market;
     parseSpotMarket(market: Dict): Market;
@@ -43,10 +43,10 @@ export default class phemex extends Exchange {
     toEn(n: any, scale: Int): Num;
     toEv(amount: any, market?: Dictionary<any> | undefined): any;
     toEp(price: any, market?: Market): any;
-    fromEn(en: any, scale: any): Str;
-    fromEp(ep: any, market?: Market): any;
-    fromEv(ev: any, market?: Market): any;
-    fromEr(er: any, market?: Market): any;
+    fromEn(en: Str, scale: Int): Str;
+    fromEp(ep: Str, market?: Market): Str;
+    fromEv(ev: Str, market?: Market): Str;
+    fromEr(er: Str, market?: Market): Str;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -332,7 +332,7 @@ export default class phemex extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name phemex#setMargin
@@ -517,5 +517,5 @@ export default class phemex extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

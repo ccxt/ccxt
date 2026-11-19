@@ -565,11 +565,11 @@ class modetrade extends modetrade$1["default"] {
         const quoteId = this.safeString(parts, 2);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const settleId = this.safeString(parts, 2);
         const settle = this.safeCurrencyCode(settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         return this.safeMarketStructure({
             'id': marketId,
@@ -806,7 +806,8 @@ class modetrade extends modetrade$1["default"] {
         //         "is_maker": "1"
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const id = this.safeString(trade, 'id');
+        const isFromFetchOrder = id !== undefined;
         const timestamp = this.safeInteger(trade, 'executed_timestamp');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
@@ -817,7 +818,6 @@ class modetrade extends modetrade$1["default"] {
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
-        const id = this.safeString(trade, 'id');
         let takerOrMaker = undefined;
         if (isFromFetchOrder) {
             const isMaker = this.safeString(trade, 'is_maker') === '1';
@@ -1084,8 +1084,7 @@ class modetrade extends modetrade$1["default"] {
                 'datetime': this.iso8601(timestamp),
             });
         }
-        const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
+        return this.filterBySymbolSinceLimit(this.sortBy(rates, 'timestamp'), symbolResolved, since, limit);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1748,7 +1747,7 @@ class modetrade extends modetrade$1["default"] {
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const algoType = this.safeString(params, 'algoType');
-        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const paramsChildOrders = this.safeList(params, 'childOrders');
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
@@ -1805,7 +1804,7 @@ class modetrade extends modetrade$1["default"] {
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             };
-            const childOrders = outterOrder['child_orders'];
+            const childOrders = [];
             let closeSide = 'BUY';
             if (orderSide === 'BUY') {
                 closeSide = 'SELL';
@@ -1832,6 +1831,7 @@ class modetrade extends modetrade$1["default"] {
                 };
                 childOrders.push(takeProfitOrder);
             }
+            outterOrder['child_orders'] = childOrders;
             request['child_orders'] = [outterOrder];
         }
         const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
@@ -1871,7 +1871,7 @@ class modetrade extends modetrade$1["default"] {
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const childOrders = this.safeValue(params, 'childOrders');
+        const childOrders = this.safeList(params, 'childOrders');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
         let response;
         if (isConditional) {
@@ -1941,7 +1941,7 @@ class modetrade extends modetrade$1["default"] {
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
             const takeProfit = this.safeDict(orderParams, 'takeProfit');
-            const childOrders = this.safeValue(orderParams, 'childOrders');
+            const childOrders = this.safeList(orderParams, 'childOrders');
             const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
             if (isConditional) {
                 throw new errors.NotSupported(this.id + ' createOrders() only support non-stop order');
@@ -2004,7 +2004,7 @@ class modetrade extends modetrade$1["default"] {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        const childOrders = this.safeValue(params, 'childOrders');
+        const childOrders = this.safeList(params, 'childOrders');
         const isConditional = (triggerPrice !== undefined) || (childOrders !== undefined);
         let orderQtyKey = 'order_quantity';
         if (isConditional) {
@@ -2623,7 +2623,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseBalance(data);
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2634,7 +2634,7 @@ class modetrade extends modetrade$1["default"] {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['token'] = currency['id'];
+            request['token'] = this.safeString(currency, 'id');
         }
         if (since !== undefined) {
             request['start_t'] = since;
@@ -2674,7 +2674,8 @@ class modetrade extends modetrade$1["default"] {
         // }
         //
         const data = this.safeDict(response, 'data', {});
-        return [currency, this.safeList(data, 'rows', [])];
+        const rows = this.safeList(data, 'rows', []);
+        return rows;
     }
     parseLedgerEntry(item, currency = undefined) {
         //
@@ -2748,9 +2749,11 @@ class modetrade extends modetrade$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1);
+        const rows = await this.getAssetHistoryRows(code, since, limit, params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2869,9 +2872,11 @@ class modetrade extends modetrade$1["default"] {
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {};
-        const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
-        const currency = this.safeValue(currencyRows, 0);
-        const rows = this.safeList(currencyRows, 1, []);
+        const rows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         //
         //     {
         //         "rows":[],
@@ -2897,16 +2902,15 @@ class modetrade extends modetrade$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        return this.safeNumber(data, 'withdraw_nonce');
+        return this.safeNumber(this.safeDict(response, 'data', {}), 'withdraw_nonce');
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -2967,7 +2971,7 @@ class modetrade extends modetrade$1["default"] {
             'chainId': this.parseToInt(chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': amount.toString(),
+            'amount': this.numberToString(amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         };
@@ -3277,9 +3281,11 @@ class modetrade extends modetrade$1["default"] {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(paramsSorted, 'orders', []);
+                        const taggedOrders = [];
                         for (let i = 0; i < ordersList.length; i++) {
-                            paramsSorted['orders'][i]['order_tag'] = brokerId;
+                            taggedOrders.push(this.extend(this.safeDict(ordersList, i, {}), { 'order_tag': brokerId }));
                         }
+                        paramsSorted['orders'] = taggedOrders;
                     }
                     else {
                         paramsSorted['order_tag'] = brokerId;
@@ -3290,19 +3296,18 @@ class modetrade extends modetrade$1["default"] {
             if (isPostOrPut && isOrder) {
                 paramsSigned = this.keysort(paramsSorted);
             }
-            let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
             const signedHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
-            auth = ts + method + '/' + version + '/' + pathWithParams;
+            let auth = ts + method + '/' + version + '/' + pathWithParams;
             let signedBody = undefined;
             if (method === 'POST' || method === 'PUT') {
                 signedBody = this.json(paramsSigned);
@@ -3318,8 +3323,8 @@ class modetrade extends modetrade$1["default"] {
                 signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
-            if (secret.indexOf('ed25519:') >= 0) {
-                const parts = secret.split('ed25519:');
+            if (this.secret.indexOf('ed25519:') >= 0) {
+                const parts = this.secret.split('ed25519:');
                 secret = parts[1];
             }
             const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
@@ -3328,7 +3333,7 @@ class modetrade extends modetrade$1["default"] {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
@@ -3336,9 +3341,9 @@ class modetrade extends modetrade$1["default"] {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool(response, 'success');
+        const success = this.safeBool(response, 'success', false);
         const errorCode = this.safeString(response, 'code');
-        if (success !== true) {
+        if (!success) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

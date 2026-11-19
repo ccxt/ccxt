@@ -30,7 +30,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -68,7 +68,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }});
     }
 
-    public CompletableFuture<Object> watchPublic(Object path, Object messageHash, String marketId)
+    public CompletableFuture<Object> watchPublic(String path, String messageHash, String marketId)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -113,15 +113,16 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = (("ORDER_BOOK" + ":") + symbolValue);
-            Object endPart = null;
+            String marketIdValue = this.safeString(market, "id", "");
+            String endPart = null;
             if (java.util.Objects.equals(limit, null))
             {
-                endPart = market.get("id");
+                endPart = marketIdValue;
             } else
             {
-                endPart = ((market.get("id") + ":") + this.numberToString(limit));
+                endPart = ((marketIdValue + ":") + this.numberToString(limit));
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, (String) (endPart))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, endPart)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -228,7 +229,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) market.get("symbol");
         String eventVar = this.safeString(message, "event");
-        List<Object> rawData = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawData = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawData, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesCache, null))
@@ -236,11 +237,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(((Number)limit).intValue());
         }
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        for (var i = 0; i < trades.size(); i++)
         {
-            tradesCache.append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
+            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+            tradesCache.append(trade);
         }
-        Helpers.addElementToObject(this.trades, symbol, tradesCache);
+        this.trades.put(symbol, tradesCache);
         if (!java.util.Objects.equals(eventVar, null))
         {
             String messageHash = ((eventVar + ":") + symbol);
@@ -273,7 +275,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                messageHash = ((messageHash + ":") + market.get("symbol"));
+                String symbolValue = (String) market.get("symbol");
+                messageHash = ((messageHash + ":") + symbolValue);
             }
             String wsUrl = this.safeString(this.urls.get("ws"), "private");
             if (java.util.Objects.equals(wsUrl, null))
@@ -318,7 +321,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(data, "base");
         String quoteId = this.safeString(data, "quote");
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
@@ -335,7 +338,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsTrade(data, (Map<String, Object>) null);
         trades.append(parsed);
         client.resolve(trades, messageHash);
         if (!java.util.Objects.equals(messageHash, null))
@@ -493,7 +496,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Long timestamp = this.safeInteger(message, "timestamp");
         result.put("timestamp", timestamp);
         result.put("datetime", this.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
-        Helpers.addElementToObject(this.tickers, symbol, result);
+        this.tickers.put(symbol, result);
         if (!java.util.Objects.equals(eventVar, null))
         {
             String messageHash = ((eventVar + ":") + symbol);
@@ -501,7 +504,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
     }
 
-    public void authenticate(Object url)
+    public void authenticate(String url)
     {
         if ((!java.util.Objects.equals(this.clients, null)) && (((Map<?, ?>)this.clients).containsKey(url)))
         {
@@ -523,18 +526,20 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             }} );
         }};
         // this.options = this.extend (defaultOptions, this.options);
-        this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
-        Object originalHeaders = Helpers.GetValue(Helpers.GetValue(this.options.get("ws"), "options"), "headers");
+        this.extendExchangeOptions(defaultOptions);
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsInnerOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        Object originalHeaders = wsInnerOptions.get("headers");
         Map<String, Object> headers = new HashMap<String, Object>() {{
             put( "X-BITOPRO-API", "ccxt" );
             put( "X-BITOPRO-APIKEY", Bitopro.this.apiKey );
             put( "X-BITOPRO-PAYLOAD", payload );
             put( "X-BITOPRO-SIGNATURE", signature );
         }};
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
+        wsInnerOptions.put("headers", headers);
         // instantiate client
         this.client(url);
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
+        Helpers.addElementToObject(wsInnerOptions, "headers", originalHeaders);
     }
 
     /**
@@ -587,7 +592,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String eventVar = this.safeString(message, "event");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(message, "timestamp");
         String datetime = this.safeString(message, "datetime");
         List<String> currencies = new ArrayList<String>(data.keySet());
@@ -601,13 +606,13 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
-        Helpers.addElementToObject(this.balance, "info", data);
-        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
-        Helpers.addElementToObject(this.balance, "datetime", datetime);
-        for (var i = 0; i < ((List<?>)currencies).size(); i++)
+        this.balance.put("info", data);
+        this.balance.put("timestamp", timestamp);
+        this.balance.put("datetime", datetime);
+        for (var i = 0; i < currencies.size(); i++)
         {
             String currency = this.safeString(currencies, i);
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, currency, new HashMap<String, Object>() {{}});
+            Map<String, Object> balance = this.safeDict(data, currency, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -615,27 +620,45 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             account.put("total", this.safeString(balance, "amount"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, eventVar);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "TRADE", "handleTrade");
-            put( "TICKER", "handleTicker");
-            put( "ORDER_BOOK", "handleOrderBook");
-            put( "ACCOUNT_BALANCE", "handleBalance");
-            put( "USER_TRADE", "handleMyTrade");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("TRADE", "handleTrade");
+            put("TICKER", "handleTicker");
+            put("ORDER_BOOK", "handleOrderBook");
+            put("ACCOUNT_BALANCE", "handleBalance");
+            put("USER_TRADE", "handleMyTrade");
         }};
         String eventVar = this.safeString(message, "event");
-        Object method = this.safeValue(methods, eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method) {
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 }

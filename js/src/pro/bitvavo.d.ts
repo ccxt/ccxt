@@ -1,11 +1,11 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market, Transaction, type int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitvavo extends bitvavoRest {
-    describe(): any;
+    describe(): Dict;
     watchPublic(name: string, symbol: string, params?: Dict): Promise<any>;
-    watchPublicMultiple(methodName: string, channelName: string, symbols: string[], params?: Dict): Promise<any>;
+    watchPublicMultiple(methodName: string, channelName: string, symbols: string[], params?: Dict): Promise<Ticker[]>;
     /**
      * @method
      * @name bitvavo#watchTicker
@@ -288,7 +288,7 @@ export default class bitvavo extends bitvavoRest {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    requestId(): number;
+    requestId(): int;
     watchRequest(action: string, request: Dict): Promise<any>;
     /**
      * @method
@@ -383,7 +383,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarketsWs(params?: {}): Promise<any>;
+    fetchMarketsWs(params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitvavo#fetchCurrenciesWs

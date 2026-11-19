@@ -47,7 +47,7 @@ export default class bittrade extends bittradeRest {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -62,21 +62,24 @@ export default class bittrade extends bittradeRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
-        const messageHash = 'market.' + market['id'] + '.detail';
+        const marketId = this.safeString(market, 'id', '');
+        const messageHash = 'market.' + marketId + '.detail';
         const api = this.safeString(this.options, 'api', 'api');
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const apiWsUrls = this.safeDict(wsUrls, api, {});
         const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams(apiWsUrls['public'], hostname);
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
-            'symbol': symbolValue,
+            'symbol': market['symbol'],
             'params': params,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
@@ -131,19 +134,23 @@ export default class bittrade extends bittradeRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         // only supports a limit of 150 at this time
-        const messageHash = 'market.' + market['id'] + '.trade.detail';
+        const marketId = this.safeString(market, 'id', '');
+        const messageHash = 'market.' + marketId + '.trade.detail';
         const api = this.safeString(this.options, 'api', 'api');
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const apiWsUrls = this.safeDict(wsUrls, api, {});
         const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams(apiWsUrls['public'], hostname);
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'params': params,
@@ -215,19 +222,23 @@ export default class bittrade extends bittradeRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
-        const messageHash = 'market.' + market['id'] + '.kline.' + interval;
+        const marketId = this.safeString(market, 'id', '');
+        const messageHash = 'market.' + marketId + '.kline.' + interval;
         const api = this.safeString(this.options, 'api', 'api');
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const apiWsUrls = this.safeDict(wsUrls, api, {});
         const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams(apiWsUrls['public'], hostname);
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'timeframe': timeframe,
@@ -296,20 +307,24 @@ export default class bittrade extends bittradeRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         // only supports a limit of 150 at this time
         const limitValue = 150;
-        const messageHash = 'market.' + market['id'] + '.mbp.150';
+        const marketId = this.safeString(market, 'id', '');
+        const messageHash = 'market.' + marketId + '.mbp.150';
         const api = this.safeString(this.options, 'api', 'api');
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const apiWsUrls = this.safeDict(wsUrls, api, {});
         const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams(apiWsUrls['public'], hostname);
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'limit': limitValue,
@@ -370,24 +385,27 @@ export default class bittrade extends bittradeRest {
             const limit = this.safeInteger(subscription, 'limit');
             const params = this.safeDict(subscription, 'params');
             const api = this.safeString(this.options, 'api', 'api');
+            const apiUrls = this.safeDict(this.urls, 'api', {});
+            const wsUrls = this.safeDict(apiUrls, 'ws', {});
+            const apiWsUrls = this.safeDict(wsUrls, api, {});
             const hostname = { 'hostname': this.hostname };
-            const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
+            const url = this.implodeParams(apiWsUrls['public'], hostname);
             const requestId = this.requestId();
             const request = {
                 'req': messageHash,
-                'id': requestId,
+                'id': requestId.toString(),
             };
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             const snapshotSubscription = {
-                'id': requestId,
+                'id': requestId.toString(),
                 'messageHash': messageHash,
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
                 'method': this.handleOrderBookSnapshot,
             };
-            const orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
+            const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
         }
         catch (e) {
@@ -400,11 +418,6 @@ export default class bittrade extends bittradeRest {
         const price = this.safeFloat(delta, 0);
         const amount = this.safeFloat(delta, 1);
         bookside.store(price, amount);
-    }
-    handleDeltas(bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(bookside, deltas[i]);
-        }
     }
     handleOrderBookMessage(client, message, orderbook) {
         //

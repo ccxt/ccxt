@@ -1,9 +1,9 @@
 import nadoRest from '../nado.js';
-import type { Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class nado extends nadoRest {
-    describe(): any;
-    requestId(): Int;
+    describe(): Dict;
+    requestId(): int;
     /**
      * @method
      * @name nado#watchTrades
@@ -363,8 +363,8 @@ export default class nado extends nadoRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
-    watchExecuteRequest(requestIdString: Str, request: Dict): Promise<any>;
-    watchPublic(streamType: Str, market: any, messageHash: string, params?: Dict): Promise<any>;
+    watchExecuteRequest(requestIdString: string, request: Dict): Promise<NullableDict>;
+    watchPublic(streamType: Str, market: Market | undefined, messageHash: string, params?: Dict): Promise<any>;
     watchPrivate(streamType: Str, stream: Dict, messageHash: string, params?: Dict): Promise<any>;
     unWatchPrivate(stream: Dict, messageHash: string, params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<any>;
@@ -385,7 +385,7 @@ export default class nado extends nadoRest {
     handlePosition(client: Client, message: Dict): void;
     parseWsBidAsk(bidask: Dict, market?: Market): Ticker;
     handleBidAsk(client: Client, message: Dict): void;
-    parseWsAllBidsAsks(message: Dict): Tickers;
+    parseWsAllBidsAsks(message: Dict): Dict;
     handleAllBidsAsks(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     handleOrderBook(client: Client, message: Dict): void;
@@ -393,10 +393,10 @@ export default class nado extends nadoRest {
     handleSubscription(client: Client, message: Dict): void;
     handleAuthentication(client: Client, message: Dict): void;
     handleUnsubscription(client: Client, message: Dict): void;
-    handleUnsubscriptionCache(messageHash: Str): void;
+    handleUnsubscriptionCache(messageHash: string): void;
     ping(client: Client): {
         method: string;
-        id: Int;
+        id: number;
         client_time: string;
     } | undefined;
     handlePong(client: Client, message: Dict): Dict;

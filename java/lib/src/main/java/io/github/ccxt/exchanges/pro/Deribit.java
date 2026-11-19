@@ -34,7 +34,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -94,8 +94,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public Long requestId()
     {
-        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        Long requestId = (this.safeInteger(this.options, "requestId", 0) + 1L);
+        this.options.put("requestId", requestId);
         return requestId;
     }
 
@@ -115,11 +115,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             (this.authenticate(parameters)).join();
             String messageHash = "balance";
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            List<Object> currencies = (List<Object>) this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)currencies).size(); i++)
+            for (var i = 0; i < currencies.size(); i++)
             {
-                String currencyCode = this.safeString(currencies, i);
+                String currencyCode = this.safeString(currencies, i, "");
                 channels.add(("user.portfolio." + currencyCode));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -181,15 +181,15 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(this.balance, "info", data);
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        this.balance.put("info", data);
         String currencyId = this.safeString(data, "currency");
         String currencyCode = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
         Map<String, Object> balance = (Map<String, Object>) this.parseBalance(data);
         if (!java.util.Objects.equals(currencyCode, null))
         {
-            Helpers.addElementToObject(this.balance, currencyCode, balance);
+            this.balance.put(currencyCode, balance);
         }
         String messageHash = "balance";
         client.resolve(this.balance, messageHash);
@@ -226,12 +226,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
-            String channel = ((("ticker." + market.get("id")) + ".") + interval);
+            String marketId = this.safeString(market, "id", "");
+            String channel = ((("ticker." + marketId) + ".") + interval);
             Map<String, Object> message = new HashMap<String, Object>();
             message.put("jsonrpc", "2.0");
             message.put("method", "public/subscribe");
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("channels", new ArrayList<Object>(Arrays.asList(((("ticker." + market.get("id")) + ".") + interval))));
+            mapLiteral1.put("channels", new ArrayList<Object>(Arrays.asList(((("ticker." + marketId) + ".") + interval))));
             message.put("params", mapLiteral1);
             message.put("id", this.requestId());
             Map<String,Object> request = this.deepExtend(message, paramsOmitted);
@@ -259,7 +260,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "100ms");
             Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
@@ -272,10 +273,10 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
-                channels.add(((("ticker." + market.get("id")) + ".") + interval));
+                Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
+                channels.add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -333,13 +334,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "instrument_name");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
         String messageHash = this.safeString(parameters, "channel");
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         client.resolve(ticker, messageHash);
     }
 
@@ -361,13 +362,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
-                channels.add(("quote." + market.get("id")));
+                Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
+                channels.add(("quote." + this.safeString(market, "id", "")));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -413,11 +414,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
-        Object symbol = ticker.get("symbol");
-        Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
+        String symbol = this.safeString(ticker, "symbol");
+        this.bidsasks.put(symbol, ticker);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(ticker, messageHash);
     }
@@ -487,7 +488,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
             List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, paramsInterval)).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(trades, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -522,27 +523,27 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
-        String interval = this.safeString(parts, 2);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        List<Object> trades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
-        if (java.util.Objects.equals(this.safeDict(this.trades, symbol, (Object) null), null))
+        List<Object> trades = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
+        if (java.util.Objects.equals(this.safeDict(this.trades, symbol, null), null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
+            this.trades.put(symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        for (var i = 0; i < trades.size(); i++)
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, market);
             stored.append(parsed);
         }
-        Helpers.addElementToObject(this.trades, symbol, stored);
+        this.trades.put(symbol, stored);
+        String interval = this.safeString(parts, 2, "");
         String messageHash = ((("trades|" + symbol) + "|") + interval);
         client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
@@ -623,9 +624,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
-        List<Object> trades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> trades = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(cachedTrades, null))
         {
@@ -634,12 +635,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         }
         List<Object> parsed = this.parseTrades(trades, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)parsed).size(); i++)
+        for (var i = 0; i < parsed.size(); i++)
         {
             Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             cachedTrades.append(trade);
-            Object symbol = ((Map<String, Object>)trade).get("symbol");
-            marketIds.put((String)((String)symbol), true);
+            String symbol = this.safeString(trade, "symbol");
+            marketIds.put((String)symbol, true);
         }
         client.resolve(cachedTrades, channel);
     }
@@ -761,58 +762,57 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
-        Object descriptor = "";
-        Integer partsLength = ((List<?>)parts).size();
+        String descriptor = "";
+        Integer partsLength = parts.size();
         Boolean isDetailed = java.util.Objects.equals(partsLength, 5);
         if (Boolean.TRUE.equals(isDetailed))
         {
-            String group = this.safeString(parts, 2);
-            String depth = this.safeString(parts, 3);
-            String interval = this.safeString(parts, 4);
-            descriptor = ((((group + ".") + depth) + ".") + interval);
+            String interval = this.safeString(parts, 4, "");
+            descriptor = ((((this.safeString(parts, 2, "") + ".") + this.safeString(parts, 3, "")) + ".") + interval);
         } else
         {
-            String interval = this.safeString(parts, 2);
-            descriptor = ((String)interval);
+            descriptor = this.safeString(parts, 2, "");
         }
         String marketId = this.safeString(data, "instrument_name");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(data, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook());
+            this.orderbooks.put(symbol, this.countedOrderBook());
         }
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-        List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("asks")), asks);
         this.handleDeltas((storedOrderBook == null ? null : storedOrderBook.get("bids")), bids);
         storedOrderBook.put("nonce", timestamp);
         storedOrderBook.put("timestamp", timestamp);
         storedOrderBook.put("datetime", this.iso8601(timestamp));
         storedOrderBook.put("symbol", symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, storedOrderBook);
+        this.orderbooks.put(symbol, storedOrderBook);
         String messageHash = ((("book|" + symbol) + "|") + descriptor);
         client.resolve(storedOrderBook, messageHash);
     }
 
     public Map<String, Object> cleanOrderBook(Map<String, Object> data)
     {
-        List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-        List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> cleanedBids = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)bids).size(); i++)
+        for (var i = 0; i < bids.size(); i++)
         {
-            ((List<Object>)cleanedBids).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue((bids == null || i < 0 || i >= bids.size() ? null : bids.get(i)), 1), Helpers.GetValue((bids == null || i < 0 || i >= bids.size() ? null : bids.get(i)), 2))));
+            List<Object> bid = this.safeList(bids, i, new ArrayList<Object>(Arrays.asList()));
+            ((List<Object>)cleanedBids).add(new ArrayList<Object>(Arrays.asList((bid == null || 1 >= ((List<?>)bid).size() ? null : ((List<?>)bid).get(1)), (bid == null || 2 >= ((List<?>)bid).size() ? null : ((List<?>)bid).get(2)))));
         }
         List<Object> cleanedAsks = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)asks).size(); i++)
+        for (var i = 0; i < asks.size(); i++)
         {
-            ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList(Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 1), Helpers.GetValue((asks == null || i < 0 || i >= asks.size() ? null : asks.get(i)), 2))));
+            List<Object> ask = this.safeList(asks, i, new ArrayList<Object>(Arrays.asList()));
+            ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList((ask == null || 1 >= ((List<?>)ask).size() ? null : ((List<?>)ask).get(1)), (ask == null || 2 >= ((List<?>)ask).size() ? null : ((List<?>)ask).get(2)))));
         }
         data.put("bids", cleanedBids);
         data.put("asks", cleanedAsks);
@@ -821,8 +821,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = Helpers.GetValue(delta, 1);
-        Object amount = Helpers.GetValue(delta, 2);
+        Object price = this.safeValue(delta, 1);
+        Object amount = this.safeValue(delta, 2);
         String action = this.safeString(delta, 0);
         if (java.util.Objects.equals(action, "new") || java.util.Objects.equals(action, "change"))
         {
@@ -930,7 +930,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
@@ -943,7 +943,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             orders = new ArrayList<Object>(Arrays.asList(order));
         }
         io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             cachedOrders.append((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
         }
@@ -972,8 +972,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            Object ohlcvs = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
-            return Helpers.GetValue(Helpers.GetValue(ohlcvs, symbolValue), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> ohlcvs = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
+            return Helpers.GetValue((ohlcvs == null || symbolValue == null ? null : ohlcvs.get(symbolValue)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1034,30 +1034,30 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 2);
         String rawTimeframe = this.safeString(parts, 3);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
-        Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        if (java.util.Objects.equals(this.safeDict(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, (Object) null), null))
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> timeframes = this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
+        String unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        if (java.util.Objects.equals(this.safeDict(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, null), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe));
-        Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(unifiedTimeframe);
+        Map<String, Object> ohlcv = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
-        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), stored);
+        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
-        String messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);
+        String messageHash = ((("chart.trades|" + symbol) + "|") + this.safeString(parts, 3, ""));
         client.resolve(resolveData, messageHash);
     }
 
@@ -1077,7 +1077,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
-    public CompletableFuture<Object> watchMultipleWrapper(Object channelName, String channelDescriptor, Object symbolsArray, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultipleWrapper(String channelName, String channelDescriptor, Object symbolsArray, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1087,8 +1087,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            List<Object> rawSubscriptions = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> rawSubscriptions = new ArrayList<String>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Boolean isOHLCV = (java.util.Objects.equals(channelName, "chart.trades"));
             Object symbols = ((Boolean.TRUE.equals(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
             this.marketSymbols(symbols, (Object) null, false, false, false);
@@ -1102,22 +1102,22 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 {
                     throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
                 }
-                Object current = Helpers.GetValue(symbolsArray, i);
                 Map<String, Object> market = null;
-                String currentDescriptor = null;
+                String currentDescriptor = "";
                 if (Boolean.TRUE.equals(isOHLCV))
                 {
-                    market = this.market(Helpers.GetValue(current, 0));
-                    Object unifiedTf = Helpers.GetValue(current, 1);
+                    List<Object> currentPair = this.safeList(symbolsArray, i, new ArrayList<Object>(Arrays.asList()));
+                    market = this.market(this.safeString(currentPair, 0));
+                    String unifiedTf = this.safeString(currentPair, 1);
                     currentDescriptor = this.safeString(this.timeframes, unifiedTf, unifiedTf);
                 } else
                 {
-                    market = this.market(current);
+                    market = this.market(this.safeString(symbolsArray, i));
                     currentDescriptor = channelDescriptor;
                 }
-                String message = ((((channelName + ".") + market.get("id")) + ".") + currentDescriptor);
-                ((List<Object>)rawSubscriptions).add(message);
-                ((List<Object>)messageHashes).add(((((channelName + "|") + market.get("symbol")) + "|") + currentDescriptor));
+                String message = ((((channelName + ".") + this.safeString(market, "id", "")) + ".") + currentDescriptor);
+                rawSubscriptions.add(message);
+                messageHashes.add(((((channelName + "|") + this.safeString(market, "symbol", "")) + "|") + currentDescriptor));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -1139,7 +1139,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         //
         // error
@@ -1205,7 +1205,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         {
             throw new ExchangeError(((this.id + " ") + this.json(error))) ;
         }
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
+        Map<String, Object> parameters = this.safeDict(message, "params", null);
         String channel = this.safeString(parameters, "channel");
         if (!java.util.Objects.equals(channel, null))
         {
@@ -1232,11 +1232,11 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }
             throw new NotSupported(((this.id + " no handler found for this message ") + this.json(message))) ;
         }
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         String accessToken = this.safeString(result, "access_token");
         if (!java.util.Objects.equals(accessToken, null))
         {
-            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+            this.handleAuthenticationMessage(client, message);
         }
     }
 
@@ -1296,7 +1296,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                     }} );
                 }};
                 future = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                client.subscriptions.put(messageHash, future);
             }
             return future;
         });

@@ -4,7 +4,6 @@ import (
 	// "errors"
 	"encoding/json"
 	"fmt"
-	"sync"
 
 	// "reflect"
 	"strconv"
@@ -94,8 +93,6 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 
 	// Handle maps
 	if dict, ok := obj.(map[string]any); ok {
-		// serialize map reads to avoid races with concurrent writes elsewhere
-		addElementMu.Lock()
 		for _, key := range keys {
 			if key == nil {
 				continue
@@ -104,29 +101,36 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			if value, found := dict[keyStr]; found {
 				value = derefScalar(value)
 				if value != nil && value != "" {
-					addElementMu.Unlock()
 					return value
 				}
 			}
 		}
-		addElementMu.Unlock()
 		return defVal
-	} else if syncDict, ok := obj.(*sync.Map); ok {
-		if syncDict == nil {
-			return defVal
+	} else if futures, ok := obj.(map[string]*Future); ok {
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			if future, found := futures[fmt.Sprintf("%v", key)]; found && future != nil {
+				return future
+			}
 		}
+		return defVal
+	} else if bookMap, ok := obj.(map[string]map[string]any); ok {
+		// the ohlcv book is two-level: a symbol key answers its timeframe map
 		for _, key := range keys {
 			if key == nil {
 				continue
 			}
 			keyStr := fmt.Sprintf("%v", key)
-			if value, found := syncDict.Load(keyStr); found {
-				value = derefScalar(value)
-				if value != nil && value != "" {
+			if found, present := bookMap[keyStr]; present {
+				var value any = derefScalar(found)
+				if value != nil {
 					return value
 				}
 			}
 		}
+		return defVal
 	}
 
 	switch v := obj.(type) {
@@ -768,7 +772,7 @@ func (this *BaseExchange) SafeNumber(obj any, key any, defaultValue ...any) *flo
 		defVal = derefScalar(defaultValue[0])
 	}
 	var value *string = this.SafeString(obj, key)
-	return toFloat64Ptr(this.ParseNumber(value, defVal))
+	return this.ParseNumber(value, defVal)
 }
 
 func (this *BaseExchange) SafeNumber2(obj any, key1 any, key2 any, defaultValue ...any) *float64 {
@@ -777,7 +781,7 @@ func (this *BaseExchange) SafeNumber2(obj any, key1 any, key2 any, defaultValue 
 		defVal = derefScalar(defaultValue[0])
 	}
 	var value *string = this.SafeString2(obj, key1, key2)
-	return toFloat64Ptr(this.ParseNumber(value, defVal))
+	return this.ParseNumber(value, defVal)
 }
 
 func (this *BaseExchange) SafeNumberN(obj any, keys any, defaultValue ...any) *float64 {
@@ -786,7 +790,7 @@ func (this *BaseExchange) SafeNumberN(obj any, keys any, defaultValue ...any) *f
 		defVal = derefScalar(defaultValue[0])
 	}
 	var value *string = this.SafeStringN(obj, keys)
-	return toFloat64Ptr(this.ParseNumber(value, defVal))
+	return this.ParseNumber(value, defVal)
 }
 
 func (this *BaseExchange) SafeNumberOmitZero(obj any, key any, defaultValue ...any) *float64 {
@@ -795,11 +799,11 @@ func (this *BaseExchange) SafeNumberOmitZero(obj any, key any, defaultValue ...a
 		defVal = derefScalar(defaultValue[0])
 	}
 	var value *string = this.SafeString(obj, key)
-	var final any = this.ParseNumber(this.OmitZero(value))
-	if derefScalar(final) == nil {
+	var final *float64 = this.ParseNumber(this.OmitZero(value))
+	if final == nil {
 		return toFloat64Ptr(defVal)
 	}
-	return toFloat64Ptr(final)
+	return final
 }
 
 func (this *BaseExchange) SafeInteger(obj any, key any, defaultValue ...any) *int64 {
@@ -1101,4 +1105,58 @@ func (this *BaseExchange) SafeDict2Map(dictionaryOrList any, key1 any, key2 any,
 
 func (this *BaseExchange) SafeDictNMap(dictionaryOrList any, keys any, optionalArgs ...any) map[string]any {
 	return MapTyped(this.SafeDictN(dictionaryOrList, keys, optionalArgs...))
+}
+
+// SafeList2Strings and SafeListNStrings are SafeList2 / SafeListN read as the []string a string-list
+// local holds: nil exactly where the reader answers nil, else the elements Join joins.
+func (this *BaseExchange) SafeList2Strings(dictionaryOrList any, key1 any, key2 any) []string {
+	return joinListValue(this.SafeList2(dictionaryOrList, key1, key2))
+}
+
+func (this *BaseExchange) SafeListNStrings(dictionaryOrList any, keys any) []string {
+	return joinListValue(this.SafeListN(dictionaryOrList, keys))
+}
+
+// MarketIdsStrings is MarketIds read as the []string a joined id-list local holds: nil exactly where
+// MarketIds answers nil, else the ids Join joins.
+func (this *BaseExchange) MarketIdsStrings(symbols any) []string {
+	return joinListValue(this.MarketIds(symbols))
+}
+
+// MarketIdsSlice is MarketIds read as a []any: nil exactly where MarketIds answers nil.
+func (this *BaseExchange) MarketIdsSlice(symbols any) []any {
+	return listValueToTypedSlice(this.MarketIds(symbols))
+}
+
+// SafeListSlice is SafeList read as a []any: the member or default list, nil where that answer is
+// not a list (GetArrayLength of such a box was 0, so a length-bounded read sees nothing either way).
+func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, defaultValue any) []any {
+	return listValueToTypedSlice(this.SafeList(dictionaryOrList, key, defaultValue))
+}
+
+// SafeListNSlice is SafeListN (no default) read as a []any: nil exactly where SafeListN answers nil.
+func (this *BaseExchange) SafeListNSlice(dictionaryOrList any, keys any) []any {
+	return listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys))
+}
+
+// SafeListMapsTyped is SafeListTyped read as map rows: nil when the member is absent or not a
+// list, else one entry per element, the element's map or a nil map for any other element.
+func (this *BaseExchange) SafeListMapsTyped(m any, key any) []map[string]any {
+	list := SafeListTyped(m, key)
+	if list == nil {
+		return nil
+	}
+	rows := make([]map[string]any, len(list))
+	for i, element := range list {
+		rows[i], _ = derefScalar(element).(map[string]any)
+	}
+	return rows
+}
+
+// SafeListNSliceDefault is SafeListN with a list default read as a []any: the member list, else the default.
+func (this *BaseExchange) SafeListNSliceDefault(dictionaryOrList any, keys any, defaultValue []any) []any {
+	if value := listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys)); value != nil {
+		return value
+	}
+	return defaultValue
 }

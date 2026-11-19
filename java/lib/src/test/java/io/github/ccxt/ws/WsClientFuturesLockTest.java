@@ -42,7 +42,7 @@ class WsClientFuturesLockTest {
 
     @SuppressWarnings("unchecked")
     private static Map<String, Object> futuresOf(WsClient client) {
-        return (Map<String, Object>) client.futures;
+        return (Map<String, Object>)(Map<?, ?>) client.futures;
     }
 
     /** Concurrent future() calls for one hash share one Future; one resolve settles all. */

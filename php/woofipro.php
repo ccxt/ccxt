@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\woofipro as Exchange;
 
 class woofipro extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'woofipro',
             'name' => 'WOOFI PRO',
@@ -592,7 +592,7 @@ class woofipro extends Exchange {
         }
         $settleId = $this->safe_string($parts, 2);
         $settle = $this->safe_currency_code($settleId);
-        $symbol = $base . '/' . $quote . ':' . $settle;
+        $symbol = $base . '/' . $quote . ':' . $quote;
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -857,7 +857,6 @@ class woofipro extends Exchange {
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
-        $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
         $takerOrMaker = null;
@@ -873,7 +872,7 @@ class woofipro extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => Precise::string_mul($price, $amount),
             'order' => $order_id,
             'takerOrMaker' => $takerOrMaker,
             'type' => null,
@@ -925,7 +924,7 @@ class woofipro extends Exchange {
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(?array $fundingRate, ?array $market = null): array {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -1724,7 +1723,6 @@ class woofipro extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $filled = $this->safe_string_n($order, array( 'total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed' ));
         $average = $this->omit_zero($this->safe_string_2($order, 'average_executed_price', 'averageExecutedPrice'));
-        $remaining = Precise::string_sub($amount, $filled);
         $fee = $this->safe_value_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_list($order, 'Transactions');
@@ -1765,7 +1763,7 @@ class woofipro extends Exchange {
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining, // TO_DO
+            'remaining' => Precise::string_sub($amount, $filled), // TO_DO
             'cost' => $cost,
             'trades' => $transactions,
             'fee' => array(
@@ -1847,7 +1845,8 @@ class woofipro extends Exchange {
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         $algoType = $this->safe_string($params, 'algoType');
-        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($params, 'childOrders') !== null);
+        $paramsChildOrders = $this->safe_list($params, 'childOrders');
+        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($paramsChildOrders !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1951,7 +1950,8 @@ class woofipro extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');
-        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_list($params, 'childOrders') !== null);
+        $paramsChildOrders = $this->safe_list($params, 'childOrders');
+        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($paramsChildOrders !== null);
         $response = null;
         if ($isConditional) {
             $response = $this->v1PrivatePostAlgoOrder($request);
@@ -2017,7 +2017,8 @@ class woofipro extends Exchange {
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
             $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
-            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_list($orderParams, 'childOrders') !== null);
+            $paramsChildOrders = $this->safe_list($orderParams, 'childOrders');
+            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($paramsChildOrders !== null);
             if ($isConditional) {
                 throw new NotSupported($this->id . ' createOrders() only support non-stop order');
             }
@@ -2080,7 +2081,8 @@ class woofipro extends Exchange {
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $isConditional = ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $paramsChildOrders = $this->safe_list($params, 'childOrders');
+        $isConditional = ($triggerPrice !== null) || ($paramsChildOrders !== null);
         $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
         $priceKey = $isConditional ? 'price' : 'order_price';
         if ($price !== null) {
@@ -2379,8 +2381,10 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        $orders = $this->safe_dict($response, 'data', $response);
-        $parsedOrders = ($orders === null) ? array() : $orders;
+        $parsedOrders = $this->safe_dict($response, 'data', $response);
+        if ($parsedOrders === null) {
+            $parsedOrders = array();
+        }
         return $this->parse_order($parsedOrders, $market);
     }
 
@@ -2643,7 +2647,7 @@ class woofipro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $paramsUntil);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2689,11 +2693,11 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_balance($data);
     }
 
-    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): mixed {
+    public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2701,7 +2705,7 @@ class woofipro extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['balance_token'] = $currency['id'];
+            $request['balance_token'] = $this->safe_string($currency, 'id');
         }
         if ($since !== null) {
             $request['start_t'] = $since;
@@ -2741,7 +2745,8 @@ class woofipro extends Exchange {
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return array( $currency, $this->safe_list($data, 'rows', array()) );
+        $rows = $this->safe_list($data, 'rows', array());
+        return $rows;
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -2792,9 +2797,11 @@ class woofipro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $params);
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1);
+        $rows = $this->get_asset_history_rows($code, $since, $limit, $params);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
@@ -2893,9 +2900,11 @@ class woofipro extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $request = array();
-        $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params));
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1);
+        $rows = $this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         //
         //     {
         //         "rows":[],
@@ -2907,11 +2916,7 @@ class woofipro extends Exchange {
         //         "success":true
         //     }
         //
-        $rowsList = array();
-        if ($rows !== null) {
-            $rowsList = $rows;
-        }
-        return $this->parse_transactions($rowsList, $currency, $since, $limit, $params);
+        return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 
     public function get_withdraw_nonce($params = array()): ?float {
@@ -2936,8 +2941,8 @@ class woofipro extends Exchange {
 
     public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
@@ -3000,7 +3005,7 @@ class woofipro extends Exchange {
             'chainId' => $this->parse_to_int($chainId),
             'receiver' => $address,
             'token' => $codeUpper,
-            'amount' => (string) $amount,
+            'amount' => $this->number_to_string($amount),
             'withdrawNonce' => $withdrawNonce,
             'timestamp' => $nonce,
         );
@@ -3473,7 +3478,7 @@ class woofipro extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -3514,11 +3519,9 @@ class woofipro extends Exchange {
             $auth = '';
             $ts = (string) $this->nonce();
             $url .= $pathWithParams;
-            $apiKey = $this->apiKey;
-            if (mb_strpos($apiKey, 'ed25519:') === false) {
-                $apiKey = 'ed25519:' . $apiKey;
-            }
-            $requestHeaders = array(
+            $hasKeyPrefix = mb_strpos($this->apiKey, 'ed25519:') !== false;
+            $apiKey = ($hasKeyPrefix) ? $this->apiKey : ('ed25519:' . $this->apiKey);
+            $authHeaders = array(
                 'orderly-account-id' => $this->accountId,
                 'orderly-key' => $apiKey,
                 'orderly-timestamp' => $ts,
@@ -3527,32 +3530,30 @@ class woofipro extends Exchange {
             if ($method === 'POST' || $method === 'PUT') {
                 $requestBody = $this->json($requestParams);
                 $auth .= $requestBody;
-                $requestHeaders['content-type'] = 'application/json';
+                $authHeaders['content-type'] = 'application/json';
             } else {
                 if (count($requestParams) > 0) {
                     $url .= '?' . $this->urlencode($requestParams);
                     $auth .= '?' . $this->rawencode($requestParams);
                 }
-                $requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                $authHeaders['content-type'] = 'application/x-www-form-urlencoded';
                 if ($method === 'DELETE') {
                     $requestBody = '';
                 }
             }
             $secret = $this->secret;
-            $rawSecret = $this->secret;
-            if (mb_strpos($rawSecret, 'ed25519:') !== false) {
-                $parts = explode('ed25519:', $rawSecret);
+            if (mb_strpos($this->secret, 'ed25519:') !== false) {
+                $parts = explode('ed25519:', $this->secret);
                 $secret = $parts[1];
             }
             $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
-            $requestHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
+            $authHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
+            $requestHeaders = $authHeaders;
         }
-        $bodyResult = $requestBody;
-        $headersResult = $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -3560,9 +3561,9 @@ class woofipro extends Exchange {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        $success = $this->safe_bool($response, 'success');
+        $success = $this->safe_bool($response, 'success', false);
         $errorCode = $this->safe_string($response, 'code');
-        if ($success !== true) {
+        if (!$success) {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

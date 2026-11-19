@@ -15,27 +15,27 @@ pub fn testCapitalize() {
         m
     }));
     // Test 1: Basic lowercase string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("hello".into())).as_str() == Some("Hello")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("hello".into()))).as_str() == Some("Hello")))));
     // Test 2: Preserve rest of string (camelCase)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("fooBar".into())).as_str() == Some("FooBar")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("fooBar".into()))).as_str() == Some("FooBar")))));
     // Test 3: Preserve rest of string (mixed case)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("helloWorld".into())).as_str() == Some("HelloWorld")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("helloWorld".into()))).as_str() == Some("HelloWorld")))));
     // Test 4: Already capitalized
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("Hello".into())).as_str() == Some("Hello")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("Hello".into()))).as_str() == Some("Hello")))));
     // Test 5: All uppercase (should preserve rest)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("hELLO".into())).as_str() == Some("HELLO")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("hELLO".into()))).as_str() == Some("HELLO")))));
     // Test 6: Single character lowercase
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("a".into())).as_str() == Some("A")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("a".into()))).as_str() == Some("A")))));
     // Test 7: Single character uppercase
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("A".into())).as_str() == Some("A")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("A".into()))).as_str() == Some("A")))));
     // Test 8: Empty string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("".into())).as_str() == Some("")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("".into()))).as_str() == Some("")))));
     // Test 9: String starting with number
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("123abc".into())).as_str() == Some("123abc")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("123abc".into()))).as_str() == Some("123abc")))));
     // Test 10: String with spaces
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("hello world".into())).as_str() == Some("Hello world")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("hello world".into()))).as_str() == Some("Hello world")))));
     // Test 11: Underscore separated (snake_case)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("foo_bar_baz".into())).as_str() == Some("Foo_bar_baz")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("foo_bar_baz".into()))).as_str() == Some("Foo_bar_baz")))));
     // Test 12: All caps input (preserve rest)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.capitalize(Value::Str("aBC".into())).as_str() == Some("ABC")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.capitalize(Value::Str("aBC".into()))).as_str() == Some("ABC")))));
 }

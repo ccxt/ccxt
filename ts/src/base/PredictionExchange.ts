@@ -3,7 +3,7 @@
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, PredictionOutcomeHandle, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ export default class PredictionExchange extends BaseExchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'prediction': true,
@@ -137,11 +137,11 @@ export default class PredictionExchange extends BaseExchange {
         if ((eventId !== undefined) || (slug !== undefined)) {
             const filtered: Dict[] = [];
             for (let i = 0; i < result.length; i++) {
-                const event = result[i];
+                const event = this.safeDict (result, i);
                 const idMatch = (eventId !== undefined) && (this.safeString (event, 'id') === eventId);
                 const slugMatch = (slug !== undefined) && (this.safeString (event, 'slug') === slug);
                 if (idMatch || slugMatch) {
-                    filtered.push (event);
+                    filtered.push (this.safeValue (result, i));
                 }
             }
             result = filtered;
@@ -199,11 +199,11 @@ export default class PredictionExchange extends BaseExchange {
         const wantActive = (status === 'active');
         const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeDict (events, i);
             const isActive = this.safeBool (event, 'active');
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((isActive === undefined) || (isActive === wantActive)) {
-                result.push (event);
+                result.push (this.safeValue (events, i));
             }
         }
         return result;
@@ -216,19 +216,19 @@ export default class PredictionExchange extends BaseExchange {
         if (queries !== undefined) {
             queriesLength = queries.length;
         }
-        if ((searchIn === undefined) || (queries === undefined) || (queriesLength === 0)) {
+        if ((searchIn === undefined) || (queriesLength === 0)) {
             return events;
         }
         const checkTitle = (searchIn === 'title') || (searchIn === 'both');
         const checkDescription = (searchIn === 'description') || (searchIn === 'both');
         const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeDict (events, i);
             const title = this.safeStringLower (event, 'title', '');
             const description = this.safeStringLower (event, 'description', '');
             let matched = false;
-            for (let qi = 0; qi < queries.length; qi++) {
-                const q = queries[qi].toLowerCase ();
+            for (let qi = 0; qi < queriesLength; qi++) {
+                const q = this.safeString (queries, qi, '').toLowerCase ();
                 if (title === undefined) {
                     throw new ExchangeError (this.id + ' filterEventsBySearchIn() missing title');
                 }
@@ -245,7 +245,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             if (matched) {
-                result.push (event);
+                result.push (this.safeValue (events, i));
             }
         }
         return result;
@@ -280,12 +280,16 @@ export default class PredictionExchange extends BaseExchange {
     filterEventsByTags (events: any[], tags: Strings = undefined): any[] {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if ((tags === undefined) || (tags.length === 0)) {
+        let tagsLength = 0;
+        if (tags !== undefined) {
+            tagsLength = tags.length;
+        }
+        if (tagsLength === 0) {
             return events;
         }
         const wanted: string[] = [];
-        for (let i = 0; i < tags.length; i++) {
-            const wantedKey = this.normalizeTagKey (tags[i]);
+        for (let i = 0; i < tagsLength; i++) {
+            const wantedKey = this.normalizeTagKey (this.safeString (tags, i, ''));
             if (wantedKey !== '') {
                 // an empty normalized key would substring-match every tag
                 wanted.push (wantedKey);
@@ -293,7 +297,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeDict (events, i);
             const eventTags = this.safeList (event, 'tags', []);
             let matched = false;
             for (let ti = 0; ti < eventTags.length; ti++) {
@@ -318,7 +322,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             if (matched) {
-                result.push (event);
+                result.push (this.safeValue (events, i));
             }
         }
         return result;
@@ -343,7 +347,7 @@ export default class PredictionExchange extends BaseExchange {
             this.events_by_slug = {};
         }
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeDict (events, i);
             const id = this.safeString (event, 'id');
             const slug = this.safeString (event, 'slug');
             const handle = this.safeString (event, 'event');
@@ -402,10 +406,10 @@ export default class PredictionExchange extends BaseExchange {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
-            return this.events[eventIdOrSlug];
+            return this.safeDict (this.events, eventIdOrSlug);
         }
         if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
-            return this.events_by_slug[eventIdOrSlug];
+            return this.safeDict (this.events_by_slug, eventIdOrSlug);
         }
         throw new BadSymbol (this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
@@ -418,10 +422,10 @@ export default class PredictionExchange extends BaseExchange {
             throw new ExchangeError (this.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
         if (outcomeSymbol in this.outcomes) {
-            return this.outcomes[outcomeSymbol];
+            return this.safeValue (this.outcomes, outcomeSymbol);
         }
         if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-            return this.outcomes_by_id[outcomeSymbol];
+            return this.safeValue (this.outcomes_by_id, outcomeSymbol);
         }
         throw new BadSymbol (this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
@@ -442,17 +446,17 @@ export default class PredictionExchange extends BaseExchange {
         return false;
     }
 
-    safeOutcome (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): PredictionOutcomeMarket {
+    safeOutcome (outcomeIdOrSymbol: Str, market: Market = undefined): PredictionOutcomeHandle {
         if (outcomeIdOrSymbol !== undefined) {
             if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
-                return this.outcomes[outcomeIdOrSymbol];
+                return this.safeValue (this.outcomes, outcomeIdOrSymbol);
             }
             if ((this.outcomes_by_id !== undefined) && (outcomeIdOrSymbol in this.outcomes_by_id)) {
-                return this.outcomes_by_id[outcomeIdOrSymbol];
+                return this.safeValue (this.outcomes_by_id, outcomeIdOrSymbol);
             }
         }
-        if (outcomeObj !== undefined) {
-            return outcomeObj;
+        if (market !== undefined) {
+            return market;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         const outcomeObjValue: any = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {}};
@@ -460,7 +464,12 @@ export default class PredictionExchange extends BaseExchange {
     }
 
     safeOutcomeSymbol (outcomeIdOrSymbol: Str, outcomeObj: any = undefined): Str {
-        const outcomeObjValue: any = this.safeOutcome (outcomeIdOrSymbol, outcomeObj);
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if (!this.hasOutcome (outcomeIdOrSymbol) && (outcomeObj !== undefined)) {
+            return this.safeString (outcomeObj, 'outcome');
+        }
+        const outcomeObjValue: any = this.safeOutcome (outcomeIdOrSymbol);
         return outcomeObjValue['outcome'];
     }
 
@@ -557,8 +566,7 @@ export default class PredictionExchange extends BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        const outcomeValue: string = (outcome === undefined) ? '' : outcome;
-        const upper = outcomeValue.toUpperCase ();
+        const upper = (outcome === undefined) ? '' : outcome.toUpperCase ();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray (upper);
         let label = '';
@@ -594,14 +602,14 @@ export default class PredictionExchange extends BaseExchange {
             copy['symbol'] = this.safeString2 (row, 'market', 'symbol');
             aliased.push (copy);
         }
-        const stored = super.setMarkets (aliased, currencies);
+        const stored: Dict = super.setMarkets (aliased, currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
         const marketKeys = Object.keys (stored);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            stored[key] = this.omit (stored[key], 'symbol');
+            stored[key] = this.omit (this.safeDict (stored, key, {}), 'symbol');
         }
         this.populateOutcomes ();
         return stored;
@@ -623,7 +631,7 @@ export default class PredictionExchange extends BaseExchange {
         const outcomesList = this.safeList (market, 'outcomes', []);
         for (let j = 0; j < outcomesList.length; j++) {
             const oc = outcomesList[j];
-            let ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
+            let ocSymbol: Str = this.safeString2 (oc, 'outcome', 'symbol');
             const ocId = this.safeString2 (oc, 'outcomeId', 'id');
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
@@ -635,7 +643,7 @@ export default class PredictionExchange extends BaseExchange {
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                const existing = this.safeValue (this.outcomes, ocSymbol);
+                const existing = this.safeDict (this.outcomes, ocSymbol);
                 if (existing !== undefined) {
                     const existingId = this.safeString (existing, 'outcomeId');
                     if ((existingId !== undefined) && (ocId !== undefined) && (existingId !== ocId)) {
@@ -756,7 +764,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.outcomes;
     }
 
-    async loadOutcome (outcomeSymbol: Str, reload = false): Promise<PredictionOutcomeMarket> {
+    async loadOutcome (outcomeSymbol: Str, reload = false): Promise<PredictionOutcomeHandle> {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
         // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
@@ -1294,11 +1302,11 @@ export default class PredictionExchange extends BaseExchange {
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
         // outcome-addressed row). prediction is always linear with a contract size of 1.
-        let amount = this.omitZero (this.safeString (outcomeOrder, 'amount'));
+        let amount: Str = this.omitZero (this.safeString (outcomeOrder, 'amount'));
         let filled = this.safeString (outcomeOrder, 'filled');
         let remaining = this.safeString (outcomeOrder, 'remaining');
         let cost = this.safeString (outcomeOrder, 'cost');
-        let average = this.omitZero (this.safeString (outcomeOrder, 'average'));
+        let average: Str = this.omitZero (this.safeString (outcomeOrder, 'average'));
         const price = this.omitZero (this.safeString (outcomeOrder, 'price'));
         let side = this.safeString (outcomeOrder, 'side');
         const status = this.safeString (outcomeOrder, 'status');
@@ -1365,26 +1373,24 @@ export default class PredictionExchange extends BaseExchange {
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
         const feeListLength = feeList.length;
         if ((fee === undefined) && (feeListLength > 0)) {
-            const reduced = this.reduceFeesByCurrency (feeList);
-            const reducedLength = reduced.length;
-            if (reducedLength > 0) {
-                fee = reduced[0];
-            }
+            fee = this.safeDict (this.reduceFeesByCurrency (feeList), 0);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         const orderType = this.safeString (outcomeOrder, 'type');
         let timeInForce = this.safeString (outcomeOrder, 'timeInForce');
-        let postOnly = this.safeBool (outcomeOrder, 'postOnly');
+        // the venue flag and the derived one are each written once, so neither local widens
+        const postOnlyValue = this.safeBool (outcomeOrder, 'postOnly');
+        let derivedPostOnly: Bool = undefined;
         if (timeInForce === undefined) {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly === true) {
+            if (postOnlyValue === true) {
                 timeInForce = 'PO';
             }
-        } else if (postOnly === undefined) {
-            postOnly = (timeInForce === 'PO');
+        } else if (postOnlyValue === undefined) {
+            derivedPostOnly = (timeInForce === 'PO');
         }
         const timestamp = this.safeInteger (outcomeOrder, 'timestamp');
         let datetime = this.safeString (outcomeOrder, 'datetime');
@@ -1410,7 +1416,7 @@ export default class PredictionExchange extends BaseExchange {
             'cost': this.parseNumber (cost),
             'fee': fee,
             'reduceOnly': this.safeBool (outcomeOrder, 'reduceOnly'),
-            'postOnly': postOnly,
+            'postOnly': (postOnlyValue !== undefined) ? postOnlyValue : derivedPostOnly,
             'trades': trades,
             'outcome': this.safeString (outcomeOrder, 'outcome'),
             'outcomeId': this.safeString (outcomeOrder, 'outcomeId'),
@@ -1464,9 +1470,9 @@ export default class PredictionExchange extends BaseExchange {
         const open = this.omitZero (this.safeString (ticker, 'open'));
         const close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
         const last = this.omitZero (this.safeString2 (ticker, 'last', 'close'));
-        let change = this.safeString (ticker, 'change');
-        let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
-        let average = this.omitZero (this.safeString (ticker, 'average'));
+        let change: Str = this.safeString (ticker, 'change');
+        let percentage: Str = this.omitZero (this.safeString (ticker, 'percentage'));
+        let average: Str = this.omitZero (this.safeString (ticker, 'average'));
         if ((change === undefined) && (open !== undefined) && (close !== undefined)) {
             change = Precise.stringSub (close, open);
         }
@@ -1659,11 +1665,11 @@ export default class PredictionExchange extends BaseExchange {
         return results as PredictionPosition[];
     }
 
-    filterByOutcomeSinceLimit (array: any, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomeSinceLimit (array: object[] | undefined, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
     }
 
-    filterByOutcomesSinceLimit (array: any, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomesSinceLimit (array: object[] | undefined, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'outcome', outcomes, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
@@ -1739,7 +1745,7 @@ export default class PredictionExchange extends BaseExchange {
     rlpEncodeList (items: string[]): string {
         let concatenated = '';
         for (let i = 0; i < items.length; i++) {
-            concatenated = concatenated + items[i];
+            concatenated = concatenated + this.safeString (items, i, '');
         }
         const byteLength = this.parseToInt (concatenated.length / 2);
         if (byteLength < 56) {
@@ -1770,18 +1776,15 @@ export default class PredictionExchange extends BaseExchange {
         if (hexValue === undefined) {
             return '';
         }
-        let h = this.remove0xPrefix (hexValue);
-        let start = 0;
+        const h = this.remove0xPrefix (hexValue);
         const total = h.length;
-        while ((start < total) && (h.slice (start, start + 1) === '0')) {
-            start = start + 1;
+        for (let i = 0; i < total; i++) {
+            if (h.slice (i, i + 1) === '0') {
+                continue;
+            }
+            return this.padHexToEven (h.slice (i));
         }
-        h = h.slice (start);
-        if (h === '') {
-            return '';
-        }
-        h = this.padHexToEven (h);
-        return h;
+        return '';
     }
 
     // eslint-disable-next-line no-unused-vars

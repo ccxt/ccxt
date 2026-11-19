@@ -270,7 +270,9 @@ export default class zaif extends Exchange {
         if (name === undefined) {
             throw new ExchangeError(this.id + ' parseMarket() missing name');
         }
-        const [baseId, quoteId] = name.split('/');
+        const nameParts = name.split('/');
+        const baseId = this.safeString(nameParts, 0);
+        const quoteId = this.safeString(nameParts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -572,7 +574,7 @@ export default class zaif extends Exchange {
         const data = this.safeDict(response, 'return', {});
         return this.safeOrder({
             'info': response,
-            'id': data['order_id'].toString(),
+            'id': this.numberToString(data['order_id']),
         }, market);
     }
     /**
@@ -688,7 +690,7 @@ export default class zaif extends Exchange {
         }
         const response = await this.privatePostActiveOrders(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(this.addKeyInArrayItems(data, 'id'), market, since, limit);
     }
     /**
      * @method
@@ -728,7 +730,7 @@ export default class zaif extends Exchange {
         }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(this.addKeyInArrayItems(data, 'id'), market, since, limit);
     }
     /**
      * @method
@@ -829,8 +831,7 @@ export default class zaif extends Exchange {
         };
     }
     customNonce() {
-        const num = this.numberToString(this.milliseconds() / 1000);
-        const nonce = parseFloat(num);
+        const nonce = this.milliseconds() / 1000;
         return nonce.toFixed(8);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
@@ -872,7 +873,7 @@ export default class zaif extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

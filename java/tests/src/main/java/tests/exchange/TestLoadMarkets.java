@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -28,28 +29,28 @@ public class TestLoadMarkets extends BaseTest {
         Object symbolsLength = ((List<?>)exchange.symbols).size();
         Assert(!java.util.Objects.equals(exchange.markets, null), ".markets is undefined");
         List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
-        Object marketKeysLength = ((List<?>)marketKeys).size();
+        Object marketKeysLength = marketKeys.size();
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         Assert(java.util.Objects.equals(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
-        Object marketValues = Helpers.objectValues(markets);
-        for (var i = 0; i < ((List<?>)marketValues).size(); i++)
+        List<Object> marketValues = Helpers.objectValues(markets);
+        for (var i = 0; i < marketValues.size(); i++)
         {
-            TestMarket.testMarket(exchange, skippedProperties, method, (marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i)));
+            TestMarket.testMarket(exchange, skippedProperties, method, (Map<String, Object>) ((marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i))));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
         List<String> marketTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option", "index"));
         List<Object> collectedTypes = new ArrayList<Object>(Arrays.asList());
-        Object allMarkets = Helpers.objectValues(exchange.markets);
-        for (var i = 0; i < ((List<?>)allMarkets).size(); i++)
+        List<Object> allMarkets = Helpers.objectValues(exchange.markets);
+        for (var i = 0; i < allMarkets.size(); i++)
         {
-            Object market = (allMarkets == null || i < 0 || i >= ((List<?>)allMarkets).size() ? null : ((List<?>)allMarkets).get(i));
+            Object market = (allMarkets == null || i < 0 || i >= allMarkets.size() ? null : allMarkets.get(i));
             if (!Helpers.isTrue(exchange.inArray(Helpers.GetValue(market, "type"), collectedTypes)))
             {
                 ((List<Object>)collectedTypes).add(Helpers.GetValue(market, "type"));
             }
         }
-        for (var i = 0; i < ((List<?>)marketTypes).size(); i++)
+        for (var i = 0; i < marketTypes.size(); i++)
         {
             Object mType = Helpers.GetValue(marketTypes, i);
             if (!java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), null) && !java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), false))

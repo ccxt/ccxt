@@ -16,6 +16,9 @@ use std::sync::Arc;
 
 // ── numeric / arithmetic ─────────────────────────────────────────────────────
 
+/// `as_f64` for the typed `in_array` needles (same numeric reading as `is_equal`).
+pub(crate) fn value_as_f64(v: &Value) -> Option<f64> { as_f64(v) }
+
 fn as_f64(v: &Value) -> Option<f64> {
     match v {
         Value::Int(n)   => Some(*n as f64),
@@ -122,6 +125,7 @@ pub fn multiply(a: &Value, b: &Value) -> Value {
     }
 }
 
+// Printed by the rust `/` wrapper table; keep at 0 call sites.
 pub fn divide(a: &Value, b: &Value) -> Value {
     match (as_f64(a), as_f64(b)) {
         (Some(_), Some(y)) if y == 0.0 => Value::Null,
@@ -130,6 +134,7 @@ pub fn divide(a: &Value, b: &Value) -> Value {
     }
 }
 
+// Printed by the rust `%` / `%=` wrapper table; keep at 0 call sites.
 pub fn mod_val(a: &Value, b: &Value) -> Value {
     if both_ints(a, b) {
         let yi = as_i64(b).unwrap();
@@ -143,6 +148,7 @@ pub fn mod_val(a: &Value, b: &Value) -> Value {
     }
 }
 
+// Printed by printPrefixUnaryExpression when native negation declines; keep.
 pub fn negate(v: &Value) -> Value {
     match v {
         Value::Int(n)   => Value::Int(-n),
@@ -269,7 +275,9 @@ where
 {
     use futures::FutureExt;
     use std::panic::AssertUnwindSafe;
-    match AssertUnwindSafe(fut).catch_unwind().await {
+    // boxed: a typed body awaiting another typed core (watchOrderBook -> watchOrderBookForSymbols)
+    // would otherwise nest both state machines on the stack
+    match AssertUnwindSafe(Box::pin(fut)).catch_unwind().await {
         Ok(v) => Ok(v),
         Err(payload) => {
             let msg = payload.downcast_ref::<String>().cloned()
@@ -373,7 +381,7 @@ fn error_parent(class: &str) -> Option<&'static str> {
 
 // ── element access ───────────────────────────────────────────────────────────
 
-pub fn get_value(obj: &Value, key: &Value) -> Value {
+pub fn get_value(obj: &Value, key: impl crate::value::ValueKey) -> Value {
     crate::value::get_value(obj, key)
 }
 
@@ -396,7 +404,30 @@ pub unsafe fn coerce_value_to_mut(v: &Value) -> &mut Value {
     &mut *ptr
 }
 
-pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
+/// ral-48e: the container a nested write hops through (`get_value_mut`): a `Value`, or a held `List` local.
+pub trait MutHop { fn hop_mut<'a>(&'a mut self, key: &Value) -> &'a mut Value; }
+impl MutHop for Value { fn hop_mut<'a>(&'a mut self, key: &Value) -> &'a mut Value { get_value_mut_boxed(self, key) } }
+/// A held list hops an `Int` slot exactly as the `Value::Arr` arm (padded with `Null`); any other key reaches no slot,
+/// so the write lands in a detached `Null` (the boxed arm handed the list itself back, where a keyed write is a no-op).
+impl MutHop for crate::value::List {
+    fn hop_mut<'a>(&'a mut self, key: &Value) -> &'a mut Value {
+        match key {
+            Value::Int(i) => {
+                let idx = *i as usize;
+                let a = Arc::make_mut(self);
+                while a.len() <= idx { a.push(Value::Null); }
+                &mut a[idx]
+            }
+            _ => Box::leak(Box::new(Value::Null)),
+        }
+    }
+}
+
+pub fn get_value_mut<'a, T: MutHop + ?Sized>(obj: &'a mut T, key: &Value) -> &'a mut Value {
+    obj.hop_mut(key)
+}
+
+fn get_value_mut_boxed<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => Arc::make_mut(m).entry(k.to_string()).or_insert(Value::Null),
         (Value::Arr(a), Value::Int(i)) => {
@@ -409,9 +440,40 @@ pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
     }
 }
 
-pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => {
+/// ral-48b: the receiver of `add_element_to_object`: a boxed `Value`, a typed map local (`Dict`) or an optional one
+/// (`Option<Dict>`). The map arms run the very hooks the boxed `Value::Dict` arm ran (book meta, ws subscriptions, ws
+/// subscription fields, cache hashmap buckets) on the local's own handle, so a tagged map keeps its write-through.
+pub trait AddTarget { fn add_element(&mut self, key: &Value, val: Value); }
+impl AddTarget for Value {
+    fn add_element(&mut self, key: &Value, val: Value) {
+        match self {
+            Value::Dict(m) => add_element_to_map(m, key, val),
+            Value::Arr(a) => add_element_to_list(a, key, val),
+            _ => {}
+        }
+    }
+}
+/// ral-50b: a typed list local (`List`) written at an index: the boxed `Value::Arr` arm (pads with `Null`; a non-integer
+/// key writes nothing).
+impl AddTarget for crate::value::List { fn add_element(&mut self, key: &Value, val: Value) { add_element_to_list(self, key, val) } }
+
+fn add_element_to_list(a: &mut crate::value::List, key: &Value, val: Value) {
+    if let Value::Int(i) = key {
+        let idx = *i as usize;
+        let a = Arc::make_mut(a);
+        while a.len() <= idx { a.push(Value::Null); }
+        a[idx] = val;
+    }
+}
+impl AddTarget for crate::value::Dict { fn add_element(&mut self, key: &Value, val: Value) { add_element_to_map(self, key, val) } }
+/// `None` is the boxed `Null` receiver: the write is skipped, as the helper skipped it.
+impl AddTarget for Option<crate::value::Dict> {
+    fn add_element(&mut self, key: &Value, val: Value) { if let Some(m) = self { add_element_to_map(m, key, val) } }
+}
+
+fn add_element_to_map(m: &mut crate::value::Dict, key: &Value, val: Value) {
+    match key {
+        Value::Str(k) => {
             if crate::value::try_book_meta_write(m, k, &val) { return; }
             // Persist to the live client AND update the local snapshot (see
             // set_value) so a read-back of client.subscriptions is coherent.
@@ -423,15 +485,15 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
             crate::value::try_cache_hashmap_write(m, k, &val);
             Arc::make_mut(m).insert(k.to_string(), val);
         }
-        (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }
-        (Value::Arr(a), Value::Int(i)) => {
-            let idx = *i as usize;
-            let a = Arc::make_mut(a);
-            while a.len() <= idx { a.push(Value::Null); }
-            a[idx] = val;
-        }
-        _ => {}
+        other => { Arc::make_mut(m).insert(stringify_simple(other), val); }
     }
+}
+
+/// `obj[key] = val`. ral-48b: `obj` is any `AddTarget` (a boxed `Value`, a `Dict` or `Option<Dict>` local), `key` any
+/// `ValueKey` (a boxed `&Value` or a typed string), `val` anything that boxes into a `Value`.
+pub fn add_element_to_object(obj: &mut impl AddTarget, key: impl crate::value::ValueKey, val: impl Into<Value>) {
+    let val = val.into();
+    key.with_key(|k| obj.add_element(k, val));
 }
 
 pub fn remove(obj: &mut Value, key: &Value) {
@@ -514,26 +576,6 @@ pub fn get_array_length(v: &Value) -> Value {
     Value::Int(v.len() as i64)
 }
 
-pub fn get_index_of(haystack: &Value, needle: &Value) -> Value {
-    match haystack {
-        Value::Arr(a) => {
-            for (i, item) in a.iter().enumerate() {
-                if is_equal(item, needle) { return Value::Int(i as i64); }
-            }
-            Value::Int(-1)
-        }
-        Value::Str(s) => {
-            if let Value::Str(n) = needle {
-                match s.find(n.as_ref()) {
-                    Some(i) => Value::Int(i as i64),
-                    None    => Value::Int(-1),
-                }
-            } else { Value::Int(-1) }
-        }
-        _ => Value::Int(-1),
-    }
-}
-
 // ── JSON ────────────────────────────────────────────────────────────────────
 
 pub fn json_parse(v: &Value) -> Value {
@@ -586,7 +628,17 @@ pub fn quote_json_numbers(s: &str) -> String {
     String::from_utf8(out).unwrap_or_else(|_| s.to_string())
 }
 
-pub fn json_stringify(v: &Value) -> Value {
+/// The operand of `json_stringify`: a `Value`, or a dict / list local (optional or not) lent by reference.
+pub trait JsonOperand { fn to_json(self) -> serde_json::Value; }
+impl JsonOperand for &Value { fn to_json(self) -> serde_json::Value { Value::to_json(self) } }
+impl JsonOperand for &&Value { fn to_json(self) -> serde_json::Value { Value::to_json(self) } }
+impl JsonOperand for &Vec<Value> { fn to_json(self) -> serde_json::Value { serde_json::Value::Array(self.iter().map(Value::to_json).collect()) } }
+impl JsonOperand for &crate::value::Dict { fn to_json(self) -> serde_json::Value { Value::Dict(Arc::clone(self)).to_json() } }
+impl JsonOperand for &crate::value::List { fn to_json(self) -> serde_json::Value { Value::Arr(Arc::clone(self)).to_json() } }
+impl JsonOperand for &Option<crate::value::Dict> { fn to_json(self) -> serde_json::Value { Value::from(self).to_json() } }
+impl JsonOperand for &Option<crate::value::List> { fn to_json(self) -> serde_json::Value { Value::from(self).to_json() } }
+
+pub fn json_stringify(v: impl JsonOperand) -> Value {
     Value::Str(serde_json::to_string(&v.to_json()).unwrap_or_default().into())
 }
 
@@ -621,10 +673,9 @@ pub async fn promise_all(v: &Value) -> Value {
 pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
     // JS default parameters trigger on `undefined`, so `f(a, b)` and
     // `f(a, b, undefined, undefined)` both apply the declared defaults. The port
-    // collapses `undefined`/`null` into `Value::Null`, and virtual-dispatch
-    // wrappers forward *every* optional slot as an explicit `Null` (see
-    // exchange_generated `parse_order_book` → `DerivedExchange::parse_order_book`
-    // with six `get_arg(..., Null)` args). A plain `unwrap_or` would then hand an
+    // collapses `undefined`/`null` into `Value::Null`, and a caller may pass
+    // any optional slot as an explicit `Null` (`request_typed` hands `sign`
+    // `Null` headers and body). A plain `unwrap_or` would then hand an
     // override an explicit `Null` and clobber its own default (ndax
     // `parseOrderBook`'s priceKey=6/bidsKey='bids'), producing an empty book. So
     // when the slot is `Null` *and* a non-`Null` default is declared, honour the
@@ -705,6 +756,9 @@ pub fn concat_arrays(a: &Value, b: &Value) -> Value {
 
 pub use crate::exchange_errors::*;
 pub use crate::precise::Precise;
+pub use crate::value::{KeyRead, Rows};
+pub use crate::pro::cache::{CacheShelves, CacheSlot, CacheStore};
+pub use crate::pro::order_book::BookSlot;
 
 // ── Math (TS Math.min/max/abs/pow) ──────────────────────────────────────────
 
@@ -746,34 +800,6 @@ pub mod Math {
 // if the rust transpiler picks up FullPropertyAccessReplacements). Post-
 // processing in build/rustTranspiler.ts converts `Math.X(...)` to
 // `crate::runtime::Math::X(...)`.
-
-/// `slice(value, start [, end])` — string and array slicing.
-pub fn slice(v: &Value, start: &Value, end: &Value) -> Value {
-    let s = as_i64(start).unwrap_or(0);
-    let e_opt = as_i64(end);
-    match v {
-        Value::Str(s_val) => {
-            let chars: Vec<char> = s_val.chars().collect();
-            let len = chars.len() as i64;
-            let si = if s < 0 { (len + s).max(0) as usize } else { (s as usize).min(chars.len()) };
-            let ei = match e_opt {
-                None => chars.len(),
-                Some(n) => if n < 0 { (len + n).max(0) as usize } else { (n as usize).min(chars.len()) },
-            };
-            if si <= ei { Value::Str(chars[si..ei].iter().collect::<String>().into()) } else { Value::Str(String::new().into()) }
-        }
-        Value::Arr(a) => {
-            let len = a.len() as i64;
-            let si = if s < 0 { (len + s).max(0) as usize } else { (s as usize).min(a.len()) };
-            let ei = match e_opt {
-                None => a.len(),
-                Some(n) => if n < 0 { (len + n).max(0) as usize } else { (n as usize).min(a.len()) },
-            };
-            if si <= ei { Value::Array(a[si..ei].to_vec()) } else { Value::Array(vec![]) }
-        }
-        _ => Value::Null,
-    }
-}
 
 /// `join(array, separator)` — joins array elements into a string.
 pub fn join(arr: &Value, sep: &Value) -> Value {
@@ -823,14 +849,6 @@ pub fn ends_with(haystack: &Value, suffix: &Value) -> bool {
         (Value::Str(h), Value::Str(s)) => h.ends_with(s.as_ref()),
         _ => false,
     }
-}
-
-/// `to_lower(s)` / `to_upper(s)` — string-case conversion (returns Value).
-pub fn to_lower(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.to_lowercase().into()), _ => Value::Null }
-}
-pub fn to_upper(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.to_uppercase().into()), _ => Value::Null }
 }
 
 /// `trim(s)` — string trim.
@@ -949,39 +967,27 @@ pub fn encode(s: Value) -> Value {
     }
 }
 
-/// Free-function `hash(data, algo, digest)` — used by transpiled crypto
-/// code that imports `hash` from `base/functions/crypto.js`.
-pub fn hash(data: Value, algo: Value, digest: Value) -> Value {
+/// Free-function `hash(data, algo, digest)` with a `'hex'` / `'base64'` digest (`base/functions/crypto.js`).
+pub fn hash(data: Value, algo: Value, digest: Value) -> String {
     let dbytes = crate::exchange::value_to_bytes(&data);
     let a = match &algo { Value::Str(s) => s.as_ref(), _ => "sha256" };
     let dg = match &digest { Value::Str(s) => s.as_ref(), _ => "hex" };
     let raw = crate::exchange::hash_raw(&dbytes, a);
     match dg {
-        "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-        "base64" => Value::Str(b64_encode(&raw).into()),
-        _        => Value::Str(hex::encode(&raw).into()),
+        "base64" => b64_encode(&raw),
+        _        => crate::exchange::hex_encode(&raw),
     }
 }
 
 /// Free-function `hmac(data, secret, algo, digest)`.
 pub fn hmac(data: Value, secret: Value, algo: Value, digest: Value) -> Value {
-    use hmac::{Hmac, Mac};
     let dbytes = crate::exchange::value_to_bytes(&data);
     let sbytes = crate::exchange::value_to_bytes(&secret);
-    let a = match &algo { Value::Str(s) => s.to_ascii_lowercase(), _ => "sha256".to_string() };
+    let a = match &algo { Value::Str(s) => s.as_ref(), _ => "sha256" };
     let dg = match &digest { Value::Str(s) => s.as_ref(), _ => "hex" };
-    let raw: Vec<u8> = match a.as_str() {
-        "sha256" => { let mut m = Hmac::<sha2::Sha256>::new_from_slice(&sbytes).unwrap(); m.update(&dbytes); m.finalize().into_bytes().to_vec() }
-        "sha512" => { let mut m = Hmac::<sha2::Sha512>::new_from_slice(&sbytes).unwrap(); m.update(&dbytes); m.finalize().into_bytes().to_vec() }
-        "sha384" => { let mut m = Hmac::<sha2::Sha384>::new_from_slice(&sbytes).unwrap(); m.update(&dbytes); m.finalize().into_bytes().to_vec() }
-        "sha1"   => { let mut m = Hmac::<sha1::Sha1>::new_from_slice(&sbytes).unwrap();   m.update(&dbytes); m.finalize().into_bytes().to_vec() }
-        "md5"    => { let mut m = Hmac::<md5::Md5>::new_from_slice(&sbytes).unwrap();     m.update(&dbytes); m.finalize().into_bytes().to_vec() }
-        _ => return Value::Null,
-    };
-    match dg {
-        "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-        "base64" => Value::Str(b64_encode(&raw).into()),
-        _        => Value::Str(hex::encode(&raw).into()),
+    match crate::exchange::hmac_raw(&dbytes, &sbytes, a) {
+        Some(raw) => crate::exchange::digest_value(&raw, dg),
+        None => Value::Null,
     }
 }
 
@@ -1240,7 +1246,7 @@ pub fn decode_mexc_push_data(bytes: &[u8]) -> Value {
 
 /// `rsa(message, key, hash)` — RSA PKCS#1 v1.5 signature (SHA-256),
 /// returned base64-encoded. `key` is a PKCS#1 PEM private key.
-pub fn rsa(message: Value, key: Value, _hash: Value) -> Value {
+pub fn rsa(message: Value, key: Value, _hash: Value) -> String {
     use rsa::RsaPrivateKey;
     use rsa::pkcs1::DecodeRsaPrivateKey;
     use rsa::pkcs1v15::SigningKey;
@@ -1249,28 +1255,28 @@ pub fn rsa(message: Value, key: Value, _hash: Value) -> Value {
     let pem = String::from_utf8_lossy(&crate::exchange::value_to_bytes(&key)).into_owned();
     let pk = match RsaPrivateKey::from_pkcs1_pem(pem.trim()) {
         Ok(k) => k,
-        Err(_) => return Value::Str(String::new().into()),
+        Err(_) => return String::new(),
     };
     let signing_key = SigningKey::<sha2::Sha256>::new(pk);
     let sig = signing_key.sign(&msg);
-    Value::Str(b64_encode(&sig.to_bytes()).into())
+    b64_encode(&sig.to_bytes())
 }
 
 /// `ecdsa(message, secret, curve, preHash)` — secp256k1 ECDSA signature
 /// with public-key recovery. Returns `{r, s, v}` (hex r/s, integer
 /// recovery id). `message` is a hex digest (already hashed) unless
 /// `preHash` names a hash algorithm to apply first.
-pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> Value {
+pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> crate::value::Dict {
     use k256::ecdsa::SigningKey;
-    let empty = || Value::Map(indexmap::IndexMap::new());
+    let empty = || std::sync::Arc::new(indexmap::IndexMap::new());
     let msg_s = match &message { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
     let sk_s  = match &secret  { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
-    let sk_bytes = match hex::decode(&sk_s) { Ok(b) => b, Err(_) => return empty() };
+    let sk_bytes = match crate::exchange::hex_decode(&sk_s) { Some(b) => b, None => return empty() };
     // The 32-byte digest to sign.
     let digest: Vec<u8> = match &pre_hash {
         Value::Str(algo) => crate::exchange::hash_raw(
             &crate::exchange::value_to_bytes(&message), algo),
-        _ => match hex::decode(&msg_s) { Ok(b) => b, Err(_) => return empty() },
+        _ => match crate::exchange::hex_decode(&msg_s) { Some(b) => b, None => return empty() },
     };
     let sk = match SigningKey::from_slice(&sk_bytes) { Ok(k) => k, Err(_) => return empty() };
     let (sig, recid) = match sk.sign_prehash_recoverable(&digest) {
@@ -1279,10 +1285,10 @@ pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> V
     };
     let bytes = sig.to_bytes(); // 64 bytes: r || s, low-S normalized
     let mut m = indexmap::IndexMap::new();
-    m.insert("r".to_string(), Value::Str(hex::encode(&bytes[0..32]).into()));
-    m.insert("s".to_string(), Value::Str(hex::encode(&bytes[32..64]).into()));
+    m.insert("r".to_string(), Value::Str(crate::exchange::hex_encode(&bytes[0..32]).into()));
+    m.insert("s".to_string(), Value::Str(crate::exchange::hex_encode(&bytes[32..64]).into()));
     m.insert("v".to_string(), Value::Int(recid.to_byte() as i64));
-    Value::Map(m)
+    std::sync::Arc::new(m)
 }
 
 /// Strip PEM armor (`-----BEGIN…-----` / `-----END…-----`) and base64-decode the
@@ -1303,26 +1309,26 @@ fn pem_to_der(pem: &str) -> Vec<u8> {
 /// either a 32-byte raw seed string or a base64/PEM PKCS#8 key (seed at DER
 /// offset 16). Returns the standard-base64 signature. Fails loudly (NotSupported
 /// panic) rather than returning an empty/invalid signature.
-pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
+pub fn eddsa(request: impl Into<Value>, secret: impl Into<Value>, _curve: Value) -> String {
     use ed25519_dalek::{Signer, SigningKey};
     let bad = |why: &str| -> ! {
         panic!("{}", crate::exchange_errors::not_supported(
             Value::Str(format!("eddsa: {why}").into())));
     };
-    let msg: Vec<u8> = match &request {
-        Value::Arr(_) => crate::exchange::value_to_bytes(&request),
+    let msg: Vec<u8> = match &request.into() {
+        request @ Value::Arr(_) => crate::exchange::value_to_bytes(request),
         Value::Str(s) => {
             let t = s.trim_start_matches("0x");
-            hex::decode(t).unwrap_or_else(|_| s.as_bytes().to_vec())
+            crate::exchange::hex_decode(t).unwrap_or_else(|| s.as_bytes().to_vec())
         }
         _ => bad("request must be bytes or a string"),
     };
     // The seed (32 bytes) comes in as either raw bytes (`Value::Arr`, e.g.
     // pacifica's base58-decoded key sliced to 32), a 32-char raw string, or a
     // base64/PEM PKCS#8 key (seed at DER offset 16).
-    let seed: [u8; 32] = match &secret {
-        Value::Arr(_) => {
-            let b = crate::exchange::value_to_bytes(&secret);
+    let seed: [u8; 32] = match &secret.into() {
+        secret @ Value::Arr(_) => {
+            let b = crate::exchange::value_to_bytes(secret);
             if b.len() >= 32 { b[..32].try_into().unwrap() } else { bad("seed shorter than 32 bytes") }
         }
         Value::Str(sec_s) if sec_s.len() == 32 => {
@@ -1342,7 +1348,7 @@ pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
     };
     let sk = SigningKey::from_bytes(&seed);
     let sig = sk.sign(&msg);
-    Value::Str(b64_encode(&sig.to_bytes()).into())
+    b64_encode(&sig.to_bytes())
 }
 
 /// Standard base64.
@@ -1359,7 +1365,7 @@ fn b64url_encode(data: &[u8]) -> String {
 
 /// `jwt(request, secret, algorithm, isRsa, opts)` — JSON Web Token.
 /// HS256 (HMAC) or RS256 (RSA), signing `header.payload`.
-pub fn jwt(request: Value, secret: Value, algorithm: Value, is_rsa: Value, _opts: Value) -> Value {
+pub fn jwt(request: impl Into<Value>, secret: impl Into<Value>, algorithm: Value, is_rsa: Value, _opts: Value) -> String {
     let rsa_mode = matches!(is_rsa, Value::Bool(true));
     let bits = match algorithm.as_str() {
         Some("sha512") => "512",
@@ -1369,18 +1375,15 @@ pub fn jwt(request: Value, secret: Value, algorithm: Value, is_rsa: Value, _opts
     let alg = format!("{}{}", if rsa_mode { "RS" } else { "HS" }, bits);
     // Header keys must be in a fixed order — build the JSON literally.
     let header = format!("{{\"alg\":\"{alg}\",\"typ\":\"JWT\"}}");
-    let payload = serde_json::to_string(&request.to_json()).unwrap_or_else(|_| "{}".to_string());
+    let payload = serde_json::to_string(&request.into().to_json()).unwrap_or_else(|_| "{}".to_string());
     let token = format!("{}.{}",
         b64url_encode(header.as_bytes()),
         b64url_encode(payload.as_bytes()));
     // Signature: standard base64 from rsa()/hmac(), then made URL-safe.
     let sig_std: String = if rsa_mode {
-        match rsa(Value::Str(token.clone().into()), secret, algorithm) {
-            Value::Str(s) => s.to_string(),
-            _ => String::new(),
-        }
+        rsa(Value::Str(token.clone().into()), secret.into(), algorithm)
     } else {
-        match hmac(encode(Value::Str(token.clone().into())), secret, algorithm,
+        match hmac(encode(Value::Str(token.clone().into())), secret.into(), algorithm,
                    Value::Str("base64".into())) {
             Value::Str(s) => s.to_string(),
             _ => String::new(),
@@ -1388,7 +1391,7 @@ pub fn jwt(request: Value, secret: Value, algorithm: Value, is_rsa: Value, _opts
     };
     let sig_url = sig_std.replace('+', "-").replace('/', "_")
         .trim_end_matches('=').to_string();
-    Value::Str(format!("{token}.{sig_url}").into())
+    format!("{token}.{sig_url}")
 }
 
 /// `replace_str(s, old, new)` — string replacement, alias for string_replace.
@@ -1458,3 +1461,97 @@ pub fn to_fixed(x: &Value, digits: &Value) -> Value {
 }
 
 // ── Value helpers used by transpiled code in HashMap-construction blocks ─────
+
+#[cfg(test)]
+mod ral48b_add_target_tests {
+    use super::*;
+    use crate::value::Dict;
+
+    fn map(pairs: &[(&str, i64)]) -> HashMap<String, Value> {
+        pairs.iter().map(|(k, v)| (k.to_string(), Value::Int(*v))).collect()
+    }
+
+    /// A typed `Dict` / `Option<Dict>` receiver writes exactly what the boxed `Value::Dict` receiver wrote, for a string
+    /// key, a typed string key, a non-string key and a `None` receiver (skipped, as the boxed `Null` was).
+    #[test]
+    fn ral48b_add_target_typed_maps_write_like_the_boxed_map() {
+        for key in [Value::Str("a".into()), Value::Str("new".into()), Value::Int(3), Value::Null] {
+            let mut boxed = Value::Dict(Arc::new(map(&[("a", 1)])));
+            let mut typed: Dict = Arc::new(map(&[("a", 1)]));
+            let mut opt: Option<Dict> = Some(Arc::new(map(&[("a", 1)])));
+            add_element_to_object(&mut boxed, &key, Value::Int(9));
+            add_element_to_object(&mut typed, &key, 9i64);
+            add_element_to_object(&mut opt, &key, Value::Int(9));
+            assert_eq!(Value::Dict(typed), boxed);
+            assert_eq!(opt.map(Value::Dict).unwrap_or(Value::Null), boxed);
+        }
+        let mut typed: Dict = Arc::new(map(&[]));
+        add_element_to_object(&mut typed, "k", Value::Int(1));
+        add_element_to_object(&mut typed, Some("j"), Value::Int(2));
+        assert_eq!(Value::Dict(typed), Value::Dict(Arc::new(map(&[("k", 1), ("j", 2)]))));
+        let mut none: Option<Dict> = None;
+        let mut null = Value::Null;
+        add_element_to_object(&mut none, "k", Value::Int(1));
+        add_element_to_object(&mut null, "k", Value::Int(1));
+        assert!(none.is_none());
+        assert_eq!(null, Value::Null);
+    }
+
+    /// The `Dict` arm writes through the local's own handle: a shared map copies on write, the other holder keeps the old
+    /// map, the very copy-on-write the boxed arm made; a list receiver still writes its index.
+    #[test]
+    fn ral48b_add_target_copy_on_write_and_list_index() {
+        let shared: Dict = Arc::new(map(&[("a", 1)]));
+        let mut typed = Arc::clone(&shared);
+        add_element_to_object(&mut typed, "b", Value::Int(2));
+        assert_eq!(shared.len(), 1);
+        assert_eq!(typed.get("b"), Some(&Value::Int(2)));
+        let mut list = Value::Arr(Arc::new(vec![Value::Int(0)]));
+        add_element_to_object(&mut list, &Value::Int(2), Value::Int(5));
+        assert_eq!(list, Value::Arr(Arc::new(vec![Value::Int(0), Value::Null, Value::Int(5)])));
+    }
+}
+
+#[cfg(test)]
+mod ral50b_add_target_list_tests {
+    // ral-50b: `xs[i] = v` on a typed `List` local writes exactly what the boxed `Value::Arr` receiver wrote.
+    use super::*;
+    fn rows() -> crate::value::List { Arc::new(vec![Value::Int(0), Value::Int(1)]) }
+    #[test]
+    fn ral50b_list_target_writes_like_the_boxed_list() {
+        for key in [Value::Int(0), Value::Int(1), Value::Int(4), Value::Str("a".into()), Value::Null] {
+            let mut typed = rows();
+            let mut boxed = Value::Arr(rows());
+            add_element_to_object(&mut typed, &key, Value::Int(9));
+            add_element_to_object(&mut boxed, &key, Value::Int(9));
+            assert_eq!(Value::Arr(typed), boxed);
+        }
+        let shared = rows();
+        let mut typed = Arc::clone(&shared);
+        add_element_to_object(&mut typed, &Value::Int(0), Value::Int(7));
+        assert_eq!(shared[0], Value::Int(0));
+        assert_eq!(typed[0], Value::Int(7));
+    }
+}
+
+#[cfg(test)]
+mod list_hop_tests {
+    // ral-48e: `xs[i]['k'] = v` on a held `List` local hops the slot as the boxed `Value::Arr` did.
+    use super::*;
+    fn rows() -> crate::value::List { Arc::new(vec![Value::from(HashMap::<String, Value>::new()), Value::Int(3)]) }
+    #[test]
+    fn list_hop_matches_the_boxed_hop() {
+        for k in [0i64, 1, 4] {
+            let mut typed = rows();
+            add_element_to_object(get_value_mut(&mut typed, &Value::Int(k)), &Value::Str("k".into()), Value::Bool(true));
+            let mut boxed = Value::Arr(rows());
+            add_element_to_object(get_value_mut(&mut boxed, &Value::Int(k)), &Value::Str("k".into()), Value::Bool(true));
+            assert_eq!(Value::Arr(typed), boxed);
+        }
+        let mut typed = rows();
+        add_element_to_object(get_value_mut(&mut typed, &Value::Str("x".into())), &Value::Str("k".into()), Value::Int(1));
+        let mut boxed = Value::Arr(rows());
+        add_element_to_object(get_value_mut(&mut boxed, &Value::Str("x".into())), &Value::Str("k".into()), Value::Int(1));
+        assert_eq!(Value::Arr(typed), boxed);
+    }
+}

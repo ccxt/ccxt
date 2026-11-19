@@ -1,5 +1,5 @@
 import { BaseExchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, PredictionOutcomeHandle, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments BaseExchange
@@ -12,7 +12,7 @@ export default class PredictionExchange extends BaseExchange {
     outcomes_by_id: Dictionary<any> | undefined;
     events: Dictionary<any> | undefined;
     events_by_slug: Dictionary<any> | undefined;
-    describe(): any;
+    describe(): Dict;
     isPrediction(): boolean;
     parseSearchQueries(params?: Dict): string[];
     requireEventQuery(params?: Dict): undefined;
@@ -30,12 +30,12 @@ export default class PredictionExchange extends BaseExchange {
     getEvent(eventIdOrSlug: string): any;
     outcome(outcomeSymbol: Str): PredictionOutcomeMarket;
     hasOutcome(outcomeIdOrSymbol: Str): boolean;
-    safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): PredictionOutcomeMarket;
+    safeOutcome(outcomeIdOrSymbol: Str, market?: Market): PredictionOutcomeHandle;
     safeOutcomeSymbol(outcomeIdOrSymbol: Str, outcomeObj?: any): Str;
     shortenSlug(slug: Str): string;
     slugToMarketSymbol(eventSlug: Str, marketSlug: Str): string;
     slugToOutcomeSymbol(eventSlug: Str, marketSlug: Str, outcome: Str): string;
-    setMarkets(markets: any, currencies?: undefined): Dictionary<Market>;
+    setMarkets(markets: any, currencies?: undefined): Dict;
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
     indexEventOutcomes(event: any): void;
@@ -49,9 +49,9 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} the outcome cache
      */
     fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
-    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<PredictionOutcomeMarket>;
+    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<PredictionOutcomeHandle>;
     outcomeSearchQuery(outcomeSymbol: string): Str;
-    fetchOutcome(outcomeSymbol: string): Promise<PredictionOutcomeMarket>;
+    fetchOutcome(outcomeSymbol: string): Promise<PredictionOutcomeHandle>;
     /**
      * @method
      * @name fetchTicker
@@ -387,8 +387,8 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
     parsePredictionPositions(positions: any[], params?: Dict): PredictionPosition[];
-    filterByOutcomeSinceLimit(array: any, outcome?: Str, since?: Int, limit?: Int, tail?: boolean): any[];
-    filterByOutcomesSinceLimit(array: any, outcomes?: Strings, since?: Int, limit?: Int, tail?: boolean): any[];
+    filterByOutcomeSinceLimit(array: object[] | undefined, outcome?: Str, since?: Int, limit?: Int, tail?: boolean): any[];
+    filterByOutcomesSinceLimit(array: object[] | undefined, outcomes?: Strings, since?: Int, limit?: Int, tail?: boolean): any[];
     amountToPredictionPrecision(outcome: Str, amount: any): Str;
     priceToPredictionPrecision(outcome: Str, price: any): Str;
     costToPredictionPrecision(outcome: Str, cost: any): Str;

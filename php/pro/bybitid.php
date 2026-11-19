@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class bybitid extends \ccxt\pro\bybit {
-    public function describe(): mixed {
+    public function describe(): array {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\bybitid();
         $restDescribe = $restInstance->describe();

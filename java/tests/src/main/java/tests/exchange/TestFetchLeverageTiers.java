@@ -17,13 +17,13 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchLeverageTiers extends BaseTest {
-    public CompletableFuture<Object> testFetchLeverageTiers(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchLeverageTiers(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLeverageTiers";
-        Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+        Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
         // const format = {
         //     'RAY/USDT': [
         //       {},
@@ -32,7 +32,7 @@ public class TestFetchLeverageTiers extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, tiers, symbol);
         List<String> tierKeys = new ArrayList<String>(((Map<String, Object>)tiers).keySet());
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
-        for (var i = 0; i < ((List<?>)tierKeys).size(); i++)
+        for (var i = 0; i < tierKeys.size(); i++)
         {
             Object tiersForSymbol = Helpers.GetValue(tiers, (tierKeys == null || i < 0 || i >= tierKeys.size() ? null : tierKeys.get(i)));
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol);

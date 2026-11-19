@@ -10,8 +10,6 @@ public partial class BaseExchange
     public static Int64? StructInt64(object value) => (value == null) ? null : SafeInteger(new Dictionary<string, object> { { "v", value } }, "v");
     public static double? StructDouble(double? value) => value;
     public static double? StructDouble(object value) => (value == null) ? null : SafeFloat(new Dictionary<string, object> { { "v", value } }, "v");
-    public static bool? StructBool(bool? value) => value;
-    public static bool? StructBool(object value) => value as bool?;
 
     // symbol -> Ticker rows (parseTickers) at the untyped and Tickers boundaries
     public static Tickers ToTickers(Dictionary<string, Ticker> value)

@@ -198,11 +198,11 @@ public class TestSafeMethods extends BaseTest
                 put( "a", 1 );
             }};
             // safeDict
-            Object dictObject = exchange.safeDict(inputDict, "dict", (Object) null);
+            Object dictObject = exchange.safeDict(inputDict, "dict", null);
             Assert(equals(dictObject, compareDict));
-            Object listObject = exchange.safeDict(inputDict, "list", (Object) null);
+            Object listObject = exchange.safeDict(inputDict, "list", null);
             Assert(java.util.Objects.equals(listObject, null));
-            Assert(java.util.Objects.equals(exchange.safeDict(inputList, 1, (Object) null), null));
+            Assert(java.util.Objects.equals(exchange.safeDict(inputList, 1, null), null));
             // safeDict2
             dictObject = exchange.safeDict2(inputDict, "a", "dict", (Object) null);
             Assert(equals(dictObject, compareDict));
@@ -225,9 +225,9 @@ public class TestSafeMethods extends BaseTest
             Object inputDict = helperDefaultInputDict();
             List<Object> inputList = new ArrayList<Object>(Arrays.asList("Hi", 2));
             // safeList
-            Assert(java.util.Objects.equals(exchange.safeList(inputDict, "dict", (Object) null), null));
-            Assert(java.util.Objects.equals(exchange.safeList(inputList, 1, (Object) null), null));
-            Object arrayOfDicts = exchange.safeList(inputDict, "listOfDicts", (Object) null);
+            Assert(java.util.Objects.equals(exchange.safeList(inputDict, "dict", null), null));
+            Assert(java.util.Objects.equals(exchange.safeList(inputList, 1, null), null));
+            Object arrayOfDicts = exchange.safeList(inputDict, "listOfDicts", null);
             Assert(equals(Helpers.GetValue((List<Object>)(arrayOfDicts), 0), new HashMap<String, Object>() {{
                 put( "a", 1 );
             }}));
@@ -329,28 +329,28 @@ public class TestSafeMethods extends BaseTest
             List<Object> inputList = new ArrayList<Object>(Arrays.asList("Hi", 2));
             // safeFloat
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloat(inputDict, "i"), Helpers.parseFloat(1)));
+            Assert(Helpers.isEqual(exchange.safeFloat(inputDict, "i"), Double.parseDouble(String.valueOf(1))));
             Assert(Helpers.isEqual(exchange.safeFloat(inputDict, "f"), 0.123));
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloat(inputDict, "strNumber"), Helpers.parseFloat(3)));
+            Assert(Helpers.isEqual(exchange.safeFloat(inputDict, "strNumber"), Double.parseDouble(String.valueOf(3))));
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloat(inputList, 1), Helpers.parseFloat(2)));
+            Assert(Helpers.isEqual(exchange.safeFloat(inputList, 1), Double.parseDouble(String.valueOf(2))));
             // safeFloat2
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloat2(inputDict, "a", "i"), Helpers.parseFloat(1)));
+            Assert(Helpers.isEqual(exchange.safeFloat2(inputDict, "a", "i"), Double.parseDouble(String.valueOf(1))));
             Assert(Helpers.isEqual(exchange.safeFloat2(inputDict, "a", "f"), 0.123));
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloat2(inputDict, "a", "strNumber"), Helpers.parseFloat(3)));
+            Assert(Helpers.isEqual(exchange.safeFloat2(inputDict, "a", "strNumber"), Double.parseDouble(String.valueOf(3))));
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloat2(inputList, 2, 1), Helpers.parseFloat(2)));
+            Assert(Helpers.isEqual(exchange.safeFloat2(inputList, 2, 1), Double.parseDouble(String.valueOf(2))));
             // safeFloatN
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloatN(inputDict, new ArrayList<Object>(Arrays.asList("a", "b", "i"))), Helpers.parseFloat(1)));
+            Assert(Helpers.isEqual(exchange.safeFloatN(inputDict, new ArrayList<Object>(Arrays.asList("a", "b", "i"))), Double.parseDouble(String.valueOf(1))));
             Assert(Helpers.isEqual(exchange.safeFloatN(inputDict, new ArrayList<Object>(Arrays.asList("a", "b", "f"))), 0.123));
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloatN(inputDict, new ArrayList<Object>(Arrays.asList("a", "b", "strNumber"))), Helpers.parseFloat(3)));
+            Assert(Helpers.isEqual(exchange.safeFloatN(inputDict, new ArrayList<Object>(Arrays.asList("a", "b", "strNumber"))), Double.parseDouble(String.valueOf(3))));
             // @ts-expect-error
-            Assert(Helpers.isEqual(exchange.safeFloatN(inputList, new ArrayList<Object>(Arrays.asList(3, 2, 1))), Helpers.parseFloat(2)));
+            Assert(Helpers.isEqual(exchange.safeFloatN(inputList, new ArrayList<Object>(Arrays.asList(3, 2, 1))), Double.parseDouble(String.valueOf(2))));
             // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
             Assert(java.util.Objects.equals(exchange.safeFloat(inputDict, "nonexistent"), null), "safeFloat failed for missing key");
             Assert(Helpers.isEqual(exchange.safeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default");

@@ -2,7 +2,7 @@ import whitebitRest from '../whitebit.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, List, Market, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name whitebit#watchOHLCV

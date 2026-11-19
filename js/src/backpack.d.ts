@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress,
  * @augments Exchange
  */
 export default class backpack extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name backpack#fetchCurrencies
@@ -136,7 +136,7 @@ export default class backpack extends Exchange {
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    filterStockStructures(entries: List): List;
+    filterStockStructures(entries: Dict[]): List;
     parseMarketType(type: Str): Str;
     /**
      * @method
@@ -207,7 +207,7 @@ export default class backpack extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name backpack#fetchOpenInterest
@@ -295,7 +295,7 @@ export default class backpack extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name backpack#fetchDeposits
@@ -557,8 +557,8 @@ export default class backpack extends Exchange {
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     parseIncome(income: Dict, market?: Market): object;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     generateBatchPayload(params: any, ts: string, recvWindow: string, instruction: string): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

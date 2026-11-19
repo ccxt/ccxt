@@ -1,9 +1,9 @@
 import binanceRest from '../binance.js';
-import type { Balances, Dict, Int, Liquidation, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class binance extends binanceRest {
-    describe(): any;
+    describe(): Dict;
     describeData(): {
         has: {
             ws: boolean;
@@ -194,7 +194,7 @@ export default class binance extends binanceRest {
             };
         };
     };
-    requestId(url: string): number;
+    requestId(url: string): int;
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): Str;
     getWsUrl(type: string, category: string): string;
@@ -202,7 +202,7 @@ export default class binance extends binanceRest {
     getPrivateWsUrl(type: Str, listenKey: Str): string;
     getStockWsUrl(streamType?: Str): string;
     getStockTickerFromSymbol(symbol: Str): Str;
-    getStockUnifiedSymbol(stockSymbol: Str, quote?: Str): Str;
+    getStockUnifiedSymbol(stockSymbol: Str, quote?: string): Str;
     /**
      * @method
      * @name binance#watchStockMarketStream
@@ -357,7 +357,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#fetchOrderBookWs
@@ -428,7 +428,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#watchTrades
@@ -650,7 +650,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    unWatchMarkPrice(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#unWatchBidsAsks
@@ -679,7 +679,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#watchBidsAsks
@@ -694,7 +694,7 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    watchMultiTickerHelper(methodName: string, channelName: Str, symbols?: Strings, params?: Dict, isUnsubscribe?: boolean): Promise<any>;
+    watchMultiTickerHelper(methodName: string, channelName: string, symbols?: Strings, params?: Dict, isUnsubscribe?: boolean): Promise<any>;
     parseWsTicker(message: NullableDict, marketType: Str): Ticker;
     handleTickerWs(client: Client, message: Dict): void;
     handleBidsAsks(client: Client, message: any): void;
@@ -992,5 +992,5 @@ export default class binance extends binanceRest {
     handleOptionsAccountUpdate(client: Client, message: Dict): void;
     handleWsError(client: Client, message: Dict): void;
     handleEventStreamTerminated(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
 }

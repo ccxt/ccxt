@@ -675,9 +675,9 @@ public class GeminiApi extends Exchange
      * Calls the privatePostV1Balances endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privatePostV1Balances (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostV1Balances (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV1Balances", optionalArgs);
     }

@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class pacifica(ccxt.async_support.pacifica):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(pacifica, self).describe(), {
             'has': {
                 'ws': True,
@@ -112,7 +112,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
@@ -191,7 +193,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
@@ -248,7 +252,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
@@ -322,7 +328,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
@@ -377,7 +385,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
@@ -421,7 +431,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -457,7 +469,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -519,12 +533,12 @@ class pacifica(ccxt.async_support.pacifica):
         nonce = self.safe_integer(entry, 'li')
         if (nonce is not None) and (nonce != 0):
             snapshot['nonce'] = nonce
+        messageHash = 'orderbook:' + symbol
         if not (symbol in self.orderbooks):
             ob = self.order_book(snapshot)
             self.orderbooks[symbol] = ob
         orderbook = self.orderbooks[symbol]
         orderbook.reset(snapshot)
-        messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -559,7 +573,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -592,7 +608,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -623,12 +641,14 @@ class pacifica(ccxt.async_support.pacifica):
         symbolResolved = None
         if symbol is not None:
             symbolResolved = self.symbol(symbol)
-            messageHash += ':' + symbolResolved
+            messageHash = 'myTrades:' + symbolResolved
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -666,7 +686,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -760,7 +782,7 @@ class pacifica(ccxt.async_support.pacifica):
             trades.append(parsed)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
-            currentMessageHash = 'myTrades:' + keys[i]
+            currentMessageHash = 'myTrades:' + self.safe_string(keys, i, '')
             client.resolve(trades, currentMessageHash)
         # non-symbol specific
         messageHash = 'myTrades'
@@ -787,7 +809,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -824,7 +848,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -860,6 +886,7 @@ class pacifica(ccxt.async_support.pacifica):
         marketId = self.safe_string(first, 's')
         market = self.safe_market(marketId)
         symbol = market['symbol']
+        messageHash = 'trade:' + symbol
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
@@ -869,7 +896,6 @@ class pacifica(ccxt.async_support.pacifica):
             data = self.safe_dict(entry, i, {})
             trade = self.parse_ws_trade(data)
             trades.append(trade)
-        messageHash = 'trade:' + symbol
         client.resolve(trades, messageHash)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -970,7 +996,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -1008,7 +1036,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -1049,17 +1079,16 @@ class pacifica(ccxt.async_support.pacifica):
         timeframe = self.safe_string(data, 'i')
         if timeframe is None:
             return
+        messageHash = 'candles:' + timeframe + ':' + symbol
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
-        ohlcv = self.safe_value(symbolOhlcvs, timeframe)
+        ohlcv = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if ohlcv is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             ohlcv = ArrayCacheByTimestamp(limit)
-            symbolOhlcvs[timeframe] = ohlcv
+            self.ohlcvs[symbol][timeframe] = ohlcv
         parsed = self.parse_ohlcv(data)
         ohlcv.append(parsed)
-        messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(ohlcv, messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -1084,12 +1113,14 @@ class pacifica(ccxt.async_support.pacifica):
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
-            messageHash = messageHash + ':' + symbolResolved
+            messageHash = messageHash + ':' + self.safe_string(market, 'symbol', '')
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -1126,7 +1157,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('unWatchOrders', params)
@@ -1203,8 +1236,11 @@ class pacifica(ccxt.async_support.pacifica):
         id = self.safe_string(message, 'id')
         if id is None:
             id = self.safe_string(data, 'id')
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsHeaders = self.safe_dict(wsOptions, 'options', {})
+        wsHeadersFinal = self.safe_dict(wsHeaders, 'headers', {})
         try:
-            self.handle_errors(0, error, '', postType, self.options['ws']['options']['headers'], self.json(data), message, {}, {})
+            self.handle_errors(0, error, '', postType, wsHeadersFinal, self.json(data), message, {}, '')
         except Exception as e:
             client.reject(e, id)
             return True
@@ -1250,7 +1286,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
         if (symbol is not None) and (symbol in self.ohlcvs):
-            if (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
+            if timeframe in self.ohlcvs[symbol]:
                 del self.ohlcvs[symbol][timeframe]
 
     def handle_order_unsubscription(self, client: Client, subscription: dict):
@@ -1308,7 +1344,7 @@ class pacifica(ccxt.async_support.pacifica):
             elif type == 'account_trades':
                 self.handle_my_trades_unsubscription(client, subscription)
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         # {
         #     "channel":"subscribe",
@@ -1367,18 +1403,23 @@ class pacifica(ccxt.async_support.pacifica):
         client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
-    def request_id(self) -> str:
-        return self.uuid()  # uuid v4
+    def request_id(self) -> int:
+        # millisecond timestamp plus 3 random digits stays a safe integer
+        ts = str(self.milliseconds())
+        randomPart = str(self.rand_number(3))
+        return self.parse_to_int(ts + randomPart)
 
     def wrap_as_post_action(self, operationType: Str, request: dict) -> dict:
         if operationType is None:
             raise ArgumentsRequired(self.id + 'postAction() requires a "operationType" argument!')
-        requestId = self.request_id()
+        # the venue requires a full uuid v4 request id
+        requestId = self.uuid()
+        postParams = {}
+        postParams[operationType] = request
         payload = {
             'id': requestId,
-            'params': {},
+            'params': postParams,
         }
-        payload['params'][operationType] = request
         return payload
 
     def handle_ws_post(self, client: Client, message: dict):

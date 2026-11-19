@@ -32,7 +32,7 @@ public class Btcbox extends BtcboxApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "btcbox" );
@@ -294,22 +294,22 @@ public class Btcbox extends BtcboxApi
             var response1 = ((List<Object>) response1response2Variable).get(0);
             var response2 = ((List<Object>) response1response2Variable).get(1);
             //
-            Map<String, Object> result2Data = (Map<String, Object>) this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result2Data = this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
             List<String> marketIds = new ArrayList<String>(((Map<String, Object>)response1).keySet());
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
+                List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(marketId.split(java.util.regex.Pattern.quote("_"))));
                 String baseCurr = this.safeString(symbolParts, 0, "");
                 String quote = this.safeString(symbolParts, 1, "");
                 String quoteId = quote.toLowerCase();
                 String id = baseCurr.toLowerCase();
-                Map<String, Object> res = (Map<String, Object>) this.safeDict(response1, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> res = this.safeDict(response1, marketId, new HashMap<String, Object>() {{}});
                 String symbol = ((baseCurr + "/") + quote);
                 Double fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
-                Map<String, Object> details = (Map<String, Object>) this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
-                Map<String, Object> tradeDetails = (Map<String, Object>) this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
+                Map<String, Object> details = this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
+                Map<String, Object> tradeDetails = this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
                 ((List<Object>)markets).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                     j39v1.put("id", id);
                     j39v1.put("uppercaseId", null);
@@ -431,25 +431,25 @@ public class Btcbox extends BtcboxApi
         return this.safeMarketStructure(mapLiteral1);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        for (var i = 0; i < ((List<?>)codes).size(); i++)
+        List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
+        for (var i = 0; i < codes.size(); i++)
         {
-            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            Map<String, Object> currency = this.currency((String) (code));
-            String currencyId = (String) currency.get("id");
+            String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            Map<String, Object> currency = this.currency(code);
+            String currencyId = this.safeString(currency, "id", "");
             String free = (currencyId + "_balance");
-            if ((switch ((Object)(response)) { case List<?> j39v3 -> ((Object)(free)) != null && j39v3.contains(free); case Map<?, ?> j39v2 -> ((Object)(free)) instanceof String && j39v2.containsKey(free); case null, default -> false; }))
+            if (response.containsKey(free))
             {
                 Map<String, Object> account = this.account();
                 String used = (currencyId + "_lock");
                 account.put("free", this.safeString(response, free));
                 account.put("used", this.safeString(response, used));
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -960,7 +960,7 @@ public class Btcbox extends BtcboxApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -971,15 +971,15 @@ public class Btcbox extends BtcboxApi
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
-                url = (url + ("?" + this.urlencode(parameters)));
+                url = ((((((apiUrl + "/") + this.version) + "/") + path) + "?") + this.urlencode(parameters));
             }
         } else if (java.util.Objects.equals(apiName, "webApi"))
         {
-            url = ((this.urls.get("www") + "/") + path);
+            url = ((this.safeString(this.urls, "www", "") + "/") + path);
         } else
         {
             this.checkRequiredCredentials(true);
-            String nonce = String.valueOf(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "key", Btcbox.this.apiKey );
                 put( "nonce", nonce );
@@ -1010,14 +1010,14 @@ public class Btcbox extends BtcboxApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ((httpCode != null && ((Number) httpCode).doubleValue() >= 400))
+        if ((code != null && ((Number) code).doubleValue() >= 400))
         {
             return null;  // resort to defaultErrorHandler
         }
@@ -1026,9 +1026,9 @@ public class Btcbox extends BtcboxApi
         {
             return null;  // either public API (no error codes expected) or success
         }
-        String code = this.safeString(response, "code");
+        String codeError = this.safeString(response, "code");
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(this.exceptions, code, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), codeError, feedback);
         throw new ExchangeError(feedback) ;
     }
 
@@ -1041,12 +1041,12 @@ public class Btcbox extends BtcboxApi
             if ((response instanceof String))
             {
                 // sometimes the exchange returns whitespace prepended to json
-                response = this.strip(response);
-                if (!this.isJsonEncodedObject(response))
+                String strippedResponse = this.strip(response);
+                if (!this.isJsonEncodedObject(strippedResponse))
                 {
-                    throw new ExchangeError(((this.id + " ") + response)) ;
+                    throw new ExchangeError(((this.id + " ") + strippedResponse)) ;
                 }
-                response = Helpers.parseJson(response);
+                response = Helpers.parseJson(strippedResponse);
             }
             return response;
         });

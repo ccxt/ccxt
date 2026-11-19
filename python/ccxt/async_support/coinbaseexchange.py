@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class coinbaseexchange(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbaseexchange, self).describe(), {
             'id': 'coinbaseexchange',
             'name': 'Coinbase Exchange',
@@ -666,7 +666,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         for i in range(0, len(rawMarkets)):
             market = rawMarkets[i]
             id = self.safe_string(market, 'id')
-            baseId, quoteId = id.split('-')
+            parts = id.split('-')
+            baseId = parts[0]
+            quoteId = parts[1]
             # BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             # const baseId = this.safeString (market, 'base_currency');
             # const quoteId = this.safeString (market, 'quote_currency');
@@ -780,10 +782,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
-        for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+        rawBalances = self.to_array(response)
+        for i in range(0, len(rawBalances)):
+            balance = self.safe_dict(rawBalances, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -806,7 +809,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.privateGetAccounts(params)
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -891,7 +894,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         low = None
         open = None
         volume = None
-        symbol = None if (market is None) else market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         if isinstance(ticker, list):
             last = self.safe_string(ticker, 4)
         else:
@@ -967,10 +970,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             entry = self.safe_list(response, marketId, [])
-            first = self.safe_list(entry, 0, [])
             market = self.safe_market(marketId, None, delimiter)
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(first, market)
+            result[symbol] = self.parse_ticker(self.safe_list(entry, 0, []), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1122,7 +1124,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_value_2(paramsPaginate, 'until', 'end_date')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
@@ -1185,8 +1187,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         maker = self.safe_number(response, 'maker_fee_rate')
         taker = self.safe_number(response, 'taker_fee_rate')
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1246,7 +1249,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['granularity'] = parsedTimeframe
         else:
             request['granularity'] = timeframe
-        until = self.safe_value_2(paramsPaginate, 'until', 'end')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end')
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         # https://docs.pro.coinbase.com/#get-historic-rates max = 300
         cappedLimit = self.parse_to_int(300 if (limit is None) else min(limit, 300))
@@ -1462,7 +1465,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_value_2(paramsPaginate, 'until', 'end_date')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
@@ -1546,12 +1549,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
             request['size'] = self.amount_to_precision(symbol, amount)
         elif type == 'market':
-            cost = costParam
-            if cost is None:
-                if price is not None:
-                    cost = amount * price
-            if cost is not None:
-                request['funds'] = self.cost_to_precision(symbol, cost)
+            if costParam is not None:
+                request['funds'] = self.cost_to_precision(symbol, costParam)
+            elif price is not None:
+                request['funds'] = self.cost_to_precision(symbol, amount * price)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostOrders(self.extend(request, paramsCost))
@@ -1786,7 +1787,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['start_date'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit  # default 100
-        until = self.safe_value_2(params, 'until', 'end_date')
+        until = self.safe_integer_2(params, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(params, ['until']) if (until is not None) else params
@@ -2032,13 +2033,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        accounts = self.safe_value(self.options, 'coinbaseAccounts')
+        accounts = self.safe_list(self.options, 'coinbaseAccounts')
         if accounts is None:
             accounts = await self.privateGetCoinbaseAccounts()
             self.options['coinbaseAccounts'] = accounts  # cache it
             self.options['coinbaseAccountsByCurrencyId'] = self.index_by(accounts, 'currency')
         currencyId = currency['id']
-        account = self.safe_dict(self.options['coinbaseAccountsByCurrencyId'], currencyId)
+        accountsByCurrencyId = self.safe_dict(self.options, 'coinbaseAccountsByCurrencyId')
+        account = self.safe_dict(accountsByCurrencyId, currencyId)
         if account is None:
             # eslint-disable-next-line quotes
             raise InvalidAddress(self.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
@@ -2075,8 +2077,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             payload = ''
             if method != 'GET':
                 if len(query) > 0:
-                    requestBody = self.json(query)
-                    payload = requestBody
+                    payload = self.json(query)
+                    requestBody = payload
             what = nonce + method + request + payload
             secret = None
             try:
@@ -2093,9 +2095,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 400) or (code == 404):
-            if body[0] == '{':
+            if body.startswith('{'):
                 message = self.safe_string(response, 'message')
                 feedback = self.id + ' ' + message
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)

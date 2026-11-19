@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class coinmate(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinmate, self).describe(), {
             'id': 'coinmate',
             'name': 'CoinMate',
@@ -451,7 +451,7 @@ class coinmate(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_dict(response, 'data', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
@@ -578,7 +578,7 @@ class coinmate(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(keys)):
             market = self.market(keys[i])
-            ticker = self.parse_ticker(self.safe_value(data, keys[i]), market)
+            ticker = self.parse_ticker(self.safe_dict(data, keys[i], {}), market)
             result[market['symbol']] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
@@ -609,12 +609,12 @@ class coinmate(Exchange, ImplicitAPI):
             'ask': self.safe_number(ticker, 'ask'),
             'vwap': None,
             'askVolume': None,
-            'open': None,
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': None,
+            'percentage': self.safe_number(ticker, 'change'),
             'average': None,
             'baseVolume': self.safe_number(ticker, 'amount'),
             'quoteVolume': None,
@@ -1225,7 +1225,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
@@ -1237,8 +1237,9 @@ class coinmate(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
         if apiName == 'public':
-            if len(params) > 0:
-                url += '?' + self.urlencode(params)
+            publicQuery = self.extend({}, params)
+            if len(publicQuery) > 0:
+                url += '?' + self.urlencode(publicQuery)
         else:
             self.check_required_credentials()
             # coinmate requires each nonce to be greater than the previous one for the key
@@ -1258,7 +1259,7 @@ class coinmate(Exchange, ImplicitAPI):
         bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

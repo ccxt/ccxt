@@ -36,7 +36,7 @@ public class Opinion extends OpinionApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "opinion" );
@@ -248,23 +248,23 @@ public class Opinion extends OpinionApi
                 request.put("limit", pageLimit);
                 request.put("page", page);
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
-                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-                List<Object> rawMarkets = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-                Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+                Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+                List<Object> rawMarkets = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+                Integer rawMarketsLength = rawMarkets.size();
                 // categorical parents expand into several flatMarkets entries each, so the raw,
                 // unflattened row count in 'total' must be compared against fetchedRawCount, not
                 // flatMarkets.length - otherwise expansion makes the comparison meaningless
                 Long total = this.safeInteger(result, "total");
                 for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
                 {
-                    Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+                    Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                     ((List<Object>)fetchedRawRows).add(raw);
                     Long marketType = this.safeInteger(raw, "marketType");
                     if ((marketType != null && marketType == 1))
                     {
-                        Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (raw));
-                        List<Object> childMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
-                        Integer childMarketsLength = ((List<?>)childMarkets).size();
+                        Map<String, Object> eventVar = this.parseEvent(raw);
+                        List<Object> childMarkets = this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
+                        Integer childMarketsLength = childMarkets.size();
                         for (var ci = 0; (childMarketsLength != null && ci < childMarketsLength); ci++)
                         {
                             ((List<Object>)flatMarkets).add((childMarkets == null || ci < 0 || ci >= childMarkets.size() ? null : childMarkets.get(ci)));
@@ -277,18 +277,18 @@ public class Opinion extends OpinionApi
                         }
                     } else
                     {
-                        ((List<Object>)flatMarkets).add(this.parseOpinionMarket((Map<String, Object>) (raw), (String) null));
+                        ((List<Object>)flatMarkets).add(this.parseOpinionMarket(raw, (String) null));
                     }
                 }
-                Integer collectedLength = ((List<?>)flatMarkets).size();
-                Integer fetchedRawCount = ((List<?>)fetchedRawRows).size();
+                Integer collectedLength = flatMarkets.size();
+                Integer fetchedRawCount = fetchedRawRows.size();
                 if (((pageLimit != null && (rawMarketsLength == null || rawMarketsLength < pageLimit))) || ((maxPages == null || page >= maxPages)) || ((!java.util.Objects.equals(total, null)) && ((total == null || (fetchedRawCount != null && fetchedRawCount >= total)))) || ((!java.util.Objects.equals(userLimit, null)) && ((userLimit == null || (collectedLength != null && collectedLength >= userLimit)))))
                 {
                     break;
                 }
             }
             this.setEvents(eventsList);
-            Integer flatMarketsLength = ((List<?>)flatMarkets).size();
+            Integer flatMarketsLength = flatMarkets.size();
             if ((!java.util.Objects.equals(userLimit, null)) && ((flatMarketsLength != null && (userLimit == null || flatMarketsLength > userLimit))))
             {
                 return this.arraySlice(flatMarkets, 0, userLimit);
@@ -318,7 +318,7 @@ public class Opinion extends OpinionApi
                 (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
                 if (this.hasOutcome((String) (outcomeSymbol)))
                 {
-                    return this.safeOutcome((String) (outcomeSymbol), (Object) null);
+                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                 }
             }
             return (super.fetchOutcome(outcomeSymbol)).join();
@@ -378,12 +378,12 @@ public class Opinion extends OpinionApi
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList(this.safeString(raw, "yesLabel", "YES"), this.safeString(raw, "noLabel", "NO")));
         List<String> outcomeTokenIds = new ArrayList<String>(Arrays.asList(this.safeString(raw, "yesTokenId"), this.safeString(raw, "noTokenId")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
-        Object resolvedOutcome = null;
-        for (var i = 0; i < ((List<?>)outcomeLabels).size(); i++)
+        String resolvedOutcome = null;
+        for (var i = 0; i < outcomeLabels.size(); i++)
         {
-            String label = (outcomeLabels == null || i < 0 || i >= outcomeLabels.size() ? null : outcomeLabels.get(i));
-            String tokenId = (outcomeTokenIds == null || i < 0 || i >= outcomeTokenIds.size() ? null : outcomeTokenIds.get(i));
-            Object outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), label);
+            String label = this.safeString(outcomeLabels, i);
+            String tokenId = this.safeString(outcomeTokenIds, i);
+            String outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), (String) (label));
             Boolean winner = null;
             Object settleFraction = null;
             if (Boolean.TRUE.equals(hasResult))
@@ -407,7 +407,7 @@ public class Opinion extends OpinionApi
             mapLiteral1.put("info", raw);
             ((List<Object>)outcomes).add(mapLiteral1);
         }
-        Object marketResolvedOutcome = resolvedOutcome;
+        String marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
         Long expiryTimestamp = null;
@@ -446,8 +446,8 @@ public class Opinion extends OpinionApi
             h2kMap0.put("expiryDatetime", this.iso8601(expiryTimestamp));
             h2kMap0.put("strike", null);
             h2kMap0.put("optionType", null);
-            h2kMap0.put("taker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker"));
-            h2kMap0.put("maker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker"));
+            h2kMap0.put("taker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null));
+            h2kMap0.put("maker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null));
             h2kMap0.put("percentage", true);
             h2kMap0.put("tierBased", false);
             h2kMap0.put("feeSide", "get");
@@ -495,8 +495,8 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); })));
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })));
+            this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
             String eventId = this.safeString(parameters, "eventId");
             String slug = this.safeString(parameters, "slug");
             if ((!java.util.Objects.equals(eventId, null)) || (!java.util.Objects.equals(slug, null)))
@@ -514,11 +514,11 @@ public class Opinion extends OpinionApi
                     mapLiteral3.put("marketId", eventId);
                     singleResponse = (this.opinionPublicGetMarketCategoricalMarketId(this.extend(mapLiteral3, singleRest))).join();
                 }
-                Map<String, Object> singleResult = (Map<String, Object>) this.safeDict(singleResponse, "result", new HashMap<String, Object>() {{}});
-                Map<String, Object> singleData = (Map<String, Object>) this.safeDict(singleResult, "data", new HashMap<String, Object>() {{}});
-                Map<String, Object> single = (Map<String, Object>) this.parseEvent((Map<String, Object>) (singleData));
+                Map<String, Object> singleResult = this.safeDict(singleResponse, "result", new HashMap<String, Object>() {{}});
+                Map<String, Object> singleData = this.safeDict(singleResult, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> single = this.parseEvent(singleData);
                 this.indexEventOutcomes(single);
-                return this.applyEventFetchParams(new ArrayList<Object>(Arrays.asList(single)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })), queries);
+                return this.applyEventFetchParams(new ArrayList<Object>(Arrays.asList(single)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), queries);
             }
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "tags", "status", "sort", "searchIn", "limit")));
             Long pageLimit = this.parseToInt(this.safeInteger(this.options, "defaultFetchEventsLimit", 20));
@@ -530,7 +530,7 @@ public class Opinion extends OpinionApi
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
             for (var page = 1; ((maxPages != null && page <= maxPages)); page++)
             {
-                Integer fetchedSoFar = ((List<?>)rawEvents).size();
+                Integer fetchedSoFar = rawEvents.size();
                 Long remaining = this.parseToInt((fetchCap - ((long) fetchedSoFar)));
                 Long reqLimit = ((((pageLimit != null && (remaining == null || remaining < pageLimit))))) ? remaining : pageLimit;
                 if ((reqLimit == null || reqLimit <= 0))
@@ -542,22 +542,22 @@ public class Opinion extends OpinionApi
                 request.put("limit", reqLimit);
                 request.put("page", page);
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
-                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-                List<Object> pageEvents = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-                Integer pageEventsLength = ((List<?>)pageEvents).size();
+                Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+                List<Object> pageEvents = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+                Integer pageEventsLength = pageEvents.size();
                 for (var i = 0; (pageEventsLength != null && i < pageEventsLength); i++)
                 {
                     ((List<Object>)rawEvents).add((pageEvents == null || i < 0 || i >= pageEvents.size() ? null : pageEvents.get(i)));
                 }
                 // rawEvents holds every row fetched so far, so its length is the raw fetched count
-                Integer fetchedRawCount = ((List<?>)rawEvents).size();
+                Integer fetchedRawCount = rawEvents.size();
                 Long total = this.safeInteger(result, "total");
                 if (((reqLimit != null && (pageEventsLength == null || pageEventsLength < reqLimit))) || ((maxPages == null || page >= maxPages)) || ((!java.util.Objects.equals(total, null)) && ((total == null || (fetchedRawCount != null && fetchedRawCount >= total)))) || ((fetchCap == null || (fetchedRawCount != null && fetchedRawCount >= fetchCap))))
                 {
                     break;
                 }
             }
-            Integer rawEventsLength = ((List<?>)rawEvents).size();
+            Integer rawEventsLength = rawEvents.size();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -565,19 +565,19 @@ public class Opinion extends OpinionApi
             }
             for (var i = 0; (rawEventsLength != null && i < rawEventsLength); i++)
             {
-                Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) ((rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i))));
+                Map<String, Object> eventVar = this.parseEvent((Map<String, Object>) ((rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i))));
                 ((List<Object>)parsedEvents).add(eventVar);
                 // register the parsed markets so populateOutcomes can index their outcomes
-                List<Object> eventMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
-                Integer eventMarketsLength = ((List<?>)eventMarkets).size();
+                List<Object> eventMarkets = this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
+                Integer eventMarketsLength = eventMarkets.size();
                 for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                 {
                     Object m = (eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi));
-                    Helpers.addElementToObject(this.markets, Helpers.GetValue(m, "market"), m);
+                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(Helpers.GetValue(m, "market"), m);
                 }
             }
             this.populateOutcomes();
-            return this.applyEventFetchParams(parsedEvents, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })), queries);
+            return this.applyEventFetchParams(parsedEvents, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), queries);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
 
     }
@@ -609,9 +609,9 @@ public class Opinion extends OpinionApi
                     put( "marketId", id );
                 }}, parameters))).join();
             }
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (data));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(result, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> eventVar = this.parseEvent(data);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
@@ -626,7 +626,7 @@ public class Opinion extends OpinionApi
      * @param {object} rawEvent the raw opinion categorical market object
      * @returns {object} an event structure
      */
-    public Object parseEvent(Map<String, Object> rawEvent)
+    public Map<String, Object> parseEvent(Map<String, Object> rawEvent)
     {
         // {
         //     "chainId": "56",
@@ -727,8 +727,8 @@ public class Opinion extends OpinionApi
         {
             eventHandle = this.shortenSlug((String) (slug));
         }
-        List<Object> rawChildren = (List<Object>) this.safeList(rawEvent, "childMarkets", new ArrayList<Object>(Arrays.asList()));
-        Integer rawChildrenLength = ((List<?>)rawChildren).size();
+        List<Object> rawChildren = this.safeList(rawEvent, "childMarkets", new ArrayList<Object>(Arrays.asList()));
+        Integer rawChildrenLength = rawChildren.size();
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (rawChildrenLength != null && i < rawChildrenLength); i++)
         {
@@ -743,7 +743,7 @@ public class Opinion extends OpinionApi
             end = this.safeTimestamp(rawEvent, "cutoffAt");
         }
         Long created = this.safeTimestamp(rawEvent, "createdAt");
-        List<Object> labels = (List<Object>) this.safeList(rawEvent, "labels", new ArrayList<Object>(Arrays.asList()));
+        List<Object> labels = this.safeList(rawEvent, "labels", new ArrayList<Object>(Arrays.asList()));
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", eventId);
         mapLiteral4.put("event", eventHandle);
@@ -762,7 +762,7 @@ public class Opinion extends OpinionApi
         mapLiteral4.put("endDatetime", this.iso8601(end));
         mapLiteral4.put("image", this.safeString2(rawEvent, "coverUrl", "thumbnailUrl"));
         mapLiteral4.put("info", rawEvent);
-        return this.extend(mapLiteral4);
+        return ((Map<String, Object>) this.extend(mapLiteral4));
     }
 
     /**
@@ -780,7 +780,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
     }}, parameters)), this.opinionPublicGetTokenOrderbook(this.extend(new HashMap<String, Object>() {{
@@ -793,7 +793,7 @@ public class Opinion extends OpinionApi
                 put( "price", priceResponse );
                 put( "book", bookResponse );
             }};
-            return this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
+            return this.parsePredictionTicker(response, outcomeObj);
         }).thenApply(PredictionTicker::new);
 
     }
@@ -824,14 +824,14 @@ public class Opinion extends OpinionApi
         //     }
         //
         Object marketAny = ((Object)market);
-        Map<String, Object> priceResponse = (Map<String, Object>) this.safeDict(ticker, "price", new HashMap<String, Object>() {{}});
-        Map<String, Object> priceResult = (Map<String, Object>) this.safeDict(priceResponse, "result", new HashMap<String, Object>() {{}});
-        Map<String, Object> bookResponse = (Map<String, Object>) this.safeDict(ticker, "book", new HashMap<String, Object>() {{}});
-        Map<String, Object> bookResult = (Map<String, Object>) this.safeDict(bookResponse, "result", new HashMap<String, Object>() {{}});
-        List<Object> bids = (List<Object>) this.safeList(bookResult, "bids", new ArrayList<Object>(Arrays.asList()));
-        List<Object> asks = (List<Object>) this.safeList(bookResult, "asks", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(bids, 0, new HashMap<String, Object>() {{}});
-        Map<String, Object> bestAsk = (Map<String, Object>) this.safeDict(asks, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> priceResponse = this.safeDict(ticker, "price", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceResult = this.safeDict(priceResponse, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> bookResponse = this.safeDict(ticker, "book", new HashMap<String, Object>() {{}});
+        Map<String, Object> bookResult = this.safeDict(bookResponse, "result", new HashMap<String, Object>() {{}});
+        List<Object> bids = this.safeList(bookResult, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(bookResult, "asks", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> bestBid = this.safeDict(bids, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> bestAsk = this.safeDict(asks, 0, new HashMap<String, Object>() {{}});
         Double last = this.safeNumber(priceResult, "price", (Object) null);
         Long timestamp = this.safeInteger(priceResult, "timestamp");
         if ((timestamp != null && timestamp == 0))
@@ -887,7 +887,7 @@ public class Opinion extends OpinionApi
             for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
                 Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
+                String tokenId = this.safeString(outcomeObj, "outcomeId");
                 ((List<Object>)promises).add(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
                     put( "token_id", tokenId );
                 }}, parameters)));
@@ -895,19 +895,19 @@ public class Opinion extends OpinionApi
                     put( "token_id", tokenId );
                 }}, parameters)));
             }
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
                 Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Long priceIndex = (((long) i) * 2L);
-                Object priceResponse = Helpers.GetValue(responses, priceIndex);
-                Object bookResponse = Helpers.GetValue(responses, this.sum(priceIndex, 1));
+                Map<String, Object> priceResponse = this.safeDict(responses, priceIndex, null);
+                Map<String, Object> bookResponse = this.safeDict(responses, this.sum(priceIndex, 1), null);
                 Map<String, Object> response = new HashMap<String, Object>() {{
                     put( "price", priceResponse );
                     put( "book", bookResponse );
                 }};
-                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (((Object)outcomeObj))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+                Map<String, Object> ticker = this.parsePredictionTicker(response, ((Map<String, Object>) (switch ((Object) (((Object)outcomeObj))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 String symbolKey = this.safeString(ticker, "outcome");
                 if (!java.util.Objects.equals(symbolKey, null))
                 {
@@ -935,7 +935,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((String)outcomeObj.get("outcomeId"));
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
@@ -955,10 +955,10 @@ public class Opinion extends OpinionApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, this.safeOutcomeSymbol((String) (outcome), outcomeObj), timestamp, "bids", "asks", "price", "size", 2);
-            return this.safePredictionOrderBook((Map<String, Object>) (orderbook), outcomeObj);
+            return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }
@@ -980,18 +980,18 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (!(((Map<?, ?>)this.timeframes).containsKey(java.util.Objects.requireNonNullElse(timeframe, "1d"))))
+            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"));
+            if (java.util.Objects.equals(interval, null))
             {
-                Object supportedKeys = ((List<Object>) switch ((Object)(this.timeframes)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                Object supportedKeys = (this.timeframes == null ? new ArrayList<Object>() : new ArrayList<Object>(this.timeframes.keySet()));
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1d")) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((String)outcomeObj.get("outcomeId"));
-            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"));
-            Map<String, Object> response = (this.opinionPublicGetTokenPriceHistory(this.extend(new HashMap<String, Object>() {{
-                put( "token_id", tokenId );
-                put( "interval", interval );
-            }}, parameters))).join();
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("token_id", tokenId);
+            mapLiteral5.put("interval", interval);
+            Map<String, Object> response = (this.opinionPublicGetTokenPriceHistory(this.extend(mapLiteral5, parameters))).join();
             //
             //     {
             //         "errmsg": "",
@@ -1003,13 +1003,13 @@ public class Opinion extends OpinionApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> history = (List<Object>) this.safeList(result, "history", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> history = this.safeList(result, "history", new ArrayList<Object>(Arrays.asList()));
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            Integer historyLength = ((List<?>)history).size();
+            Integer historyLength = history.size();
             for (var i = 0; (historyLength != null && i < historyLength); i++)
             {
-                Map<String, Object> point = (Map<String, Object>) this.safeDict(history, i, (Object) null);
+                Map<String, Object> point = this.safeDict(history, i, null);
                 Double price = this.safeNumber(point, "p", (Object) null);
                 Long timestamp = this.safeTimestamp(point, "t");
                 if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(timestamp, null)))
@@ -1059,16 +1059,16 @@ public class Opinion extends OpinionApi
                 throw new ArgumentsRequired((this.id + " loadQuoteToken() requires a quoteTokenAddress")) ;
             }
             String cacheKey = ((String)quoteTokenAddress).toLowerCase();
-            Map<String, Object> cached = (Map<String, Object>) this.safeDict(this.options, "quoteTokens", new HashMap<String, Object>() {{}});
-            Map<String, Object> existing = (Map<String, Object>) this.safeDict(cached, cacheKey, (Object) null);
+            Map<String, Object> cached = this.safeDict(this.options, "quoteTokens", new HashMap<String, Object>() {{}});
+            Map<String, Object> existing = this.safeDict(cached, cacheKey, null);
             if (!java.util.Objects.equals(existing, null))
             {
                 return existing;
             }
             Map<String, Object> response = (this.opinionPublicGetQuoteToken(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> list = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Integer listLength = ((List<?>)list).size();
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> list = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Integer listLength = list.size();
             Map<String, Object> quoteTokens = new HashMap<String, Object>() {{}};
             for (var i = 0; (listLength != null && i < listLength); i++)
             {
@@ -1079,14 +1079,14 @@ public class Opinion extends OpinionApi
                     quoteTokens.put(address, entry);
                 }
             }
-            Helpers.addElementToObject(this.options, "quoteTokens", quoteTokens);
-            Map<String, Object> quoteToken = (Map<String, Object>) this.safeDict(quoteTokens, cacheKey, (Object) null);
+            this.options.put("quoteTokens", quoteTokens);
+            Map<String, Object> quoteToken = this.safeDict(quoteTokens, cacheKey, null);
             if (java.util.Objects.equals(quoteToken, null))
             {
                 throw new ExchangeError(((this.id + " loadQuoteToken() could not find quote token ") + quoteTokenAddress)) ;
             }
             return quoteToken;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -1108,16 +1108,16 @@ public class Opinion extends OpinionApi
                 return cached;
             }
             Map<String, Object> response = (this.opinionPrivateGetUserAuth(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> walletUsers = (Map<String, Object>) this.safeDict(result, "walletUsers", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> walletUsers = this.safeDict(result, "walletUsers", new HashMap<String, Object>() {{}});
             String multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
-            Helpers.addElementToObject(this.options, "multiSignAddress", multiSignAddress);
+            this.options.put("multiSignAddress", multiSignAddress);
             return multiSignAddress;
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
-    public String signOpinionOrder(Map<String, Object> order, Object exchangeAddress)
+    public String signOpinionOrder(Map<String, Object> order, String exchangeAddress)
     {
         Map<String, Object> domain = new HashMap<String, Object>() {{
             put( "name", "OPINION CTF Exchange" );
@@ -1164,12 +1164,12 @@ public class Opinion extends OpinionApi
     put( "type", "uint8" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
+        Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
+        return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
-    public Map<String, Object> opinionOrderRawAmounts(Boolean isMarket, Object side, Object amount, Object price, Object decimals)
+    public Map<String, Object> opinionOrderRawAmounts(Boolean isMarket, String side, Object amount, Object price, Object decimals)
     {
         String decimalsStr = "1";
         if (!java.util.Objects.equals(decimals, null))
@@ -1209,12 +1209,12 @@ public class Opinion extends OpinionApi
         String takerAmount = null;
         if (java.util.Objects.equals(side, "BUY"))
         {
-            Object k = Precise.stringDiv(makerAmountWei, priceNum, 0);
+            String k = Precise.stringDiv(makerAmountWei, priceNum, 0);
             makerAmount = Precise.stringMul(k, priceNum);
             takerAmount = Precise.stringMul(k, priceDenom);
         } else
         {
-            Object k = Precise.stringDiv(makerAmountWei, priceDenom, 0);
+            String k = Precise.stringDiv(makerAmountWei, priceDenom, 0);
             makerAmount = Precise.stringMul(k, priceDenom);
             takerAmount = Precise.stringMul(k, priceNum);
         }
@@ -1248,7 +1248,7 @@ public class Opinion extends OpinionApi
             (this.loadApiKey()).join();
             this.checkRequiredCredentials(true);
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = ((String)((Map<String, Object>)outcomeObj).get("outcomeId"));
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             String sideStr = ((String)((String)side)).toUpperCase();
             if (java.util.Objects.equals(price, null))
@@ -1267,13 +1267,11 @@ public class Opinion extends OpinionApi
             {
                 marketOrderPrice = this.numberToString(price);
             }
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long topicId = this.safeInteger(info, "marketId");
             String quoteTokenAddress = this.safeString(info, "quoteToken");
             Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
-            String exchangeAddress = this.safeString(quoteToken, "ctfExchangeAddress", "");
-            Long decimals = this.safeInteger(quoteToken, "decimal", 18);
-            Map<String, Object> amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
+            Map<String, Object> amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, this.safeInteger(quoteToken, "decimal", 18));
             String makerAmount = this.safeString(amounts, "makerAmount");
             String takerAmount = this.safeString(amounts, "takerAmount");
             Integer sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
@@ -1301,37 +1299,37 @@ public class Opinion extends OpinionApi
                 put( "side", sideInt );
                 put( "signatureType", signatureType );
             }};
-            String signature = this.signOpinionOrder((Map<String, Object>) (order), exchangeAddress);
-            Object signatureNo0x = this.remove0xPrefix(signature);
-            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-            mapLiteral5.put("salt", salt);
-            mapLiteral5.put("maker", maker);
-            mapLiteral5.put("signer", this.walletAddress);
-            mapLiteral5.put("taker", "0x0000000000000000000000000000000000000000");
-            mapLiteral5.put("tokenId", tokenId);
-            mapLiteral5.put("makerAmount", makerAmount);
-            mapLiteral5.put("takerAmount", takerAmount);
-            mapLiteral5.put("expiration", "0");
-            mapLiteral5.put("nonce", "0");
-            mapLiteral5.put("feeRateBps", "0");
-            mapLiteral5.put("side", String.valueOf(sideInt));
-            mapLiteral5.put("signatureType", String.valueOf(signatureType));
-            mapLiteral5.put("signature", signature);
-            mapLiteral5.put("sign", (signatureNo0x == null ? null : ((String)signatureNo0x).substring(0, Math.min(64, ((String)signatureNo0x).length()))));
-            mapLiteral5.put("contractAddress", "");
-            mapLiteral5.put("currencyAddress", quoteTokenAddress);
-            mapLiteral5.put("topicId", topicId);
-            mapLiteral5.put("price", ((Boolean.TRUE.equals(isMarket))) ? marketOrderPrice : this.numberToString(price));
-            mapLiteral5.put("tradingMethod", ((Boolean.TRUE.equals(isMarket))) ? 1 : 2);
-            mapLiteral5.put("timestamp", this.seconds());
-            mapLiteral5.put("safeRate", "0");
-            mapLiteral5.put("orderExpTime", "0");
-            mapLiteral5.put("postOnly", postOnly);
-            Map<String, Object> orderBody = this.extend(mapLiteral5, rest);
+            String signature = this.signOpinionOrder(order, this.safeString(quoteToken, "ctfExchangeAddress", ""));
+            String signatureNo0x = this.remove0xPrefix(signature);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("salt", salt);
+            mapLiteral6.put("maker", maker);
+            mapLiteral6.put("signer", this.walletAddress);
+            mapLiteral6.put("taker", "0x0000000000000000000000000000000000000000");
+            mapLiteral6.put("tokenId", tokenId);
+            mapLiteral6.put("makerAmount", makerAmount);
+            mapLiteral6.put("takerAmount", takerAmount);
+            mapLiteral6.put("expiration", "0");
+            mapLiteral6.put("nonce", "0");
+            mapLiteral6.put("feeRateBps", "0");
+            mapLiteral6.put("side", String.valueOf(sideInt));
+            mapLiteral6.put("signatureType", String.valueOf(signatureType));
+            mapLiteral6.put("signature", signature);
+            mapLiteral6.put("sign", (signatureNo0x == null ? null : ((String)signatureNo0x).substring(0, Math.min(64, ((String)signatureNo0x).length()))));
+            mapLiteral6.put("contractAddress", "");
+            mapLiteral6.put("currencyAddress", quoteTokenAddress);
+            mapLiteral6.put("topicId", topicId);
+            mapLiteral6.put("price", ((Boolean.TRUE.equals(isMarket))) ? marketOrderPrice : this.numberToString(price));
+            mapLiteral6.put("tradingMethod", ((Boolean.TRUE.equals(isMarket))) ? 1 : 2);
+            mapLiteral6.put("timestamp", this.seconds());
+            mapLiteral6.put("safeRate", "0");
+            mapLiteral6.put("orderExpTime", "0");
+            mapLiteral6.put("postOnly", postOnly);
+            Map<String, Object> orderBody = this.extend(mapLiteral6, rest);
             Map<String, Object> response = (this.opinionPrivatePostOrder(orderBody)).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), outcomeObj);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderData = this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
+            return this.parsePredictionOrder(orderData, outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1356,7 +1354,7 @@ public class Opinion extends OpinionApi
                 put( "orderId", id );
             }};
             Map<String, Object> response = (this.opinionPrivatePostOrderCancel(this.extend(request, parameters))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Boolean canceled = (Boolean) this.safeBool(result, "result", false);
             // a false result does NOT mean the order is still open — it may already be filled,
             // already cancelled, or unknown; don't invent a status the venue didn't report.
@@ -1399,7 +1397,7 @@ public class Opinion extends OpinionApi
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1474,12 +1472,12 @@ public class Opinion extends OpinionApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 request.put("marketId", this.safeInteger(info, "marketId"));
             }
             Map<String, Object> response = (this.opinionPrivateGetOrder(this.extend(request, parameters))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
@@ -1509,9 +1507,9 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivateGetOrderOrderId(this.extend(new HashMap<String, Object>() {{
                 put( "orderId", id );
             }}, parameters))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder((Map<String, Object>) (orderData), outcomeObj);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderData = this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
+            return this.parsePredictionOrder(orderData, outcomeObj);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -1594,22 +1592,22 @@ public class Opinion extends OpinionApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 request.put("marketId", this.safeInteger(info, "marketId"));
             }
             Map<String, Object> response = (this.opinionPrivateGetTradeUserWalletAddress(this.extend(request, parameters))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Integer tradesLength = ((List<?>)trades).size();
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Integer tradesLength = trades.size();
             for (var i = 0; (tradesLength != null && i < tradesLength); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+                Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 String tokenId = this.safeString(trade, "tokenId");
                 Long marketId = this.safeInteger(trade, "marketId");
                 if ((java.util.Objects.equals(tokenId, null)) && (!java.util.Objects.equals(marketId, null)))
                 {
                     Object tradeMarket = (this.loadTradeMarket(marketId)).join();
-                    Map<String, Object> info = (Map<String, Object>) this.safeDict(tradeMarket, "info", new HashMap<String, Object>() {{}});
+                    Map<String, Object> info = this.safeDict(tradeMarket, "info", new HashMap<String, Object>() {{}});
                     Boolean isYes = (java.util.Objects.equals(this.safeStringLower(trade, "outcomeSideEnum"), "yes"));
                     Helpers.addElementToObject(trade, "tokenId", ((Boolean.TRUE.equals(isYes))) ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId"));
                 }
@@ -1632,24 +1630,20 @@ public class Opinion extends OpinionApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(marketId, null))
-            {
-                throw new ArgumentsRequired((this.id + " loadTradeMarket() requires a marketId")) ;
-            }
             String cacheKey = "tradeMarketsById";
-            Map<String, Object> cached = (Map<String, Object>) this.safeDict(this.options, cacheKey, new HashMap<String, Object>() {{}});
+            Map<String, Object> cached = this.safeDict(this.options, cacheKey, new HashMap<String, Object>() {{}});
             String idStr = String.valueOf(marketId);
-            Map<String, Object> existing = (Map<String, Object>) this.safeDict(cached, idStr, (Object) null);
+            Map<String, Object> existing = this.safeDict(cached, idStr, null);
             if (!java.util.Objects.equals(existing, null))
             {
                 return existing;
             }
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("marketId", marketId);
-            Map<String, Object> response = (this.opinionPublicGetMarketMarketId(mapLiteral6)).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> market = this.parseOpinionMarket((Map<String, Object>) (data), (String) null);
+            Map<String, Object> response = (this.opinionPublicGetMarketMarketId(new HashMap<String, Object>() {{
+                put( "marketId", marketId );
+            }})).join();
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(result, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> market = this.parseOpinionMarket(data, (String) null);
             if (java.util.Objects.equals(market, null))
             {
                 throw new ExchangeError(((this.id + " loadTradeMarket() could not parse market ") + idStr)) ;
@@ -1659,10 +1653,10 @@ public class Opinion extends OpinionApi
                 this.markets = this.createSafeDictionary();
             }
             String marketHandle = this.safeString(market, "market", "");
-            Helpers.addElementToObject(this.markets, marketHandle, market);
+            this.markets.put(marketHandle, market);
             this.indexMarketOutcomes(market);
             cached.put(idStr, market);
-            Helpers.addElementToObject(this.options, cacheKey, cached);
+            this.options.put(cacheKey, cached);
             return market;
         });
 
@@ -1680,7 +1674,7 @@ public class Opinion extends OpinionApi
     public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         String tokenId = this.safeString(trade, "tokenId");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), market);
         Long timestamp = this.safeTimestamp(trade, "createdAt");
         String side = this.safeStringLower(trade, "side");
         return this.safePredictionTrade(new HashMap<String, Object>() {{
@@ -1719,15 +1713,15 @@ public class Opinion extends OpinionApi
                 put( "chain_id", "56" );
             }};
             Map<String, Object> response = (this.opinionPrivateGetUserBalance(this.extend(request, parameters))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> rawBalances = (List<Object>) this.safeList(result, "balances", new ArrayList<Object>(Arrays.asList()));
-            Integer rawBalancesLength = ((List<?>)rawBalances).size();
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> rawBalances = this.safeList(result, "balances", new ArrayList<Object>(Arrays.asList()));
+            Integer rawBalancesLength = rawBalances.size();
             for (var i = 0; (rawBalancesLength != null && i < rawBalancesLength); i++)
             {
-                Object rawBalance = (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
+                Map<String, Object> rawBalance = (Map<String, Object>) (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
                 String quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
                 Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
-                ((Map<String, Object>)rawBalance).put("symbol", this.safeString(quoteToken, "symbol", "USDT"));
+                rawBalance.put("symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
             return this.parseBalance(response);
         }).thenApply(Balances::new);
@@ -1742,17 +1736,17 @@ public class Opinion extends OpinionApi
      * @param {object} response the raw user-balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        List<Object> balances = (List<Object>) this.safeList(data, "balances", new ArrayList<Object>(Arrays.asList()));
-        Integer balancesLength = ((List<?>)balances).size();
+        Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> balances = this.safeList(data, "balances", new ArrayList<Object>(Arrays.asList()));
+        Integer balancesLength = balances.size();
         for (var i = 0; (balancesLength != null && i < balancesLength); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String code = this.safeString(balance, "symbol", "USDT");
             result.put(code, new HashMap<String, Object>() {{
     put( "free", Opinion.this.safeNumber(balance, "availableBalance", (Object) null) );
@@ -1792,19 +1786,19 @@ public class Opinion extends OpinionApi
                 put( "walletAddress", Opinion.this.walletAddress );
             }};
             Map<String, Object> response = (this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, parameters))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> positions = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> positions = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(outcomesLength, 0))
             {
                 return this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             }
-            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
+            List<Object> parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedTokenIds = new HashMap<String, Object>() {{}};
             // copy to a plain list so the strict null checks see one shape
-            Object outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes;
-            for (var i = 0; i < ((List<?>)outcomesList).size(); i++)
+            List<Object> outcomesList = (List<Object>) ((((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes);
+            for (var i = 0; i < outcomesList.size(); i++)
             {
-                Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if (!java.util.Objects.equals(tokenId, null))
                 {
@@ -1812,10 +1806,10 @@ public class Opinion extends OpinionApi
                 }
             }
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            for (var i = 0; i < parsed.size(); i++)
             {
-                Object position = (parsed == null || i < 0 || i >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(i));
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(position, "info", new HashMap<String, Object>() {{}});
+                Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
+                Map<String, Object> info = this.safeDict(position, "info", new HashMap<String, Object>() {{}});
                 String tokenId = this.safeString(info, "tokenId");
                 if ((!java.util.Objects.equals(tokenId, null)) && (wantedTokenIds.containsKey(tokenId)))
                 {
@@ -1836,10 +1830,10 @@ public class Opinion extends OpinionApi
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String tokenId = this.safeString(position, "tokenId");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), market);
         String outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
         return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "contracts", Opinion.this.safeNumber(position, "sharesOwned", (Object) null) );
@@ -1859,12 +1853,12 @@ public class Opinion extends OpinionApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public Map<String, Object> signHash(Object hash, Object privateKey)
+    public Map<String, Object> signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign before padStart so the PHP str_pad regex matches
-        Object rRaw = signature.get("r");
-        Object sRaw = signature.get("s");
+        String rRaw = this.safeString(signature, "r", "");
+        String sRaw = this.safeString(signature, "s", "");
         String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
         String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         return new HashMap<String, Object>() {{
@@ -1874,12 +1868,12 @@ public class Opinion extends OpinionApi
         }};
     }
 
-    public Map<String, Object> signMessage(Object message, Object privateKey)
+    public Map<String, Object> signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
-    public String signApiKeyAuth(Object walletAddress, Object action, Object timestamp)
+    public String signApiKeyAuth(String walletAddress, String action, String timestamp)
     {
         // EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
         Map<String, Object> domain = new HashMap<String, Object>() {{
@@ -1904,9 +1898,9 @@ public class Opinion extends OpinionApi
             put( "action", action );
             put( "timestamp", timestamp );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
-        Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+        Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
+        return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
     /**
@@ -1925,9 +1919,9 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.opinionPrivatePostAuthApiKey(parameters)).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.setApiCredentials((Map<String, Object>) (result));
-        }).thenApply(res -> (Map<String, Object>) res);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            return this.setApiCredentials(result);
+        });
 
     }
 
@@ -1945,9 +1939,9 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.opinionPrivateGetAuthApiKey(parameters)).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.setApiCredentials((Map<String, Object>) (result));
-        }).thenApply(res -> (Map<String, Object>) res);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            return this.setApiCredentials(result);
+        });
 
     }
 
@@ -1965,14 +1959,14 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.opinionPrivateDeleteAuthApiKey(parameters)).join();
-            Helpers.addElementToObject(this.options, "apiKey", null);
+            this.options.remove("apiKey");
             // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
             // exchange.apiKey would keep being used for private calls after the key is revoked.
             // an empty string, not undefined: the strict base types the credential as string, and
             // sign() treats an empty key as absent
             this.apiKey = "";
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -2015,11 +2009,11 @@ public class Opinion extends OpinionApi
                 creds = (this.createApiKey(new HashMap<String, Object>() {{}})).join();
             }
             return this.safeString(creds, "apiKey");
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
-    public Object setApiCredentials(Map<String, Object> response)
+    public Map<String, Object> setApiCredentials(Map<String, Object> response)
     {
         //
         //     { "apiKey": "...", "walletAddress": "..." }
@@ -2028,10 +2022,11 @@ public class Opinion extends OpinionApi
             put( "apiKey", Opinion.this.safeString(response, "apiKey") );
             put( "walletAddress", Opinion.this.safeString(response, "walletAddress") );
         }};
-        Helpers.addElementToObject(this.options, "apiKey", creds.get("apiKey"));
+        this.options.put("apiKey", creds.get("apiKey"));
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = ((String)creds.get("apiKey"));
+        // an empty string, not undefined: the strict base types the credential as string
+        this.apiKey = this.safeString(creds, "apiKey", "");
         return creds;
     }
 
@@ -2072,24 +2067,24 @@ public class Opinion extends OpinionApi
      * @param {int} marketId the numeric binary market id
      * @returns {any} the first resolved payload
      */
-    public CompletableFuture<Object> subscribeOpinionChannel(Object messageHash, String channel, Object marketId)
+    public CompletableFuture<Object> subscribeOpinionChannel(String messageHash, String channel, Object marketId)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             (this.loadApiKey()).join();
             String url = this.opinionWsUrl();
-            String subscriptionKey = ((channel + ":") + this.numberToString(marketId));
             Map<String, Object> subscribeMsg = new HashMap<String, Object>();
             subscribeMsg.put("action", "SUBSCRIBE");
             subscribeMsg.put("channel", channel);
             subscribeMsg.put("marketId", marketId);
+            String subscriptionKey = ((channel + ":") + this.safeString(subscribeMsg, "marketId", ""));
             return (this.watch(url, messageHash, subscribeMsg, subscriptionKey, null)).join();
         });
 
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
@@ -2100,19 +2095,19 @@ public class Opinion extends OpinionApi
         }
         if (java.util.Objects.equals(msgType, "market.depth.diff"))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
         } else if (java.util.Objects.equals(msgType, "market.last.price"))
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
         } else if (java.util.Objects.equals(msgType, "market.last.trade"))
         {
-            this.handleTrades(client, (Map<String, Object>) (message));
+            this.handleTrades(client, message);
         } else if (java.util.Objects.equals(msgType, "trade.order.update"))
         {
-            this.handleOrder(client, (Map<String, Object>) (message));
+            this.handleOrder(client, message);
         } else if (java.util.Objects.equals(msgType, "trade.record.new"))
         {
-            this.handleMyTrade(client, (Map<String, Object>) (message));
+            this.handleMyTrade(client, message);
         }
     }
 
@@ -2131,17 +2126,17 @@ public class Opinion extends OpinionApi
         {
             return null;
         }
-        List<Object> marketKeys = ((List<Object>) switch ((Object)(this.markets)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        Integer marketKeysLength = ((List<?>)marketKeys).size();
+        List<Object> marketKeys = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
+        Integer marketKeysLength = marketKeys.size();
         for (var i = 0; (marketKeysLength != null && i < marketKeysLength); i++)
         {
-            Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)), (Object) null);
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            if (Helpers.isEqual(this.safeInteger(info, "marketId"), marketId))
+            Map<String, Object> market = this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)), null);
+            Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            if (java.util.Objects.equals(this.safeInteger(info, "marketId"), marketId))
             {
-                List<Object> outcomes = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
-                Integer index = (((Helpers.isEqual(outcomeSide, 2)))) ? 1 : 0;
-                return this.safeDict(outcomes, index, (Object) null);
+                List<Object> outcomes = this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
+                Integer index = ((((outcomeSide != null && ((Number) outcomeSide).doubleValue() == 2)))) ? 1 : 0;
+                return this.safeDict(outcomes, index, null);
             }
         }
         return null;
@@ -2163,7 +2158,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String channel = "market.depth.diff";
@@ -2171,16 +2166,16 @@ public class Opinion extends OpinionApi
             (this.loadApiKey()).join();
             String url = this.opinionWsUrl();
             Client client = this.client(url);
-            String subscriptionKey = ((channel + ":") + this.numberToString(marketId));
-            Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, subscriptionKey), null);
-            if (Boolean.TRUE.equals(isNewSubscription))
-            {
-                (this.seedOrderBook(outcome, (String) (sym), limit)).join();
-            }
             Map<String, Object> subscribeMsg = new HashMap<String, Object>();
             subscribeMsg.put("action", "SUBSCRIBE");
             subscribeMsg.put("channel", channel);
             subscribeMsg.put("marketId", marketId);
+            String subscriptionKey = ((channel + ":") + this.safeString(subscribeMsg, "marketId", ""));
+            Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, subscriptionKey), null);
+            if (Boolean.TRUE.equals(isNewSubscription))
+            {
+                (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
+            }
             Object future = this.watch(url, messageHash, subscribeMsg, subscriptionKey, null);
             if (Boolean.TRUE.equals(isNewSubscription))
             {
@@ -2222,13 +2217,13 @@ public class Opinion extends OpinionApi
         //     }
         //
         String tokenId = this.safeString(message, "tokenId");
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId, (Object) null);
+        Map<String, Object> outcomeObj = this.safeDict(this.outcomes_by_id, tokenId, null);
         String sym = this.safeString(outcomeObj, "outcome");
         if (java.util.Objects.equals(sym, null))
         {
             return;
         }
-        if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(sym)))
         {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
@@ -2259,7 +2254,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String messageHash = ("ticker::" + sym);
@@ -2280,7 +2275,7 @@ public class Opinion extends OpinionApi
         //     }
         //
         String tokenId = this.safeString(message, "tokenId");
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId, (Object) null);
+        Map<String, Object> outcomeObj = this.safeDict(this.outcomes_by_id, tokenId, null);
         String sym = this.safeString(outcomeObj, "outcome");
         if (java.util.Objects.equals(sym, null))
         {
@@ -2298,7 +2293,9 @@ public class Opinion extends OpinionApi
         mapLiteral7.put("last", last);
         mapLiteral7.put("info", message);
         Object ticker = this.safePredictionTicker(mapLiteral7, outcomeObj);
-        Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
+        Map<String, Object> cachedTickers = this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}});
+        cachedTickers.put(sym, ticker);
+        this.options.put("wsTickers", cachedTickers);
         client.resolve(ticker, ("ticker::" + sym));
     }
 
@@ -2319,7 +2316,7 @@ public class Opinion extends OpinionApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
             String messageHash = ("trades::" + sym);
@@ -2344,7 +2341,7 @@ public class Opinion extends OpinionApi
         //     }
         //
         String tokenId = this.safeString(message, "tokenId");
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId, (Object) null);
+        Map<String, Object> outcomeObj = this.safeDict(this.outcomes_by_id, tokenId, null);
         String sym = this.safeString(outcomeObj, "outcome");
         if (java.util.Objects.equals(sym, null))
         {
@@ -2375,7 +2372,7 @@ public class Opinion extends OpinionApi
         if (java.util.Objects.equals(this.safeValue(this.trades, sym), null))
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Helpers.addElementToObject(this.trades, sym, new ArrayCache(((Number)tradesLimit).intValue()));
+            this.trades.put(sym, new ArrayCache(((Number)tradesLimit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (sym == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(sym));
         stored.append(trade);
@@ -2403,7 +2400,7 @@ public class Opinion extends OpinionApi
                 throw new ArgumentsRequired((this.id + " watchOrders() requires an outcome (the order update channel is per-market)")) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             String messageHash = "orders";
             List<Object> orders = (List<Object>) (this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId)).join();
@@ -2424,23 +2421,23 @@ public class Opinion extends OpinionApi
     public String parseWsOrderStatus(Object status)
     {
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
-        if (Helpers.isEqual(status, 1))
+        if ((status != null && ((Number) status).doubleValue() == 1))
         {
             return "open";
         }
-        if (Helpers.isEqual(status, 2))
+        if ((status != null && ((Number) status).doubleValue() == 2))
         {
             return "closed";
         }
-        if (Helpers.isEqual(status, 3))
+        if ((status != null && ((Number) status).doubleValue() == 3))
         {
             return "canceled";
         }
-        if (Helpers.isEqual(status, 4))
+        if ((status != null && ((Number) status).doubleValue() == 4))
         {
             return "expired";
         }
-        if (Helpers.isEqual(status, 5))
+        if ((status != null && ((Number) status).doubleValue() == 5))
         {
             return "rejected";
         }
@@ -2509,7 +2506,7 @@ public class Opinion extends OpinionApi
         mapLiteral9.put("filled", this.safeNumber(message, "filledShares", (Object) null));
         mapLiteral9.put("fee", null);
         mapLiteral9.put("trades", new ArrayList<Object>(Arrays.asList()));
-        Object order = this.safePredictionOrder(mapLiteral9, outcomeObj);
+        Map<String,Object> order = this.safePredictionOrder(mapLiteral9, outcomeObj);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2541,7 +2538,7 @@ public class Opinion extends OpinionApi
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires an outcome (the trade record channel is per-market)")) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long marketId = this.safeInteger(info, "marketId");
             String messageHash = "myTrades";
             List<Object> trades = (List<Object>) (this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId)).join();
@@ -2610,7 +2607,7 @@ public class Opinion extends OpinionApi
         client.resolve(stored, "myTrades");
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2621,8 +2618,8 @@ public class Opinion extends OpinionApi
         {
             String errmsg = this.safeString(response, "errmsg", "");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), this.numberToString(errno), feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errmsg, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), this.numberToString(errno), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errmsg), feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;
@@ -2641,10 +2638,10 @@ public class Opinion extends OpinionApi
      */
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        String access = this.safeString(api, 1, "public");
-        Object baseUrls = this.urls.get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("opinion")));
+        String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
+        Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");
+        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)baseUrls.get("opinion")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};
@@ -2666,10 +2663,9 @@ public class Opinion extends OpinionApi
                     put( "GET", "get" );
                     put( "DELETE", "delete" );
                 }};
-                String action = this.safeString(actionByMethod, java.util.Objects.requireNonNullElse(method, "GET"), "get");
                 String timestamp = this.numberToString(this.seconds());
                 headersExtended.put("OPINION_ADDRESS", this.walletAddress);
-                headersExtended.put("OPINION_SIGNATURE", this.signApiKeyAuth(this.walletAddress, action, timestamp));
+                headersExtended.put("OPINION_SIGNATURE", this.signApiKeyAuth((String) (this.walletAddress), this.safeString(actionByMethod, java.util.Objects.requireNonNullElse(method, "GET"), "get"), (String) (timestamp)));
                 headersExtended.put("OPINION_TIMESTAMP", timestamp);
             } else
             {
@@ -2687,7 +2683,7 @@ public class Opinion extends OpinionApi
         String bodyValue = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

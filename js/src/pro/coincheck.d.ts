@@ -2,7 +2,7 @@ import coincheckRest from '../coincheck.js';
 import type { Int, Market, OrderBook, Trade, Dict, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coincheck extends coincheckRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coincheck#watchOrderBook
@@ -29,5 +29,5 @@ export default class coincheck extends coincheckRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     handleTrades(client: Client, message: any[]): void;
     parseWsTrade(trade: List, market?: Market): Trade;
-    handleMessage(client: Client, message: any[]): void;
+    handleListMessage(client: Client, message: List): void;
 }

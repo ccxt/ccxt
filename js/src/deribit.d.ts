@@ -5,7 +5,7 @@ import type { NullableDict, Balances, Currency, CurrencyInterface, FundingRateHi
  * @augments Exchange
  */
 export default class deribit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**
@@ -57,7 +57,7 @@ export default class deribit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    parseBalance(balance: any): Balances;
+    parseBalance(balance: Dict): Balances;
     /**
      * @method
      * @name deribit#fetchBalance
@@ -424,7 +424,7 @@ export default class deribit extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name deribit#fetchLiquidations
@@ -495,7 +495,7 @@ export default class deribit extends Exchange {
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

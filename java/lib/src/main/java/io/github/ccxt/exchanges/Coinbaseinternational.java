@@ -39,7 +39,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coinbaseinternational" );
@@ -707,7 +707,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTime", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchTime", parameters);
             Map<String, Object> response = (this.publicGetGetTime(paramsResolved)).join();
             //
             //     {
@@ -721,7 +721,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             Long timestamp = this.safeInteger(response, "result");
             return timestamp;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -741,7 +741,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchMarkets", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchMarkets", parameters);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (this.isNativeDeribitCredentials())
             {
@@ -833,7 +833,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            List<Object> instruments = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> instruments = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(instruments);
         });
 
@@ -869,12 +869,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             type = "option";
         }
         String symbol = instrumentName;
-        if (!Boolean.TRUE.equals(isComboMarket))
+        if (!Boolean.TRUE.equals(isComboMarket) && (!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             symbol = ((base + "/") + quote);
-            if (!Boolean.TRUE.equals(isSpot))
+            if (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(settle, null)))
             {
-                symbol = ((symbol + ":") + settle);
+                symbol = ((((base + "/") + quote) + ":") + settle);
             }
         }
         Boolean linear = ((Boolean.TRUE.equals(isSpot))) ? null : (java.util.Objects.equals(settle, quote));
@@ -973,7 +973,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchCurrencies", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchCurrencies", parameters);
             Map<String, Object> response = (this.publicGetGetCurrencies(paramsResolved)).join();
             //
             //     {
@@ -1008,7 +1008,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            List<Object> currencies = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -1046,9 +1046,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Double precision = this.parseNumber(this.parsePrecision(decimals));
         Double networkFee = this.safeNumber(currency, "network_fee", (Object) null);
         Double withdrawalFee = this.safeNumber(currency, "withdrawal_fee", (Object) null);
-        List<Object> rawNetworks = (List<Object>) this.safeList(currency, "coinbase_networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawNetworks = this.safeList(currency, "coinbase_networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)rawNetworks).size(); i++)
+        for (var i = 0; i < rawNetworks.size(); i++)
         {
             Object rawNetwork = (rawNetworks == null || i < 0 || i >= rawNetworks.size() ? null : rawNetworks.get(i));
             String networkId = this.safeString(rawNetwork, "resource_name");
@@ -1126,12 +1126,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOHLCV", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOHLCV", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1143,13 +1143,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "instrument_name", market.get("id") );
                 put( "resolution", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals(this.safeBool2(marketInfo, "is_cbe_routed", "is_csr", false)))
             {
                 throw new NotSupported((this.id + " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")) ;
             }
             Object limitResolved = java.util.Objects.requireNonNullElse(limit, 100L);
-            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Long duration = this.parseToInt(this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m")));
             Long now = this.milliseconds();
             if (java.util.Objects.equals(since, null))
             {
@@ -1157,7 +1157,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 {
                     limitResolved = 100;
                 }
-                request.put("start_timestamp", this.sum(now, Helpers.multiply(Helpers.multiply(((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(limitResolved), duration), 1000)));
+                request.put("start_timestamp", this.sum(now, Helpers.multiply(Helpers.multiply(this.parseToInt(limitResolved), duration), -1000)));
                 request.put("end_timestamp", now);
             } else
             {
@@ -1168,7 +1168,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     request.put("end_timestamp", now);
                 } else
                 {
-                    request.put("end_timestamp", this.sum(sinceResolved, Helpers.multiply(Helpers.multiply(limitResolved, duration), 1000)));
+                    request.put("end_timestamp", this.sum(sinceResolved, Helpers.multiply(Helpers.multiply(this.parseToInt(limitResolved), duration), 1000)));
                 }
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -1197,7 +1197,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "jsonrpc": "2.0"
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> candles = (List<Object>) this.convertTradingViewToOHLCV(((Object)result), "ticks", "open", "high", "low", "close", "volume", true);
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, java.util.Objects.requireNonNullElse(limit, 100L), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1234,11 +1234,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchFundingRateHistory", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchFundingRateHistory", parameters);
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
-                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchFundingRateHistory", "paginate", false);
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchFundingRateHistory", "paginate", false);
                 Boolean paginate = paginateparamsFinalVariable.first();
                 Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
                 if (Boolean.TRUE.equals(paginate))
@@ -1258,8 +1258,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> market = this.market(symbol);
             Long duration = (((long) this.parseTimeframe("1h")) * 1000L);
             Long now = this.milliseconds();
-            Object sinceResolved = since;
-            if (java.util.Objects.equals(sinceResolved, null))
+            Long sinceResolved = since;
+            if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
@@ -1269,7 +1269,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             request.put("end_timestamp", now);
             if (!java.util.Objects.equals(limit, null))
             {
-                Object endTimestamp = this.sum(sinceResolved, (limit * duration));
+                Long endTimestamp = (Long) this.sum(sinceResolved, (limit * duration));
                 request.put("end_timestamp", endTimestamp);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -1301,7 +1301,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            List<Object> rawRates = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawRates = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(rawRates, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
@@ -1370,7 +1370,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTickers", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchTickers", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1381,7 +1381,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 throw new ArgumentsRequired((this.id + " fetchTickers() requires a symbols argument")) ;
             }
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            for (var i = 0; i < symbolsResolved.size(); i++)
             {
                 String symbol = this.safeString(symbolsResolved, i);
                 if (java.util.Objects.equals(symbol, null))
@@ -1412,7 +1412,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTicker", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchTicker", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1454,7 +1454,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -1487,7 +1487,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //     }
         //
         Long timestamp = this.safeInteger(ticker, "timestamp");
-        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats", new HashMap<String, Object>() {{}});
+        Map<String, Object> stats = this.safeDict(ticker, "stats", new HashMap<String, Object>() {{}});
         Double last = this.safeNumber(ticker, "last_price", (Object) null);
         String marketId = this.safeString(ticker, "instrument_name");
         Double quoteVolume = this.safeNumber(stats, "volume_notional", (Object) null);
@@ -1538,7 +1538,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOrderBook", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOrderBook", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1557,11 +1557,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     {
                         throw new BadRequest((this.id + " fetchOrderBook() limit must be between 1 and 10000")) ;
                     }
-                    for (var i = 0; i < ((List<?>)depths).size(); i++)
+                    for (var i = 0; i < depths.size(); i++)
                     {
-                        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i))))
+                        if ((limit <= this.parseToInt((depths == null || i < 0 || i >= depths.size() ? null : depths.get(i)))))
                         {
-                            request.put("depth", (depths == null || i < 0 || i >= depths.size() ? null : depths.get(i)));
+                            request.put("depth", this.safeInteger(depths, i, 0));
                             break;
                         }
                     }
@@ -1614,7 +1614,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         "testnet": false
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
             return this.parseOrderBook(result, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
@@ -1638,7 +1638,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchBalance", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchBalance", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1900,38 +1900,38 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //     }
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             if (!this.isNativeDeribitCredentials())
             {
                 // Account summaries are arrays; retain the gateway info shape without dropping balances.
-                List<Object> summaries = (List<Object>) this.safeList(result, "summaries", (Object) null);
+                List<Object> summaries = this.safeList(result, "summaries", null);
                 if (!java.util.Objects.equals(summaries, null))
                 {
-                    return this.parseBalance(summaries);
+                    return this.parseBalanceList(summaries);
                 }
-                return this.parseBalance(this.safeDict(result, "summaries", new ArrayList<Object>(Arrays.asList())));
+                return this.parseBalanceList(this.safeDict(result, "summaries", new ArrayList<Object>(Arrays.asList())));
             }
-            return this.parseBalance(result);
+            return this.parseBalanceList(result);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object summaries = new ArrayList<Object>(Arrays.asList(response));
+        List<Object> summaries = new ArrayList<Object>(Arrays.asList(response));
         if ((response instanceof List))
         {
-            summaries = response;
+            summaries = (List<Object>) response;
         } else if (this.isNativeDeribitCredentials())
         {
-            summaries = this.safeList(response, "summaries", new ArrayList<Object>(Arrays.asList(response)));
+            summaries = (List<Object>) this.safeList(response, "summaries", new ArrayList<Object>(Arrays.asList(response)));
         }
-        for (var i = 0; i < ((List<?>)summaries).size(); i++)
+        for (var i = 0; i < summaries.size(); i++)
         {
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(summaries, i, (Object) null);
+            Map<String, Object> data = this.safeDict(summaries, i, null);
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1968,7 +1968,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchTransfers", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchTransfers", parameters);
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchTransfers() requires a currency code argument")) ;
@@ -1979,8 +1979,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Long now = this.milliseconds();
-            Object sinceResolved = since;
-            if (java.util.Objects.equals(sinceResolved, null))
+            Long sinceResolved = since;
+            if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
@@ -2038,8 +2038,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> transfers = (List<Object>) this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> transfers = this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -2077,7 +2077,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //
         Long transactionTimestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "currency");
-        Map<String, Object> info = (Map<String, Object>) this.safeDict(transfer, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> info = this.safeDict(transfer, "info", new HashMap<String, Object>() {{}});
         Double amount = this.safeNumber(transfer, "change", (Object) null);
         String fromAccount = this.safeString(transfer, "username");
         String toAccount = this.safeString(info, "other_user");
@@ -2122,7 +2122,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchPosition", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchPosition", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2160,8 +2160,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (position), market);
+            Map<String, Object> position = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            return this.parsePosition(position, market);
         }).thenApply(Position::new);
 
     }
@@ -2193,35 +2193,37 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //
         String instrumentName = this.safeString(position, "instrument_name");
         Map<String, Object> marketResolved = this.safeMarket(instrumentName, market, (String) null, (String) null);
-        String side = this.safeString(position, "direction");
-        if (java.util.Objects.equals(side, "buy"))
+        String direction = this.safeString(position, "direction");
+        String side = null;
+        if (java.util.Objects.equals(direction, "buy"))
         {
             side = "long";
-        } else if (java.util.Objects.equals(side, "sell"))
+        } else if (java.util.Objects.equals(direction, "sell"))
         {
             side = "short";
         }
-        String notional = this.safeString(position, "size_currency");
         String initialMargin = this.safeString(position, "initial_margin");
         String maintenanceMargin = this.safeString(position, "maintenance_margin");
-        Double contracts = this.safeNumber(position, "size", (Object) null);
-        if (this.isNativeDeribitCredentials())
+        // size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+        // size_currency is in the base currency, futures only
+        // contractSize is in USD for inverse futures and in the base currency otherwise
+        String size = this.safeString(position, "size");
+        String amount = size; // `contract_size` converts between `amount` and `contracts`
+        String notional = null;
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "option", false)))
         {
-            String size = this.safeString(position, "size");
-            if (!java.util.Objects.equals(marketResolved.get("option"), true))
-            {
-                notional = size;
-                if (java.util.Objects.equals(marketResolved.get("linear"), true))
-                {
-                    size = this.safeString(position, "size_currency");
-                }
-            } else
-            {
-                notional = Precise.stringMul(size, this.safeString(position, "mark_price"));
-            }
-            String contractsString = this.safeString(position, "contracts", Precise.stringDiv(size, this.safeString(marketResolved, "contractSize")));
-            contracts = this.parseNumber(Precise.stringAbs(contractsString));
+            // For options, "size" is the base currency (e.g. BTC) instead of quote currency
+            notional = Precise.stringMul(size, this.safeString(position, "mark_price"));
+        } else if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
+        {
+            amount = this.safeString(position, "size_currency"); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            notional = size;
+        } else
+        {
+            // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+            notional = this.safeString(position, "size_currency");
         }
+        String contractsString = Precise.stringDiv(amount, this.safeString(marketResolved, "contractSize"));
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", position);
         mapLiteral3.put("id", null);
@@ -2232,7 +2234,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         mapLiteral3.put("collateral", null);
         mapLiteral3.put("unrealizedPnl", this.safeNumber(position, "floating_profit_loss", (Object) null));
         mapLiteral3.put("side", side);
-        mapLiteral3.put("contracts", contracts);
+        mapLiteral3.put("contracts", this.parseNumber(Precise.stringAbs(contractsString)));
         mapLiteral3.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
         mapLiteral3.put("timestamp", null);
         mapLiteral3.put("datetime", null);
@@ -2267,7 +2269,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchPositions", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchPositions", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2304,7 +2306,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         ]
             //     }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             if (this.isEmpty(symbols))
             {
                 return this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
@@ -2336,7 +2338,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
             if (java.util.Objects.equals(code, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositsWithdrawals() requires a currency code argument")) ;
@@ -2347,8 +2349,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Long now = this.milliseconds();
-            Object sinceResolved = since;
-            if (java.util.Objects.equals(sinceResolved, null))
+            Long sinceResolved = since;
+            if (java.util.Objects.equals(since, null))
             {
                 sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
@@ -2405,14 +2407,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> logs = (List<Object>) this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> logs = this.safeList(result, "logs", new ArrayList<Object>(Arrays.asList()));
             if (!this.isNativeDeribitCredentials())
             {
                 return this.parseTransactions(logs, currency, since, limit, new HashMap<String, Object>() {{}});
             }
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)logs).size(); i++)
+            for (var i = 0; i < logs.size(); i++)
             {
                 Object transaction = (logs == null || i < 0 || i >= logs.size() ? null : logs.get(i));
                 String transactionType = this.safeString(transaction, "type");
@@ -2446,7 +2448,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchWithdrawals", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchWithdrawals", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2478,7 +2480,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchDeposits", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchDeposits", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2521,7 +2523,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //     }
         //
         Long transactionTimestamp = this.safeInteger(transaction, "timestamp");
-        Map<String, Object> info = (Map<String, Object>) this.safeDict(transaction, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> info = this.safeDict(transaction, "info", new HashMap<String, Object>() {{}});
         String transactionType = this.safeString(transaction, "type");
         String transactionId = this.safeString(transaction, "id");
         String currencyId = this.safeString(transaction, "currency");
@@ -2571,10 +2573,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {float} amount unified order quantity
      * @returns {string} precision-formatted exchange order amount
      */
-    public Object getOrderAmount(Object market, Object amount)
+    public String getOrderAmount(Object market, Object amount)
     {
         String exchangeAmount = this.numberToString(amount);
-        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)))
+        if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(market, "contract", false))))
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
@@ -2610,7 +2612,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("createOrder", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("createOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2779,9 +2781,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             order.put("trades", trades);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -2872,7 +2874,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Long lastUpdateTimestamp = this.safeInteger(order, "last_update_timestamp");
         Double filled = this.safeNumber(order, "filled_amount", (Object) null);
         Double amount = this.safeNumber(order, "amount", (Object) null);
-        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("contract"), true)))
+        if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))
         {
             String contractSize = this.safeString(marketResolved, "contractSize");
             amount = this.parseNumber(this.safeString(order, "contracts", Precise.stringDiv(this.safeString(order, "amount"), contractSize)));
@@ -2891,7 +2893,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         if ((!java.util.Objects.equals(filledString, null)) && (!java.util.Objects.equals(averageString, null)))
         {
             cost = this.parseNumber(Precise.stringMul(filledString, averageString));
-            if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("inverse"), true)) && (!java.util.Objects.equals(marketResolved.get("option"), true)))
+            if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(marketResolved, "inverse", false))) && (!Boolean.TRUE.equals(this.safeBool(marketResolved, "option", false))))
             {
                 cost = this.parseNumber(Precise.stringDiv(filledString, averageString));
             }
@@ -2939,7 +2941,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         mapLiteral5.put("average", average);
         mapLiteral5.put("status", this.parseOrderStatus(this.safeStringLower(order, "order_state")));
         mapLiteral5.put("fee", fee);
-        mapLiteral5.put("trades", this.safeList(order, "trades", (Object) null));
+        mapLiteral5.put("trades", this.safeList(order, "trades", null));
         return this.safeOrder(mapLiteral5, marketResolved);
     }
 
@@ -2994,7 +2996,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("cancelOrder", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("cancelOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3037,7 +3039,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -3061,7 +3063,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("cancelAllOrders", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("cancelAllOrders", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3116,7 +3118,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("editOrder", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("editOrder", parameters);
             if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(amount, null)) && (java.util.Objects.equals(this.safeNumber(paramsResolved, "contracts", (Object) null), null)))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires amount or params.contracts on Deribit")) ;
@@ -3199,9 +3201,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             order.put("trades", trades);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -3225,7 +3227,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOrder", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOrder", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3267,7 +3269,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -3294,11 +3296,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchOpenOrders", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOpenOrders", parameters);
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
-                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchOpenOrders", "paginate", false);
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
                 Boolean paginate = paginateparamsFinalVariable.first();
                 Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
                 if (Boolean.TRUE.equals(paginate))
@@ -3354,7 +3356,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         ]
             //     }
             //
-            List<Object> rawOrders = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawOrders = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3382,11 +3384,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchMyTrades", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchMyTrades", parameters);
             Object paramsPaginate = paramsResolved;
             if (this.isNativeDeribitCredentials())
             {
-                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsResolved), "fetchMyTrades", "paginate", false);
+                Pair<Boolean, Map<String, Object>> paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
                 Boolean paginate = paginateparamsFinalVariable.first();
                 Map<String, Object> paramsFinal = paginateparamsFinalVariable.second();
                 if (Boolean.TRUE.equals(paginate))
@@ -3426,7 +3428,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("end_timestamp", (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds());
                 if (this.isNativeDeribitCredentials())
                 {
-                    ((Map<String,Object>)request).remove("include_old");
+                    request.remove("include_old");
                 }
                 response = (this.privateGetGetUserTradesByInstrumentAndTime(this.extend(request, paramsOmitted))).join();
             } else
@@ -3488,8 +3490,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3551,7 +3553,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Double price = this.safeNumber(trade, "price", (Object) null);
         Double amount = this.safeNumber(trade, "amount", (Object) null);
         String amountString = this.safeString(trade, "amount");
-        if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("contract"), true)))
+        if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))
         {
             amount = this.parseNumber(this.safeString(trade, "contracts", Precise.stringDiv(amountString, this.safeString(marketResolved, "contractSize"))));
         }
@@ -3560,7 +3562,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         if ((!java.util.Objects.equals(amountString, null)) && (!java.util.Objects.equals(priceString, null)))
         {
             cost = this.parseNumber(Precise.stringMul(amountString, priceString));
-            if (this.isNativeDeribitCredentials() && (java.util.Objects.equals(marketResolved.get("inverse"), true)) && (!java.util.Objects.equals(marketResolved.get("option"), true)))
+            if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(marketResolved, "inverse", false))) && (!Boolean.TRUE.equals(this.safeBool(marketResolved, "option", false))))
             {
                 cost = this.parseNumber(Precise.stringDiv(amountString, priceString));
             }
@@ -3614,7 +3616,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("fetchLeverage", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchLeverage", parameters);
             if (this.isNativeDeribitCredentials())
             {
                 throw new NotSupported((this.id + " fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint")) ;
@@ -3640,8 +3642,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (result), market);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            return this.parseLeverage(result, market);
         }).thenApply(Leverage::new);
 
     }
@@ -3683,7 +3685,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("setLeverage", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("setLeverage", parameters);
             if (this.isNativeDeribitCredentials())
             {
                 throw new NotSupported((this.id + " setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint")) ;
@@ -3736,24 +3738,24 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      */
     public String createAuthToken(Object seconds, String method, String url, Object useEddsa)
     {
-        Object uri = null;
-        if (!java.util.Objects.equals(url, null))
+        String uri = null;
+        if ((!java.util.Objects.equals(url, null)) && (!java.util.Objects.equals(method, null)))
         {
             uri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
-            Object quesPos = ((String)uri).indexOf("?");
+            Object quesPos = uri.indexOf("?");
             if ((((Integer) quesPos) > 0))
             {
-                uri = Helpers.slice(uri, 0, quesPos);
+                uri = (uri == null ? null : uri.substring(0, (int) Math.min(((Number)quesPos).intValue() < 0 ? uri.length() + ((Number)quesPos).intValue() : ((Number)quesPos).intValue(), uri.length())));
             }
         }
         String nonce = this.randomBytes(16);
         String aud = "retail_rest_api_proxy";
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             aud = "cdp_service";
         }
         String iss = "coinbase-cloud";
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             iss = "cdp";
         }
@@ -3762,11 +3764,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         request.put("sub", this.apiKey);
         request.put("iss", iss);
         request.put("nbf", seconds);
-        request.put("exp", ((Object) (switch ((Object) (seconds)) { case null -> (Object) null; case Long hx4J40v4 -> (Object) (hx4J40v4 + 120L); case Integer hx4J40v4 -> (Object) (hx4J40v4.longValue() + 120L); case Double hx4J40v4 -> (Object) (hx4J40v4 + ((double) 120L)); case String hx4J40v4 -> (Object) (hx4J40v4 + "120"); default -> (Object) null; })));
+        request.put("exp", ((Object) (switch ((Object) (this.parseToInt(seconds))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 120L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 120L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 120L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "120"); default -> (Object) null; })));
         request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
         {
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+            if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
             {
                 request.put("uri", uri);
             } else
@@ -3774,10 +3776,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("uris", new ArrayList<Object>(Arrays.asList(uri)));
             }
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
-            Object byteArray = this.base64ToBinary(this.secret);
-            Object seed = this.arraySlice(byteArray, 0, 32);
+            byte[] byteArray = this.base64ToBinary(this.secret);
+            List<Object> seed = this.arraySlice(byteArray, 0, 32);
             return jwt(request, seed, sha256(), false, new HashMap<String, Object>() {{
                 put( "kid", Coinbaseinternational.this.apiKey );
                 put( "nonce", nonce );
@@ -3808,7 +3810,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("authenticateV2", parameters);
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("authenticateV2", parameters);
             if (this.isNativeDeribitCredentials())
             {
                 return null;
@@ -3816,7 +3818,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Boolean forceRefresh = (Boolean) this.safeBool(paramsResolved, "forceRefresh", false);
             Map<String, Object> paramsOmitted = this.omit(paramsResolved, "forceRefresh");
             Long now = this.milliseconds();
-            Object token = this.getV2AccessToken();
+            String token = this.getV2AccessToken();
             Long tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
             if (!Boolean.TRUE.equals(forceRefresh) && (!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")) && (!java.util.Objects.equals(tokenExpires, null)) && ((tokenExpires != null && (now == null || now < tokenExpires))))
             {
@@ -3834,7 +3836,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String accessToken = this.safeString(result, "access_token");
             Long expiresIn = this.safeInteger(result, "expires_in");
             if (java.util.Objects.equals(accessToken, null))
@@ -3849,10 +3851,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Double refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
             Long tokenRefreshInMilliseconds = this.parseToInt(((expiresIn * 1000L) * refreshRatio));
             this.token = accessToken;
-            Helpers.addElementToObject(this.options, "v2AccessToken", accessToken);
-            Helpers.addElementToObject(this.options, "v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
+            this.options.put("v2AccessToken", accessToken);
+            this.options.put("v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
             return accessToken;
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -3862,25 +3864,16 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
      * @returns {string|undefined} the access token
      */
-    public Object getV2AccessToken()
+    public String getV2AccessToken()
     {
-        String token = this.safeString(this.options, "v2AccessToken");
-        if ((!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")))
-        {
-            return token;
-        }
-        if ((java.util.Objects.equals(this.token, null)) || (java.util.Objects.equals(this.token, "")))
-        {
-            return null;
-        }
-        return this.token;
+        return this.safeString(this.options, "v2AccessToken", this.token);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object access = (((java.util.Objects.requireNonNullElse(api, "public") instanceof List))) ? (java.util.Objects.requireNonNullElse(api, "public") == null || 0 >= ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).size() ? null : ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).get(0)) : java.util.Objects.requireNonNullElse(api, "public");
+        String access = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String rpcMethod = ((access + "/") + path);
-        Map<String, Object> requestParams = (Map<String, Object>) this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        Map<String, Object> requestParams = this.handleRouteAndParams("sign", ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
         Boolean isNativeDeribit = this.isNativeDeribitCredentials();
         String baseApiUrl = this.safeString(this.urls.get("api"), "rest", "");
         if (Boolean.TRUE.equals(isNativeDeribit))
@@ -3914,7 +3907,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
-            String nonce = String.valueOf(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             String signedRequest = (((((("/" + "api/") + this.version) + "/") + access) + "/") + path);
             if (requestParams.size() > 0)
             {
@@ -3931,8 +3924,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
         } else if (java.util.Objects.equals(access, "private"))
         {
-            Object accessToken = this.getV2AccessToken();
-            if (java.util.Objects.equals(accessToken, null))
+            String accessToken = this.getV2AccessToken();
+            if ((java.util.Objects.equals(accessToken, null)) || (java.util.Objects.equals(accessToken, "")))
             {
                 throw new AuthenticationError((this.id + " requires an access token from public/auth")) ;
             }
@@ -4005,15 +3998,16 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
      */
-    public Object handleRouteAndParams(String methodName, Map<String, Object> parameters)
+    public Map<String, Object> handleRouteAndParams(String methodName, Map<String, Object> parameters)
     {
-        List<Object> routeparamsResolvedVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "route", "auto");
-        var route = ((List<Object>) routeparamsResolvedVariable).get(0);
-        Map<String, Object> paramsResolved = (Map<String, Object>) ((List<Object>) routeparamsResolvedVariable).get(1);
+        Pair<String, Map<String, Object>> routeparamsResolvedVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "route", "auto");
+        String route = routeparamsResolvedVariable.first();
+        Map<String, Object> paramsResolved = routeparamsResolvedVariable.second();
         Boolean deribit = this.resolveRoute(route);
         Boolean previousBackend = (Boolean) this.safeBool(this.options, "routeBackend", (Object) null);
         Boolean configuredBackend = this.isNativeDeribitCredentials();
-        Boolean hasToken = !java.util.Objects.equals(this.getV2AccessToken(), null);
+        String currentToken = this.getV2AccessToken();
+        Boolean hasToken = (!java.util.Objects.equals(currentToken, null)) && (!java.util.Objects.equals(currentToken, ""));
         Boolean hasWsState = !java.util.Objects.equals(this.safeInteger(this.options, "wsAuthRefreshAt"), null);
         if ((!java.util.Objects.equals(previousBackend, null)) && (!java.util.Objects.equals(previousBackend, deribit)))
         {
@@ -4026,14 +4020,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if (Boolean.TRUE.equals(deribit))
         {
-            Helpers.addElementToObject(this.options, "route", "deribit");
+            this.options.put("route", "deribit");
         } else
         {
-            Helpers.addElementToObject(this.options, "route", "coinbase");
+            this.options.put("route", "coinbase");
         }
-        Helpers.addElementToObject(this.options, "routeBackend", deribit);
-        Helpers.addElementToObject(this.has, "fetchLeverage", !Boolean.TRUE.equals(deribit));
-        Helpers.addElementToObject(this.has, "setLeverage", !Boolean.TRUE.equals(deribit));
+        this.options.put("routeBackend", deribit);
+        this.has.put("fetchLeverage", !Boolean.TRUE.equals(deribit));
+        this.has.put("setLeverage", !Boolean.TRUE.equals(deribit));
         return this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("route", "defaultRoute", "callerMethodName")));
     }
 
@@ -4082,7 +4076,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return ((this.apiKey.length() == 8)) && ((this.secret.length() == 43));
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
@@ -4091,7 +4085,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             return null;  // fallback to default error handler
         }
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
+        Map<String, Object> error = this.safeDict(response, "error", null);
         if (java.util.Objects.equals(error, null))
         {
             return null;
@@ -4099,8 +4093,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String errorCode = this.safeString(error, "code");
         String errorMessage = this.safeString(error, "message");
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
         throw new ExchangeError(feedback) ;
     }
 }

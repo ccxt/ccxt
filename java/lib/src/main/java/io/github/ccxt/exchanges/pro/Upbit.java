@@ -33,7 +33,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -68,47 +68,42 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsRequested = symbols;
-            if (java.util.Objects.equals(symbols, null))
-            {
-                symbolsRequested = this.symbols;
-            }
-            List<String> symbolsMarket = this.marketSymbols(symbolsRequested, (Object) null, true, false, false);
-            List<String> symbolsNormalized = (((java.util.Objects.equals(symbolsMarket, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsMarket;
+            Object symbolsRequested = (((java.util.Objects.equals(symbols, null)))) ? this.symbols : symbols;
+            List<String> symbolsNormalized = this.marketSymbols(symbolsRequested, (Object) null, true, false, false);
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            String url = (String) this.implodeParams(((Map<String, Object>)this.urls.get("api")).get("ws"), new HashMap<String, Object>() {{
+            String url = (String) this.implodeParams(this.safeString(this.urls.get("api"), "ws"), new HashMap<String, Object>() {{
                 put( "hostname", Upbit.this.hostname );
             }});
             Client client = this.client(url);
             String subscriptionsKey = "upbitPublicSubscriptions";
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionsKey)))
+            if (!(client.subscriptions.containsKey(subscriptionsKey)))
             {
-                ((Map)client.subscriptions).put(subscriptionsKey, this.createSafeDictionary(true));
+                client.subscriptions.put(subscriptionsKey, this.createSafeDictionary(true));
             }
-            Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            Map<String, Object> subscriptions = this.safeDict(client.subscriptions, subscriptionsKey, new HashMap<String, Object>() {{}});
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
-                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                String marketId = this.safeString(marketIds, i, "");
+                String symbol = this.safeString(symbolsNormalized, i, "");
                 String messageHash = ((channel + ":") + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
-                if (!((switch ((Object)(subscriptions)) { case List<?> j39v3 -> ((Object)(messageHash)) != null && j39v3.contains(messageHash); case Map<?, ?> j39v2 -> ((Object)(messageHash)) instanceof String && j39v2.containsKey(messageHash); case null, default -> false; })))
+                messageHashes.add(messageHash);
+                if (!(subscriptions.containsKey(messageHash)))
                 {
                     HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
                     mapLiteral1.put("type", channel);
                     mapLiteral1.put("codes", new ArrayList<Object>(Arrays.asList(marketId)));
-                    Helpers.addElementToObject(subscriptions, messageHash, mapLiteral1);
+                    subscriptions.put(messageHash, mapLiteral1);
                 }
             }
             List<Object> finalMessage = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Upbit.this.uuid() );
     }}));
-            List<Object> channelKeys = ((List<Object>) switch ((Object)(subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
+            List<String> channelKeys = new ArrayList<String>(subscriptions.keySet());
+            for (var i = 0; i < channelKeys.size(); i++)
             {
-                Object key = (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i));
-                ((List<Object>)finalMessage).add(Helpers.GetValue(subscriptions, key));
+                String key = (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i));
+                ((List<Object>)finalMessage).add((subscriptions == null || key == null ? null : subscriptions.get(key)));
             }
             return (this.watchMultiple((String) (url), messageHashes, finalMessage, messageHashes, null)).join();
         });
@@ -202,7 +197,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> trades = (List<Object>) (this.watchPublicMultiple(symbols, "trade", new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(trades, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -305,7 +300,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String symbol = (String) ticker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
+            this.tickers.put(symbol, ticker);
         }
         String messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
@@ -335,24 +330,24 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String marketId = this.safeString(message, "code");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
         String type = this.safeString(message, "stream_type");
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(options, "limit", 15);
         if ((java.util.Objects.equals(type, "SNAPSHOT")) && !(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         // upbit always returns a snapshot of 15 topmost entries
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        List<Object> data = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "timestamp");
         List<Object> bidsSnapshot = new ArrayList<Object>(Arrays.asList());
         List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+            Map<String, Object> entry = this.safeDict(data, i, null);
             Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
             Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
             Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
@@ -402,7 +397,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         stored.append(trade);
         String messageHash = ("trade:" + symbol);
@@ -435,7 +430,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
     public void authenticate(Map<String, Object> parameters)
     {
         this.checkRequiredCredentials(true);
-        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         String authenticated = this.safeString(wsOptions, "token");
         if (java.util.Objects.equals(authenticated, null))
         {
@@ -450,11 +445,11 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         put( "authorization", ("Bearer " + token) );
     }} );
 }});
-            Helpers.addElementToObject(this.options, "ws", wsOptions);
+            this.options.put("ws", wsOptions);
         }
     }
 
-    public CompletableFuture<Object> watchPrivate(String symbol, Object channel, Object messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String symbol, String channel, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -462,57 +457,42 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             this.authenticate(new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("type", channel);
-            Object symbolResolved = null;
+            String messageHashResolved = messageHash;
+            String channelKey = channel;
             if (!java.util.Objects.equals(symbol, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
-                List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolResolved));
-                List<String> marketIds = this.marketIds(symbols);
-                request.put("codes", marketIds);
-            }
-            Object messageHashResolved = messageHash;
-            if (!java.util.Objects.equals(symbolResolved, null))
-            {
+                String symbolResolved = this.safeString(market, "symbol", "");
+                request.put("codes", this.marketIds(new ArrayList<Object>(Arrays.asList(symbolResolved))));
                 messageHashResolved = ((messageHash + ":") + symbolResolved);
+                channelKey = ((channel + ":") + symbolResolved);
             }
-            String url = (String) this.implodeParams(((Map<String, Object>)this.urls.get("api")).get("ws"), new HashMap<String, Object>() {{
-                put( "hostname", Upbit.this.hostname );
-            }});
-            url = (url + "/private");
+            String url = (this.implodeParams(this.safeString(this.urls.get("api"), "ws"), new HashMap<String, Object>() {{
+        put( "hostname", Upbit.this.hostname );
+    }}) + "/private");
             Client client = this.client(url);
             // Track private channel subscriptions to support multiple concurrent watches
             String subscriptionsKey = "upbitPrivateSubscriptions";
-            if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionsKey)))
+            if (!(client.subscriptions.containsKey(subscriptionsKey)))
             {
-                ((Map)client.subscriptions).put(subscriptionsKey, this.createSafeDictionary(true));
+                client.subscriptions.put(subscriptionsKey, this.createSafeDictionary(true));
             }
-            Object channelKey = channel;
-            if (!java.util.Objects.equals(symbolResolved, null))
-            {
-                channelKey = ((channel + ":") + symbolResolved);
-            }
-            Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
-            Boolean isNewChannel = !((switch ((Object)(subscriptions)) { case List<?> j39v6 -> ((Object)(channelKey)) != null && j39v6.contains(channelKey); case Map<?, ?> j39v5 -> ((Object)(channelKey)) instanceof String && j39v5.containsKey(channelKey); case null, default -> false; }));
+            Map<String, Object> subscriptions = this.safeDict(client.subscriptions, subscriptionsKey, new HashMap<String, Object>() {{}});
+            Boolean isNewChannel = !(subscriptions.containsKey(channelKey));
             if (Boolean.TRUE.equals(isNewChannel))
             {
-                Helpers.addElementToObject(subscriptions, channelKey, request);
+                subscriptions.put(channelKey, request);
             }
             // Build subscription message with all requested private channels
             // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-            List<Object> requests = new ArrayList<Object>(Arrays.asList());
-            List<Object> channelKeys = ((List<Object>) switch ((Object)(subscriptions)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
-            {
-                ((List<Object>)requests).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));
-            }
             List<Object> message = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Upbit.this.uuid() );
     }}));
-            for (var i = 0; i < ((List<?>)requests).size(); i++)
+            List<String> channelKeys = new ArrayList<String>(subscriptions.keySet());
+            for (var i = 0; i < channelKeys.size(); i++)
             {
-                ((List<Object>)message).add((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)));
+                ((List<Object>)message).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));
             }
             return (this.watch(url, messageHashResolved, message, messageHashResolved, null)).join();
         });
@@ -755,9 +735,9 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         String tradeId = this.safeString(message, "trade_uuid");
         if (!java.util.Objects.equals(tradeId, null))
         {
-            this.handleMyTrade(client, (Map<String, Object>) (message));
+            this.handleMyTrade(client, message);
         }
-        this.handleOrder(client, (Map<String, Object>) (message));
+        this.handleOrder(client, message);
     }
 
     public void handleMyTrade(Client client, Map<String, Object> message)
@@ -769,17 +749,16 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
         myTrades.append(trade);
         String messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
-        messageHash = ("myTrades:" + trade.get("symbol"));
-        client.resolve(myTrades, messageHash);
+        client.resolve(myTrades, ("myTrades:" + this.safeString(trade, "symbol", "")));
     }
 
     public void handleOrder(Client client, Map<String, Object> message)
     {
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, (Map<String, Object>) null);
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (java.util.Objects.equals(this.orders, null))
@@ -789,11 +768,11 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         }
         io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> orders = (Map<String, Object>) ((((java.util.Objects.equals(symbol, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}}));
-        Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId, (Object) null));
+        Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId, null));
         if (!java.util.Objects.equals(order, null))
         {
             // paid_fee is cumulative, so the cached fee is only a fallback
-            Map<String, Object> parsedFee = (Map<String, Object>) this.safeDict(parsed, "fee", (Object) null);
+            Map<String, Object> parsedFee = this.safeDict(parsed, "fee", null);
             if (java.util.Objects.equals(parsedFee, null))
             {
                 Object fee = this.safeValue(order, "fee");
@@ -801,10 +780,10 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 {
                     parsed.put("fee", fee);
                 }
-                List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
+                List<Object> fees = this.safeList(order, "fees", null);
                 if (!java.util.Objects.equals(fees, null))
                 {
-                    ((Map<String, Object>)parsed).put("fees", fees);
+                    parsed.put("fees", fees);
                 }
             }
             parsed.put("trades", this.safeValue(order, "trades"));
@@ -838,8 +817,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         cachedOrders.append(parsed);
         String messageHash = "myOrder";
         client.resolve(this.orders, messageHash);
-        messageHash = ((messageHash + ":") + symbol);
-        client.resolve(this.orders, messageHash);
+        client.resolve(this.orders, ((messageHash + ":") + this.safeString(parsed, "symbol", "")));
     }
 
     /**
@@ -884,13 +862,13 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //     "stream_type": "REALTIME"
         // }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "timestamp");
-        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
-        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        this.balance.put("timestamp", timestamp);
+        this.balance.put("datetime", this.iso8601(timestamp));
+        for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(data, i, null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             String available = this.safeString(balance, "balance");
@@ -900,7 +878,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             account.put("used", frozen);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
             this.balance = this.safeBalance(this.balance);
         }
@@ -908,21 +886,42 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         client.resolve(this.balance, messageHash);
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "ticker", "handleTicker");
-            put( "orderbook", "handleOrderBook");
-            put( "trade", "handleTrades");
-            put( "myOrder", "handleMyOrder");
-            put( "myAsset", "handleBalance");
-            put( "candle.1s", "handleOHLCV");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("ticker", "handleTicker");
+            put("orderbook", "handleOrderBook");
+            put("trade", "handleTrades");
+            put("myOrder", "handleMyOrder");
+            put("myAsset", "handleBalance");
+            put("candle.1s", "handleOHLCV");
         }};
         String methodName = this.safeString(message, "type");
-        Object method = (((java.util.Objects.equals(methodName, null)))) ? null : this.safeValue(methods, methodName);
+        String method = methods.get(methodName);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method) {
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleMyOrder":
+                    this.handleMyOrder(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
         }
     }
 }

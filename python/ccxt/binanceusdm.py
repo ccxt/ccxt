@@ -11,7 +11,7 @@ from ccxt.base.errors import InvalidOrder
 
 class binanceusdm(binance, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(binanceusdm, self).describe(), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',

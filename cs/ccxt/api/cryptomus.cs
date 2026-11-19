@@ -18,13 +18,6 @@ public partial class cryptomus : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetV2UserApiExchangeMarkets",parameters);
     }
 
-    /// <summary>Calls the publicGetV2UserApiExchangeMarketPrice endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicGetV2UserApiExchangeMarketPrice (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicGetV2UserApiExchangeMarketPrice",parameters);
-    }
-
     /// <summary>Calls the publicGetV2UserApiExchangeMarketsPrice endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetV2UserApiExchangeMarketsPrice (object parameters = null)
@@ -44,13 +37,6 @@ public partial class cryptomus : Exchange
     public async Task<Dictionary<string, object>> publicGetV1ExchangeMarketOrderBookCurrencyPair (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicGetV1ExchangeMarketOrderBookCurrencyPair",parameters);
-    }
-
-    /// <summary>Calls the publicGetV1ExchangeMarketTickers endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicGetV1ExchangeMarketTickers (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicGetV1ExchangeMarketTickers",parameters);
     }
 
     /// <summary>Calls the publicGetV1ExchangeMarketTradesCurrencyPair endpoint.</summary>

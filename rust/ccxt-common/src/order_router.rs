@@ -22,6 +22,7 @@
 
 use std::borrow::Cow;
 use std::collections::BTreeSet;
+use std::future::Future;
 use std::sync::Arc;
 
 use crate::error::ExchangeError;
@@ -190,6 +191,17 @@ impl Default for ExecutedPlanLedger {
     }
 }
 
+/// Everything one router mutates through `&self`. One owner thread holds all of
+/// it (see `OwnerThread`), so the ledger, the cached balances and the generation
+/// that invalidates them are read and written together and never half-applied.
+#[derive(Default)]
+struct RouterShared {
+    ledger: ExecutedPlanLedger,
+    balances: Option<String>,
+    generation: u64,
+}
+
+
 /// The shape of the `onStep` hook: it is handed one event describing a finished
 /// step and returns `"halt"` to stop the route. SYNCHRONOUS by design — it sits
 /// between orders on the money path, so do no network I/O in it.
@@ -208,8 +220,9 @@ impl Default for ExecutedPlanLedger {
 /// implementations read line for line.
 pub type OnStepHook = Arc<dyn Fn(&Value) -> String + Send + Sync>;
 
-/// A client for the CCXT order-router service.
-pub struct OrderRouter {
+/// A client for the CCXT order-router service, trading through venues of type `V`.
+/// The default `Infallible` is for a router that only quotes and holds no venues.
+pub struct OrderRouter<V: RouterVenue = std::convert::Infallible> {
     api_key: String,
     /// Sent as the `User-Agent` header when non-empty, so the router service can
     /// attribute traffic to the integration that made it.
@@ -221,13 +234,9 @@ pub struct OrderRouter {
     /// test pins time by setting it. A field rather than an overridable method
     /// because `OrderRouter` is a concrete struct, not a trait.
     now_ms_override: Option<f64>,
-    /// In-process idempotency ledger: the identity of every plan this instance
-    /// has already executed live. Behind a mutex because `execute` takes `&self`.
-    /// TWO structures for one ledger, in every port: a FIFO deque that fixes the
-    /// eviction order, and a `HashSet` so the membership test is a hash lookup
-    /// rather than a scan whose cost grows with the ledger. They live under ONE
-    /// mutex because they are written and evicted together and must never disagree.
-    executed_plan_ids: std::sync::Mutex<ExecutedPlanLedger>,
+    /// The idempotency ledger and the balances cache, both owned by one thread:
+    /// `execute`/`fetch_route` take `&self`, so they hand over a job and wait.
+    shared: crate::value::OwnerThread<RouterShared>,
     /// The caller's `onStep` hook, or `None`. See `OnStepHook` for why this is a
     /// field in this port and an options key in the other five. `execute` takes
     /// `&self`, so this is only ever read, never written, during a run.
@@ -235,19 +244,11 @@ pub struct OrderRouter {
 
     //  The venues this router trades through, held once instead of passed to every call.
     //  Rust diverges from the other five ports HERE, and for the same reason it diverges
-    //  on the onStep hook: `Value` is a closed enum and cannot carry a `Box<dyn RouterVenue>`,
+    //  on the onStep hook: `Value` is a closed enum and cannot carry a venue object,
     //  so they cannot arrive through the constructor config. The BEHAVIOUR is identical —
     //  fetch_route filters and funds on them, execute falls back to them — only the
     //  installation is a setter.
-    venues: std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
-
-    //  The rendered balances string for `venues`, read once and reused. fetch_route is ONE
-    //  HTTP request and must stay that way. Placing an order is what makes balances wrong,
-    //  so a live execute drops it. A Mutex because fetch_route takes &self.
-    balances_cache: std::sync::Mutex<Option<String>>,
-    //  bumped by every invalidation, so a wallet read that was already in flight when the
-    //  cache was dropped cannot store its now-obsolete snapshot on the way back
-    balances_generation: std::sync::atomic::AtomicU64,
+    venues: std::collections::BTreeMap<String, V>,
 
     //  Whether this router manages balances at all. TWO decisions used to ride on `venues`:
     //  where you can trade, and what you hold. The first is a filter - free, and it cannot go
@@ -275,7 +276,7 @@ fn field<'a>(container: &'a Value, key: &str) -> Option<&'a Value> {
     }
 }
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// The price a step is sent at, derived from `expectedPrice` when the
     /// caller gave no `limitPrice`. 0 only when the step has neither field.
     ///
@@ -571,7 +572,7 @@ impl OrderRouter {
 // construction
 // ---------------------------------------------------------------------------
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Creates a client for the CCXT order-router service.
     ///
     /// `config` keys: `apiKey` (optional; the service rate-limits by IP), `baseUrl`, `timeoutMs`,
@@ -584,18 +585,16 @@ impl OrderRouter {
         // Constructed through a temporary so the accessors — which are methods,
         // exactly as in the other five ports — are available while reading the
         // config that builds the real one.
-        let reader = OrderRouter {
+        let reader: Self = OrderRouter {
             api_key: String::new(),
             user_agent: String::new(),
             base_url: String::new(),
             timeout_ms: DEFAULT_TIMEOUT_MS,
             max_notional_usd: NO_CAP,
             now_ms_override: None,
-            executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
+            shared: crate::value::OwnerThread::spawn("ccxt-order-router", RouterShared::default()),
             on_step: None,
             venues: std::collections::BTreeMap::new(),
-            balances_cache: std::sync::Mutex::new(None),
-            balances_generation: std::sync::atomic::AtomicU64::new(0),
             track_balances: false,
         };
         // The service dropped API keys in favour of per-IP rate limiting, so an empty key is
@@ -626,11 +625,9 @@ impl OrderRouter {
             timeout_ms,
             max_notional_usd,
             now_ms_override: None,
-            executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
+            shared: crate::value::OwnerThread::spawn("ccxt-order-router", RouterShared::default()),
             on_step: None,
             venues: std::collections::BTreeMap::new(),
-            balances_cache: std::sync::Mutex::new(None),
-            balances_generation: std::sync::atomic::AtomicU64::new(0),
             track_balances: false,
         })
     }
@@ -649,7 +646,7 @@ impl OrderRouter {
 
     /// Installs the venues this router trades through. See the `venues` field for why this
     /// is a setter in Rust and a constructor key everywhere else.
-    pub fn set_venues(&mut self, venues: std::collections::BTreeMap<String, Box<dyn RouterVenue>>) {
+    pub fn set_venues(&mut self, venues: std::collections::BTreeMap<String, V>) {
         self.venues = venues;
     }
 
@@ -666,7 +663,7 @@ impl OrderRouter {
     }
 
     /// The venues this router holds, empty when none were installed.
-    pub fn venues(&self) -> &std::collections::BTreeMap<String, Box<dyn RouterVenue>> {
+    pub fn venues(&self) -> &std::collections::BTreeMap<String, V> {
         &self.venues
     }
 
@@ -675,30 +672,37 @@ impl OrderRouter {
         self.on_step = None;
     }
 
+    /// Hands one job to the router's owner thread and returns its result.
+    fn shared_op<R, F>(&self, f: F) -> R
+    where R: Send + 'static, F: FnOnce(&mut RouterShared) -> R + Send + 'static {
+        self.shared.run(f)
+    }
+
     /// Reports whether this instance has executed the given plan id recently enough for
     /// the bounded ledger to still remember it.
     pub fn has_executed_plan(&self, plan_id: &str) -> bool {
-        self.executed_plan_ids.lock().unwrap().contains(plan_id)
+        let id = plan_id.to_string();
+        self.shared_op(move |s| s.ledger.contains(&id))
     }
 
     /// Records one plan id in the bounded ledger, evicting the oldest entry when full.
     pub fn record_executed_plan(&self, plan_id: &str) {
-        self.executed_plan_ids.lock().unwrap().record(plan_id.to_string());
+        let id = plan_id.to_string();
+        self.shared_op(move |s| s.ledger.record(id));
     }
 
     /// How many plan ids the ledger currently holds, and the id at one position in
     /// insertion order. Both exist so the self-test can assert the bound and the
     /// eviction order without reaching through the mutex itself.
     pub fn executed_plan_count(&self) -> usize {
-        self.executed_plan_ids.lock().unwrap().len()
+        self.shared_op(|s| s.ledger.len())
     }
 
     pub fn executed_plan_at(&self, index: usize) -> String {
-        let ledger = self.executed_plan_ids.lock().unwrap();
-        match ledger.at(index) {
+        self.shared_op(move |s| match s.ledger.at(index) {
             Some(entry) => entry.clone(),
             None => String::new(),
-        }
+        })
     }
 
     /// Pins the clock, for tests. Production never calls this.
@@ -750,7 +754,7 @@ impl OrderRouter {
 // PURE: build_execution_plan
 // ---------------------------------------------------------------------------
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Refuses a route whose hops do not connect, or that does not run from the
     /// asset the caller offered to the asset the caller wanted.
     ///
@@ -906,17 +910,15 @@ impl OrderRouter {
 
 /// What `execute` needs from an exchange, and nothing more.
 ///
-/// The other five ports hand `execute` their language's exchange object
-/// directly. Rust cannot: `ExchangeBase`'s methods return `impl Future`, which
-/// is not object-safe, so a `HashMap<String, Box<dyn ExchangeBase>>` — the
-/// shape every other port uses for `venues` — cannot exist. This trait is that
-/// shape, narrowed to the operations the money path actually performs, and it
-/// is what makes the venues map possible here at all.
+/// The other five ports hand `execute` their language's exchange objects in one
+/// map. Here the router is generic over one venue type `V`, so `venues` is a
+/// `BTreeMap<String, V>`; a caller trading several kinds of exchange implements
+/// this trait on their own type that covers them. The async methods return
+/// `Send` futures, so `execute` can run on a multi-threaded runtime.
 ///
 /// It also buys something the other ports get for free from dynamic typing: a
 /// test can implement this in twenty lines, so the execute-path invariants are
 /// testable without a live exchange.
-#[async_trait::async_trait]
 pub trait RouterVenue: Send + Sync {
     /// The venue's ccxt id, e.g. `binance`. Matched against a step's
     /// `exchangeId`.
@@ -936,7 +938,7 @@ pub trait RouterVenue: Send + Sync {
 
     /// Places an order. `params` carries the time-in-force and any caller
     /// extras.
-    async fn create_order(
+    fn create_order(
         &self,
         symbol: &str,
         order_type: &str,
@@ -944,20 +946,54 @@ pub trait RouterVenue: Send + Sync {
         amount: f64,
         price: f64,
         params: &Value,
-    ) -> RouterResult<Value>;
+    ) -> impl Future<Output = RouterResult<Value>> + Send;
 
     /// Reads an order back. Used to re-read a venue that answered without a
     /// `filled`, rather than assuming one.
-    async fn fetch_order(&self, id: &str, symbol: &str) -> RouterResult<Value>;
+    fn fetch_order(&self, id: &str, symbol: &str) -> impl Future<Output = RouterResult<Value>> + Send;
 
     /// Cancels an order. Used by the protected-limit path when the poll expires.
-    async fn cancel_order(&self, id: &str, symbol: &str) -> RouterResult<Value>;
+    fn cancel_order(&self, id: &str, symbol: &str) -> impl Future<Output = RouterResult<Value>> + Send;
 
     /// Reads the account's holdings, in ccxt's balance shape — `free` and
     /// `total` maps of currency code to amount. Only `fetch_route_with_balances`
     /// calls this; a venue used solely with `execute` can return an empty map.
-    async fn fetch_balance(&self) -> RouterResult<Value> {
-        Ok(Value::Map(HashMap::new()))
+    fn fetch_balance(&self) -> impl Future<Output = RouterResult<Value>> + Send {
+        async { Ok(Value::Map(HashMap::new())) }
+    }
+}
+
+/// The venue type of a router that holds no venues (the default type parameter).
+/// It has no values, so none of these methods can ever be called.
+impl RouterVenue for std::convert::Infallible {
+    fn id(&self) -> String {
+        match *self {}
+    }
+    fn amount_to_precision(&self, _symbol: &str, _amount: f64) -> String {
+        match *self {}
+    }
+    fn price_to_precision(&self, _symbol: &str, _price: f64) -> String {
+        match *self {}
+    }
+    fn supports_ioc(&self) -> bool {
+        match *self {}
+    }
+    async fn create_order(
+        &self,
+        _symbol: &str,
+        _order_type: &str,
+        _side: &str,
+        _amount: f64,
+        _price: f64,
+        _params: &Value,
+    ) -> RouterResult<Value> {
+        match *self {}
+    }
+    async fn fetch_order(&self, _id: &str, _symbol: &str) -> RouterResult<Value> {
+        match *self {}
+    }
+    async fn cancel_order(&self, _id: &str, _symbol: &str) -> RouterResult<Value> {
+        match *self {}
     }
 }
 
@@ -965,7 +1001,7 @@ pub trait RouterVenue: Send + Sync {
 // PURE: check_execution_plan_safety
 // ---------------------------------------------------------------------------
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Builds one safety violation record.
     fn violation(
         &self,
@@ -1213,7 +1249,7 @@ impl OrderRouter {
 // PURE: reconcile_execution_step
 // ---------------------------------------------------------------------------
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// How much of its output asset a step is expected to produce, gross of
     /// fees: base units for a buy, quote units for a sell.
     pub fn step_expected_out(&self, step: &Value) -> f64 {
@@ -1453,7 +1489,7 @@ impl OrderRouter {
 // PURE: build_unwind_plan
 // ---------------------------------------------------------------------------
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Accumulates a signed amount into the (exchangeId, asset) position list,
     /// appending in first-seen order.
     ///
@@ -1659,7 +1695,7 @@ const ROUTE_QUERY_KEYS: [&str; 14] = [
     "hopPenaltyBps", "minLegNotional",
 ];
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Percent-encodes exactly what JavaScript's `encodeURIComponent` leaves
     /// alone, so six ports produce the same URL byte for byte.
     ///
@@ -2378,7 +2414,7 @@ const KNOWN_STRATEGIES: [&str; 5] = [
     "sequential", "parallel_within_hop", "limit_protected", "best_effort", "atomic_ish",
 ];
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// The stable identity of an execution, used for the re-execution guard.
     ///
     /// A caller-supplied `idempotencyKey` WINS over the plan's own `requestId`:
@@ -2640,7 +2676,7 @@ impl OrderRouter {
     }
 }
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Sums the fees an order charged in one asset, ignoring any other currency.
     fn order_fee_in_asset(&self, order: &Value, asset: &str) -> f64 {
         if asset.is_empty() {
@@ -2695,7 +2731,7 @@ impl OrderRouter {
     /// what we already had rather than losing the placement record.
     async fn refetch_order(
         &self,
-        venue: &dyn RouterVenue,
+        venue: &V,
         order_id: &str,
         symbol: &str,
         fallback: Value,
@@ -2750,7 +2786,7 @@ impl OrderRouter {
     async fn place_step(
         &self,
         step: &Value,
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
         options: &Value,
         usd_rates: &Value,
         strategy: &str,
@@ -2831,13 +2867,13 @@ impl OrderRouter {
         // cannot have reached a venue.
         let order = if strategy == "limit_protected" {
             self.place_protected_limit(
-                venue.as_ref(), step, &symbol, &side, amount, price, &order_params, options,
+                venue, step, &symbol, &side, amount, price, &order_params, options,
                 report, &mut result,
             )
             .await
         } else {
             self.place_immediate_order(
-                venue.as_ref(), &symbol, &side, amount, price, &order_params, options, &mut result,
+                venue, &symbol, &side, amount, price, &order_params, options, &mut result,
             )
             .await
         };
@@ -2875,17 +2911,17 @@ impl OrderRouter {
                 return result;
             }
         };
-        self.settle_order_into_result(&order, step, &mut result, venue.as_ref(), &symbol, &exchange_id, amount, price, report, strategy).await;
+        self.settle_order_into_result(&order, step, &mut result, venue, &symbol, &exchange_id, amount, price, report, strategy).await;
         result
     }
 }
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Places an immediate-or-cancel limit order, or — only with explicit
     /// opt-in — a market order on a venue that cannot do IOC.
     async fn place_immediate_order(
         &self,
-        venue: &dyn RouterVenue,
+        venue: &V,
         symbol: &str,
         side: &str,
         amount: f64,
@@ -2935,7 +2971,7 @@ impl OrderRouter {
     #[allow(clippy::too_many_arguments)]
     async fn place_protected_limit(
         &self,
-        venue: &dyn RouterVenue,
+        venue: &V,
         step: &Value,
         symbol: &str,
         side: &str,
@@ -2995,7 +3031,7 @@ impl OrderRouter {
         order: &Value,
         step: &Value,
         result: &mut Value,
-        venue: &dyn RouterVenue,
+        venue: &V,
         symbol: &str,
         exchange_id: &str,
         amount: f64,
@@ -3144,13 +3180,13 @@ impl OrderRouter {
 }
 
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Places one step, re-placing it up to `options["retryFailedSteps"]` times
     /// when — and ONLY when — the venue definitively rejected it.
     async fn place_step_with_retry(
         &self,
         step: &Value,
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
         options: &Value,
         usd_rates: &Value,
         strategy: &str,
@@ -3257,14 +3293,14 @@ impl OrderRouter {
     }
 }
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Places one order at a time in plan order, reconciling after each and
     /// obeying the halt verdict.
     async fn execute_sequential(
         &self,
         report: &mut Value,
         steps: &mut Vec<Value>,
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
         options: &Value,
         usd_rates: &Value,
         strategy: &str,
@@ -3336,7 +3372,7 @@ impl OrderRouter {
         &self,
         report: &mut Value,
         steps: &mut Vec<Value>,
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
         options: &Value,
         usd_rates: &Value,
     ) {
@@ -3436,7 +3472,7 @@ impl OrderRouter {
         &self,
         report: &mut Value,
         steps: &mut [Value],
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
         options: &Value,
         usd_rates: &Value,
     ) {
@@ -3496,7 +3532,7 @@ impl OrderRouter {
     pub async fn execute(
         &self,
         plan: &Value,
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
         options: &Value,
     ) -> RouterResult<Value> {
         //  the argument wins; the router's own venues are the fallback. Nothing is ever
@@ -3584,8 +3620,8 @@ impl OrderRouter {
             return Err(bad_request("OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey"));
         }
         if !self.bool_at(options, "allowReexecution", false) {
-            let ledger = self.executed_plan_ids.lock().unwrap();
-            if ledger.contains(&plan_id) {
+            let id = plan_id.clone();
+            if self.shared_op(move |s| s.ledger.contains(&id)) {
                 return Err(bad_request("OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override"));
             }
         }
@@ -3676,8 +3712,8 @@ impl OrderRouter {
         // recorded completed runs would wave through exactly the retry that
         // double-fills.
         {
-            let mut ledger = self.executed_plan_ids.lock().unwrap();
-            ledger.record(plan_id.clone());
+            let id = plan_id.clone();
+            self.shared_op(move |s| s.ledger.record(id));
         }
         // From here orders go out, so whatever balances were cached are about to be
         // wrong. Dropped BEFORE dispatch, for the same reason the ledger is written
@@ -3701,7 +3737,7 @@ impl OrderRouter {
     }
 }
 
-impl OrderRouter {
+impl<V: RouterVenue> OrderRouter<V> {
     /// Verifies every step's input is already sitting on its venue, which is what
     /// `atomic_ish` actually requires. There is no cross-venue atomicity and there
     /// cannot be, so the strategy names its own hedge: pre-fund the whole route,
@@ -3711,7 +3747,7 @@ impl OrderRouter {
     async fn assert_prefunded(
         &self,
         steps: &[Value],
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
     ) -> RouterResult<()> {
         // Built as a Vec, not a map, so the first shortfall reported is the same
         // one in all six languages.
@@ -3870,53 +3906,40 @@ impl OrderRouter {
             return Ok(String::new());
         }
         if !reload {
-            if let Ok(guard) = self.balances_cache.lock() {
-                if let Some(cached) = guard.as_ref() {
-                    return Ok(cached.clone());
-                }
+            if let Some(cached) = self.shared_op(|s| s.balances.clone()) {
+                return Ok(cached);
             }
         }
-        let generation = self
-            .balances_generation
-            .load(std::sync::atomic::Ordering::SeqCst);
+        let generation = self.shared_op(|s| s.generation);
         let (balances, _dropped) = self.collect_balances(&self.venues).await?;
         //  an invalidation landed while these wallets were being read, which means money
         //  moved under this snapshot. It is still the right answer for THIS caller, but it
         //  must not become the cache the next quote trusts.
-        if generation
-            == self
-                .balances_generation
-                .load(std::sync::atomic::Ordering::SeqCst)
-        {
-            if let Ok(mut guard) = self.balances_cache.lock() {
-                *guard = Some(balances.clone());
-            }
-        }
+        let snapshot = balances.clone();
+        self.shared_op(move |s| {
+            if s.generation == generation { s.balances = Some(snapshot); }
+        });
         Ok(balances)
     }
 
     /// Drops the cached balances, so the next quote re-reads the wallets.
     pub fn invalidate_balances(&self) {
-        self.balances_generation
-            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        if let Ok(mut guard) = self.balances_cache.lock() {
-            *guard = None;
-        }
+        self.shared_op(|s| {
+            s.generation = s.generation.wrapping_add(1);
+            s.balances = None;
+        });
     }
 
     /// Reports whether a balances snapshot is currently cached.
     pub fn balances_are_loaded(&self) -> bool {
-        match self.balances_cache.lock() {
-            Ok(guard) => guard.is_some(),
-            Err(_) => false,
-        }
+        self.shared_op(|s| s.balances.is_some())
     }
 
     /// Reads every supplied venue's wallet and renders it as the router's balances string,
     /// trimmed to the router's caps. Returns the string and the entries that did not fit.
     pub async fn collect_balances(
         &self,
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
     ) -> RouterResult<(String, Vec<Value>)> {
         let mut entries: Vec<Value> = Vec::new();
         let mut dropped: Vec<Value> = Vec::new();
@@ -3993,7 +4016,7 @@ impl OrderRouter {
         &self,
         from_asset: &str,
         to_asset: &str,
-        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        venues: &std::collections::BTreeMap<String, V>,
         params: &Value,
     ) -> RouterResult<Value> {
         let require_applied = self.bool_at(params, "requireBalancesApplied", true);

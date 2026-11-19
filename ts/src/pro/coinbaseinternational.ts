@@ -2,14 +2,14 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { ExchangeError, NotSupported, ArgumentsRequired } from '../base/errors.js';
-import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool, Balances, Order, Position, OrderType, OrderSide, Num } from '../base/types.js';
+import { Ticker, Int, Str, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV, Bool, Balances, Order, Position, OrderType, OrderSide, Num, type int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class coinbaseinternational extends coinbaseinternationalRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -98,20 +98,21 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         });
     }
 
-    requestId () {
+    requestId (): int {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
     }
 
-    getWsUrl (isPrivate = false): string {
-        if (this.isNativeDeribitCredentials ()) {
+    getWsUrl (isPrivate: boolean = false): string {
+        if (this.isNativeDeribitCredentials () === true) {
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if (isPrivate) {
-            return this.urls['api']['wsPrivate'];
+            return this.safeString (this.urls['api'], 'wsPrivate', '');
+        } else {
+            return this.safeString (this.urls['api'], 'ws', '');
         }
-        return this.urls['api']['ws'];
     }
 
     override ping (client: Client): Dict | Str {
@@ -128,7 +129,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'client_id': this.apiKey,
                 'client_secret': this.secret,
             };
-            if (!this.isNativeDeribitCredentials ()) {
+            if (this.isNativeDeribitCredentials () === false) {
                 params = {
                     'grant_type': 'coinbase_cdp',
                     'token': this.createAuthToken (this.seconds (), undefined, undefined, this.isEddsaSecret ()),
@@ -164,7 +165,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the subscription result
      */
-    async subscribe (channels: string[], messageHashes: string[], isPrivate = false, params = {}) {
+    async subscribe (channels: string[], messageHashes: string[], isPrivate: boolean = false, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('subscribe', params);
         let url = this.getWsUrl (false);
         let method = 'public/subscribe';
@@ -187,7 +188,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const extendedRequest = this.deepExtend (request, paramsResolved);
         const channelsLength = channels.length;
         if (channelsLength === 1) {
-            return await this.watch (url, messageHashes[0], extendedRequest, channels[0], extendedRequest);
+            return await this.watch (url, this.safeString (messageHashes, 0, ''), extendedRequest, this.safeString (channels, 0, ''), extendedRequest);
         }
         return await this.watchMultiple (url, messageHashes, extendedRequest, channels, extendedRequest);
     }
@@ -205,7 +206,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {boolean} true when unsubscription has been requested
      */
-    async unSubscribe (channels: string[], isPrivate = false, params = {}) {
+    async unSubscribe (channels: string[], isPrivate: boolean = false, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('unSubscribe', params);
         let url = this.getWsUrl (false);
         let method = 'public/unsubscribe';
@@ -217,7 +218,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const unWatchMessageHashes: string[] = [];
         const channelsLength = channels.length;
         for (let i = 0; i < channelsLength; i++) {
-            unWatchMessageHashes.push ('unsubscribe:' + channels[i]);
+            unWatchMessageHashes.push ('unsubscribe:' + this.safeString (channels, i, ''));
         }
         const request: Dict = {
             'jsonrpc': '2.0',
@@ -230,7 +231,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const client = this.client (url);
         this.watchMultiple (url, unWatchMessageHashes, this.deepExtend (request, paramsResolved), unWatchMessageHashes);
         for (let i = 0; i < channelsLength; i++) {
-            this.cleanUnsubscription (client, channels[i], unWatchMessageHashes[i]);
+            this.cleanUnsubscription (client, this.safeString (channels, i, ''), this.safeString (unWatchMessageHashes, i, ''));
         }
         return true;
     }
@@ -246,9 +247,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.currency] currency code to watch, default is any
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         const paramsResolved = this.handleRouteAndParams ('watchBalance', params);
-        const [ currency, paramsCurrency ] = this.handleOptionAndParams (paramsResolved, 'watchBalance', 'currency', 'any');
+        const [ currency, paramsCurrency ] = this.handleOptionStringAndParams (paramsResolved, 'watchBalance', 'currency', 'any');
         const channel = 'user.portfolio.' + currency;
         return await this.subscribe ([ channel ], [ 'balance' ], true, paramsCurrency);
     }
@@ -256,7 +257,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     handleBalance (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
-        const parsed = this.parseBalance (data);
+        const parsed = this.parseBalanceList (data);
         this.balance = this.deepExtend (this.balance, parsed);
         client.resolve (this.balance, 'balance');
     }
@@ -275,18 +276,18 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const paramsResolved = this.handleRouteAndParams ('watchMyTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchMyTrades', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchMyTrades', 'interval', 'raw');
         let channel = 'user.trades.any.any.' + interval;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbolResolved = market['symbol'];
-            channel = 'user.trades.' + market['id'] + '.' + interval;
+            channel = 'user.trades.' + this.safeString (market, 'id', '') + '.' + interval;
         }
         const trades = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limit, true);
@@ -303,15 +304,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchMyTrades', params);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchMyTrades', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchMyTrades', 'interval', 'raw');
         let channel = 'user.trades.any.any.' + interval;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
                 await this.loadMarkets ();
             }
-            channel = 'user.trades.' + this.marketId (symbol) + '.' + interval;
+            channel = 'user.trades.' + this.safeString (this.market (symbol), 'id', '') + '.' + interval;
         }
         return await this.unSubscribe ([ channel ], true, paramsInterval);
     }
@@ -346,18 +347,18 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('watchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
         let channel = 'user.orders.any.any.' + interval;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbolResolved = market['symbol'];
-            channel = 'user.orders.' + market['id'] + '.' + interval;
+            channel = 'user.orders.' + this.safeString (market, 'id', '') + '.' + interval;
         }
         const orders = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
         let limitResolved: Int = limit;
@@ -380,17 +381,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('watchOrdersForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('user.orders.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+            channels.push ('user.orders.' + this.safeString (this.market (this.safeString (symbolsResolved, i, '')), 'id', '') + '.' + interval);
         }
         const orders = await this.subscribe (channels, channels, true, paramsInterval);
         let limitResolved: Int = limit;
@@ -412,15 +413,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOrders', params);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
         let channel = 'user.orders.any.any.' + interval;
         if (symbol !== undefined) {
             if (this.markets === undefined) {
                 await this.loadMarkets ();
             }
-            channel = 'user.orders.' + this.marketId (symbol) + '.' + interval;
+            channel = 'user.orders.' + this.safeString (this.market (symbol), 'id', '') + '.' + interval;
         }
         return await this.unSubscribe ([ channel ], true, paramsInterval);
     }
@@ -460,13 +461,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         const paramsResolved = this.handleRouteAndParams ('watchPositions', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchPositions', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchPositions', 'interval', 'raw');
         const channels: string[] = [];
         let symbolsLength = 0;
         if (symbolsResolved !== undefined) {
@@ -474,7 +475,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         if ((symbolsResolved !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
-                channels.push ('user.changes.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+                channels.push ('user.changes.' + this.safeString (this.market (this.safeString (symbolsResolved, i, '')), 'id', '') + '.' + interval);
             }
         } else {
             channels.push ('user.changes.any.any.' + interval);
@@ -497,13 +498,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchPositions', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchPositions', 'interval', 'raw');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchPositions', 'interval', 'raw');
         const channels: string[] = [];
         let symbolsLength = 0;
         if (symbolsResolved !== undefined) {
@@ -511,7 +512,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         if ((symbolsResolved !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
-                channels.push ('user.changes.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+                channels.push ('user.changes.' + this.safeString (this.market (this.safeString (symbolsResolved, i, '')), 'id', '') + '.' + interval);
             }
         } else {
             channels.push ('user.changes.any.any.' + interval);
@@ -530,7 +531,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const positions = this.parsePositions (rawPositions);
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
-            this.positions.append (positions[i]);
+            const position = positions[i];
+            if (position['side'] === undefined) {
+                // flat (direction: zero) position, the cache is keyed by side so reset both sides
+                position['side'] = 'long';
+                const shortPosition = this.clone (position);
+                shortPosition['side'] = 'short';
+                this.positions.append (shortPosition);
+            }
+            this.positions.append (position);
         }
         client.resolve (this.positions, channel);
     }
@@ -546,7 +555,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         const paramsResolved = this.handleRouteAndParams ('watchFundingRate', params);
         const ticker = await this.watchTicker (symbol, paramsResolved);
         return this.parseFundingRate (ticker['info'], this.market (symbol));
@@ -594,7 +603,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchFundingRate', params);
         return await this.unWatchTicker (symbol, paramsResolved);
     }
@@ -610,7 +619,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchFundingRates (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchFundingRates', params);
         return await this.unWatchTickers (symbols, paramsResolved);
     }
@@ -633,9 +642,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTicker', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchTicker', 'interval', '100ms');
         const isPrivate = interval === 'raw';
-        const channel = 'ticker.' + market['id'] + '.' + interval;
+        const channel = 'ticker.' + this.safeString (market, 'id', '') + '.' + interval;
         return await this.subscribe ([ channel ], [ channel ], isPrivate, paramsInterval);
     }
 
@@ -650,7 +659,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchTicker', params);
         return await this.unWatchTickers ([ symbol ], paramsResolved);
     }
@@ -673,13 +682,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTickers', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchTickers', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            const market = this.market (symbolsResolved[i]);
-            channels.push ('ticker.' + market['id'] + '.' + interval);
+            const market = this.market (this.safeString (symbolsResolved, i, ''));
+            channels.push ('ticker.' + this.safeString (market, 'id', '') + '.' + interval);
         }
         const ticker = await this.subscribe (channels, channels, isPrivate, paramsInterval);
         if (this.newUpdates) {
@@ -704,17 +713,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchTickers', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTickers', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchTickers', 'interval', '100ms');
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('ticker.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+            channels.push ('ticker.' + this.safeString (this.market (this.safeString (symbolsResolved, i, '')), 'id', '') + '.' + interval);
         }
         return await this.unSubscribe (channels, interval === 'raw', paramsInterval);
     }
@@ -796,7 +805,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         const paramsResolved = this.handleRouteAndParams ('watchBidsAsks', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -805,8 +814,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            const market = this.market (symbolsResolved[i]);
-            channels.push ('quote.' + market['id']);
+            const market = this.market (this.safeString (symbolsResolved, i, ''));
+            channels.push ('quote.' + this.safeString (market, 'id', ''));
         }
         const ticker = await this.subscribe (channels, channels, false, paramsResolved);
         if (this.newUpdates) {
@@ -828,7 +837,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchBidsAsks', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -837,7 +846,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('quote.' + this.marketId (symbolsResolved[i]));
+            channels.push ('quote.' + this.safeString (this.market (this.safeString (symbolsResolved, i, '')), 'id', ''));
         }
         return await this.unSubscribe (channels, false, paramsResolved);
     }
@@ -856,7 +865,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
         const ticker = this.parseWsBidAsk (data);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         this.bidsasks[symbol as string] = ticker;
         const channel = this.safeString (params, 'channel');
         client.resolve (ticker, channel);
@@ -915,7 +924,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of OHLCV arrays indexed by symbol and timeframe
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('watchOHLCVForSymbols', params);
         const symbolsAndTimeframesLength = symbolsAndTimeframes.length;
         if (symbolsAndTimeframesLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
@@ -927,10 +936,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const market = this.market (current[0]);
-            const currentTimeframe = current[1];
+            const currentTimeframe = this.safeString (current, 1);
             const resolution = this.safeString (this.timeframes, currentTimeframe, currentTimeframe);
-            channels.push ('chart.trades.' + market['id'] + '.' + resolution);
+            const market = this.market (this.safeString (current, 0));
+            channels.push ('chart.trades.' + this.safeString (market, 'id', '') + '.' + resolution);
         }
         const resolved = await this.subscribe (channels, channels, false, paramsResolved);
         const symbol = this.safeString (resolved, 0);
@@ -956,7 +965,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOHLCV', params);
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], paramsResolved);
     }
@@ -972,7 +981,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOHLCVForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -981,10 +990,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsAndTimeframesLength = symbolsAndTimeframes.length;
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const market = this.market (current[0]);
-            const timeframe = current[1];
+            const timeframe = this.safeString (current, 1);
             const resolution = this.safeString (this.timeframes, timeframe, timeframe);
-            channels.push ('chart.trades.' + market['id'] + '.' + resolution);
+            const market = this.market (this.safeString (current, 0));
+            channels.push ('chart.trades.' + this.safeString (market, 'id', '') + '.' + resolution);
         }
         return await this.unSubscribe (channels, false, paramsResolved);
     }
@@ -995,7 +1004,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const parts = messageHash.split ('.');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const resolution = this.safeString (parts, 3);
         const wsOptions = this.safeDict (this.options, 'ws', {});
         const timeframes = this.safeDict (wsOptions, 'timeframes', {});
@@ -1061,13 +1070,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
         const isPrivate = interval === 'raw';
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            const market = this.market (symbolsResolved[i]);
-            channels.push ('trades.' + market['id'] + '.' + interval);
+            const market = this.market (this.safeString (symbolsResolved, i, ''));
+            channels.push ('trades.' + this.safeString (market, 'id', '') + '.' + interval);
         }
         const trades = await this.subscribe (channels, channels, isPrivate, paramsInterval);
         let limitResolved: Int = limit;
@@ -1090,7 +1099,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchTrades', params);
         return await this.unWatchTradesForSymbols ([ symbol ], paramsResolved);
     }
@@ -1106,17 +1115,17 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchTradesForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsResolved = this.marketSymbols (symbols, undefined, false);
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('trades.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+            channels.push ('trades.' + this.safeString (this.market (this.safeString (symbolsResolved, i, '')), 'id', '') + '.' + interval);
         }
         return await this.unSubscribe (channels, interval === 'raw', paramsInterval);
     }
@@ -1128,11 +1137,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        if (!((symbol as string) in this.trades)) {
+        const symbol = this.safeString (market, 'symbol', '');
+        if (symbol !== undefined && !(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new ArrayCache (limit);
-            this.trades[(symbol as string)] = tradesArrayCache;
+            this.trades[symbol] = tradesArrayCache;
         }
         const tradesArray = this.trades[(symbol as string)];
         const dataLength = data.length;
@@ -1176,27 +1185,27 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const paramsResolved = this.handleRouteAndParams ('watchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
         const isPrivate = interval === 'raw';
-        const [ useDepthEndpoint, paramsDepthEndpoint ] = this.handleOptionAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        const [ useDepthEndpoint, paramsDepthEndpoint ] = this.handleOptionBoolAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         let paramsChannel: Dict = paramsDepthEndpoint;
-        let descriptor = interval as string;
+        let descriptor = '.' + interval;
         if (useDepthEndpoint) {
-            const [ depth, paramsDepth ] = this.handleOptionAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-            const [ group, paramsGroup ] = this.handleOptionAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            const [ depth, paramsDepth ] = this.handleOptionStringAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+            const [ groupKey, paramsGroup ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             paramsChannel = paramsGroup;
-            descriptor = group + '.' + depth + '.' + interval;
+            descriptor = '.' + groupKey + '.' + depth + '.' + interval;
         }
         const channels: string[] = [];
         const symbolsLength = symbols.length;
         for (let i = 0; i < symbolsLength; i++) {
-            const market = this.market (symbols[i]);
-            channels.push ('book.' + market['id'] + '.' + descriptor);
+            const market = this.market (this.safeString (symbols, i, ''));
+            channels.push ('book.' + this.safeString (market, 'id', '') + descriptor);
         }
         const orderbook = await this.subscribe (channels, channels, isPrivate, paramsChannel);
         return orderbook.limit ();
@@ -1213,7 +1222,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOrderBook', params);
         return await this.unWatchOrderBookForSymbols ([ symbol ], paramsResolved);
     }
@@ -1229,25 +1238,25 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ interval, paramsInterval ] = this.handleOptionAndParams (paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
-        const [ useDepthEndpoint, paramsDepthEndpoint ] = this.handleOptionAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
+        const [ useDepthEndpoint, paramsDepthEndpoint ] = this.handleOptionBoolAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         let paramsChannel: Dict = paramsDepthEndpoint;
-        let descriptor = interval as string;
+        let descriptor = '.' + interval;
         if (useDepthEndpoint) {
-            const [ depth, paramsDepth ] = this.handleOptionAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-            const [ group, paramsGroup ] = this.handleOptionAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            const [ depth, paramsDepth ] = this.handleOptionStringAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+            const [ groupKey, paramsGroup ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             paramsChannel = paramsGroup;
-            descriptor = group + '.' + depth + '.' + interval;
+            descriptor = '.' + groupKey + '.' + depth + '.' + interval;
         }
         const channels: string[] = [];
         const symbolsLength = symbols.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('book.' + this.marketId (symbols[i]) + '.' + descriptor);
+            channels.push ('book.' + this.safeString (this.market (this.safeString (symbols, i, '')), 'id', '') + descriptor);
         }
         return await this.unSubscribe (channels, interval === 'raw', paramsChannel);
     }
@@ -1268,15 +1277,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.orderbooks[symbol] = isGrouped ? this.orderBook ({}, limit) : this.countedOrderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        if (!isGrouped && (type !== 'snapshot') && (orderbook['nonce'] === undefined)) {
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (!isGrouped && (type !== 'snapshot') && (nonce === undefined)) {
             return;
         }
         if (isGrouped) {
-            const parsedSnapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
-            orderbook.reset (parsedSnapshot);
+            orderbook.reset (this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks'));
         } else {
             const previousChangeId = this.safeInteger (data, 'prev_change_id');
-            if ((type !== 'snapshot') && (orderbook['nonce'] !== undefined) && (previousChangeId !== orderbook['nonce'])) {
+            if ((type !== 'snapshot') && (nonce !== undefined) && (previousChangeId !== nonce)) {
                 // drop the stale book and reject only this channels future
                 delete this.orderbooks[symbol];
                 if ((channel as string) in client.subscriptions) {
@@ -1337,7 +1346,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     override handleDeltas (bookside: any, deltas: any[]) {
         const deltasLength = deltas.length;
         for (let i = 0; i < deltasLength; i++) {
-            this.handleDelta (bookside, deltas[i]);
+            this.handleDelta (bookside, this.safeList (deltas, i));
         }
     }
 
@@ -1379,7 +1388,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -1465,7 +1474,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the authentication response
      */
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('authenticate', params);
         const url = this.getWsUrl (true);
         const client = this.client (url);
@@ -1487,7 +1496,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'client_id': this.apiKey,
                 'client_secret': this.secret,
             };
-            if (!this.isNativeDeribitCredentials ()) {
+            if (this.isNativeDeribitCredentials () === false) {
                 paramsAuth = {
                     'grant_type': 'coinbase_cdp',
                     'token': this.createAuthToken (this.seconds (), undefined, undefined, this.isEddsaSecret ()),
@@ -1517,13 +1526,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {boolean} [isPrivate] whether to authenticate before sending the request
      * @returns {object} the exchange response
      */
-    async requestWs (method: string, params = {}, isPrivate = false) {
+    async requestWs (method: string, params: Dict = {}, isPrivate: boolean = false) {
         const paramsResolved = this.handleRouteAndParams ('requestWs', params);
         const url = this.getWsUrl (true);
         if (isPrivate) {
             await this.authenticate ();
         }
-        const requestId = this.requestId ();
+        const requestId: number = this.requestId ();
         const messageHash = requestId.toString ();
         const request: Dict = {
             'jsonrpc': '2.0',
@@ -1551,7 +1560,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const paramsResolved = this.handleRouteAndParams ('createOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1574,7 +1583,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
         }
         const postOnly = this.safeBool2 (paramsResolved, 'postOnly', 'post_only');
-        if (this.isNativeDeribitCredentials ()) {
+        if (this.isNativeDeribitCredentials () === true) {
             const reduceOnly = this.safeBool2 (paramsResolved, 'reduceOnly', 'reduce_only');
             if (reduceOnly !== undefined) {
                 request['reduce_only'] = reduceOnly;
@@ -1604,7 +1613,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             }
         }
         let paramsRequest = this.omit (paramsResolved, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'tif', 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        if (this.isNativeDeribitCredentials ()) {
+        if (this.isNativeDeribitCredentials () === true) {
             paramsRequest = this.omit (paramsRequest, [ 'reduceOnly', 'reduce_only' ]);
         }
         const result = await this.requestWs ('private/' + side, this.extend (request, paramsRequest), true);
@@ -1629,7 +1638,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const paramsResolved = this.handleRouteAndParams ('editOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1665,7 +1674,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const paramsResolved = this.handleRouteAndParams ('cancelOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1691,7 +1700,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('cancelAllOrdersWs', params);
         let method = 'private/cancel_all';
         let paramsRequest: Dict = paramsResolved;
@@ -1719,7 +1728,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const paramsResolved = this.handleRouteAndParams ('fetchOrderWs', params);
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1745,7 +1754,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchOpenOrdersWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrdersWs() requires a symbol argument');
@@ -1775,7 +1784,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchOrdersWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersWs() requires a symbol argument');
@@ -1804,14 +1813,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    override async fetchBalanceWs (params = {}): Promise<Balances> {
+    override async fetchBalanceWs (params: Dict = {}): Promise<Balances> {
         const paramsResolved = this.handleRouteAndParams ('fetchBalanceWs', params);
         const result = await this.requestWs ('private/get_account_summaries', paramsResolved, true);
         const summaries = this.safeList (result, 'summaries', []);
         let balance: Balances = { 'info': result } as Balances;
         const summariesLength = summaries.length;
         for (let i = 0; i < summariesLength; i++) {
-            balance = this.deepExtend (balance, this.parseBalance (summaries[i]));
+            balance = this.deepExtend (balance, this.parseBalanceList (summaries[i]));
         }
         return this.safeBalance (balance);
     }
@@ -1830,7 +1839,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    override async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchMyTradesWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTradesWs() requires a symbol argument');
@@ -1859,7 +1868,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    override async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsWs (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchPositionsWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1882,7 +1891,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    async setHeartbeat (interval: Int = 30, params = {}) {
+    async setHeartbeat (interval: Int = 30, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('setHeartbeat', params);
         const request = this.extend ({ 'interval': interval }, paramsResolved);
         return await this.requestWs ('public/set_heartbeat', request);
@@ -1899,7 +1908,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    async disableHeartbeat (params = {}) {
+    async disableHeartbeat (params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('disableHeartbeat', params);
         return await this.requestWs ('public/disable_heartbeat', paramsResolved);
     }
@@ -1919,7 +1928,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
-    async setCancelOnDisconnect (enabled: Bool, params = {}) {
+    async setCancelOnDisconnect (enabled: Bool, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('setCancelOnDisconnect', params);
         const method = (enabled === true) ? 'private/enable_cancel_on_disconnect' : 'private/disable_cancel_on_disconnect';
         return await this.requestWs (method, paramsResolved, true);
@@ -1937,7 +1946,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
-    async getCancelOnDisconnect (params = {}) {
+    async getCancelOnDisconnect (params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('getCancelOnDisconnect', params);
         return await this.requestWs ('private/get_cancel_on_disconnect', paramsResolved, true);
     }
@@ -1956,7 +1965,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    async unsubscribeAllWs (isPrivate = false, params = {}) {
+    async unsubscribeAllWs (isPrivate: boolean = false, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('unsubscribeAllWs', params);
         const method = isPrivate ? 'private/unsubscribe_all' : 'public/unsubscribe_all';
         return await this.requestWs (method, paramsResolved, isPrivate);
@@ -1974,7 +1983,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
-    async logoutWs (params = {}) {
+    async logoutWs (params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('logoutWs', params);
         await this.authenticate ();
         const url = this.getWsUrl (true);

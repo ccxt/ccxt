@@ -7,7 +7,7 @@ import Client from '../base/ws/Client.js';
  * @description watching delivery future markets is not yet implemented (perpertual future & swap is implemented)
  */
 export default class bitget extends bitgetRest {
-    describe(): any;
+    describe(): Dict;
     getInstType(methodName: Str, market: Market, uta?: boolean, params?: Dict): [Str, Dict];
     /**
      * @method
@@ -32,7 +32,7 @@ export default class bitget extends bitgetRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitget#watchTickers
@@ -272,7 +272,8 @@ export default class bitget extends bitgetRest {
     watchPrivate(uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params?: Dict): Promise<any>;
     handleAuthenticate(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;

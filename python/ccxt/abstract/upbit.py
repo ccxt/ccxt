@@ -26,7 +26,7 @@ class ImplicitAPI:
     public_get_ticker_all = publicGetTickerAll = Entry[_List]('ticker/all', ['public'], 'GET', {'cost': 2})
     public_get_orderbook = publicGetOrderbook = Entry[_List]('orderbook', ['public'], 'GET', {'cost': 2})
     public_get_orderbook_instruments = publicGetOrderbookInstruments = Entry[_List]('orderbook/instruments', ['public'], 'GET', {'cost': 2})
-    private_get_accounts = privateGetAccounts = Entry[_Dict]('accounts', ['private'], 'GET', {'cost': 0.67})
+    private_get_accounts = privateGetAccounts = Entry[_List]('accounts', ['private'], 'GET', {'cost': 0.67})
     private_get_orders_chance = privateGetOrdersChance = Entry[_Dict]('orders/chance', ['private'], 'GET', {'cost': 0.67})
     private_get_order = privateGetOrder = Entry[_Dict]('order', ['private'], 'GET', {'cost': 0.67})
     private_get_orders_closed = privateGetOrdersClosed = Entry[_List]('orders/closed', ['private'], 'GET', {'cost': 0.67})

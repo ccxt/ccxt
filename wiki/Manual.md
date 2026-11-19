@@ -72,7 +72,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented in Java
 - [Instantiation](#instantiation)
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
-<!--- init list -->The CCXT library currently supports the following 105 cryptocurrency exchange markets and trading APIs:
+<!--- init list -->The CCXT library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
 
 |logo                                                                                                                                                                                                 |id                     |name                                                                                         |ver                                                                                                                                                       |type                                                                                                    |certified                                                                                                                    |pro                                                                                                |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|---------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -88,6 +88,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented in Java
 | [![binanceusdm](https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a)](https://accounts.binance.com/register?ref=CCXTCOM)                                                | binanceusdm           | [Binance USDⓈ-M](https://accounts.binance.com/register?ref=CCXTCOM)                         | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/futures/en/)                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bingx](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg)](https://bingx.com/invite/OHETOM)                                | bingx                 | [BingX](https://bingx.com/invite/OHETOM)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bingx-api.github.io/docs/)                                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bit2c](https://github.com/user-attachments/assets/db0bce50-6842-4c09-a1d5-0c87d22118aa)](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                                           | bit2c                 | [Bit2C](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.bit2c.co.il/home/api)                                                           | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
+| [![bit2me](https://github.com/user-attachments/assets/d7c1790a-7e3d-453f-8c31-a7e800f56aaf)](https://bit2me.com/)                                                                                   | bit2me                | [Bit2Me](https://bit2me.com/)                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.bit2me.com/docs/pro/overview)                                                   | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![bitbank](https://github.com/user-attachments/assets/9d616de0-8a88-4468-8e38-d269acab0348)](https://bitbank.cc/)                                                                                  | bitbank               | [bitbank](https://bitbank.cc/)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitbank.cc/)                                                                   | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![bitbns](https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9)](https://ref.bitbns.com/1090961)                                                                        | bitbns                | [Bitbns](https://ref.bitbns.com/1090961)                                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitbns.com/trade/#/api-trading/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![bitfinex](https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178)](https://www.bitfinex.com)                                                                            | bitfinex              | [Bitfinex](https://www.bitfinex.com)                                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
@@ -4963,7 +4964,7 @@ Note that your private requests will fail with an exception or error if you don'
 #### API Key Permissions
 When you get errors like `"Invalid API-key, IP, or permissions for action."` or `"API-key format invalid"`, then, most likely, the problem is not within ccxt, please avoid opening a new issue unless you ensure that:
 1) You don't have typos, empty spaces, or quotes in your keys
-2) Your current IP address (check [IPv4](https://api.ipify.org/) or [IPv6](https://api64.ipify.org/)) is added into API-KEY's whitelist (if you use proxy, consider that too)
+2) Your current IP address (check [IPv4](https://api.ipify.org/) or [IPv6](https://api64.ipify.org/)) is added into API-KEY's whitelist (if you use proxy, consider that too). On a host with both IPv4 and IPv6, ccxt may connect over IPv6 even if you only whitelisted your IPv4 address, see [Forcing IPv4](#forcing-ipv4)
 3) You have selected the correct options in permissions list for that api-key
 4) You are not accidentally mixing "testnet" api-keys or "testnet" mode in your script
 5) You have checked already [reported issues](https://github.com/ccxt/ccxt/issues?q=is%3Aissue+%22Invalid+Api-Key+ID%22) about this error
@@ -8592,6 +8593,39 @@ https://github.com/ccxt/ccxt/blob/master/examples/py/proxies-for-synchronous-pyt
 https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-python-3.py), [proxy-asyncio-aiohttp-socks](
 https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-socks.py), [proxy-sync-python-requests-2-and-3](
 https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py)
+
+#### Forcing IPv4
+
+On a host with both IPv4 and IPv6 connectivity, when the exchange's domain resolves to both (`www.okx.com` does, for example), some or all of ccxt's connections go out over IPv6: the async client races IPv6 against IPv4 and uses whichever connects first, while the sync client tries IPv6 first. Private requests then fail (only some of the time with the async client, every time with the sync client) if the API key's IP whitelist only contains your IPv4 address, or if the exchange rejects IPv6 on some routes (binanceus: `{"code":-71012,"msg":"IPv6 not supported"}`). Either add your IPv6 address to the whitelist too (check it at [api64.ipify.org](https://api64.ipify.org/)), or pin ccxt to IPv4.
+
+In Python, the async client accepts your own `aiohttp` session and uses it for both REST and ccxt.pro WebSocket connections. Create it with an IPv4-only connector, and close it yourself, because ccxt does not close a session it did not create. Pass the certifi CA bundle too, so certificate verification stays the same as with the session ccxt creates:
+
+```python
+import socket
+import ssl
+import aiohttp
+import certifi
+import ccxt.async_support as ccxt
+
+connector = aiohttp.TCPConnector(family=socket.AF_INET, ssl=ssl.create_default_context(cafile=certifi.where()))
+session = aiohttp.ClientSession(connector=connector)
+exchange = ccxt.okx({'session': session})
+# ...
+await exchange.close()
+await session.close()
+```
+
+The sync client uses `requests`, which takes the address family from `urllib3`. This setting applies to the whole process, so make it before the first request:
+
+```python
+import socket
+import urllib3.util.connection
+
+urllib3.util.connection.allowed_gai_family = lambda: socket.AF_INET
+
+import ccxt
+exchange = ccxt.okx()
+```
 
 #### CORS (Access-Control-Allow-Origin)
 

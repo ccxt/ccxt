@@ -1,11 +1,11 @@
 import Exchange from './abstract/grvt.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class grvt
  * @augments Exchange
  */
 export default class grvt extends Exchange {
-    describe(): any;
+    describe(): Dict;
     eipDefinitions(): Dict;
     usesPrivateKey(): boolean;
     /**
@@ -118,7 +118,7 @@ export default class grvt extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name grvt#fetchDeposits
@@ -160,7 +160,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
-    filterTransfersByType(transfers: any, transferType: string, onlyMainAccount?: boolean): List[];
+    filterTransfersByType(transfers: Dict[], transferType: string, onlyMainAccount?: boolean): List[];
     /**
      * @method
      * @name grvt#transfer
@@ -359,11 +359,11 @@ export default class grvt extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     eipDomainData(): Dict;
     feeAmountMultiplier(): int;
-    createSignedRequest(request: Dict, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
+    createSignedRequest(request: Dict, structureType: string, currencyObj?: Currency, signerAddress?: Str): Dict;
     formatSignatureRS(value: string): string;
     defaultSignature(): Dict;
     handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: int): [Dict, Dict];
-    requestId(): number;
+    requestId(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

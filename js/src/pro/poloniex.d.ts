@@ -2,7 +2,7 @@ import poloniexRest from '../poloniex.js';
 import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method
@@ -42,7 +42,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    tradeRequest(name: string, params?: Dict): Promise<any>;
+    tradeRequest(name: string, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name poloniex#createOrderWs

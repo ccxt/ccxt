@@ -1138,7 +1138,7 @@ export default class cex extends Exchange {
             await this.loadMarkets();
         }
         const request = {
-            'orderId': parseInt(id),
+            'orderId': this.parseToInt(id),
         };
         const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
         const order = this.safeDict(result, 0);
@@ -1159,7 +1159,7 @@ export default class cex extends Exchange {
             await this.loadMarkets();
         }
         const request = {
-            'orderId': parseInt(id),
+            'orderId': this.parseToInt(id),
         };
         const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
         const order = this.safeDict(result, 0);
@@ -1370,7 +1370,7 @@ export default class cex extends Exchange {
             await this.loadMarkets();
         }
         const request = {
-            'orderId': parseInt(id),
+            'orderId': this.parseToInt(id),
             'cancelRequestId': 'c_' + (this.milliseconds()).toString(),
             'timestamp': this.milliseconds(),
         };
@@ -1637,10 +1637,7 @@ export default class cex extends Exchange {
         }
         const currency = this.currency(code);
         const fromMain = (fromAccount === '');
-        let targetAccount = fromAccount;
-        if (fromMain) {
-            targetAccount = toAccount;
-        }
+        const targetAccount = (fromMain) ? toAccount : fromAccount;
         const guid = this.safeString(params, 'guid', this.uuid());
         const request = {
             'currency': currency['id'],
@@ -1831,7 +1828,7 @@ export default class cex extends Exchange {
             if (body === undefined) {
                 throw new NullResponse(this.id + ' returned empty response');
             }
-            else if (body[0] === '{') {
+            else if (body.startsWith('{')) {
                 const fixed = this.fixStringifiedJsonMembers(body);
                 responseFixed = this.parseJson(fixed);
             }

@@ -97,11 +97,11 @@ impl Value {
     ///
     /// On a WS-cache Map (carrying a `__cacheKind` marker; see
     /// `crate::pro::cache`) it dispatches to the per-kind logic below.
-    pub fn append(&mut self, item: Value) {
+    pub fn append(&mut self, item: impl Into<Value>) {
         match self {
-            Value::Arr(a) => Arc::make_mut(a).push(item),
+            Value::Arr(a) => Arc::make_mut(a).push(item.into()),
             Value::Dict(m) if m.contains_key("__cacheKind") => {
-                cache_append(self, item);
+                cache_append(self, item.into());
             }
             _ => {}
         }
@@ -134,7 +134,7 @@ impl Value {
     /// count of new updates since the last call (clamped by `limit`
     /// when supplied) and arms the per-symbol / global reset flag so
     /// the next `append` zeroes the counter.
-    pub fn get_limit(&mut self, symbol: Value, limit: Value) -> Value {
+    pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
         if matches!(self, Value::Dict(d) if d.contains_key("__cacheKind")) {
             cache_get_limit(self, symbol, limit)
         } else {
@@ -217,6 +217,17 @@ impl Value {
 
     pub fn as_str(&self)   -> Option<&str>  { if let Value::Str(s) = self { Some(s.as_ref()) } else { None } }
     pub fn as_i64(&self)   -> Option<i64>   { if let Value::Int(n) = self { Some(*n) } else { None } }
+    /// A string slot read from a JSON string or number: TS hands a numeric id on unchanged, so its decimal text is the
+    /// string the typed `&str` parameter expects (binance prediction `fetchEvent (12345678)`). Other kinds read as absent.
+    pub fn as_text(&self) -> Option<Cow<'_, str>> {
+        match self {
+            Value::Str(s) => Some(Cow::Borrowed(s.as_ref())),
+            Value::Int(n) => Some(Cow::Owned(n.to_string())),
+            Value::Float(f) if f.is_finite() && f.fract() == 0.0 && f.abs() < 1e15 => Some(Cow::Owned((*f as i64).to_string())),
+            Value::Float(f) if f.is_finite() => Some(Cow::Owned(f.to_string())),
+            _ => None,
+        }
+    }
     pub fn as_f64(&self)   -> Option<f64> {
         match self {
             Value::Float(f) => Some(*f),
@@ -228,8 +239,49 @@ impl Value {
     pub fn as_map(&self)   -> Option<&HashMap<String, Value>> {
         if let Value::Dict(m) = self { Some(&**m) } else { None }
     }
+    /// The map a dict-typed local holds, moved out of the box (an empty map for a non-dict).
+    pub fn into_dict(self) -> Dict {
+        if let Value::Dict(m) = self { m } else { Arc::new(HashMap::new()) }
+    }
+    /// The list a list-typed local holds, moved out of the box (an empty list for a non-list).
+    pub fn into_list(self) -> List {
+        if let Value::Arr(a) = self { a } else { Arc::new(Vec::new()) }
+    }
+    /// The map an optional dict local holds, moved out of the box (`None` for anything but a dict).
+    pub fn into_opt_dict(self) -> Option<Dict> {
+        if let Value::Dict(m) = self { Some(m) } else { None }
+    }
+    /// The list an optional list local holds, moved out of the box (`None` for anything but a list).
+    pub fn into_opt_list(self) -> Option<List> {
+        if let Value::Arr(a) = self { Some(a) } else { None }
+    }
+    /// The string an optional string local holds, moved out of the box: `Some` for a `Str` (an owned string moves,
+    /// a borrowed literal is copied once), `None` for anything else, exactly as `as_str()` reads it.
+    pub fn into_opt_string(self) -> Option<String> {
+        if let Value::Str(s) = self { Some(s.into_owned()) } else { None }
+    }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
+    }
+    /// Display text of each array element (empty for a non-array); the `Vec<String>` dispatch bridge.
+    pub fn to_str_vec(&self) -> Vec<String> {
+        match self {
+            Value::Arr(a) => a.iter().map(Value::to_string).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Rows of [`Value::to_str_vec`]: the `Vec<Vec<String>>` (`symbolsAndTimeframes`) typed-argument bridge.
+    pub fn to_str_vec_vec(&self) -> Vec<Vec<String>> {
+        match self {
+            Value::Arr(a) => a.iter().map(Value::to_str_vec).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// `None` for `Null`, else [`Value::to_str_vec`]: the `Option<Vec<String>>` typed-argument bridge.
+    pub fn to_opt_str_vec(&self) -> Option<Vec<String>> {
+        if self.is_null() { None } else { Some(self.to_str_vec()) }
     }
 
     /// Length of array, map, or string; 0 for everything else.
@@ -256,16 +308,18 @@ impl Value {
     // `Value::Null` and are placeholders for richer dispatch.
 
     pub fn describe(&self) -> Value { Value::Null }
+    /// `client.url` on a ws client handle (`Value::Null` on any other Value).
+    pub fn url(&self) -> Value { get_value_k(self, "url") }
     /// `client.reject(error, messageHash)` — stores a rejection the `watch`
     /// drive loop delivers to the awaiting caller. Routes by the client
     /// handle's `url` to the WS registry (no-op on a non-client Value).
-    pub fn reject(&self, args: &[Value]) -> Value {
-        crate::pro::ws_client::value_reject(self, args)
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        crate::pro::ws_client::value_reject(self, err.into(), hash.into())
     }
     /// `client.resolve(value, messageHash)` — stores the resolved value the
     /// `watch` drive loop returns. Routes by the client handle's `url`.
-    pub fn resolve(&self, args: &[Value]) -> Value {
-        crate::pro::ws_client::value_resolve(self, args)
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        crate::pro::ws_client::value_resolve(self, value.into(), hash.into())
     }
     /// `client.future(messageHash)` — TS's atomic check-and-insert: opens a
     /// single-flight for the hash (or joins the open one) and hands back a
@@ -274,30 +328,26 @@ impl Value {
     /// does the work (venue `authenticate` leader election). Await the handle
     /// with `exchange_stubs::ws_await_flight`; the transpiler emits that
     /// wherever the TS source awaits.
-    pub fn future(&self, args: &[Value]) -> Value {
-        self.open_flight(args.get(0).cloned().unwrap_or(Value::Null))
+    pub fn future(&self, hash: impl Into<Value>) -> crate::pro::ws_client::Flight {
+        self.open_flight(hash.into())
     }
     /// `client.reusable_future(messageHash)` — shared flight per hash, i.e. the
     /// same registry and handle as `future`.
-    pub fn reusable_future(&self, msg_hash: Value) -> Value {
-        self.open_flight(msg_hash)
+    pub fn reusable_future(&self, hash: impl Into<Value>) -> crate::pro::ws_client::Flight {
+        self.open_flight(hash.into())
     }
     /// Shared body of `future` / `reusable_future`: open-or-join the flight on
     /// the client this handle names, and return a handle to it. A non-client
     /// receiver (or a non-string hash) degrades to the old pass-the-hash-back
     /// behaviour so unrelated transpiled code keeps compiling.
-    fn open_flight(&self, msg_hash: Value) -> Value {
+    fn open_flight(&self, msg_hash: Value) -> crate::pro::ws_client::Flight {
         let hash = match &msg_hash {
-            Value::Str(h) => h.clone(),
-            _ => return msg_hash,
+            Value::Str(h) => h.to_string(),
+            _ => return crate::pro::ws_client::Flight::default(),
         };
-        match crate::pro::ws_client::url_of(self) {
-            Some(url) => {
-                let led = crate::pro::ws_client::begin_flight(&url, &hash);
-                crate::pro::ws_client::flight_handle(&url, &hash, led)
-            }
-            None => msg_hash,
-        }
+        let url = crate::pro::ws_client::url_of(self);
+        let led = url.as_deref().is_some_and(|u| crate::pro::ws_client::begin_flight(u, &hash));
+        crate::pro::ws_client::Flight { url, hash: Some(hash), led, entry: false }
     }
     /// Field accessor: `cache.hashmap` — same as the WS Cache marker's
     /// hashmap sub-dict. Some transpiled WS code reads this directly
@@ -305,7 +355,7 @@ impl Value {
     /// `get_value`.
     pub fn hashmap(&self) -> Value {
         if let Value::Dict(d) = self {
-            // Cache marker: the live hashmap lives in the shared CACHE_STORE
+            // Cache marker: the live hashmap lives in the shared WS state store
             // (keyed by __cache_id), not on the marker Dict. Return a copy with
             // each symbol bucket tagged with a `__cache_backref` so that a
             // transpiled write-back like `cache.hashmap[symbol][id] = order`
@@ -372,7 +422,7 @@ impl Value {
     pub fn network_id_to_code(&self, args: &[Value]) -> Value {
         #[cfg(feature = "engine")]
         {
-            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args);
+            return Value::from(crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args));
         }
         #[cfg(not(feature = "engine"))]
         {
@@ -423,7 +473,7 @@ impl Value {
             let result = ex.set_markets(markets, &[]);
             crate::runtime::add_element_to_object(self, &Value::Str("markets".into()), ex.markets.clone());
             crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".into()), ex.markets_by_id.clone());
-            crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), ex.symbols.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), Value::Arr(ex.symbols.clone()));
             return result;
         }
         #[cfg(not(feature = "engine"))]
@@ -568,6 +618,17 @@ impl From<String>  for Value { fn from(s: String) -> Self { Value::Str(Cow::Owne
 impl From<i64>     for Value { fn from(n: i64)    -> Self { Value::Int(n) } }
 impl From<f64>     for Value { fn from(f: f64)    -> Self { Value::Float(f) } }
 impl From<bool>    for Value { fn from(b: bool)   -> Self { Value::Bool(b) } }
+impl From<Option<i64>> for Value { fn from(n: Option<i64>) -> Self { n.map_or(Value::Null, Value::Int) } }
+impl From<Option<f64>> for Value { fn from(n: Option<f64>) -> Self { n.map_or(Value::Null, Value::Float) } }
+impl From<Option<&str>> for Value { fn from(s: Option<&str>) -> Self { s.map_or(Value::Null, Value::from) } }
+impl From<Option<String>> for Value { fn from(s: Option<String>) -> Self { s.map_or(Value::Null, Value::from) } }
+impl From<&Option<String>> for Value { fn from(s: &Option<String>) -> Self { s.as_deref().map_or(Value::Null, Value::from) } }
+impl From<Option<Vec<String>>> for Value {
+    fn from(l: Option<Vec<String>>) -> Self { l.map_or(Value::Null, |l| Value::from(l.into_iter().map(Value::from).collect::<Vec<Value>>())) }
+}
+impl From<Option<Vec<Vec<String>>>> for Value {
+    fn from(l: Option<Vec<Vec<String>>>) -> Self { l.map_or(Value::Null, |l| Value::from(l.into_iter().map(|r| Value::from(Some(r))).collect::<Vec<Value>>())) }
+}
 /// `From<ExchangeError>` makes `error.clone()` flow into `&[Value]`
 /// slices without an explicit conversion — surfaces the typed error
 /// as a `[Kind] message`-shaped string Value, matching how
@@ -580,6 +641,15 @@ impl From<crate::ExchangeError> for Value {
 }
 impl From<HashMap<String, Value>> for Value {
     fn from(m: HashMap<String, Value>) -> Self { Value::Map(m) }
+}
+impl From<HashMap<String, HashMap<String, Value>>> for Value {
+    fn from(m: HashMap<String, HashMap<String, Value>>) -> Self {
+        let mut out = HashMap::with_capacity(m.len());
+        for (k, v) in m {
+            out.insert(k, Value::Map(v));
+        }
+        Value::Map(out)
+    }
 }
 impl From<Vec<Value>> for Value {
     fn from(a: Vec<Value>) -> Self { Value::Array(a) }
@@ -598,26 +668,28 @@ impl From<serde_json::Value> for Value {
 /// directly from the cached real `<Id>Core`. Production / non-test code
 /// leaves the callback unset and falls through to the normal map lookup.
 type LiveLookupFn = fn(id: &str, key: &str) -> Option<Value>;
-// Plain atomic-load-style global — `tokio::main` spawns worker threads
-// that wouldn't see a `thread_local!` value set in main, so the lookup
-// has to be shared across all threads. Stored as a usize because
-// `AtomicPtr<fn>` is awkward to express. `fn` pointers are always
-// non-null when set; 0 means "not installed".
-static LIVE_LOOKUP_PTR: std::sync::atomic::AtomicUsize =
-    std::sync::atomic::AtomicUsize::new(0);
+// Write-once registry: the test harness installs it from `main` before any
+// worker thread runs and nothing replaces it. One-shot cell, so every read is a
+// plain fn-pointer load with no lock and no atomic at the use site.
+static LIVE_LOOKUP: std::sync::OnceLock<LiveLookupFn> = std::sync::OnceLock::new();
 
 pub fn set_live_lookup(f: LiveLookupFn) {
-    LIVE_LOOKUP_PTR.store(f as usize, std::sync::atomic::Ordering::Release);
+    let _ = LIVE_LOOKUP.set(f);
 }
 
 fn live_lookup_get() -> Option<LiveLookupFn> {
-    let n = LIVE_LOOKUP_PTR.load(std::sync::atomic::Ordering::Acquire);
-    if n == 0 { None } else {
-        // SAFETY: only ever stored as `fn(&str, &str) -> Option<Value>`
-        // via `set_live_lookup`; the pointer-to-fn round-trip is sound.
-        Some(unsafe { std::mem::transmute::<usize, LiveLookupFn>(n) })
-    }
+    LIVE_LOOKUP.get().copied()
 }
+
+/// Keys the live-test harness drops from a `__live_id` snapshot so their reads
+/// resolve through `LIVE_LOOKUP` off the Core. `get_value` consults the lookup
+/// only for a missing or null snapshot key, so a field the Core holds as a typed
+/// container (`symbols` is a `List`, empty rather than null before `loadMarkets`)
+/// must not be copied into the snapshot, or the empty copy shadows the live value.
+pub const LIVE_SNAPSHOT_STRIPPED_KEYS: &[&str] = &[
+    "api", "urls", "fees", "timeframes", "exceptions",
+    "features", "precision", "limits", "has", "symbols",
+];
 
 // Companion to `LiveLookupFn` but for writing: routes `exchange.setMarkets(...)`
 // on a `__live_id` snapshot to the registered *live* Core, so the Core's
@@ -625,20 +697,14 @@ fn live_lookup_get() -> Option<LiveLookupFn> {
 // runs against the real instance the method dispatch will use. Returns the
 // resulting markets. See `Value::set_markets`.
 type LiveSetMarketsFn = fn(id: &str, markets: Value) -> Value;
-static LIVE_SET_MARKETS_PTR: std::sync::atomic::AtomicUsize =
-    std::sync::atomic::AtomicUsize::new(0);
+static LIVE_SET_MARKETS: std::sync::OnceLock<LiveSetMarketsFn> = std::sync::OnceLock::new();
 
 pub fn set_live_set_markets(f: LiveSetMarketsFn) {
-    LIVE_SET_MARKETS_PTR.store(f as usize, std::sync::atomic::Ordering::Release);
+    let _ = LIVE_SET_MARKETS.set(f);
 }
 
 fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
-    let n = LIVE_SET_MARKETS_PTR.load(std::sync::atomic::Ordering::Acquire);
-    if n == 0 { None } else {
-        // SAFETY: only ever stored as `fn(&str, Value) -> Value` via
-        // `set_live_set_markets`; the pointer-to-fn round-trip is sound.
-        Some(unsafe { std::mem::transmute::<usize, LiveSetMarketsFn>(n) })
-    }
+    LIVE_SET_MARKETS.get().copied()
 }
 
 /// Hot-path `get_value` variant that takes the key as a `&str` directly,
@@ -646,7 +712,216 @@ fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
 /// fast-path readers the transpiler routes literal-key calls through.
 #[inline]
 pub fn get_value_k(obj: &Value, key: &str) -> Value {
-    if let Value::Dict(m) = obj {
+    if let Value::Dict(m) = obj { get_map_value_k(m, key) } else { Value::Null }
+}
+
+/// The shared map a dict-typed local holds; a non-dict value reads like an empty map.
+pub type Dict = Arc<HashMap<String, Value>>;
+/// The shared list a list-typed local holds; a non-list value reads like an empty list.
+pub type List = Arc<Vec<Value>>;
+
+/// A byte buffer (TS `Uint8Array`): the port's existing binary form, a list of `Value::Int` bytes,
+/// behind a typed handle. Boxing it (`Value::from`) moves or shares the same list; nothing is copied.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Bytes(pub List);
+
+impl Bytes {
+    pub(crate) fn of(bytes: &[u8]) -> Bytes { Bytes(Arc::new(bytes.iter().map(|b| Value::Int(*b as i64)).collect())) }
+}
+impl From<Bytes> for Value { fn from(b: Bytes) -> Self { Value::Arr(b.0) } }
+impl From<&Bytes> for Value { fn from(b: &Bytes) -> Self { Value::Arr(Arc::clone(&b.0)) } }
+
+/// The rows argument of the base `filter_by_*` helpers: any `Value` by value, or a shared list / ws cache
+/// handle by reference (an Arc bump of the same list or marker, read by `to_array` as before).
+/// `absent` is the `=== undefined` test of the argument (a `Null` value, a missing list or cache).
+pub trait Rows: Clone {
+    fn rows(self) -> Value;
+    fn absent(&self) -> bool;
+}
+impl Rows for Value {
+    fn rows(self) -> Value { self }
+    fn absent(&self) -> bool { self.is_null() }
+}
+impl Rows for &List {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { false }
+}
+impl Rows for &Dict {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { false }
+}
+impl Rows for &Option<List> {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { self.is_none() }
+}
+
+/// A container the `safe_*` readers accept: a `Value` by value, a map or list by reference.
+/// `key_read` takes a literal key, `read` any key (a string key on a list reads nothing, as `get_value` does).
+pub trait KeyRead: Clone {
+    fn key_read(&self, key: &str) -> Value;
+    fn read(&self, key: &Value) -> Value;
+}
+impl KeyRead for Value {
+    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_value(self, key) }
+}
+impl KeyRead for &Value {
+    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_value(self, key) }
+}
+impl KeyRead for &Dict {
+    fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_map_value(self, key) }
+}
+impl KeyRead for &HashMap<String, Value> {
+    fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) }
+    fn read(&self, key: &Value) -> Value { get_map_value(self, key) }
+}
+impl KeyRead for &Vec<Value> {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
+}
+impl KeyRead for &List {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
+}
+impl KeyRead for &Option<Dict> {
+    fn key_read(&self, key: &str) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value_k(m, key)) }
+    fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value(m, key)) }
+}
+impl KeyRead for &Option<List> {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |a| get_list_value(a, key)) }
+}
+/// A market reads its own map, as the boxed record did.
+impl KeyRead for &crate::types::Market {
+    fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
+    fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
+}
+/// An optional market argument reads its own map (Null when absent).
+impl KeyRead for Option<&crate::types::Market> {
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
+}
+/// A lent optional market reads its own map (Null when absent).
+impl KeyRead for &Option<&crate::types::Market> {
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
+}
+/// An optional market reads its own map, as the boxed local did (Null when empty).
+impl KeyRead for &Option<crate::types::Market> {
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
+}
+
+/// A lent optional market handed to a `Value` slot: its stored record (a shared handle, no copy).
+impl From<Option<&crate::types::Market>> for Value {
+    fn from(m: Option<&crate::types::Market>) -> Self { if let Some(m) = m { m.raw.clone() } else { Value::Null } }
+}
+
+/// A typed currency reads its own map, as the boxed record did.
+impl KeyRead for &crate::types::Currency {
+    fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
+    fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
+}
+/// An optional typed currency reads its own map (Null when empty).
+impl KeyRead for &Option<crate::types::Currency> {
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
+}
+/// An optional currency argument reads its own map (Null when absent).
+impl KeyRead for Option<&crate::types::Currency> {
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
+}
+/// A lent optional currency reads its own map (Null when absent).
+impl KeyRead for &Option<&crate::types::Currency> {
+    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
+}
+
+/// A lent optional currency handed to a `Value` slot: its stored record (one shared-handle copy, as `get_arg` made).
+impl From<Option<&crate::types::Currency>> for Value {
+    fn from(c: Option<&crate::types::Currency>) -> Self { c.map(|c| &c.raw).cloned().unwrap_or_default() }
+}
+
+/// Extra operands of `extend` / `deep_extend`: a `Value` slice, or a dict local lent by reference.
+pub trait MergeOperands {
+    fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>));
+    fn for_each_operand(self, f: impl FnMut(Value));
+}
+impl MergeOperands for &[Value] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { for v in self { if let Value::Dict(m) = v { f(m) } } }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { for v in self { f(v.clone()) } }
+}
+impl<const N: usize> MergeOperands for &[Value; N] {
+    fn for_each_map(self, f: impl FnMut(&HashMap<String, Value>)) { (&self[..]).for_each_map(f) }
+    fn for_each_operand(self, f: impl FnMut(Value)) { (&self[..]).for_each_operand(f) }
+}
+impl MergeOperands for &[&Dict; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { f(self[0]) }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
+}
+/// An optional dict local lent to `extend`: `Some` merges its map, `None` merges nothing (as the boxed `Null` did).
+impl MergeOperands for &[&Option<Dict>; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { if let Some(m) = self[0] { f(m) } }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::from(self[0])) }
+}
+
+/// The first operand of `extend`: a `Value` or a dict local (owned or lent); the map is copied only when shared.
+pub trait ExtendHead { fn into_head(self) -> HashMap<String, Value>; }
+impl ExtendHead for Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()) } else { HashMap::new() } } }
+impl ExtendHead for &Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { (**m).clone() } else { HashMap::new() } } }
+impl ExtendHead for Dict { fn into_head(self) -> HashMap<String, Value> { Arc::try_unwrap(self).unwrap_or_else(|x| (*x).clone()) } }
+impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } }
+/// ral-43c: an optional map (`safeDict` with no default, a nil-declared endpoint answer): `None` merges onto an empty map,
+/// exactly as the boxed `Value::Null` head did.
+impl ExtendHead for Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.map(ExtendHead::into_head).unwrap_or_default() } }
+impl ExtendHead for &Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.as_ref().map(ExtendHead::into_head).unwrap_or_default() } }
+
+/// ral-43c: the key of the runtime `get_value`: a boxed `&Value`, or a typed string local (`&str`, `Option<&str>`) that is
+/// boxed here to the same `Str` / `Null` key the boxed read used, so the lookup is unchanged.
+pub trait ValueKey { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R; }
+impl ValueKey for &Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
+impl ValueKey for &&Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
+impl ValueKey for &str { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&Value::from(self)) } }
+impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { match self { Some(s) => f(&Value::from(s)), None => f(&Value::Null) } } }
+
+/// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
+pub trait OmitSource { fn into_operand(self) -> Value; }
+impl OmitSource for Value { fn into_operand(self) -> Value { self } }
+impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
+/// ral-48d: an optional map local (`safeDict` with no default, a nil-declared map rewritten by its own omit): `None`
+/// answers `Value::Null` exactly as the boxed Null passed through `omit`; `Some(m)` drops keys from the shared map.
+impl OmitSource for Option<Dict> { fn into_operand(self) -> Value { self.map(Value::Dict).unwrap_or(Value::Null) } }
+impl OmitSource for &Option<Dict> { fn into_operand(self) -> Value { self.as_ref().map(|m| Value::Dict(Arc::clone(m))).unwrap_or(Value::Null) } }
+/// The keys `omit` drops: a `Value` (one string, or a list whose string items are keys; anything else drops nothing),
+/// or a literal key list printed as `&["a", "b"]`.
+pub trait OmitKeys { fn for_each_key(self, f: impl FnMut(&str)); }
+impl OmitKeys for Value {
+    fn for_each_key(self, mut f: impl FnMut(&str)) {
+        match self {
+            Value::Arr(ks) => { for k in ks.iter() { if let Value::Str(s) = k { f(s.as_ref()); } } }
+            Value::Str(s) => f(s.as_ref()),
+            _ => {}
+        }
+    }
+}
+impl<const N: usize> OmitKeys for &[&str; N] { fn for_each_key(self, mut f: impl FnMut(&str)) { for k in self.iter() { f(k); } } }
+/// A dict local lent to a `params: impl Into<Value>` parameter: the shared map, not a copy.
+impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(m)) } }
+impl From<&List> for Value { fn from(a: &List) -> Self { Value::Arr(Arc::clone(a)) } }
+/// A dict local moved into a `Value` parameter: the map itself, no copy.
+impl From<Dict> for Value { fn from(m: Dict) -> Self { Value::Dict(m) } }
+impl From<&Option<List>> for Value { fn from(a: &Option<List>) -> Self { match a { Some(l) => Value::Arr(Arc::clone(l)), None => Value::Null } } }
+/// An optional dict local lent to an `impl Into<Value>` parameter: the shared map for `Some`, `Value::Null` for `None`.
+impl From<&Option<Dict>> for Value { fn from(m: &Option<Dict>) -> Self { match m { Some(d) => Value::Dict(Arc::clone(d)), None => Value::Null } } }
+/// A ws hash or key slot reads a `Value` key as its string (any other variant is no key).
+impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v.as_str() } }
+
+/// `get_value_k` on the map itself.
+pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
+    {
         // A shared order book keeps its scalar meta (nonce/timestamp/…) in the
         // book store; route those through it so the safe_* helpers (which go via
         // get_value_k) see the shared value, not the empty Dict slot.
@@ -672,7 +947,33 @@ pub fn get_value_k(obj: &Value, key: &str) -> Value {
 
 /// Access a value in a map by string key, or array by integer key encoded as
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
-pub fn get_value(obj: &Value, key: &Value) -> Value {
+/// ral-43c: the key is `impl ValueKey` (a boxed `&Value`, or a typed `&str` / `Option<&str>` boxed to the same key).
+pub fn get_value(obj: &Value, key: impl ValueKey) -> Value {
+    key.with_key(|key| get_value_boxed(obj, key))
+}
+
+fn get_value_boxed(obj: &Value, key: &Value) -> Value {
+    match (obj, key) {
+        (Value::Dict(m), _) => get_map_value(m, key),
+        (Value::Arr(a), _) => get_list_value(a, key),
+        // JS string indexing: `s[i]` returns the i-th character as a
+        // 1-char string (e.g. bitfinex `amountString[0] === '-'` to detect
+        // a negative). Char-based so multi-byte UTF-8 is handled.
+        (Value::Str(s), Value::Int(i)) => {
+            if *i < 0 {
+                return Value::Null;
+            }
+            match s.chars().nth(*i as usize) {
+                Some(c) => Value::Str(c.to_string().into()),
+                None    => Value::Null,
+            }
+        }
+        _ => Value::Null,
+    }
+}
+
+/// `get_value` on the map itself.
+pub fn get_map_value(m: &HashMap<String, Value>, key: &Value) -> Value {
     // Cache / order-book / side markers expose numeric indexing as if
     // they were arrays — `cache[i]` reads `_data[i]`, `side[i]` reads
     // `_entries[i]`. Handle this before the regular dict lookup so the
@@ -681,7 +982,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
     // The index may arrive as an Int (`get_value(&side, &Value::Int(0))`) or as
     // a numeric string — the `safe_*` helpers stringify their key, so
     // `safe_value(cache, 0)` reaches here as `Str("0")`. Accept both.
-    if let Value::Dict(m) = obj {
+    {
         let idx = match key {
             Value::Int(i) if *i >= 0 => Some(*i as usize),
             Value::Str(s) => s.parse::<usize>().ok(),
@@ -699,8 +1000,8 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             }
         }
     }
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => {
+    match key {
+        Value::Str(k) => {
             // A shared order book keeps its scalar meta (nonce/timestamp/…) in
             // the book store so mutations propagate across clones.
             if is_book_meta_key(k) {
@@ -710,7 +1011,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
                 if let Some(id) = book_id_of(m) { return book_cache_handle(id); }
             }
             // A cache marker's `hashmap` (bucket index) lives in the shared
-            // CACHE_STORE cell, not the marker Dict — route the read there so a
+            // store cell, not the marker Dict — route the read there so a
             // transpiled `cache.hashmap` sees live bucket state (the base-ws
             // eviction test counts `Object.keys(cache.hashmap)`).
             if k == "hashmap" && m.contains_key("__cacheKind") {
@@ -749,24 +1050,19 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             }
             Value::Null
         }
-        (Value::Arr(a), Value::Int(i)) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
-        (Value::Arr(a), Value::Str(k)) => {
+        _ => Value::Null,
+    }
+}
+
+/// `get_value` on the list itself.
+pub fn get_list_value(a: &[Value], key: &Value) -> Value {
+    match key {
+        Value::Int(i) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
+        Value::Str(k) => {
             if let Ok(i) = k.parse::<usize>() {
                 a.get(i).cloned().unwrap_or(Value::Null)
             } else {
                 Value::Null
-            }
-        }
-        // JS string indexing: `s[i]` returns the i-th character as a
-        // 1-char string (e.g. bitfinex `amountString[0] === '-'` to detect
-        // a negative). Char-based so multi-byte UTF-8 is handled.
-        (Value::Str(s), Value::Int(i)) => {
-            if *i < 0 {
-                return Value::Null;
-            }
-            match s.chars().nth(*i as usize) {
-                Some(c) => Value::Str(c.to_string().into()),
-                None    => Value::Null,
             }
         }
         _ => Value::Null,
@@ -884,7 +1180,7 @@ fn cache_str_field(item: &Value, key: &str) -> Option<String> {
 
 /// Tag every symbol bucket of a cache hashmap copy with a `__cache_backref`
 /// = [cache_id, symbol] so a later `bucket[id] = order` write can be routed
-/// back into the shared CACHE_STORE (see `try_cache_hashmap_write`). Mirrors
+/// back into the shared WS state store (see `try_cache_hashmap_write`). Mirrors
 /// the JS reference semantics where `cache.hashmap[symbol]` is the live row.
 fn tag_cache_hashmap_buckets(hm: Value, id: i64) -> Value {
     if let Value::Dict(d) = &hm {
@@ -908,33 +1204,35 @@ fn tag_cache_hashmap_buckets(hm: Value, id: i64) -> Value {
 
 /// When a transpiled `bucket[key] = item` write lands on a cache-hashmap bucket
 /// tagged by `tag_cache_hashmap_buckets`, persist `item` into the shared
-/// CACHE_STORE: update `hashmap[symbol][key]` and the matching `_data` row.
+/// store: update `hashmap[symbol][key]` and the matching `_data` row.
 /// This is how cross-handler mutations of a cached order (fee/trades
 /// accumulation in handleMyTrade, later read by handleOrder) survive Rust's
 /// copy-on-write `Value` semantics. Returns true if a write-through happened.
 pub(crate) fn try_cache_hashmap_write(bucket: &HashMap<String, Value>, key: &str, item: &Value) -> bool {
     let (id, sym) = match bucket.get("__cache_backref") {
         Some(Value::Arr(a)) => match (a.first(), a.get(1)) {
-            (Some(Value::Int(id)), Some(Value::Str(s))) => (*id, s.clone()),
+            (Some(Value::Int(id)), Some(Value::Str(s))) => (*id, s.to_string()),
             _ => return false,
         },
         _ => return false,
     };
-    with_cache_cell(id, |m| {
+    let key = key.to_string();
+    let item = item.clone();
+    with_cache_cell(id, move |m| {
         // hashmap[sym][key] = item
         {
             let hm = cache_dict_field_mut(m, "hashmap");
-            let b = hm.entry(sym.to_string()).or_insert_with(|| Value::Map(HashMap::new()));
+            let b = hm.entry(sym.clone()).or_insert_with(|| Value::Map(HashMap::new()));
             if let Value::Dict(bd) = b {
-                Arc::make_mut(bd).insert(key.to_string(), item.clone());
+                Arc::make_mut(bd).insert(key.clone(), item.clone());
             }
         }
         // update the matching _data row (matched by symbol + id/side == key)
         let data = cache_data_mut(m);
         for x in data.iter_mut() {
-            if cache_str_field(x, "symbol").as_deref() == Some(&sym)
-                && (cache_str_field(x, "id").as_deref() == Some(key)
-                    || cache_str_field(x, "side").as_deref() == Some(key))
+            if cache_str_field(x, "symbol").as_deref() == Some(sym.as_str())
+                && (cache_str_field(x, "id").as_deref() == Some(key.as_str())
+                    || cache_str_field(x, "side").as_deref() == Some(key.as_str()))
             {
                 *x = item.clone();
                 break;
@@ -943,6 +1241,8 @@ pub(crate) fn try_cache_hashmap_write(bucket: &HashMap<String, Value>, key: &str
     });
     true
 }
+
+pub(crate) fn cache_kind_of(v: &Value) -> bool { cache_kind(v).is_some() }
 
 fn cache_kind(v: &Value) -> Option<String> {
     match v {
@@ -1105,15 +1405,157 @@ fn cache_seen_remove(m: &mut HashMap<String, Value>, field: &str, key1: &str, ke
 // the local diverge on the first append (Arc::make_mut) and the re-read is
 // empty. So hold the whole mutable cache state (`_data`, `hashmap`, counters)
 // in a registry keyed by a stable `__cache_id`; every COW clone shares it.
-static CACHE_STORE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, HashMap<String, Value>>>> =
-    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
-static NEXT_CACHE_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
+// ── Ws state store: one owner, channel hand-off ─────────────────────────────
+// Every shared WS cell (cache, book, side) lives in one `WsStateStore`. The
+// cells must outlive COW clones and task migration, so they cannot be thread
+// local; and no lock may be held at a use site across an await. So a single
+// owner thread holds the whole store and every other task hands it a job over a
+// channel, then waits for the reply (`store_op`). Nothing is shared, so there is
+// no lock to nest, poison or forget, and no cell can be read half-applied.
+struct BookCell {
+    meta: HashMap<String, Value>,
+    cache: Vec<Value>,
+}
+
+impl Default for BookCell {
+    fn default() -> Self {
+        BookCell { meta: HashMap::new(), cache: Vec::new() }
+    }
+}
+
+#[derive(Default)]
+struct WsStateStore {
+    caches: HashMap<i64, HashMap<String, Value>>,
+    books: HashMap<i64, BookCell>,
+    sides: HashMap<i64, SideCell>,
+    last_cache_id: i64,
+    last_book_id: i64,
+    last_side_id: i64,
+}
+
+type StoreJob = Box<dyn FnOnce(&mut WsStateStore) + Send + 'static>;
+
+// Marks the owner thread while a job runs: a job that calls back into the
+// store would wait on its own reply forever, so `store_op` turns that into a
+// panic instead of a hang.
+thread_local! {
+    static IN_STORE_JOB: std::cell::Cell<bool> = std::cell::Cell::new(false);
+}
+
+struct InStoreJob;
+
+impl InStoreJob {
+    fn enter() -> Self {
+        IN_STORE_JOB.with(|f| f.set(true));
+        InStoreJob
+    }
+}
+
+impl Drop for InStoreJob {
+    fn drop(&mut self) { IN_STORE_JOB.with(|f| f.set(false)); }
+}
+
+static STORE_TX: std::sync::LazyLock<tokio::sync::mpsc::UnboundedSender<StoreJob>> =
+    std::sync::LazyLock::new(|| {
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<StoreJob>();
+        std::thread::Builder::new()
+            .name("ccxt-ws-store".to_string())
+            .spawn(move || {
+                let mut store = WsStateStore::default();
+                while let Some(job) = rx.blocking_recv() {
+                    let _in_job = InStoreJob::enter();
+                    job(&mut store);
+                }
+            })
+            .expect("ccxt: cannot start the WS state store owner");
+        tx
+    });
+
+/// Hand `f` to the store's owner thread and return its result. The owner runs
+/// only store jobs; a job that calls back into the store would wait on itself,
+/// so that case panics rather than deadlocking.
+fn store_op<R, F>(f: F) -> R
+where
+    R: Send + 'static,
+    F: FnOnce(&mut WsStateStore) -> R + Send + 'static,
+{
+    if IN_STORE_JOB.with(|flag| flag.get()) {
+        panic!("ccxt: WS state store job called back into the store (would deadlock)");
+    }
+    let (tx, rx) = std::sync::mpsc::sync_channel::<Result<R, Box<dyn std::any::Any + Send>>>(1);
+    let job: StoreJob = Box::new(move |store: &mut WsStateStore| {
+        let _ = tx.send(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(store))));
+    });
+    if STORE_TX.send(job).is_err() {
+        panic!("ccxt: WS state store owner is gone");
+    }
+    match rx.recv() {
+        Ok(Ok(v)) => v,
+        Ok(Err(payload)) => std::panic::resume_unwind(payload),
+        Err(_) => panic!("ccxt: WS state store owner dropped the reply"),
+    }
+}
+
+// ── Owner thread: one writer, channel hand-off ──────────────────────────────
+// State several tasks must reach but that no lock may guard at a use site: one
+// plain thread owns it, callers hand it a job and wait for the reply. Nothing is
+// shared, so there is no lock to nest, poison or forget, and no reader can see
+// the state half-applied.
+pub(crate) type OwnerJob<S> = Box<dyn FnOnce(&mut S) + Send + 'static>;
+
+pub(crate) struct OwnerThread<S> {
+    tx: tokio::sync::mpsc::UnboundedSender<OwnerJob<S>>,
+    owner: std::sync::OnceLock<std::thread::ThreadId>,
+}
+
+impl<S: Send + 'static> OwnerThread<S> {
+    pub(crate) fn spawn(name: &str, init: S) -> Self {
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<OwnerJob<S>>();
+        let handle = std::thread::Builder::new()
+            .name(name.to_string())
+            .spawn(move || {
+                let mut state = init;
+                while let Some(job) = rx.blocking_recv() { job(&mut state); }
+            })
+            .expect("ccxt: cannot start an owner thread");
+        let owner = std::sync::OnceLock::new();
+        let _ = owner.set(handle.thread().id());
+        OwnerThread { tx, owner }
+    }
+
+    /// Runs `f` on the owner and returns its result. A job that calls back into
+    /// its own owner would wait on itself, so that panics instead of hanging.
+    pub(crate) fn run<R, F>(&self, f: F) -> R
+    where R: Send + 'static, F: FnOnce(&mut S) -> R + Send + 'static {
+        if self.owner.get() == Some(&std::thread::current().id()) {
+            panic!("ccxt: owner-thread job called back into its own state (would deadlock)");
+        }
+        let (tx, rx) = std::sync::mpsc::sync_channel::<std::thread::Result<R>>(1);
+        self.tx.send(Box::new(move |state: &mut S| {
+            let _ = tx.send(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(state))));
+        })).unwrap_or_else(|_| panic!("ccxt: owner thread is gone"));
+        match rx.recv() {
+            Ok(Ok(v)) => v,
+            Ok(Err(payload)) => std::panic::resume_unwind(payload),
+            Err(_) => panic!("ccxt: owner thread dropped the reply"),
+        }
+    }
+
+    /// Hands `f` over without waiting; a no-op once the owner is gone.
+    pub(crate) fn post<F>(&self, f: F)
+    where F: FnOnce(&mut S) + Send + 'static {
+        let _ = self.tx.send(Box::new(f));
+    }
+}
 
 /// Register a cache's initial mutable state, returning its shared id.
 pub(crate) fn alloc_cache_id(initial: HashMap<String, Value>) -> i64 {
-    let id = NEXT_CACHE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    CACHE_STORE.lock().unwrap().insert(id, initial);
-    id
+    store_op(move |s| {
+        s.last_cache_id += 1;
+        let id = s.last_cache_id;
+        s.caches.insert(id, initial);
+        id
+    })
 }
 
 fn cache_id_of(v: &Value) -> Option<i64> {
@@ -1126,10 +1568,11 @@ fn cache_id_of_m(m: &HashMap<String, Value>) -> Option<i64> {
     match m.get("__cache_id") { Some(Value::Int(n)) => Some(*n), _ => None }
 }
 
-fn with_cache_cell<R>(id: i64, f: impl FnOnce(&mut HashMap<String, Value>) -> R) -> R {
-    let mut g = CACHE_STORE.lock().unwrap();
-    let cell = g.entry(id).or_insert_with(HashMap::new);
-    f(cell)
+fn with_cache_cell<R>(id: i64, f: impl FnOnce(&mut HashMap<String, Value>) -> R + Send + 'static) -> R
+where
+    R: Send + 'static,
+{
+    store_op(move |s| f(s.caches.entry(id).or_default()))
 }
 
 /// Snapshot a cache marker's rolling buffer (from the shared cell if it carries
@@ -1153,7 +1596,7 @@ fn cache_len_of(m: &HashMap<String, Value>) -> usize {
 
 fn cache_at(m: &HashMap<String, Value>, i: usize) -> Value {
     if let Some(id) = cache_id_of_m(m) {
-        return with_cache_cell(id, |c| match c.get("_data") {
+        return with_cache_cell(id, move |c| match c.get("_data") {
             Some(Value::Arr(a)) => a.get(i).cloned().unwrap_or(Value::Null),
             _ => Value::Null,
         });
@@ -1170,7 +1613,7 @@ pub(crate) fn cache_append(target: &mut Value, item: Value) {
     let kind = cache_kind(target).unwrap_or_default();
     let cap = cache_max_size(target);
     if let Some(id) = cache_id_of(target) {
-        with_cache_cell(id, |m| cache_append_inner(m, &kind, cap, item));
+        with_cache_cell(id, move |m| cache_append_inner(m, &kind, cap, item));
     } else if let Value::Dict(m_arc) = target {
         let m = Arc::make_mut(m_arc);
         cache_append_inner(m, &kind, cap, item);
@@ -1389,10 +1832,11 @@ fn cache_append_inner(m: &mut HashMap<String, Value>, kind: &str, cap: Option<us
 }
 
 
-pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -> Value {
+pub(crate) fn cache_get_limit(target: &mut Value, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
     let kind = cache_kind(target).unwrap_or_default();
+    let symbol: Option<String> = symbol.map(String::from);
     if let Some(id) = cache_id_of(target) {
-        return with_cache_cell(id, |m| cache_get_limit_inner(m, &kind, symbol, limit));
+        return with_cache_cell(id, move |m| cache_get_limit_inner(m, &kind, symbol, limit));
     }
     if let Value::Dict(m_arc) = target {
         let m = Arc::make_mut(m_arc);
@@ -1406,40 +1850,33 @@ pub(crate) fn cache_get_limit(target: &mut Value, symbol: Value, limit: Value) -
 // symbol scope and arms its clear; `undefined` (Null) polls the global scope.
 // The count is `undefined` only when the key was never seen — then the caller's
 // `limit` passes through unclamped.
-fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Value, limit: Value) -> Value {
-    {
-        // `ArrayCacheByTimestamp` doesn't track per-symbol updates —
-        // both `getLimit(undefined, …)` and `getLimit(sym, …)` return
-        // `this.newUpdates` and arm a single global `clearUpdates` flag.
-        if kind == "ArrayCacheByTimestamp" {
-            let v = cache_int_field(m, "_newUpdates");
-            cache_set_bool(m, "_clearUpdates", true);
-            return match limit {
-                Value::Int(l) => Value::Int(v.min(l)),
-                _             => Value::Int(v),
+fn cache_get_limit_inner(m: &mut HashMap<String, Value>, kind: &str, symbol: Option<String>, limit: Option<i64>) -> Option<i64> {
+    // `ArrayCacheByTimestamp` doesn't track per-symbol updates: both scopes
+    // return `this.newUpdates` and arm a single global `clearUpdates` flag.
+    if kind == "ArrayCacheByTimestamp" {
+        let v = cache_int_field(m, "_newUpdates");
+        cache_set_bool(m, "_clearUpdates", true);
+        return Some(match limit { Some(l) => v.min(l), None => v });
+    }
+    let new_updates_value: Option<i64> = match &symbol {
+        None => {
+            cache_set_bool(m, "_clearAllUpdates", true);
+            Some(cache_int_field(m, "_allNewUpdates"))
+        }
+        Some(sym) => {
+            let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_str()) {
+                Some(Value::Int(n)) => Some(*n),
+                _ => None,
             };
+            cache_dict_field_mut(m, "_clearUpdatesBySymbol")
+                .insert(sym.clone(), Value::Bool(true));
+            v
         }
-        let new_updates_value: Option<i64> = match &symbol {
-            Value::Null => {
-                cache_set_bool(m, "_clearAllUpdates", true);
-                Some(cache_int_field(m, "_allNewUpdates"))
-            }
-            Value::Str(sym) => {
-                let v = match cache_dict_field_mut(m, "_newUpdatesBySymbol").get(sym.as_ref()) {
-                    Some(Value::Int(n)) => Some(*n),
-                    _ => None,
-                };
-                cache_dict_field_mut(m, "_clearUpdatesBySymbol")
-                    .insert(sym.to_string(), Value::Bool(true));
-                v
-            }
-            _ => None,
-        };
-        match (new_updates_value, &limit) {
-            (None,    _)              => limit.clone(),
-            (Some(v), Value::Int(l))  => Value::Int(v.min(*l)),
-            (Some(v), _)              => Value::Int(v),
-        }
+    };
+    match (new_updates_value, limit) {
+        (None,    _)       => limit,
+        (Some(v), Some(l)) => Some(v.min(l)),
+        (Some(v), None)    => Some(v),
     }
 }
 
@@ -1460,6 +1897,9 @@ fn as_f64(v: &Value) -> f64 {
     }
 }
 
+/// Whether `v` is an order-book marker (carries `__bookKind`).
+pub(crate) fn book_kind_of(v: &Value) -> bool { book_kind(v).is_some() }
+
 fn book_kind(v: &Value) -> Option<String> {
     match v { Value::Dict(d) => match d.get("__bookKind") {
         Some(Value::Str(s)) => Some(s.to_string()), _ => None,
@@ -1475,9 +1915,6 @@ fn book_kind(v: &Value) -> Option<String> {
 // check reads the book's `nonce`, written inside `handle_order_book_message` on
 // a clone. These fields live in a store keyed by a stable `__book_id`; bids/asks
 // stay in the Dict (their entries are already shared via `__side_id`).
-static BOOK_META: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, HashMap<String, Value>>>> =
-    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
-static NEXT_BOOK_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
 
 /// Scalar book fields that live in the shared meta store (not the Dict).
 fn is_book_meta_key(k: &str) -> bool {
@@ -1485,9 +1922,12 @@ fn is_book_meta_key(k: &str) -> bool {
 }
 
 pub(crate) fn alloc_book_id() -> i64 {
-    let id = NEXT_BOOK_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    BOOK_META.lock().unwrap().insert(id, HashMap::new());
-    id
+    store_op(|s| {
+        s.last_book_id += 1;
+        let id = s.last_book_id;
+        s.books.entry(id).or_default();
+        id
+    })
 }
 
 fn book_id_of(m: &HashMap<String, Value>) -> Option<i64> {
@@ -1495,18 +1935,23 @@ fn book_id_of(m: &HashMap<String, Value>) -> Option<i64> {
 }
 
 fn book_meta_get(id: i64, k: &str) -> Value {
-    BOOK_META.lock().unwrap().get(&id).and_then(|m| m.get(k).cloned()).unwrap_or(Value::Null)
+    let k = k.to_string();
+    store_op(move |s| {
+        s.books.get(&id).and_then(|b| b.meta.get(&k).cloned()).unwrap_or(Value::Null)
+    })
 }
 
 pub(crate) fn book_meta_set(id: i64, k: &str, v: Value) {
-    let mut g = BOOK_META.lock().unwrap();
-    g.entry(id).or_default().insert(k.to_string(), v);
+    let k = k.to_string();
+    store_op(move |s| { s.books.entry(id).or_default().meta.insert(k, v); });
 }
 
 fn book_meta_snapshot(id: i64) -> Vec<(String, Value)> {
-    BOOK_META.lock().unwrap().get(&id)
-        .map(|m| m.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
-        .unwrap_or_default()
+    store_op(move |s| {
+        s.books.get(&id)
+            .map(|b| b.meta.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+            .unwrap_or_default()
+    })
 }
 
 // A JS `OrderBook` also carries a mutable `cache` array — venues that fetch a
@@ -1516,8 +1961,6 @@ fn book_meta_snapshot(id: i64) -> Vec<(String, Value)> {
 // `append_to_array(get_value(&book, "cache"), msg)`, and get_value returns a COW
 // clone. So `get_value(book, "cache")` returns a lightweight handle carrying
 // `__book_cache_id`, and length/index/append/clear route through this store.
-static BOOK_CACHE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, Vec<Value>>>> =
-    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
 
 /// Build a cache handle for a book id (returned by `get_value(book, "cache")`).
 fn book_cache_handle(id: i64) -> Value {
@@ -1531,11 +1974,11 @@ fn book_cache_id_of(m: &HashMap<String, Value>) -> Option<i64> {
 }
 
 pub(crate) fn book_cache_push(id: i64, v: Value) {
-    BOOK_CACHE.lock().unwrap().entry(id).or_default().push(v);
+    store_op(move |s| { s.books.entry(id).or_default().cache.push(v); });
 }
 
 fn book_cache_len(id: i64) -> usize {
-    BOOK_CACHE.lock().unwrap().get(&id).map(|c| c.len()).unwrap_or(0)
+    store_op(move |s| s.books.get(&id).map(|b| b.cache.len()).unwrap_or(0))
 }
 
 /// Length of a cache handle Dict's backing store, or None if `m` isn't a handle.
@@ -1584,12 +2027,12 @@ pub(crate) fn try_book_cache_push(obj: &Value, v: &Value) -> bool {
 }
 
 fn book_cache_at(id: i64, i: usize) -> Value {
-    BOOK_CACHE.lock().unwrap().get(&id).and_then(|c| c.get(i).cloned()).unwrap_or(Value::Null)
+    store_op(move |s| s.books.get(&id).and_then(|b| b.cache.get(i).cloned()).unwrap_or(Value::Null))
 }
 
 /// Replace a book's cache contents (from `book.cache = [...]`, usually to clear).
 pub(crate) fn book_cache_set(id: i64, items: Vec<Value>) {
-    BOOK_CACHE.lock().unwrap().insert(id, items);
+    store_op(move |s| { s.books.entry(id).or_default().cache = items; });
 }
 
 /// Snapshot a WS cache's rolling buffer as a plain array. Handles both the
@@ -1601,7 +2044,7 @@ pub(crate) fn book_cache_set(id: i64, items: Vec<Value>) {
 pub fn cache_entries_as_value(v: &Value) -> Option<Value> {
     if let Value::Dict(m) = v {
         if let Some(id) = book_cache_id_of(m) {
-            let items = BOOK_CACHE.lock().unwrap().get(&id).cloned().unwrap_or_default();
+            let items = store_op(move |s| s.books.get(&id).map(|b| b.cache.clone()).unwrap_or_default());
             return Some(Value::Array(items));
         }
         if m.contains_key("__cacheKind") {
@@ -1636,9 +2079,7 @@ pub fn book_fields_as_value(v: &Value) -> Option<Value> {
             let mut out: HashMap<String, Value> = (**d).clone();
             out.shift_remove("__book_id");
             if let Some(Value::Int(id)) = d.get("__book_id") {
-                if let Some(meta) = BOOK_META.lock().unwrap().get(id) {
-                    for (k, val) in meta.iter() { out.insert(k.clone(), val.clone()); }
-                }
+                for (k, val) in book_meta_snapshot(*id) { out.insert(k, val); }
             }
             Some(Value::Dict(Arc::new(out)))
         }
@@ -1667,29 +2108,31 @@ struct Level {
     price: f64,   // raw price; the sort key (bids sort on -price)
     entry: Value, // the full [price, amount, …] level as delivered
 }
+#[derive(Default)]
 struct SideCell {
     entries: Vec<Level>,
     hashmap: HashMap<String, Value>,
 }
 
-static SIDE_STORE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, SideCell>>> =
-    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
-static NEXT_SIDE_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
 
 /// Allocate a fresh, empty side cell and return its id.
 fn alloc_side_id() -> i64 {
-    let id = NEXT_SIDE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    SIDE_STORE.lock().unwrap().insert(id, SideCell { entries: Vec::new(), hashmap: HashMap::new() });
-    id
+    store_op(|s| {
+        s.last_side_id += 1;
+        let id = s.last_side_id;
+        s.sides.insert(id, SideCell::default());
+        id
+    })
 }
 
 /// Clear (but keep) an existing side cell — used on reset so the id stays
 /// stable across reseeds instead of leaking a new cell each time.
 fn clear_side_cell(id: i64) {
-    let mut g = SIDE_STORE.lock().unwrap();
-    let cell = g.entry(id).or_insert_with(|| SideCell { entries: Vec::new(), hashmap: HashMap::new() });
-    cell.entries.clear();
-    cell.hashmap.clear();
+    store_op(move |s| {
+        let cell = s.sides.entry(id).or_default();
+        cell.entries.clear();
+        cell.hashmap.clear();
+    });
 }
 
 fn side_id_of(m: &HashMap<String, Value>) -> Option<i64> {
@@ -1699,8 +2142,8 @@ fn side_id_of(m: &HashMap<String, Value>) -> Option<i64> {
 /// Snapshot a side's entries (clone) — for read paths (indexing, length, JSON).
 fn side_entries_view(m: &HashMap<String, Value>) -> Vec<Value> {
     match side_id_of(m) {
-        Some(id) => SIDE_STORE.lock().unwrap().get(&id)
-            .map(|c| c.entries.iter().map(|l| l.entry.clone()).collect()).unwrap_or_default(),
+        Some(id) => store_op(move |s| s.sides.get(&id)
+            .map(|c| c.entries.iter().map(|l| l.entry.clone()).collect()).unwrap_or_default()),
         // Legacy fallback: a side Dict that still carries an inline `_entries`.
         None => match m.get("_entries") { Some(Value::Arr(a)) => a.as_ref().clone(), _ => Vec::new() },
     }
@@ -1708,8 +2151,8 @@ fn side_entries_view(m: &HashMap<String, Value>) -> Vec<Value> {
 
 fn side_entry_at(m: &HashMap<String, Value>, i: usize) -> Value {
     match side_id_of(m) {
-        Some(id) => SIDE_STORE.lock().unwrap().get(&id)
-            .and_then(|c| c.entries.get(i).map(|l| l.entry.clone())).unwrap_or(Value::Null),
+        Some(id) => store_op(move |s| s.sides.get(&id)
+            .and_then(|c| c.entries.get(i).map(|l| l.entry.clone())).unwrap_or(Value::Null)),
         None => match m.get("_entries") {
             Some(Value::Arr(a)) => a.get(i).cloned().unwrap_or(Value::Null), _ => Value::Null },
     }
@@ -1717,18 +2160,19 @@ fn side_entry_at(m: &HashMap<String, Value>, i: usize) -> Value {
 
 pub(crate) fn side_entries_len(m: &HashMap<String, Value>) -> usize {
     match side_id_of(m) {
-        Some(id) => SIDE_STORE.lock().unwrap().get(&id).map(|c| c.entries.len()).unwrap_or(0),
+        Some(id) => store_op(move |s| s.sides.get(&id).map(|c| c.entries.len()).unwrap_or(0)),
         None => match m.get("_entries") { Some(Value::Arr(a)) => a.len(), _ => 0 },
     }
 }
 
-/// Mutate a side's cell (entries + hashmap) under the store lock. No-op if the
-/// side carries no `__side_id`.
-fn with_side_cell<R>(m: &HashMap<String, Value>, f: impl FnOnce(&mut SideCell) -> R) -> Option<R> {
+/// Hand `f` the side's cell on the store's owner thread. No-op if the side
+/// carries no `__side_id`.
+fn with_side_cell<R>(m: &HashMap<String, Value>, f: impl FnOnce(&mut SideCell) -> R + Send + 'static) -> Option<R>
+where
+    R: Send + 'static,
+{
     let id = side_id_of(m)?;
-    let mut g = SIDE_STORE.lock().unwrap();
-    let cell = g.entry(id).or_insert_with(|| SideCell { entries: Vec::new(), hashmap: HashMap::new() });
-    Some(f(cell))
+    Some(store_op(move |s| f(s.sides.entry(id).or_default())))
 }
 
 /// Public: snapshot a side marker's entries as a `Value` array, or `None` when
@@ -1770,10 +2214,10 @@ pub fn side_price_amounts(v: &Value) -> Option<Vec<[f64; 2]>> {
         _ => return None,
     };
     let out = match side_id_of(d) {
-        Some(id) => match SIDE_STORE.lock().unwrap().get(&id) {
+        Some(id) => store_op(move |s| match s.sides.get(&id) {
             Some(cell) => cell.entries.iter().filter_map(|l| row_price_amount(&l.entry)).collect(),
             None => Vec::new(),
-        },
+        }),
         None => match d.get("_entries") {
             Some(Value::Arr(a)) => a.iter().filter_map(row_price_amount).collect(),
             _ => Vec::new(),
@@ -1850,7 +2294,7 @@ fn side_store_array(side: &Value, delta: Value) {
     let kind = side_kind(side).unwrap_or_default();
     let m = match side { Value::Dict(d) => d.as_ref(), _ => return };
     let is_bid = side_is_bid(m);
-    with_side_cell(m, |cell| {
+    with_side_cell(m, move |cell| {
     match kind.as_str() {
         "OrderBookSide" => {
             let price = delta_field(&delta, 0, as_f64, 0.0);
@@ -1974,7 +2418,7 @@ fn side_store_array(side: &Value, delta: Value) {
 fn side_limit(side: &Value) {
     let m = match side { Value::Dict(d) => d.as_ref(), _ => return };
     let depth = side_depth(m);
-    with_side_cell(m, |cell| {
+    with_side_cell(m, move |cell| {
         if cell.entries.len() > depth { cell.entries.truncate(depth); }
     });
 }
@@ -2082,6 +2526,21 @@ pub(crate) fn book_store_array_side(book: &mut Value, side_key: &str, delta: Val
 // ─── Value method API exposed to the transpiled tests ─────────────────────
 
 impl Value {
+    /// `book.timestamp|datetime|nonce|symbol = v` — the shared-store write for a
+    /// tagged book, else the generic element write (same result as the helper).
+    pub fn set_book_meta(&mut self, k: &str, v: Value) {
+        if let Value::Dict(m) = &*self {
+            if try_book_meta_write(m, k, &v) { return; }
+        }
+        crate::runtime::add_element_to_object(self, &Value::Str(k.to_string().into()), v);
+    }
+
+    /// `book['bids'|'asks'|'nonce'|...]` read on an order-book-typed local: the same
+    /// shared-store lookup `get_value` does for these keys, without the boxed key.
+    pub fn book_field(&self, k: &str) -> Value {
+        get_value_k(self, k)
+    }
+
     /// `book.limit()` — trim both sides to `_depth`. Returns a clone
     /// of `self` so transpiled `return book.limit();` lines still
     /// match the `-> Value` signature.
@@ -2122,9 +2581,9 @@ impl Value {
     /// `side.store(price, size)` — convenience that builds a 2-element
     /// delta. Routed through the side's `store_array`. Only useful on a
     /// side marker (returned by `book['bids']`), not the book itself.
-    pub fn store(&mut self, price: Value, size: Value) {
+    pub fn store(&mut self, price: impl Into<Value>, size: impl Into<Value>) {
         if side_kind(self).is_some() {
-            let delta = Value::List(vec![price, size]);
+            let delta = Value::List(vec![price.into(), size.into()]);
             side_store_array(self, delta);
         }
     }
@@ -2133,12 +2592,12 @@ impl Value {
     /// patterns (`let bids = book['bids']; bids.X(...)`) into calls on
     /// these methods so the mutation reaches the book's actual side
     /// dict rather than a COW-cloned copy of it.
-    pub fn store_to_bids(&mut self, price: Value, size: Value) {
-        let delta = Value::List(vec![price, size]);
+    pub fn store_to_bids(&mut self, price: impl Into<Value>, size: impl Into<Value>) {
+        let delta = Value::List(vec![price.into(), size.into()]);
         book_store_array_side(self, "bids", delta);
     }
-    pub fn store_to_asks(&mut self, price: Value, size: Value) {
-        let delta = Value::List(vec![price, size]);
+    pub fn store_to_asks(&mut self, price: impl Into<Value>, size: impl Into<Value>) {
+        let delta = Value::List(vec![price.into(), size.into()]);
         book_store_array_side(self, "asks", delta);
     }
     pub fn store_array_to_bids(&mut self, delta: Value) {
@@ -2146,6 +2605,23 @@ impl Value {
     }
     pub fn store_array_to_asks(&mut self, delta: Value) {
         book_store_array_side(self, "asks", delta);
+    }
+}
+
+#[cfg(test)]
+mod as_text_tests {
+    use super::*;
+    #[test]
+    fn string_slot_reads_strings_and_numbers_as_text() {
+        let table: [(Value, Option<&str>); 6] = [
+            (Value::from("abc"), Some("abc")),
+            (Value::Int(12345678), Some("12345678")),
+            (Value::Float(7.0), Some("7")),
+            (Value::Float(1.5), Some("1.5")),
+            (Value::Null, None),
+            (Value::Bool(true), None),
+        ];
+        for (v, want) in table.iter() { assert_eq!(v.as_text().as_deref(), *want); }
     }
 }
 
@@ -2194,5 +2670,494 @@ mod value_len_tests {
         m.insert("a".to_string(), Value::Int(1));
         m.insert("b".to_string(), Value::Int(2));
         assert_eq!(Value::Dict(Arc::new(m)).len(), 2);
+    }
+
+    #[test]
+    fn store_serves_concurrent_writers_over_the_channel() {
+        // Every mutation is a job on the store's owner thread; concurrent
+        // callers must neither lose a write nor deadlock on each other.
+        let id = alloc_book_id();
+        let mut hs = Vec::new();
+        for _ in 0..4 {
+            hs.push(std::thread::spawn(move || {
+                for i in 0..64i64 { book_cache_push(id, Value::Int(i)); }
+            }));
+        }
+        for h in hs { h.join().unwrap(); }
+        assert_eq!(book_cache_len(id), 256);
+    }
+
+    #[test]
+    fn store_panic_reaches_the_caller_and_leaves_the_owner_alive() {
+        let hit = std::panic::catch_unwind(|| {
+            let _: () = store_op(|_s: &mut WsStateStore| panic!("boom"));
+        })
+        .is_err();
+        assert!(hit);
+        // The owner catches job panics, so a dead store must not follow.
+        let id = alloc_book_id();
+        book_cache_push(id, Value::Int(1));
+        assert_eq!(book_cache_len(id), 1);
+    }
+
+    #[test]
+    fn nested_store_op_panics_instead_of_deadlocking() {
+        // A job must not re-enter the store: the owner would wait on itself.
+        let hit = std::panic::catch_unwind(|| {
+            store_op(|_s: &mut WsStateStore| { let _ = alloc_book_id(); });
+        })
+        .is_err();
+        assert!(hit);
+        // The owner survives the rejected nesting and keeps serving.
+        let id = alloc_book_id();
+        book_cache_push(id, Value::Int(7));
+        assert_eq!(book_cache_len(id), 1);
+    }
+}
+
+#[cfg(test)]
+mod list_alias_parity_tests {
+    // Typed list-alias forms (ral-tf / ral-uf printers) against the `Value` forms they replace; each source is built twice.
+    use super::*;
+    // the runtime push the boxed form printed, called under a local name (no generated call site)
+    use crate::runtime::append_to_array as boxed_push;
+
+    fn rows() -> Vec<Value> { vec![Value::Int(1), Value::Str("a".into()), Value::Null] }
+    fn opt(k: u8) -> Option<List> { match k { 0 => Some(Arc::new(rows())), 1 => Some(Arc::new(Vec::new())), _ => None } }
+    fn src(k: u8) -> Value {
+        match k { 0 => Value::from(rows()), 1 => Value::from(vec![]), 2 => Value::Null, 3 => Value::Str("x".into()), _ => Value::Dict(Arc::new(HashMap::new())) }
+    }
+    fn same(typed: &List, boxed: &Value) {
+        assert_eq!(&Value::Arr(Arc::new(typed.to_vec())), boxed);
+        assert_eq!(typed.len(), boxed.len());
+        for i in 0..4 { assert_eq!(typed.read(&Value::Int(i)), boxed.read(&Value::Int(i))); }
+    }
+
+    #[test]
+    fn opt_list_guarded_move_matches_value_alias() {
+        for k in 0..3u8 {
+            let mut boxed: Value = Value::from(vec![]);
+            if opt(k).is_some() { boxed = opt(k).map_or(Value::Null, Value::Arr); }
+            let mut typed: List = Arc::new(Vec::new());
+            if opt(k).is_some() { typed = opt(k).unwrap_or_default(); }
+            same(&typed, &boxed);
+        }
+    }
+
+    #[test]
+    fn opt_list_none_boxes_to_exactly_null() {
+        assert!(matches!(opt(2).map_or(Value::Null, Value::Arr), Value::Null));
+        assert_eq!(opt(0).map_or(Value::Null, Value::Arr), Value::from(rows()));
+    }
+
+    #[test]
+    fn array_guarded_and_defaulted_into_list_match_value_alias() {
+        for k in 0..5u8 {
+            let guarded = matches!(src(k), Value::Arr(_));
+            let mut boxed: Value = Value::from(vec![]);
+            let mut typed: List = Arc::new(Vec::new());
+            if guarded { boxed = src(k); typed = src(k).into_list(); } else { boxed_push(&mut boxed, src(k)); Arc::make_mut(&mut typed).push(src(k)); }
+            same(&typed, &boxed);
+        }
+        assert_eq!(Value::Arr(src(0).into_list()), src(0));
+    }
+}
+
+#[cfg(test)]
+mod self_write_read_parity_tests {
+    // ral-wf: the native read of a literal map at a proven-string key (`m.get(k).cloned()`) against the runtime read.
+    use super::*;
+    use crate::value::get_value as boxed_read;
+    use crate::runtime::add_element_to_object as boxed_write;
+
+    fn literal() -> HashMap<String, Value> {
+        let mut m = HashMap::new();
+        m.insert("info".to_string(), Value::Null);
+        m.insert("BTC".to_string(), Value::Str("x".into()));
+        m.insert("n".to_string(), Value::Int(3));
+        m
+    }
+
+    #[test]
+    fn native_get_matches_runtime_read_for_present_missing_and_wrong_kind() {
+        for key in ["BTC", "n", "info", "ETH", ""] {
+            let k = Value::Str(key.into());
+            let typed = literal();
+            let boxed = Value::Dict(Arc::new(literal()));
+            let native = typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            assert_eq!(native, boxed_read(&boxed, &k));
+        }
+    }
+
+    #[test]
+    fn native_insert_after_read_matches_runtime_write() {
+        let k = Value::Str("BTC".into());
+        let mut typed = literal();
+        let mut boxed = Value::Dict(Arc::new(literal()));
+        let read = typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+        typed.insert("BTC".to_string(), read);
+        let again = boxed_read(&boxed, &k);
+        boxed_write(&mut boxed, &k, again);
+        assert_eq!(Value::Dict(Arc::new(typed)), boxed);
+    }
+
+    // ral-xf: `let e = m.get(k..)..; <push on e>; if let Some(__k) = k.as_str() { m.insert(__k.to_string(), e) }` (the
+    // write-back of a typed literal map) against the runtime read + `set_value` write-back, for a present list, a missing
+    // key, a wrong-kind value and Null / Int keys.
+    #[test]
+    fn typed_write_back_matches_runtime_set_value() {
+        use crate::value::set_value as boxed_write_back;
+        let keys = [Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("n".into()), Value::Null, Value::Int(1)];
+        for k in keys {
+            let mut typed = literal();
+            typed.insert("BTC".to_string(), Value::from(vec![Value::Int(1)]));
+            let mut boxed = Value::Dict(Arc::new(literal()));
+            boxed_write(&mut boxed, &Value::Str("BTC".into()), Value::from(vec![Value::Int(1)]));
+            let mut e = typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            if let Value::Arr(__a) = &mut e { Arc::make_mut(__a).push(Value::Int(2)); }
+            if let Some(__k) = k.as_str() { typed.insert(__k.to_string(), e); }
+            let mut b = boxed_read(&boxed, &k);
+            if let Value::Arr(__a) = &mut b { Arc::make_mut(__a).push(Value::Int(2)); }
+            boxed_write_back(&mut boxed, &k, b);
+            assert_eq!(Value::Dict(Arc::new(typed)), boxed);
+        }
+    }
+
+    // ral-xf: `m[k].push(v)` on a literal map (`if let Some(__k) = k.as_str() { if let Value::Arr(__a) =
+    // m.entry(..).or_insert_with(empty) { push } }`) against append_to_object_array, and a `symbol` key read / write
+    // against get_value / add_element_to_object (no __book_id in a literal), for a present list, a missing key, a
+    // wrong-kind (Int) value and Null / Int keys.
+    #[test]
+    fn typed_entry_push_and_symbol_key_match_runtime() {
+        use crate::runtime::append_to_object_array as boxed_push;
+        let keys = [Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("n".into()), Value::Str("symbol".into()), Value::Null, Value::Int(1)];
+        for k in keys {
+            let mut typed = literal();
+            typed.insert("BTC".to_string(), Value::from(vec![Value::Int(1)]));
+            let mut boxed = Value::Dict(Arc::new(literal()));
+            boxed_write(&mut boxed, &Value::Str("BTC".into()), Value::from(vec![Value::Int(1)]));
+            if let Some(__k) = k.as_str() { if let Value::Arr(__a) = typed.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { Arc::make_mut(__a).push(Value::Int(2)); } }
+            boxed_push(&mut boxed, &k, Value::Int(2));
+            assert_eq!(typed.get(k.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), boxed_read(&boxed, &k));
+            assert_eq!(Value::Dict(Arc::new(typed)), boxed);
+        }
+    }
+}
+
+#[cfg(test)]
+mod typed_counter_write_back_tests {
+    // ral-zf: an `i64` loop counter keys the bind and the ccxt write-back as `&Value::Int(i)`; the `Value` counter held
+    // that same `Int`. Same helpers, same key: identical for in-range, out-of-range and negative indexes.
+    use super::*;
+    use crate::runtime::add_element_to_object as boxed_write;
+
+    fn rows() -> Value {
+        let mut m = HashMap::new();
+        m.insert("id".to_string(), Value::Int(1));
+        Value::from(vec![Value::Dict(Arc::new(m)), Value::Int(7), Value::Null])
+    }
+
+    fn tag(rows: &mut Value, key: &Value) {
+        let mut entry = get_value(rows, key);
+        boxed_write(&mut entry, &Value::Str("page".into()), Value::Int(1));
+        set_value(rows, key, entry);
+    }
+
+    #[test]
+    fn typed_counter_key_matches_value_counter() {
+        for n in [0i64, 1, 2, 3, 99, -1, i64::MIN] {
+            let counter = Value::Int(n);
+            let mut boxed = rows();
+            tag(&mut boxed, &counter);
+            let mut typed = rows();
+            tag(&mut typed, &Value::Int(n));
+            assert_eq!(typed, boxed);
+        }
+    }
+}
+
+#[cfg(test)]
+mod nested_slot_insert_tests {
+    // ral-40f: `p['params']['k'] = v` on a typed params slot takes the first hop in place on the `Dict`
+    // (`entry(..).or_insert(Value::Null)`), the write stays `add_element_to_object`; the `Value` local printed
+    // `add_element_to_object(get_value_mut(&mut p, "params"), "k", v)`. Same map for a missing inner key, a `Null`
+    // inner, a wrong-kind inner and a map inner.
+    use super::*;
+    use crate::runtime::{add_element_to_object as boxed_write, get_value_mut as boxed_hop};
+
+    fn slot(inner: Option<Value>) -> Dict {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        if let Some(v) = inner { m.insert("params".to_string(), v); }
+        Arc::new(m)
+    }
+
+    fn typed(mut p: Dict, v: Value) -> Dict {
+        boxed_write(std::sync::Arc::make_mut(&mut p).entry("params".to_string()).or_insert(Value::Null), &Value::Str("k".into()), v);
+        p
+    }
+
+    fn boxed(p: Dict, v: Value) -> Value {
+        let mut b = Value::Dict(p);
+        boxed_write(boxed_hop(&mut b, &Value::Str("params".into())), &Value::Str("k".into()), v);
+        b
+    }
+
+    fn inner(n: usize) -> Option<Value> {
+        match n { 0 => None, 1 => Some(Value::Null), 2 => Some(Value::Int(5)), 3 => Some(Value::Str("s".into())), 4 => Some(Value::from(vec![Value::Int(1)])), _ => Some(Value::Dict(slot(None))) }
+    }
+
+    #[test]
+    fn typed_nested_insert_matches_helper_chain() {
+        for n in 0..6 {
+            assert_eq!(Value::Dict(typed(slot(inner(n)), Value::Str("v".into()))), boxed(slot(inner(n)), Value::Str("v".into())));
+        }
+    }
+}
+
+#[cfg(test)]
+mod into_opt_string_tests {
+    use super::*;
+
+    // each case is built twice (one copy read by `as_str`, one moved into `into_opt_string`)
+    fn case(k: u8) -> Value {
+        match k {
+            0 => Value::Null, 1 => Value::Bool(true), 2 => Value::Bool(false), 3 => Value::Int(0), 4 => Value::Int(7), 5 => Value::Float(1.5),
+            6 => Value::Str("".into()), 7 => Value::Str("lit".into()), 8 => Value::Str(Cow::Owned("owned".to_string())),
+            9 => Value::Map(HashMap::new()), _ => Value::List(vec![Value::Str("x".into())]),
+        }
+    }
+
+    #[test]
+    fn into_opt_string_matches_the_borrowed_string_read() {
+        for k in 0..=10u8 {
+            let read = case(k);
+            let borrowed = read.as_str().map(str::to_owned);
+            assert_eq!(case(k).into_opt_string(), borrowed, "{:?}", read);
+            assert_eq!(Value::from(case(k).into_opt_string()), Value::from(read.as_str()), "{:?}", read);
+        }
+    }
+
+    #[test]
+    fn into_opt_string_moves_an_owned_string() {
+        let s = String::from("BTC/USDT");
+        let at = s.as_ptr();
+        let out = Value::Str(Cow::Owned(s)).into_opt_string().unwrap();
+        assert_eq!(out.as_ptr(), at);
+        assert_eq!(out, "BTC/USDT");
+    }
+}
+
+#[cfg(test)]
+mod live_snapshot_symbols_tests {
+    // ral-40j: a live-test snapshot must read `symbols` off the Core after
+    // `set_markets`; the empty typed list copied by `to_value()` shadowed it
+    // (89 venues failed loadMarkets `symbolsLength > 0` on PR 31136).
+    use super::*;
+    use crate::exchange::{BaseCore, Exchange};
+
+    thread_local! {
+        static CORE_SYMBOLS: std::cell::RefCell<List> = std::cell::RefCell::new(Arc::new(Vec::new()));
+    }
+    fn lookup(_id: &str, key: &str) -> Option<Value> {
+        if key == "symbols" { Some(CORE_SYMBOLS.with(|c| Value::Arr(Arc::clone(&c.borrow())))) } else { None }
+    }
+    fn market(symbol: &str, id: &str) -> Value {
+        let (base, quote) = symbol.split_once('/').unwrap();
+        let mut m = HashMap::new();
+        for (k, v) in [("id", id), ("symbol", symbol), ("base", base), ("quote", quote), ("baseId", base), ("quoteId", quote), ("type", "spot")] {
+            m.insert(k.to_string(), Value::Str(v.to_string().into()));
+        }
+        m.insert("spot".to_string(), Value::Bool(true));
+        Value::Map(m)
+    }
+    // the harness snapshot of a Core: `__live_id`, minus `strip`
+    fn snapshot(core: &BaseCore, strip: &[&str]) -> Value {
+        let mut snap = core.to_value();
+        if let Value::Dict(m) = &mut snap {
+            let m = Arc::make_mut(m);
+            for k in strip { m.shift_remove(*k); }
+            m.insert("__live_id".to_string(), Value::Str("venue".into()));
+        }
+        snap
+    }
+
+    #[test]
+    fn symbols_non_empty_after_set_markets_and_readable_through_live_snapshot() {
+        use crate::exchange_generated::ExchangeBase;
+        set_live_lookup(lookup);
+        let mut core = BaseCore::new(Exchange::new(None));
+        let live = snapshot(&core, LIVE_SNAPSHOT_STRIPPED_KEYS);
+        // the pre-load copy: the typed field is an empty list, not null
+        let stale = snapshot(&core, &[]);
+        assert!(matches!(get_value(&stale, &Value::Str("symbols".into())), Value::Arr(ref a) if a.is_empty()));
+        core.set_markets(Value::List(vec![market("BTC/USDT", "btcusdt"), market("ETH/USDT", "ethusdt")]), &[]);
+        assert_eq!(core.symbols.len(), 2, "set_markets fills the typed symbols list");
+        CORE_SYMBOLS.with(|c| *c.borrow_mut() = Arc::clone(&core.symbols));
+        assert_eq!(get_value(&live, &Value::Str("symbols".into())).len(), 2, "the live snapshot reads the Core's symbols");
+        // a snapshot that kept the pre-load copy still answers the empty list
+        assert_eq!(get_value(&stale, &Value::Str("symbols".into())).len(), 0);
+    }
+}
+
+#[cfg(test)]
+mod opt_dict_merge_operand_tests {
+    use super::*;
+
+    // the optional dict local `x` (None / Some(map)) beside the boxed operand the Value local held for it
+    fn map(k: u8) -> HashMap<String, Value> {
+        let mut m = HashMap::new();
+        if k >= 1 { m.insert("a".to_string(), Value::Int(1)); }
+        if k >= 2 { m.insert("b".to_string(), Value::Null); }
+        m
+    }
+    fn head(k: u8) -> Value {
+        match k { 0 => Value::Null, 1 => Value::Map(HashMap::new()), 2 => Value::Map(map(2)), _ => Value::List(vec![Value::Int(1)]) }
+    }
+    fn merged(op: impl MergeOperands) -> Vec<(String, Value)> {
+        let mut out = Vec::new();
+        op.for_each_map(|m| for (k, v) in m.iter() { out.push((k.to_string(), v.to_owned())) });
+        out
+    }
+
+    #[test]
+    fn none_merges_as_null_and_some_as_its_map() {
+        // None vs Null; Some(empty) / Some(map) vs the boxed map
+        for k in 0..=2u8 {
+            let typed: Option<Dict> = if k == 0 { None } else { Some(Arc::new(map(k - 1))) };
+            let boxed: Value = if k == 0 { Value::Null } else { Value::Map(map(k - 1)) };
+            assert_eq!(merged(&[&typed]), merged(&[boxed]), "case {}", k);
+        }
+    }
+
+    #[test]
+    fn extend_result_is_unchanged_for_every_head() {
+        // wrong-kind peers (Null / list heads) and map heads: `extend` answers the same map either way
+        let ex = |h: Value, op: &[Value]| { let mut out = h.into_head(); op.for_each_map(|m| for (k, v) in m.iter() { out.insert(k.to_string(), v.to_owned()); }); Value::Map(out) };
+        let ex_opt = |h: Value, op: &Option<Dict>| { let mut out = h.into_head(); (&[op]).for_each_map(|m| for (k, v) in m.iter() { out.insert(k.to_string(), v.to_owned()); }); Value::Map(out) };
+        for h in 0..=3u8 {
+            for k in 0..=2u8 {
+                let typed: Option<Dict> = if k == 0 { None } else { Some(Arc::new(map(k))) };
+                let boxed: Value = if k == 0 { Value::Null } else { Value::Map(map(k)) };
+                assert_eq!(ex_opt(head(h), &typed), ex(head(h), &[boxed]), "head {} operand {}", h, k);
+            }
+        }
+    }
+
+    #[test]
+    fn some_is_lent_without_a_copy() {
+        let d: Dict = Arc::new(map(2));
+        let x: Option<Dict> = Some(Arc::clone(&d));
+        let mut seen = std::ptr::null();
+        (&[&x]).for_each_map(|m| seen = m as *const _);
+        assert_eq!(seen, Arc::as_ptr(&d));
+        let mut ops = Vec::new();
+        (&[&x]).for_each_operand(|v| ops.push(v));
+        assert_eq!(ops, vec![Value::Dict(d)]);
+        let none: Option<Dict> = None;
+        let mut nops = Vec::new();
+        (&[&none]).for_each_operand(|v| nops.push(v));
+        assert_eq!(nops, vec![Value::Null]);
+    }
+}
+
+#[cfg(test)]
+mod reader_default_split_tests {
+    // ral-41d: a reader whose default is another reader (or an `i64` / `String` expression) prints that default into a
+    // typed temp first and hands it on as `Value::from(tmp)`. The nested reader answers `Str|Null` (`Int|Null`), so the
+    // native read and the box give back the very `Value` the nested reader handed the outer one before.
+    use super::*;
+
+    fn nested(k: u8) -> Value {
+        match k {
+            0 => Value::Null, 1 => Value::Str("".into()), 2 => Value::Str("l2Vault".into()),
+            3 => Value::Str(Cow::Owned("0xabc".to_string())), 4 => Value::Int(0), 5 => Value::Int(-7), _ => Value::Int(i64::MAX),
+        }
+    }
+
+    #[test]
+    fn typed_temp_boxes_back_to_the_nested_value() {
+        for k in 0..=6u8 {
+            let held = nested(k);
+            let typed = if k < 4 { Value::from(nested(k).as_str().map(str::to_owned)) } else { Value::from(nested(k).as_i64()) };
+            assert_eq!(typed, held, "{:?}", held);
+        }
+    }
+
+    #[test]
+    fn ral43c_value_key_typed_keys_read_like_the_boxed_key() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        m.insert("2".to_string(), Value::Int(7));
+        let d = Value::Dict(Arc::new(m));
+        let l = Value::Arr(Arc::new(vec![Value::Int(10), Value::Int(11), Value::Int(12)]));
+        for (obj, k) in [(&d, "a"), (&d, "zz"), (&d, "2"), (&l, "1"), (&l, "x")] {
+            let boxed = crate::runtime::get_value(obj, &Value::Str(k.into()));
+            assert_eq!(crate::runtime::get_value(obj, k), boxed);
+            assert_eq!(crate::runtime::get_value(obj, Some(k)), boxed);
+        }
+        // a None key reads exactly as the boxed Null key
+        assert_eq!(crate::runtime::get_value(&d, None::<&str>), crate::runtime::get_value(&d, &Value::Null));
+        assert_eq!(crate::runtime::get_value(&l, None::<&str>), crate::runtime::get_value(&l, &Value::Null));
+        let s: Option<String> = Some("a".into());
+        assert_eq!(crate::runtime::get_value(&d, s.as_deref()), Value::Int(1));
+    }
+
+    #[test]
+    fn ral43c_extend_head_option_dict() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        let d: Dict = Arc::new(m);
+        let some: Option<Dict> = Some(Arc::clone(&d));
+        // lent: the shared map is copied, the local keeps it
+        let h = ExtendHead::into_head(&some);
+        assert_eq!(h.get("a"), Some(&Value::Int(1)));
+        assert!(some.is_some());
+        // owned: same keys as the boxed head
+        let boxed = ExtendHead::into_head(Value::Dict(Arc::clone(&d)));
+        assert_eq!(ExtendHead::into_head(some), boxed);
+        // None merges nothing, exactly as the boxed Null head
+        let none: Option<Dict> = None;
+        assert!(ExtendHead::into_head(&none).is_empty());
+        assert!(ExtendHead::into_head(none).is_empty());
+        assert_eq!(ExtendHead::into_head(Value::Null), HashMap::new());
+    }
+
+    #[test]
+    fn i64_expression_default_boxes_to_the_int_the_helper_added() {
+        for (a, b) in [(0i64, 7776000i64), (1_700_000_000, 7776000), (-5, 5)] {
+            let helper = match (&Value::Int(a), &Value::Int(b)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), _ => Value::Null };
+            assert_eq!(Value::from(a + b), helper);
+        }
+    }
+}
+
+#[cfg(test)]
+mod omit_opt_dict_source_tests {
+    use super::*;
+    fn omit(obj: impl OmitSource, keys: impl OmitKeys) -> Value {
+        match obj.into_operand() {
+            Value::Dict(mut m) => { let mm = Arc::make_mut(&mut m); keys.for_each_key(|k| { mm.shift_remove(k); }); Value::Dict(m) }
+            other => other,
+        }
+    }
+    #[test]
+    fn none_passes_null_through() {
+        let p: Option<Dict> = None;
+        assert!(omit(&p, &["a"]).is_null());
+        assert!(omit(p, &["a"]).into_opt_dict().is_none());
+    }
+    #[test]
+    fn some_drops_keys_and_keeps_the_lent_map() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        m.insert("b".to_string(), Value::Int(2));
+        let p: Option<Dict> = Some(Arc::new(m));
+        let out = omit(&p, &["a"]).into_opt_dict().expect("map");
+        assert!(out.get("a").is_none());
+        assert!(matches!(out.get("b"), Some(Value::Int(2))));
+        assert!(matches!(p.as_ref().and_then(|x| x.get("a")), Some(Value::Int(1))));
+        let moved = omit(p, Value::Str("b".into())).into_opt_dict().expect("map");
+        assert!(moved.get("b").is_none() && moved.get("a").is_some());
     }
 }

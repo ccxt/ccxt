@@ -119,7 +119,7 @@ public interface PredictionTypedSurface {
     CompletableFuture<Status> fetchStatus(Map<String, Object> params);
     CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> params);
     CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Map<String, Object> params);
-    CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object params);
+    CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> params);
     CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchSpotTickers(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Tickers> fetchContractTickers(List<String> symbols, Map<String, Object> params);
@@ -390,9 +390,9 @@ public interface PredictionTypedSurface {
     default CompletableFuture<Balances> fetchBalanceAsync(Map<String, Object> params) { return this.fetchBalance((params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Balances> fetchBalanceAsync() { return fetchBalanceAsync(new HashMap<String, Object>()); }
 
-    default Balance fetchPartialBalance(Object part) { return Helpers.joinUnwrapped(this.fetchPartialBalance(part, new HashMap<String, Object>())); }
-    default CompletableFuture<Balance> fetchPartialBalanceAsync(Object part, Map<String, Object> params) { return this.fetchPartialBalance(part, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<Balance> fetchPartialBalanceAsync(Object part) { return fetchPartialBalanceAsync(part, new HashMap<String, Object>()); }
+    default Balance fetchPartialBalance(String part) { return Helpers.joinUnwrapped(this.fetchPartialBalance(part, new HashMap<String, Object>())); }
+    default CompletableFuture<Balance> fetchPartialBalanceAsync(String part, Map<String, Object> params) { return this.fetchPartialBalance(part, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<Balance> fetchPartialBalanceAsync(String part) { return fetchPartialBalanceAsync(part, new HashMap<String, Object>()); }
 
     default CompletableFuture<Balance> fetchFreeBalanceAsync(Map<String, Object> params) { return this.fetchFreeBalance((params != null ? params : new HashMap<String, Object>())); }
 

@@ -41,13 +41,13 @@ public partial class bittrade : ccxt.bittrade
         });
     }
 
-    public virtual object requestId()
+    public virtual Int64 requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         this.options["requestId"] = requestId;
         this.unlockId();
-        return requestId.ToString();
+        return requestId;
     }
 
     /**
@@ -58,7 +58,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -66,23 +66,26 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // only supports a limit of 150 at this time
-        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".detail");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".detail");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
-            { "symbol", symbolValue },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "params", parameters },
         };
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
@@ -136,7 +139,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -144,21 +147,25 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         // only supports a limit of 150 at this time
-        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".trade.detail");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".trade.detail");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "params", parameters },
@@ -232,7 +239,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -242,21 +249,25 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".kline.") + interval);
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = ((("market." + marketId) + ".kline.") + interval);
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "timeframe", timeframeVar },
@@ -323,7 +334,7 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (((limit != null)) && ((limit != 150)))
@@ -335,22 +346,26 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         // only supports a limit of 150 at this time
         int limitValue = 150;
-        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.150");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".mbp.150");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
-            { "id", requestId },
+            { "id", requestId.ToString() },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", requestId },
+            { "id", requestId.ToString() },
             { "messageHash", messageHash },
             { "symbol", symbolValue },
             { "limit", limitValue },
@@ -358,7 +373,7 @@ public partial class bittrade : ccxt.bittrade
             { "method", this.handleOrderBookSubscription },
         };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
@@ -418,26 +433,29 @@ public partial class bittrade : ccxt.bittrade
             Int64? limit = this.safeInteger(subscription, "limit");
             IDictionary<string, object> parameters = this.safeDict(subscription, "params");
             string? api = this.safeString(this.options, "api", "api");
+            IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+            IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+            IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
             Dictionary<string, object> hostname = new Dictionary<string, object>() {
                 { "hostname", this.hostname },
             };
-            string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-            string requestId = ((string)this.requestId());
+            string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+            Int64 requestId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "req", messageHash },
-                { "id", requestId },
+                { "id", requestId.ToString() },
             };
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             Dictionary<string, object> snapshotSubscription = new Dictionary<string, object>() {
-                { "id", requestId },
+                { "id", requestId.ToString() },
                 { "messageHash", messageHash },
                 { "symbol", symbol },
                 { "limit", limit },
                 { "params", parameters },
                 { "method", this.handleOrderBookSnapshot },
             };
-            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId, request, requestId, snapshotSubscription));
+            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId.ToString(), request, requestId.ToString(), snapshotSubscription));
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {
@@ -452,14 +470,6 @@ public partial class bittrade : ccxt.bittrade
         double? price = this.safeFloat(delta, 0);
         double? amount = this.safeFloat(delta, 1);
         (bookside as IOrderBookSide).store(price, amount);
-    }
-
-    public override void handleDeltas(object bookside, IList<object> deltas)
-    {
-        for (int i = 0; i < (deltas?.Count ?? 0); i++)
-        {
-            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
-        }
     }
 
     public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
@@ -563,7 +573,7 @@ public partial class bittrade : ccxt.bittrade
             return;
         }
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
@@ -599,7 +609,7 @@ public partial class bittrade : ccxt.bittrade
                 return DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
             }
             // clean up
-            if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+            if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
@@ -711,15 +721,15 @@ public partial class bittrade : ccxt.bittrade
                 string feedback = ((this.id + " ") + this.json(message));
                 try
                 {
-                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
-                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                    this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
+                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
                     throw new ExchangeError (feedback) ;
                 } catch(Exception e)
                 {
                     string? messageHash = this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
-                    if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+                    if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(id);
                     }

@@ -28,7 +28,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 30000);
         Object symbolsLength = ((List<?>)symbols).size();
-        List<Object> returnedSymbols = new ArrayList<Object>(Arrays.asList());
+        List<String> returnedSymbols = new ArrayList<String>(Arrays.asList());
         Boolean allReceived = false;
         // keep watching until every symbol traded or the deadline passed, a quiet market can stay silent for a while
         while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(allReceived))
@@ -53,23 +53,23 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Object trade = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
-                    Object symbol = ((Map<String, Object>)trade).get("symbol");
+                    String symbol = (String) ((Map<String, Object>)trade).get("symbol");
                     Assert(!java.util.Objects.equals(symbol, null), ((logText + "returned a trade without a symbol ") + exchange.json(trade)));
-                    TestTrade.testTrade(exchange, skippedProperties, method, trade, ((String)symbol), now, true);
+                    TestTrade.testTrade(exchange, skippedProperties, method, trade, (String) (symbol), now, true);
                     TestSharedMethods.AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!Helpers.isTrue(exchange.inArray(symbol, returnedSymbols)))
                     {
-                        ((List<Object>)returnedSymbols).add(symbol);
+                        returnedSymbols.add(symbol);
                     }
                 }
-                Object returnedLength = ((List<?>)returnedSymbols).size();
+                Object returnedLength = returnedSymbols.size();
                 if (java.util.Objects.equals(returnedLength, symbolsLength))
                 {
                     allReceived = true;
                 }
             }
         }
-        Integer receivedLength = ((List<?>)returnedSymbols).size();
+        Integer receivedLength = returnedSymbols.size();
         Assert((receivedLength != null && receivedLength > 0), (logText + "did not receive trades for any symbol"));
         if (!Boolean.TRUE.equals(allReceived))
         {

@@ -581,7 +581,7 @@ export default class coinmate extends Exchange {
         const result = {};
         for (let i = 0; i < keys.length; i++) {
             const market = this.market(keys[i]);
-            const ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
+            const ticker = this.parseTicker(this.safeDict(data, keys[i], {}), market);
             result[market['symbol']] = ticker;
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
@@ -613,12 +613,12 @@ export default class coinmate extends Exchange {
             'ask': this.safeNumber(ticker, 'ask'),
             'vwap': undefined,
             'askVolume': undefined,
-            'open': undefined,
+            'open': this.safeNumber(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeNumber(ticker, 'change'),
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'amount'),
             'quoteVolume': undefined,
@@ -1281,8 +1281,9 @@ export default class coinmate extends Exchange {
         }
         let url = apiUrl + '/' + path;
         if (apiName === 'public') {
-            if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+            const publicQuery = this.extend({}, params);
+            if (Object.keys(publicQuery).length > 0) {
+                url += '?' + this.urlencode(publicQuery);
             }
         }
         else {

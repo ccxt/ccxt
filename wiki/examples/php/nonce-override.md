@@ -5,7 +5,7 @@ include './ccxt.php';
 
 date_default_timezone_set('UTC');
 
-class MillisecondsNonceExchange extends \ccxt\yobit {
+class MillisecondsNonceExchange extends \ccxt\kraken {
     public function nonce() {
         return $this->milliseconds();
     }
@@ -17,8 +17,7 @@ $exchange = new MillisecondsNonceExchange(array(
 ));
 
 try {
-    $symbol = 'ETH/BTC';
-    $result = $exchange->fetch_balance($symbol);
+    $result = $exchange->fetch_balance();
     var_dump ($result);
 } catch (\ccxt\NetworkError $e) {
     echo '[Network Error] ' . $e->getMessage() . "\n";

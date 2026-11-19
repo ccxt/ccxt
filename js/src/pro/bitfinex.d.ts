@@ -2,7 +2,7 @@ import bitfinexRest from '../bitfinex.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitfinex extends bitfinexRest {
-    describe(): any;
+    describe(): Dict;
     subscribe(channel: string, symbol: string, params?: Dict): Promise<any>;
     unSubscribe(channel: string, topic: string, symbol: string, params?: Dict): Promise<any>;
     subscribePrivate(messageHash: string): Promise<any>;
@@ -48,7 +48,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitfinex#watchMyTrades
@@ -77,7 +77,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     handleMyTrade(client: Client, message: any[], subscription?: Dict): void;
     handleTrades(client: Client, message: any[], subscription: Dict): void;
     parseWsTrade(tradeResult: Dict, market?: Market): Trade;
@@ -125,5 +125,6 @@ export default class bitfinex extends bitfinexRest {
     handleOrders(client: Client, message: any[], subscription: Dict): void;
     parseWsOrderStatus(status: Str): Str;
     parseWsOrder(order: List, market?: Market): Order;
-    handleMessage(client: Client, message: any): void;
+    handleListMessage(client: Client, message: List): void;
+    handleMessage(client: Client, message: Dict): void;
 }

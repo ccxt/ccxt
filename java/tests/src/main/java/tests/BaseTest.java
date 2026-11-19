@@ -456,7 +456,7 @@ public class BaseTest {
         BaseExchange.syncSleep = true;
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
-        client.startedConnecting.set(true);
+        client.startedConnecting = true;
         client.isMock = true;
         client.isConnected = true;
         client.connected.complete(true);

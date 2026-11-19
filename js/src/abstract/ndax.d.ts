@@ -45,7 +45,7 @@ declare abstract class Exchange extends _Exchange {
     privateGetGetUserReportTickets(params?: {}): Promise<List>;
     privateGetGetUserReportWriterResultRecords(params?: {}): Promise<List>;
     privateGetGetAccountInfo(params?: {}): Promise<Dict>;
-    privateGetGetAccountPositions(params?: {}): Promise<Dict>;
+    privateGetGetAccountPositions(params?: {}): Promise<List>;
     privateGetGetAllAccountConfigs(params?: {}): Promise<List>;
     privateGetGetTreasuryProductsForAccount(params?: {}): Promise<List>;
     privateGetGetAccountTrades(params?: {}): Promise<List>;

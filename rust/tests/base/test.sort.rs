@@ -21,8 +21,10 @@ pub fn testSort() {
     // already sorted (idempotent)
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]).clone()]);
     // duplicates
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("b".into()), Value::Str("c".into())]).clone()]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into()), Value::Str("d".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into()), Value::Str("d".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()),
+        Value::Str("b".into()), Value::Str("c".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("sort".into()).clone(), exchange.sort(Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into()), Value::Str("d".into())]), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()),
+        Value::Str("c".into()), Value::Str("d".into())]).clone()]);
     // todo 1: atm, `sort` is only meant for strings. we should update to support numerics
     // todo 2: add test for above 10, eg: 1, 2, 10, 20, 21
     // // integers (single-digit, safe for cross-language lexicographic/numeric consistency)

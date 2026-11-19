@@ -1,10 +1,10 @@
 import htxRest from '../htx.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class htx extends htxRest {
-    describe(): any;
-    requestId(): string;
+    describe(): Dict;
+    requestId(): int;
     /**
      * @method
      * @name htx#watchTicker

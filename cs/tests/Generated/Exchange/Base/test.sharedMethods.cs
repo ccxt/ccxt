@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
             // there are cases when exchange is undefined (eg. base tests)
             object id = ((exchange != null)) ? exchange.id : "undefined";
             object methodString = ((method != null)) ? method : "undefined";
-            string? entryString = ((exchange != null) && (entry != null)) ? exchange.json(entry) : "";
+            string entryString = ((exchange != null) && (entry != null)) ? exchange.json(entry) : "";
             return ((((((" <<< " + (id)) + " ") + (methodString)) + " ::: ") + entryString) + " >>> ");
         }
         public object isTemporaryFailure(object e)
@@ -158,8 +158,8 @@ public partial class testMainClass : BaseTest
             {
                 assert((ts is Int64 || ts is int || ts is float || ts is double), ("timestamp is not numeric" + (logText)));
                 assert(((ts is int) || (ts is long) || (ts is Int32) || (ts is Int64)), ("timestamp should be an integer" + (logText)));
-                object minTs = 1230940800000; // 03 Jan 2009 - first block
-                object maxTs = 2147483648000; // 19 Jan 2038 - max int
+                Int64? minTs = 1230940800000; // 03 Jan 2009 - first block
+                Int64? maxTs = 2147483648000; // 19 Jan 2038 - max int
                 assert(isGreaterThan(ts, minTs), ((("timestamp is impossible to be before " + ((object)minTs).ToString()) + " (03.01.2009)") + (logText))); // 03 Jan 2009 - first block
                 assert(isLessThan(ts, maxTs), ((("timestamp more than " + ((object)maxTs).ToString()) + " (19.01.2038)") + (logText))); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
                 if ((nowToCheck != null))
@@ -391,7 +391,7 @@ public partial class testMainClass : BaseTest
             // todo: remove undefined check
             if ((value != null))
             {
-                string? stingifiedArrayValue = exchange.json(expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
+                string stingifiedArrayValue = exchange.json(expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
                 assert(exchange.inArray(value, expectedArray), ((((((("\"" + (stringValue(key))) + "\" key (value \"") + (stringValue(value))) + "\") is not from the expected list : [") + stingifiedArrayValue) + "]") + (logText)));
             }
         }
@@ -414,12 +414,12 @@ public partial class testMainClass : BaseTest
             // todo: remove undefined check to make stricter
             if ((feeObject != null))
             {
-                assert(inOp(feeObject, "cost"), add(add(keyString, " fee object should contain \"cost\" key"), logText));
+                assert(inOp(feeObject, "cost"), ((object)(keyString == null ? null : keyString + " fee object should contain \"cost\" key" + (string)(object)(logText))));
                 if ((getValue(feeObject, "cost") == null))
                 {
                     return;  // todo: remove undefined check to make stricter
                 }
-                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), add(add(keyString, " \"cost\" must be numeric type"), logText));
+                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), ((object)(keyString == null ? null : keyString + " \"cost\" must be numeric type" + (string)(object)(logText))));
                 // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
                 assert(inOp(feeObject, "currency"), ((("\"" + (keyString)) + "\" fee object should contain \"currency\" key") + (logText)));
                 assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(feeObject, "currency"));
@@ -531,7 +531,7 @@ public partial class testMainClass : BaseTest
                 bestAsk = exchange.safeNumber(ticker, "ask");
             }
             //
-            assert(!(bestBid == null) && !(bestAsk == null), add(add(add(add(add(add(add(add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
+            assert(!(bestBid == null) && !(bestAsk == null), ((object)(logText == null ? null : logText + " " + (string)(object)(exchange.id) + " could not get best bid/ask for " + (string)(object)(symbol) + " using " + usedMethod + " while testing " + (string)(object)(method))));
             return new List<object>() {bestBid, bestAsk};
         }
         async public Task<object> fetchOrder(BaseExchange exchange, object symbol, object orderId, object skippedProperties)
@@ -736,7 +736,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             if ((hint != null))
             {
-                logText = add(add(logText, " "), hint);
+                logText = ((object)(logText == null ? null : logText + " " + (string)(object)(hint)));
             }
             assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("response is expected to be an array" + (logText)));
             if (!(inOp(skippedProperties, "emptyResponse")))

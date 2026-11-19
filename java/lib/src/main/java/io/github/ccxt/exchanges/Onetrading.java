@@ -34,7 +34,7 @@ public class Onetrading extends OnetradingApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "onetrading" );
@@ -489,7 +489,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             return this.safeInteger(response, "epoch_millis");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -643,8 +643,8 @@ public class Onetrading extends OnetradingApi
         //      "contract_duration": "5Y"
         //  }
         //
-        Map<String, Object> baseAsset = (Map<String, Object>) this.safeDict(market, "base", new HashMap<String, Object>() {{}});
-        Map<String, Object> quoteAsset = (Map<String, Object>) this.safeDict(market, "quote", new HashMap<String, Object>() {{}});
+        Map<String, Object> baseAsset = this.safeDict(market, "base", new HashMap<String, Object>() {{}});
+        Map<String, Object> quoteAsset = this.safeDict(market, "quote", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(baseAsset, "code");
         String quoteId = this.safeString(quoteAsset, "code");
         String id = this.safeString(market, "id");
@@ -752,7 +752,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> paramsOmitted = this.omit(parameters, "method");
             if (java.util.Objects.equals(method, null))
             {
-                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTradingFees", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = this.safeDict(this.options, "fetchTradingFees", new HashMap<String, Object>() {{}});
                 method = this.safeString(options, "method", "fetchPrivateTradingFees");
             }
             if (java.util.Objects.equals(method, "fetchPrivateTradingFees"))
@@ -821,21 +821,21 @@ public class Onetrading extends OnetradingApi
             //     },
             // ];
             //
-            Map<String, Object> spotFees = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> futuresFees = (Map<String, Object>) this.safeDict(response, 1, new HashMap<String, Object>() {{}});
-            List<Object> spotFeeTiers = (List<Object>) this.safeList(spotFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
-            List<Object> futuresFeeTiers = (List<Object>) this.safeList(futuresFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> spotFees = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> futuresFees = this.safeDict(response, 1, new HashMap<String, Object>() {{}});
+            List<Object> spotFeeTiers = this.safeList(spotFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> spotTiers = this.parseFeeTiers(spotFeeTiers, (Map<String, Object>) null);
             Map<String, Object> futuresTiers = this.parseFeeTiers(futuresFeeTiers, (Map<String, Object>) null);
-            Map<String, Object> firstSpotTier = (Map<String, Object>) this.safeDict(spotTiers, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> firstFuturesTier = (Map<String, Object>) this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> firstSpotTier = this.safeDict(spotTiers, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> firstFuturesTier = this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> tierObject = (((java.util.Objects.equals(market.get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
+                Map<String, Object> tierObject = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? firstSpotTier : firstFuturesTier;
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
@@ -847,7 +847,7 @@ public class Onetrading extends OnetradingApi
     }});
             }
             return result;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -892,9 +892,9 @@ public class Onetrading extends OnetradingApi
             //    ]
             // }
             //
-            List<Object> activeFeeTier = (List<Object>) this.safeList(response, "active_fee_tiers", (Object) null);
-            Map<String, Object> spotFees = (Map<String, Object>) this.safeDict(activeFeeTier, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> futuresFees = (Map<String, Object>) this.safeDict(activeFeeTier, 1, new HashMap<String, Object>() {{}});
+            List<Object> activeFeeTier = this.safeList(response, "active_fee_tiers", null);
+            Map<String, Object> spotFees = this.safeDict(activeFeeTier, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> futuresFees = this.safeDict(activeFeeTier, 1, new HashMap<String, Object>() {{}});
             String spotMakerFee = this.safeString(spotFees, "maker_fee");
             String spotTakerFee = this.safeString(spotFees, "taker_fee");
             spotMakerFee = Precise.stringDiv(spotMakerFee, "100");
@@ -907,12 +907,12 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             // const tiers = this.parseFeeTiers (feeTiers);
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String makerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
-                String takerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
+                String makerFee = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? spotMakerFee : futuresMakerFee;
+                String takerFee = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? spotTakerFee : futuresTakerFee;
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -924,7 +924,7 @@ public class Onetrading extends OnetradingApi
     }});
             }
             return result;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -934,7 +934,7 @@ public class Onetrading extends OnetradingApi
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
-            Map<String, Object> tier = (Map<String, Object>) this.safeDict(feeTiers, i, (Object) null);
+            Map<String, Object> tier = this.safeDict(feeTiers, i, null);
             Double volume = this.safeNumber(tier, "volume", (Object) null);
             String taker = this.safeString(tier, "taker_fee");
             String maker = this.safeString(tier, "maker_fee");
@@ -1091,7 +1091,7 @@ public class Onetrading extends OnetradingApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> rawTickers = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
+            for (var i = 0; i < rawTickers.size(); i++)
             {
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)), (Map<String, Object>) null);
                 String symbol = (String) ticker.get("symbol");
@@ -1210,7 +1210,7 @@ public class Onetrading extends OnetradingApi
         //         "last_sequence":461123
         //     }
         //
-        Map<String, Object> granularity = (Map<String, Object>) this.safeDict(ohlcv, "granularity", (Object) null);
+        Map<String, Object> granularity = this.safeDict(ohlcv, "granularity", null);
         String unit = this.safeString(granularity, "unit");
         String period = this.safeString(granularity, "period");
         Map<String, Object> units = new HashMap<String, Object>() {{
@@ -1235,7 +1235,7 @@ public class Onetrading extends OnetradingApi
         }
         Long periods = this.parseToInt((((double) timestamp) / ((double) duration)));
         Long alignedTimestamp = (duration * periods);
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
         String volumeField = this.safeString(options, "volume", "total_amount");
         return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, volumeField, (Object) null)));
     }
@@ -1267,12 +1267,12 @@ public class Onetrading extends OnetradingApi
             {
                 throw new ExchangeError((this.id + " fetchOHLCV() missing periodUnit")) ;
             }
-            var periodunitVariable = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
-            var period = ((List<Object>) periodunitVariable).get(0);
-            var unit = ((List<Object>) periodunitVariable).get(1);
+            List<Object> periodUnitParts = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
+            String period = (String) (periodUnitParts == null || 0 >= periodUnitParts.size() ? null : periodUnitParts.get(0));
+            String unit = (String) (periodUnitParts == null || 1 >= periodUnitParts.size() ? null : periodUnitParts.get(1));
             int durationInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long duration = (((long) durationInSeconds) * 1000L);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_code", market.get("id") );
                 put( "period", period );
@@ -1296,7 +1296,7 @@ public class Onetrading extends OnetradingApi
             //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
             //     ]
             //
-            List<Object> ohlcv = (List<Object>) this.safeList(response, "candlesticks", (Object) null);
+            List<Object> ohlcv = this.safeList(response, "candlesticks", null);
             return this.parseOHLCVs(ohlcv, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1342,8 +1342,8 @@ public class Onetrading extends OnetradingApi
         //         }
         //     }
         //
-        Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
-        Object tradeValue = this.safeDict(trade, "trade", trade);
+        Map<String, Object> feeInfo = this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> tradeValue = (Map<String, Object>) this.safeDict(trade, "trade", trade);
         Long timestamp = this.safeInteger(tradeValue, "trade_timestamp");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -1389,15 +1389,15 @@ public class Onetrading extends OnetradingApi
         return this.safeTrade(mapLiteral2, market);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
-        List<Object> balances = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1536,7 +1536,7 @@ public class Onetrading extends OnetradingApi
         //         ]
         //     }
         //
-        Object rawOrder = this.safeDict(order, "order", order);
+        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(order, "order", order);
         String id = this.safeString(rawOrder, "order_id");
         String clientOrderId = this.safeString(rawOrder, "client_id");
         Long timestamp = this.parse8601(this.safeString(rawOrder, "time"));
@@ -1550,7 +1550,7 @@ public class Onetrading extends OnetradingApi
         String type = this.safeStringLower(rawOrder, "type");
         String timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
         Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only", (Object) null);
-        List<Object> rawTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -1983,7 +1983,7 @@ public class Onetrading extends OnetradingApi
             //         "max_page_size": 100
             //     }
             //
-            List<Object> orderHistory = (List<Object>) this.safeList(response, "order_history", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orderHistory = this.safeList(response, "order_history", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orderHistory, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2073,7 +2073,7 @@ public class Onetrading extends OnetradingApi
             //         "cursor": "string"
             //     }
             //
-            List<Object> tradeHistory = (List<Object>) this.safeList(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tradeHistory = this.safeList(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2157,7 +2157,7 @@ public class Onetrading extends OnetradingApi
             //         "cursor": "string"
             //     }
             //
-            List<Object> tradeHistory = (List<Object>) this.safeList(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tradeHistory = this.safeList(response, "trade_history", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(tradeHistory, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2165,7 +2165,7 @@ public class Onetrading extends OnetradingApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -2175,7 +2175,7 @@ public class Onetrading extends OnetradingApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2192,7 +2192,7 @@ public class Onetrading extends OnetradingApi
                 headersSigned.put("Content-Type", "application/json");
             } else
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2216,7 +2216,7 @@ public class Onetrading extends OnetradingApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2231,8 +2231,8 @@ public class Onetrading extends OnetradingApi
         if (!java.util.Objects.equals(message, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

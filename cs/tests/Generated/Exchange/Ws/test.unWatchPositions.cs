@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task createOrderAfterDelay(Exchange exchange)
     {
         await exchange.sleep(3000);
-        detypeForComparison(await exchange.CreateOrder("BTC/USDT:USDT", "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0.001)));
+        detypeForComparison(await exchange.CreateOrder("BTC/USDT:USDT", "market", "buy", 0.001d));
     }
     async static public Task<object> testUnWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
