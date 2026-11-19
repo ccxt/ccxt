@@ -6373,6 +6373,8 @@ const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ['spot_order_prepare_request', ''],
     ['handle_derive_subaccount_id', 'integer_'],
     ['handle_derive_wallet_address', 'string_'],
+    ['handle_origin_and_single_address', 'string_'],
+    ['handle_until_option_string', ''],
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
@@ -8312,6 +8314,11 @@ function typeVenueTupleExtendReturns(content: string): string {
 }
 //
 // unit slot 071
+// grvt handleUntilOptionString answers `(request, omit(params))` on its until branch: return the pair, moving the local
+function typeUntilOptionTupleReturn(content: string): string {
+    return content.replace(/(\n {4}pub fn handle_until_option_string\([^\n]*\) -> \(Value, crate::value::Dict\) \{\n[\s\S]*?)return Value::from\(vec!\[(\w+)(?:\.clone\(\))?, (self\.omit\(&params, &\["until", "till"\], &\[\]\))\]\);/g,
+        (_m, head, req, omit) => `${head}return (${req}, ${omit}.into_dict());`);
+}
 //
 // unit slot 072
 //
@@ -8870,6 +8877,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typeVenueTupleExtendReturns,
     //
     // pass slot 071
+    typeUntilOptionTupleReturn,
     //
     // pass slot 072
     //
