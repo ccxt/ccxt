@@ -4210,6 +4210,17 @@ function typedBaseDictFields(content: string): string {
         .replace(/if let \(Some\(__m\), Some\(__k\)\) = \(self\.tickers\.as_map\(\), /g, 'if let (__m, Some(__k)) = (&self.tickers, ')
         .replace(/self\.tickers\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.tickers'))
         .replace(/\(self\.tickers != Value::Null\)/g, 'true');
+    // `markets_by_id` is `Option<Dict>` (TS leaves it undefined until setMarkets publishes a dict).
+    content = content
+        .replace(/self\.markets_by_id = Value::Null;/g, 'self.markets_by_id = None;')
+        .replace(/let __t = ([^;]*); self\.markets_by_id = __t;/g, 'let __t = $1; self.markets_by_id = if let Value::Dict(__m) = __t { Some(__m) } else { None };')
+        .replace(/self\.markets_by_id = (get_value\(&\w+, &Value::Str\("markets_by_id"\.into\(\)\)\));/g, 'self.markets_by_id = if let Value::Dict(__m) = $1 { Some(__m) } else { None };')
+        .replace(/self\.markets_by_id (==|!=) Value::Null/g, (_m, op) => 'self.markets_by_id.' + (op === '==' ? 'is_none()' : 'is_some()'))
+        .replace(/(matches!\(\(&self\.markets_by_id, (?:[^()]|\((?:[^()]|\([^()]*\))*\))+?\), \()Value::Dict\(__d\)/g, '$1Some(__d)')
+        .replace(/\(self\.markets_by_id\.as_map\(\), /g, '(self.markets_by_id.as_deref(), ')
+        .replace(/if let Value::Dict\(__d\) = &mut self\.markets_by_id \{/g, 'if let Some(__d) = &mut self.markets_by_id {')
+        .replace(/\b(safe_\w+)\(self\.markets_by_id\.clone\(\)/g, '$1(&self.markets_by_id')
+        .replace(/([^\w:&])self\.markets_by_id\.clone\(\)/g, '$1Value::from(&self.markets_by_id)');
     for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance', 'tickers']) {
         const r = 'self\\.' + f;
         const k = '("[^"\\\\]*")';

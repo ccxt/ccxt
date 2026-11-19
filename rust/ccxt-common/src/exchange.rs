@@ -196,13 +196,13 @@ impl<T> TypedById<T> {
         let index = self.source.as_ref()?.get_index_of(id)?;
         self.rows.get(index).map(Vec::as_slice)
     }
-    fn is_from(&self, src: &Value) -> bool {
-        match (&self.source, src) { (Some(a), Value::Dict(b)) => Arc::ptr_eq(a, b), (None, Value::Dict(_)) => false, (None, _) => true, _ => false }
+    fn is_from(&self, src: Option<&crate::value::Dict>) -> bool {
+        match (&self.source, src) { (Some(a), Some(b)) => Arc::ptr_eq(a, b), (None, None) => true, _ => false }
     }
     /// The shared store for `src`, decoded only when `src` is not the dict decoded last time.
-    fn refresh(store: &mut Arc<Self>, src: &Value, decode: impl Fn(&Value) -> Vec<T>) -> Arc<Self> {
+    fn refresh(store: &mut Arc<Self>, src: Option<&crate::value::Dict>, decode: impl Fn(&Value) -> Vec<T>) -> Arc<Self> {
         if !store.is_from(src) {
-            let source = match src { Value::Dict(d) => Some(Arc::clone(d)), _ => None };
+            let source = src.map(Arc::clone);
             let rows = source.as_deref().map_or_else(Vec::new, |m| m.values().map(&decode).collect());
             *store = Arc::new(TypedById { source, rows });
         }
@@ -382,7 +382,7 @@ pub struct Exchange {
     // market data caches
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub markets:           Value,
-    pub markets_by_id:     Value,
+    pub markets_by_id:     Option<crate::value::Dict>,
     pub currencies:        Value,
     pub currencies_by_id:  Value,
     pub commonCurrencies:  Value,
@@ -725,7 +725,7 @@ impl Exchange {
             ws_socks_proxy:      Value::Null,
 
             markets:           Value::Null,
-            markets_by_id:     Value::Null,
+            markets_by_id:     None,
             currencies:        Value::Map(HashMap::new()),
             currencies_by_id:  Value::Null,
             commonCurrencies:  {
@@ -997,9 +997,9 @@ impl Exchange {
             }
         }
         self.markets       = if by_symbol.is_empty() { markets } else { Value::Map(by_symbol) };
-        self.markets_by_id = Value::Map(
+        self.markets_by_id = Some(Arc::new(
             by_id.into_iter().map(|(k, v)| (k, Value::Array(v))).collect()
-        );
+        ));
         self.symbols       = std::sync::Arc::new(symbols);
     }
 
@@ -1106,7 +1106,7 @@ impl Exchange {
     /// Markets by exchange id (one id can name several markets), typed and shared.
     pub fn markets_by_id_typed(&self) -> Arc<TypedById<crate::types::Market>> {
         let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
-        TypedById::refresh(&mut stores.markets, &self.markets_by_id, |v| match v {
+        TypedById::refresh(&mut stores.markets, self.markets_by_id.as_ref(), |v| match v {
             Value::Arr(a) => a.iter().cloned().map(crate::types::Market::from_value).collect(),
             _ => Vec::new(),
         })
@@ -1115,7 +1115,7 @@ impl Exchange {
     /// Currencies by exchange id, typed and shared.
     pub fn currencies_by_id_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
         let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
-        TypedById::refresh(&mut stores.currencies, &self.currencies_by_id, |v| match v {
+        TypedById::refresh(&mut stores.currencies, if let Value::Dict(d) = &self.currencies_by_id { Some(d) } else { None }, |v| match v {
             Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
             _ => Vec::new(),
         })
@@ -1124,7 +1124,7 @@ impl Exchange {
     /// Currencies by unified code, typed and shared (same store shape as the by-id one).
     pub fn currencies_by_code_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
         let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
-        TypedById::refresh(&mut stores.currencies_by_code, &self.currencies, |v| match v {
+        TypedById::refresh(&mut stores.currencies_by_code, if let Value::Dict(d) = &self.currencies { Some(d) } else { None }, |v| match v {
             Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
             _ => Vec::new(),
         })
@@ -2032,7 +2032,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // symbol instead of a synthetic one.
         let markets_snapshot = self.markets.clone();
         if let Value::Dict(markets) = &markets_snapshot {
-            if let Value::Dict(by_id_arc) = &self.markets_by_id {
+            if let Some(by_id_arc) = &self.markets_by_id {
                 let mut by_id = (**by_id_arc).clone();
                 for market in markets.values() {
                     let id  = crate::get_value(market, &Value::Str("id".into()));
@@ -2043,7 +2043,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                         }
                     }
                 }
-                self.markets_by_id = Value::Map(by_id);
+                self.markets_by_id = Some(Arc::new(by_id));
             }
         }
         let _ = (self.markets_by_id_typed(), self.currencies_by_id_typed());
@@ -3185,7 +3185,7 @@ mod typed_by_id_tests {
         let mut ex = Exchange::new(None);
         let mut by_id = IndexMap::new();
         by_id.insert("BTCUSDT".to_string(), Value::Array(vec![market("BTCUSDT", "BTC/USDT"), market("BTCUSDT", "BTC/USDT:USDT")]));
-        ex.markets_by_id = Value::Map(by_id);
+        ex.markets_by_id = Some(std::sync::Arc::new(by_id));
         let first = ex.markets_by_id_typed();
         let rows = first.records_by_id("BTCUSDT").unwrap();
         assert_eq!(rows.len(), 2);
@@ -3199,7 +3199,7 @@ mod typed_by_id_tests {
         assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id.as_deref(), Some("XBt"));
         assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].code, None);
         assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].active, None);
-        ex.markets_by_id = Value::Null;
+        ex.markets_by_id = None;
         assert!(ex.markets_by_id_typed().records_by_id("BTCUSDT").is_none());
     }
 }

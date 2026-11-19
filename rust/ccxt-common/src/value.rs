@@ -476,7 +476,7 @@ impl Value {
             let mut ex = crate::exchange::BaseCore::new(self.snapshot_as_exchange());
             let result = ex.set_markets(markets, &[]);
             crate::runtime::add_element_to_object(self, &Value::Str("markets".into()), ex.markets.clone());
-            crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".into()), ex.markets_by_id.clone());
+            crate::runtime::add_element_to_object(self, &Value::Str("markets_by_id".into()), Value::from(&ex.markets_by_id));
             crate::runtime::add_element_to_object(self, &Value::Str("symbols".into()), Value::Arr(ex.symbols.clone()));
             return result;
         }

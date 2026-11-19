@@ -427,7 +427,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
                 Some(match key {
                     "markets"          => core.markets.clone(),
-                    "markets_by_id"    => core.markets_by_id.clone(),
+                    "markets_by_id"    => Value::from(&core.markets_by_id),
                     "currencies"       => core.currencies.clone(),
                     "currencies_by_id" => core.currencies_by_id.clone(),
                     // Lightweight ones still served here so a `__live_id`
@@ -545,7 +545,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
                 let key = Value::Str(symbol.to_string().into());
                 ccxt::runtime::in_op(&core.markets, &key)
-                    || ccxt::runtime::in_op(&core.markets_by_id, &key)
+                    || core.markets_by_id.as_ref().is_some_and(|m| m.contains_key(symbol))
             }
             fn set_markets(ptr: *mut (), markets: Value) -> Value {
                 // Route through the core's dynamic dispatch so the MOST-DERIVED

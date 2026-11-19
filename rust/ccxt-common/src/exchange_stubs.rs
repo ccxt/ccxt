@@ -2531,7 +2531,7 @@ impl Exchange {
         put("wsSocksProxy", &self.wsSocksProxy);
         put("ws_socks_proxy", &self.ws_socks_proxy);
         put("markets", &self.markets);
-        put("markets_by_id", &self.markets_by_id);
+        put("markets_by_id", &Value::from(&self.markets_by_id));
         put("currencies", &self.currencies);
         put("currencies_by_id", &self.currencies_by_id);
         put("commonCurrencies", &self.commonCurrencies);
