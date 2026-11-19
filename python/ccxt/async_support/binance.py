@@ -4835,9 +4835,9 @@ class binance(Exchange, ImplicitAPI):
                 request = {
                     'symbols': self.json(self.market_ids(symbolsNormalized)),
                 }
-                response = await self.publicGetTicker(self.extend(request, paramsMarketType))
+                rollingResponse = await self.publicGetTicker(self.extend(request, paramsMarketType))
                 # parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return self.parse_tickers_for_rolling(response, symbolsNormalized)
+                return self.parse_tickers_for_rolling(rollingResponse, symbolsNormalized)
             else:
                 request = {}
                 if symbolsNormalized is not None:
@@ -4849,7 +4849,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_tickers_for_rolling(self, response: object, symbols: Strings) -> Tickers:
+    def parse_tickers_for_rolling(self, response: list, symbols: Strings) -> Tickers:
         results = []
         for i in range(0, len(response)):
             marketId = self.safe_string(self.safe_dict(response, i), 'symbol')

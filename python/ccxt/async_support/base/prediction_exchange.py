@@ -203,13 +203,9 @@ class PredictionExchange(BaseExchange):
             matched = False
             for qi in range(0, queriesLength):
                 q = self.safe_string(queries, qi, '').lower()
-                if title is None:
-                    raise ExchangeError(self.id + ' filterEventsBySearchIn() missing title')
                 if checkTitle and (title.find(q) >= 0):
                     matched = True
                     break
-                if description is None:
-                    raise ExchangeError(self.id + ' filterEventsBySearchIn() missing description')
                 if checkDescription and (description.find(q) >= 0):
                     matched = True
                     break

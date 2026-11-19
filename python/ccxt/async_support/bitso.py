@@ -1754,8 +1754,18 @@ class bitso(Exchange, ImplicitAPI):
             'address': address,
             'destination_tag': tagWithdrawTag,
         }
-        classMethod = 'privatePost' + method + 'Withdrawal'
-        response = await getattr(self, classMethod)(self.extend(request, paramsWithdrawTag))
+        withdrawRequest = self.extend(request, paramsWithdrawTag)
+        response = None
+        if method == 'Bitcoin':
+            response = await self.privatePostBitcoinWithdrawal(withdrawRequest)
+        elif method == 'Ether':
+            response = await self.privatePostEtherWithdrawal(withdrawRequest)
+        elif method == 'Ripple':
+            response = await self.privatePostRippleWithdrawal(withdrawRequest)
+        elif method == 'Bcash':
+            response = await self.privatePostBcashWithdrawal(withdrawRequest)
+        else:
+            response = await self.privatePostLitecoinWithdrawal(withdrawRequest)
         #
         #     {
         #         "success": true,

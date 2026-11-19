@@ -1739,8 +1739,8 @@ class kucoin(ccxt.async_support.kucoin):
         subscription = self.safe_dict(client.subscriptions, subscriptionHash)
         del client.subscriptions[id]
         method = self.safe_value(subscription, 'method')
-        if method is not None:
-            method(client, message, subscription)
+        if (subscription is not None) and (method is not None):
+            self.handle_order_book_subscription(client, message, subscription)
         isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
         if isUnSub:
             messageHashes = self.safe_list(subscription, 'messageHashes', [])

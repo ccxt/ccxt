@@ -944,8 +944,7 @@ class whitebit(Exchange, ImplicitAPI):
                     'percentage': False if (depositFee is not None) else None,
                 }
                 if networkId is not None:
-                    networkLength = len(networkId)
-                    networkCode = self.network_id_to_code(networkId[1:networkLength - 1], code)
+                    networkCode = self.network_id_to_code(networkId[1:-1], code)
                     if networkCode is not None:
                         feeEntryNetworks = self.safe_dict(feeEntry, 'networks', {})
                         feeEntryNetworks[networkCode] = {

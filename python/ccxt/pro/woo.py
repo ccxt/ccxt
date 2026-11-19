@@ -1563,7 +1563,7 @@ class woo(ccxt.async_support.woo):
         subscription = self.safe_dict(subscriptionsById, id, {})
         method = self.safe_value(subscription, 'method')
         if method is not None:
-            method(client, message, subscription)
+            self.handle_order_book_subscription(client, message, subscription)
         return message
 
     def handle_auth(self, client: Client, message: dict):

@@ -970,7 +970,7 @@ class bitget(ccxt.async_support.bitget):
                 payload = ':'.join(payloadArray)
                 calculatedChecksum = self.crc32(payload, True)
                 if calculatedChecksum != responseChecksum:
-                    self.spawn(self.handle_check_sum_error, client, symbol, messageHash)
+                    self.spawn(self.handle_check_sum_error, client, symbol, messageHash, self.orderbook_checksum_message(self.safe_string(market, 'symbol', '')))
                     return
         else:
             # reset the existing orderbook instead of replacing it: a consumer
@@ -993,9 +993,9 @@ class bitget(ccxt.async_support.bitget):
             orderbook.reset(parsedOrderbook)
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def handle_check_sum_error(self, client: Client, symbol: str, messageHash: str):
+    async def handle_check_sum_error(self, client: Client, symbol: str, messageHash: str, checksumMessage: str):
         await self.un_watch_order_book(symbol)
-        error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+        error = ChecksumError(self.id + ' ' + checksumMessage)
         client.reject(error, messageHash)
 
     def handle_delta(self, bookside: object, delta: object):
@@ -2400,18 +2400,18 @@ class bitget(ccxt.async_support.bitget):
                     entry = self.safe_dict(coins, j)
                     currencyId = self.safe_string(entry, 'coin')
                     code = self.safe_currency_code(currencyId)
-                    account = self.account()
+                    coinAccount = self.account()
                     if (code is not None) and (code in self.balance):
-                        account = self.safe_dict(self.balance, code, account)
+                        coinAccount = self.safe_dict(self.balance, code, coinAccount)
                     borrow = self.safe_string(entry, 'borrow')
                     debts = self.safe_string(entry, 'debts')
                     if (borrow is not None) or (debts is not None):
-                        account['debt'] = Precise.string_add(borrow, debts)
-                    account['free'] = self.safe_string(entry, 'available')
-                    account['used'] = self.safe_string(entry, 'locked')
-                    account['total'] = self.safe_string(entry, 'balance')
+                        coinAccount['debt'] = Precise.string_add(borrow, debts)
+                    coinAccount['free'] = self.safe_string(entry, 'available')
+                    coinAccount['used'] = self.safe_string(entry, 'locked')
+                    coinAccount['total'] = self.safe_string(entry, 'balance')
                     if code is not None:
-                        self.balance[code] = account
+                        self.balance[code] = coinAccount
             else:
                 currencyId = self.safe_string_2(rawBalance, 'coin', 'marginCoin')
                 code = self.safe_currency_code(currencyId)

@@ -2877,8 +2877,6 @@ class limitless(PredictionExchange, ImplicitAPI):
             categoryId = self.safe_string(category, 'id')
             matched = False
             for wi in range(0, len(wanted)):
-                if name is None:
-                    raise ExchangeError(self.id + ' fetchRawMarketsByTags() missing name')
                 if name.find(wanted[wi]) >= 0:
                     matched = True
                     break
