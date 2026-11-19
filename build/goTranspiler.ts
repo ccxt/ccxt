@@ -12150,7 +12150,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = goTypedStrNativeStringHelpers (path, content);
     content = path.endsWith ('.go') ? goNativeStringAdds (goRetypeNonNilStringMethods (content)) : content;  // row reads exist only from here
     content = path.endsWith ('.go') ? goAsyncInt64Value (content) : content;  // typed async int64 value
-    content = path.endsWith ('.go') ? goAsyncStringValue (content) : content;  // typed async string value
+    content = path.endsWith ('.go') ? goStringSliceIndexPtr (goAsyncStringValue (content, path)) : content;  // typed async string value
     content = path.endsWith ('.go') ? goProvenLocalIsEqual (content) : content;
     content = path.endsWith ('.go') ? goPlainBoxIsEqual (content) : content;
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
@@ -15860,7 +15860,7 @@ async function runMain () {
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
-            goAsyncInt64ValueCheck, goAsyncStringValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'late native inop: ', goLateNativeInOpCheck ],
+            goAsyncInt64ValueCheck, goAsyncStringValueCheck, goStringSliceIndexPtrCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'late native inop: ', goLateNativeInOpCheck ],
             [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
             goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ], [ 'go map typed of map local: ', goMapTypedOfMapLocalSelfTest ], [ 'go omit chain map locals: ', goOmitChainMapLocalsSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
@@ -17873,10 +17873,13 @@ export function goAsyncInt64ValueCheck (): string[] {
 
 // ===== SafeStringPtr(rN.Value) of a string / *string async receive =====
 // The callee is declared in the same file `<-chan AsyncResult[string|*string]`: the value is already the pointer.
-export function goAsyncStringValue (content: string): string {
+export function goAsyncStringValue (content: string, filePath = ''): string {
     if (content.indexOf ('SafeStringPtr(') < 0) {
         return content;
     }
+    // a pro file's callee may be inherited from the embedded REST class: read its signature there
+    const parentPath = filePath.replace (/\/go\/v4\/pro\/(\w+\.go)$/, '/go/v4/$1');
+    const parent = ((parentPath !== filePath) && fs.existsSync (parentPath)) ? fs.readFileSync (parentPath, 'utf8') : '';
     const re = /^(\t+var \w+ \*string = )(?:ccxt\.)?SafeStringPtr\((r\d*)\.Value\)$/gm;
     return content.replace (re, (line: string, head: string, recv: string, at: number) => {
         const before = content.slice (0, at);
@@ -17886,7 +17889,10 @@ export function goAsyncStringValue (content: string): string {
         if (!callee) {
             return line;
         }
-        const sig = new RegExp ('^func \\(this \\*\\w+\\) ' + callee + '\\(.*\\) <-chan (?:ccxt\\.)?AsyncResult\\[(\\*?string)\\] \\{$', 'm').exec (content);
+        const sigRe = (owner: string) => new RegExp ('^func \\(this \\*' + owner + '\\) ' + callee + '\\(.*\\) <-chan (?:ccxt\\.)?AsyncResult\\[(\\*?string)\\] \\{$', 'm');
+        const local = new RegExp ('^func \\(this \\*\\w+\\) ' + callee + '\\(', 'm').test (content);
+        const embed = /^type (\w+) struct \{\n\t\*ccxt\.(\w+)\n/m.exec (content);
+        const sig = local ? sigRe ('\\w+').exec (content) : (embed ? sigRe (embed[2]).exec (parent) : null);
         return sig ? head + ((sig[1] === 'string') ? '&' : '') + recv + '.Value' : line;
     });
 }
@@ -17899,6 +17905,44 @@ export function goAsyncStringValueCheck (): string[] {
     if (!goAsyncStringValue (sig ('*string') + use).includes ('var n *string = r1.Value')) { problems.push ('async-string: *string form missing'); }
     if (goAsyncStringValue (sig ('any') + use) !== sig ('any') + use) { problems.push ('async-string: any rewritten'); }
     if (goAsyncStringValue (use) !== use) { problems.push ('async-string: unproven callee rewritten'); }
+    return problems;
+}
+
+// SafeStringPtr(xs[i]) of a once-declared []string local is &xs[i] (never nil, xs[i] evaluated the same);
+// its bounds-checked closure form is a nil pointer set from the guarded element. Vetoed when the
+// function writes xs[..] or through a *string, so the shared element cannot diverge from a copy.
+export function goStringSliceIndexPtr (content: string): string {
+    if (content.indexOf ('SafeStringPtr(') < 0) {
+        return content;
+    }
+    const proven = (at: number, xs: string, x: string): boolean => {
+        const start = Math.max (0, content.lastIndexOf ('\nfunc ', at));
+        const endAt = content.indexOf ('\n}\n', at);
+        const body = content.slice (start, (endAt < 0) ? content.length : endAt);
+        const decls = body.match (new RegExp ('(?:\\bvar ' + xs + ' |[(,] *' + xs + ' |\\b' + xs + ' :?= )', 'g')) || [];
+        return (decls.length === 1) && (new RegExp ('\\bvar ' + xs + ' \\[\\]string\\b').test (body))
+            && !(new RegExp ('\\b' + xs + '\\[[^\\]\\n]*\\] (?:\\+)?= ').test (body)) && !(/^\s*\*\w+ (?:\+)?= /m.test (body))
+            && ((body.match (new RegExp ('\\bvar ' + x + ' ', 'g')) || []).length === 1);
+    };
+    const closure = /^(\t+)var (\w+) \*string = (?:ccxt\.)?SafeStringPtr\(func\(\) any \{\n\t+if (\w+) >= 0 && \3 < len\((\w+)\) \{\n\t+return \4\[\3\]\n\t+\}\n\t+return nil\n\t+\}\(\)\)$/gm;
+    content = content.replace (closure, (line: string, ind: string, x: string, i: string, xs: string, at: number) => (proven (at, xs, x)
+        ? ind + 'var ' + x + ' *string = nil\n' + ind + 'if ' + i + ' >= 0 && ' + i + ' < len(' + xs + ') {\n' + ind + '\t' + x + ' = &' + xs + '[' + i + ']\n' + ind + '}'
+        : line));
+    const index = /^(\t+)var (\w+) \*string = (?:ccxt\.)?SafeStringPtr\((\w+)\[(\w+)\]\)$/gm;
+    return content.replace (index, (line: string, ind: string, x: string, xs: string, i: string, at: number) => (proven (at, xs, x)
+        ? ind + 'var ' + x + ' *string = &' + xs + '[' + i + ']'
+        : line));
+}
+
+export function goStringSliceIndexPtrCheck (): string[] {
+    const problems: string[] = [];
+    const fn = (decl: string, extra: string) => 'func (this *X) f() {\n\tvar ps ' + decl + ' = g()\n' + extra + '\tvar a *string = SafeStringPtr(ps[0])\n\tvar b *string = SafeStringPtr(func() any {\n\t\tif 1 >= 0 && 1 < len(ps) {\n\t\t\treturn ps[1]\n\t\t}\n\t\treturn nil\n\t}())\n}\n';
+    const out = goStringSliceIndexPtr (fn ('[]string', ''));
+    if (!out.includes ('\tvar a *string = &ps[0]\n')) { problems.push ('slice-index-ptr: index form missing'); }
+    if (!out.includes ('\tvar b *string = nil\n\tif 1 >= 0 && 1 < len(ps) {\n\t\tb = &ps[1]\n\t}\n}')) { problems.push ('slice-index-ptr: closure form missing'); }
+    for (const [ d, e ] of [ [ '[]any', '' ], [ '[]string', '\tps[0] = "x"\n' ], [ '[]string', '\tps := h()\n' ] ]) {
+        if (goStringSliceIndexPtr (fn (d, e)) !== fn (d, e)) { problems.push ('slice-index-ptr: unproven rewritten ' + d + e); }
+    }
     return problems;
 }
 
