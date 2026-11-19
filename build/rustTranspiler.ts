@@ -6389,6 +6389,11 @@ const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ['handle_public_address', ''],
     ['get_inst_type', 'string_'],
     ['handle_hf_and_params', 'bool_'],
+    ['prepare_account_request_with_currency_code', ''],
+    ['order_request', ''],
+    ['order_request_ws', ''],
+    ['fetch_order_request', ''],
+    ['parse_create_edit_order_args', ''],
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
@@ -6553,8 +6558,8 @@ function typeHandleOptionTuples(input: string): string {
     // handleMarketTypeAndParams overrides (okx, deepcoin) only return the base's tuple through `super_`
     out = out.replace(/(\n {4}pub fn handle_market_type_and_params\([^\n]*\) -> )Value( \{\n(?:(?!\n {4}(?:pub )?fn )[\s\S])*?return self\.super_handle_market_type_and_params\([^\n]*\);)\n\n {4}Value::Null\n\}/g, '$1(Value, crate::value::Dict)$2\n}');
     return out.replace(new RegExp(String.raw`(\n {4}(?:pub )?(?:async )?fn (${RUST_TUPLE_FN_NAME})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'),
-        (_m, sig, name, open, body) => { const fam = rustTupleFam(name, out); if (fam === 'bool_pair_') return `${sig}(Option<bool>, Option<bool>)${open}${body.replace(/return Value::from\(vec!\[(self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\)), (self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\))\]\);/g, 'return ($1.as_bool(), $2.as_bool());')}\n}`; return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
-            (_r, v, d, b) => `return (${v.replace(/^(\w+)\.map_or\(Value::Null, Value::Bool\)$/, '$1@')}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`.replace(/@\.as_bool\(\)/, ''))}\n}`; });
+        (_m, sig, name, open, body) => { const fam = rustTupleFam(name, out); if (fam === 'bool_pair_') return `${sig}(Option<bool>, Option<bool>)${open}${body.replace(/return Value::from\(vec!\[(self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\)), (self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\))\]\);/g, 'return ($1.as_bool(), $2.as_bool());')}\n}`; return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|Value::Map\((\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
+            (_r, v, d, mp, b) => `return (${v.replace(/^(\w+)\.map_or\(Value::Null, Value::Bool\)$/, '$1@')}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? (mp ? `std::sync::Arc::new(${mp})` : `${b}.into_dict()`)});`.replace(/@\.as_bool\(\)/, ''))}\n}`; });
 }
 
 // parsePredictionPositions has one declaration whose only list is `results`, fed by `push(Value::Dict(..))`:
