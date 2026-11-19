@@ -333,7 +333,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #     ['Aud', 'Usd', 'Nzd', 'Sgd']
         limitsPromise = self.publicGetGetOrderMinimumVolumes(params)
         responses = await asyncio.gather(*[baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise])
-        limits = self.safe_value(responses, 2)
+        limits = self.safe_dict(responses, 2)
         #
         #     {
         #         "Xbt": 0.0001,
@@ -343,8 +343,8 @@ class independentreserve(Exchange, ImplicitAPI):
         #     }
         #
         result = []
-        baseCurrencyIds = self.to_array(self.safe_value(responses, 0))
-        quoteCurrencyIds = self.to_array(self.safe_value(responses, 1))
+        baseCurrencyIds = self.to_array(self.safe_list(responses, 0))
+        quoteCurrencyIds = self.to_array(self.safe_list(responses, 1))
         for i in range(0, len(baseCurrencyIds)):
             baseId = self.safe_string(baseCurrencyIds, i, '')
             base = self.safe_currency_code(baseId)

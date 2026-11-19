@@ -21,6 +21,20 @@
                     1
                 ],
                 "output": null
+            },
+            {
+                "description": "fetch funding rate history with since and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://whitebit.com/api/v4/public/funding-history/ETH_PERP?startDate=1792368000&endDate=1792454399&limit=3",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1792368000000,
+                    3,
+                    {
+                        "until": 1792454399000
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchCurrencies": [

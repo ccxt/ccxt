@@ -573,7 +573,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList(response, 'results');
+        const data = this.safeList(response, 'results', []);
         return this.parseMarkets(data);
     }
     parseMarket(market) {
@@ -2147,7 +2147,7 @@ export default class paradex extends Exchange {
         }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const paramsOmitted = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
-        const hasOrderIds = Array.isArray(ids);
+        const hasOrderIds = (ids !== undefined);
         const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray(clientOrderIds));
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');

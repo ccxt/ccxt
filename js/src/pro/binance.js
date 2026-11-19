@@ -362,8 +362,8 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchLiquidationsForSymbols([symbol], since, limit, params);
+    async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchLiquidationsForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -590,8 +590,8 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+    async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -689,13 +689,12 @@ export default class binance extends binanceRest {
         const market = this.safeMarket(marketId, undefined, undefined, 'swap');
         const symbol = this.safeSymbol(marketId, market);
         const liquidation = this.parseWsLiquidation(message, market);
-        let cache = this.myLiquidations;
-        if (cache === undefined) {
+        if (this.myLiquidations === undefined) {
             const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
-            cache = new ArrayCache(limit);
+            this.myLiquidations = new ArrayCache(limit);
         }
+        const cache = this.myLiquidations;
         cache.append(liquidation);
-        this.myLiquidations = cache;
         client.resolve([liquidation], 'myLiquidations');
         client.resolve([liquidation], 'myLiquidations::' + symbol);
     }
@@ -720,13 +719,13 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol, limit = undefined, params = {}) {
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
         //
         // todo add support for <levels>-snapshots (depth): <symbol>@depth<levels>[@100ms], levels 5/10/20
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
         // sync recipe differs between spot and futures (stream/snapshot urls, delta caching/merging, U/u/pu continuity check):
         // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly and https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-        return this.watchOrderBookForSymbols([symbol], limit, params);
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -899,8 +898,8 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol, params = {}) {
-        return this.unWatchOrderBookForSymbols([symbol], params);
+    async unWatchOrderBook(symbol, params = {}) {
+        return await this.unWatchOrderBookForSymbols([symbol], params);
     }
     /**
      * @method
@@ -1058,7 +1057,7 @@ export default class binance extends binanceRest {
     }
     handleDeltas(bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i));
         }
     }
     handleOrderBookMessage(client, message, orderbook) {
@@ -1443,8 +1442,8 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol, params = {}) {
-        return this.unWatchTradesForSymbols([symbol], params);
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
     }
     /**
      * @method
@@ -2220,7 +2219,10 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        const [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'watchTickers', 'stock', false);
+        // a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+        // option lookup would consume callerMethodName, so it is resolved once for both lookups below
+        const [methodName, paramsMethodName] = this.handleParamString(params, 'callerMethodName', 'watchTickers');
+        const [stock, paramsStock] = this.handleOptionBoolAndParams(paramsMethodName, methodName, 'stock', false);
         let symbolsNormalized = symbols;
         if (stock) {
             if (symbols === undefined) {
@@ -2233,7 +2235,7 @@ export default class binance extends binanceRest {
             }
             return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
         }
-        const [channelName, paramsName] = this.handleOptionStringAndParams(paramsStock, 'watchTickers', 'name', 'miniTicker');
+        const [channelName, paramsName] = this.handleOptionStringAndParams(paramsStock, methodName, 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
             throw new BadRequest(this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2260,7 +2262,8 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        const [channelName, paramsName] = this.handleOptionStringAndParams(params, 'watchTickers', 'name', 'ticker');
+        // same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
+        const [channelName, paramsName] = this.handleOptionStringAndParams(params, 'watchTickers', 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
             throw new BadRequest(this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2293,8 +2296,8 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice(symbol, params = {}) {
-        return this.unWatchMarkPrices([symbol], params);
+    async unWatchMarkPrice(symbol, params = {}) {
+        return await this.unWatchMarkPrices([symbol], params);
     }
     /**
      * @method
@@ -2326,8 +2329,9 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol, params = {}) {
-        return this.unWatchTickers([symbol], params);
+    async unWatchTicker(symbol, params = {}) {
+        // read the channel under watchTicker's options, the stream watchTicker subscribed
+        return await this.unWatchTickers([symbol], this.extend(params, { 'callerMethodName': 'watchTicker' }));
     }
     /**
      * @method
@@ -3480,8 +3484,8 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositionWs(symbol, params = {}) {
-        return this.fetchPositionsWs([symbol], params);
+    async fetchPositionWs(symbol, params = {}) {
+        return await this.fetchPositionsWs([symbol], params);
     }
     /**
      * @method
@@ -3506,7 +3510,7 @@ export default class binance extends binanceRest {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
                 market = this.market(symbolsNormalized[0]);
-                payload['symbol'] = this.safeValue(market, 'id');
+                payload['symbol'] = this.safeString(market, 'id');
             }
         }
         let type = this.getMarketType('fetchPositionsWs', market, params);
@@ -5155,7 +5159,7 @@ export default class binance extends binanceRest {
         this.setPositionsCache(client, type, symbolsNormalized, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions[type];
+        const cache = this.positionsByType[type];
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future(type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
@@ -5170,18 +5174,15 @@ export default class binance extends binanceRest {
         if (type === 'spot') {
             return;
         }
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (type in this.positions) {
+        if (type in this.positionsByType) {
             // a fresh client has no snapshot future yet, which means the
             // connection was re-established after a disconnect: positions
             // closed while disconnected never arrive as stream deltas, so
             // the cached positions are stale and must be reloaded
             const messageHash = type + ':fetchPositionsSnapshot';
             if ((fetchPositionsSnapshot === true) && (!(messageHash in client.futures))) {
-                delete this.positions[type];
+                delete this.positionsByType[type];
             }
             else {
                 return;
@@ -5195,7 +5196,7 @@ export default class binance extends binanceRest {
             }
         }
         else {
-            this.positions[type] = new ArrayCacheBySymbolBySide();
+            this.positionsByType[type] = new ArrayCacheBySymbolBySide();
         }
     }
     async loadPositionsSnapshot(client, messageHash, type, isPortfolioMargin) {
@@ -5213,8 +5214,8 @@ export default class binance extends binanceRest {
         if (currentClient !== client) {
             return;
         }
-        this.positions[type] = new ArrayCacheBySymbolBySide();
-        const cache = this.positions[type];
+        this.positionsByType[type] = new ArrayCacheBySymbolBySide();
+        const cache = this.positionsByType[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
@@ -5262,13 +5263,10 @@ export default class binance extends binanceRest {
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys(subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        if (this.positions === undefined) {
-            this.positions = {};
+        if (!(accountType in this.positionsByType)) {
+            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide();
         }
-        if (!(accountType in this.positions)) {
-            this.positions[accountType] = new ArrayCacheBySymbolBySide();
-        }
-        const cache = this.positions[accountType];
+        const cache = this.positionsByType[accountType];
         const data = this.safeDict(message, 'a', {});
         const rawPositions = this.safeList(data, 'P', []);
         const newPositions = [];
@@ -5789,13 +5787,10 @@ export default class binance extends binanceRest {
         this.balance[accountType] = this.safeBalance(this.balance[accountType]);
         client.resolve(this.balance[accountType], accountType + ':balance');
         // --- positions ---
-        if (this.positions === undefined) {
-            this.positions = {};
+        if (!(accountType in this.positionsByType)) {
+            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide();
         }
-        if (!(accountType in this.positions)) {
-            this.positions[accountType] = new ArrayCacheBySymbolBySide();
-        }
-        const cache = this.positions[accountType];
+        const cache = this.positionsByType[accountType];
         const P = this.safeList(message, 'P', []);
         const newPositions = [];
         for (let i = 0; i < P.length; i++) {

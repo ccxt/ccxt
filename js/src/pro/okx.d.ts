@@ -1,5 +1,5 @@
 import okxRest from '../okx.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool, Market } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class okx extends okxRest {
@@ -52,7 +52,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -96,7 +96,7 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name okx#watchTickers
@@ -130,6 +130,28 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchMarkPrices(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    /**
+     * @method
+     * @name okx#unWatchMarkPrice
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches a mark price
+     * @param {string} symbol unified symbol of the market to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name okx#unWatchMarkPrices
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches mark prices
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    unWatchMarkPrices(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name okx#unWatchTickers
@@ -207,7 +229,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name okx#watchOHLCVForSymbols
@@ -278,7 +300,7 @@ export default class okx extends okxRest {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook, messageHash: string, market?: Market): WsOrderBook;
@@ -341,7 +363,7 @@ export default class okx extends okxRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrders(client: Client, message: Dict): void;
     handleMyTrades(client: Client, message: Dict): void;
-    requestId(): string;
+    requestId(): int;
     /**
      * @method
      * @name okx#createOrderWs
@@ -420,5 +442,6 @@ export default class okx extends okxRest {
     handleUnsubscriptionOrderBook(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOHLCV(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionTicker(client: Client, symbol: string, channel: string): void;
+    handleUnsubscriptionMarkPrice(client: Client, symbol: string, channel: string): void;
     handleUnsubscription(client: Client, message: Dict): void;
 }

@@ -677,6 +677,26 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "swap depth 50 is a venue depth and must not be rounded up",
+                "method": "fetchOrderBook",
+                "url": "https://api.poloniex.com/v3/market/orderBook?symbol=BTC_USDT_PERP&limit=50",
+                "input": [
+                    "BTC/USDT:USDT",
+                    50
+                ],
+                "output": null
+            },
+            {
+                "description": "spot depth rounded up to the nearest venue depth",
+                "method": "fetchOrderBook",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/orderBook?limit=50",
+                "input": [
+                    "BTC/USDT",
+                    30
+                ],
+                "output": null
+            },
+            {
                 "description": "linear",
                 "method": "fetchOrderBook",
                 "url": "https://api.poloniex.com/v3/market/orderBook?symbol=BTC_USDT_PERP",

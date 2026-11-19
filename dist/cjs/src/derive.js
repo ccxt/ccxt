@@ -779,9 +779,8 @@ class derive extends derive$1["default"] {
         const [maxPages, paramsMaxPages] = this.handleOptionIntegerAndParams(params, 'getMarketsPaginated', 'maxMarketPages', 25);
         const [pageSize, paramsOmitted] = this.handleOptionIntegerAndParams(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         for (let i = 0; i < maxPages; i++) {
-            const page = i + 1;
             const requestExtension = {
-                'page': page,
+                'page': i + 1,
                 'page_size': pageSize,
             };
             const requestExtended = this.extend(this.extend(request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
@@ -1586,10 +1585,10 @@ class derive extends derive$1["default"] {
             limitResolved = this.parseToInt(limit);
         }
         if (limitResolved > 5000) {
-            limitResolved = this.parseToInt(5000);
+            limitResolved = 5000;
         }
         const span = this.parseToInt(limitResolved * duration);
-        const windowStart = this.parseToInt(untilSeconds - span);
+        const windowStart = untilSeconds - span;
         let start = windowStart;
         let end = untilSeconds;
         if (since !== undefined) {

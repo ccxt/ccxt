@@ -115,7 +115,7 @@ public interface TypedSurface {
     CompletableFuture<Status> fetchStatus(Map<String, Object> params);
     CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> params);
     CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Map<String, Object> params);
-    CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object params);
+    CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> params);
     CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchSpotTickers(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Tickers> fetchContractTickers(List<String> symbols, Map<String, Object> params);
@@ -850,9 +850,9 @@ public interface TypedSurface {
     default CompletableFuture<String> fetchOrderStatusAsync(String id) { return fetchOrderStatusAsync(id, (String) null, new HashMap<String, Object>()); }
     default CompletableFuture<String> fetchOrderStatusAsync(String id, String symbol) { return fetchOrderStatusAsync(id, symbol, new HashMap<String, Object>()); }
 
-    default Order fetchUnifiedOrder(Object order) { return Helpers.joinUnwrapped(this.fetchUnifiedOrder(order, new HashMap<String, Object>())); }
-    default CompletableFuture<Order> fetchUnifiedOrderAsync(Object order, Map<String, Object> params) { return this.fetchUnifiedOrder(order, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<Order> fetchUnifiedOrderAsync(Object order) { return fetchUnifiedOrderAsync(order, new HashMap<String, Object>()); }
+    default Order fetchUnifiedOrder(Order order) { return Helpers.joinUnwrapped(this.fetchUnifiedOrder(order, new HashMap<String, Object>())); }
+    default CompletableFuture<Order> fetchUnifiedOrderAsync(Order order, Map<String, Object> params) { return this.fetchUnifiedOrder(order, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<Order> fetchUnifiedOrderAsync(Order order) { return fetchUnifiedOrderAsync(order, new HashMap<String, Object>()); }
 
     default Order createOrder(String symbol, String type, String side, Double amount) { return Helpers.joinUnwrapped(this.createOrder(symbol, type, side, amount, (Double) null, new HashMap<String, Object>())); }
     default Order createOrder(String symbol, String type, String side, Double amount, Double price) { return Helpers.joinUnwrapped(this.createOrder(symbol, type, side, amount, price, new HashMap<String, Object>())); }

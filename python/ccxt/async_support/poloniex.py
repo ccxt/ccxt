@@ -866,7 +866,7 @@ class poloniex(Exchange, ImplicitAPI):
         #                "limitMaxQty": "1000000"
         #            },
         #
-        markets = self.safe_list(response, 'data')
+        markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
@@ -1260,11 +1260,10 @@ class poloniex(Exchange, ImplicitAPI):
         return self.parse_currencies(response)
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
-        entry = currency
-        id = self.safe_string(entry, 'coin')
+        id = self.safe_string(currency, 'coin')
         code = self.safe_currency_code(id)
         networks = {}
-        chains = self.safe_list(entry, 'networkList', [])
+        chains = self.safe_list(currency, 'networkList', [])
         chainsLength = len(chains)
         for j in range(0, chainsLength):
             chain = self.safe_dict(chains, j)
@@ -1294,18 +1293,18 @@ class poloniex(Exchange, ImplicitAPI):
                 }
         return self.safe_currency_structure({
             'id': id,
-            'name': self.safe_string(entry, 'name'),
+            'name': self.safe_string(currency, 'name'),
             'code': code,
             'type': None,
             'precision': None,
-            'info': entry,
+            'info': currency,
             'networks': networks,
             'deposit': None,
             'withdraw': None,
             'active': None,
             'fee': None,
             'limits': None,
-            'margin': self.safe_bool(entry, 'supportBorrow'),
+            'margin': self.safe_bool(currency, 'supportBorrow'),
         })
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -2065,7 +2064,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def create_orders(self, orders: list[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}):
         """
         create a list of trade orders, all orders must be of the same market type, either spot or swap
 
@@ -2327,7 +2326,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}):
         """
         cancel multiple orders
 
@@ -2712,7 +2711,7 @@ class poloniex(Exchange, ImplicitAPI):
         https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
@@ -2722,9 +2721,8 @@ class poloniex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if self.safe_bool(market, 'contract', False):
-                request['limit'] = self.find_nearest_ceiling([5, 10, 20, 100, 150], limit)
+            # both hosts accept only these depths, anything else is rejected with 24104
+            request['limit'] = self.find_nearest_ceiling([5, 10, 20, 50, 100, 150], limit)
         if self.safe_bool(market, 'contract', False):
             responseRaw = await self.swapPublicGetV3MarketOrderBook(self.extend(request, params))
             #
@@ -3389,8 +3387,8 @@ class poloniex(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(transactionValue, 'timestamp')
         currencyId = self.safe_string(transactionValue, 'currency')
         code = self.safe_currency_code(currencyId)
-        status = self.safe_string(transactionValue, 'status', 'pending')
-        status = self.parse_transaction_status(status)
+        rawStatus = self.safe_string(transactionValue, 'status', 'pending')
+        status = self.parse_transaction_status(rawStatus)
         txid = self.safe_string(transactionValue, 'txid')
         type = 'deposit'
         if self.safe_string(transactionValue, 'withdrawalRequestsId') is not None:

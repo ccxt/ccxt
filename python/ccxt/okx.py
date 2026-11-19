@@ -281,6 +281,7 @@ class okx(Exchange, ImplicitAPI):
                         'public/vip-interest-rate-loan-quota': {'cost': 10},  # not documented
                         'public/mm-instrument-types': {'cost': 4},
                         'public/delta-hedge-currencies': {'cost': 1},
+                        'public/corporate-actions': {'cost': 1},
                         # rubik
                         'rubik/stat/trading-data/support-coin': {'cost': 4},
                         'rubik/stat/contracts/open-interest-history': {'cost': 2},
@@ -2085,16 +2086,15 @@ class okx(Exchange, ImplicitAPI):
         return self.parse_currencies(currencies)
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
-        chains = currency
         # currencies are grouped by chain entries, so there is at least one entry
-        firstChain = self.safe_dict(chains, 0, {})
+        firstChain = self.safe_dict(currency, 0, {})
         currencyId = self.safe_string(firstChain, 'ccy')
         code = self.safe_currency_code(currencyId)
         networks = {}
         type = 'crypto'
-        chainsLength = len(chains)
+        chainsLength = len(currency)
         for j in range(0, chainsLength):
-            chain = self.safe_dict(chains, j)
+            chain = self.safe_dict(currency, j)
             # allow empty string for rare fiat-currencies, e.g. TRY
             networkId = self.safe_string(chain, 'chain', '')  # USDT-BEP20, USDT-Avalance-C, etc
             if networkId == '':
@@ -2122,7 +2122,7 @@ class okx(Exchange, ImplicitAPI):
                     'info': chain,
                 }
         return self.safe_currency_structure({
-            'info': chains,
+            'info': currency,
             'code': code,
             'id': currencyId,
             'name': self.safe_string(firstChain, 'name'),
@@ -2661,10 +2661,11 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
-        if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
         priceType = self.safe_string(paramsPaginate, 'price')
         isMarkOrIndex = self.in_array(priceType, ['mark', 'index'])
+        if paginate:
+            maxEntriesPerRequest = 100 if (isMarkOrIndex) else 200
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest)
         paramsPrice = self.omit(paramsPaginate, 'price')
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         timezone = self.safe_string(options, 'timezone', 'UTC')
@@ -2699,7 +2700,9 @@ class okx(Exchange, ImplicitAPI):
             request['after'] = self.sum(since, durationInMilliseconds * limitResolved)
         until = self.safe_integer(paramsPrice, 'until')
         if until is not None:
-            request['after'] = until
+            afterSince = self.safe_integer(request, 'after')
+            if (afterSince is None) or (until < afterSince):
+                request['after'] = until
         paramsUntil = self.omit(paramsPrice, 'until') if (until is not None) else paramsPrice
         defaultType = self.safe_string(options, 'type', defaultType)  # Candles or HistoryCandles
         type = self.safe_string(paramsUntil, 'type', defaultType)
@@ -2750,6 +2753,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
@@ -2759,7 +2763,7 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 400)
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2768,7 +2772,11 @@ class okx(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetPublicFundingRateHistory(self.extend(request, paramsPaginate))
+        until = self.safe_integer(paramsPaginate, 'until')
+        if until is not None:
+            request['after'] = until
+        paramsUntil = self.omit(paramsPaginate, 'until') if (until is not None) else paramsPaginate
+        response = self.publicGetPublicFundingRateHistory(self.extend(request, paramsUntil))
         #
         #     {
         #         "code":"0",
@@ -3102,8 +3110,8 @@ class okx(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
-        stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
+        takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'tpTriggerPx')
+        stopLossPrice = self.safe_string_2(params, 'stopLossPrice', 'slTriggerPx')
         conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         request = {
             'instId': market['id'],
@@ -6538,7 +6546,7 @@ class okx(Exchange, ImplicitAPI):
         requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -7848,7 +7856,7 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: the request and the remaining params
         """
         maxLimit = 100
-        effectiveLimit = self.parse_to_int(100)
+        effectiveLimit = 100
         if (limit is not None) and (100 > limit):
             effectiveLimit = self.parse_to_int(limit)
         if limit is not None:

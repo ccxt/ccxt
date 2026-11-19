@@ -32,6 +32,8 @@ func (this *Bitrue) Describe() map[string]any {
 			"watchOrders":    true,
 			"watchOrderBook": true,
 			"watchOHLCV":     true,
+			"unWatchTrades":  true,
+			"unWatchOHLCV":   true,
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
@@ -255,14 +257,10 @@ func (this *Bitrue) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 	}
 
 	r1 := <-this.AuthenticateAsync()
@@ -514,6 +512,9 @@ func (this *Bitrue) HandleOrderBook(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
+	// typed Str, not string: callers pass safeStringLower's result, a *string in go,
+	// and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
+	// dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
 	if this.Markets == nil {
 		return nil
 	}
@@ -536,8 +537,8 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 		if (baseId == nil) || (quoteId == nil) {
 			panic(ccxt.ExchangeError(this.Id + " findSwapMarketByWsBaseQuote() market " + symbolId + " has no baseId or quoteId"))
 		}
-		if *baseId+*quoteId == wsBaseQuote {
-			return candidate
+		if ccxt.IsEqual(*baseId+*quoteId, wsBaseQuote) {
+			return this.Market(symbolId)
 		}
 	}
 	return nil
@@ -566,6 +567,72 @@ func (this *Bitrue) ConvertFromRawQuantity(symbol string, rawQuantity *float64) 
 		return rawQuantity
 	}
 	return (*rawQuantity * *contractSize)
+}
+
+/**
+ * @ignore
+ * @method
+ * @description sends an unsubscribe request and drops the subscription and its cache
+ * @param {string} subHash the messageHash the watch method subscribed with
+ * @param {string} channel the channel the watch method subscribed to
+ * @param {string} cbId the cb_id the watch method subscribed with
+ * @param {object} subscription the cache to clean, see cleanCache
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true
+ */
+func (this *Bitrue) UnSubscribeAsync(subHash string, channel string, cbId any, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unSubscribeBody(ch, subHash, channel, cbId, subscription, optionalArgs...)
+	return ch
+}
+func (this *Bitrue) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash string, channel string, cbId any, subscription map[string]any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["futurePublic"])
+	var client ccxt.ClientInterface = this.Client(url)
+	if client.(ccxt.ClientInterface).SubscriptionHas(subHash) {
+		var request map[string]any = map[string]any{
+			"event": "unsub",
+			"params": map[string]any{
+				"cb_id":   cbId,
+				"channel": channel,
+			},
+		}
+
+		{
+			func(this *Bitrue) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *Bitrue) any {
+							// catch block:
+							panic(ccxt.NetworkError(this.Id + " could not unsubscribe " + subHash + ", the websocket connection is not open"))
+
+						}(this)
+					}
+				}()
+				// try block:
+
+				r := <-client.(ccxt.ClientInterface).SendAsync(this.DeepExtend(request, params))
+				if r.Err != nil {
+					panic(r.Err)
+				}
+				return nil
+			}(this)
+
+		}
+	}
+	// bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
+	// so the subscription is cleaned up as soon as the request is sent
+	this.CleanCache(subscription)
+	this.CleanUnsubscription(ccxt.AsClient(client), subHash, "unsubscribe:"+subHash)
+
+	ch <- ccxt.AsyncResult[bool]{Value: true}
+	return nil
 }
 
 /**
@@ -634,6 +701,54 @@ func (this *Bitrue) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
+
+/**
+ * @method
+ * @name bitrue#unWatchTrades
+ * @description unWatches public trades for a swap (futures) market
+ * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+ */
+func (this *Bitrue) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Bitrue) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	if market["swap"] != true {
+		panic(ccxt.NotSupported(this.Id + " unWatchTrades is only supported for swap markets"))
+	}
+	var baseIdLower *string = this.SafeStringLower(market, "baseId")
+	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
+	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("market_", wsId), "_trade_ticker"))
+	var subscription map[string]any = map[string]any{
+		"topic":   "trades",
+		"symbols": []any{symbolValue},
+	}
+
+	r1 := <-this.UnSubscribeAsync("trades:"+*symbolValue, *channel, wsId, subscription, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+	return nil
+}
 func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
@@ -663,6 +778,12 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
+	var messageHash string = "trades:" + *symbol
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+		// a late push for a channel that was unwatched - bitrue does not acknowledge
+		// an unsubscribe, so frames it sent before processing it can still arrive
+		return
+	}
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	var data []any = ccxt.SafeListTyped(tick, "data")
 	var appended bool = false
@@ -678,7 +799,6 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 		appended = true
 	}
 	if appended {
-		var messageHash string = "trades:" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
@@ -781,6 +901,62 @@ func (this *Bitrue) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
+
+/**
+ * @method
+ * @name bitrue#unWatchOHLCV
+ * @description unWatches ccxt.OHLCV candles for a swap (futures) market
+ * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+ * @param {string} symbol unified symbol of the market to unwatch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+ */
+func (this *Bitrue) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Bitrue) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	if market["swap"] != true {
+		panic(ccxt.NotSupported(this.Id + " unWatchOHLCV is only supported for swap markets"))
+	}
+	var futuresTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "futuresTimeframes")
+	var interval *string = this.SafeString(futuresTimeframes, timeframe)
+	if interval == nil {
+		panic(ccxt.NotSupported(this.Id + " unWatchOHLCV does not support timeframe " + timeframe))
+	}
+	var baseIdLower *string = this.SafeStringLower(market, "baseId")
+	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
+	var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("market_", wsId), "_kline_"), interval))
+	var subscription map[string]any = map[string]any{
+		"topic":                "ohlcv",
+		"symbolsAndTimeframes": []any{[]any{symbolValue, timeframe}},
+	}
+
+	r1 := <-this.UnSubscribeAsync("ohlcv:"+*symbolValue+":"+timeframe, *channel, wsId, subscription, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+	return nil
+}
 func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
@@ -814,6 +990,11 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
+	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
+	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+		// a late push for a channel that was unwatched, see handleTrades
+		return
+	}
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	if tick == nil {
 		return
@@ -828,9 +1009,9 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any = this.Ohlcvs[*symbol][*timeframe]
-	stored.(ccxt.Appender).Append(parsed)
-	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
@@ -1082,7 +1263,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		}
 		// register before the first await, so a concurrent caller entering
 		// authenticate () while this one is inside the fetch sees the flight
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Bitrue) (ret_ any) {
@@ -1136,7 +1317,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// rethrows to the leader on failure and attaches the handler that
 		// keeps an alone leader's rejection from crashing the process
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1301,6 +1482,29 @@ func (this *Bitrue) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
 
 /**
  * @method
+ * @name bitrue#unWatchTrades
+ * @description unWatches public trades for a swap (futures) market
+ * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+ */
+func (this *Bitrue) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name bitrue#watchOHLCV
  * @description watches ccxt.OHLCV candles for a swap (futures) market
  * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
@@ -1324,6 +1528,30 @@ func (this *Bitrue) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	}
 	var res []ccxt.OHLCV = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name bitrue#unWatchOHLCV
+ * @description unWatches ccxt.OHLCV candles for a swap (futures) market
+ * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+ * @param {string} symbol unified symbol of the market to unwatch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+ */
+func (this *Bitrue) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

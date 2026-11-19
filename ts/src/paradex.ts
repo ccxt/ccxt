@@ -1417,7 +1417,7 @@ export default class paradex extends Exchange {
         return rate as FundingRate;
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
@@ -2421,7 +2421,7 @@ export default class paradex extends Exchange {
         }
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
-        const hasOrderIds = Array.isArray (ids);
+        const hasOrderIds = (ids !== undefined);
         const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray (clientOrderIds));
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
@@ -2891,7 +2891,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'results', []) as List;
+        const data: Dict[] = this.safeList (response, 'results', []) as List;
         // the endpoint keeps returning a market's position after it is closed, with a size of 0
         const openPositions: List = [];
         for (let i = 0; i < data.length; i++) {
@@ -3090,7 +3090,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'results', []) as List;
+        const rows: Dict[] = this.safeList (response, 'results', []) as List;
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString (response, 'next');
         for (let i = 0; i < rows.length; i++) {
@@ -3163,7 +3163,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList (response, 'results', []) as List;
+        const rows: Dict[] = this.safeList (response, 'results', []) as List;
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString (response, 'next');
         for (let i = 0; i < rows.length; i++) {
@@ -4044,7 +4044,7 @@ export default class paradex extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let version = this.version;
-        let pathValue: any = path;
+        let pathValue: string = path;
         if (path.indexOf ('v2/') === 0) {
             pathValue = path.replace ('v2/', '');
         }

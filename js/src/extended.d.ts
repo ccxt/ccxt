@@ -13,6 +13,7 @@ export default class extended extends Exchange {
      * @name extended#fetchMarkets
      * @description retrieves data on all markets for extended
      * @see https://api.docs.extended.exchange/#get-markets
+     * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -99,7 +100,7 @@ export default class extended extends Exchange {
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     parseFundingHistory(history: Dict, market?: Market): FundingHistory;
-    parseFundingHistories(histories: any[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
+    parseFundingHistories(histories: Dict[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method

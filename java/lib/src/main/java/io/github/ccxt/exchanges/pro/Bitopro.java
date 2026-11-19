@@ -122,7 +122,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 endPart = ((marketIdValue + ":") + this.numberToString(limit));
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, (String) (endPart))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, endPart)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -229,7 +229,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
         String symbol = (String) market.get("symbol");
         String eventVar = this.safeString(message, "event");
-        List<Object> rawData = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawData = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawData, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesCache, null))
@@ -237,7 +237,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(((Number)limit).intValue());
         }
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        for (var i = 0; i < trades.size(); i++)
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             tradesCache.append(trade);
@@ -321,7 +321,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(data, "base");
         String quoteId = this.safeString(data, "quote");
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
@@ -527,8 +527,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }};
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions(defaultOptions);
-        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-        Map<String, Object> wsInnerOptions = (Map<String, Object>) this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsInnerOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
         Object originalHeaders = wsInnerOptions.get("headers");
         Map<String, Object> headers = new HashMap<String, Object>() {{
             put( "X-BITOPRO-API", "ccxt" );
@@ -592,7 +592,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //     }
         //
         String eventVar = this.safeString(message, "event");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(message, "timestamp");
         String datetime = this.safeString(message, "datetime");
         List<String> currencies = new ArrayList<String>(data.keySet());
@@ -609,10 +609,10 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         this.balance.put("info", data);
         this.balance.put("timestamp", timestamp);
         this.balance.put("datetime", datetime);
-        for (var i = 0; i < ((List<?>)currencies).size(); i++)
+        for (var i = 0; i < currencies.size(); i++)
         {
             String currency = this.safeString(currencies, i);
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, currency, new HashMap<String, Object>() {{}});
+            Map<String, Object> balance = this.safeDict(data, currency, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();

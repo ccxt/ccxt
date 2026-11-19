@@ -827,7 +827,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetPublicSymbol(parameters);
@@ -983,7 +983,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetPublicCurrency(parameters);
@@ -1037,8 +1037,7 @@ public partial class hitbtc : Exchange
     {
         string? currencyId = this.safeString(currency, "_coin_id");
         string? code = this.safeCurrencyCode(currencyId);
-        object entry = currency;
-        List<object> rawNetworks = this.safeList(entry, "networks", new List<object>() {});
+        List<object> rawNetworks = this.safeList(currency, "networks", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < rawNetworks.Count; j++)
         {
@@ -1075,14 +1074,14 @@ public partial class hitbtc : Exchange
             }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
-            { "info", entry },
+            { "info", currency },
             { "code", code },
             { "id", currencyId },
-            { "precision", this.safeNumber(entry, "precision_transfer") },
-            { "name", this.safeString(entry, "full_name") },
-            { "active", !(this.safeBool(entry, "delisted", false) == true) },
-            { "deposit", this.safeBool(entry, "payin_enabled") },
-            { "withdraw", this.safeBool(entry, "payout_enabled") },
+            { "precision", this.safeNumber(currency, "precision_transfer") },
+            { "name", this.safeString(currency, "full_name") },
+            { "active", !(this.safeBool(currency, "delisted", false) == true) },
+            { "deposit", this.safeBool(currency, "payin_enabled") },
+            { "withdraw", this.safeBool(currency, "payout_enabled") },
             { "networks", networks },
             { "fee", null },
             { "limits", new Dictionary<string, object>() {
@@ -1104,7 +1103,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1148,7 +1147,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1218,11 +1217,11 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeStringLower(parameters, "type", "spot");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"type"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"type"});
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? account = ((type == null)) ? null : this.safeString(accountsByType, type, type);
         List<object> response = null;
@@ -1263,7 +1262,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1300,7 +1299,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1400,7 +1399,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1453,7 +1452,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for fetching margin trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1479,9 +1478,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         if ((marginMode != null))
         {
@@ -1505,7 +1504,7 @@ public partial class hitbtc : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // createOrder (market)
@@ -1689,7 +1688,7 @@ public partial class hitbtc : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // transaction
@@ -1788,7 +1787,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters));
@@ -1806,7 +1805,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("DEPOSIT", code, since, limit, parameters));
@@ -1824,7 +1823,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("WITHDRAW", code, since, limit, parameters));
@@ -1841,7 +1840,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public async override Task<ccxt.OrderBooks> FetchOrderBooks(IList<object> symbols = null, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBooks> FetchOrderBooks(IList<object> symbols = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1882,7 +1881,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1935,7 +1934,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1975,7 +1974,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2035,7 +2034,7 @@ public partial class hitbtc : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -2044,9 +2043,9 @@ public partial class hitbtc : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -2157,7 +2156,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for fetching margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2182,9 +2181,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchClosedOrders", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchClosedOrders", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
@@ -2233,7 +2232,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for fetching a margin order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2251,9 +2250,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
@@ -2314,7 +2313,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for fetching margin trades
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2332,9 +2331,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrderTrades", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrderTrades", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = new List<object>() {};
         if ((marginMode != null))
@@ -2412,7 +2411,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for fetching open margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2429,9 +2428,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
@@ -2507,9 +2506,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrder", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrder", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
@@ -2547,7 +2546,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for canceling margin orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2564,9 +2563,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
@@ -2605,7 +2604,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for canceling a margin order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2623,9 +2622,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
@@ -2650,7 +2649,7 @@ public partial class hitbtc : Exchange
         return this.parseOrder(response, market);
     }
 
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2677,9 +2676,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("editOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("editOrder", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("editOrder", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
@@ -2724,7 +2723,7 @@ public partial class hitbtc : Exchange
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2735,9 +2734,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         var requestparamsValueVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
         Dictionary<string, object> request = (Dictionary<string, object>)requestparamsValueVariable[0];
         var paramsValue = requestparamsValueVariable[1];
@@ -2976,7 +2975,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public async override Task<ccxt.MarginModes> FetchMarginModes(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.MarginModes> FetchMarginModes(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3029,7 +3028,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, IDictionary<string, object> parameters = null)
     {
         // account can be "spot", "wallet", or "derivatives"
         parameters ??= new Dictionary<string, object>();
@@ -3136,7 +3135,7 @@ public partial class hitbtc : Exchange
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
@@ -3168,7 +3167,7 @@ public partial class hitbtc : Exchange
                 request["network_code"] = parsedNetwork;
             }
         }
-        object paramsOmitted = paramsWithdrawTag;
+        IDictionary<string, object> paramsOmitted = paramsWithdrawTag;
         if (((network != null)) && ((code == "USDT")))
         {
             paramsOmitted = this.omit(paramsWithdrawTag, "network");
@@ -3197,7 +3196,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<ccxt.FundingRates> FetchFundingRates(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3269,23 +3268,23 @@ public partial class hitbtc : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 1000));
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000));
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("until", request, paramsPaginate);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("till", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((symbol != null))
@@ -3340,7 +3339,7 @@ public partial class hitbtc : Exchange
             }
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        object symbolResolved = ((market == null)) ? symbol : this.safeString(market, "symbol");
+        string? symbolResolved = ((market == null)) ? symbol : this.safeString(market, "symbol");
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
     }
 
@@ -3356,7 +3355,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for fetching spot-margin positions
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3372,9 +3371,9 @@ public partial class hitbtc : Exchange
         {
             marketType = "swap";
         }
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPositions", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPositions", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
@@ -3445,7 +3444,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for fetching a spot-margin position
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
+    public async override Task<ccxt.Position> FetchPosition(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3459,9 +3458,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPosition", null, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
@@ -3642,7 +3641,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<ccxt.OpenInterests> FetchOpenInterests(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.OpenInterests> FetchOpenInterests(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3696,7 +3695,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3739,7 +3738,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3814,7 +3813,7 @@ public partial class hitbtc : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3843,9 +3842,9 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("modifyMarginHelper", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("modifyMarginHelper", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("modifyMarginHelper", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> response = null;
         if ((marketType == "swap"))
         {
@@ -3934,7 +3933,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for reducing spot-margin
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
+    public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!(this.numberToString(amount) == "0"))
@@ -3957,7 +3956,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for adding spot-margin
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
+    public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
@@ -3975,7 +3974,7 @@ public partial class hitbtc : Exchange
      * @param {bool} [params.margin] true for fetching spot-margin leverage
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
+    public async override Task<ccxt.Leverage> FetchLeverage(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3986,9 +3985,9 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
@@ -4066,7 +4065,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4110,7 +4109,7 @@ public partial class hitbtc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4221,16 +4220,16 @@ public partial class hitbtc : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -4255,7 +4254,7 @@ public partial class hitbtc : Exchange
         return this.parseOrder(response, market);
     }
 
-    public override (string?, object) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
+    public override (string?, IDictionary<string, object>) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
     {
         /**
         * @ignore
@@ -4267,9 +4266,9 @@ public partial class hitbtc : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
         bool? isMargin = this.safeBool(parameters, "margin", false);
-        (string?, object) marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         if (((marginMode == null)) && ((defaultType == "margin") || (isMargin == true)))
         {
             return ("isolated", paramsMarginMode);

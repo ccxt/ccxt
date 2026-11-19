@@ -582,7 +582,7 @@ class paradex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_list(response, 'results')
+        data = self.safe_list(response, 'results', [])
         return self.parse_markets(data)
 
     def parse_market(self, market: dict) -> Market:
@@ -1150,7 +1150,7 @@ class paradex(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchFundingRate() could not find a funding rate for ' + symbol)
         return rate
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USD-PERP",
@@ -2072,7 +2072,7 @@ class paradex(Exchange, ImplicitAPI):
             self.load_markets()
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         paramsOmitted = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
-        hasOrderIds = isinstance(ids, list)
+        hasOrderIds = (ids is not None)
         hasClientOrderIds = (clientOrderIds is not None) and (isinstance(clientOrderIds, list))
         if not hasOrderIds and not hasClientOrderIds:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter')

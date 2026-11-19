@@ -469,6 +469,7 @@ class whitebit(Exchange, ImplicitAPI):
                     'limit must be less than or equal to': BadRequest,
                     'The Price should be less than or equal to': InvalidOrder,  # {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
                     'The Price should be greater than or equal to': InvalidOrder,  # {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'Price must be a multiple of': InvalidOrder,  # {"code":1,"errors":{"price":["Price must be a multiple of 0.00001."]},"message":"Validation failed"}
                     'This action is unauthorized': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'Min amount step': InvalidOrder,  # {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
@@ -505,10 +506,14 @@ class whitebit(Exchange, ImplicitAPI):
         #          "takerFee": "0.1",         // Default taker fee ratio
         #          "minAmount": "0.001",      // Minimal amount of stock to trade
         #          "minTotal": "0.001",       // Minimal amount of money to trade
+        #          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         #          "tradesEnabled": true,     // Is trading enabled
         #          "isCollateral": true,      // Is margin trading enabled
         #          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        #          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        #          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        #          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        #          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        #          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         #        },
         #        {
         #          ...
@@ -537,7 +542,6 @@ class whitebit(Exchange, ImplicitAPI):
         swap = (typeId == 'futures') or (typeId == 'tradfiFutures')
         margin = isCollateral and not swap
         contract = False
-        amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
         linear = None
         inverse = None
         if swap:
@@ -582,8 +586,8 @@ class whitebit(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': amountPrecision,
-                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'moneyPrec'))),
+                'amount': self.safe_number(market, 'stepSize'),
+                'price': self.safe_number(market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -916,7 +920,7 @@ class whitebit(Exchange, ImplicitAPI):
             entry = currencyIds[i]
             splitEntry = entry.split(' ')
             currencyId = splitEntry[0]
-            feeInfo = self.safe_value(response, entry)
+            feeInfo = self.safe_dict(response, entry)
             code = self.safe_currency_code(currencyId)
             if (code is not None) and ((codesValue is None) or (self.in_array(code, codesValue))):
                 depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
@@ -1063,11 +1067,10 @@ class whitebit(Exchange, ImplicitAPI):
         # Process all markets from the loaded markets cache
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        markets = self.markets
-        marketIds = list(markets.keys())
+        marketIds = list(self.markets.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_value(markets, marketId)
+            market = self.safe_dict(self.markets, marketId)
             marketSymbol = self.safe_string(market, 'symbol')
             if (market is None) or (market is None) or (marketSymbol is None) or (marketSymbol == ''):
                 continue  # Skip invalid markets silently
@@ -2722,7 +2725,7 @@ class whitebit(Exchange, ImplicitAPI):
             if amount is None:
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires an amount when the ticker is fiat')
             request['amount'] = amount
-            uniqueId = self.safe_value(params, 'uniqueId')
+            uniqueId = self.safe_string(params, 'uniqueId')
             if uniqueId is None:
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat')
             response = self.v4PrivatePostMainAccountFiatDepositUrl(self.extend(request, params))
@@ -2967,7 +2970,7 @@ class whitebit(Exchange, ImplicitAPI):
         if tag is not None:
             request['memo'] = tag
         if self.is_fiat(code):
-            provider = self.safe_value(paramsWithdrawTag, 'provider')
+            provider = self.safe_string(paramsWithdrawTag, 'provider')
             if provider is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a provider when the ticker is fiat')
             request['provider'] = provider
@@ -3357,7 +3360,7 @@ class whitebit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_funding_rates(data, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # {
         #     "ticker_id":"ADA_PERP",
@@ -3979,7 +3982,7 @@ class whitebit(Exchange, ImplicitAPI):
         maxLimit = 100
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, maxLimit)
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -3988,7 +3991,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startDate'] = int(round(since / 1000))
-        requestUntil, paramsUntil = self.handle_until_option('until_timestamp', request, paramsPaginate, 0.001)
+        requestUntil, paramsUntil = self.handle_until_option('endDate', request, paramsPaginate, 0.001)
         if limit is not None:
             requestUntil['limit'] = limit
         response = self.v4PublicGetFundingHistoryMarket(self.extend(requestUntil, paramsUntil))
@@ -4027,7 +4030,7 @@ class whitebit(Exchange, ImplicitAPI):
         publicHeaders = {}
         publicHeaders['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.safe_value(self.urls['api'], version), accessibility)
+        apiUrl = self.safe_string(self.safe_dict(self.urls['api'], version), accessibility)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + pathWithParams
@@ -4056,10 +4059,7 @@ class whitebit(Exchange, ImplicitAPI):
         requestBody = None
         if isPrivate:
             requestBody = privateBody
-        requestHeaders = publicHeaders
-        if isPrivate:
-            requestHeaders = privateHeaders
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders if (isPrivate) else publicHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 418) or (code == 429):

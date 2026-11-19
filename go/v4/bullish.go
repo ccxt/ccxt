@@ -1427,14 +1427,12 @@ func (this *Bullish) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id strin
 		}
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var paramsExtended any = params
+	var orderIdParams map[string]any = map[string]any{}
 	if clientOrderId == nil {
-		paramsExtended = this.Extend(map[string]any{
-			"orderId": id,
-		}, params)
+		orderIdParams["orderId"] = id
 	}
 
-	r1 := <-this.FetchMyTradesAsync(symbol, since, limit, paramsExtended)
+	r1 := <-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(orderIdParams, params))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1710,11 +1708,11 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 	if (!IsEqual(method, "fetchOHLCV")) && (!IsEqual(method, "fetchFundingRateHistory")) && (!IsEqual(method, "fetchTrades")) {
 		panic(NotSupported(Add(Add(this.Id+" safeDeterministicCall() does not support the ", method), " method")))
 	}
-	var errors int64 = this.ParseToInt(0)
+	var errors int = 0
 	var paramsOmitted any = this.Omit(paramsMaxRetries, "until")
 	// the exchange returns the most recent data, so we do not need to pass until into paginated calls
 	// the correct util value will be calculated inside of the method
-	for errors <= maxRetries {
+	for int64(errors) <= maxRetries {
 
 		{
 			func(this *Bullish) (ret_ any) {
@@ -1728,8 +1726,8 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 							if IsInstance(e, RateLimitExceeded) {
 								panic(e)
 							}
-							errors = this.ParseToInt(errors + 1)
-							if errors > maxRetries {
+							errors = errors + 1
+							if int64(errors) > maxRetries {
 								panic(e)
 							}
 							return nil
@@ -1992,7 +1990,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var rates []any = []any{}
 	var result []any = this.ToArray(response)
 	for i := 0; i < len(result); i++ {
-		var entry any = DerefScalar(result[i])
+		var entry any = result[i]
 		var datetime *string = this.SafeString(entry, "updatedAtDatetime")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -2667,12 +2665,12 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[Order], id string, symbol
  * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bullish) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bullish) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bullish) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bullish) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4210,7 +4208,7 @@ func (this *Bullish) signInBody(ch chan AsyncResult[any], optionalArgs ...any) a
 	var token *string = this.SafeString(response, "token")
 	this.Options["authorizer"] = DerefScalar(this.SafeString(response, "authorizer"))
 	this.Token = token
-	this.Options["tokenExpires"] = this.Sum(this.Milliseconds(), (1000*60)*60*24) // token expires in 24 hours
+	this.Options["tokenExpires"] = this.Milliseconds() + (1000*60)*60*24 // token expires in 24 hours
 
 	ch <- AsyncResult[any]{Value: token}
 	return nil

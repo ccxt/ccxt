@@ -792,9 +792,8 @@ export default class derive extends Exchange {
         const [ maxPages, paramsMaxPages ] = this.handleOptionIntegerAndParams (params, 'getMarketsPaginated', 'maxMarketPages', 25);
         const [ pageSize, paramsOmitted ] = this.handleOptionIntegerAndParams (paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         for (let i = 0; i < maxPages; i++) {
-            const page = i + 1;
             const requestExtension: Dict = {
-                'page': page,
+                'page': i + 1,
                 'page_size': pageSize,
             };
             const requestExtended = this.extend (this.extend (request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
@@ -1551,7 +1550,7 @@ export default class derive extends Exchange {
     }
 
     override parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Trade[] {
-        const tradesArray = this.toArray (trades);
+        const tradesArray: Dict[] = this.toArray (trades);
         let result: Trade[] = [];
         for (let i = 0; i < tradesArray.length; i++) {
             const rawTrade = tradesArray[i];
@@ -1612,10 +1611,10 @@ export default class derive extends Exchange {
             limitResolved = this.parseToInt (limit);
         }
         if (limitResolved > 5000) {
-            limitResolved = this.parseToInt (5000);
+            limitResolved = 5000;
         }
         const span: Int = this.parseToInt (limitResolved * duration);
-        const windowStart: Int = this.parseToInt (untilSeconds - span);
+        const windowStart: Int = untilSeconds - span;
         let start: Int = windowStart;
         let end: Int = untilSeconds;
         if (since !== undefined) {
@@ -1890,7 +1889,7 @@ export default class derive extends Exchange {
         return this.parseFundingRate (data);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         const symbol = this.safeString (contract, 'symbol');
         const fundingTimestamp = this.safeInteger (contract, 'timestamp');
         return {

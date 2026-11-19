@@ -158,8 +158,8 @@ public partial class testMainClass : BaseTest
             {
                 assert((ts is Int64 || ts is int || ts is float || ts is double), ("timestamp is not numeric" + (logText)));
                 assert(((ts is int) || (ts is long) || (ts is Int32) || (ts is Int64)), ("timestamp should be an integer" + (logText)));
-                object minTs = 1230940800000; // 03 Jan 2009 - first block
-                object maxTs = 2147483648000; // 19 Jan 2038 - max int
+                Int64? minTs = 1230940800000; // 03 Jan 2009 - first block
+                Int64? maxTs = 2147483648000; // 19 Jan 2038 - max int
                 assert(isGreaterThan(ts, minTs), ((("timestamp is impossible to be before " + ((object)minTs).ToString()) + " (03.01.2009)") + (logText))); // 03 Jan 2009 - first block
                 assert(isLessThan(ts, maxTs), ((("timestamp more than " + ((object)maxTs).ToString()) + " (19.01.2038)") + (logText))); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
                 if ((nowToCheck != null))

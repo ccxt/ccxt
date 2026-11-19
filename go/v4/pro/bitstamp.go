@@ -254,7 +254,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})
 		}
-		ccxt.AppendToArray(storedOrderBook.GetCache(), delta)
+		storedOrderBook.AppendCache(delta)
 		return
 	} else if deltaNonce == nil || (nonce != nil && *nonce >= *deltaNonce) {
 		return
@@ -819,11 +819,11 @@ func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
-	var trade any = this.ParseWsMyTrade(data, market)
+	var trade map[string]any = this.ParseWsMyTrade(data, market)
 	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
-func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 635698396,
@@ -1084,11 +1084,13 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message map[string]
 	if (topic != nil && *topic == "orders") && (this.Orders != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		freshOrdersCache := ccxt.NewArrayCacheBySymbolById(limit)
-		this.Orders = this.PruneCachedBySymbols(freshOrdersCache, this.Orders, symbols)
+		this.PruneCachedBySymbols(freshOrdersCache, this.Orders, symbols)
+		this.Orders = freshOrdersCache
 	} else if (topic != nil && *topic == "myTrades") && (this.MyTrades != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		freshTradesCache := ccxt.NewArrayCacheBySymbolById(limit)
-		this.MyTrades = this.PruneCachedBySymbols(freshTradesCache, this.MyTrades, symbols)
+		this.PruneCachedBySymbols(freshTradesCache, this.MyTrades, symbols)
+		this.MyTrades = freshTradesCache
 	} else {
 		this.CleanCache(subscription)
 	}
@@ -1107,7 +1109,7 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message map[string]
 func (this *Bitstamp) PruneCachedBySymbols(newCache ccxt.WsArrayCache, cache ccxt.WsArrayCache, symbols any) ccxt.WsArrayCache {
 	var entries []any = this.ToArray(cache)
 	for i := 0; i < len(entries); i++ {
-		var entry any = ccxt.DerefScalar(entries[i])
+		var entry any = entries[i]
 		var entrySymbol *string = this.SafeString(entry, "symbol")
 		if !this.InArray(entrySymbol, symbols) {
 			newCache.Append(entry)
@@ -1276,7 +1278,7 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 
 			return nil
 		}
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Bitstamp) (ret_ any) {
@@ -1327,7 +1329,7 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		// rethrows to the leader and marks the promise handled, so an
 		// alone leader's rejection is never unhandled
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}

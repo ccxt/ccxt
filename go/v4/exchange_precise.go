@@ -395,55 +395,23 @@ func StringMod(a, b any) *string {
 }
 
 func (p *PreciseStruct) ToString() string {
-	p.Reduce() // Call the reduce method if any
-
-	// Determine the sign and absolute value
-	var sign string
-	abs := new(big.Int)
-	if p.integer.Sign() < 0 {
+	p.Reduce()
+	// mirrors ts/src/base/Precise.ts toString: pad with zeros only when every digit is fractional
+	digits := p.integer.String()
+	sign := ""
+	if strings.HasPrefix(digits, "-") {
 		sign = "-"
-		abs.Neg(p.integer) // Negate the integer to get the absolute value
-	} else {
-		sign = ""
-		abs.Set(p.integer) // Copy the positive value of the integer
+		digits = digits[1:]
 	}
-
-	intPDecimals := ParseInt(p.Decimals)
-
-	// Convert the absolute value to a string
-	// integerStr := fmt.Sprintf("%0*d", intPDecimals+ParseInt(len(abs.String())), abs)
-	// integerArray := strings.Split(integerStr, "")
-	// // Calculate the index to insert the decimal point
-	var item string
-
-	absParsed := abs.String()
-	padSize := 0
-	if intPDecimals > 0 {
-		padSize = int(intPDecimals)
+	decimals := int(ParseInt(p.Decimals))
+	if decimals <= 0 {
+		return sign + digits + strings.Repeat("0", -decimals)
 	}
-	absParsed = fmt.Sprintf("%0*s", len(absParsed)+padSize, absParsed)
-	integerArray := strings.Split(absParsed, "")
-	// index := len(integerArray) - intPDecimals
-	index := ParseInt(len(integerArray)) - intPDecimals
-
-	// Handle cases based on the value of decimals
-	if index == 0 {
-		item = "0."
-	} else if intPDecimals < 0 {
-		item = strings.Repeat("0", -int(intPDecimals))
-	} else if intPDecimals == 0 {
-		item = ""
-	} else {
-		item = "."
+	if len(digits) <= decimals {
+		return sign + "0." + strings.Repeat("0", decimals-len(digits)) + digits
 	}
-
-	arrayIndex := index
-	arrayLength := ParseInt(len(integerArray))
-	if index > arrayLength {
-		arrayIndex = arrayLength
-	}
-	integerArray = append(integerArray[:arrayIndex], append([]string{item}, integerArray[arrayIndex:]...)...)
-	return sign + strings.Join(integerArray, "")
+	index := len(digits) - decimals
+	return sign + digits[:index] + "." + digits[index:]
 }
 
 // wrappers

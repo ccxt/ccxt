@@ -252,7 +252,7 @@ public partial class p2b : Exchange
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBack", 100000 },
+                        { "daysBack", 90 },
                         { "untilDays", 1 },
                         { "symbolRequired", true },
                     } },
@@ -268,8 +268,8 @@ public partial class p2b : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBack", 100000 },
-                        { "daysBackCanceled", ((double)1 / 12) },
+                        { "daysBack", 90 },
+                        { "daysBackCanceled", null },
                         { "untilDays", 1 },
                         { "trigger", false },
                         { "trailing", false },
@@ -347,7 +347,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetMarkets(parameters);
@@ -458,7 +458,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -504,7 +504,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -613,7 +613,7 @@ public partial class p2b : Exchange
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -671,7 +671,7 @@ public partial class p2b : Exchange
      * @param {int} params.lastId order id
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -716,7 +716,7 @@ public partial class p2b : Exchange
         return this.parseTrades(result, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades
@@ -800,7 +800,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] default=0, with this value the last candles are returned
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -870,7 +870,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -946,7 +946,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1001,7 +1001,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -1058,7 +1058,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -1122,7 +1122,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1181,7 +1181,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -1193,9 +1193,9 @@ public partial class p2b : Exchange
             await this.loadMarkets();
         }
         Int64? untilParam = this.safeInteger(parameters, "until");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
-        Int64? until = this.parseToInt(0);
-        Int64? sinceResolved = this.parseToInt(0);
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
+        Int64? until = 0;
+        Int64? sinceResolved = 0;
         if ((untilParam != null))
         {
             until = this.parseToInt(untilParam);
@@ -1208,7 +1208,7 @@ public partial class p2b : Exchange
                 sinceResolved = this.parseToInt(since);
             } else
             {
-                sinceResolved = this.parseToInt((untilParam - 86400000));
+                sinceResolved = (untilParam - 86400000);
             }
         } else if ((since != null))
         {
@@ -1218,7 +1218,7 @@ public partial class p2b : Exchange
         {
             Int64 now = this.milliseconds();
             until = this.parseToInt(now);
-            sinceResolved = this.parseToInt((now - 86400000));
+            sinceResolved = (now - 86400000);
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? sinceSec = this.parseToInt(((double?)sinceResolved / 1000));
@@ -1279,7 +1279,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1287,14 +1287,14 @@ public partial class p2b : Exchange
             await this.loadMarkets();
         }
         Int64? untilParam = this.safeInteger(parameters, "until");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
         }
-        Int64? until = this.parseToInt(0);
-        Int64? sinceResolved = this.parseToInt(0);
+        Int64? until = 0;
+        Int64? sinceResolved = 0;
         if ((untilParam != null))
         {
             until = this.parseToInt(untilParam);
@@ -1307,7 +1307,7 @@ public partial class p2b : Exchange
                 sinceResolved = this.parseToInt(since);
             } else
             {
-                sinceResolved = this.parseToInt((untilParam - 86400000));
+                sinceResolved = (untilParam - 86400000);
             }
         } else if ((since != null))
         {
@@ -1317,7 +1317,7 @@ public partial class p2b : Exchange
         {
             Int64 now = this.milliseconds();
             until = this.parseToInt(now);
-            sinceResolved = this.parseToInt((now - 86400000));
+            sinceResolved = (now - 86400000);
         }
         Int64? sinceSec = this.parseToInt(((double?)sinceResolved / 1000));
         Int64? untilSec = this.parseToInt(((double?)until / 1000));

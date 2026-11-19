@@ -559,7 +559,7 @@ class kalshi extends kalshi$1["default"] {
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         const result = this.safeStringLower(raw, 'result');
         const resolved = (status === 'settled') || ((result !== undefined) && (result !== ''));
-        const endDate = this.safeString(raw, 'expiration_time');
+        const endDate = this.safeString2(raw, 'latest_expiration_time', 'expiration_time');
         const volume = this.safeNumber2(raw, 'volume_fp', 'volume');
         const liquidity = this.safeNumber2(raw, 'liquidity_dollars', 'liquidity');
         const openInt = this.safeNumber2(raw, 'open_interest_fp', 'open_interest');
@@ -892,8 +892,7 @@ class kalshi extends kalshi$1["default"] {
         //         }
         //     }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper(market, 'label', this.safeStringUpper(market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601(this.safeString(raw, 'updated_time'));
@@ -1344,8 +1343,7 @@ class kalshi extends kalshi$1["default"] {
         const amountFp = this.safeNumber2(trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber(trade, 'count', amountFp);
         const rawSide = this.safeStringLower(trade, 'taker_side');
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         const marketInfo = this.safeDict(outcomeObj, 'info', {});
         const requestedOutcomeLabel = this.safeStringLower(outcomeObj, 'label', this.safeStringLower(marketInfo, 'outcomeLabel'));
         const outcomeSymbol = this.safeString(outcomeObj, 'outcome');

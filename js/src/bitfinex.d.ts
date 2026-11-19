@@ -28,6 +28,7 @@ export default class bitfinex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
+    parseMarket(pairObj: Dict): Market;
     /**
      * @method
      * @name bitfinex#fetchCurrencies
@@ -63,7 +64,7 @@ export default class bitfinex extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    convertDerivativesId(currency: Dict, type: string): Str;
+    convertDerivativesId(currency: Currency, type: string): Str;
     /**
      * @method
      * @name bitfinex#fetchOrderBook
@@ -386,7 +387,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     parseFundingRateHistory(contract: any, market?: Market): FundingRateHistory;
     /**
      * @method

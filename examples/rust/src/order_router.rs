@@ -21,7 +21,8 @@ use ccxt::{OrderRouter, Value};
 async fn main() {
     let config = HashMap::new();
     // config.insert("baseUrl".to_string(), Value::Str("https://docs.ccxt.com/router/api".into()));  // the default
-    let router = match OrderRouter::new(&Value::Map(config)) {
+    // No venues: this router only quotes.
+    let router: OrderRouter = match OrderRouter::new(&Value::Map(config)) {
         Ok(client) => client,
         Err(e) => {
             eprintln!("{e}");

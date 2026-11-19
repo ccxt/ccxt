@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::binance::BinanceCore;
+use super::binance::Binance;
 use crate::exchange::ExchangeRuntime;
 
-impl BinanceCore {
+impl Binance {
     /// Auto-generated wrapper for the `sapiPrivateGetCategoryList` implicit endpoint.
     pub async fn sapi_private_get_category_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_private_get_category_list".into()), optional_args).await

@@ -3007,7 +3007,7 @@ export default class gate extends Exchange {
         if (this.safeBool(market, 'option', false)) {
             const optionMarketId = this.safeString(market, 'id');
             for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+                const entry = this.safeDict(response, i);
                 const entryName = this.safeString(entry, 'name');
                 if (entryName === optionMarketId) {
                     ticker = entry;
@@ -3613,7 +3613,7 @@ export default class gate extends Exchange {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const market = this.market(symbol);
         if (!this.safeBool(market, 'swap', false)) {
@@ -7159,7 +7159,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchBorrowInterest', paramsUntil, 'cross');
         if (isUnifiedAccount) {
             response = await this.privateUnifiedGetInterestRecords(this.extend(requestUntil, paramsMarginMode));
@@ -7170,8 +7170,8 @@ export default class gate extends Exchange {
             }
             response = await this.privateMarginGetUniInterestRecords(this.extend(requestUntil, paramsMarginMode));
         }
-        else if (marginMode === 'cross') {
-            // deprecated and not present in the exchange's docs but still works
+        else {
+            // cross: deprecated and not present in the exchange's docs but still works
             response = await this.privateMarginGetCrossInterestRecords(this.extend(requestUntil, paramsMarginMode));
         }
         const interest = this.parseBorrowInterests(response, market);
@@ -8219,22 +8219,24 @@ export default class gate extends Exchange {
             quoteValueString = Precise.stringMul(baseValueString, priceString);
         }
         // --- derive side ---
+        // gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        // is the side of the liquidation order: a long is closed by a sell, a short by a buy
         // 1) options payload has explicit 'side': 'long' | 'short'
         const optPos = this.safeStringLower(liquidation, 'side');
         let side = undefined;
         if (optPos === 'long') {
-            side = 'buy';
+            side = 'sell';
         }
         else if (optPos === 'short') {
-            side = 'sell';
+            side = 'buy';
         }
         else {
             if (size !== undefined) { // 2) futures/perpetual (and fallback for options): infer from size
                 if (Precise.stringGt(size, '0')) {
-                    side = 'buy';
+                    side = 'sell';
                 }
                 else if (Precise.stringLt(size, '0')) {
-                    side = 'sell';
+                    side = 'buy';
                 }
             }
         }

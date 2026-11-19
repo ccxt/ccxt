@@ -197,8 +197,8 @@ class ndax extends ndax$1["default"] {
             const market = this.market(symbol);
             const marketId = this.safeString(market, 'id', '');
             const messageHash = name + ':' + marketId;
-            const tradesArray = this.safeValue(this.trades, symbol);
-            client.resolve(tradesArray, messageHash);
+            const symbolTrades = this.safeValue(this.trades, symbol);
+            client.resolve(symbolTrades, messageHash);
         }
     }
     /**
@@ -297,7 +297,12 @@ class ndax extends ndax$1["default"] {
                     this.safeFloat(ohlcv, 4),
                     this.safeFloat(ohlcv, 5),
                 ];
-                const stored = this.safeValue(this.ohlcvs[symbol], timeframe, []);
+                let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+                if (stored === undefined) {
+                    const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+                    stored = new Cache.ArrayCacheByTimestamp(limit);
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
                 const length = stored.length;
                 const previous = this.safeValue(stored, length - 1);
                 const previousTimestamp = this.safeInteger(previous, 0);
@@ -320,14 +325,14 @@ class ndax extends ndax$1["default"] {
                             low = previousLow;
                         }
                     }
-                    stored[length - 1] = [
+                    stored.append([
                         candleTimestamp,
                         this.safeFloat(previous, 1),
                         high,
                         low,
                         this.safeFloat(ohlcv, 4),
                         this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5)),
-                    ];
+                    ]);
                     if (marketId !== undefined) {
                         marketUpdates[timeframe] = true;
                     }
@@ -338,16 +343,11 @@ class ndax extends ndax$1["default"] {
                             continue;
                         }
                     }
-                    stored.push(parsed);
-                    const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-                    if (length >= limit) {
-                        stored.shift();
-                    }
+                    stored.append(parsed);
                     if (marketId !== undefined) {
                         marketUpdates[timeframe] = true;
                     }
                 }
-                this.ohlcvs[symbol][timeframe] = stored;
             }
             if (marketId !== undefined) {
                 updates[marketId] = marketUpdates;
@@ -363,8 +363,8 @@ class ndax extends ndax$1["default"] {
                 const messageHash = name + ':' + timeframe + ':' + marketId;
                 const market = this.safeMarket(marketId);
                 const symbol = this.safeString(market, 'symbol', '');
-                const stored = this.safeList(this.safeValue(this.ohlcvs, symbol), timeframe, []);
-                client.resolve(stored, messageHash);
+                const symbolOhlcv = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+                client.resolve(symbolOhlcv, messageHash);
             }
         }
     }
@@ -555,7 +555,7 @@ class ndax extends ndax$1["default"] {
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const id = this.safeInteger(message, 'i');
-        const subscription = (id === undefined) ? undefined : this.safeDict(subscriptionsById, id);
+        const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
