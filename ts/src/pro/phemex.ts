@@ -1653,7 +1653,7 @@ export default class phemex extends phemexRest {
             const method = this.safeValue (client.subscriptions, id);
             delete client.subscriptions[id];
             if (method !== true) {
-                method.call (this, client, message);
+                this.handleAuthenticate (client, message);
                 return;
             }
         }
