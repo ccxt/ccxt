@@ -15,6 +15,9 @@ function testArraySlice () {
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 3, 6), [ 'd', 'e', 'f' ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 2), [ 'c', 'd', 'e', 'f' ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, -2), [ 'e', 'f' ]);
+    // an end index of 0 is a valid (empty) range, not "no end index"
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 0, 0), []);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 3, 3), []);
 }
 
 export default testArraySlice;
