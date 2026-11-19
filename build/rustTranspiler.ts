@@ -6159,7 +6159,8 @@ function moveLocalsAtLastUse(content: string): string {
         if (open < 0 || open > pos) continue;
         const close = balancedCloseIndex(code, open + 1);
         const word = new RegExp(`(?<![\\w.])${name}\\b`);
-        if (word.test(code.slice(end, close))) continue;
+        const divEnd = rustDivergingStmtEnd(code, open + 1, pos);
+        if (word.test(code.slice(end, divEnd < 0 ? close : divEnd))) continue;
         const body = content.slice(open + 1, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
         // owned binding: `let [mut] x: T = ` (T not a reference) or untyped `let x = get_arg(`
         let decl: RegExpMatchArray | undefined = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
@@ -6180,8 +6181,8 @@ function moveLocalsAtLastUse(content: string): string {
         const heads = stack.map(o => after.slice(after.lastIndexOf('\n', o) + 1, o));
         const stmtStart = Math.max(after.lastIndexOf(';'), after.lastIndexOf('{'), after.lastIndexOf('}'));
         heads.push(after.slice(stmtStart + 1));
-        if (heads.some(h => /\b(?:loop|while|for)\b|\|/.test(h))) continue;
-        if (word.test(after.slice(stmtStart + 1))) continue;
+        if (heads.some(h => (divEnd < 0 ? /\b(?:loop|while|for)\b|\|/ : /\basync\b|\|/).test(h))) continue;
+        if (divEnd < 0 ? word.test(after.slice(stmtStart + 1)) : rustOnlyCloneMentions(after.slice(stmtStart + 1), name) || rustBorrowsFrom(after, code.slice(end, divEnd), name)) continue;
         edits.push([pos, end, `${m[1]}${name}`]);
     }
     let out = '', last = 0;
@@ -6647,6 +6648,33 @@ function typeDictPushLists(content: string): string {
 }
 
 // unit slot 001
+// `return ..;` / `panic!(..);` holding pos ends the fn: index of its end, or -1 when the statement does not diverge
+function rustDivergingStmtEnd(code: string, from: number, pos: number): number {
+    const head = code.slice(from, pos);
+    const start = Math.max(head.lastIndexOf(';'), head.lastIndexOf('{'), head.lastIndexOf('}'), head.lastIndexOf('=> ') < 0 ? -1 : head.lastIndexOf('=> ') + 2) + 1;
+    if (!/^\s*(?:return\b|panic!\()/.test(head.slice(start))) return -1;
+    let depth = 0, inStr = false;
+    for (let j = from + start; j < code.length; j++) {
+        const c = code[j];
+        if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+        if (c === '"') inStr = true; else if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') { if (--depth < 0) return j; } else if ((c === ';' || c === ',') && depth === 0) return j;
+    }
+    return -1;
+}
+// true when a local named in rest was bound from name (it may still borrow it)
+function rustBorrowsFrom(body: string, rest: string, name: string): boolean {
+    const ids = new Set(rest.replace(/"(?:\\.|[^"\\])*"/g, '""').match(/(?<![\w.:])[A-Za-z_]\w*\b(?![(!:])/g) ?? []);
+    for (const l of body.split('\n')) {
+        if (!/\blet\b|=>/.test(l) || !rustOnlyCloneMentions(l, name)) continue;
+        if ([...ids].some(i => i !== name && i !== 'self' && new RegExp(`(?<![\\w.])${i}\\b`).test(l))) return true;
+    }
+    return false;
+}
+// true when name appears in stmt other than as a completed `name.clone()` (a borrow would outlive the move)
+function rustOnlyCloneMentions(stmt: string, name: string): boolean {
+    return new RegExp(`(?<![\\w.])${name}\\b(?!\\.clone\\(\\))`).test(stmt);
+}
 //
 // unit slot 002
 //
