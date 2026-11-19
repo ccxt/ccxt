@@ -6885,6 +6885,29 @@ function lendPrecisionValueSlot(content: string): string {
 }
 //
 // unit slot 021
+// `CacheStore::put(.., h.clone()); client.resolve(Value::from(&h), ..);` with no later `h` in the fn: take the
+// resolve value first (the same marker share it already made), move `h` into the store, resolve after the store.
+function moveCacheHandleIntoStoreBeforeResolve(content: string): string {
+    const lines = content.split ('\n');
+    const put = /^(\s*)(Cache(?:Store|Shelves)::put2?\(&mut self\.\w+, .*, )([A-Za-z_]\w*)\.clone\(\)\);$/;
+    for (let i = 0; i + 1 < lines.length; i++) {
+        const m = put.exec (lines[i]);
+        if (!m) continue;
+        const [ , ind, head, h ] = m;
+        const res = new RegExp ('^' + ind + 'client\\.resolve\\(Value::from\\(&' + h + '\\), ([^;]*)\\);$').exec (lines[i + 1]);
+        if (!res || head.includes (h + '.') || res[1].includes (h)) continue;
+        let j = i + 2, later = false;
+        const word = new RegExp ('\\b' + h + '\\b');
+        for (; j < lines.length && !/^\S/.test (lines[j]); j++) {
+            if (!/^\s*(?:\/\/|\*|\/\*)/.test (lines[j]) && word.test (lines[j])) { later = true; break; }
+        }
+        if (later || j >= lines.length || lines[j] !== '}') continue;
+        const rv = '__resolved_' + h;
+        lines.splice (i, 2, ind + 'let ' + rv + ' = Value::from(&' + h + ');', ind + head + h + ');', ind + 'client.resolve(' + rv + ', ' + res[1] + ');');
+        i += 2;
+    }
+    return lines.join ('\n');
+}
 //
 // unit slot 022
 //
@@ -7201,6 +7224,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendPrecisionValueSlot,
     //
     // pass slot 021
+    moveCacheHandleIntoStoreBeforeResolve,
     //
     // pass slot 022
     //
