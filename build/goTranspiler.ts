@@ -8873,7 +8873,7 @@ function goTextWritesName (maskedLine: string, name: string): boolean {
         new RegExp ('\\b' + name + '\\s*\\[[^\\]]*\\]\\s*[-+*/%&|^]?=(?!=)'),
         new RegExp ('\\b' + name + '\\s*[-+*/%&|^]?=(?!=)'),
         new RegExp ('\\b' + name + '\\s*(?:\\+\\+|--)'),
-        new RegExp ('&\\s*' + name + '\\b'),
+        new RegExp ('(?<!&)&\\s*' + name + '\\b'),     // `&& name` is a conjunction, not an address-of
     ];
     return patterns.some ((rx: RegExp) => rx.test (maskedLine));
 }
@@ -10175,6 +10175,44 @@ function goGuardedReadProducerArity (maskedLines: string[], blocks: any[], fn: a
     return returns > 0;
 }
 
+// base methods whose every own return is a `[]any{..}` row of this many items (no venue overrides
+// them); `rows` is the item count of every element of the returned list
+const GO_GUARDED_READ_BASE_PRODUCERS: { [name: string]: { 'items'?: number, 'rows'?: number } } = {
+    'HandleTriggerPricesAndParams': { 'items': 4 },
+    'BuildOHLCVC': { 'rows': 7 },
+};
+
+// `var x []any = ArrayTyped(this.M(..))` / `var x []any = this.M(..)` with M a base producer of
+// the table and no same-file definition; `var row []any = ArrayTyped(rows[i])` inside
+// `for i := 0; i < len(rows); i++` over such a list reads one of its fixed-size rows
+function goGuardedReadBaseProducerArity (maskedLines: string[], blocks: any[], depth: number[], fn: any, read: any, key: string): boolean {
+    const init: string | undefined = read.init;
+    const producer = (text: string | undefined, kind: 'items' | 'rows'): boolean => {
+        const call = (text === undefined) ? null : /^[ \t]*var [A-Za-z_]\w* \[\]any = (?:(?:ccxt\.)?ArrayTyped\()?this\.([A-Z]\w*)\(.*\)[ \t]*$/.exec (text);
+        const size = (call === null) ? undefined : GO_GUARDED_READ_BASE_PRODUCERS[call[1]]?.[kind];
+        const defined = (call !== null) && maskedLines.some ((line: string) => new RegExp ('^func \\(this \\*\\w+\\) ' + call[1] + '\\(').test (line));
+        return (size !== undefined) && !defined && (Number (key) < size);
+    };
+    if (!/^\d+$/.test (key)) {
+        return false;
+    }
+    if (producer (init, 'items')) {
+        return true;
+    }
+    const row = (init === undefined) ? null : /^([ \t]*)var [A-Za-z_]\w* \[\]any = (?:ccxt\.)?ArrayTyped\(([A-Za-z_]\w*)\[([A-Za-z_]\w*)\]\)[ \t]*$/.exec (init);
+    if (row === null) {
+        return false;
+    }
+    const at = read.line;
+    const loop = blocks.filter ((b: any) => (b.open < at) && (at <= b.close)).sort ((a: any, b: any) => b.depth - a.depth)[0];
+    const header = (loop === undefined) ? null : /^[ \t]*for ([A-Za-z_]\w*) := 0; \1 < (.+); \1\+\+ \{$/.exec (maskedLines[loop.open]);
+    if ((header === null) || (header[1] !== row[3]) || !goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, loop, header[2].trim (), row[2], [ row[3] ])) {
+        return false;
+    }
+    const rows = goGuardedReadContainer (maskedLines, fn, row[2], maskedLines);
+    return (rows !== undefined) && producer (rows.init, 'rows');
+}
+
 // an earlier `if .. len(container) == 0 [|| ..] { .. return|panic(..) }` in a block that encloses the read (same func
 // literal) leaves len >= 1, so index 0 is in range; `!= 1` leaves len == 1. Only an exit as the arm's last statement counts.
 function goGuardedReadEarlyExit (maskedLines: string[], blocks: any[], depth: number[], fn: any, index: number, container: string, key: string): boolean {
@@ -10252,6 +10290,9 @@ function goGuardedReadInRangeClause (clause: string, container: string, key: str
         }
         if (new RegExp ('^' + k + '<=' + t + '\\-1$').test (text)) {
             return true;                                      // key <= len - 1
+        }
+        if ((key.replace (/[ \t]/g, '') === t.replace (/\\/g, '') + '-1') && new RegExp ('^(?:' + t + '(?:>0|>=1|!=0)|0<' + t + ')$').test (text)) {
+            return true;                                      // len - 1 under len > 0
         }
         if (/^\d+$/.test (key)) {
             // a literal bound: len > L / len >= L / len == L, and the mirror forms
@@ -10366,6 +10407,7 @@ function nativeGuardedListElementReads (content: string): string {
         if (goGuardedReadIsInRange (maskedLines, blocks, depth, fn, index, container, key) || goGuardedReadInitProvesIndex (read.init, key, read.header)
             || goGuardedReadSplitOfFoundHash (maskedLines, fn, read, lines, key)
             || goGuardedReadProducerArity (maskedLines, blocks, fn, read.init, key)
+            || goGuardedReadBaseProducerArity (maskedLines, blocks, depth, fn, read, key)
             || goGuardedReadEarlyExit (maskedLines, blocks, depth, fn, index, container, key)) {
             // an earlier closure of the same expression may already have been merged into
             // the roof line, so splice into what was emitted, not the original text
@@ -10456,6 +10498,18 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     ok (exit ('n == 0 && p == nil', 'return nil', '0').indexOf ('func() any {') >= 0, 'a guard with && proves nothing');
     const once = g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n');
     ok (nativeGuardedListElementReads (once) === once, 'idempotent');
+    const base = (init: string, index: string) => g ('\tvar values []any = ' + init + '\n' + read (index, 'values', 'DerefScalar('));
+    ok (base ('ArrayTyped(this.HandleTriggerPricesAndParams(s, p))', '3').indexOf ('DerefScalar(values[3])') >= 0, 'a base producer of four items proves index 3');
+    ok (base ('ArrayTyped(this.HandleTriggerPricesAndParams(s, p))', '4').indexOf ('func() any {') >= 0, 'index 4 of a four-item producer stays guarded');
+    ok (base ('ArrayTyped(this.HandleOtherParams(s, p))', '0').indexOf ('func() any {') >= 0, 'a producer outside the table stays guarded');
+    const rows = (index: string, bound: string) => g ('\tvar rows []any = ArrayTyped(this.BuildOHLCVC(t, tf))\n\tfor i := 0; i < ' + bound + '; i++ {\n\t\tvar candle []any = ArrayTyped(rows[i])\n' + read (index, 'candle', 'DerefScalar(').replace (/^/gm, '\t') + '\t}\n');
+    ok (rows ('6', 'len(rows)').indexOf ('DerefScalar(candle[6])') >= 0, 'a row of a fixed-row base producer is in range');
+    ok (rows ('7', 'len(rows)').indexOf ('func() any {') >= 0, 'past the row size stays guarded');
+    ok (rows ('0', 'len(other)').indexOf ('func() any {') >= 0, 'a loop over another list stays guarded');
+    const last = (cond: string) => g ('\tvar xs []any = SafeListTyped(p, "k")\n\tvar n int = len(xs)\n\tif ' + cond + ' {\n' + read ('n-1', 'xs', '').replace (/^/gm, '\t') + '\t}\n');
+    ok (last ('n > 0').indexOf ('var m any = xs[n-1]') >= 0, 'len-1 under len > 0 is in range');
+    ok (last ('n > 0 && p != nil').indexOf ('var m any = xs[n-1]') >= 0, 'len-1 under an && conjunct len > 0 is in range');
+    ok (last ('n >= 0').indexOf ('func() any {') >= 0, 'len-1 under len >= 0 stays guarded');
     const wired = formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n' + lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n\treturn nil\n}\n');
     ok (wired.indexOf ('var m any = markets[0]') >= 0, 'wired into formatGoSource: ' + wired);
 }
