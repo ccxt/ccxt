@@ -153,6 +153,8 @@ export const CORE_NUMERIC_ARGS = {
     'fetchMyUtaTrades': { 1: 'Int64?', 2: 'Int64?' },
     'fetchIndexOHLCV': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOHLCVRequest': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOHLCVWs': { 2: 'Int64?', 3: 'Int64?' },
     'fetchPremiumIndexOHLCV': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOpenOrders': { 1: 'Int64?', 2: 'Int64?' },

@@ -1222,7 +1222,7 @@ public partial class bitvavo : Exchange
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
-    public virtual Dictionary<string, object> fetchOHLCVRequest(string? symbol, string timeframe = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> fetchOHLCVRequest(string? symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1237,12 +1237,12 @@ public partial class bitvavo : Exchange
             // https://github.com/ccxt/ccxt/issues/9227
             int duration = this.parseTimeframe(timeframeVar);
             request["start"] = since;
-            object sinceLimit = ((limit == null)) ? 1440 : mathMin(limit, 1440);
-            request["end"] = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(sinceLimit, duration), 1000));
+            Int64 sinceLimit = ((limit == null)) ? 1440 : Math.Min(limit.Value, 1440);
+            request["end"] = this.sum(since, ((sinceLimit * duration) * 1000));
         }
         if ((limit != null))
         {
-            request["limit"] = mathMin(limit, 1440); // default 1440, max 1440
+            request["limit"] = Math.Min(limit.Value, 1440); // default 1440, max 1440
         } else if ((since != null))
         {
             request["limit"] = 1440;

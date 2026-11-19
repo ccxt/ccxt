@@ -3331,7 +3331,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " fetchContractOHLCV() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> FetchOHLCVWs(string symbol, string timeframe = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> FetchOHLCVWs(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
