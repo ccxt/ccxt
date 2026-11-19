@@ -7085,6 +7085,78 @@ function moveSpawnArgsBeforeReturn(content: string): string {
 }
 //
 // unit slot 036
+// `client.reject|resolve(x.clone(), ..)` take `impl Into<Value>`: move an owned local when no path after the call
+// reads it again; sibling `else` arms of enclosing blocks and code after a same-level `return` / `panic!` are off-path.
+function settleRestOnPath(code: string, from: number, close: number): string | undefined {
+    let out = '', depth = 0, j = from, inStr = false;
+    const stmtEnd = (k: number) => { let d = 0; for (; k < close; k++) { const c = code[k]; if (c === '{' || c === '(' || c === '[') d++; else if (c === '}' || c === ')' || c === ']') { if (d === 0) return k; d--; } else if (c === ';' && d === 0) return k + 1; } return close; };
+    while (j < close) {
+        const c = code[j];
+        if (inStr) { out += c; if (c === '\\') { out += code[j + 1] ?? ''; j += 2; continue; } if (c === '"') inStr = false; j++; continue; }
+        if (c === '"') { inStr = true; out += c; j++; continue; }
+        if (c === '{') depth++;
+        else if (c === '}') {
+            if (depth > 0) depth--;
+            else {
+                // left an enclosing block: skip a following `else` chain, refuse loop / closure / async heads
+                const head = code.slice(code.lastIndexOf('\n', balancedOpenIndex(code, j)) + 1, balancedOpenIndex(code, j));
+                if (/\b(?:loop|while|for|async|move)\b|(?<!\|)\|(?!\|)/.test(head)) return undefined;
+                j++;
+                for (;;) {
+                    const m = /^\s*else\b[^{;"]*\{/.exec(code.slice(j, close));
+                    if (m === null) break;
+                    j = balancedCloseIndex(code, j + m[0].length) + 1;
+                }
+                continue;
+            }
+        } else if (depth === 0 && /^(?:return\b|panic!\()/.test(code.slice(j)) && /[;{}]\s*$/.test(code.slice(Math.max(0, j - 200), j))) {
+            return out + code.slice(j, stmtEnd(j));
+        }
+        out += c; j++;
+    }
+    return out;
+}
+function balancedOpenIndex(code: string, closeAt: number): number {
+    let depth = 1;
+    for (let j = closeAt - 1; j >= 0; j--) {
+        const c = code[j];
+        if (c === '}') depth++; else if (c === '{' && --depth === 0) return j;
+    }
+    return 0;
+}
+function moveClientSettleOperands(content: string): string {
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    const fnStarts = [...content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const edits: [number, number, string][] = [];
+    let fi = -1;
+    for (const m of content.matchAll(/\bclient\.(?:reject|resolve)\(([A-Za-z_]\w*)\.clone\(\), /g)) {
+        const name = m[1], pos = (m.index as number) + m[0].indexOf('(') + 1, end = pos + name.length + 8;
+        if (name === 'self') continue;
+        while (fi + 1 < fnStarts.length && fnStarts[fi + 1] <= pos) fi++;
+        if (fi < 0) continue;
+        const open = content.indexOf('{', fnStarts[fi]);
+        if (open < 0 || open > pos) continue;
+        const close = balancedCloseIndex(code, open + 1);
+        const rest = settleRestOnPath(code, end, close);
+        const word = new RegExp(`(?<![\\w.])${name}\\b`);
+        if (rest === undefined || word.test(rest)) continue;
+        // owned binding in scope: last `let [mut] x: T =` (T not a reference / impl) whose block is still open
+        const body = code.slice(open + 1, pos);
+        const decl = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\s*:\\s*([^=;]+?)\\s*=`, 'g'))].pop();
+        if (decl === undefined || /^&|\bimpl\b/.test(decl[1].trim())) continue;
+        const after = body.slice((decl.index as number) + decl[0].length);
+        if (new RegExp(`\\bfor (?:mut )?${name}\\b|[(|,]\\s*(?:ref )?(?:mut )?${name}\\s*[)|,]|\\blet (?:mut )?${name}\\b`).test(after)) continue;
+        // the binding's block is still open and no block opened since it is a loop, closure or async body
+        const stack: number[] = [];
+        let ok = true;
+        for (let j = 0; j < after.length; j++) { if (after[j] === '{') stack.push(j); else if (after[j] === '}' && stack.pop() === undefined) { ok = false; break; } }
+        if (!ok || stack.some(o => /\b(?:loop|while|for|async|move)\b|(?<!\|)\|(?!\|)/.test(after.slice(after.lastIndexOf('\n', o) + 1, o)))) continue;
+        edits.push([pos, end, name]);
+    }
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 037
 //
@@ -7407,6 +7479,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     moveSpawnArgsBeforeReturn,
     //
     // pass slot 036
+    moveClientSettleOperands,
     //
     // pass slot 037
     //
