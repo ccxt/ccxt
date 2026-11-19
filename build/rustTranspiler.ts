@@ -6856,6 +6856,12 @@ function dropReadOnlyAliases(content: string): string {
 }
 //
 // unit slot 004
+// A literal constructor is a fresh temporary: `.clone()` on it copies a value nobody else holds, so drop it.
+const RUST_LITERAL_CLONE_RE = /(?<![\w:])((?:crate::)?Value::(?:Str\("(?:\\.|[^"\\])*"\.into\(\)\)|Int\(-?\d+\)|Bool\((?:true|false)\)|Null))\.clone\(\)/g;
+const RUST_LITERAL_VEC_CLONE_RE = /(?<![\w:])(Value::from\(vec!\[(?:Value::Str\("(?:\\.|[^"\\])*"\.into\(\)\)(?:, )?)*\]\))\.clone\(\)/g;
+function dropLiteralClones(content: string): string {
+    return content.replace(RUST_LITERAL_CLONE_RE, '$1').replace(RUST_LITERAL_VEC_CLONE_RE, '$1');
+}
 //
 // unit slot 005
 //
@@ -7655,6 +7661,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     dropReadOnlyAliases,
     //
     // pass slot 004
+    dropLiteralClones,
     //
     // pass slot 005
     //
