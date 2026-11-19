@@ -5651,6 +5651,111 @@ const RUST_LENT_OPTIONAL_ARGS = ['authenticate', 'load_account', 'get_market_typ
 const RUST_LENT_OPTIONAL_ARGS_BASE = ['parse_search_queries', 'require_event_query', 'is_post_only', 'check_address'];
 // implicit-API wrappers (`*_api.rs`, `&[&Value]` forwarded to `call_method`) and the hand-written by-name dispatchers
 const RUST_LENT_DISPATCHERS = ['call_method', 'call_method_t', 'call_method_o', 'call_method_lt', 'call_method_lo'];
+// venue-only methods whose every declaration reads `optional_args` only through `get_arg` and every caller passes a slice
+const RUST_LENT_VENUE_OPTIONAL_ARGS = new Set([
+    'accept_rfq_quote', 'action_and_market_message_hash', 'action_and_order_id_message_hash', 'apply_scale',
+    'approve_builder_code', 'authenticate_rest', 'authenticate_v2', 'bind_agent_wallet', 'build_clob_order_body',
+    'build_message_hash', 'build_orderbook_order', 'build_outcome_parent_symbol', 'calc_order_price',
+    'cancel_all_orders_request', 'cancel_all_uta_orders', 'cancel_orders_request', 'cancel_twap_order',
+    'cancel_uta_order', 'cancel_uta_orders', 'change_api_key', 'check_required_uid', 'code_from_options',
+    'construct_phantom_agent', 'convert_currency_network', 'create_advanced_order_request', 'create_amm_order',
+    'create_api_key', 'create_auth', 'create_auth_token', 'create_contract_order', 'create_contract_order_request',
+    'create_extended_order_request', 'create_gift_code', 'create_or_derive_api_key', 'create_order_appendix',
+    'create_order_request', 'create_order_settlement_data', 'create_orderbook_order', 'create_orders_request',
+    'create_proxy_credentials', 'create_public_request', 'create_public_subscription_request',
+    'create_regular_order_request', 'create_rfq_order', 'create_signed_request', 'create_spot_order',
+    'create_spot_order_request', 'create_subaccount', 'create_swap_order', 'create_swap_order_request',
+    'create_tpsl_order_request', 'create_transfer_settlement_data', 'create_trigger_order_request',
+    'create_uta_order', 'create_uta_order_request', 'create_uta_orders', 'create_vault',
+    'create_withdrawal_settlement_data', 'custom_handle_delta', 'custom_handle_margin_mode_and_params',
+    'custom_parse_bid_ask', 'custom_parse_order_book', 'custom_urlencode', 'delete_api_key', 'derive_api_key',
+    'edit_contract_order', 'edit_contract_order_request', 'edit_order_request', 'edit_orders_request',
+    'edit_spot_order', 'edit_spot_order_request', 'enable_user_dex_abstraction',
+    'ensure_user_data_stream_ws_subscribe_listen_token', 'ensure_user_data_stream_ws_subscribe_signature',
+    'extract_type_from_delta', 'fetch_account', 'fetch_account_id_by_type', 'fetch_account_positions',
+    'fetch_account_settings', 'fetch_accounts_v2', 'fetch_accounts_v3', 'fetch_amm_orders', 'fetch_api_key',
+    'fetch_api_keys', 'fetch_borrow_rate_histories', 'fetch_borrow_rate_history', 'fetch_closed_contract_orders',
+    'fetch_closed_spot_orders', 'fetch_contract_balance', 'fetch_contract_deposits', 'fetch_contract_markets',
+    'fetch_contract_order', 'fetch_contract_orders', 'fetch_contract_orders_by_status',
+    'fetch_contract_withdrawals', 'fetch_currencies_from_cache', 'fetch_currencies_from_web', 'fetch_currency',
+    'fetch_currency_by_id', 'fetch_deposit', 'fetch_deposit_address_default', 'fetch_deposit_address_supplement',
+    'fetch_deposit_method_id', 'fetch_deposit_method_ids', 'fetch_deposit_methods',
+    'fetch_deposits_or_withdrawals_helper', 'fetch_deposits_request', 'fetch_derivatives_market_leverage_tiers',
+    'fetch_derivatives_open_interest_history', 'fetch_events_by_query', 'fetch_extended_account',
+    'fetch_funding_limits', 'fetch_future_markets', 'fetch_hip3_markets', 'fetch_latest_block_height',
+    'fetch_ledger_by_entries', 'fetch_ledger_entries_by_ids', 'fetch_market', 'fetch_market_by_id',
+    'fetch_markets_by_type', 'fetch_markets_by_type_and_sub_type', 'fetch_markets_from_api',
+    'fetch_markets_from_web', 'fetch_markets_v1', 'fetch_markets_v2',
+    'fetch_markets_v3', 'fetch_my_buys', 'fetch_my_contract_trades', 'fetch_my_dust_trades', 'fetch_my_sells',
+    'fetch_my_settlement_history', 'fetch_my_spot_trades', 'fetch_my_trades_request', 'fetch_my_uta_trades',
+    'fetch_network_deposit_address', 'fetch_nonce', 'fetch_ohlcv_request', 'fetch_open_orders_v1',
+    'fetch_open_orders_v2', 'fetch_open_spot_orders', 'fetch_open_swap_orders', 'fetch_option_ohlcv',
+    'fetch_option_positions', 'fetch_order_classic', 'fetch_order_default', 'fetch_order_request',
+    'fetch_order_supplement', 'fetch_orders_by_ids', 'fetch_orders_by_state', 'fetch_orders_by_states',
+    'fetch_orders_by_type', 'fetch_orders_classic', 'fetch_orders_helper', 'fetch_orders_request',
+    'fetch_orders_with_method', 'fetch_portfolio_details', 'fetch_portfolios',
+    'fetch_private_deposit_withdraw_fees', 'fetch_private_trading_fee', 'fetch_private_trading_fees',
+    'fetch_private_transaction_fees', 'fetch_public_deposit_withdraw_fees', 'fetch_public_trading_fee',
+    'fetch_public_trading_fees', 'fetch_public_transaction_fees', 'fetch_quote', 'fetch_raw_active_markets',
+    'fetch_raw_event_by_ticker', 'fetch_raw_events_by_search', 'fetch_raw_events_list', 'fetch_raw_market_by_id',
+    'fetch_raw_markets_by_search', 'fetch_raw_markets_by_tags', 'fetch_raw_markets_list', 'fetch_raw_markets_paged',
+    'fetch_raw_question_by_id', 'fetch_raw_questions_by_search', 'fetch_raw_questions_list',
+    'fetch_raw_topic_detail', 'fetch_raw_topics', 'fetch_raw_topics_by_queries', 'fetch_securities',
+    'fetch_series_events', 'fetch_spot_order', 'fetch_spot_order_trades', 'fetch_spot_orders',
+    'fetch_spot_orders_by_states', 'fetch_spot_orders_by_status', 'fetch_stock_indicative_quote',
+    'fetch_swap_and_future_markets', 'fetch_sxbet_best_odds', 'fetch_ticker2', 'fetch_ticker_v1',
+    'fetch_ticker_v1_and_v2', 'fetch_ticker_v2', 'fetch_ticker_v3', 'fetch_tickers_v2', 'fetch_tickers_v3',
+    'fetch_trade_quote', 'fetch_trading_limits_by_id', 'fetch_transactions_by_type',
+    'fetch_transactions_with_method', 'fetch_underlying_assets', 'fetch_usdt_markets', 'fetch_uta_balance',
+    'fetch_uta_canceled_and_closed_orders', 'fetch_uta_order', 'fetch_uta_orders_by_status', 'fetch_utaohlcv',
+    'fetch_volatility_history', 'fetch_wallet', 'fetch_withdraw_addresses', 'fetch_withdrawal',
+    'fetch_withdrawal_whitelist', 'fetch_withdrawals_request', 'filter_transfers_by_type', 'find_account_id',
+    'from_ep', 'from_ev', 'get_asset_history_rows', 'get_bybit_type', 'get_currency_from_chaincode',
+    'get_dex_from_symbols', 'get_extended_currency_code_by_id', 'get_extended_stark_amount', 'get_inst_type',
+    'get_market_type', 'get_markets_paginated', 'get_message_hash', 'get_order_book_channel',
+    'get_order_book_limit_by_market_type', 'get_order_channel_and_message_hash', 'get_order_response_from_params',
+    'get_position_from_clob_entry', 'get_stock_unified_symbol', 'get_stock_ws_url', 'get_url',
+    'get_url_by_market_type', 'get_v5_linear_channel_and_message_hash', 'get_withdraw_nonce',
+    'handle_account_index', 'handle_api_key_index', 'handle_balance_subscription', 'handle_hf_and_params',
+    'handle_pagination_params', 'handle_route_and_params', 'handle_since_and_until', 'handle_token',
+    'handle_trade_type', 'handle_trading_statistics_window', 'handle_trigger_option_and_params',
+    'handle_until_option_string', 'handle_uta_and_params', 'helper_for_watch_multiple_construct',
+    'internal_fetch_transfers', 'is_conditional_order', 'is_unified_enabled', 'load_account',
+    'load_account_settings', 'load_migration_status', 'load_proxy_credentials', 'load_unified_status', 'logout_ws',
+    'mint_tokenized_asset', 'modify_leverage_and_margin_mode', 'modify_margin_helper',
+    'multi_order_spot_prepare_request', 'negotiate', 'negotiate_helper', 'network_code_to_chain_id',
+    'order_book_suffix', 'order_message', 'order_request', 'order_request_ws', 'pad_hex', 'parse_account_positions',
+    'parse_create_edit_order_args', 'parse_custom_balance', 'parse_deposit_method_ids',
+    'parse_funding_fee_to_precision', 'parse_outcome_market', 'parse_public_deposit_withdraw_fees',
+    'parse_trade_quote', 'parse_trading_limits', 'parse_transaction_fee', 'parse_transaction_fees',
+    'parse_transaction_row', 'parse_transaction_with_type', 'parse_units', 'parse_uta_balance',
+    'parse_ws_updated_ticker', 'pre_load_lighter_library', 'prepare_account_request',
+    'prepare_account_request_with_currency_code', 'prepare_orders_by_status_request', 'prepare_paradex_domain',
+    'prepare_request', 'prepare_request_for_deposit_address', 'query_contracts', 'query_transactions_by_event_type',
+    'redeem_gift_code', 'redeem_tokenized_asset', 'renew_listen_token', 'request_wallet_history_rows', 'request_ws',
+    'reserve_request_weight', 'resolve_auth_type', 'resolve_event_series_tickers',
+    'resolve_market_by_altname_or_id', 'resolve_route', 'revoke_api_key', 'revoke_builder_code',
+    'send_subscription', 'send_unsubscribe', 'set_agent_abstraction', 'set_cancel_on_disconnect',
+    'set_contract_leverage', 'set_user_abstraction', 'settle_request', 'setup_api_key_headers',
+    'sign_and_cancel_all_orders', 'sign_and_cancel_order', 'sign_and_create_order', 'sign_dydx_tx',
+    'sign_in_with_api_key', 'sign_in_with_private_key', 'sign_params', 'sign_perps_op', 'spot_order_body',
+    'spot_order_prepare_request', 'subscribe_channels', 'subscribe_markets_summary', 'subscribe_multiple',
+    'subscribe_myriad_channel', 'subscribe_private_uta', 'subscribe_public', 'subscribe_public_multiple',
+    'subscribe_public_multiple_uta', 'subscribe_public_uta', 'subscribe_user_channel',
+    'subscribe_watch_tickers_and_bids_asks', 'subscribe_ws_tickers', 'title_for_market_symbol', 'to_ev',
+    'tokenized_convert_history', 'tokenized_convert_status', 'trade_request',
+    'transfer_between_main_and_sub_account', 'transfer_between_sub_accounts', 'transfer_classic', 'transfer_in',
+    'transfer_out', 'transfer_uta', 'un_subscribe', 'un_subscribe_multiple', 'un_subscribe_public',
+    'un_subscribe_public_multiple', 'un_watch_balance', 'un_watch_channel', 'un_watch_channels', 'un_watch_private',
+    'un_watch_public_multiple', 'un_watch_topics', 'un_watch_wallet_events', 'unsubscribe_all_ws',
+    'unsubscribe_channel_at', 'unsubscribe_channels', 'unsubscribe_channels_from', 'unsubscribe_multiple_wrapper',
+    'unsubscribe_public', 'unwatch_public', 'upgrade_unified_trade_account', 'url_encode_query', 'verify_gift_code',
+    'verify_order_action_success', 'watch_heartbeat', 'watch_many', 'watch_multi_helper',
+    'watch_multi_ticker_helper', 'watch_multiple_subscription', 'watch_multiple_wrapper', 'watch_private_multiple',
+    'watch_private_request', 'watch_private_subscribe', 'watch_public_multiple', 'watch_spot_private',
+    'watch_spot_public', 'watch_stock_market_stream', 'watch_swap_private', 'watch_swap_public', 'watch_topics',
+    'watch_uta_tickers', 'watch_wallet_events', 'wath_public', 'withdraw_request',
+]);
 let rustLentApiNames: Set<string> | undefined;
 function rustLentApiWrappers (): Set<string> {
     if (rustLentApiNames === undefined) {
@@ -5681,7 +5786,7 @@ function splitRustArgs(list: string): string[] {
 
 function lendOptionalArgs(content: string): string {
     const names = RUST_LENT_OPTIONAL_ARGS_BASE.filter(n => content.includes(n));
-    for (const n of RUST_LENT_OPTIONAL_ARGS) {
+    for (const n of [...RUST_LENT_OPTIONAL_ARGS, ...[...RUST_LENT_VENUE_OPTIONAL_ARGS].filter(v => content.includes(`fn ${v}(`))]) {
         const decl = new RegExp(`\\bfn ${n}\\([^)]*optional_args: &\\[Value\\]\\)[^{]*\\{`).exec(content);
         if (decl === null) continue;
         const body = content.slice(decl.index + decl[0].length, balancedCloseIndex(content, decl.index + decl[0].length));
@@ -5691,18 +5796,23 @@ function lendOptionalArgs(content: string): string {
     if (names.length > 0) content = content.replace(new RegExp(`(\\bfn (?:${names.join('|')})\\([^)]*optional_args: &\\[)Value(\\]\\))`, 'g'), '$1&Value$2');
     const own = new Set([...content.matchAll(/\bfn ([a-z0-9_]+)\b/g)].map(d => d[1]));
     const api = rustLentApiWrappers();
-    const lend = new Set([...names, ...RUST_LENT_DISPATCHERS, ...[...api].filter(n => !own.has(n))]);
+    // a venue method is lent only where its declaration is in this file and gets lent too
+    const venue = [...RUST_LENT_VENUE_OPTIONAL_ARGS].filter(n => !own.has(n) || names.includes(n));
+    return lendOptionalArgCalls(content, new Set([...names, ...venue, ...RUST_LENT_DISPATCHERS, ...[...api].filter(n => !own.has(n))]));
+}
+
+function lendOptionalArgCalls(content: string, lend: Set<string>): string {
     const re = /(?:\bself(?:\.parent)*\.|::)([a-z_]\w*)\((?:self, )?/g;
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = re.exec(content)) !== null) {
         if (!lend.has(m[1])) continue;
         const open = m.index + m[0].length, close = balancedCloseIndex(content, open);
         const args = splitRustArgs(content.slice(open, close));
-        const tail = args[args.length - 1].trim();
+        const tail = args[args.length - 1].trim(), nested = lendOptionalArgCalls(tail, lend);
         let lent: string | undefined;
         if (/^&args\[[^\]]*\]$/.test(tail)) lent = `&${tail.slice(1)}.iter().collect::<Vec<_>>()`;
         else if (tail.startsWith('&[') && tail.endsWith(']') && balancedCloseIndex(tail, 2) === tail.length - 1) {
-            const inner = tail.slice(2, -1).trim();
+            const inner = nested.slice(2, -1).trim();
             lent = inner === '' ? tail : '&[' + splitRustArgs(inner).map(e => e.trim())
                 .map(e => /^[A-Za-z_]\w*\.clone\(\)$/.test(e) ? '&' + e.slice(0, -8) : '&' + e).join(', ') + ']';
         }
