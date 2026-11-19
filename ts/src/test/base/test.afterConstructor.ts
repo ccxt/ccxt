@@ -29,18 +29,65 @@ function helperTestSandboxState (exchange: any, expectEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
     const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
+    const sandbox = testSharedMethods.exchangeProp (exchange, 'sandbox');
+    const testnet = testSharedMethods.exchangeProp (exchange, 'testnet');
     if (expectEnabled) {
         assert (isSandboxModeEnabled === true);
+        assert (sandbox === true, 'sandbox should be true');
+        assert (testnet === true, 'testnet should be true');
         assert (exchange.urls['api']['public'] === 'https://testnet.org');
         assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
     } else {
         assert (isSandboxModeEnabled !== true);
+        assert (sandbox !== true, 'sandbox should be false');
+        assert (testnet !== true, 'testnet should be false');
         assert (exchange.urls['api']['public'] === 'https://example.com');
         assert (exchange.urls['test']['public'] === 'https://testnet.org');
     }
 }
 
-function helperTestInitSandbox () {
+function helperTestInitSandboxProps () {
+    // todo: sandbox for real exchanges
+    const opts = {
+        'id': 'sampleexchange',
+        'sandbox': false,
+        'testnet': false,
+        'urls': {
+            'api': {
+                'public': 'https://example.com'
+            },
+            'test': {
+                'public': 'https://testnet.org'
+            },
+        }
+    };
+    //
+    // CASE A: when sandbox is not enabled
+    //
+    const exchange3 = new ccxt.Exchange (opts);
+    helperTestSandboxState (exchange3, false);
+    exchange3.sandbox = true;
+    helperTestSandboxState (exchange3, false); // should stay false
+    //
+    // CASE B: when sandbox is enabled
+    //
+    opts['sandbox'] = true;
+    const exchange4 = new ccxt.Exchange (opts);
+    helperTestSandboxState (exchange4, true);
+    exchange4.sandbox = false;
+    helperTestSandboxState (exchange4, true); // should stay true
+    //
+    // same for `testnet`
+    //
+    opts['sandbox'] = false;
+    opts['testnet'] = true;
+    const exchange5 = new ccxt.Exchange (opts);
+    helperTestSandboxState (exchange5, true);
+    exchange5.testnet = false;
+    helperTestSandboxState (exchange5, true); // should stay true
+}
+
+function helperTestInitSandboxOpts () {
     // todo: sandbox for real exchanges
     const opts = {
         'id': 'sampleexchange',
@@ -81,6 +128,11 @@ function helperTestInitSandbox () {
     helperTestSandboxState (exchange5, true);
     exchange5.setSandboxMode (false);
     helperTestSandboxState (exchange5, false);
+}
+
+function helperTestInitSandbox () {
+    helperTestInitSandboxOpts ();
+    helperTestInitSandboxProps ();
 }
 
 function helperTestInitMarket () {
@@ -193,6 +245,8 @@ function helperTestProperties () {
     assert (exchange.features === undefined, 'features should be undefined');
     assert (testSharedMethods.exchangeProp (exchange, 'minFundingAddressLength') >= 1, 'minFundingAddressLength should be >= 1');
     assert (testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled') === false, 'isSandboxModeEnabled should be false');
+    assert (testSharedMethods.exchangeProp (exchange, 'sandbox') === false, 'sandbox should be false');
+    assert (testSharedMethods.exchangeProp (exchange, 'testnet') === false, 'testnet should be false');
     assert (testSharedMethods.exchangeProp (exchange, 'enableRateLimit') === true, 'enableRateLimit should be true');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimiterAlgorithm') === 'leakyBucket', 'rateLimiterAlgorithm should be "leakyBucket"');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimit') === 2000, 'rateLimit should be 2000');
