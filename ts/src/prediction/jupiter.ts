@@ -1,5 +1,6 @@
 import Exchange from '../abstract/prediction/jupiter.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, InvalidOrder } from '../base/errors.js';
+import { Precise } from '../base/Precise.js';
 import { DECIMAL_PLACES } from '../base/functions/number.js';
 import type { Dict, Int, int, Market, Num, PredictionEvent, PredictionMarket, PredictionOrder, PredictionOrderBook, PredictionOutcome, PredictionPosition, PredictionTicker, PredictionTrade, Status, Str, Strings } from '../base/types.js';
 
@@ -865,7 +866,7 @@ export default class jupiter extends Exchange {
             if (oppositePrice === undefined || amount === undefined) {
                 continue;
             }
-            const askPrice = 1 - oppositePrice;
+            const askPrice = this.parseNumber (Precise.stringSub ('1', this.numberToString (oppositePrice)));
             if (askPrice >= 0) {
                 asks.push ([ askPrice, amount ]);
             }
@@ -883,7 +884,6 @@ export default class jupiter extends Exchange {
             'outcome': outcome,
             'outcomeId': this.safeString (outcomeMarket, 'outcomeId'),
             'market': this.safeString (outcomeMarket, 'market'),
-            'info': raw,
         };
         return book as PredictionOrderBook;
     }
