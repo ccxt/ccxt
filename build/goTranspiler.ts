@@ -18791,6 +18791,21 @@ function goJoinStringLocals (content: string): string {
             }
             func = func.replace (decl[0], decl[1] + '[]string' + decl[2] + '[]string{' + decl[3] + '}');
         }
+        // ArraySlice(s, k) of a []string s is s[k:] (same panic when k > len(s)); only for locals read by len/Join
+        for (const m of [ ...goTextMaskLiteralsAndComments (func).matchAll (/^([ \t]*var (\w+) )\[\]any = this\.ArraySlice\((\w+), (\d{1,3})\)$/gm) ]) {
+            const masked = goTextMaskLiteralsAndComments (func);
+            const [ name, src ] = [ m[2], m[3] ];
+            if ((goStringOperandDeclaredType (masked, name) !== '[]any') || (goStringOperandDeclaredType (masked, src) !== '[]string')) {
+                continue;
+            }
+            const total = (masked.match (new RegExp ('(?<![\\w.])' + name + '(?![\\w])', 'g')) ?? []).length;
+            const lens = (masked.match (new RegExp ('(?<![\\w.])len\\(' + name + '\\)', 'g')) ?? []).length;
+            const joins = (masked.match (new RegExp ('(?<![\\w.])(?:ccxt\\.)?Join\\(' + name + ', ', 'g')) ?? []).length;
+            if ((joins < 1) || (1 + lens + joins !== total)) {
+                continue;
+            }
+            func = func.replace (m[0], m[1] + '[]string = ' + src + '[' + m[4] + ':]');
+        }
         parts[p] = func;
     }
     return parts.join ('');
@@ -18813,6 +18828,10 @@ function goJoinStringLocalsCheck (ok: SelfTestOk): void {
     ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n') === goStdlibStringHelpers (goJoinStringLocals (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n'))), 'idempotent');
     ok (f ('\tvar parts []any = []any{\"a\", s}\n\tvar j string = Join(parts, \",\")\n\treturn j\n').includes ('[]string{\"a\", s}'), 'literal string elements');
     ok (f ('\tvar parts []any = []any{\"a\", n}\n\tvar j string = Join(parts, \",\")\n\treturn j\n').includes ('[]any{\"a\", n}'), 'any literal element stays');
+    const sl = '\tvar ids []string = strings.Split(s, \"-\")\n\tvar parts []any = this.ArraySlice(ids, 1)\n\tvar j string = Join(parts, \"-\")\n';
+    ok (f (sl + '\treturn j\n').includes ('var parts []string = ids[1:]') && f (sl + '\treturn j\n').includes ('strings.Join(parts, '), 'ArraySlice of []string joins natively');
+    ok (f (sl + '\treturn parts\n').includes ('this.ArraySlice(ids, 1)'), 'returned slice stays []any');
+    ok (f (sl.replace ('[]string = strings.Split(s, \"-\")', 'any = n') + '\treturn j\n').includes ('this.ArraySlice(ids, 1)'), 'any source stays');
 }
 
 function goJoinNativeCheck (ok: SelfTestOk): void {
