@@ -6037,11 +6037,38 @@ function typePredictionPositionsList(content: string): string {
     return content.replace(/(= self\.parse_prediction_positions\([^;\n]*\))\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\);/g, '$1.into_iter().map(Value::Dict).collect();');
 }
 
+// filterByLimit / filterBy*SinceLimit / arraySlice always build a list (stubs `array_slice` returns a slice; the filters
+// return `[]`, a slice, or filterByLimit's own list argument): they return `List`, `.into_list()` at a caller drops,
+// any other caller boxes the Arc by move.
+const RUST_FILTER_LIST_FNS = 'filter_by_limit|filter_by_since_limit|filter_by_value_since_limit|filter_by_symbol_since_limit|filter_by_currency_since_limit|filter_by_symbols_since_limit|array_slice';
+function typeFilterSliceLists(content: string): string {
+    content = content.replace(new RegExp(String.raw`(\n {4}fn (${RUST_FILTER_LIST_FNS})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (_m, sig, _n, open, body) =>
+        `${sig}crate::value::List${open}${body.replace(/\breturn Value::from\(vec!\[\]\);/g, 'return Default::default();').replace(/\breturn array;/g, 'return array.into_list();')}\n}`);
+    const head = new RegExp(String.raw`\bself(?:\.parent)?\.(?:${RUST_FILTER_LIST_FNS})\(`, 'g');
+    const typedBody = new RegExp(String.raw`\n {4}fn (?:${RUST_FILTER_LIST_FNS})\([^\n]*\) -> crate::value::List \{`, 'g');
+    const spans: Array<[number, number]> = [];
+    for (const d of content.matchAll(typedBody)) spans.push([d.index!, balancedCloseIndex(content, d.index! + d[0].length)]);
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec(content)) !== null) {
+        const close = balancedCloseIndex(content, m.index + m[0].length);
+        const call = content.slice(m.index, close + 1);
+        const rest = content.slice(close + 1);
+        const conv = rest.match(/^\.into_(opt_)?list\(\)/);
+        const inTyped = spans.some(([a, b]) => m!.index > a && m!.index < b) && /return $/.test(content.slice(m.index - 7, m.index));
+        let rep = inTyped ? call : `Value::Arr(${call})`;
+        if (conv !== null) rep = conv[1] ? `Some(${call})` : call;
+        out += content.slice(last, m.index) + rep;
+        last = close + 1 + (conv?.[0].length ?? 0);
+        head.lastIndex = last;
+    }
+    return out + content.slice(last);
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))));
+    content = splitLongRustLines(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -12682,7 +12709,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))));
+        fs.writeFileSync(outFile, splitLongRustLines(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 

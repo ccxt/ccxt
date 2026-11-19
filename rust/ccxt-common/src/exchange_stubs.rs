@@ -2149,9 +2149,9 @@ impl Exchange {
         if let Value::Arr(l) = self.sort_by(arr, key, optional_args) { l } else { crate::value::List::default() }
     }
 
-    pub fn array_slice(&self, v: Value, start: Value, optional_args: &[Value]) -> Value {
+    pub fn array_slice(&self, v: Value, start: Value, optional_args: &[Value]) -> crate::value::List {
         let Value::Arr(a) = v else {
-            return Value::Array(vec![]);
+            return crate::value::List::default();
         };
         let len = a.len() as i64;
         let s = match start {
@@ -2175,9 +2175,9 @@ impl Exchange {
             _ => a.len(),
         };
         if s <= e {
-            Value::Array(a[s..e].to_vec())
+            Arc::new(a[s..e].to_vec())
         } else {
-            Value::Array(vec![])
+            crate::value::List::default()
         }
     }
 
