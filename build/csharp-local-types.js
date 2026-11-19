@@ -1083,13 +1083,6 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'unsubscribeRequest': 'Dictionary<string, object>',
 });
 
-<<<<<<< merged
-// a venue declaration whose rows reach only consumers that accept List<Dictionary<string, object>>
-// (htx: generic sortBy into ToDictList); its `result` accumulator proves every push is a dict
-const CSHARP_COLLECTION_RETURN_METHODS_BY_VENUE = {
-    'htx': { 'parseSettlements': 'List<Dictionary<string, object>>' },
-};
-=======
 // single-declaration venue helpers whose every return is a dict/list literal, a typed local or a
 // tabled call (safeOutcome), so the by-declaration proof retypes them and their object callers.
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
@@ -1098,7 +1091,12 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'parseSxbetMarket': 'Dictionary<string, object>',
     'parseOpinionMarket': 'Dictionary<string, object>',
 });
->>>>>>> C11
+
+// a venue declaration whose rows reach only consumers that accept List<Dictionary<string, object>>
+// (htx: generic sortBy into ToDictList); its `result` accumulator proves every push is a dict
+const CSHARP_COLLECTION_RETURN_METHODS_BY_VENUE = {
+    'htx': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+};
 
 // the mapped collection type for a method declaration, or undefined to leave the printer's
 // own decision (async methods and every other name)

@@ -382,14 +382,9 @@ pub struct Exchange {
     // market data caches
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub markets:           Value,
-<<<<<<< merged
     pub markets_by_id:     Option<crate::value::Dict>,
-    pub currencies:        Value,
-=======
-    pub markets_by_id:     Value,
     /// Plain dict, never undefined (TS `createSafeDictionary`): reads and writes are the stdlib map ops.
     pub currencies:        crate::value::Dict,
->>>>>>> R03
     pub currencies_by_id:  Value,
     pub commonCurrencies:  Value,
     pub baseCurrencies:    Value,
@@ -731,13 +726,8 @@ impl Exchange {
             ws_socks_proxy:      Value::Null,
 
             markets:           Value::Null,
-<<<<<<< merged
             markets_by_id:     None,
-            currencies:        Value::Map(HashMap::new()),
-=======
-            markets_by_id:     Value::Null,
             currencies:        crate::value::Dict::default(),
->>>>>>> R03
             currencies_by_id:  Value::Null,
             commonCurrencies:  {
                 let mut m = HashMap::new();
@@ -1135,11 +1125,7 @@ impl Exchange {
     /// Currencies by unified code, typed and shared (same store shape as the by-id one).
     pub fn currencies_by_code_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
         let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
-<<<<<<< merged
-        TypedById::refresh(&mut stores.currencies_by_code, if let Value::Dict(d) = &self.currencies { Some(d) } else { None }, |v| match v {
-=======
-        TypedById::refresh(&mut stores.currencies_by_code, &Value::from(&self.currencies), |v| match v {
->>>>>>> R03
+        TypedById::refresh(&mut stores.currencies_by_code, Some(&self.currencies), |v| match v {
             Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
             _ => Vec::new(),
         })
@@ -1978,17 +1964,6 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn call_method_o(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = Option<crate::value::Dict>> + Send { async move {
         if let Value::Dict(m) = self.call_method(Value::Str(name.into()), args).await { Some(m) } else { None }
     } }
-<<<<<<< merged
-    /// `call_method` by name taken back as a list: the list it answered, else an empty list (as `.into_list()`).
-    fn call_method_lt(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = crate::value::List> + Send { async move {
-        self.call_method_lo(name, args).await.unwrap_or_default()
-    } }
-    /// `call_method` by name taken back as an optional list: `None` for anything but a list (as `.into_opt_list()`).
-    fn call_method_lo(&mut self, name: &'static str, args: &[&Value]) -> impl ::std::future::Future<Output = Option<crate::value::List>> + Send { async move {
-        if let Value::Arr(a) = self.call_method(Value::Str(name.into()), args).await { Some(a) } else { None }
-    } }
-=======
->>>>>>> R14
 
     /// Loads markets (and currencies), dispatching `fetch_markets` /
     /// `fetch_currencies` / `set_markets` to the derived overrides.

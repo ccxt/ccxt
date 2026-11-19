@@ -2600,17 +2600,10 @@ export default class polymarket extends Exchange {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-<<<<<<< merged
-    signHash (hash: string, privateKey: any): string {
-        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = this.safeString (signature, 'r', '');
-        const sVal = this.safeString (signature, 's', '');
-=======
     signHash (hash: string, privateKey: Str): string {
         const signature = ecdsa (hash.slice (-64), (privateKey as string).slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const sVal = signature['s'];
->>>>>>> J09
+        const r = this.safeString (signature, 'r', '');
+        const sVal = this.safeString (signature, 's', '');
         const v = this.intToBase16 (this.sum (27, signature['v']));
         return '0x' + r.padStart (64, '0') + sVal.padStart (64, '0') + v;
     }

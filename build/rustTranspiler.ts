@@ -4210,7 +4210,6 @@ function typedBaseDictFields(content: string): string {
         .replace(/if let \(Some\(__m\), Some\(__k\)\) = \(self\.tickers\.as_map\(\), /g, 'if let (__m, Some(__k)) = (&self.tickers, ')
         .replace(/self\.tickers\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.tickers'))
         .replace(/\(self\.tickers != Value::Null\)/g, 'true');
-<<<<<<< merged
     // `markets_by_id` is `Option<Dict>` (TS leaves it undefined until setMarkets publishes a dict).
     content = content
         .replace(/self\.markets_by_id = Value::Null;/g, 'self.markets_by_id = None;')
@@ -4222,8 +4221,6 @@ function typedBaseDictFields(content: string): string {
         .replace(/if let Value::Dict\(__d\) = &mut self\.markets_by_id \{/g, 'if let Some(__d) = &mut self.markets_by_id {')
         .replace(/\b(safe_\w+)\(self\.markets_by_id\.clone\(\)/g, '$1(&self.markets_by_id')
         .replace(/([^\w:&])self\.markets_by_id\.clone\(\)/g, '$1Value::from(&self.markets_by_id)');
-    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance', 'tickers']) {
-=======
     // `currencies` is a `Dict` from `createSafeDictionary` on (never undefined); `mapToSafeMap` is the identity in Rust.
     content = content
         .replace(/\{ let __t = self\.create_safe_dictionary\(&\[\]\); self\.currencies = __t; \}/g, 'self.currencies = crate::value::Dict::default();')
@@ -4232,7 +4229,6 @@ function typedBaseDictFields(content: string): string {
         .replace(/self\.currencies = (get_value\(&\w+, &Value::Str\("currencies"\.into\(\)\)\));/g, 'self.currencies = if let Value::Dict(__m) = $1 { __m } else { Default::default() };')
         .replace(/self\.currencies\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.currencies'));
     for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance', 'tickers', 'currencies']) {
->>>>>>> R03
         const r = 'self\\.' + f;
         const k = '("[^"\\\\]*")';
         const make = 'std::sync::Arc::make_mut(';
@@ -4690,11 +4686,7 @@ let rustListApiNames: Set<string> | undefined;
 function rustTypedListApiResults (content: string, own: Set<string>): string {
     if (rustListApiNames === undefined) {
         rustListApiNames = new Set ();
-<<<<<<< merged
-        const body = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> crate::value::List \{\n\s*if let Value::Arr\(a\) = self\.call_method\(Value::Str\("([a-z0-9_]+)"\.into\(\)\), optional_args\)\.await \{ a \} else \{ Default::default\(\) \}\n\s*\}/g;
-=======
-        const body = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[Value\]\) -> Option<crate::value::List> \{\n\s*if let Value::Arr\(a\) = self\.call_method\(Value::Str\("([a-z0-9_]+)"\.into\(\)\), optional_args\)\.await \{ Some\(a\) \} else \{ None \}\n\s*\}/g;
->>>>>>> R14
+        const body = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> Option<crate::value::List> \{\n\s*if let Value::Arr\(a\) = self\.call_method\(Value::Str\("([a-z0-9_]+)"\.into\(\)\), optional_args\)\.await \{ Some\(a\) \} else \{ None \}\n\s*\}/g;
         for (const d of [ 'exchanges', 'prediction' ].map ((x) => path.join (__dirname, '..', 'rust', 'ccxt-base', 'src', x))) {
             for (const f of fs.existsSync (d) ? fs.readdirSync (d).filter ((x) => x.endsWith ('_api.rs')) : []) {
                 for (const m of fs.readFileSync (path.join (d, f), 'utf8').matchAll (body)) if (m[1] === m[2]) rustListApiNames.add (m[1]);
@@ -4879,7 +4871,6 @@ function rustTypedSafeOrder (content: string): string {
     return content.replace (/self\.\u0000safe_order\(/g, 'self.safe_order(');
 }
 
-<<<<<<< merged
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
 function rustTypedParseOrder (content: string): string {
@@ -4983,7 +4974,8 @@ function rustTypedParseOrder (content: string): string {
         else content = content.slice (0, s) + 'Value::Dict(' + pre + ')' + after;
     }
     return content;
-=======
+}
+
 // Every `safeTrade` caller passes an object literal (`Value::Map(..)`), so it takes and returns `Dict`; a venue
 // `parseWsTrade` whose every return is `this.safeTrade (..)` returns `Dict` too. `.into_dict()` drops, any other use boxes it.
 function rustTypedSafeTrade (content: string): string {
@@ -5040,7 +5032,6 @@ function rustTypedSafeTrade (content: string): string {
     if (base >= 0 || calls.length > 0) box ('safe_trade');
     if (typedWs) box ('parse_ws_trade');
     return content.replace (/self\.\u0000safe_trade\(/g, 'self.safe_trade(');
->>>>>>> R07
 }
 
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
@@ -5736,19 +5727,10 @@ function splitLongRustLines(content: string, max = 400): string {
 
 // Base handleOption*AndParams(2) answer a native `(slot 0, Dict)` tuple: each printed `Vec<Value>` head and its slot reads
 // become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
-<<<<<<< merged
-<<<<<<< merged
-const RUST_OPTION_TUPLE_FNS = /\b(?:self|exchange)\.handle_(?:option_(bool_|string_|integer_)?|market_type_)and_params2?\(/g;
-=======
-// handleMarginModeAndParams / handleSubTypeAndParams (base, overrides, super shim) answer the same `(Value, Dict)` pair
-const RUST_OPTION_TUPLE_FNS = /\b(?:self|exchange)\.(?:super_)?handle_(?:option_(bool_|string_|integer_)?|(margin_mode_|sub_type_))and_params2?\(/g;
->>>>>>> R09
-=======
-// handleParam{String,Bool,Integer}(2) and handlePostOnly share the shape (one base declaration each, no override)
-const RUST_TUPLE_FN_NAME = String.raw`handle_(?:option_(?:bool_|string_|integer_)?and_params2?|param_(?:bool|string|integer)2?|post_only)`;
-const rustTupleFam = (name: string): string => (/bool/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : '');
+// Base handle{Option*,MarketType,MarginMode,SubType}AndParams, handleParam{String,Bool,Integer}(2) and handlePostOnly share the shape
+const RUST_TUPLE_FN_NAME = String.raw`(?:(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only)`;
+const rustTupleFam = (name: string): string => (/bool/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : /margin_mode/.test(name) ? 'margin_mode_' : /sub_type/.test(name) ? 'sub_type_' : '');
 const RUST_OPTION_TUPLE_FNS = new RegExp(String.raw`\b(?:self|exchange)\.(${RUST_TUPLE_FN_NAME})\(`, 'g');
->>>>>>> R10
 const RUST_OPTION_TUPLE_SLOT0: { [fam: string]: [string, string | undefined, (v: string) => string] } = {
     '': ['Value', undefined, (v) => v], 'string_': ['Value', undefined, (v) => v],
     'bool_': ['Option<bool>', 'as_bool', (v) => `${v}.map_or(Value::Null, Value::Bool)`], 'integer_': ['Option<i64>', 'as_i64', (v) => `Value::from(${v})`],
@@ -5776,24 +5758,12 @@ function rustFnRest(s: string, from: number): string {
 // a re-boxed tuple local read only through slot gets keeps the tuple; a re-boxed bool slot local never written stays Option<bool>
 function typeOptionTupleLocals(src: string): string {
     let out = src;
-<<<<<<< merged
-<<<<<<< merged
-    const tup = /\n( *)let mut (\w+): Value = \{ let __t = ((?:self|exchange)\.handle_(?:option_(bool_|string_|integer_)?|market_type_)and_params2?\()/g;
-=======
-    const tup = /\n( *)let mut (\w+): Value = \{ let __t = ((?:self|exchange)\.(?:super_)?handle_(?:option_(bool_|string_|integer_)?|(margin_mode_|sub_type_))and_params2?\()/g;
->>>>>>> R09
-=======
     const tup = new RegExp(String.raw`\n( *)let mut (\w+): Value = \{ let __t = ((?:self|exchange)\.(${RUST_TUPLE_FN_NAME})\()`, 'g');
->>>>>>> R10
     for (let m: RegExpExecArray | null; (m = tup.exec(out)) !== null;) {
         const callEnd = rustCloseParen(out, m.index + m[0].length);
         const tail = /^;\s*Value::from\(vec!\[[^\n]*?\]\) \};/.exec(out.slice(callEnd, callEnd + 200));
         if (callEnd < 0 || tail === null) continue;
-<<<<<<< merged
-        const n = m[2], fam = m[4] ?? m[5] ?? '', from = callEnd + tail[0].length;
-=======
         const n = m[2], fam = rustTupleFam(m[4]), from = callEnd + tail[0].length;
->>>>>>> R10
         const rest = rustFnRest(out, from);
         const rd = new RegExp(`\\b${n}\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| __arr\\.get\\(([01])\\)\\)((?:\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)|\\.and_then\\(Value::as_\\w+\\))(?:\\.(?:into_dict|as_\\w+)\\(\\))?(?:\\.map\\(str::to_owned\\))?)`, 'g');
         const reads: string[] = [];
@@ -5823,25 +5793,13 @@ function typeOptionTupleLocals(src: string): string {
     return out;
 }
 function typeHandleOptionTuples(content: string): string {
-<<<<<<< merged
-<<<<<<< merged
-    if (!content.includes('handle_option_') && !content.includes('handle_market_type_and_params')) return content;
-=======
-    if (!/handle_(?:option|margin_mode|sub_type)_/.test(content)) return content;
->>>>>>> R09
-=======
-    if (!/handle_(?:option_|param_|post_only)/.test(content)) return content;
->>>>>>> R10
+    if (!/handle_(?:option_|param_|post_only|market_type_and_params|margin_mode_|sub_type_)/.test(content)) return content;
     const SLOT = /\.get\(([01])\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/;
     let out = '';
     let last = 0;
     RUST_OPTION_TUPLE_FNS.lastIndex = 0;
     for (let m: RegExpExecArray | null; (m = RUST_OPTION_TUPLE_FNS.exec(content)) !== null;) {
-<<<<<<< merged
-        const fam = m[1] ?? m[2] ?? '';
-=======
         const fam = rustTupleFam(m[1]);
->>>>>>> R10
         const end = rustCloseParen(content, m.index + m[0].length);
         if (end < 0) break;
         const call = content.slice(m.index, end);
@@ -5855,15 +5813,7 @@ function typeHandleOptionTuples(content: string): string {
             const block = pre.trimStart().startsWith('{ ');
             let stop = block ? content.indexOf('; }', from) + 2 : content.indexOf('\n', content.indexOf('\n', content.indexOf('\n', from) + 1) + 1);
             // a following call's own head starts its own window
-<<<<<<< merged
-<<<<<<< merged
-            const nextCall = content.slice(from, stop).search(/\b(?:self|exchange)\.handle_(?:option_|market_type_and)/);
-=======
-            const nextCall = content.slice(from, stop).search(/\b(?:self|exchange)\.(?:super_)?handle_(?:option|margin_mode|sub_type)_/);
->>>>>>> R09
-=======
             const nextCall = content.slice(from, stop).search(new RegExp(String.raw`\b(?:self|exchange)\.${RUST_TUPLE_FN_NAME}\(`));
->>>>>>> R10
             if (!block && nextCall >= 0) stop = content.lastIndexOf('\n', from + nextCall);
             const fnEnd = content.slice(from).search(/\n {4}(?:pub )?(?:async )?fn |\n\}\n/);
             const n = head[1];
@@ -5880,12 +5830,8 @@ function typeHandleOptionTuples(content: string): string {
             }
         }
         const slot = /^\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(([01])\)\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/.exec(content.slice(end, end + 120));
-<<<<<<< merged
-        const ownFn = /\n {4}(?:pub )?fn handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?\(/.exec(content.slice(content.lastIndexOf('\n    ', content.lastIndexOf(' fn ', m.index)), m.index));
+        const ownFn = new RegExp(String.raw`\n {4}(?:pub )?fn ${RUST_TUPLE_FN_NAME}\(`).exec(content.slice(content.lastIndexOf('\n    ', content.lastIndexOf(' fn ', m.index)), m.index));
         const own = /^\s*return $/.test(pre) && ownFn !== null;
-=======
-        const own = /^\s*return $/.test(pre) && new RegExp(String.raw`\n {4}fn ${RUST_TUPLE_FN_NAME}\([^\n]*$`).test(content.slice(content.lastIndexOf('\n    fn ', m.index), content.indexOf('\n', content.lastIndexOf('\n    fn ', m.index) + 1)));
->>>>>>> R10
         // already a tuple binding (the pass reruns on files written twice): leave it
         const bound = /^\)\.[01]\b/.test(content.slice(end, end + 4)) || /\{ let __t = $/.test(pre)
             || (head !== null && content[end] === ';' && new RegExp(`\\b${head[1]}\\.[01]\\b`).test(content.slice(end, end + 2000)));
@@ -5917,23 +5863,11 @@ function typeHandleOptionTuples(content: string): string {
         out = out.slice(0, from) + rest.replace(new RegExp(`\\bis_true\\(&${d[1]}\\)`, 'g'), `(${d[1]}.as_bool() == Some(true))`) + out.slice(from + rest.length);
     }
     // the base bodies: the return type, each `return [ v, p ]`, and the unreachable `Value::Null` tail
-<<<<<<< merged
-<<<<<<< merged
     // handleMarketTypeAndParams overrides (okx, deepcoin) only return the base's tuple through `super_`
     out = out.replace(/(\n {4}pub fn handle_market_type_and_params\([^\n]*\) -> )Value( \{\n(?:(?!\n {4}(?:pub )?fn )[\s\S])*?return self\.super_handle_market_type_and_params\([^\n]*\);)\n\n {4}Value::Null\n\}/g, '$1(Value, crate::value::Dict)$2\n}');
-    return out.replace(/(\n {4}fn handle_(?:option_(bool_|string_|integer_)?|market_type_)and_params2?\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}/g,
-        (_m, sig, fam, open, body) => `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::Dict\((\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
-            (_r, v, d, b) => `return (${v}${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`)}\n}`);
-=======
-    return out.replace(/(\n {4}(?:pub )?fn handle_(?:option_(bool_|string_|integer_)?|(margin_mode_|sub_type_))and_params2?\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}/g,
-        (_m, sig, of, mf, open, body) => { const fam = of ?? mf ?? ''; return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|(\w+))\]\);/g,
-            (_r, v, d, b) => `return (${v}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`)}\n}`; });
->>>>>>> R09
-=======
-    return out.replace(new RegExp(String.raw`(\n {4}fn (${RUST_TUPLE_FN_NAME})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'),
-        (_m, sig, name, open, body) => { const fam = rustTupleFam(name); return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::Dict\((\w+)\)|(\w+))\]\);/g,
+    return out.replace(new RegExp(String.raw`(\n {4}(?:pub )?fn (${RUST_TUPLE_FN_NAME})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'),
+        (_m, sig, name, open, body) => { const fam = rustTupleFam(name); return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
             (_r, v, d, b) => `return (${v.replace(/^(\w+)\.map_or\(Value::Null, Value::Bool\)$/, '$1@')}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`.replace(/@\.as_bool\(\)/, ''))}\n}`; });
->>>>>>> R10
 }
 
 // parsePredictionPositions has one declaration whose only list is `results`, fed by `push(Value::Dict(..))`:
@@ -12583,11 +12517,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedIndexBy(finalFile);
         finalFile = rustTypedParseOrderBook(finalFile);
         finalFile = rustTypedSafeOrder(finalFile);
-<<<<<<< merged
         finalFile = rustTypedParseOrder(finalFile);
-=======
         finalFile = rustTypedSafeTrade(finalFile);
->>>>>>> R07
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);
