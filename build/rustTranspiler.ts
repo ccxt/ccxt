@@ -8019,6 +8019,59 @@ function copyLocalClones(content: string): string {
 }
 //
 // unit slot 052
+// `format!` only borrows its arguments: print a cloned place directly, and an `Option<String>` local boxed to
+// `Value` as `x.as_deref().unwrap_or("null")` (Value::Null displays "null"). Only plain `{}` format strings.
+function borrowFormatArgs(content: string): string {
+    if (!content.includes('format!(')) return content;
+    const head = /\bformat!\(/g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec(content)) !== null) {
+        const open = m.index + m[0].length;
+        const lineStart = content.lastIndexOf('\n', m.index) + 1;
+        if (/^\s*\/\//.test(content.slice(lineStart, m.index))) continue;
+        const close = balancedCloseIndex(content, open);
+        const inner = content.slice(open, close);
+        const fmt = /^"((?:[^"\\{}]|\\.|\{\})*)"/.exec(inner);
+        if (!fmt) continue;
+        const body = fnSpan(content, m.index);
+        const fnText = content.slice(body[0], body[1]);
+        const args = splitFormatArgs(inner.slice(fmt[0].length));
+        let changed = false;
+        const rew = args.map((a0) => {
+            const a = borrowFormatArgs(a0);
+            if (a !== a0) changed = true;
+            const t = a.trim();
+            let r: RegExpExecArray | null;
+            if ((r = /^((?:self\.)?\w+(?:\.\w+)*)\.clone\(\)$/.exec(t))) { changed = true; return a.replace(t, r[1]); }
+            if ((r = /^Value::from\(\((\w+)\)\.(symbol|market_type|base|quote)\.clone\(\)\)$/.exec(t))
+                && new RegExp('\\b' + r[1] + ': &?crate::types::Market\\b').test(fnText)) { changed = true; return a.replace(t, '(' + r[1] + ').' + r[2]); }
+            if ((r = /^(\w+)\.clone\(\)\.map\(Value::from\)\.unwrap_or\(Value::Null\)$/.exec(t))
+                && new RegExp('\\blet (?:mut )?' + r[1] + ': Option<String> =').test(fnText)) { changed = true; return a.replace(t, r[1] + '.as_deref().unwrap_or("null")'); }
+            return a;
+        });
+        if (!changed) continue;
+        out += content.slice(last, open) + fmt[0] + rew.join(',');
+        last = close;
+        head.lastIndex = close;
+    }
+    return out + content.slice(last);
+}
+
+// Top-level comma split of `, a, b(c, d)` (leading comma kept as an empty first element dropped by the caller's join).
+function splitFormatArgs(s: string): string[] {
+    const out: string[] = [];
+    let depth = 0, inStr = false, esc = false, cur = '';
+    for (const c of s) {
+        if (inStr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') inStr = false; }
+        else if (c === '"') inStr = true;
+        else if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        else if (c === ',' && depth === 0) { out.push(cur); cur = ''; continue; }
+        cur += c;
+    }
+    out.push(cur);
+    return out;
+}
 //
 // unit slot 053
 // Same-venue calls taking typed symbol lists: `Value::from(vec![x.clone()]).to_opt_str_vec()` is `Some(vec![x.to_string()])`
@@ -9284,6 +9337,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     copyLocalClones,
     //
     // pass slot 052
+    borrowFormatArgs,
     //
     // pass slot 053
     singleCopySymbolListArgs,
