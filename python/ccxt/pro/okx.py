@@ -512,7 +512,7 @@ class okx(ccxt.async_support.okx):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
-    def un_watch_mark_price(self, symbol: str, params={}) -> object:
+    async def un_watch_mark_price(self, symbol: str, params: dict = {}) -> object:
         """
 
         https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
@@ -523,7 +523,7 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to unsubscribe from, mark-price by default
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.un_watch_mark_prices([symbol], params)
+        return await self.un_watch_mark_prices([symbol], params)
 
     async def un_watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> object:
         """
