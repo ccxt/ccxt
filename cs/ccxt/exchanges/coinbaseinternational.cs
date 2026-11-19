@@ -3610,17 +3610,17 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
      * @returns {string} signed JWT
      */
-    public virtual string createAuthToken(object seconds, object method = null, string? url = null, bool? useEddsa = null)
+    public virtual string createAuthToken(object seconds, string? method = null, string? url = null, bool? useEddsa = null)
     {
         useEddsa ??= false;
-        object uri = null;
+        string? uri = null;
         if (((url != null)) && ((method != null)))
         {
-            uri = add(add(method, " "), url.Replace("https://", (string)""));
-            int quesPos = getIndexOf(uri, "?");
+            uri = ((method + " ") + url.Replace("https://", (string)""));
+            int quesPos = (uri?.IndexOf("?", StringComparison.Ordinal) ?? -1);
             if (quesPos > 0)
             {
-                uri = ((uri == null) ? null : ((string)uri).Substring(0, Math.Max(Math.Min((quesPos < 0 ? ((string)uri).Length + (quesPos) : quesPos), ((string)uri).Length), 0)));
+                uri = ((uri == null) ? null : uri.Substring(0, Math.Max(Math.Min((quesPos < 0 ? uri.Length + (quesPos) : quesPos), uri.Length), 0)));
             }
         }
         string nonce = this.randomBytes(16);

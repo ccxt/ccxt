@@ -1049,14 +1049,14 @@ public partial class bit2me : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            IDictionary<string, object> wallet = ((IDictionary<string, object>)getValue(response, i));
+            IDictionary<string, object> wallet = ((IDictionary<string, object>)(response != null && i < response.Count ? response[i] : null));
             string? currencyId = this.safeString(wallet, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

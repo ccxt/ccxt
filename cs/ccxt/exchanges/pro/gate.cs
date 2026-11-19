@@ -248,17 +248,10 @@ public partial class gate : ccxt.gate
         {
             await this.loadMarkets();
         }
-        IDictionary<string, object> market = null;
-        if ((symbol == null))
-        {
-            market = null;
-        } else
-        {
-            market = this.market(symbol);
-        }
+        Dictionary<string, object> market = this.market(symbol);
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-        string? messageType = this.getTypeByMarket(market);
-        string? channel = ((string)(messageType == null ? null : messageType + ".order_cancel_cp"));
+        string messageType = this.getTypeByMarket(market);
+        string channel = (messageType + ".order_cancel_cp");
         (string?, IDictionary<string, object>) channelOptionparamsChannelVariable = this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
         string? channelOption = channelOptionparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = (channelOptionparamsChannelVariable.Item2);
@@ -310,8 +303,8 @@ public partial class gate : ccxt.gate
         var requestrequestParamsVariable = ((type == "spot") || (type == "margin")) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
-        string? messageType = this.getTypeByMarket(market);
-        string? channel = ((string)(messageType == null ? null : messageType + ".order_cancel"));
+        string messageType = this.getTypeByMarket(market);
+        string channel = (messageType + ".order_cancel");
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         ((IDictionary<string,object>)request)["order_id"] = id.ToString();
@@ -384,8 +377,8 @@ public partial class gate : ccxt.gate
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
-        string? messageType = this.getTypeByMarket(market);
-        string? channel = ((string)(messageType == null ? null : messageType + ".order_status"));
+        string messageType = this.getTypeByMarket(market);
+        string channel = (messageType + ".order_status");
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, this.extend(request, requestParams), channel);
@@ -462,8 +455,8 @@ public partial class gate : ccxt.gate
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object newRequest = this.omit(request, new List<object>() {"settle"});
-        string? messageType = this.getTypeByMarket(market);
-        string? channel = ((string)(messageType == null ? null : messageType + ".order_list"));
+        string messageType = this.getTypeByMarket(market);
+        string channel = (messageType + ".order_list");
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(newRequest, requestParams), channel);
@@ -2645,19 +2638,15 @@ public partial class gate : ccxt.gate
         if ((this.safeBool(market, "contract", false) == true))
         {
             string settleKey = (this.safeBool(market, "linear", false) == true) ? "usdt" : "btc";
-            return ((string?)((object)(this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null)), settleKey, ""))));
-        } else
-        {
-            return ((string?)((object)(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null), ""))));
+            string? contractUrl = this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null)), settleKey, "");
+            return ((string?)((object)(contractUrl)));
         }
+        string? spotUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null), "");
+        return ((string?)((object)(spotUrl)));
     }
 
     public virtual string? getTypeByMarket(IDictionary<string, object> market)
     {
-        if ((market == null))
-        {
-            return null;
-        }
         if ((this.safeBool(market, "spot", false) == true))
         {
             return "spot";

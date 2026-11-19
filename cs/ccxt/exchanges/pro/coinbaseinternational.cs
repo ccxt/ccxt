@@ -123,7 +123,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public override object ping(WebSocketClient client)
     {
         Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
-        bool isPrivateClient = (isEqual(client.url, this.getWsUrl(true)));
+        bool isPrivateClient = ((client.url == this.getWsUrl(true)));
         if (isPrivateClient && ((refreshAt != null)) && ((refreshAt == null || this.milliseconds() >= refreshAt)))
         {
             // re-authenticate in-band before the session expires, also while no watch call is pending

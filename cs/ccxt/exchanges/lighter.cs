@@ -1222,7 +1222,10 @@ public partial class lighter : Exchange
                 }
             }
         }
-        // createOrderRequest always returns at least the primary order
+        if (totalOrderRequests < 1)
+        {
+            throw new InvalidOrder ((this.id + " createOrder() built no order request")) ;
+        }
         Dictionary<string, object> order = ((Dictionary<string, object>)(orderRequests != null && 0 < orderRequests.Count ? orderRequests[0] : null));
         // the nonce could be updated
         if ((this.safeInteger(order, "nonce") == null))

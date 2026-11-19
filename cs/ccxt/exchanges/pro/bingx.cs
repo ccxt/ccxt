@@ -1471,7 +1471,7 @@ public partial class bingx : ccxt.bingx
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, string? type, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, string type, IList<object>? symbols = null)
     {
         if ((this.positions != null))
         {
@@ -1480,8 +1480,8 @@ public partial class bingx : ccxt.bingx
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
         if ((fetchPositionsSnapshot == true))
         {
-            string? messageHash = ((string)((type + ":fetchPositionsSnapshot")));
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
+            string messageHash = (type + ":fetchPositionsSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
@@ -1492,7 +1492,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, object type)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash, string type)
     {
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, { "subType", "linear" }, }));
         this.positions = new ArrayCacheBySymbolBySide();

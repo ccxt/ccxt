@@ -8300,8 +8300,9 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
+        string? currencyId = this.safeString(currency, "id", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", currencyId.ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         Dictionary<string, object> market = this.market(symbol);
@@ -8336,8 +8337,9 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         Dictionary<string, object> currency = this.currency(code);
+        string? currencyId = this.safeString(currency, "id", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", currencyId.ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         (bool?, IDictionary<string, object>) isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(parameters, "repayCrossMargin", "unifiedAccount", false);
@@ -8377,8 +8379,9 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
+        string? currencyId = this.safeString(currency, "id", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", currencyId.ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         Dictionary<string, object> market = this.market(symbol);
@@ -8428,8 +8431,9 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         Dictionary<string, object> currency = this.currency(code);
+        string? currencyId = this.safeString(currency, "id", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", ((string)(currency.ContainsKey("id") ? currency["id"] : null)).ToUpper() },
+            { "currency", currencyId.ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
         (bool?, IDictionary<string, object>) isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(parameters, "borrowCrossMargin", "unifiedAccount", false);

@@ -79,7 +79,11 @@ public partial class pacifica : ccxt.pacifica
                 headers["PF-API-KEY"] = (this.options != null && this.options.ContainsKey("apiKey") ? this.options["apiKey"] : null);
             }
         }
-        ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = headers;
+        IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsSubOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
+        wsSubOptions["headers"] = headers;
+        wsOptions["options"] = wsSubOptions;
+        this.options["ws"] = wsOptions;
     }
 
     /**

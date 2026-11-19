@@ -692,10 +692,12 @@ public partial class hyperliquid : Exchange
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     string? safeCode = this.safeCurrencyCode(name);
                     string? hip3Code = ((safeCode == null)) ? name : safeCode.Replace(":", (string)"-");
-                    ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("hip3TokensByName") ? this.options["hip3TokensByName"] : null))[(string)name] = new Dictionary<string, object>() {
+                    IDictionary<string, object> hip3TokensByName = this.safeDict(this.options, "hip3TokensByName", new Dictionary<string, object>() {});
+                    hip3TokensByName[(string)name] = new Dictionary<string, object>() {
                         { "quote", collateralTokenCode },
                         { "code", hip3Code },
                     };
+                    this.options["hip3TokensByName"] = hip3TokensByName;
                 }
                 result.Add(data);
             }

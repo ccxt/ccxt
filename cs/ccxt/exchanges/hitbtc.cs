@@ -1186,12 +1186,12 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", parsedCode },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i);
             string? currencyId = this.safeString(entry, "currency");

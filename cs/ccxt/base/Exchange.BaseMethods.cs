@@ -1874,13 +1874,13 @@ public partial class BaseExchange
         }
     }
 
-    public virtual string? orderbookChecksumMessage(object symbol)
+    public virtual string? orderbookChecksumMessage(string? symbol)
     {
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((this.id + " orderbookChecksumMessage() requires a symbol argument")) ;
         }
-        return ((string?)((object)(add(symbol, " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false"))));
+        return ((string?)((object)((symbol + " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false"))));
     }
 
     public virtual Dictionary<string, object> getDefaultOptions()
@@ -2296,7 +2296,7 @@ public partial class BaseExchange
     public virtual BaseExchange setMarketsFromExchange(BaseExchange sourceExchange)
     {
         // Validate that both exchanges are of the same type
-        if (!isEqual(this.id, sourceExchange.id))
+        if (!(this.id == sourceExchange.id))
         {
             throw new ArgumentsRequired ((((this.id + " shareMarkets() can only share markets with exchanges of the same type (got ") + (getValue(sourceExchange, "id"))) + ")")) ;
         }

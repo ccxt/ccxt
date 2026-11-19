@@ -1683,42 +1683,45 @@ public partial class aster : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = Math.Min(limit.Value, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         List<object> response = null;
         bool sinceDefined = (since != null);
         bool untilDefined = (parameters.ContainsKey("until"));
         if (sinceDefined)
         {
-            ((IDictionary<string,object>)request)["startTime"] = since;
+            request["startTime"] = since;
         }
+        object paramsUntil = parameters;
         if (untilDefined)
         {
-            request = this.handleUntilOption("endTime", request, parameters);
+            IList<object> requestparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
+            request = (Dictionary<string, object>)requestparamsUntilVariable[0];
+            paramsUntil = requestparamsUntilVariable[1];
         }
         // use historical endpoint for targeted requests
         if (sinceDefined)
         {
             if ((this.safeBool(market, "swap", false) == true))
             {
-                response = await this.fapiPublicGetV3AggTrades(this.extend(request, parameters));
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             } else
             {
-                response = await this.sapiPublicGetV3AggTrades(this.extend(request, parameters));
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
         } else
         {
             if ((this.safeBool(market, "swap", false) == true))
             {
-                response = await this.fapiPublicGetV3Trades(this.extend(request, parameters));
+                response = await this.fapiPublicGetV3Trades(this.extend(request, paramsUntil));
             } else
             {
-                response = await this.sapiPublicGetV3Trades(this.extend(request, parameters));
+                response = await this.sapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
         }
         return this.parseTrades(response, market, since, limit);

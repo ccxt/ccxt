@@ -1740,14 +1740,11 @@ public partial class hollaex : Exchange
         //     }
         //
         List<object> wallet = this.safeList(response, "wallet", new List<object>() {});
-        List<object> addresses = null;
         if ((network == null))
         {
-            addresses = wallet;
-        } else
-        {
-            addresses = this.filterBy(wallet, "network", this.networkCodeToId(network));
+            return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(wallet, codes, false));
         }
+        List<object> addresses = this.filterBy(wallet, "network", this.networkCodeToId(network));
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
 

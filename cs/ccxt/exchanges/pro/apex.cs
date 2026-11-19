@@ -787,7 +787,7 @@ public partial class apex : ccxt.apex
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object lists)
+    public virtual void handleMyTrades(WebSocketClient client, IList<object> lists)
     {
         // [
         //     {
@@ -813,7 +813,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (lists?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawTrade = this.safeDict(lists, i, new Dictionary<string, object>() {});
             ccxt.Trade parsed = this.parseWsTrade(rawTrade);
@@ -833,7 +833,7 @@ public partial class apex : ccxt.apex
         client.resolve(trades, messageHash);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object lists)
+    public virtual void handleOrder(WebSocketClient client, IList<object> lists)
     {
         // [
         //     {
@@ -871,7 +871,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache orders = this.orders;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (lists?.Count ?? 0); i++)
         {
             ccxt.Order parsed = this.parseOrder(this.safeDict(lists, i, new Dictionary<string, object>() {}));
             string? symbol = parsed.symbol;
@@ -927,7 +927,7 @@ public partial class apex : ccxt.apex
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object lists)
+    public virtual void handlePositions(WebSocketClient client, IList<object> lists)
     {
         //
         // [
@@ -957,7 +957,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (lists?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawPosition = this.safeDict(lists, i, new Dictionary<string, object>() {});
             Dictionary<string, object> position = this.parsePosition(rawPosition);

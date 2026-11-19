@@ -6513,7 +6513,23 @@ public partial class kucoin : Exchange
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, paramsPaginate));
+            // paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+            Dictionary<string, object> paramsContract = this.extend(paramsPaginate, new Dictionary<string, object>() {
+                { "paginate", false },
+                { "uta", false },
+            });
+            if ((symbol == null))
+            {
+                paramsContract = this.extend(paramsContract, new Dictionary<string, object>() {
+                    { "type", "contract" },
+                });
+            }
+            Dictionary<string, object> paginatedMethods = new Dictionary<string, object>() {
+                { "active", "fetchOpenOrders" },
+                { "open", "fetchOpenOrders" },
+            };
+            string? paginatedMethod = this.safeString(paginatedMethods, status, "fetchClosedOrders");
+            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic(paginatedMethod, symbol, since, limit, paramsContract));
         }
         bool? trigger = this.safeBool2(paramsPaginate, "stop", "trigger");
         Int64? until = this.safeInteger(paramsPaginate, "until");
@@ -10751,14 +10767,8 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        List<object> assets = null;
-        if ((marginMode == "isolated"))
-        {
-            assets = this.safeList(data, "assets", new List<object>() {});
-        } else
-        {
-            assets = this.safeList(data, "accounts", new List<object>() {});
-        }
+        string assetsKey = ((marginMode == "isolated")) ? "assets" : "accounts";
+        List<object> assets = this.safeList(data, assetsKey, new List<object>() {});
         List<object> interest = this.parseBorrowInterests(assets, market);
         IList<object> filteredByCurrency = this.filterByCurrencySinceLimit(interest,code, since, limit);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit));
@@ -13355,7 +13365,13 @@ public partial class kucoin : Exchange
 
     public virtual void setDepositAddressesVersion(object version)
     {
-        ((IDictionary<string,object>)getValue(getValue((this.options != null && this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
+        IDictionary<string, object> versions = this.safeDict(this.options, "versions", new Dictionary<string, object>() {});
+        IDictionary<string, object> privateVersions = this.safeDict(versions, "private", new Dictionary<string, object>() {});
+        IDictionary<string, object> getVersions = this.safeDict(privateVersions, "GET", new Dictionary<string, object>() {});
+        getVersions["deposit-addresses"] = version;
+        privateVersions["GET"] = getVersions;
+        versions["private"] = privateVersions;
+        this.options["versions"] = versions;
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

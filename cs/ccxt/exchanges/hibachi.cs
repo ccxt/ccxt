@@ -1435,17 +1435,17 @@ public partial class hibachi : Exchange
         return this.milliseconds();
     }
 
-    public virtual string? signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, string? privateKey)
     {
-        if ((((string)privateKey).Length == 44))
+        if ((privateKey.Length == 44))
         {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
-            return this.hmac(message, this.encode(privateKey), sha256, "hex");
+            return this.hmac(message, privateKey, sha256, "hex");
         } else
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             string hash = ((string)this.hash(message, sha256, "hex"));
-            Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+            Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
             string? r = this.safeString(signature, "r", "");
             string? s = this.safeString(signature, "s", "");
             string v = this.intToBase16((signature != null && signature.ContainsKey("v") ? signature["v"] : null));

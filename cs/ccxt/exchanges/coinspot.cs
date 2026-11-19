@@ -589,8 +589,8 @@ public partial class coinspot : Exchange
         object balances = this.safeValue2(response, "balance", "balances");
         if (((balances is IList<object>) || (balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            IList<object> rows = this.toArray(balances);
-            int numRows = (rows?.Count ?? 0);
+            List<object> rows = this.safeList2(response, "balance", "balances", new List<object>() {});
+            int numRows = rows.Count;
             for (int i = 0; i < numRows; i++)
             {
                 IDictionary<string, object> currencies = this.safeDict(rows, i, new Dictionary<string, object>() {});

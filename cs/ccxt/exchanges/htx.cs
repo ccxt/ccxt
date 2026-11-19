@@ -4351,7 +4351,9 @@ public partial class htx : Exchange
         }
         if ((code != null))
         {
-            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null))[(string)code] = new Dictionary<string, object>() {};
+            IDictionary<string, object> chainIdsByNames = this.safeDict(this.options, "networkChainIdsByNames", new Dictionary<string, object>() {});
+            chainIdsByNames[(string)code] = new Dictionary<string, object>() {};
+            this.options["networkChainIdsByNames"] = chainIdsByNames;
         }
         List<object> chains = this.safeList(rawCurrency, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
@@ -4362,7 +4364,11 @@ public partial class htx : Exchange
             string? title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if ((code != null) && (title != null))
             {
-                ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("networkChainIdsByNames") ? this.options["networkChainIdsByNames"] : null), code))[(string)title] = uniqueChainId;
+                IDictionary<string, object> chainIdsByNamesDict = this.safeDict(this.options, "networkChainIdsByNames", new Dictionary<string, object>() {});
+                IDictionary<string, object> chainIdsByTitle = this.safeDict(chainIdsByNamesDict, code, new Dictionary<string, object>() {});
+                chainIdsByTitle[(string)title] = uniqueChainId;
+                chainIdsByNamesDict[(string)code] = chainIdsByTitle;
+                this.options["networkChainIdsByNames"] = chainIdsByNamesDict;
             }
             if ((uniqueChainId != null))
             {

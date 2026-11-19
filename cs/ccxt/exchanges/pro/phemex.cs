@@ -355,7 +355,7 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, paramsMarketType));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message, string? type)
+    public virtual void handleBalance(WebSocketClient client, IList<object> message, string? type)
     {
         // spot
         //    [
@@ -400,7 +400,7 @@ public partial class phemex : ccxt.phemex
         //    ]
         //
         this.balance["info"] = message;
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (message?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(message, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1070,7 +1070,7 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, IList<object> message)
     {
         //
         // swap
@@ -1166,7 +1166,7 @@ public partial class phemex : ccxt.phemex
         //    ]
         //
         string channel = "trades";
-        int tradesLength = getArrayLength(message);
+        int tradesLength = message?.Count ?? 0;
         if ((tradesLength == 0))
         {
             return;
@@ -1181,7 +1181,7 @@ public partial class phemex : ccxt.phemex
         object type = null;
         for (int i = 0; i < tradesLength; i++)
         {
-            object rawTrade = getValue(message, i);
+            object rawTrade = (message != null && i < message.Count ? message[i] : null);
             string? marketId = this.safeString(rawTrade, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             ccxt.Trade parsed = this.parseTrade(rawTrade);

@@ -3588,14 +3588,14 @@ public partial class myriad : PredictionExchange
         return ((double?)((object)(this.parseNumber(Precise.stringDiv(wei, "1000000000000000000")))));
     }
 
-    public virtual string? marketOutcomeToSymbol(object networkId, string? marketId, string? outcomeId)
+    public virtual string? marketOutcomeToSymbol(string? networkId, string? marketId, string? outcomeId)
     {
         // guard the ids before concatenating: a missing id would crash on string + None in Python/PHP
         if (((networkId == null)) || ((marketId == null)) || ((outcomeId == null)))
         {
             return null;
         }
-        string? ocId = ((string)(add(add(add(add(networkId, ":"), marketId), "/"), outcomeId)));
+        string ocId = ((((networkId + ":") + marketId) + "/") + outcomeId);
         IDictionary<string, object> outcomeObj = this.safeDict(this.outcomes_by_id, ocId);
         return this.safeString(outcomeObj, "outcome");
     }

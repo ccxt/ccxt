@@ -876,13 +876,12 @@ public partial class bithumb : Exchange
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object response = null;
         IDictionary<string, object> data = null;
         Int64? timestamp = null;
         if ((generation == 2))
         {
             request["markets"] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
+            List<object> response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -930,7 +929,7 @@ public partial class bithumb : Exchange
             {
                 request["count"] = limit; // default 30, max 30
             }
-            response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
+            Dictionary<string, object> response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1319,12 +1318,11 @@ public partial class bithumb : Exchange
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         if ((generation == 2))
         {
             request["markets"] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
+            List<object> response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -1362,7 +1360,7 @@ public partial class bithumb : Exchange
         {
             request["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             request["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
+            Dictionary<string, object> response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",

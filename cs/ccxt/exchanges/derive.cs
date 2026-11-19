@@ -2256,9 +2256,9 @@ public partial class derive : Exchange
         return (milliseconds + padded);
     }
 
-    public virtual string? hashMessage(object message)
+    public virtual string? hashMessage(string? message)
     {
-        string? binaryMessage = this.encode(message);
+        string? binaryMessage = message;
         int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
@@ -2276,7 +2276,7 @@ public partial class derive : Exchange
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
-    public virtual string? signMessage(object message, object privateKey)
+    public virtual string? signMessage(string? message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), privateKey);
     }

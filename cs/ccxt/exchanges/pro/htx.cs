@@ -839,7 +839,7 @@ public partial class htx : ccxt.htx
             }
         }
         bool spotConditon = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((prevSeqNum == this.safeInteger(orderbook, "nonce")));
-        bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && (isEqual((version - 1), this.safeInteger(orderbook, "nonce")));
+        bool nonSpotCondition = ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true)) && ((version != null)) && (((version - 1) == this.safeInteger(orderbook, "nonce")));
         if ((spotConditon) || (nonSpotCondition))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});

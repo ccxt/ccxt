@@ -478,10 +478,10 @@ public partial class mudrex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.privateGetFutures(this.extend(request, parameters));
         object data = this.safeValue(response, "data", new List<object>() {});
-        IList<object> rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = this.toArray(data);
+            rows = this.safeList(response, "data", new List<object>() {});
         } else
         {
             rows = this.safeList(data, "items", new List<object>() {});

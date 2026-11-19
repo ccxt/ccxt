@@ -825,7 +825,7 @@ public partial class gemini : ccxt.gemini
         return message;
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, IList<object> message)
     {
         //
         //     [
@@ -857,7 +857,7 @@ public partial class gemini : ccxt.gemini
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (message?.Count ?? 0); i++)
         {
             ccxt.Order order = this.parseWsOrder(this.safeValue(message, i));
             orders.append(ccxt.BaseExchange.FromOrder(order));

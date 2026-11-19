@@ -2817,17 +2817,16 @@ public partial class bullish : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
         };
-        object response = null;
         string? code = this.safeString(parameters, "code");
         if ((code != null))
         {
             Dictionary<string, object> currency = this.currency(code);
             request["symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
-            response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters));
+            Dictionary<string, object> response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters));
             return ccxt.BaseExchange.ToBalances(this.parseBalanceForSingleCurrency(response,code));
         } else
         {
-            response = await this.privateGetV1AccountsAsset(this.extend(request, parameters));
+            List<object> response = await this.privateGetV1AccountsAsset(this.extend(request, parameters));
             //
             //     [
             //         {
@@ -2848,7 +2847,7 @@ public partial class bullish : Exchange
         }
     }
 
-    public virtual object parseBalanceForSingleCurrency(object response, string code)
+    public virtual object parseBalanceForSingleCurrency(IDictionary<string, object> response, string code)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },

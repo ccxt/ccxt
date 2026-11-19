@@ -2151,9 +2151,9 @@ public partial class mexc : ccxt.mexc
         return null;
     }
 
-    public virtual void handleUnsubscriptions(WebSocketClient client, object messageHashes)
+    public virtual void handleUnsubscriptions(WebSocketClient client, IList<object> messageHashes)
     {
-        for (int i = 0; i < getArrayLength(messageHashes); i++)
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = this.safeString(messageHashes, i, "");
             string subMessageHash = messageHash.Replace("unsubscribe:", (string)"");

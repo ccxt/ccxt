@@ -1491,8 +1491,12 @@ public partial class aster : ccxt.aster
                 {
                     throw new AuthenticationError ((this.id + " authenticate() received an empty listenKey")) ;
                 }
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null))[(string)type] = listenKey;
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("lastAuthenticatedTime") ? this.options["lastAuthenticatedTime"] : null))[(string)type] = time;
+                IDictionary<string, object> listenKeys = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
+                listenKeys[(string)type] = listenKey;
+                this.options["listenKey"] = listenKeys;
+                IDictionary<string, object> lastAuthenticatedTimes = this.safeDict(this.options, "lastAuthenticatedTime", new Dictionary<string, object>() {});
+                lastAuthenticatedTimes[(string)type] = time;
+                this.options["lastAuthenticatedTime"] = lastAuthenticatedTimes;
                 Dictionary<string, object> keepAliveParams = this.extend(new Dictionary<string, object>() {
                     { "type", type },
                 }, parameters);
@@ -1541,7 +1545,9 @@ public partial class aster : ccxt.aster
                 client.reject(error, messageHash);
             }
             ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null))[(string)type] = null;
-            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("lastAuthenticatedTime") ? this.options["lastAuthenticatedTime"] : null))[(string)type] = 0;
+            IDictionary<string, object> lastAuthenticatedTimes = this.safeDict(this.options, "lastAuthenticatedTime", new Dictionary<string, object>() {});
+            lastAuthenticatedTimes[(string)type] = 0;
+            this.options["lastAuthenticatedTime"] = lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
