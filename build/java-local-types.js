@@ -18863,6 +18863,9 @@ function javaPrimitiveKind (ctx, text, nn) {
         // the arguments already unbox in the original expression: a null box threw there too
         if (args !== undefined && args.length === 2) return javaWidestKind (args.map ((a) => javaPrimitiveKind (ctx, a, () => true)));
     }
+    // base sum(Long, Long) is declared Long and never null: both arguments statically long/Long select it
+    const sm = /^this\.sum\(/.test (e) ? longLimitCallArgs (e, 'this.sum') : undefined;
+    if (sm !== undefined && sm.length === 2 && sm.every ((a) => { const x = longLimitStrip (a); return javaArithKind (ctx, x, nn) === 'long' || (/^[A-Za-z_]\w*$/.test (x) && ctx.declType (x) === 'Long'); })) return 'long';
     // parseToInt of a non-null number never answers null (numberToString/parseFloat/parseInt all succeed)
     const pti = /^((?:\w+\.)?this\.parseToInt)\(/.exec (e);
     if (pti !== null) {
@@ -23346,6 +23349,12 @@ export function installJavaR92j3SafeIntegerOperands (transpiler) {
         }
         return ok ? 'long' : undefined;
     };
+    // base sum(Long, Long) is declared Long, never null: selected when both printed arguments are long/Long
+    const prior = printer.javaProvableNumericKind.bind (printer);
+    printer.javaProvableNumericKind = function (node, allowDeclaredLocals = true) {
+        const kind = prior (node, allowDeclaredLocals);
+        return kind === undefined && allowDeclaredLocals && r97j3TypedLongSum (printer, node) ? 'long' : kind;
+    };
     const sumLocals = new WeakMap ();
     const isSumLocal = (declaration) => {
         if (!sumLocals.has (declaration)) {
@@ -23389,6 +23398,27 @@ export function installJavaR92j3SafeIntegerOperands (transpiler) {
         }
         return ok ? 'long' : undefined;
     };
+}
+
+function r97j3TypedLongSum (printer, node) {
+    const call = r87j3BaseSum (printer, node);
+    const typed = (arg) => {
+        const n = unwrapParens (arg);
+        if (ts.isNumericLiteral (n)) {
+            return /L$/.test (printer.printNode (n, 0).trim ());
+        }
+        if (ts.isIdentifier (n)) {
+            const target = printer.printNode (n, 0) === n.text ? printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve () : undefined;
+            const t = target === undefined ? '' : String ((ts.isParameterDeclaration (target) ? (printer.javaOptionalParameterType?.(target) ?? printer.javaNativeParameterType?.(target)) : printer.javaDeclaredTypeOfDeclaration?.(target)) ?? '').trim ();
+            return t === 'Long' || t === 'long';
+        }
+        return printer.javaProvableNumericKind (n) === 'long';
+    };
+    try {
+        return call !== undefined && typed (call.arguments[0]) && typed (call.arguments[1]);
+    } catch (e) {
+        return false;
+    }
 }
 
 // `const x = a + b` / `a - b` printed as the native long add over at least one operand proven here:

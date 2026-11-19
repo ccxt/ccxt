@@ -1301,6 +1301,11 @@ public class BaseExchange {
         return io.github.ccxt.base.Generic.sum(a, b);
     }
 
+    // two Long operands: Generic.sum maps null to 0 and boxes the (always whole) double sum as Long
+    public Long sum(Long a, Long b) {
+        return (Long) io.github.ccxt.base.Generic.sum(a, b);
+    }
+
     // =======================
     // Number
     // =======================
