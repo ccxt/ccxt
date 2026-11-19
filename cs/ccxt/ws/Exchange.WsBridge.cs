@@ -363,7 +363,7 @@ public partial class Exchange
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!inOp(this.orderbooks, symbol))
+        if (!(this.orderbooks != null && symbol is string symbolKey && this.orderbooks.ContainsKey(symbolKey)))
         {
             (client).reject(new ExchangeError(this.id + " loadOrderBook() orderbook is not initiated"), messageHash);
             return;

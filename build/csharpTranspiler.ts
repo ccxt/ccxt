@@ -6882,11 +6882,31 @@ function csharpConstantEqualities (rewritten: string | undefined, line: string, 
             text = csharpConstantEqualityEmission (type, constant.kind, sides[e].text, sides[c].text);
             if (text !== undefined) break;
         }
+        text = text ?? csharpTypedPairEquality (sides, takeType, content);
         if (text !== undefined) {
             edits.push ({ start: match.index, end: close + 1, text });
         }
     }
     return (edits.length === 0) ? rewritten : applyRegionEdits (original, edits);
+}
+
+// two typed operands of one kind: string vs string (ordinal `==`, null equal only to null as in
+// isEqual), integer vs integer (isEqual compares Convert.ToInt64; the lifted `==` for nullables)
+function csharpTypedPairEquality (sides, takeType, content: string): string | undefined {
+    const kind = (side) => {
+        const integerOffset = /^\(([A-Za-z_]\w*) [-+] \d{1,9}\)$/.exec (side.maskedText);
+        const offsetType = (integerOffset === null) ? undefined : takeType (integerOffset[1])?.type;
+        // `<BaseExchange name>.id`: the hand-written `public string id` (Exchange.Options.cs)
+        const exchangeId = /^([A-Za-z_]\w*)\.id$/.exec (side.maskedText);
+        const type = csharpOperatorOperand (side.maskedText, side.text, takeType)?.type
+            ?? (CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES.includes (offsetType) || CSHARP_OPERATOR_INTEGER_TYPES.includes (offsetType) ? 'Int64?' : undefined)
+            ?? ((exchangeId !== null) && (takeType (exchangeId[1])?.type === 'BaseExchange') ? 'string' : undefined)
+            ?? csharpIsEqualOperandType (side.maskedText, takeType, content);
+        if (CSHARP_OPERATOR_STRING_TYPES.includes (type)) return 'string';
+        return (CSHARP_OPERATOR_INTEGER_TYPES.includes (type) || CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES.includes (type)) ? 'integer' : undefined;
+    };
+    const left = kind (sides[0]);
+    return ((left !== undefined) && (left === kind (sides[1]))) ? `(${sides[0].text} == ${sides[1].text})` : undefined;
 }
 
 // apply non-overlapping `{ start, end, text }` edits to `original`, last first
@@ -6968,7 +6988,7 @@ function csharpEqualityObjectDict (name: string, takeType): boolean {
 function csharpEqualityMethodType (name: string, content: string): string | undefined {
     const signature = new RegExp ('^[ ]{4}(?:(?:public|private|protected|internal|virtual|override|static|async|new)[ ]+)+([\\w<>,.?\\[\\] ]+?)[ ]+' + name + '\\(', 'gm');
     const returns = Array.from (content.matchAll (signature), (s) => s[1].trim ());
-    const map = (t: string) => ((t === 'object') || (t === 'bool') || (t === 'bool?')) ? t : undefined;
+    const map = (t: string) => [ 'object', 'bool', 'bool?', 'string', 'string?' ].includes (t) ? t : undefined;
     if (returns.length > 0) {
         const kinds = Array.from (new Set (returns.map (map)));
         return (kinds.length === 1) ? kinds[0] : undefined;
