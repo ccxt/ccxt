@@ -6441,7 +6441,7 @@ export class BaseExchange {
 
     parsePositions (positions: List, symbols: Strings = undefined, params: Dict = {}): Position[] {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const positionsArray = this.toArray (positions);
+        const positionsArray: Dict[] = this.toArray (positions);
         const result: Position[] = [];
         for (let i = 0; i < positionsArray.length; i++) {
             const position = this.extend (this.parsePosition (positionsArray[i]), params);
@@ -6479,7 +6479,7 @@ export class BaseExchange {
     }
 
     parseTradesHelper (isWs: boolean, trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Trade[] {
-        const tradesArray = this.toArray (trades);
+        const tradesArray: Dict[] = this.toArray (trades);
         let result: Trade[] = [];
         for (let i = 0; i < tradesArray.length; i++) {
             let parsed: NullableDict = undefined;
@@ -6530,7 +6530,7 @@ export class BaseExchange {
 
     parseLedger (data: any, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): LedgerEntry[] {
         let result: LedgerEntry[] = [];
-        const arrayData = this.toArray (data);
+        const arrayData: Dict[] = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
             const itemOrItems = this.parseLedgerEntry (arrayData[i], currency);
             if (Array.isArray (itemOrItems)) {
