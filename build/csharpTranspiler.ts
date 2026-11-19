@@ -8955,9 +8955,9 @@ function snippetSuite (label: string, pass: (text: string) => string, wrap: (bod
 export function csharpDeclaredGetValue (content: string): string {
     // hand-written field types (cs/ccxt/base/Exchange.Options.cs); no venue redeclares them
     const dictFields = [ 'features', 'userAgents', 'has', 'timeframes', 'precision', 'markets', 'markets_by_id',
-        'currencies_by_id', 'options', 'balance', 'tickers', 'fundingRates', 'bidsasks', 'trades', 'ohlcvs' ];
+        'currencies_by_id', 'options', 'balance', 'tickers', 'fundingRates', 'bidsasks', 'trades', 'ohlcvs', 'events' ];
     const listFields = [ 'symbols', 'codes', 'ids' ];
-    const dictTypes = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>', 'ccxt.pro.IOrderBook' ];
+    const dictTypes = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>', 'ccxt.pro.IOrderBook', 'ccxt.pro.IOrderBook?' ];
     const listTypes = [ 'List<object>', 'IList<object>', 'ccxt.pro.IBids', 'ccxt.pro.IAsks', 'ccxt.pro.IOrderBookSide' ];
     return csharpTwoArgCallPass (content, 'getValue', (region, i, { start: at, close, masked: line, a: r, b: keyMask, bText: k }) => {
         const { start, params, declarations, lines: masked } = region;
@@ -8986,6 +8986,13 @@ export function csharpDeclaredGetValue (content: string): string {
                 return dictionaryGetValue (r, k, literal ? 'literal' : 'string');
             } else if ((key !== undefined) && ((key.type === 'object') || (key.type === 'string?')) && onlyBinding (keyMask, key.type)) {
                 return dictionaryGetValue (r, k, key.type);
+            } else {
+                // an element of a declared list read at an int index: an `object` key, cast like the helper
+                const element = /^([A-Za-z_]\w*)\[([A-Za-z_]\w*)\]$/.exec (keyMask);
+                const list = (element === null) ? undefined : declared (element[1]);
+                if ((list !== undefined) && listTypes.includes (list.type) && onlyBinding (element[1], list.type) && intName (element[2])) {
+                    return dictionaryGetValue (r, k, 'object');
+                }
             }
         } else if (rType === 'list') {
             // the IList<object> branch: at or past Count reads null, a negative index throws in both
@@ -9033,13 +9040,15 @@ function declaredGetValueSelfTest (): string[] {
         [ 'order book receiver', '        object a = getValue(ob, "nonce");', '(ob != null && ob.ContainsKey("nonce") ? ob["nonce"] : null)' ],
         [ 'list field + int loop index', '        for (int i = 0; i < 3; i++)\n        {\n            object a = getValue(this.symbols, i);\n        }', '(this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null)' ],
         [ 'int expression index', '        List<object> xs = new List<object>() {};\n        int n = xs.Count;\n        object a = getValue(xs, (n - 1));', '(xs != null && (n - 1) < xs.Count ? xs[(n - 1)] : null)' ],
-        [ 'string char compared', '        string? c = null;\n        if ((getValue(c, 0) is "-")) { }', '((c != null ? c[0].ToString() : null) is "-")' ],
+        [ 'string char compared', '        string? c = null;\n        if ((getValue(c, 0) is "-")) { }', '((c != null ? c[0].ToString() : null) is "-")' ],        [ 'list element key on a dict field', '        List<object> ks = new List<object>(this.markets.Keys);\n        for (int i = 0; i < ks.Count; i++)\n        {\n            object a = getValue(this.markets, ks[i]);\n        }', '(this.markets != null && ks[i] != null && this.markets.ContainsKey((string)ks[i]) ? this.markets[(string)ks[i]] : null)' ],
+        [ 'nullable order book local', '        ccxt.pro.IOrderBook? b = null;\n        object a = getValue(b, "asks");', '(b != null && b.ContainsKey("asks") ? b["asks"] : null)' ],
     ];
     const keeps: [string, string][] = [
         [ 'object receiver', '        object o = null;\n        object a = getValue(o, "k");' ],
         [ 'object index on a list', '        List<object> xs = new List<object>() {};\n        object i = 0;\n        object a = getValue(xs, i);' ],
         [ 'string char not compared', '        string? c = null;\n        object a = getValue(c, 0);' ],
         [ 'unknown field', '        object a = getValue(this.fees, "trading");' ],
+        [ 'object list element key', '        object ks = null;\n        int i = 0;\n        object a = getValue(this.markets, ks[i]);' ],
         [ 'Int64 expression index', '        List<object> xs = new List<object>() {};\n        Int64 n = 2;\n        object a = getValue(xs, (n - 1));' ],
     ];
     return snippetSuite ('declared get value self test', csharpDeclaredGetValue, wrap, cases, keeps, 400, false, wrap ('        object a = getValue(this.userAgents, "chrome");', 'Tests'), 'declared get value self test tests namespace changed');
