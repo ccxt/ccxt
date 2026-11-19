@@ -2252,7 +2252,7 @@ impl Exchange {
         key: Value,
         value: Value,
         _optional_args: &[Value],
-    ) -> Value {
+    ) -> crate::value::List {
         let k = key_str(&key);
         if let Value::Arr(items) = arr {
             let items = Arc::try_unwrap(items).unwrap_or_else(|a| (*a).clone());
@@ -2263,9 +2263,9 @@ impl Exchange {
                     crate::runtime::is_equal(&v, &value)
                 })
                 .collect();
-            Value::Array(out)
+            Arc::new(out)
         } else {
-            Value::Array(vec![])
+            Arc::new(Vec::new())
         }
     }
 

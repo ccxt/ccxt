@@ -555,7 +555,7 @@ pub trait ExchangeOps {
     fn deepExtend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn index_by(&self, arr: Value, key: Value) -> Value;
     fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
+    fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> ccxt::value::List;
     fn number_to_string(&self, n: impl ccxt::value::ScalarArg) -> Option<String>;
     fn base16_to_binary(&self, s: Value, optional_args: &[Value]) -> ccxt::value::Bytes;
     fn precision_from_string(&self, s: Value) -> i64;
@@ -611,7 +611,7 @@ impl ExchangeOps for Value {
     fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| Value::Dict(e.index_by(arr, key))) }
     fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
-    fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
+    fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> ccxt::value::List { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: impl ccxt::value::ScalarArg) -> Option<String> { with_base(|e| e.number_to_string(n)) }
     fn base16_to_binary(&self, s: Value, o: &[Value]) -> ccxt::value::Bytes { with_base(|e| e.base16_to_binary(s, o)) }
     fn precision_from_string(&self, s: Value) -> i64 { with_base(|e| e.precision_from_string(s)) }

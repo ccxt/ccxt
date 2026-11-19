@@ -6596,6 +6596,8 @@ const RUST_FILTER_LIST_FNS = [
     'filter_by_currency_since_limit',
     'filter_by_symbols_since_limit',
     'array_slice',
+    'filter_by',
+    'get_list_from_object_values',
 ].join('|');
 function typeFilterSliceLists(content: string): string {
     content = content.replace(new RegExp(String.raw`(\n {4}fn (${RUST_FILTER_LIST_FNS})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (_m, sig, _n, open, body) =>
@@ -8654,6 +8656,10 @@ function typeWsOhlcvReturns(content: string): string {
 // unit slot 081
 //
 // unit slot 082
+// getListFromObjectValues returns the `results` vec it built: once typeFilterSliceLists retypes it, that vec moves out.
+function typedObjectValuesListBody(content: string): string {
+    return content.replace(/(\n {4}fn get_list_from_object_values\([^\n]*\) -> crate::value::List \{\n[\s\S]*?)return Value::from\(results\);/, '$1return std::sync::Arc::new(results);');
+}
 //
 // unit slot 083
 //
@@ -9146,6 +9152,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 081
     //
     // pass slot 082
+    typedObjectValuesListBody,
     //
     // pass slot 083
     //
