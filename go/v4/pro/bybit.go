@@ -935,12 +935,10 @@ func (this *Bybit) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 	var topics []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsValue) {
-				return symbolsValue[i]
-			}
-			return nil
-		}())
+		var symbol *string = nil
+		if i >= 0 && i < len(symbolsValue) {
+			symbol = &symbolsValue[i]
+		}
 		topics = append(topics, "orderbook.1."+marketId)
 		subMessageHashes = append(subMessageHashes, "bidask:"+*symbol)
 		messageHashes = append(messageHashes, "unsubscribe:bidask:"+*symbol)
@@ -950,7 +948,7 @@ func (this *Bybit) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	url := r1.Value
+	var url string = r1.Value
 
 	r2 := <-this.UnWatchTopicsAsync(url, "bidsasks", symbolsValue, messageHashes, subMessageHashes, topics, params)
 	if r2.Err != nil {

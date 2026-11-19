@@ -21,7 +21,7 @@ func (this *Paradex) Describe() map[string]any {
 		"name":      "Paradex",
 		"countries": []any{},
 		"version":   "v1",
-		"rateLimit": 50,
+		"rateLimit": 40,
 		"certified": false,
 		"pro":       true,
 		"dex":       true,
@@ -31,7 +31,7 @@ func (this *Paradex) Describe() map[string]any {
 			"margin":                        false,
 			"swap":                          true,
 			"future":                        false,
-			"option":                        false,
+			"option":                        true,
 			"addMargin":                     false,
 			"borrowCrossMargin":             false,
 			"borrowIsolatedMargin":          false,
@@ -89,6 +89,8 @@ func (this *Paradex) Describe() map[string]any {
 			"fetchOpenInterest":             true,
 			"fetchOpenInterestHistory":      false,
 			"fetchOpenOrders":               true,
+			"fetchOption":                   true,
+			"fetchOptionChain":              true,
 			"fetchOrder":                    true,
 			"fetchOrderBook":                true,
 			"fetchOrders":                   true,
@@ -256,136 +258,136 @@ func (this *Paradex) Describe() map[string]any {
 			"private": map[string]any{
 				"get": map[string]any{
 					"account": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/compliance": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/history": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/info": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/margin": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/profile": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/settings": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/subaccounts": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/summary": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"balance": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"fills": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"funding/payments": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"positions": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"tradebusts": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"transactions": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/keys/subkeys": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/keys/subkeys/{public_key}": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"account/tokens": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"algo/orders": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"algo/orders-history": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"algo/orders/{algo_id}": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"block-trades": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"block-trades/{block_trade_id}": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"block-trades/{block_trade_id}/offers": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"block-trades/{block_trade_id}/offers/{offer_id}": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"liquidations": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"orders": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"orders-history": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"orders/by_client_id/{client_id}": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"orders/{order_id}": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"referrals/qr-code": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"referrals/summary": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"rfqs": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"rfqs/drafts": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"rfqs/markets": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"rfqs/{rfq_id}/bbo": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"staking/balance/history": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"staking/history": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"staking/summary": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"transfers": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"vaults/account-summary": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"vaults/mine": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"xp/account-balance": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"xp/transfers": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 				},
 				"post": map[string]any{
@@ -441,7 +443,7 @@ func (this *Paradex) Describe() map[string]any {
 						"cost": 1,
 					},
 					"auth": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"block-trades": map[string]any{
 						"cost": 1,
@@ -456,7 +458,7 @@ func (this *Paradex) Describe() map[string]any {
 						"cost": 1,
 					},
 					"onboarding": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"orders": map[string]any{
 						"cost": 1,
@@ -474,10 +476,10 @@ func (this *Paradex) Describe() map[string]any {
 						"cost": 1,
 					},
 					"v2/auth": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"v2/onboarding": map[string]any{
-						"cost": 1,
+						"cost": 2.5,
 					},
 					"vaults": map[string]any{
 						"cost": 1,
@@ -543,11 +545,15 @@ func (this *Paradex) Describe() map[string]any {
 		"fees": map[string]any{
 			"swap": map[string]any{
 				"taker": this.ParseNumber("0.0002"),
-				"maker": this.ParseNumber("0.0002"),
+				"maker": this.ParseNumber("0"),
 			},
 			"spot": map[string]any{
 				"taker": this.ParseNumber("0.0002"),
-				"maker": this.ParseNumber("0.0002"),
+				"maker": this.ParseNumber("0"),
+			},
+			"option": map[string]any{
+				"taker": this.ParseNumber("0.0001"),
+				"maker": this.ParseNumber("0.0001"),
 			},
 		},
 		"requiredCredentials": map[string]any{
@@ -649,6 +655,9 @@ func (this *Paradex) Describe() map[string]any {
 		"options": map[string]any{
 			"paradexAccount": nil,
 			"broker":         "CCXT",
+			"fetchMarkets": map[string]any{
+				"types": []any{"swap", "spot", "option"},
+			},
 		},
 		"features": map[string]any{
 			"spot": map[string]any{
@@ -665,10 +674,10 @@ func (this *Paradex) Describe() map[string]any {
 				"createOrder": map[string]any{
 					"marginMode":                 false,
 					"triggerPrice":               true,
-					"triggerDirection":           true,
+					"triggerDirection":           false,
 					"triggerPriceType":           nil,
-					"stopLossPrice":              false,
-					"takeProfitPrice":            false,
+					"stopLossPrice":              true,
+					"takeProfitPrice":            true,
 					"attachedStopLossTakeProfit": nil,
 					"timeInForce": map[string]any{
 						"IOC": true,
@@ -681,7 +690,7 @@ func (this *Paradex) Describe() map[string]any {
 					"leverage":               false,
 					"marketBuyByCost":        false,
 					"marketBuyRequiresPrice": false,
-					"selfTradePrevention":    true,
+					"selfTradePrevention":    false,
 					"iceberg":                false,
 				},
 				"createOrders": map[string]any{
@@ -689,9 +698,9 @@ func (this *Paradex) Describe() map[string]any {
 				},
 				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
-					"limit":          100,
-					"daysBack":       100000,
-					"untilDays":      100000,
+					"limit":          5000,
+					"daysBack":       nil,
+					"untilDays":      nil,
 					"symbolRequired": false,
 				},
 				"fetchOrder": map[string]any{
@@ -702,16 +711,16 @@ func (this *Paradex) Describe() map[string]any {
 				},
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
-					"limit":          100,
+					"limit":          nil,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
 				"fetchOrders": map[string]any{
 					"marginMode":     false,
-					"limit":          100,
-					"daysBack":       100000,
-					"untilDays":      100000,
+					"limit":          5000,
+					"daysBack":       nil,
+					"untilDays":      nil,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
@@ -729,6 +738,12 @@ func (this *Paradex) Describe() map[string]any {
 			},
 			"future": map[string]any{
 				"linear":  nil,
+				"inverse": nil,
+			},
+			"option": map[string]any{
+				"linear": map[string]any{
+					"extends": "forSwap",
+				},
 				"inverse": nil,
 			},
 		},
@@ -822,6 +837,7 @@ func (this *Paradex) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
  * @description retrieves data on all markets for paradex
  * @see https://docs.paradex.trade/api/prod/markets/get-markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string[]|string} [params.types] the market types to load, any of 'swap', 'spot' and 'option' as a list or a comma separated string, default is options.fetchMarkets.types, which loads all of them
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Paradex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
@@ -834,8 +850,22 @@ func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var fetchMarketsOptions map[string]any = this.SafeDictMap(this.Options, "fetchMarkets", map[string]any{})
+	// the types come from params or the option, as a list or a comma separated string such as 'swap,spot'
+	var typesSource map[string]any
+	if _, ok := params["types"]; ok {
+		typesSource = params
+	} else {
+		typesSource = fetchMarketsOptions
+	}
+	var types any = this.SafeList(typesSource, "types")
+	if IsEqual(types, nil) {
+		var typesString string = *this.SafeString(typesSource, "types", "swap,spot,option")
+		types = strings.Split(typesString, ",")
+	}
+	var request map[string]any = this.OmitDict(params, "types")
 
-	r := <-this.PublicGetMarkets(params)
+	r := <-this.PublicGetMarkets(request)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -873,9 +903,31 @@ func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "results", []any{})
+	var data []any = SafeListTyped(response, "results")
+	// the endpoint has no type filter, so unwanted kinds are dropped before the costly parse
+	var assetKinds map[string]any = map[string]any{}
+	for i := 0; i < GetArrayLength(types); i++ {
+		var marketType any = GetValue(types, i)
+		if marketType == "swap" {
+			assetKinds["PERP"] = true
+		} else if marketType == "spot" {
+			assetKinds["SPOT"] = true
+		} else if marketType == "option" {
+			assetKinds["OPTION"] = true
+			assetKinds["PERP_OPTION"] = true
+		} else {
+			panic(BadRequest(Add(this.Id+" fetchMarkets() types must be any of swap, spot and option, got ", marketType)))
+		}
+	}
+	var wanted []any = []any{}
+	for i := 0; i < len(data); i++ {
+		var assetKind *string = this.SafeString(data[i], "asset_kind")
+		if *this.SafeBool(assetKinds, assetKind, false) {
+			wanted = append(wanted, data[i])
+		}
+	}
 
-	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(data))}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(wanted))}
 	return nil
 }
 func (this *Paradex) ParseMarket(market any) map[string]any {
@@ -1005,8 +1057,6 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 	var expiry *int64 = this.SafeInteger(market, "expiry_at")
 	var optionType *string = this.SafeString(market, "option_type")
 	var strikePrice *string = this.SafeString(market, "strike_price")
-	var takerFee *float64 = this.ParseNumber("0.0003")
-	var makerFee *float64 = this.ParseNumber("-0.00005")
 	if isOption {
 		var optionTypeSuffix string
 		if optionType != nil && *optionType == "CALL" {
@@ -1021,7 +1071,6 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 		if strikePrice != nil {
 			symbol = symbol + "-" + deliveryValue + *strikePrice + "-" + optionTypeSuffix
 		}
-		makerFee = this.ParseNumber("0.0003")
 	} else {
 		expiry = nil
 	}
@@ -1030,6 +1079,21 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 		expireDatetime = nil
 	} else {
 		expireDatetime = this.Iso8601(expiry)
+	}
+	// the fee an api order pays, the market falls back to the default schedule of its type
+	var apiFee map[string]any = SafeMapTyped(this.SafeDict(market, "fee_config", map[string]any{}), "api_fee")
+	var defaultFees map[string]any = SafeMapTyped(this.Fees, typeVar)
+	var makerFee *float64 = this.SafeNumber(this.SafeDict(apiFee, "maker_fee", map[string]any{}), "fee", this.SafeNumber(defaultFees, "maker"))
+	var takerFee *float64 = this.SafeNumber(this.SafeDict(apiFee, "taker_fee", map[string]any{}), "fee", this.SafeNumber(defaultFees, "taker"))
+	// an rfq only market takes block trades and rejects orders on the book
+	var openAt *int64 = this.SafeInteger(market, "open_at")
+	var tradingMode *string = this.SafeString(market, "trading_mode")
+	var active any = nil
+	if (tradingMode != nil) || (openAt != nil) {
+		var now int64 = this.Milliseconds()
+		var isOpen bool = (openAt == nil) || (*openAt <= now)
+		var isLive bool = (expiry == nil) || (expiry != nil && *expiry == 0) || (expiry != nil && *expiry > now)
+		active = (tradingMode == nil || *tradingMode != "RFQ_ONLY") && isOpen && isLive
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       marketId,
@@ -1046,7 +1110,7 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 		"swap":     isSwap,
 		"future":   false,
 		"option":   isOption,
-		"active":   this.SafeBool(market, "enableTrading"),
+		"active":   active,
 		"contract": !isSpot,
 		"linear": func() any {
 			if isSpot {
@@ -1094,9 +1158,158 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 				"max": nil,
 			},
 		},
-		"created": nil,
+		"created": openAt,
 		"info":    market,
 	})
+}
+func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
+	//
+	// an option leaves the market list once it expires, while fills, orders and positions still name it
+	//
+	//     id      NEAR-USD-30OCT26-5_6-C
+	//     symbol  NEAR/USD:USDC-261030-5.6-C
+	//
+	var parts []string = Split(symbol, "-")
+	var partsLength int = len(parts)
+	var base *string = nil
+	var quote any = nil
+	var settle *string = nil
+	var expiryDate *string = nil
+	var strike any = nil
+	var optionType *string = nil
+	if GetIndexOf(symbol, "/") > -1 {
+		if partsLength != 4 {
+			panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
+		}
+		var pair *string = nil
+		if 0 >= 0 && 0 < len(parts) {
+			pair = &parts[0]
+		}
+		var pairParts []string = strings.Split(*pair, "/")
+		base = this.SafeString(pairParts, 0)
+		var quoteAndSettle string = *this.SafeString(pairParts, 1, "")
+		var quoteParts []string = strings.Split(quoteAndSettle, ":")
+		if derefPtr := this.SafeString(quoteParts, 0); derefPtr != nil {
+			quote = *derefPtr
+		} else {
+			quote = nil
+		}
+		settle = this.SafeString(quoteParts, 1, quote)
+		expiryDate = this.SafeString(parts, 1)
+		if derefPtr := this.SafeString(parts, 2); derefPtr != nil {
+			strike = *derefPtr
+		} else {
+			strike = nil
+		}
+		optionType = this.SafeString(parts, 3)
+	} else {
+		if partsLength != 5 {
+			panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
+		}
+		base = this.SafeString(parts, 0)
+		if derefPtr := this.SafeString(parts, 1); derefPtr != nil {
+			quote = *derefPtr
+		} else {
+			quote = nil
+		}
+		settleStr := "USDC"
+		settle = &settleStr // every option on the venue settles in USDC
+		expiryDate = this.ConvertMarketIdExpireDate(this.SafeString(parts, 2))
+		var strikeId *string = nil
+		if 3 >= 0 && 3 < len(parts) {
+			strikeId = &parts[3]
+		}
+		strike = strings.Replace(*strikeId, "_", ".", 1)
+		optionType = this.SafeString(parts, 4)
+	}
+	// the id carries the day without a leading zero, 6NOV26
+	var idDate any = this.ConvertExpireDateToMarketIdDate(expiryDate)
+	if StartsWith(idDate, "0") {
+		idDate = Slice(idDate, 1, nil)
+	}
+	// the id names the expiry day only, the hour depends on the underlying
+	var datetime any = this.ConvertExpireDate(expiryDate)
+	var timestamp *int64 = this.Parse8601(datetime)
+	var active any = nil
+	if (timestamp != nil) && ((*timestamp + 86400000) <= this.Milliseconds()) {
+		active = false
+	}
+	var strikeInId string = ""
+	if !IsEqual(strike, nil) {
+		strikeInId = Replace(strike, ".", "_")
+	}
+	return map[string]any{
+		"id":             Add(Add(Add(Add(Add(Add(Add(Add(base, "-"), quote), "-"), idDate), "-"), strikeInId), "-"), optionType),
+		"symbol":         Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiryDate), "-"), strike), "-"), optionType),
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         base,
+		"quoteId":        quote,
+		"settleId":       settle,
+		"active":         active,
+		"type":           "option",
+		"subType":        "linear",
+		"linear":         true,
+		"inverse":        false,
+		"spot":           false,
+		"swap":           false,
+		"future":         false,
+		"option":         true,
+		"margin":         false,
+		"contract":       true,
+		"contractSize":   this.ParseNumber("1"),
+		"expiry":         timestamp,
+		"expiryDatetime": datetime,
+		"optionType": func() string {
+			if optionType != nil && *optionType == "C" {
+				return "call"
+			}
+			return "put"
+		}(),
+		"strike": this.ParseNumber(strike),
+		"precision": map[string]any{
+			"amount": nil,
+			"price":  nil,
+		},
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"price": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"cost": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"info": nil,
+	}
+}
+func (this *Paradex) SafeMarket(optionalArgs ...any) map[string]any {
+	// a dated option id has five parts, BTC-USD-29MAY26-80000-C
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = marketId
+	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
+	_ = market
+	var delimiter *string = GetArgStringPtr(optionalArgs, 2, nil)
+	_ = delimiter
+	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
+	_ = marketType
+	if (marketId != nil) && (strings.Index(*marketId, "/") < 0) && (strings.HasSuffix(*marketId, "-C") || strings.HasSuffix(*marketId, "-P")) {
+		var isKnown bool = (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId))
+		if !isKnown {
+			var marketIdParts []string = strings.Split(*marketId, "-")
+			var marketIdPartsLength int = len(marketIdParts)
+			if marketIdPartsLength == 5 {
+				return MarketTyped(this.CreateExpiredOptionMarket(marketId))
+			}
+		}
+	}
+	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
 func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
 	//
@@ -1251,10 +1464,12 @@ func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	//         ]
 	//     }
 	//
-	var fees []any = SafeListTyped(response, "results")
+	var fees []any = this.SafeListSlice(response, "results", []any{})
+	// markets left out by options.fetchMarkets.types are skipped
+	var loadedFees []any = this.FilterLoadedSummaries(fees)
 	var result map[string]any = map[string]any{}
-	for i := 0; i < len(fees); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
+	for i := 0; i < len(loadedFees); i++ {
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(loadedFees[i]))
 		var symbol *string = SafeStringPtr(fee["symbol"])
 		if symbol != nil {
 			result[*symbol] = fee
@@ -1277,6 +1492,7 @@ func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Paradex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
@@ -1302,13 +1518,29 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
+	var maxLimit int = 1000 // exchange has undocumented limit slightly above, but this is reliable limit
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
+	if paginate {
+
+		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var retRes110919 []any = r1.Value
+		if retRes110919 == nil {
+			ch <- AsyncResult[[]OHLCV]{Value: nil}
+		} else {
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes110919)}
+		}
+		return nil
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":     market["id"],
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var price *string = this.SafeString(params, "price")
+	var price *string = this.SafeString(paramsPaginate, "price")
 	if price != nil {
 		// the exchange names the index price "underlying" and rejects "index"
 		request["price_kind"] = func() any {
@@ -1318,9 +1550,8 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			return price
 		}()
 	}
-	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, params)
-	_, has1 := request["end_at"]
-	var hasEnd bool = has1
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
+	var hasEnd bool = (InOp(requestUntil, "end_at"))
 	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, []any{"price"})
 	// exchange has undocumented limit slightly above, but 1000 is reliable limit
 	var limitResolved int64
@@ -1332,9 +1563,11 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var windowLength int64 = this.ParseToInt(duration * (this.ParseToInt(limitResolved) + 1) * 1000)
 	if since != nil {
 		requestUntil["start_at"] = *since
-		if !hasEnd {
-			var sinceInt int64 = this.ParseToInt(since)
-			AddElementToObject(requestUntil, "end_at", (sinceInt+windowLength)-1)
+		// the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
+		var windowEnd int64 = this.ParseToInt(since) + windowLength - 1
+		var endAt *int64 = this.SafeInteger(requestUntil, "end_at", windowEnd)
+		if !hasEnd || (endAt != nil && *endAt > windowEnd) {
+			requestUntil["end_at"] = windowEnd
 		}
 	} else {
 		var endAtRaw *int64 = this.SafeInteger(requestUntil, "end_at", this.Milliseconds())
@@ -1343,11 +1576,11 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		AddElementToObject(requestUntil, "start_at", (endAt-windowLength)+1)
 	}
 
-	r1 := <-this.PublicGetMarketsKlines(this.Extend(requestUntil, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	r2 := <-this.PublicGetMarketsKlines(this.Extend(requestUntil, paramsOmitted))
+	if r2.Err != nil {
+		panic(r2.Err)
 	}
-	var response map[string]any = r1.Value
+	var response map[string]any = r2.Value
 	//
 	//     {
 	//         "results": [
@@ -1413,7 +1646,7 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
-		"market": "ALL",
+		"market": this.SummaryMarketId(symbolsNormalized),
 	}
 
 	r1 := <-this.PublicGetMarketsSummary(this.Extend(request, params))
@@ -1442,10 +1675,72 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "results", []any{})
+	var data any = this.SafeList(response, "results", []any{})
+	var rows any = func() any {
+		if IsEqual(request["market"], "ALL") {
+			return this.FilterLoadedSummaries(data)
+		}
+		return data
+	}()
 
-	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(rows, symbolsNormalized))}
 	return nil
+}
+
+/**
+ * @method
+ * @ignore
+ * @name paradex#summaryMarketId
+ * @description the market a markets/summary request asks for, the endpoint takes one market id or ALL, which answers for every market on the venue in megabytes, so a single symbol is asked for by name
+ * @param {string[]|undefined} symbols unified market symbols
+ * @returns {string} the market id, or ALL
+ */
+func (this *Paradex) SummaryMarketId(optionalArgs ...any) any {
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	if symbols != nil {
+		var symbolsLength int = len(symbols)
+		if symbolsLength == 1 {
+			return this.Market(symbols[0])["id"]
+		}
+	}
+	return "ALL"
+}
+
+/**
+ * @method
+ * @ignore
+ * @name paradex#filterLoadedSummaries
+ * @description keeps the markets or markets/summary rows of loaded markets, the endpoints also answer for the USDC collateral and for market types left out by options.fetchMarkets.types
+ * @param {object[]} summaries the results of markets or markets/summary
+ * @param {string} [marketType] keep this market type only
+ * @returns {object[]} the rows of loaded markets
+ */
+func (this *Paradex) FilterLoadedSummaries(summaries any, optionalArgs ...any) []any {
+	marketType := GetArg(optionalArgs, 0, nil)
+	_ = marketType
+	var result []any = []any{}
+	var marketsById map[string]any = this.Markets_by_id
+	if marketsById == nil {
+		return result
+	}
+	for i := 0; i < GetArrayLength(summaries); i++ {
+		var summary any = GetValue(summaries, i)
+		var marketId *string = this.SafeString(summary, "symbol")
+		if marketId != nil {
+			if _, ok := marketsById[*marketId]; ok {
+				if marketType == nil {
+					result = append(result, summary)
+				} else {
+					var market map[string]any = this.SafeMarket(marketId)
+					if market["type"] == marketType {
+						result = append(result, summary)
+					}
+				}
+			}
+		}
+	}
+	return result
 }
 
 /**
@@ -1547,9 +1842,9 @@ func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"high":          nil,
 		"low":           nil,
 		"bid":           this.SafeString(ticker, "bid"),
-		"bidVolume":     nil,
+		"bidVolume":     this.SafeString(ticker, "bid_size"),
 		"ask":           this.SafeString(ticker, "ask"),
-		"askVolume":     nil,
+		"askVolume":     this.SafeString(ticker, "ask_size"),
 		"vwap":          nil,
 		"open":          nil,
 		"close":         last,
@@ -1561,6 +1856,7 @@ func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    nil,
 		"quoteVolume":   this.SafeString(ticker, "volume_24h"),
 		"markPrice":     this.SafeString(ticker, "mark_price"),
+		"indexPrice":    this.SafeString(ticker, "underlying_price"),
 		"info":          ticker,
 	}, marketResolved)
 }
@@ -1594,19 +1890,8 @@ func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	// the endpoint takes one market id, and ALL answers for every product on
-	// the venue: a single symbol is asked for by name, which is 544 bytes
-	// against 1.6 MB
-	var target any = "ALL"
-	if symbolsNormalized != nil {
-		var symbolsLength int = len(symbolsNormalized)
-		if symbolsLength == 1 {
-			var market map[string]any = this.Market(symbolsNormalized[0])
-			target = market["id"]
-		}
-	}
 	var request map[string]any = map[string]any{
-		"market": target,
+		"market": this.SummaryMarketId(symbolsNormalized),
 	}
 
 	r1 := <-this.PublicGetMarketsSummary(this.Extend(request, params))
@@ -1615,6 +1900,12 @@ func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 	}
 	var response map[string]any = r1.Value
 	var data []any = this.SafeListSlice(response, "results", []any{})
+	// only a perpetual funds, the other rows are dropped before they are parsed
+	if IsEqual(request["market"], "ALL") {
+
+		ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(this.FilterLoadedSummaries(data, "swap"), symbolsNormalized))}
+		return nil
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
@@ -1732,8 +2023,9 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) Funding
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return, up to 100 per side, default is 20
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.price_tick] aggregate the levels to this price increment, one of the values the market allows
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Paradex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
@@ -1758,6 +2050,9 @@ func (this *Paradex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
+	}
+	if limit != nil {
+		request["depth"] = min(*limit, 100)
 	}
 
 	r1 := <-this.PublicGetOrderbookMarket(this.Extend(request, params))
@@ -1784,9 +2079,6 @@ func (this *Paradex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	//         ]
 	//     }
 	//
-	if limit != nil {
-		request["depth"] = limit
-	}
 	var timestamp *int64 = this.SafeInteger(response, "last_updated_at")
 	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"], timestamp)
 	orderbook["nonce"] = this.SafeInteger(response, "seq_no")
@@ -1836,11 +2128,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes130219 []any = r1.Value
-		if retRes130219 == nil {
+		var retRes154319 []any = r1.Value
+		if retRes154319 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes130219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154319)}
 		}
 		return nil
 	}
@@ -3350,11 +3642,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes235419 []any = r2.Value
-		if retRes235419 == nil {
+		var retRes259519 []any = r2.Value
+		if retRes259519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes235419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes259519)}
 		}
 		return nil
 	}
@@ -3630,11 +3922,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes253819 []any = r2.Value
-		if retRes253819 == nil {
+		var retRes277919 []any = r2.Value
+		if retRes277919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes253819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes277919)}
 		}
 		return nil
 	}
@@ -4262,11 +4554,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes296319 []any = r2.Value
-		if retRes296319 == nil {
+		var retRes320419 []any = r2.Value
+		if retRes320419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes296319)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes320419)}
 		}
 		return nil
 	}
@@ -4801,7 +5093,7 @@ func (this *Paradex) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
  * @name paradex#fetchAllGreeks
  * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
  * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
- * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+ * @param {string[]} [symbols] unified symbols of the option markets to fetch greeks for, all options are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
@@ -4826,7 +5118,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{
-		"market": "ALL",
+		"market": this.SummaryMarketId(symbolsNormalized),
 	}
 
 	r1 := <-this.PublicGetMarketsSummary(this.Extend(request, params))
@@ -4868,9 +5160,16 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 	//         ]
 	//     }
 	//
-	var results []any = this.SafeListSlice(response, "results", []any{})
+	var results any = this.SafeList(response, "results", []any{})
+	// the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
+	var rows any = func() any {
+		if IsEqual(request["market"], "ALL") {
+			return this.FilterLoadedSummaries(results, "option")
+		}
+		return results
+	}()
 
-	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(results, symbolsNormalized))}
+	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(rows, symbolsNormalized))}
 	return nil
 }
 func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
@@ -4917,13 +5216,13 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
 		"datetime":              this.Iso8601(timestamp),
 		"delta":                 this.SafeNumber(greeksData, "delta"),
 		"gamma":                 this.SafeNumber(greeksData, "gamma"),
-		"theta":                 nil,
+		"theta":                 this.SafeNumber(greeksData, "theta"),
 		"vega":                  this.SafeNumber(greeksData, "vega"),
 		"rho":                   this.SafeNumber(greeksData, "rho"),
 		"vanna":                 this.SafeNumber(greeksData, "vanna"),
 		"volga":                 this.SafeNumber(greeksData, "volga"),
-		"bidSize":               nil,
-		"askSize":               nil,
+		"bidSize":               this.SafeNumber(greeks, "bid_size"),
+		"askSize":               this.SafeNumber(greeks, "ask_size"),
 		"bidImpliedVolatility":  this.SafeNumber(greeks, "bid_iv"),
 		"askImpliedVolatility":  this.SafeNumber(greeks, "ask_iv"),
 		"markImpliedVolatility": this.SafeNumber(greeks, "mark_iv"),
@@ -4933,6 +5232,195 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
 		"lastPrice":             this.SafeNumber(greeks, "last_traded_price"),
 		"underlyingPrice":       this.SafeNumber(greeks, "underlying_price"),
 		"info":                  greeks,
+	})
+}
+
+/**
+ * @method
+ * @name paradex#fetchOption
+ * @description fetches option data that is commonly found in an option chain
+ * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+ */
+func (this *Paradex) FetchOptionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Option] {
+	ch := make(chan AsyncResult[Option], 1)
+	go this.fetchOptionBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Paradex) fetchOptionBody(ch chan AsyncResult[Option], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	if market["option"] != true {
+		panic(BadSymbol(this.Id + " fetchOption() supports option markets only"))
+	}
+	var request map[string]any = map[string]any{
+		"market": market["id"],
+	}
+
+	r1 := <-this.PublicGetMarketsSummary(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "results": [
+	//             {
+	//                 "symbol": "BTC-USD-25JUN27-86000-C",
+	//                 "mark_price": "10200.41688775",
+	//                 "mark_iv": "0.38613775",
+	//                 "delta": "0.56444713",
+	//                 "greeks": { "delta": "0.5644471336358705", "gamma": "0.000015727298531837943", "vega": "278.58404031445025", "theta": "-28.10779287090323", "rho": "-70.27668935000763", "vanna": "-0.0018540944752723594", "volga": "-0.1676414184328563" },
+	//                 "last_traded_price": "",
+	//                 "bid": "9724.82",
+	//                 "bid_size": "1",
+	//                 "bid_iv": "0.36986",
+	//                 "ask": "10717.12",
+	//                 "ask_size": "1",
+	//                 "ask_iv": "0.4054928",
+	//                 "volume_24h": "0",
+	//                 "total_volume": "0",
+	//                 "created_at": 1792183389215,
+	//                 "underlying_price": "81598.69900987",
+	//                 "open_interest": "0",
+	//                 "funding_rate": "",
+	//                 "price_change_rate_24h": "-0.047715",
+	//                 "future_funding_rate": "0.00009503",
+	//                 "forward_rate": "0.05324806",
+	//                 "risk_free_rate": "0"
+	//             }
+	//         ]
+	//     }
+	//
+	var data []any = SafeListTyped(response, "results")
+	var chain map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+
+	ch <- AsyncResult[Option]{Value: this.ParseOption(chain, nil, market)}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#fetchOptionChain
+ * @description fetches data for an underlying asset that is commonly found in an option chain
+ * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+ * @param {string} code base currency to fetch an option chain for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+ */
+func (this *Paradex) FetchOptionChainAsync(code string, optionalArgs ...any) <-chan AsyncResult[map[string]Option] {
+	ch := make(chan AsyncResult[map[string]Option], 1)
+	go this.fetchOptionChainBody(ch, code, optionalArgs...)
+	return ch
+}
+func (this *Paradex) fetchOptionChainBody(ch chan AsyncResult[map[string]Option], code string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	// the summary takes one market or all of them, so the chain is cut from the whole venue
+	var request map[string]any = map[string]any{
+		"market": "ALL",
+	}
+
+	r1 := <-this.PublicGetMarketsSummary(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data []any = SafeListTyped(response, "results")
+	var result map[string]any = map[string]any{}
+	var prefix string = code + "-"
+	for i := 0; i < len(data); i++ {
+		var entry any = data[i]
+		var marketId string = *this.SafeString(entry, "symbol", "")
+		// the id starts with the base, so the other underlyings are skipped before the market is resolved
+		if strings.HasPrefix(marketId, prefix) {
+			// options left out by options.fetchMarkets.types are rebuilt from their id
+			var market map[string]any = this.SafeMarket(marketId)
+			if market["option"] == true {
+				AddElementToObject(result, market["symbol"], OptionToMap(this.ParseOption(entry, nil, market)))
+			}
+		}
+	}
+
+	ch <- AsyncResult[map[string]Option]{Value: OptionMapFromMap(result)}
+	return nil
+}
+func (this *Paradex) ParseOption(chain any, optionalArgs ...any) Option {
+	//
+	//     {
+	//         "symbol": "BTC-USD-25JUN27-86000-C",
+	//         "mark_price": "10200.41688775",
+	//         "mark_iv": "0.38613775",
+	//         "last_traded_price": "",
+	//         "bid": "9724.82",
+	//         "bid_size": "1",
+	//         "bid_iv": "0.36986",
+	//         "ask": "10717.12",
+	//         "ask_size": "1",
+	//         "ask_iv": "0.4054928",
+	//         "volume_24h": "0",
+	//         "created_at": 1792183389215,
+	//         "underlying_price": "81598.69900987",
+	//         "open_interest": "0",
+	//         "price_change_rate_24h": "-0.047715"
+	//     }
+	//
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = currency
+	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
+	_ = market
+	var marketId *string = this.SafeString(chain, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "option")
+	var timestamp *int64 = this.SafeInteger(chain, "created_at")
+	var bid *string = this.SafeString(chain, "bid")
+	var ask *string = this.SafeString(chain, "ask")
+	var mid *string = nil
+	if (bid != nil) && (ask != nil) {
+		mid = Precise.StringDiv(Precise.StringAdd(bid, ask), "2")
+	}
+	var percentage *string = this.SafeString(chain, "price_change_rate_24h")
+	if percentage != nil {
+		percentage = Precise.StringMul(percentage, "100")
+	}
+	return OptionFromMap(map[string]any{
+		"info":              chain,
+		"currency":          marketResolved["base"],
+		"symbol":            marketResolved["symbol"],
+		"timestamp":         timestamp,
+		"datetime":          this.Iso8601(timestamp),
+		"impliedVolatility": this.SafeNumber(chain, "mark_iv"),
+		"openInterest":      this.SafeNumber(chain, "open_interest"),
+		"bidPrice":          this.ParseNumber(bid),
+		"askPrice":          this.ParseNumber(ask),
+		"midPrice":          this.ParseNumber(mid),
+		"markPrice":         this.SafeNumber(chain, "mark_price"),
+		"lastPrice":         this.SafeNumber(chain, "last_traded_price"),
+		"underlyingPrice":   this.SafeNumber(chain, "underlying_price"),
+		"change":            nil,
+		"percentage":        this.ParseNumber(percentage),
+		"baseVolume":        nil,
+		"quoteVolume":       this.SafeNumber(chain, "volume_24h"),
 	})
 }
 
@@ -4988,11 +5476,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes348719 []any = r2.Value
-		if retRes348719 == nil {
+		var retRes387619 []any = r2.Value
+		if retRes387619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes348719)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes387619)}
 		}
 		return nil
 	}
@@ -5080,6 +5568,7 @@ func (this *Paradex) ParseIncome(income any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum amount of funding rate structures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times, back from until (default now) to since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Paradex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingRateHistory] {
@@ -5108,34 +5597,66 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 			panic(r.Err)
 		}
 	}
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
+	var rowSpacing int = 5000 // the venue records a funding rate observation every five seconds
+	if paginate {
+		if since == nil {
+			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a since argument when paginate is true"))
+		}
+		// the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
+		// end_at is set to as many full pages from since as the calls allow, so the rows begin at since
+		paginationCalls, paramsCalls := this.HandleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "paginationCalls", 10)
+		var endAt any
+		if derefPtr := this.SafeInteger(paramsCalls, "until"); derefPtr != nil {
+			endAt = *derefPtr
+		}
+		if IsEqual(endAt, nil) {
+			endAt = mathMin(this.Milliseconds(), this.Sum(since, ((paginationCalls*5000)*int64(rowSpacing))))
+		}
+		var paramsEndAt map[string]any = this.Extend(this.Omit(paramsPaginate, "until"), map[string]any{
+			"end_at": endAt,
+		})
+		// the cursor helper returns the newest rows first, the limit is applied once they are oldest first
+
+		r1 := <-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, nil, paramsEndAt, "next", "cursor", nil, 5000)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var pages []any = r1.Value
+		var sortedPages []any = this.SortBy(pages, "timestamp")
+
+		ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySinceLimit(sortedPages, since, limit))}
+		return nil
+	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
+	var pageSize any = 1000
 	if limit != nil {
-		request["page_size"] = min(*limit, 5000) // api maximum 5000
-	} else {
-		request["page_size"] = 1000 // max is 5000
+		pageSize = min(*limit, 5000) // api maximum 5000
 	}
+	request["page_size"] = pageSize
+	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 	if since != nil {
-		request["start_at"] = since
-	}
-	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
+		requestUntil["start_at"] = *since
+		// a page holds the newest rows of its range, so a range wider than one page would return the latest
+		// rows and skip since, the range is cut to one page of rows from since
+		var windowEnd any = this.Sum(since, Multiply(pageSize, rowSpacing))
+		var endAt any
+		if derefPtr := this.SafeInteger(requestUntil, "end_at", windowEnd); derefPtr != nil {
+			endAt = *derefPtr
 		}
-		return params
-	}()
-	if until != nil {
-		request["end_at"] = until
+		if !(InOp(requestUntil, "end_at")) || (IsGreaterThan(endAt, windowEnd)) {
+			AddElementToObject(requestUntil, "end_at", windowEnd)
+		}
 	}
 
-	r1 := <-this.PublicGetFundingData(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	r2 := <-this.PublicGetFundingData(this.Extend(requestUntil, paramsUntil))
+	if r2.Err != nil {
+		panic(r2.Err)
 	}
-	var response map[string]any = r1.Value
+	var response map[string]any = r2.Value
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -5154,12 +5675,16 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	// }
 	//
 	// every row is one observation of a rate quoted for a whole funding period,
-	// not a settled payment: paradex recomputes it each second and accrues it
-	// into funding_index, so the series cannot be summed
+	// not a settled payment: paradex accrues it into funding_index each second
+	// and records an observation every five seconds, so the series cannot be summed
 	var results []any = SafeListTyped(response, "results")
+	var next *string = this.SafeString(response, "next")
 	var rates []any = []any{}
 	for i := 0; i < len(results); i++ {
 		var rate any = results[i]
+		if next != nil {
+			AddElementToObject(rate, "next", next) // the cursor helper reads it from info, the last page has none
+		}
 		var timestamp *int64 = this.SafeInteger(rate, "created_at")
 		var datetime *string = this.Iso8601(timestamp)
 		rates = append(rates, map[string]any{
@@ -5382,6 +5907,7 @@ func (this *Paradex) FetchStatus(params ...any) (Status, error) {
  * @description retrieves data on all markets for paradex
  * @see https://docs.paradex.trade/api/prod/markets/get-markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string[]|string} [params.types] the market types to load, any of 'swap', 'spot' and 'option' as a list or a comma separated string, default is options.fetchMarkets.types, which loads all of them
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Paradex) FetchMarkets(params ...any) ([]MarketInterface, error) {
@@ -5446,6 +5972,7 @@ func (this *Paradex) FetchTradingFees(params ...any) (TradingFees, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Paradex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
@@ -5565,8 +6092,9 @@ func (this *Paradex) FetchFundingRate(symbol string, options ...FetchFundingRate
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return, up to 100 per side, default is 20
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.price_tick] aggregate the levels to this price increment, one of the values the market allows
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Paradex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
@@ -6222,7 +6750,7 @@ func (this *Paradex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
  * @name paradex#fetchAllGreeks
  * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
  * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
- * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+ * @param {string[]} [symbols] unified symbols of the option markets to fetch greeks for, all options are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
@@ -6238,6 +6766,54 @@ func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks
 		return AllGreeks{}, r.Err
 	}
 	var res AllGreeks = AllGreeks{Greeks: r.Value}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#fetchOption
+ * @description fetches option data that is commonly found in an option chain
+ * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+ */
+func (this *Paradex) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
+
+	opts := FetchOptionOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchOptionAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Option{}, r.Err
+	}
+	var res Option = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#fetchOptionChain
+ * @description fetches data for an underlying asset that is commonly found in an option chain
+ * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+ * @param {string} code base currency to fetch an option chain for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+ */
+func (this *Paradex) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
+
+	opts := FetchOptionChainOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchOptionChainAsync(code, opts.Params)
+	if r.Err != nil {
+		return OptionChain{}, r.Err
+	}
+	var res OptionChain = OptionChain{Chains: r.Value}
 	return res, nil
 }
 
@@ -6280,6 +6856,7 @@ func (this *Paradex) FetchFundingHistory(options ...FetchFundingHistoryOptions) 
  * @param {int} [limit] the maximum amount of funding rate structures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times, back from until (default now) to since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Paradex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
