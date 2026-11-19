@@ -2428,12 +2428,12 @@ func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Alpaca) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Alpaca) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2449,13 +2449,13 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var currency map[string]any = this.Currency(code)
 	var tagSuffix string = *this.SafeString(params, "tag", "")
-	var taggedAddress any = Add(Add(address, ":"), tagSuffix)
-	var addressValue any = func() any {
-		if tagSuffix != "" {
-			return taggedAddress
-		}
-		return address
-	}()
+	var taggedAddress string = address + ":" + tagSuffix
+	var addressValue string
+	if tagSuffix != "" {
+		addressValue = taggedAddress
+	} else {
+		addressValue = address
+	}
 	var request map[string]any = map[string]any{
 		"asset":   currency["id"],
 		"address": addressValue,

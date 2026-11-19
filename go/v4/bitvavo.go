@@ -3071,7 +3071,7 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 		"fee":              fee,
 	}, currencyResolved)
 }
-func (this *Bitvavo) WithdrawRequest(code *string, amount any, address any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) WithdrawRequest(code *string, amount any, address *string, optionalArgs ...any) map[string]any {
 	tag := GetArg(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3100,12 +3100,12 @@ func (this *Bitvavo) WithdrawRequest(code *string, amount any, address any, opti
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bitvavo) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3127,7 +3127,7 @@ func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var request map[string]any = this.WithdrawRequest(&code, amount, address, tagWithdrawTag, paramsWithdrawTag)
+	var request map[string]any = this.WithdrawRequest(&code, amount, &address, tagWithdrawTag, paramsWithdrawTag)
 
 	r1 := <-this.PrivatePostWithdrawal(request)
 	if r1.Err != nil {

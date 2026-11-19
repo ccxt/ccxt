@@ -805,12 +805,12 @@ func (this *Bitfinex) IsFiat(code any) bool {
 	var fiat map[string]any = SafeMapTyped(this.Options, "fiat")
 	return (InOp(fiat, code))
 }
-func (this *Bitfinex) GetCurrencyName(code any) any {
+func (this *Bitfinex) GetCurrencyName(code string) any {
 	// temporary fix for transpiler recognition, even though this is in parent class
 	if InOp(this.Options["currencyNames"], code) {
 		return GetValue(this.Options["currencyNames"], code)
 	}
-	panic(NotSupported(Add(Add(this.Id+" ", code), " not supported for withdrawal")))
+	panic(NotSupported(this.Id + " " + code + " not supported for withdrawal"))
 }
 func (this *Bitfinex) AmountToPrecision(symbol any, amount any) *string {
 	// https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -3823,12 +3823,12 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitfinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bitfinex) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitfinex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

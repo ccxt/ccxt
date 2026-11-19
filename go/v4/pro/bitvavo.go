@@ -2095,7 +2095,7 @@ func (this *Bitvavo) withdrawWsBody(ch chan ccxt.AsyncResult[ccxt.Transaction], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.WithdrawRequest(&code, amount, address, tagWithdrawTag, paramsWithdrawTag)
+	var request any = this.WithdrawRequest(&code, amount, &address, tagWithdrawTag, paramsWithdrawTag)
 
 	r2 := <-this.WatchRequestAsync("privateWithdrawAssets", request)
 	if r2.Err != nil {

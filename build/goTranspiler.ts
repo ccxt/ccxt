@@ -7084,10 +7084,15 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'fetchPaginatedCallDynamic': [ 0 ], 'fetchPaginatedCallDeterministic': [ 0 ], 'fetchPaginatedCallCursor': [ 0 ],
     'fetchPaginatedCallIncremental': [ 0 ], 'fetchWebEndpoint': [ 0 ], 'checkRequiredMarginArgument': [ 0 ],
     'stockDataRequest': [ 0 ], 'handleStockParams': [ 0 ],
+<<<<<<< merged
     // required unified `symbol`; the public typed wrappers already take a Go string (fetchTrades/watchTrades stay
     // boxed: bullish safeDeterministicCall and paradex watchTrades hand over an optional symbol)
     'fetchLeverage': [ 0 ], 'fetchPosition': [ 0 ],
     'fetchMarginMode': [ 0 ], 'setMargin': [ 0 ],
+=======
+    // required `string` params whose callers pass a Go string: bitfinex currency code, withdraw address
+    'getCurrencyName': [ 0 ], 'withdraw': [ 0, 2 ],
+>>>>>>> G06
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go

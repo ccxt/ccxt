@@ -7721,12 +7721,12 @@ func (this *Okx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Okx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Okx) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7742,9 +7742,9 @@ func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	}
 	var currency map[string]any = this.Currency(code)
 	var hasTag bool = (tagWithdrawTag != nil) && (len(*tagWithdrawTag) > 0)
-	var addressWithTag any = address
+	var addressWithTag string = address
 	if hasTag {
-		addressWithTag = Add(Add(address, ":"), tagWithdrawTag)
+		addressWithTag = address + ":" + *tagWithdrawTag
 	}
 	var request map[string]any = map[string]any{
 		"ccy":    currency["id"],

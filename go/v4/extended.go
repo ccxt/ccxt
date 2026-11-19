@@ -2537,12 +2537,12 @@ func (this *Extended) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Extended) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Extended) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2559,7 +2559,7 @@ func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string
 	if chainId == nil || *chainId != "STRK" {
 		panic(BadRequest(this.Id + " withdraw() only supports Starknet withdrawals with chainId STRK"))
 	}
-	if GetLength(address) <= 42 {
+	if len(address) <= 42 {
 		panic(BadRequest(this.Id + " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow"))
 	}
 
@@ -3567,7 +3567,7 @@ func (this *Extended) CreateOrderSettlementData(isBuy bool, amountString any, pr
 	settlement["s"] = s
 	return settlement
 }
-func (this *Extended) CreateWithdrawalSettlementData(address any, amountString any, currency map[string]any, account any, optionalArgs ...any) map[string]any {
+func (this *Extended) CreateWithdrawalSettlementData(address string, amountString any, currency map[string]any, account any, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
