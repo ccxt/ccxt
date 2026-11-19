@@ -20311,8 +20311,8 @@ function goTupleNearestDef (ctx: any, fn: any, k: number, name: string, rx: RegE
 
 // the producer M of `h := this.M(..)` / `var h []any = this.M(..)` (or an async receive), nearest above k, h unwritten in between
 function goTupleHolderProducer (ctx: any, fn: any, holder: string, k: number): string {
-    const hit = goTupleNearestDef (ctx, fn, k, holder, new RegExp ('^\\s*(?:' + holder + ' :=|var ' + holder + ' \\[\\]any =) (?:this\\.(\\w+)\\(|(?:(\\w+)\\.Value|(\\w+Recv\\d*))\\s*$)'));
-    return (hit === undefined) ? undefined : (hit.m[1] ?? goTupleAsyncReceiveProducer (ctx, fn, hit.j, hit.m[2] ?? hit.m[3]));
+    const hit = goTupleNearestDef (ctx, fn, k, holder, new RegExp ('^\\s*(?:' + holder + ' :=|var ' + holder + ' \\[\\]any =) (?:this\\.(\\w+)\\(|(?:(\\w+)\\.Value|(\\w+Recv\\d*)|(?:ccxt\\.)?MapSliceToList\\((\\w+)\\.Value\\))\\s*$)'));
+    return (hit === undefined) ? undefined : (hit.m[1] ?? goTupleAsyncReceiveProducer (ctx, fn, hit.j, hit.m[2] ?? hit.m[3] ?? hit.m[4]));
 }
 
 // the body of the `[]any` async producer behind `rN := <-this.MAsync(..)` read as `rN.Value` or via `<h>Recv, _ := rN.Value, ..`
@@ -20321,7 +20321,7 @@ function goTupleAsyncReceiveProducer (ctx: any, fn: any, k: number, source: stri
     if (/Recv\d*$/.test (source)) {
         result = undefined;
         for (let j = k - 1; j > fn.open; j--) {
-            const list = new RegExp ('^\\s*' + source + ', _ := (\\w+)\\.Value, \\1\\.Value != nil\\s*$').exec (ctx.masked[j]);
+            const list = new RegExp ('^\\s*' + source + ', _ := (?:(?:ccxt\\.)?MapSliceToList\\()?(\\w+)\\.Value\\)?, \\1\\.Value != nil\\s*$').exec (ctx.masked[j]);
             if (list !== null) {
                 result = goTupleSlotEncloses (ctx, j, k) ? list[1] : undefined;
                 k = j;
@@ -20452,7 +20452,7 @@ function goTupleLocalProducer (ctx: any, method: string, depth: number): any {
         return undefined;
     }
     const asyncBody = method.endsWith ('Body');
-    const fn = ctx.blocks.find ((b: any) => (b.depth === 1) && new RegExp ('^func \\(this \\*(\\w+)\\) ' + method + '\\(' + (asyncBody ? 'ch chan AsyncResult\\[\\[\\]any\\], .*\\) any' : '.*\\) \\[\\]any') + ' \\{$').test (ctx.masked[b.open]));
+    const fn = ctx.blocks.find ((b: any) => (b.depth === 1) && new RegExp ('^func \\(this \\*(\\w+)\\) ' + method + '\\(' + (asyncBody ? 'ch chan AsyncResult\\[\\[\\](?:any|map\\[string\\]any)\\], .*\\) any' : '.*\\) \\[\\]any') + ' \\{$').test (ctx.masked[b.open]));
     const owner = (fn === undefined) ? undefined : /^func \(this \*(\w+)\)/.exec (ctx.masked[fn.open])[1];
     if ((fn === undefined) || (owner === 'BaseExchange') || (owner === 'PredictionExchange')) {
         return undefined;
@@ -20461,6 +20461,7 @@ function goTupleLocalProducer (ctx: any, method: string, depth: number): any {
     const literals = ctx.blocks.filter ((b: any) => (b.depth > 1) && (b.open > fn.open) && (b.close <= fn.close) && /\bfunc\s*\(/.test (ctx.masked[b.open]));
     const rows: string[][][] = [];
     let ok = true;
+    let mapPair = false;
     for (let k = fn.open + 1; ok && (k < fn.close); k++) {
         if (asyncBody && /^\s*return nil\s*$/.test (ctx.masked[k])) {
             continue;
@@ -20468,7 +20469,10 @@ function goTupleLocalProducer (ctx: any, method: string, depth: number): any {
         if (!(asyncBody ? /\bch <- / : /\breturn\b/).test (ctx.masked[k]) || literals.some ((b: any) => (b.open <= k) && (k <= b.close))) {
             continue;
         }
-        const r = (asyncBody ? /^(\s*ch <- AsyncResult\[\[\]any\]\{Value: \[\]any\{)(.*)\}\}\s*$/ : /^(\s*return \[\]any\{)(.*)\}\s*$/).exec (ctx.masked[k]);
+        // a map-pair send `MapSliceFromList([]any{..})` always has the literal's length and GetValue returns its maps as-is
+        const pair = asyncBody ? /^(\s*ch <- AsyncResult\[\[\]map\[string\]any\]\{Value: MapSliceFromList\(\[\]any\{)(.*)\}\)\}\s*$/.exec (ctx.masked[k]) : null;
+        mapPair = mapPair || (pair !== null);
+        const r = pair ?? (asyncBody ? /^(\s*ch <- AsyncResult\[\[\]any\]\{Value: \[\]any\{)(.*)\}\}\s*$/ : /^(\s*return \[\]any\{)(.*)\}\s*$/).exec (ctx.masked[k]);
         const parts = ((r === null) || (r[2].trim () === '')) ? undefined : goTupleSplitTop (r[2], ctx.lines[k].substring (r[1].length, r[1].length + r[2].length));
         ok = (parts !== undefined);
         if (ok) {
@@ -20480,7 +20484,7 @@ function goTupleLocalProducer (ctx: any, method: string, depth: number): any {
         const arity = Math.min (...rows.map ((r) => r.length));
         const plain: boolean[] = [];
         for (let i = 0; i < arity; i++) {
-            plain.push (rows.every ((r) => goTupleSlotExprPlain (ctx, fn, Number (r[i][2]), r[i][0], r[i][1], depth + 1)));
+            plain.push (mapPair || rows.every ((r) => goTupleSlotExprPlain (ctx, fn, Number (r[i][2]), r[i][0], r[i][1], depth + 1)));
         }
         info = { 'arity': arity, 'plain': plain };
     }
@@ -20740,6 +20744,11 @@ function goTupleSlotReadsCheck (ok: SelfTestOk): void {
     ok (pos.includes ('b := hVariable[1]') && pos.includes ('c := hVariable[2]'), 'map and bool slots read natively: ' + pos);
     ok (pos.includes ('a := GetValue(hVariable, 0)'), 'a *string slot keeps GetValue');
     ok (run ('\thVariable := this.P(nil, p)\n\tx := GetValue(hVariable, 3)\n').includes ('GetValue(hVariable, 3)'), 'slot past the arity keeps GetValue');
+    const mp = (send: string) => 'func (this *X) MAsync(p any) <-chan AsyncResult[[]map[string]any] {\n\tch := make(chan AsyncResult[[]map[string]any], 1)\n\treturn ch\n}\nfunc (this *X) mBody(ch chan AsyncResult[[]map[string]any], p any) any {\n\tdefer close(ch)\n\t' + send + '\n\treturn nil\n}\n';
+    const mpRead = '\tr := <-this.MAsync(p)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\thVariableRecv, _ := MapSliceToList(r.Value), r.Value != nil\n\tvar hVariable []any = hVariableRecv\n\ta := GetValue(hVariable, 1)\n\tb := GetValue(hVariable, 2)\n';
+    const mpPos = run (mpRead, mp ('ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList([]any{p, p})}'));
+    ok (mpPos.includes ('a := hVariable[1]') && mpPos.includes ('b := GetValue(hVariable, 2)'), 'map-pair literal send fixes the holder length: ' + mpPos);
+    ok (run (mpRead, mp ('ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(p)}')).includes ('a := GetValue(hVariable, 1)'), 'a non-literal map-pair send keeps GetValue');
     ok (run ('\thVariable := this.P(nil, p)\n\thVariable = this.Q(p)\n\tb := GetValue(hVariable, 1)\n').includes ('GetValue(hVariable, 1)'), 'a rewritten holder keeps GetValue');
     const typedNil = 'func (this *X) P(p any) []any {\n\tvar m map[string]any = nil\n\treturn []any{m, p}\n}\n';
     ok (run ('\thVariable := this.P(p)\n\tc := GetValue(hVariable, 0)\n', typedNil.replace ('map[string]any = nil', 'any = nil')).includes ('c := hVariable[0]'), 'an untyped nil slot reads natively');
