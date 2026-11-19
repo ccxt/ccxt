@@ -132,6 +132,28 @@ export default class okx extends okxRest {
     watchMarkPrices(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
+     * @name okx#unWatchMarkPrice
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches a mark price
+     * @param {string} symbol unified symbol of the market to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name okx#unWatchMarkPrices
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches mark prices
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    unWatchMarkPrices(symbols?: Strings, params?: Dict): Promise<any>;
+    /**
+     * @method
      * @name okx#unWatchTickers
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -420,5 +442,6 @@ export default class okx extends okxRest {
     handleUnsubscriptionOrderBook(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOHLCV(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionTicker(client: Client, symbol: string, channel: string): void;
+    handleUnsubscriptionMarkPrice(client: Client, symbol: string, channel: string): void;
     handleUnsubscription(client: Client, message: Dict): void;
 }
