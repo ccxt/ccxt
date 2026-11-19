@@ -1,6 +1,6 @@
 (() => {
 var __webpack_modules__ = ({
-8045(module) {
+9442(module) {
 "use strict";
 
 module.exports = asPromise;
@@ -57,7 +57,7 @@ function asPromise(fn, ctx/*, varargs */) {
 
 
 },
-8839(__unused_rspack_module, exports) {
+1506(__unused_rspack_module, exports) {
 "use strict";
 
 
@@ -201,7 +201,7 @@ base64.test = function test(string) {
 
 
 },
-4358(module) {
+3356(module) {
 "use strict";
 
 module.exports = EventEmitter;
@@ -292,7 +292,7 @@ EventEmitter.prototype.emit = function emit(evt) {
 
 
 },
-9410(module) {
+7249(module) {
 "use strict";
 
 
@@ -632,7 +632,7 @@ function readUintBE(buf, pos) {
 
 
 },
-9390(module) {
+5003(module) {
 "use strict";
 
 module.exports = pool;
@@ -685,7 +685,7 @@ function pool(alloc, slice, size) {
 
 
 },
-1447(__unused_rspack_module, exports) {
+7002(__unused_rspack_module, exports) {
 "use strict";
 
 
@@ -794,7 +794,7 @@ utf8.write = function utf8_write(string, buffer, offset) {
 
 
 },
-9861(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
+80(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
 // DEFLATE is a complex format; to read this code, you should probably check the RFC first:
 // https://tools.ietf.org/html/rfc1951
@@ -3496,16 +3496,16 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6946(module, __unused_rspack_exports, __webpack_require__) {
+7635(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 // minimal library entry point.
 
 
-module.exports = __webpack_require__(4394);
+module.exports = __webpack_require__(7375);
 
 
 },
-4394(__unused_rspack_module, exports, __webpack_require__) {
+7375(__unused_rspack_module, exports, __webpack_require__) {
 "use strict";
 
 var protobuf = exports;
@@ -3519,15 +3519,15 @@ var protobuf = exports;
 protobuf.build = "minimal";
 
 // Serialization
-protobuf.Writer       = __webpack_require__(3449);
-protobuf.BufferWriter = __webpack_require__(818);
-protobuf.Reader       = __webpack_require__(6237);
-protobuf.BufferReader = __webpack_require__(3158);
+protobuf.Writer       = __webpack_require__(3618);
+protobuf.BufferWriter = __webpack_require__(6163);
+protobuf.Reader       = __webpack_require__(3762);
+protobuf.BufferReader = __webpack_require__(8851);
 
 // Utility
-protobuf.util         = __webpack_require__(3610);
-protobuf.rpc          = __webpack_require__(5047);
-protobuf.roots        = __webpack_require__(4529);
+protobuf.util         = __webpack_require__(989);
+protobuf.rpc          = __webpack_require__(5622);
+protobuf.roots        = __webpack_require__(1296);
 protobuf.configure    = configure;
 
 /* istanbul ignore next */
@@ -3546,12 +3546,12 @@ configure();
 
 
 },
-6237(module, __unused_rspack_exports, __webpack_require__) {
+3762(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = Reader;
 
-var util      = __webpack_require__(3610);
+var util      = __webpack_require__(989);
 
 var BufferReader; // cyclic
 
@@ -3977,16 +3977,16 @@ Reader._configure = function(BufferReader_) {
 
 
 },
-3158(module, __unused_rspack_exports, __webpack_require__) {
+8851(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = BufferReader;
 
 // extends Reader
-var Reader = __webpack_require__(6237);
+var Reader = __webpack_require__(3762);
 (BufferReader.prototype = Object.create(Reader.prototype)).constructor = BufferReader;
 
-var util = __webpack_require__(3610);
+var util = __webpack_require__(989);
 
 /**
  * Constructs a new buffer reader instance.
@@ -4033,7 +4033,7 @@ BufferReader._configure();
 
 
 },
-4529(module) {
+1296(module) {
 "use strict";
 
 module.exports = Object.create(null);
@@ -4056,7 +4056,7 @@ module.exports = Object.create(null);
 
 
 },
-5047(__unused_rspack_module, exports, __webpack_require__) {
+5622(__unused_rspack_module, exports, __webpack_require__) {
 "use strict";
 
 
@@ -4093,16 +4093,16 @@ var rpc = exports;
  * @returns {undefined}
  */
 
-rpc.Service = __webpack_require__(7595);
+rpc.Service = __webpack_require__(8854);
 
 
 },
-7595(module, __unused_rspack_exports, __webpack_require__) {
+8854(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = Service;
 
-var util = __webpack_require__(3610);
+var util = __webpack_require__(989);
 
 // Extends EventEmitter
 (Service.prototype = Object.create(util.EventEmitter.prototype)).constructor = Service;
@@ -4244,12 +4244,12 @@ Service.prototype.end = function end(endedByRPC) {
 
 
 },
-2239(module, __unused_rspack_exports, __webpack_require__) {
+2550(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = LongBits;
 
-var util = __webpack_require__(3610);
+var util = __webpack_require__(989);
 
 /**
  * Constructs new long bits.
@@ -4449,31 +4449,31 @@ LongBits.prototype.length = function length() {
 
 
 },
-3610(__unused_rspack_module, exports, __webpack_require__) {
+989(__unused_rspack_module, exports, __webpack_require__) {
 "use strict";
 
 var util = exports;
 
 // used to return a Promise where callback is omitted
-util.asPromise = __webpack_require__(8045);
+util.asPromise = __webpack_require__(9442);
 
 // converts to / from base64 encoded strings
-util.base64 = __webpack_require__(8839);
+util.base64 = __webpack_require__(1506);
 
 // base class of rpc.Service
-util.EventEmitter = __webpack_require__(4358);
+util.EventEmitter = __webpack_require__(3356);
 
 // float handling accross browsers
-util.float = __webpack_require__(9410);
+util.float = __webpack_require__(7249);
 
 // converts to / from utf8 encoded strings
-util.utf8 = __webpack_require__(1447);
+util.utf8 = __webpack_require__(7002);
 
 // provides a node-like buffer pool in the browser
-util.pool = __webpack_require__(9390);
+util.pool = __webpack_require__(5003);
 
 // utility to work with the low and high bits of a 64 bit value
-util.LongBits = __webpack_require__(2239);
+util.LongBits = __webpack_require__(2550);
 
 /**
  * Tests if the specified key can affect object prototypes.
@@ -4643,7 +4643,7 @@ util.Long = /* istanbul ignore next */ util.global.dcodeIO && /* istanbul ignore
          || /* istanbul ignore next */ util.global.Long
          || (function() {
                 try {
-                    var Long = __webpack_require__(5017);
+                    var Long = __webpack_require__(4982);
                     return Long && Long.isLong ? Long : null;
                 } catch (e) {
                     /* istanbul ignore next */
@@ -4945,12 +4945,12 @@ util._configure = function() {
 
 
 },
-3449(module, __unused_rspack_exports, __webpack_require__) {
+3618(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = Writer;
 
-var util      = __webpack_require__(3610);
+var util      = __webpack_require__(989);
 
 var BufferWriter; // cyclic
 
@@ -5417,16 +5417,16 @@ Writer._configure = function(BufferWriter_) {
 
 
 },
-818(module, __unused_rspack_exports, __webpack_require__) {
+6163(module, __unused_rspack_exports, __webpack_require__) {
 "use strict";
 
 module.exports = BufferWriter;
 
 // extends Writer
-var Writer = __webpack_require__(3449);
+var Writer = __webpack_require__(3618);
 (BufferWriter.prototype = Object.create(Writer.prototype)).constructor = BufferWriter;
 
-var util = __webpack_require__(3610);
+var util = __webpack_require__(989);
 
 /**
  * Constructs a new buffer writer instance.
@@ -5507,7 +5507,7 @@ BufferWriter._configure();
 
 
 },
-1591(module) {
+6486(module) {
 "use strict";
 
 
@@ -165858,7 +165858,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8818(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _abstract_apex_js__rspack_import_0 = __webpack_require__(9619);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -168000,8 +168000,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8695(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_aster_js__rspack_import_0 = __webpack_require__(3268);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -169730,15 +169730,16 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         if (sinceDefined) {
             request['startTime'] = since;
         }
+        let paramsUntil = params;
         if (untilDefined) {
-            request = this.handleUntilOption('endTime', request, params);
+            [request, paramsUntil] = this.handleUntilOption('endTime', request, params);
         }
         // use historical endpoint for targeted requests
         if (sinceDefined) {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             } else {
-                response = await this.sapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
         //
         // both FAPI and SAPI have same response format
@@ -169757,9 +169758,9 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         //
         } else {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.fapiPublicGetV3Trades(this.extend(request, paramsUntil));
             } else {
-                response = await this.sapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.sapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
         //
         // SAPI & FAPI have only one field difference
@@ -172434,7 +172435,9 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
                         maintenanceMarginPercentage
                     ]);
                 }
-                this.options['leverageBrackets'][symbol] = result;
+                const leverageBracketsDict = this.safeDict(this.options, 'leverageBrackets', {});
+                leverageBracketsDict[symbol] = result;
+                this.options['leverageBrackets'] = leverageBracketsDict;
             }
         }
         return this.options['leverageBrackets'];
@@ -172656,8 +172659,8 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -172922,7 +172925,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9264(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 /* import */ var _abstract_backpack_js__rspack_import_0 = __webpack_require__(4953);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -174730,7 +174733,6 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const maxLimit = 2000;
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe(timeframe) * 1000;
@@ -174744,11 +174746,11 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             request['endTime'] = this.parseToInt(until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
-        let limitResolved = limit;
-        if (limitResolved !== undefined) {
-            limitResolved = Math.min(limitResolved, maxLimit);
+        const windowLimit = limit === undefined ? defaultLimit : Math.min(limit, 2000);
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = windowLimit;
         }
-        const windowLimit = limitResolved === undefined ? defaultLimit : limitResolved;
         const now = this.milliseconds();
         let startTime = since;
         let untilValue = until;
@@ -176609,11 +176611,11 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6039(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_secp256k1_js__rspack_import_7 = __webpack_require__(6885);
-/* import */ var _noble_hashes_sha3_js__rspack_import_8 = __webpack_require__(6834);
-/* import */ var _scure_starknet__rspack_import_9 = __webpack_require__(789);
-/* import */ var _noble_hashes_sha2_js__rspack_import_11 = __webpack_require__(4721);
-/* import */ var _noble_hashes_legacy_js__rspack_import_1 = __webpack_require__(8858);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_7 = __webpack_require__(4608);
+/* import */ var _noble_hashes_sha3_js__rspack_import_8 = __webpack_require__(4725);
+/* import */ var _scure_starknet__rspack_import_9 = __webpack_require__(9636);
+/* import */ var _noble_hashes_sha2_js__rspack_import_11 = __webpack_require__(4006);
+/* import */ var _noble_hashes_legacy_js__rspack_import_1 = __webpack_require__(1337);
 /* import */ var _functions_js__rspack_import_0 = __webpack_require__(1805);
 /* import */ var _functions_js__rspack_import_15 = __webpack_require__(420);
 /* import */ var _errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -179099,9 +179101,6 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */ const value = this.safeValueN(dictionaryOrList, keys, defaultValue);
-        if (value === undefined) {
-            return defaultValue;
-        }
         if (this.isDictionary(value)) {
             return value;
         }
@@ -179114,9 +179113,6 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */ const value = this.safeValue(dictionaryOrList, key, defaultValue);
-        if (value === undefined) {
-            return defaultValue;
-        }
         if (this.isDictionary(value)) {
             return value;
         }
@@ -179975,16 +179971,19 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         }
     }
     featuresMapper(initialFeatures, marketType, subType = undefined) {
-        let featuresObj = subType !== undefined ? initialFeatures[marketType][subType] : initialFeatures[marketType];
-        // if exchange does not have that market-type (eg. future>inverse)
-        if (featuresObj === undefined) {
-            return undefined;
+        let featuresObj = this.safeDict(initialFeatures, marketType);
+        if (subType !== undefined) {
+            featuresObj = this.safeDict(featuresObj, subType);
         }
         const extendsStr = this.safeString(featuresObj, 'extends');
         if (extendsStr !== undefined) {
             featuresObj = this.omit(featuresObj, 'extends');
             const extendObj = this.featuresMapper(initialFeatures, extendsStr);
             featuresObj = this.deepExtend(extendObj, featuresObj);
+        }
+        // if exchange does not have that market-type (eg. future>inverse)
+        if (featuresObj === undefined) {
+            return undefined;
         }
         //
         // ### corrections ###
@@ -180062,7 +180061,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         if (!(marketType in this.features)) {
             return defaultValue; // unsupported marketType, check "exchange.features" for details
         }
-        let methodsContainer = this.features[marketType];
+        let methodsContainer = this.safeDict(this.features, marketType);
         // if marketType dict undefined
         if (methodsContainer === undefined) {
             return defaultValue;
@@ -180075,7 +180074,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             if (!(subType in methodsContainer)) {
                 return defaultValue; // unsupported subType, check "exchange.features" for details
             }
-            methodsContainer = methodsContainer[subType];
+            methodsContainer = this.safeDict(methodsContainer, subType);
             // if subType dict undefined
             if (methodsContainer === undefined) {
                 return defaultValue;
@@ -180083,18 +180082,24 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
-            return defaultValue !== undefined ? defaultValue : methodsContainer;
+            if (defaultValue !== undefined) {
+                return defaultValue;
+            }
+            return methodsContainer;
         }
         if (!(methodName in methodsContainer)) {
             return defaultValue; // unsupported method, check "exchange.features" for details');
         }
-        const methodDict = methodsContainer[methodName];
-        if (methodDict === undefined) {
-            return defaultValue;
-        }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (paramName === undefined) {
-            return defaultValue !== undefined ? defaultValue : methodDict;
+            if (defaultValue !== undefined) {
+                return defaultValue;
+            }
+            return methodsContainer[methodName];
+        }
+        const methodDict = this.safeDict(methodsContainer, methodName);
+        if (methodDict === undefined) {
+            return defaultValue;
         }
         const splited = paramName.split('.'); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         const parentKey = splited[0];
@@ -180115,7 +180120,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             if (!(subKey in methodDict[parentKey])) {
                 return defaultValue; // unsupported subKey, check "exchange.features" for details
             }
-            return methodDict[parentKey][subKey];
+            return this.safeValue(dictionary, subKey);
         }
     }
     orderbookChecksumMessage(symbol) {
@@ -180631,18 +180636,19 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 tradesLength = trades.length;
             }
             if (isArray && tradesLength > 0) {
+                const headTrade = trades[0];
                 // move properties that are defined in trades up into the order
                 if (parseSymbol) {
-                    orderDict['symbol'] = trades[0]['symbol'];
+                    orderDict['symbol'] = headTrade['symbol'];
                 }
                 if (parseSide) {
-                    orderDict['side'] = trades[0]['side'];
+                    orderDict['side'] = headTrade['side'];
                 }
                 if (this.safeString(orderDict, 'type') === undefined) {
-                    orderDict['type'] = trades[0]['type'];
+                    orderDict['type'] = headTrade['type'];
                 }
                 if (this.safeString(orderDict, 'id') === undefined) {
-                    orderDict['id'] = trades[0]['order'];
+                    orderDict['id'] = headTrade['order'];
                 }
                 if (parseFilled) {
                     filled = '0';
@@ -181367,19 +181373,20 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         result[close] = [];
         result[volume] = [];
         for(let i = 0; i < ohlcvs.length; i++){
-            const ts = ms ? ohlcvs[i][0] : this.parseToInt(ohlcvs[i][0] / 1000);
+            const ohlcv = ohlcvs[i];
+            const ts = ms ? ohlcv[0] : this.parseToInt(ohlcvs[i][0] / 1000);
             const resultTimestamp = result[timestamp];
             resultTimestamp.push(ts);
             const resultOpen = result[open];
-            resultOpen.push(ohlcvs[i][1]);
+            resultOpen.push(ohlcv[1]);
             const resultHigh = result[high];
-            resultHigh.push(ohlcvs[i][2]);
+            resultHigh.push(ohlcv[2]);
             const resultLow = result[low];
-            resultLow.push(ohlcvs[i][3]);
+            resultLow.push(ohlcv[3]);
             const resultClose = result[close];
-            resultClose.push(ohlcvs[i][4]);
+            resultClose.push(ohlcv[4]);
             const resultVolume = result[volume];
-            resultVolume.push(ohlcvs[i][5]);
+            resultVolume.push(ohlcv[5]);
         }
         return result;
     }
@@ -181493,14 +181500,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             if (!allowEmpty) {
                 throw new _errors_js__rspack_import_2.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
             }
-            return symbols;
+            return undefined;
         }
         const symbolsLength = symbols.length;
-        if (symbolsLength === 0) {
-            if (!allowEmpty) {
-                throw new _errors_js__rspack_import_2.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
-            }
-            return symbols;
+        if (symbolsLength === 0 && !allowEmpty) {
+            throw new _errors_js__rspack_import_2.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
         }
         const result = [];
         let marketType = undefined;
@@ -182207,7 +182211,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const transactionsArray = this.toArray(transactions);
         let result = [];
         for(let i = 0; i < transactionsArray.length; i++){
-            const transaction = this.extend(this.parseTransaction(transactionsArray[i], currency), params);
+            const transaction = this.extend(this.parseTransaction(this.safeDict(transactionsArray, i, {}), currency), params);
             result.push(transaction);
         }
         result = this.sortBy(result, 'timestamp');
@@ -182467,7 +182471,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const retryDelay = 0;
         const [retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay] = this.handleOptionIntegerAndParams(paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
-        for(let i = 0; i < retriesMaxRetriesOnFailure + 1; i++){
+        for(let i = 0; i <= retriesMaxRetriesOnFailure; i++){
             let fetchData = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = {
@@ -182487,7 +182491,10 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 this.setLastRequest(request);
                 const response = await this.fetch(request['url'], request['method'], request['headers'], request['body']);
                 if (fetchData !== undefined) {
-                    fetchData['response']['body'] = response;
+                    const responseData = {
+                        'body': response
+                    };
+                    fetchData['response'] = responseData;
                     this.addFetchCache(fetchData);
                 }
                 return response;
@@ -184196,16 +184203,18 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          */ const networkKeys = Object.keys(fee['networks']);
         const numNetworks = networkKeys.length;
         if (numNetworks === 1) {
-            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
-            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            const networkFee = this.safeDict(fee['networks'], networkKeys[0], {});
+            fee['withdraw'] = networkFee['withdraw'];
+            fee['deposit'] = networkFee['deposit'];
             return fee;
         }
         const currencyCode = this.safeString(currency, 'code');
         for(let i = 0; i < numNetworks; i++){
             const network = networkKeys[i];
             if (network === currencyCode) {
-                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
-                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+                const networkFee = this.safeDict(fee['networks'], networkKeys[i], {});
+                fee['withdraw'] = networkFee['withdraw'];
+                fee['deposit'] = networkFee['deposit'];
             }
         }
         return fee;
@@ -184302,9 +184311,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         return res;
     }
     handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest = undefined, params = {}) {
-        const [newMaxEntriesPerRequest, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(params, method, 'maxEntriesPerRequest');
-        const maxEntriesPerRequestOption = newMaxEntriesPerRequest !== undefined ? newMaxEntriesPerRequest : maxEntriesPerRequest;
-        const maxEntriesPerRequestResolved = maxEntriesPerRequestOption === undefined ? 1000 : maxEntriesPerRequestOption; // default to 1000
+        // the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+        const maxEntriesPerRequestDefault = maxEntriesPerRequest === undefined ? 1000 : maxEntriesPerRequest;
+        const [maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest] = this.handleOptionIntegerAndParams(params, method, 'maxEntriesPerRequest', maxEntriesPerRequestDefault);
         return [
             maxEntriesPerRequestResolved,
             paramsMaxEntriesPerRequest
@@ -187689,7 +187698,7 @@ const ROUTE_QUERY_KEYS = [
         //  nor Node's own global one can set request headers. Imported dynamically so a browser
         //  bundle that never calls watchRoute does not pull it in.
         try {
-            const loaded = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 1591, 23));
+            const loaded = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 6486, 23));
             this.webSocketImpl = loaded['default'] !== undefined ? loaded['default'] : loaded;
             return this.webSocketImpl;
         } catch (e) {
@@ -190910,15 +190919,9 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
             let matched = false;
             for(let qi = 0; qi < queriesLength; qi++){
                 const q = this.safeString(queries, qi, '').toLowerCase();
-                if (title === undefined) {
-                    throw new _errors_js__rspack_import_1.ExchangeError(this.id + ' filterEventsBySearchIn() missing title');
-                }
                 if (checkTitle && title.indexOf(q) >= 0) {
                     matched = true;
                     break;
-                }
-                if (description === undefined) {
-                    throw new _errors_js__rspack_import_1.ExchangeError(this.id + ' filterEventsBySearchIn() missing description');
                 }
                 if (checkDescription && description.indexOf(q) >= 0) {
                     matched = true;
@@ -192968,12 +192971,12 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1093(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_hmac_js__rspack_import_5 = __webpack_require__(7474);
-/* import */ var _scure_base__rspack_import_2 = __webpack_require__(7116);
-/* import */ var _noble_hashes_utils_js__rspack_import_0 = __webpack_require__(508);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_3 = __webpack_require__(6885);
-/* import */ var _noble_curves_nist_js__rspack_import_4 = __webpack_require__(2431);
-/* import */ var _noble_curves_utils_js__rspack_import_1 = __webpack_require__(6724);
+/* import */ var _noble_hashes_hmac_js__rspack_import_5 = __webpack_require__(6909);
+/* import */ var _scure_base__rspack_import_2 = __webpack_require__(9581);
+/* import */ var _noble_hashes_utils_js__rspack_import_0 = __webpack_require__(1313);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_3 = __webpack_require__(4608);
+/* import */ var _noble_curves_nist_js__rspack_import_4 = __webpack_require__(7888);
+/* import */ var _noble_curves_utils_js__rspack_import_1 = __webpack_require__(173);
 /*  ------------------------------------------------------------------------ */ 
 
 
@@ -193166,8 +193169,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7770(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _scure_base__rspack_import_0 = __webpack_require__(7116);
-/* import */ var _noble_curves_utils_js__rspack_import_1 = __webpack_require__(6724);
+/* import */ var _scure_base__rspack_import_0 = __webpack_require__(9581);
+/* import */ var _noble_curves_utils_js__rspack_import_1 = __webpack_require__(173);
 /* import */ var _msgpack_js__rspack_import_2 = __webpack_require__(8942);
 /* eslint-disable */ /*  ------------------------------------------------------------------------ */ 
 
@@ -193272,7 +193275,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9759(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_0 = __webpack_require__(6834);
+/* import */ var _noble_hashes_sha3_js__rspack_import_0 = __webpack_require__(4725);
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -194938,11 +194941,11 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var crypto__rspack_import_0 = __webpack_require__(178);
 /* import */ var crypto__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(crypto__rspack_import_0);
-/* import */ var _scure_base__rspack_import_3 = __webpack_require__(7116);
+/* import */ var _scure_base__rspack_import_3 = __webpack_require__(9581);
 /* import */ var _encode_js__rspack_import_1 = __webpack_require__(7770);
 /* import */ var _crypto_js__rspack_import_2 = __webpack_require__(1093);
-/* import */ var _noble_curves_nist_js__rspack_import_4 = __webpack_require__(2431);
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_nist_js__rspack_import_4 = __webpack_require__(7888);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 
 
 
@@ -195036,7 +195039,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 300(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _scure_starknet__rspack_import_0 = __webpack_require__(789);
+/* import */ var _scure_starknet__rspack_import_0 = __webpack_require__(9636);
 /* eslint-disable */ /*  ------------------------------------------------------------------------ */ // Minimal Starknet helpers built on @scure/starknet (already a runtime dependency),
 // covering exactly what Exchange.ts uses: compileCalldata (flat felt-only objects),
 // getSelectorFromName, calculateContractAddressFromHash, computePoseidonHashOnElements
@@ -195695,8 +195698,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6637(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _scure_base__rspack_import_1 = __webpack_require__(7116);
-/* import */ var _noble_hashes_legacy_js__rspack_import_2 = __webpack_require__(8858);
+/* import */ var _scure_base__rspack_import_1 = __webpack_require__(9581);
+/* import */ var _noble_hashes_legacy_js__rspack_import_2 = __webpack_require__(1337);
 /* import */ var _crypto_js__rspack_import_0 = __webpack_require__(1093);
 
 
@@ -196414,7 +196417,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _base_functions_js__rspack_import_3 = __webpack_require__(6785);
 /* import */ var _base_functions_js__rspack_import_5 = __webpack_require__(7770);
 /* import */ var _base_functions_js__rspack_import_6 = __webpack_require__(2879);
-/* import */ var _scure_base__rspack_import_4 = __webpack_require__(7116);
+/* import */ var _scure_base__rspack_import_4 = __webpack_require__(9581);
 function _define_property(obj, key, value) {
     if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -196443,7 +196446,7 @@ if (_base_functions_js__rspack_import_0/* .isNode */.Ll) {
         inflateRawSync = mod.inflateRawSync;
     }).catch(()=>{});
 } else {
-    Promise.resolve(/* import() eager */).then(__webpack_require__.bind(__webpack_require__, 9861)).then((mod)=>{
+    Promise.resolve(/* import() eager */).then(__webpack_require__.bind(__webpack_require__, 80)).then((mod)=>{
         gunzipSync = mod.gunzipSync;
         inflateRawSync = mod.inflateSync;
     }).catch(()=>{});
@@ -197462,7 +197465,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8794(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var ws__rspack_import_0 = __webpack_require__(1591);
+/* import */ var ws__rspack_import_0 = __webpack_require__(6486);
 /* import */ var ws__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(ws__rspack_import_0);
 /* import */ var _Client_js__rspack_import_3 = __webpack_require__(3208);
 /* import */ var _base_functions_js__rspack_import_1 = __webpack_require__(6519);
@@ -197695,7 +197698,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3484(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _abstract_bigone_js__rspack_import_0 = __webpack_require__(3893);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_functions_rsa_js__rspack_import_4 = __webpack_require__(8748);
@@ -200161,8 +200164,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2222(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
-/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(7468);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
+/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(5573);
 /* import */ var _abstract_binance_js__rspack_import_0 = __webpack_require__(5077);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -206081,6 +206084,67 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             }
         }
         const feesTrading = this.safeDict(fees, 'trading', {});
+        const precision = {
+            'amount': this.parseNumber(this.parsePrecision(this.safeString2(market, 'quantityPrecision', 'quantityScale'))),
+            'price': this.parseNumber(this.parsePrecision(this.safeString2(market, 'pricePrecision', 'priceScale'))),
+            'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
+            'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision')))
+        };
+        const costLimits = {
+            'min': this.safeNumber(market, 'minNotional'),
+            'max': this.safeNumber(market, 'maxNotional')
+        };
+        if ('MIN_NOTIONAL' in filtersByType || 'NOTIONAL' in filtersByType) {
+            const filter = this.safeDict2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
+            costLimits['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
+            costLimits['max'] = this.safeNumber(filter, 'maxNotional');
+        }
+        const limits = {
+            'leverage': {
+                'min': undefined,
+                'max': undefined
+            },
+            'amount': {
+                'min': this.safeNumber(market, 'minQty'),
+                'max': this.safeNumber(market, 'maxQty')
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined
+            },
+            'cost': costLimits
+        };
+        const stepSize = this.safeNumber(market, 'stepSize');
+        if (stepSize !== undefined) {
+            precision['amount'] = stepSize;
+        }
+        if ('PRICE_FILTER' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits['price'] = {
+                'min': this.safeNumber(filter, 'minPrice'),
+                'max': this.safeNumber(filter, 'maxPrice')
+            };
+            precision['price'] = this.safeNumber(filter, 'tickSize');
+        }
+        if ('LOT_SIZE' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
+            precision['amount'] = this.safeNumber(filter, 'stepSize');
+            limits['amount'] = {
+                'min': this.safeNumber(filter, 'minQty'),
+                'max': this.safeNumber(filter, 'maxQty')
+            };
+        }
+        if ('MARKET_LOT_SIZE' in filtersByType) {
+            const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
+            limits['market'] = {
+                'min': this.safeNumber(filter, 'minQty'),
+                'max': this.safeNumber(filter, 'maxQty')
+            };
+        }
         const entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -206111,69 +206175,11 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'expiryDatetime': this.iso8601(expiry),
             'strike': parsedStrike,
             'optionType': this.safeStringLower(market, 'side'),
-            'precision': {
-                'amount': this.parseNumber(this.parsePrecision(this.safeString2(market, 'quantityPrecision', 'quantityScale'))),
-                'price': this.parseNumber(this.parsePrecision(this.safeString2(market, 'pricePrecision', 'priceScale'))),
-                'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
-                'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision')))
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined
-                },
-                'amount': {
-                    'min': this.safeNumber(market, 'minQty'),
-                    'max': this.safeNumber(market, 'maxQty')
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined
-                },
-                'cost': {
-                    'min': this.safeNumber(market, 'minNotional'),
-                    'max': this.safeNumber(market, 'maxNotional')
-                }
-            },
+            'precision': precision,
+            'limits': limits,
             'info': market,
             'created': this.safeInteger2(market, 'onboardDate', 'listingTime')
         };
-        const stepSize = this.safeNumber(market, 'stepSize');
-        if (stepSize !== undefined) {
-            entry['precision']['amount'] = stepSize;
-        }
-        if ('PRICE_FILTER' in filtersByType) {
-            const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
-            // PRICE_FILTER reports zero values for maxPrice
-            // since they updated filter types in November 2018
-            // https://github.com/ccxt/ccxt/issues/4286
-            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-            entry['limits']['price'] = {
-                'min': this.safeNumber(filter, 'minPrice'),
-                'max': this.safeNumber(filter, 'maxPrice')
-            };
-            entry['precision']['price'] = this.safeNumber(filter, 'tickSize');
-        }
-        if ('LOT_SIZE' in filtersByType) {
-            const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
-            entry['precision']['amount'] = this.safeNumber(filter, 'stepSize');
-            entry['limits']['amount'] = {
-                'min': this.safeNumber(filter, 'minQty'),
-                'max': this.safeNumber(filter, 'maxQty')
-            };
-        }
-        if ('MARKET_LOT_SIZE' in filtersByType) {
-            const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
-            entry['limits']['market'] = {
-                'min': this.safeNumber(filter, 'minQty'),
-                'max': this.safeNumber(filter, 'maxQty')
-            };
-        }
-        if ('MIN_NOTIONAL' in filtersByType || 'NOTIONAL' in filtersByType) {
-            const filter = this.safeDict2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
-            entry['limits']['cost']['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
-            entry['limits']['cost']['max'] = this.safeNumber(filter, 'maxNotional');
-        }
         return this.safeMarketStructure(entry);
     }
     parseBalanceHelper(entry) {
@@ -207147,9 +207153,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 const request = {
                     'symbols': this.json(this.marketIds(symbolsNormalized))
                 };
-                response = await this.publicGetTicker(this.extend(request, paramsMarketType));
+                const rollingResponse = await this.publicGetTicker(this.extend(request, paramsMarketType));
                 // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return this.parseTickersForRolling(response, symbolsNormalized);
+                return this.parseTickersForRolling(rollingResponse, symbolsNormalized);
             } else {
                 const request = {};
                 if (symbolsNormalized !== undefined) {
@@ -207350,11 +207356,12 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'price',
             'until'
         ]);
-        let limitRequested = limit;
-        if (since !== undefined && until !== undefined && limit === undefined) {
-            limitRequested = maxLimit;
+        let limitValue = this.parseToInt(defaultLimit);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt(Math.min(limit, maxLimit));
+        } else if (since !== undefined && until !== undefined) {
+            limitValue = this.parseToInt(maxLimit);
         }
-        const limitValue = limitRequested === undefined ? defaultLimit : Math.min(limitRequested, maxLimit);
         const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitValue
@@ -213022,6 +213029,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const code = this.safeString(currency, 'code');
         const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
+        const networks = {};
         for(let j = 0; j < networkList.length; j++){
             const networkEntry = this.safeDict(networkList, j);
             const networkId = this.safeString(networkEntry, 'network');
@@ -213035,7 +213043,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 };
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': undefined
@@ -213047,6 +213055,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -213796,10 +213805,13 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (timestamp === 0) {
             timestamp = undefined;
         }
-        let isolated = this.safeBool(position, 'isolated');
-        if (isolated === undefined) {
+        const isolatedRaw = this.safeBool(position, 'isolated');
+        let isolated = false;
+        if (isolatedRaw === undefined) {
             const isolatedMarginRaw = this.safeString(position, 'isolatedMargin');
             isolated = !_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(isolatedMarginRaw, '0');
+        } else {
+            isolated = isolatedRaw === true;
         }
         let marginMode = undefined;
         let collateralString = undefined;
@@ -214078,7 +214090,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         } else {
             collateralString = this.safeString(position, 'isolatedMargin');
         }
-        collateralString = collateralString === undefined ? '0' : collateralString;
+        if (collateralString === undefined) {
+            collateralString = this.numberToString(0);
+        }
         const collateral = this.parseNumber(collateralString);
         const markPrice = this.parseNumber(this.omitZero(this.safeString(position, 'markPrice')));
         let timestamp = this.safeInteger(position, 'updateTime');
@@ -214202,7 +214216,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         maintenanceMarginPercentage
                     ]);
                 }
-                this.options['leverageBrackets'][symbol] = result;
+                const leverageBracketsDict = this.safeDict(this.options, 'leverageBrackets', {});
+                leverageBracketsDict[symbol] = result;
+                this.options['leverageBrackets'] = leverageBracketsDict;
             }
         }
         return this.options['leverageBrackets'];
@@ -214391,7 +214407,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 if (symbolsLength > 1) {
                     throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbolsNormalized[0];
+                if (symbolsLength === 1) {
+                    symbol = symbolsNormalized[0];
+                }
             } else {
                 symbol = symbolsNormalized;
             }
@@ -217208,7 +217226,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const symbolsNormalized = this.marketSymbols(symbols);
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchMarginMode', market, params);
         let response = undefined;
@@ -217943,7 +217964,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const symbolsNormalized = this.marketSymbols(symbols);
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const type = 'swap';
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingIntervals', market, params, 'linear');
@@ -218827,7 +218851,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5938(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bingx_js__rspack_import_0 = __webpack_require__(130);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -220464,7 +220488,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        const requestLimit = limit === undefined ? 500 : Math.min(limit, maxLimit);
+        const requestLimit = this.parseToInt(limit === undefined ? 500 : Math.min(limit, maxLimit));
         if (since !== undefined) {
             request['startTime'] = Math.max(since - 1, 0);
         }
@@ -225673,11 +225697,12 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             },
             'networks': {}
         };
+        const networkFees = {};
         if (networksLength !== 0) {
             for(let i = 0; i < networksLength; i++){
                 const networkCode = this.safeString(networkCodes, i, '');
                 const network = this.safeDict(networks, networkCode);
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined
@@ -225695,6 +225720,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**
@@ -225834,39 +225860,38 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchMyLiquidations', market, paramsUntil);
         let response;
-        let liquidations = undefined;
+        let key = 'data';
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
-            //
-            //     {
-            //         "code": 0,
-            //         "msg": "",
-            //         "timestamp": 1721280071678,
-            //         "data": [
-            //             {
-            //                 "orderId": "string",
-            //                 "symbol": "string",
-            //                 "type": "string",
-            //                 "side": "string",
-            //                 "positionSide": "string",
-            //                 "price": "string",
-            //                 "quantity": "float64",
-            //                 "stopPrice": "string",
-            //                 "workingType": "string",
-            //                 "status": "string",
-            //                 "time": "int64",
-            //                 "avgPrice": "string",
-            //                 "executedQty": "string",
-            //                 "profit": "string",
-            //                 "commission": "string",
-            //                 "updateTime": "string"
-            //             }
-            //         ]
-            //     }
-            //
-            liquidations = this.safeList(response, 'data', []);
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1721280071678,
+        //         "data": [
+        //             {
+        //                 "orderId": "string",
+        //                 "symbol": "string",
+        //                 "type": "string",
+        //                 "side": "string",
+        //                 "positionSide": "string",
+        //                 "price": "string",
+        //                 "quantity": "float64",
+        //                 "stopPrice": "string",
+        //                 "workingType": "string",
+        //                 "status": "string",
+        //                 "time": "int64",
+        //                 "avgPrice": "string",
+        //                 "executedQty": "string",
+        //                 "profit": "string",
+        //                 "commission": "string",
+        //                 "updateTime": "string"
+        //             }
+        //         ]
+        //     }
+        //
         } else {
-            response = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
+            const swapResponse = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -225896,9 +225921,10 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             //         }
             //     }
             //
-            const data = this.safeDict(response, 'data', {});
-            liquidations = this.safeList(data, 'orders', []);
+            response = this.safeDict(swapResponse, 'data', {});
+            key = 'orders';
         }
+        const liquidations = this.safeList(response, key, []);
         return this.parseLiquidations(liquidations, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {
@@ -226698,7 +226724,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4984(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bit2c_js__rspack_import_0 = __webpack_require__(927);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -227955,7 +227981,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8151(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bit2me_js__rspack_import_0 = __webpack_require__(4842);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -229880,7 +229906,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4749(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _abstract_bitbank_js__rspack_import_0 = __webpack_require__(2330);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 //  ---------------------------------------------------------------------------
@@ -231153,7 +231179,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7658(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitbns_js__rspack_import_0 = __webpack_require__(5987);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -232581,7 +232607,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7967(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _abstract_bitfinex_js__rspack_import_0 = __webpack_require__(4986);
@@ -235358,7 +235384,7 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         };
         return this.safeString(statuses, status, status);
     }
-    parseTransaction(transaction, currency = undefined) {
+    parseTransactionRow(transaction, currency = undefined) {
         //
         // withdraw
         //
@@ -235673,7 +235699,12 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         //         ]
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        const result = [];
+        for(let i = 0; i < response.length; i++){
+            result.push(this.parseTransactionRow(this.safeList(response, i, []), currency));
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        return this.filterByCurrencySinceLimit(sorted, this.safeString(currency, 'code'), since, limit);
     }
     /**
      * @method
@@ -235763,7 +235794,7 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         if (text !== 'success') {
             this.throwBroadlyMatchedException(this.exceptions['broad'], text, text);
         }
-        return this.parseTransaction(response, currency);
+        return this.parseTransactionRow(response, currency);
     }
     /**
      * @method
@@ -236941,7 +236972,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8993(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitflyer_js__rspack_import_0 = __webpack_require__(2240);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -238291,7 +238322,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8271(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitget_js__rspack_import_0 = __webpack_require__(5458);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -242222,7 +242253,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
                 continue;
             }
             const parsedMarket = this.parseMarket(market);
-            if (parsedMarket !== undefined && parsedMarket['spot']) {
+            if (parsedMarket !== undefined && this.safeBool(parsedMarket, 'spot', false)) {
                 const marketId = parsedMarket['id'];
                 const instrument = this.safeDict(spotInstruments, marketId);
                 if (instrument !== undefined) {
@@ -246813,7 +246844,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const productType = this.handleProductTypeAndParams(market, params)[0];
+        const [productType] = this.handleProductTypeAndParams(market, params);
         const requestList = [];
         for(let i = 0; i < ids.length; i++){
             const individualId = this.safeString(ids, i);
@@ -252335,7 +252366,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3267(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bithumb_js__rspack_import_0 = __webpack_require__(6148);
 /* import */ var _base_functions_rsa_js__rspack_import_5 = __webpack_require__(8748);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -253234,12 +253265,11 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'fetchOrderBook', 'generation', 2);
         const market = this.market(symbol);
         const request = {};
-        let response = undefined;
         let data = undefined;
         let timestamp = undefined;
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -253284,7 +253314,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             if (limit !== undefined) {
                 request['count'] = limit; // default 30, max 30
             }
-            response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -253652,11 +253682,10 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'fetchTicker', 'generation', 2);
         const market = this.market(symbol);
         const request = {};
-        let response = undefined;
         let data = {};
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -253693,7 +253722,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -254049,11 +254078,10 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let response = undefined;
         let data = [];
         if (generation === 2) {
             request['market'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -254074,7 +254102,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -254887,10 +254915,9 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
         let data = undefined;
         if (twap) {
-            response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
+            const response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -254917,7 +254944,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             //
             data = this.safeList(response, 'orders', []);
         } else {
-            response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
+            const response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
             //
             //     [
             //         {
@@ -255915,7 +255942,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2847(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitopro_js__rspack_import_0 = __webpack_require__(7488);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -257948,7 +257975,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7551(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitrue_js__rspack_import_0 = __webpack_require__(8418);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -261601,7 +261628,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5181(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitso_js__rspack_import_0 = __webpack_require__(138);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -263487,8 +263514,19 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
             'address': address,
             'destination_tag': tagWithdrawTag
         };
-        const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod](this.extend(request, paramsWithdrawTag));
+        const withdrawRequest = this.extend(request, paramsWithdrawTag);
+        let response = undefined;
+        if (method === 'Bitcoin') {
+            response = await this.privatePostBitcoinWithdrawal(withdrawRequest);
+        } else if (method === 'Ether') {
+            response = await this.privatePostEtherWithdrawal(withdrawRequest);
+        } else if (method === 'Ripple') {
+            response = await this.privatePostRippleWithdrawal(withdrawRequest);
+        } else if (method === 'Bcash') {
+            response = await this.privatePostBcashWithdrawal(withdrawRequest);
+        } else {
+            response = await this.privatePostLitecoinWithdrawal(withdrawRequest);
+        }
         //
         //     {
         //         "success": true,
@@ -263675,7 +263713,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2056(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitstamp_js__rspack_import_0 = __webpack_require__(4705);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -265902,6 +265940,7 @@ class bitstamp extends _abstract_bitstamp_js__rspack_import_0/* ["default"] */.A
         const result = this.depositWithdrawFee(fee);
         const code = this.safeString(currency, 'code');
         const feeEntries = this.toArray(fee);
+        const networks = {};
         for(let j = 0; j < feeEntries.length; j++){
             const networkEntry = this.safeDict(feeEntries, j);
             const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'network'), code);
@@ -265911,7 +265950,7 @@ class bitstamp extends _abstract_bitstamp_js__rspack_import_0/* ["default"] */.A
                 'percentage': undefined
             };
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': undefined
@@ -265923,6 +265962,7 @@ class bitstamp extends _abstract_bitstamp_js__rspack_import_0/* ["default"] */.A
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -269644,7 +269684,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7081(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bittrade_js__rspack_import_0 = __webpack_require__(3076);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -272006,7 +272046,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1117(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bitvavo_js__rspack_import_0 = __webpack_require__(8498);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -274718,12 +274758,14 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
             networkId = currencyCode;
         }
         const networkCode = this.networkIdToCode(networkId, currencyCode);
+        const networkFees = {};
         if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'deposit': result['deposit'],
                 'withdraw': result['withdraw']
             };
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**
@@ -276283,7 +276325,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2114(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_blofin_js__rspack_import_0 = __webpack_require__(5331);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -278801,13 +278843,14 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         //
         const result = this.depositWithdrawFee(fee);
         const chainsLength = fee.length;
+        const networkFees = {};
         for(let i = 0; i < chainsLength; i++){
             const chain = this.safeDict(fee, i);
             const networkCode = this.chainIdToNetworkCode(this.safeString(chain, 'chain'));
             if (networkCode === undefined) {
                 continue;
             }
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber(chain, 'withdrawFee'),
                     'percentage': false
@@ -278818,6 +278861,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                 }
             };
         }
+        result['networks'] = networkFees;
         if (chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
             const networks = this.safeDict(result, 'networks', {});
@@ -280113,8 +280157,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6514(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
-/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(8858);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
+/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(1337);
 /* import */ var _abstract_btcbox_js__rspack_import_0 = __webpack_require__(7567);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -281014,7 +281058,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6222(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_btcmarkets_js__rspack_import_0 = __webpack_require__(227);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -282543,7 +282587,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1679(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_btcturk_js__rspack_import_0 = __webpack_require__(9980);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -283731,7 +283775,7 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var _abstract_btse_js__rspack_import_0 = __webpack_require__(2517);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 //  ---------------------------------------------------------------------------
 
@@ -287606,7 +287650,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3935(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _abstract_bullish_js__rspack_import_0 = __webpack_require__(9156);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 //  ---------------------------------------------------------------------------
@@ -289064,10 +289108,16 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
         while(errors <= maxRetries){
             try {
                 if (method === 'fetchOHLCV') {
+                    if (symbol === undefined) {
+                        throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' market() requires a symbol argument');
+                    }
                     return await this.fetchOHLCV(symbol, timeframe, since, limit, paramsOmitted);
                 } else if (method === 'fetchFundingRateHistory') {
                     return await this.fetchFundingRateHistory(symbol, since, limit, paramsOmitted);
                 } else {
+                    if (symbol === undefined) {
+                        throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' market() requires a symbol argument');
+                    }
                     return await this.fetchTrades(symbol, since, limit, paramsOmitted);
                 }
             } catch (e) {
@@ -290213,14 +290263,14 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'tradingAccountId': tradingAccountId
         };
-        let response = undefined;
         const code = this.safeString(params, 'code');
         if (code !== undefined) {
-            request['symbol'] = this.currency(code)['id'];
-            response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, params));
+            const currency = this.currency(code);
+            request['symbol'] = currency['id'];
+            const response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, params));
             return this.parseBalanceForSingleCurrency(response, code);
         } else {
-            response = await this.privateGetV1AccountsAsset(this.extend(request, params));
+            const response = await this.privateGetV1AccountsAsset(this.extend(request, params));
             //
             //     [
             //         {
@@ -290861,7 +290911,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1484(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_bybit_js__rspack_import_0 = __webpack_require__(1355);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -293385,8 +293435,10 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             //
             const result = this.safeDict(response, 'result', {});
             const accountResult = this.safeDict(accountInfo, 'result', {});
-            this.options['enableUnifiedMargin'] = this.safeInteger(result, 'unified') === 1;
-            this.options['enableUnifiedAccount'] = this.safeInteger(result, 'uta') === 1;
+            const unified = this.safeInteger(result, 'unified');
+            const uta = this.safeInteger(result, 'uta');
+            this.options['enableUnifiedMargin'] = unified === 1;
+            this.options['enableUnifiedAccount'] = uta === 1;
             this.options['unifiedMarginStatus'] = this.safeInteger(accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return [
@@ -293433,7 +293485,6 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const strike = this.safeString(optionParts, 2);
         const optionType = this.safeString(optionParts, 3);
         const datetime = this.convertExpireDate(expiry);
-        const timestamp = this.parse8601(datetime);
         let amountPrecision = undefined;
         let pricePrecision = undefined;
         // hard coded amount and price precisions from fetchOptionMarkets
@@ -293469,7 +293520,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             'margin': false,
             'contract': true,
             'contractSize': this.parseNumber('1'),
-            'expiry': timestamp,
+            'expiry': this.parse8601(datetime),
             'expiryDatetime': datetime,
             'optionType': optionType === 'C' ? 'call' : 'put',
             'strike': this.parseNumber(strike),
@@ -293858,8 +293909,6 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const responseResult = this.safeDict(response, 'result', {});
         const markets = this.safeList(responseResult, 'list', []);
         const result = [];
-        const takerFee = this.parseNumber('0.001');
-        const makerFee = this.parseNumber('0.001');
         for(let i = 0; i < markets.length; i++){
             const market = markets[i];
             const id = this.safeString(market, 'symbol');
@@ -293877,7 +293926,6 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             const priceFilter = this.safeDict(market, 'priceFilter');
             const quotePrecision = this.safeNumber(lotSizeFilter, 'quotePrecision');
             const marginTrading = this.safeString(market, 'marginTrading', 'none');
-            const allowsMargin = marginTrading !== 'none';
             result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
@@ -293889,7 +293937,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': allowsMargin,
+                'margin': marginTrading !== 'none',
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -293897,8 +293945,8 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': takerFee,
-                'maker': makerFee,
+                'taker': this.parseNumber('0.001'),
+                'maker': this.parseNumber('0.001'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -294033,7 +294081,6 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             const inverseFutures = contractType === 'InverseFutures';
             const linearFutures = contractType === 'LinearFutures';
             const linearPerpetual = contractType === 'LinearPerpetual';
-            const inversePerpetual = contractType === 'InversePerpetual';
             const id = this.safeString(market, 'symbol');
             const baseId = this.safeString(market, 'baseCoin');
             const quoteId = this.safeString(market, 'quoteCoin');
@@ -294058,7 +294105,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             const priceFilter = this.safeDict(market, 'priceFilter', {});
             const leverage = this.safeDict(market, 'leverageFilter', {});
             const status = this.safeString(market, 'status');
-            const swap = linearPerpetual || inversePerpetual;
+            const swap = linearPerpetual || contractType === 'InversePerpetual';
             const future = inverseFutures || linearFutures;
             let type = undefined;
             if (swap) {
@@ -294838,11 +294885,14 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            const symbolMarket = this.market(symbolsNormalized[0]);
-            market = symbolMarket;
-            const symbolsLength = symbolsNormalized.length;
-            if (symbolsLength === 1) {
-                request['symbol'] = symbolMarket['id'];
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                const symbolMarket = this.market(symbolsNormalized[0]);
+                market = symbolMarket;
+                const symbolsLength = symbolsNormalized.length;
+                if (symbolsLength === 1) {
+                    request['symbol'] = symbolMarket['id'];
+                }
             }
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchFundingRates', market, params);
@@ -295941,7 +295991,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const triggerDirection = this.safeString(order, 'triggerDirection');
         const isAscending = triggerDirection === '1';
         const isStopOrderType2 = triggerPrice !== undefined && reduceOnly;
-        if (stopLossPrice === undefined && isStopOrderType2 === true) {
+        if (stopLossPrice === undefined && isStopOrderType2) {
             // check if order is stop order type 2 - stopLossPrice
             if (isAscending && side === 'buy') {
                 // stopLoss order against short position
@@ -295952,7 +296002,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 stopLossPrice = triggerPrice;
             }
         }
-        if (takeProfitPrice === undefined && isStopOrderType2 === true) {
+        if (takeProfitPrice === undefined && isStopOrderType2) {
             // check if order is stop order type 2 - takeProfitPrice
             if (isAscending && side === 'sell') {
                 // takeprofit order against a long position
@@ -299025,16 +299075,18 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 const leverage = this.safeString(paramsType, 'leverage');
                 let paramsOmitted = undefined;
                 if (leverage === undefined) {
-                    sellLeverage = this.safeString2(paramsType, 'sell_leverage', 'sellLeverage');
-                    buyLeverage = this.safeString2(paramsType, 'buy_leverage', 'buyLeverage');
-                    if (sellLeverage === undefined && buyLeverage === undefined) {
+                    const sellLeverageRaw = this.safeString2(paramsType, 'sell_leverage', 'sellLeverage');
+                    const buyLeverageRaw = this.safeString2(paramsType, 'buy_leverage', 'buyLeverage');
+                    if (sellLeverageRaw === undefined && buyLeverageRaw === undefined) {
                         throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
                     }
-                    if (buyLeverage === undefined) {
-                        buyLeverage = sellLeverage;
+                    sellLeverage = sellLeverageRaw;
+                    buyLeverage = buyLeverageRaw;
+                    if (buyLeverageRaw === undefined) {
+                        buyLeverage = sellLeverageRaw;
                     }
-                    if (sellLeverage === undefined) {
-                        sellLeverage = buyLeverage;
+                    if (sellLeverageRaw === undefined) {
+                        sellLeverage = buyLeverageRaw;
                     }
                     paramsOmitted = this.omit(paramsType, [
                         'buy_leverage',
@@ -299506,14 +299558,15 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         };
         const sinceResolved = since === undefined ? this.milliseconds() - 2592000000 : since; // last 30 days
         request['startTime'] = sinceResolved;
-        let endTime = this.safeInteger2(params, 'until', 'endTime');
+        const endTime = this.safeInteger2(params, 'until', 'endTime');
         const paramsOmitted = this.omit(params, [
             'until'
         ]);
         if (endTime === undefined) {
-            endTime = sinceResolved + 2592000000; // since + 30 days
+            request['endTime'] = sinceResolved + 2592000000; // since + 30 days
+        } else {
+            request['endTime'] = endTime;
         }
-        request['endTime'] = endTime;
         const response = await this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, paramsOmitted));
         //
         //   {
@@ -300022,6 +300075,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             },
             'networks': {}
         };
+        const networks = {};
         if (chainsLength !== 0) {
             for(let i = 0; i < chainsLength; i++){
                 const chain = this.safeDict(chains, i);
@@ -300029,7 +300083,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': {
                             'fee': undefined,
                             'percentage': undefined
@@ -300041,11 +300095,14 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                     };
                 }
                 if (chainsLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
-                    result['withdraw']['percentage'] = false;
+                    result['withdraw'] = {
+                        'fee': this.safeNumber(chain, 'withdrawFee'),
+                        'percentage': false
+                    };
                 }
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -301786,17 +301843,18 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         if (apiUrl === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname(apiUrl) + '/' + path;
+        const baseUrl = this.implodeHostname(apiUrl) + '/' + path;
+        let url = baseUrl;
         if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 url = this.implodeHostname(apiUrl) + '/' + path + '?' + this.rawencode(params);
             }
         } else if (apiName === 'private') {
             this.checkRequiredCredentials();
-            const isOpenapi = url.indexOf('openapi') >= 0;
-            const isV3UnifiedMargin = url.indexOf('unified/v3') >= 0;
-            const isV3Contract = url.indexOf('contract/v3') >= 0;
-            const isV5UnifiedAccount = url.indexOf('v5') >= 0;
+            const isOpenapi = baseUrl.indexOf('openapi') >= 0;
+            const isV3UnifiedMargin = baseUrl.indexOf('unified/v3') >= 0;
+            const isV3Contract = baseUrl.indexOf('contract/v3') >= 0;
+            const isV5UnifiedAccount = baseUrl.indexOf('v5') >= 0;
             const timestamp = this.nonce().toString();
             if (isOpenapi) {
                 if (Object.keys(params).length > 0) {
@@ -301857,7 +301915,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                     signature = this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_4/* .sha256 */.sc);
                 }
                 if (method === 'POST') {
-                    const isSpot = url.indexOf('spot') >= 0;
+                    const isSpot = baseUrl.indexOf('spot') >= 0;
                     const extendedQuery = this.extend(query, {
                         'sign': signature
                     });
@@ -301873,8 +301931,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                         };
                     }
                 } else {
-                    url = this.implodeHostname(apiUrl) + '/' + path + '?' + this.rawencode(sortedQuery, true);
-                    url += '&sign=' + signature;
+                    url = baseUrl + '?' + this.rawencode(sortedQuery, true) + '&sign=' + signature;
                 }
             }
         }
@@ -302077,7 +302134,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5704(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_cex_js__rspack_import_0 = __webpack_require__(6131);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -303993,7 +304050,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4038(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _abstract_coinbase_js__rspack_import_0 = __webpack_require__(1251);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -306273,10 +306330,14 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
             if (code !== undefined) {
-                this.options['networks'][code] = name.toLowerCase();
+                const networksDict1 = this.safeDict(this.options, 'networks', {});
+                networksDict1[code] = name.toLowerCase();
+                this.options['networks'] = networksDict1;
             }
             if (code !== undefined) {
-                this.options['networksById'][code] = name.toLowerCase();
+                const networksByIdDict2 = this.safeDict(this.options, 'networksById', {});
+                networksByIdDict2[code] = name.toLowerCase();
+                this.options['networksById'] = networksByIdDict2;
             }
             let type = 'fiat';
             if (assetId !== undefined) {
@@ -306926,7 +306987,9 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             const pagination = this.safeDict(response, 'pagination', {});
             const cursor = this.safeString(pagination, 'next_starting_after');
             if (cursor !== undefined && cursor !== '') {
-                last['info']['next_starting_after'] = cursor;
+                const lastInfo = this.safeDict(last, 'info', {});
+                lastInfo['next_starting_after'] = cursor;
+                last['info'] = lastInfo;
                 ledger[lastIndex] = last;
             }
         }
@@ -309747,7 +309810,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7455(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinbaseexchange_js__rspack_import_0 = __webpack_require__(5266);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -312186,7 +312249,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5700(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _base_functions_rsa_js__rspack_import_4 = __webpack_require__(8748);
 /* import */ var _abstract_coinbaseinternational_js__rspack_import_0 = __webpack_require__(9487);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -315944,7 +316007,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2603(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _abstract_coincheck_js__rspack_import_0 = __webpack_require__(5936);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 //  ---------------------------------------------------------------------------
@@ -317098,7 +317161,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5990(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinmate_js__rspack_import_0 = __webpack_require__(3075);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -318596,7 +318659,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6899(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinone_js__rspack_import_0 = __webpack_require__(7436);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -320084,7 +320147,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4410(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinsph_js__rspack_import_0 = __webpack_require__(2597);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -322629,7 +322692,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3051(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_coinspot_js__rspack_import_0 = __webpack_require__(8118);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -323222,7 +323285,7 @@ class coinspot extends _abstract_coinspot_js__rspack_import_0/* ["default"] */.A
         };
         const balances = this.safeValue2(response, 'balance', 'balances');
         if (Array.isArray(balances)) {
-            const rows = this.toArray(balances);
+            const rows = this.safeList2(response, 'balance', 'balances', []);
             const numRows = rows.length;
             for(let i = 0; i < numRows; i++){
                 const currencies = this.safeDict(rows, i, {});
@@ -323723,7 +323786,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6214(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_cryptocom_js__rspack_import_0 = __webpack_require__(5561);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -327375,7 +327438,9 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
                 if (symbolsLength > 1) {
                     throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbolsNormalized[0];
+                if (symbolsLength === 1) {
+                    symbol = symbolsNormalized[0];
+                }
             } else {
                 symbol = symbolsNormalized;
             }
@@ -327743,7 +327808,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9100(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(8858);
+/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(1337);
 /* import */ var _abstract_cryptomus_js__rspack_import_0 = __webpack_require__(7835);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -329031,7 +329096,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7929(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_deepcoin_js__rspack_import_0 = __webpack_require__(5496);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -332309,7 +332374,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2638(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_delta_js__rspack_import_0 = __webpack_require__(1065);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -336599,7 +336664,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3045(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _abstract_deribit_js__rspack_import_0 = __webpack_require__(9458);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -340877,8 +340942,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8025(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_derive_js__rspack_import_0 = __webpack_require__(7196);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -345483,7 +345548,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3645(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_digifinex_js__rspack_import_0 = __webpack_require__(7854);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -349523,7 +349588,9 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
                 if (symbolsLength > 1) {
                     throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbolsNormalized[0];
+                if (symbolsLength === 1) {
+                    symbol = symbolsNormalized[0];
+                }
             } else {
                 symbol = symbolsNormalized;
             }
@@ -350507,8 +350574,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3397(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_dydx_js__rspack_import_0 = __webpack_require__(6760);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -353178,7 +353245,9 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         // rewrite testnet parameters
         this.options['chainName'] = 'dydx-testnet-4';
         this.options['chainId'] = 11155111;
-        this.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        const feeDenomDict = this.safeDict(this.options, 'feeDenom', {});
+        feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        this.options['feeDenom'] = feeDenomDict;
     }
 }
 // ---------------------------------------------------------------------------
@@ -357032,7 +357101,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6110(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _abstract_foxbit_js__rspack_import_0 = __webpack_require__(4139);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -358950,7 +359019,7 @@ class foxbit extends _abstract_foxbit_js__rspack_import_0/* ["default"] */.A {
         };
         return this.safeString(statuses, status, status);
     }
-    parseTransaction(transaction, currency = undefined, since = undefined, limit = undefined) {
+    parseTransaction(transaction, currency = undefined) {
         const cryptoDetails = this.safeDict(transaction, 'details_crypto');
         const address = this.safeString2(cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString(transaction, 'sn');
@@ -359171,7 +359240,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1305(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_gate_js__rspack_import_0 = __webpack_require__(3032);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -362903,6 +362972,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             },
             'networks': {}
         };
+        const networkFees = {};
         if (withdrawFixOnChains !== undefined) {
             const chainKeys = Object.keys(withdrawFixOnChains);
             for(let i = 0; i < chainKeys.length; i++){
@@ -362911,7 +362981,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 const code = this.safeCurrencyCode(currencyId, currency);
                 const networkCode = this.networkIdToCode(chainKey, code);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': this.parseNumber(withdrawFixOnChains[chainKey]),
                             'percentage': false
@@ -362924,6 +362994,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**
@@ -367006,8 +367077,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(),
+            'currency': currencyId.toUpperCase(),
             'amount': this.currencyToPrecision(code, amount)
         };
         const market = this.market(symbol);
@@ -367037,8 +367109,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(),
+            'currency': currencyId.toUpperCase(),
             'amount': this.currencyToPrecision(code, amount)
         };
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(params, 'repayCrossMargin', 'unifiedAccount', false);
@@ -367085,8 +367158,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(),
+            'currency': currencyId.toUpperCase(),
             'amount': this.currencyToPrecision(code, amount)
         };
         const market = this.market(symbol);
@@ -367131,8 +367205,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(),
+            'currency': currencyId.toUpperCase(),
             'amount': this.currencyToPrecision(code, amount)
         };
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(params, 'borrowCrossMargin', 'unifiedAccount', false);
@@ -368975,7 +369050,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 841(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_gemini_js__rspack_import_0 = __webpack_require__(2412);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -370325,7 +370400,7 @@ class gemini extends _abstract_gemini_js__rspack_import_0/* ["default"] */.A {
         let base = undefined;
         let quote = undefined;
         if (marketId !== undefined && marketResolved === undefined) {
-            const idLength = marketId.length - 0;
+            const idLength = marketId.length;
             if (idLength === 7) {
                 baseId = marketId.slice(0, 4);
                 quoteId = marketId.slice(4, 7);
@@ -371463,8 +371538,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5781(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_5 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_5 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_grvt_js__rspack_import_0 = __webpack_require__(8512);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -373495,7 +373570,9 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         const nonMatchedResults = [];
         for(let i = 0; i < transfers.length; i++){
             const transfer = transfers[i];
-            if (onlyMainAccount && this.safeString(transfer, 'fromAccount') === '0' && this.safeString(transfer, 'toAccount') === '0' || !onlyMainAccount && (this.safeString(transfer, 'fromAccount') !== '0' || this.safeString(transfer, 'toAccount') !== '0')) {
+            const fromAccount = this.safeString(transfer, 'fromAccount', '');
+            const toAccount = this.safeString(transfer, 'toAccount', '');
+            if (onlyMainAccount && fromAccount === '0' && toAccount === '0' || !onlyMainAccount && (fromAccount !== '0' || toAccount !== '0')) {
                 const metadata = this.safeString(this.safeDict(transfer, 'info', {}), 'transfer_metadata');
                 const parsedMetadata = this.parseJson(metadata);
                 const direction = this.safeString(parsedMetadata, 'direction');
@@ -373774,6 +373851,9 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         const isMarketOrder = type === 'market';
         const subAccountId = this.getSubAccountId(paramsOmitted3);
         const isReduceOnly = this.safeBool(paramsOmitted3, 'reduceOnly', false);
+        const orderMetadata = {
+            'client_order_id': clientOrderId
+        };
         const orderRequest = {
             'sub_account_id': subAccountId,
             'time_in_force': undefined,
@@ -373781,9 +373861,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
                 orderLeg
             ],
             'signature': this.defaultSignature(),
-            'metadata': {
-                'client_order_id': clientOrderId
-            },
+            'metadata': orderMetadata,
             'is_market': isMarketOrder,
             'post_only': false,
             'reduce_only': isReduceOnly
@@ -373851,7 +373929,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
             }
             // trigger by
             const triggerPriceType = this.safeStringUpper(paramsTriggerPrices, 'triggerPriceType', 'LAST');
-            orderRequest['metadata']['trigger'] = {
+            orderMetadata['trigger'] = {
                 'trigger_type': selectedType,
                 'tpsl': {
                     'trigger_by': triggerPriceType,
@@ -373859,6 +373937,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
                     'close_position': this.safeBool(paramsTriggerPrices, 'closePosition', false)
                 }
             };
+            orderRequest['metadata'] = orderMetadata;
         }
         let paramsTrigger = paramsTriggerPrices;
         if (isTriggerOrder) {
@@ -375152,7 +375231,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6671(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_hashkey_js__rspack_import_0 = __webpack_require__(1264);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -379954,8 +380033,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4440(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_hibachi_js__rspack_import_0 = __webpack_require__(2495);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -382391,7 +382470,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3030(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_hitbtc_js__rspack_import_0 = __webpack_require__(9447);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -385344,7 +385423,10 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
         let market = undefined;
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchMarginMode', market, params);
         let response;
@@ -385560,9 +385642,12 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
-            const queryMarketIds = this.marketIds(symbolsNormalized);
-            request['symbols'] = queryMarketIds.join(',');
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+                const queryMarketIds = this.marketIds(symbolsNormalized);
+                request['symbols'] = queryMarketIds.join(',');
+            }
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchFundingRates', market, params);
         if (type !== 'swap') {
@@ -386401,6 +386486,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
         //
         const networks = this.safeList(fee, 'networks', []);
         const result = this.depositWithdrawFee(fee);
+        const networkFees = {};
         for(let j = 0; j < networks.length; j++){
             const networkEntry = this.safeDict(networks, j);
             const networkId = this.safeString(networkEntry, 'network');
@@ -386421,7 +386507,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
                 result['withdraw'] = withdrawResult;
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': undefined,
@@ -386430,6 +386516,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
                 };
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**
@@ -386575,7 +386662,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 33(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_hollaex_js__rspack_import_0 = __webpack_require__(526);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -388199,12 +388286,10 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const wallet = this.safeList(response, 'wallet', []);
-        let addresses = undefined;
         if (network === undefined) {
-            addresses = wallet;
-        } else {
-            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
+            return this.parseDepositAddresses(wallet, codes, false);
         }
+        const addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         return this.parseDepositAddresses(addresses, codes, false);
     }
     /**
@@ -388716,7 +388801,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8552(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_htx_js__rspack_import_0 = __webpack_require__(4135);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -391170,7 +391255,8 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, (/* inlined export .TRUNCATE */0), this.market(symbol)['precision']['cost'], this.precisionMode);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(cost, (/* inlined export .TRUNCATE */0), market['precision']['cost'], this.precisionMode);
     }
     /**
      * @method
@@ -391583,12 +391669,16 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 constructedId = marketBase + '_' + contractSuffix;
             }
             if (constructedId === symbolOrMarketId) {
-                this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = marketSymbol;
+                const futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
+                futureMarketIdsForSymbolsDict1[symbolOrMarketId] = marketSymbol;
+                this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict1;
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId;
+        const futureMarketIdsForSymbolsDict2 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
+        futureMarketIdsForSymbolsDict2[symbolOrMarketId] = symbolOrMarketId;
+        this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict2;
         return symbolOrMarketId;
     }
     parseTicker(ticker, market = undefined) {
@@ -392918,7 +393008,9 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             type = 'crypto';
         }
         if (code !== undefined) {
-            this.options['networkChainIdsByNames'][code] = {};
+            const chainIdsByNames = this.safeDict(this.options, 'networkChainIdsByNames', {});
+            chainIdsByNames[code] = {};
+            this.options['networkChainIdsByNames'] = chainIdsByNames;
         }
         const chains = this.safeList(rawCurrency, 'chains', []);
         const networks = {};
@@ -392927,10 +393019,16 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2(chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code !== undefined && title !== undefined) {
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+                const chainIdsByNamesDict = this.safeDict(this.options, 'networkChainIdsByNames', {});
+                const chainIdsByTitle = this.safeDict(chainIdsByNamesDict, code, {});
+                chainIdsByTitle[title] = uniqueChainId;
+                chainIdsByNamesDict[code] = chainIdsByTitle;
+                this.options['networkChainIdsByNames'] = chainIdsByNamesDict;
             }
             if (uniqueChainId !== undefined) {
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
+                const networkNamesByChainIdsDict3 = this.safeDict(this.options, 'networkNamesByChainIds', {});
+                networkNamesByChainIdsDict3[uniqueChainId] = title;
+                this.options['networkNamesByChainIds'] = networkNamesByChainIdsDict3;
             }
             const networkCode = this.networkIdToCode(uniqueChainId, code);
             if (networkCode !== undefined) {
@@ -399065,6 +399163,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const chains = this.safeList(fee, 'chains', []);
         const code = this.safeString(currency, 'code');
         const result = this.depositWithdrawFee(fee);
+        const networks = {};
         for(let j = 0; j < chains.length; j++){
             const chainEntry = this.safeDict(chains, j);
             const networkId = this.safeString(chainEntry, 'chain');
@@ -399086,13 +399185,14 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 };
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined
                     }
                 };
+                result['networks'] = networks;
             }
             this.assignDefaultDepositWithdrawFees(result, currency);
         }
@@ -399152,8 +399252,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             const settlement = this.safeDict(settlements, i);
             const list = this.safeList(settlement, 'list');
             if (this.safeBool(market, 'linear', false)) {
-                const parsedSettlement = this.parseSettlement(settlement, market);
-                result.push(parsedSettlement);
+                result.push(this.parseSettlement(settlement, market));
             } else if (list !== undefined) {
                 const timestamp = this.safeInteger(settlement, 'settlement_time');
                 const timestampDetails = {
@@ -399707,8 +399806,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7450(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_hyperliquid_js__rspack_import_0 = __webpack_require__(6641);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -400188,7 +400287,9 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         const id = this.safeString(rawCurrency, 'index');
         const name = this.safeString(rawCurrency, 'name');
         const code = this.safeCurrencyCode(name);
-        this.options['cachedCurrenciesById'][id] = name;
+        const cachedCurrenciesByIdDict1 = this.safeDict(this.options, 'cachedCurrenciesById', {});
+        cachedCurrenciesByIdDict1[id] = name;
+        this.options['cachedCurrenciesById'] = cachedCurrenciesByIdDict1;
         const result = this.safeCurrencyStructure({
             'id': id,
             'name': name,
@@ -400224,7 +400325,9 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 }
                 const baseCode = this.safeCurrencyCode(nameWithoutU);
                 if (code !== undefined) {
-                    this.options['spotCurrencyMapping'][code] = baseCode;
+                    const spotCurrencyMappingDict2 = this.safeDict(this.options, 'spotCurrencyMapping', {});
+                    spotCurrencyMappingDict2[code] = baseCode;
+                    this.options['spotCurrencyMapping'] = spotCurrencyMappingDict2;
                 }
             }
         }
@@ -400365,10 +400468,12 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode(name);
                     const hip3Code = safeCode === undefined ? name : safeCode.replace(':', '-');
-                    this.options['hip3TokensByName'][name] = {
+                    const hip3TokensByName = this.safeDict(this.options, 'hip3TokensByName', {});
+                    hip3TokensByName[name] = {
                         'quote': collateralTokenCode,
                         'code': hip3Code
                     };
+                    this.options['hip3TokensByName'] = hip3TokensByName;
                 }
                 result.push(data);
             }
@@ -401237,7 +401342,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 'endTime': until
             }
         };
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -401254,10 +401360,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //         }
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
         return this.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -401323,7 +401425,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fills = this.infoList(fillsResponse);
         //
         //     [
         //         {
@@ -401344,10 +401447,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //         }
         //     ]
         //
-        let fills = [];
-        if (Array.isArray(response)) {
-            fills = response;
-        }
         return this.parseTrades(fills, market, since, limit);
     }
     amountToPrecision(symbol, amount) {
@@ -402937,7 +403036,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundingsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundings = this.infoList(fundingsResponse);
         //
         //     [
         //         {
@@ -402949,10 +403049,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     ]
         //
         const result = [];
-        let fundings = [];
-        if (Array.isArray(response)) {
-            fundings = response;
-        }
         for(let i = 0; i < fundings.length; i++){
             const entry = this.safeDict(fundings, i);
             const timestamp = this.safeInteger(entry, 'time');
@@ -403010,7 +403106,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 request['dex'] = dexName;
             }
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrders = this.infoList(rawOrdersResponse);
         //
         //     [
         //         {
@@ -403025,10 +403122,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     ]
         //
         const orderWithStatus = [];
-        let rawOrders = [];
-        if (Array.isArray(response)) {
-            rawOrders = response;
-        }
         for(let i = 0; i < rawOrders.length; i++){
             const order = this.safeDict(rawOrders, i);
             const extendOrder = {};
@@ -403132,7 +403225,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 request['dex'] = dexName;
             }
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrders = this.infoList(historicalOrdersResponse);
         //
         //     [
         //         {
@@ -403154,10 +403248,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         const deduplicatedByOid = {};
-        let historicalOrders = [];
-        if (Array.isArray(response)) {
-            historicalOrders = response;
-        }
         for(let i = 0; i < historicalOrders.length; i++){
             const rawOrder = historicalOrders[i];
             const entry = this.safeDict(rawOrder, 'order', rawOrder);
@@ -403489,7 +403579,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const myFillsResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const myFills = this.infoList(myFillsResponse);
         //
         //     [
         //         {
@@ -403511,10 +403602,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //         }
         //     ]
         //
-        let myFills = [];
-        if (Array.isArray(response)) {
-            myFills = response;
-        }
         return this.parseTrades(myFills, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -403615,7 +403702,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const infoResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const response = this.infoList(infoResponse);
         //
         //     [
         //         {
@@ -403643,15 +403731,13 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     ]
         //
         const fills = [];
-        if (Array.isArray(response)) {
-            const user = this.safeStringLower(request, 'user');
-            for(let i = 0; i < response.length; i++){
-                const fill = this.safeDict(response, i, {});
-                const liquidation = this.safeDict(fill, 'liquidation', {});
-                // liquidator fills carry the liquidated counterparty here
-                if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
-                    fills.push(fill);
-                }
+        const user = this.safeStringLower(request, 'user');
+        for(let i = 0; i < response.length; i++){
+            const fill = this.safeDict(response, i, {});
+            const liquidation = this.safeDict(fill, 'liquidation', {});
+            // liquidator fills carry the liquidated counterparty here
+            if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
+                fills.push(fill);
             }
         }
         return this.parseLiquidations(fills, market, since, limit);
@@ -404651,7 +404737,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 'until'
             ]);
         }
-        const response = await this.publicPostInfo(this.extend(request, params2));
+        const depositLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        const depositLedger = this.infoList(depositLedgerResponse);
         //
         // [
         //     {
@@ -404665,10 +404752,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     }
         // ]
         //
-        let depositLedger = [];
-        if (Array.isArray(response)) {
-            depositLedger = response;
-        }
         const records = this.extractTypeFromDelta(depositLedger);
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -404725,7 +404808,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 'until'
             ]);
         }
-        const response = await this.publicPostInfo(this.extend(request, params2));
+        const withdrawalLedgerResponse = await this.publicPostInfo(this.extend(request, params2));
+        const withdrawalLedger = this.infoList(withdrawalLedgerResponse);
         //
         // [
         //     {
@@ -404739,10 +404823,6 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     }
         // ]
         //
-        let withdrawalLedger = [];
-        if (Array.isArray(response)) {
-            withdrawalLedger = response;
-        }
         const records = this.extractTypeFromDelta(withdrawalLedger);
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -405062,8 +405142,9 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             const data = this.safeDict(responsePayload, 'data', {});
             const statuses = this.safeList(data, 'statuses', []);
             for(let i = 0; i < statuses.length; i++){
-                message = this.safeString(statuses[i], 'error');
-                if (message !== undefined) {
+                const statusError = this.safeString(statuses[i], 'error');
+                if (statusError !== undefined) {
+                    message = statusError;
                     break;
                 }
             }
@@ -405148,6 +405229,19 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             globalParams
         ];
     }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */ infoList(response) {
+        let result = [];
+        if (Array.isArray(response)) {
+            result = response;
+        }
+        return result;
+    }
 }
 //  ---------------------------------------------------------------------------
 /**
@@ -405163,7 +405257,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7392(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_independentreserve_js__rspack_import_0 = __webpack_require__(4885);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
@@ -406456,7 +406550,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4987(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_indodax_js__rspack_import_0 = __webpack_require__(8740);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -408074,7 +408168,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4436(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_kraken_js__rspack_import_0 = __webpack_require__(6253);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -410122,7 +410216,9 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
             'baseId': baseId,
             'quoteId': quoteId
         };
-        this.options['delistedMarketsById'][id] = market;
+        const delistedMarketsByIdDict = this.safeDict(this.options, 'delistedMarketsById', {});
+        delistedMarketsByIdDict[id] = market;
+        this.options['delistedMarketsById'] = delistedMarketsByIdDict;
         return market;
     }
     parseOrderStatus(status) {
@@ -410277,10 +410373,11 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
             } else {
                 descriptionType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
             }
-            if (descriptionType === 'stop loss' || descriptionType === 'take profit') {
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if (part4 === 'stop' && part5 === 'loss' || part4 === 'take' && part5 === 'profit') {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
-            } else if (descriptionType === 'limit') {
+            } else if (part4 === 'limit') {
                 price = this.safeString(parts, 5);
             }
         }
@@ -412072,7 +412169,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5262(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_krakenfutures_js__rspack_import_0 = __webpack_require__(3217);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -416113,7 +416210,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 455(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_kucoin_js__rspack_import_0 = __webpack_require__(7790);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -419602,12 +419699,13 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                 'networks': {}
             };
             const chains = this.safeList(fee, 'chains', []);
+            const networksNew = {};
             for(let i = 0; i < chains.length; i++){
                 const chain = this.safeDict(chains, i);
                 const chainId = this.safeString(chain, 'chainId');
                 const networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, 'code'));
                 if (networkCodeNew !== undefined) {
-                    resultNew['networks'][networkCodeNew] = {
+                    networksNew[networkCodeNew] = {
                         'withdraw': {
                             'fee': this.safeNumber2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
                             'percentage': false
@@ -419619,6 +419717,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                     };
                 }
             }
+            resultNew['networks'] = networksNew;
             return resultNew;
         }
         const minWithdrawFee = this.safeNumber(fee, 'withdrawMinFee');
@@ -419639,7 +419738,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         const currencyResolved = this.safeCurrency(currencyId, currency);
         const networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, 'code'));
         if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
+            const networks = {};
+            networks[networkCode] = {
                 'withdraw': {
                     'fee': minWithdrawFee,
                     'percentage': false
@@ -419649,6 +419749,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                     'percentage': undefined
                 }
             };
+            result['networks'] = networks;
         }
         return result;
     }
@@ -422684,7 +422785,22 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrdersByStatus', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOrdersByStatus', symbol, since, limit, paramsPaginate);
+            // paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+            let paramsContract = this.extend(paramsPaginate, {
+                'paginate': false,
+                'uta': false
+            });
+            if (symbol === undefined) {
+                paramsContract = this.extend(paramsContract, {
+                    'type': 'contract'
+                });
+            }
+            const paginatedMethods = {
+                'active': 'fetchOpenOrders',
+                'open': 'fetchOpenOrders'
+            };
+            const paginatedMethod = this.safeString(paginatedMethods, status, 'fetchClosedOrders');
+            return await this.fetchPaginatedCallDynamic(paginatedMethod, symbol, since, limit, paramsContract);
         }
         const trigger = this.safeBool2(paramsPaginate, 'stop', 'trigger');
         const until = this.safeInteger(paramsPaginate, 'until');
@@ -426423,12 +426539,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        let assets = undefined;
-        if (marginMode === 'isolated') {
-            assets = this.safeList(data, 'assets', []);
-        } else {
-            assets = this.safeList(data, 'accounts', []);
-        }
+        const assetsKey = marginMode === 'isolated' ? 'assets' : 'accounts';
+        const assets = this.safeList(data, assetsKey, []);
         const interest = this.parseBorrowInterests(assets, market);
         const filteredByCurrency = this.filterByCurrencySinceLimit(interest, code, since, limit);
         return this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit);
@@ -428568,17 +428680,14 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchLeverageTiers() requires a symbols argument');
         }
         const symbolsNormalized = this.marketSymbols(symbols, 'swap', false, true);
-        let marginMode = 'cross';
-        let paramsRequest = undefined;
-        [marginMode, paramsRequest] = this.handleOptionStringAndParams(params, 'fetchLeverageTiers', 'marginMode', marginMode);
-        marginMode = marginMode.toUpperCase();
-        if (marginMode !== 'CROSS') {
+        const [marginMode, paramsRequest] = this.handleOptionStringAndParams(params, 'fetchLeverageTiers', 'marginMode', 'cross');
+        if (marginMode.toUpperCase() !== 'CROSS') {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchLeverageTiers() supports cross margin only');
         }
         const marketIds = this.marketIds(symbolsNormalized);
         const request = {
             'tradeType': 'FUTURES',
-            'marginMode': marginMode,
+            'marginMode': 'CROSS',
             'data': 'RISK_LIMIT',
             'accountType': 'UNIFIED',
             'symbol': marketIds.join(',')
@@ -428762,7 +428871,13 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         return this.safeString(getVersions, 'deposit-addresses', 'v1');
     }
     setDepositAddressesVersion(version) {
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        const versions = this.safeDict(this.options, 'versions', {});
+        const privateVersions = this.safeDict(versions, 'private', {});
+        const getVersions = this.safeDict(privateVersions, 'GET', {});
+        getVersions['deposit-addresses'] = version;
+        privateVersions['GET'] = getVersions;
+        versions['private'] = privateVersions;
+        this.options['versions'] = versions;
     }
     sign(path, api = [
         'public'
@@ -429242,7 +429357,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9252(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_latoken_js__rspack_import_0 = __webpack_require__(3851);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -431391,8 +431506,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7162(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(8858);
-/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4721);
+/* import */ var _noble_hashes_legacy_js__rspack_import_4 = __webpack_require__(1337);
+/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4006);
 /* import */ var _abstract_lbank_js__rspack_import_0 = __webpack_require__(1713);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -434740,8 +434855,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1723(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_lighter_js__rspack_import_0 = __webpack_require__(4748);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -435492,8 +435607,8 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -435864,10 +435979,10 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
-        let order = undefined;
-        if (totalOrderRequests > 0) {
-            order = orderRequests[0];
+        if (totalOrderRequests < 1) {
+            throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + ' createOrder() built no order request');
         }
+        const order = orderRequests[0];
         // the nonce could be updated
         if (this.safeInteger(order, 'nonce') === undefined) {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);
@@ -440270,7 +440385,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6981(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_mercado_js__rspack_import_0 = __webpack_require__(4930);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -441400,7 +441515,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2641(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_mexc_js__rspack_import_0 = __webpack_require__(1852);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -447790,12 +447905,13 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //
         const networkList = this.safeList(fee, 'networkList', []);
         const result = this.depositWithdrawFee(fee);
+        const networks = {};
         for(let j = 0; j < networkList.length; j++){
             const networkEntry = this.safeDict(networkList, j);
             const networkId = this.safeString(networkEntry, 'network');
             const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': this.safeNumber(networkEntry, 'withdrawFee'),
                         'percentage': undefined
@@ -447807,6 +447923,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                 };
             }
         }
+        result['networks'] = networks;
         return this.assignDefaultDepositWithdrawFees(result);
     }
     /**
@@ -448168,9 +448285,9 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6479(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(7468);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(5573);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_modetrade_js__rspack_import_0 = __webpack_require__(4496);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -452336,7 +452453,7 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
         const data = this.safeValue(response, 'data', []);
         let rows = [];
         if (Array.isArray(data)) {
-            rows = this.toArray(data);
+            rows = this.safeList(response, 'data', []);
         } else {
             rows = this.safeList(data, 'items', []);
         }
@@ -453521,8 +453638,8 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _abstract_nado_js__rspack_import_0 = __webpack_require__(5287);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 // ---------------------------------------------------------------------------
 
@@ -454116,7 +454233,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const triggerDirection = this.safeString(this.handleTriggerDirectionAndParams(paramsRecvWindow), 0);
+            const [triggerDirection] = this.handleTriggerDirectionAndParams(paramsRecvWindow);
             let directionSuffix = 'below';
             if (triggerDirection === 'ascending') {
                 directionSuffix = 'above';
@@ -456943,7 +457060,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8573(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
 /* import */ var _abstract_ndax_js__rspack_import_0 = __webpack_require__(2356);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_4 = __webpack_require__(7749);
@@ -459934,7 +460051,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5058(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_okx_js__rspack_import_0 = __webpack_require__(2481);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -463589,9 +463706,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (isMarkOrIndex) {
             requestMaxLimit = 100;
         }
-        let limitResolved = 100;
+        let limitResolved = this.parseToInt(100);
         if (limit !== undefined) {
-            limitResolved = Math.min(limit, requestMaxLimit);
+            limitResolved = this.parseToInt(Math.min(limit, requestMaxLimit));
         }
         const duration = this.parseTimeframe(timeframe);
         let bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -463647,7 +463764,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         } else {
             if (isHistoryCandles) {
                 if (limitIsUndefined && limitResolved === 100) {
-                    limitResolved = 300;
+                    limitResolved = this.parseToInt(300);
                     request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
                 }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, paramsType));
@@ -464194,24 +464311,25 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
                     const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(orderParams, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    let notional = this.safeNumber2(paramsRequiresPrice, 'cost', 'sz');
+                    const notionalParam = this.safeNumber2(paramsRequiresPrice, 'cost', 'sz');
+                    let notional = notionalParam;
                     orderParams = this.omit(paramsRequiresPrice, [
                         'cost',
                         'sz'
                     ]);
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
-                            if (notional === undefined) {
+                            if (notionalParam === undefined) {
                                 const amountString = this.numberToString(amount);
                                 const priceString = this.numberToString(price);
                                 const quoteAmount = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
-                        } else if (notional === undefined) {
+                        } else if (notionalParam === undefined) {
                             throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
-                        notional = notional === undefined ? amount : notional;
+                        notional = notionalParam === undefined ? amount : notionalParam;
                     }
                     request['sz'] = this.costToPrecision(symbol, notional);
                 }
@@ -464503,11 +464621,16 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         for(let i = 0; i < orders.length; i++){
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
-            if (marketId === undefined) {
-                throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
-            }
             const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
+            if (marketId === undefined || side === undefined) {
+                // a missing side is the createOrderRequest () error
+                let reason = ' requires a side argument';
+                if (marketId === undefined) {
+                    reason = ' createOrders() requires a symbol for each order';
+                }
+                throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + reason);
+            }
             const amount = this.safeNumber(rawOrder, 'amount');
             const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
@@ -468876,7 +468999,10 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         let marketType = undefined;
         let paramsSubType = {};
@@ -469248,9 +469374,13 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
+                const feeEntry = this.safeDict(depositWithdrawFees, code, {});
                 if (currencyId !== undefined) {
-                    depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                    const feeEntryInfo = this.safeDict(feeEntry, 'info', {});
+                    feeEntryInfo[currencyId] = feeInfo;
+                    feeEntry['info'] = feeEntryInfo;
                 }
+                depositWithdrawFees[code] = feeEntry;
                 const chain = this.safeString(feeInfo, 'chain');
                 if (chain === undefined) {
                     continue;
@@ -469268,10 +469398,13 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 };
                 const networkCode = this.networkIdToCode(networkId, code);
                 if (networkCode !== undefined) {
-                    depositWithdrawFees[code]['networks'][networkCode] = {
+                    const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
+                    feeEntryNetworks[networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult
                     };
+                    feeEntry['networks'] = feeEntryNetworks;
+                    depositWithdrawFees[code] = feeEntry;
                 }
             }
         }
@@ -470092,8 +470225,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         //         "msg": ""
         //     }
         //
-        const rows = this.safeList(response, 'data', []);
-        return this.parseConversions(rows, code, 'baseCcy', 'quoteCcy', since, limit);
+        return this.parseConversions(this.safeList(response, 'data', []), code, 'baseCcy', 'quoteCcy', since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //
@@ -472683,7 +472815,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 356(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _abstract_p2b_js__rspack_import_0 = __webpack_require__(3703);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 // ---------------------------------------------------------------------------
@@ -474202,7 +474334,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5016(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 /* import */ var _abstract_pacifica_js__rspack_import_0 = __webpack_require__(7313);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -475596,21 +475728,21 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
             'symbol': market['id'],
             'interval': tf
         };
-        let sinceValue = since;
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
-        if (this.safeInteger(requestUntil, 'end_time') === undefined) {
-            if (sinceValue === undefined) {
-                sinceValue = nowMs - limitValue * duration;
-            }
-            const windowEnd = this.parseToInt(this.sum(sinceValue - 1, limitValue * duration));
+        const untilEnd = this.safeInteger(requestUntil, 'end_time');
+        let startTime = this.parseToInt(nowMs - limitValue * duration);
+        if (untilEnd !== undefined) {
+            startTime = this.parseToInt(untilEnd - limitValue * duration);
+        }
+        if (since !== undefined) {
+            startTime = this.parseToInt(since);
+        }
+        if (untilEnd === undefined) {
+            const windowEnd = this.parseToInt(this.sum(startTime - 1, limitValue * duration));
             const until = windowEnd > nowMs ? nowMs : windowEnd;
             requestUntil['end_time'] = until;
-        } else {
-            if (sinceValue === undefined) {
-                sinceValue = requestUntil['end_time'] - limitValue * duration;
-            }
         }
-        requestUntil['start_time'] = sinceValue;
+        requestUntil['start_time'] = startTime;
         const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {
@@ -478135,7 +478267,7 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
         const signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         const finalHeaders = {};
         const [agentAddress, paramsAgentAddress] = this.handleOptionStringAndParams(paramsExpiryWindow, 'postActionRequest', 'agentAddress');
-        const originAddress = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress)[0];
+        const [originAddress] = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress);
         if (originAddress === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }
@@ -478164,8 +478296,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3651(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _abstract_paradex_js__rspack_import_0 = __webpack_require__(3496);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -479781,8 +479913,10 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         const response = await this.publicGetMarketsSummary(this.extend(request, params));
         const data = this.safeList(response, 'results', []);
         // only a perpetual funds, the other rows are dropped before they are parsed
-        const rows = request['market'] === 'ALL' ? this.filterLoadedSummaries(data, 'swap') : data;
-        return this.parseFundingRates(rows, symbolsNormalized);
+        if (request['market'] === 'ALL') {
+            return this.parseFundingRates(this.filterLoadedSummaries(data, 'swap'), symbolsNormalized);
+        }
+        return this.parseFundingRates(data, symbolsNormalized);
     }
     /**
      * @method
@@ -480112,8 +480246,8 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
     }
     signHash(hash, privateKey) {
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -480418,7 +480552,8 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' requires a side argument');
         }
         const market = this.market(symbol);
-        let reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
+        const reduceOnlyParam = this.safeBool2(params, 'reduceOnly', 'reduce_only');
+        let reduceOnly = reduceOnlyParam === true;
         const orderType = type.toUpperCase();
         const orderSide = side.toUpperCase();
         const request = {
@@ -482594,7 +482729,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8686(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_paymium_js__rspack_import_0 = __webpack_require__(7113);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -483340,7 +483475,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5653(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_phemex_js__rspack_import_0 = __webpack_require__(2400);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -485128,8 +485263,9 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
         const last = this.fromEp(this.safeString2(ticker, 'lastEp', 'closeRp'), marketResolved);
         const quoteVolume = this.fromEr(this.safeString2(ticker, 'turnoverEv', 'turnoverRv'), marketResolved);
-        let baseVolume = this.safeString(ticker, 'volume');
-        if (baseVolume === undefined) {
+        const volume = this.safeString(ticker, 'volume');
+        let baseVolume = volume;
+        if (volume === undefined) {
             baseVolume = this.fromEv(this.safeString2(ticker, 'volumeEv', 'volumeRq'), marketResolved);
         }
         const open = this.fromEp(this.safeString(ticker, 'openEp'), marketResolved);
@@ -486166,8 +486302,9 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         const status = this.parseOrderStatus(this.safeString(order, 'ordStatus'));
         const side = this.parseOrderSide(this.safeStringLower(order, 'side'));
         const type = this.parseOrderType(this.safeString(order, 'orderType'));
-        let price = this.safeString(order, 'priceRp');
-        if (price === undefined) {
+        const priceRp = this.safeString(order, 'priceRp');
+        let price = priceRp;
+        if (priceRp === undefined) {
             price = this.fromEp(this.safeString(order, 'priceEp'), marketResolved);
         }
         const amount = this.safeNumber2(order, 'orderQty', 'orderQtyRq');
@@ -488727,7 +488864,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         const stableCoins = this.safeList(this.options, 'stableCoins', []);
         if (networkId === undefined) {
             if (!this.inArray(code, stableCoins)) {
-                networkId = currency['id'];
+                networkId = this.safeString(currency, 'id', currency['id']);
             } else {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' withdraw () requires an extra argument params["network"]');
             }
@@ -489449,7 +489586,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2406(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_poloniex_js__rspack_import_0 = __webpack_require__(2819);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -493730,8 +493867,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9896(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_polymarket_js__rspack_import_0 = __webpack_require__(8905);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
@@ -496431,8 +496568,8 @@ class polymarket extends _abstract_polymarket_js__rspack_import_0/* ["default"] 
     }
     signHash(hash, privateKey) {
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const sVal = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const sVal = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + sVal.padStart(64, '0') + v;
     }
@@ -496535,7 +496672,7 @@ class polymarket extends _abstract_polymarket_js__rspack_import_0/* ["default"] 
             if (expires === undefined) {
                 return credentials;
             }
-            const refreshAfter = expires - margin;
+            const refreshAfter = this.parseToInt(expires - margin);
             if (this.milliseconds() < refreshAfter) {
                 return credentials;
             }
@@ -496767,7 +496904,7 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var _abstract_prediction_binance_js__rspack_import_0 = __webpack_require__(4015);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 
 
@@ -497018,7 +497155,7 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         let offset = 0;
         while(true){
             const collectedLength = collected.length;
-            const remaining = maxTopicsResolved - collectedLength;
+            const remaining = this.parseToInt(maxTopicsResolved - collectedLength);
             const reqLimit = remaining < pageLimit ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
@@ -497801,12 +497938,8 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
             const marketId = this.safeString(order, 'marketId');
             const outcome = this.safeStringUpper(order, 'outcome');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
         }
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'createTime');
@@ -498152,12 +498285,8 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
             const marketId = this.safeString(position, 'marketId');
             const outcome = this.safeStringUpper(position, 'outcomeName');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
         }
         const timestamp = this.safeInteger(position, 'createdTime');
         const totalCost = this.parseNumber(this.safeString(position, 'totalCost'));
@@ -498322,12 +498451,8 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
             const marketId = this.safeString(trade, 'marketId');
             const outcome = this.safeStringUpper(trade, 'outcome');
             const market = this.safeMarket(marketId);
-            let outcomeName = this.safeString(market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome(outcomeName);
+            const marketName = this.safeString(market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
         }
         const timestamp = this.safeInteger(trade, 'createTime');
         const filled = this.safeString(trade, 'filledShareQty');
@@ -498765,8 +498890,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6470(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_hyperliquid_js__rspack_import_0 = __webpack_require__(5087);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 /* import */ var _base_functions_crypto_js__rspack_import_4 = __webpack_require__(1093);
@@ -498950,7 +499075,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
      * @param {int} encoding outcome side encoding
      * @returns {string} the coin name
      */ outcomeCoin(encoding) {
-        return '#' + encoding.toString();
+        return '#' + this.parseToInt(encoding).toString();
     }
     /**
      * @ignore
@@ -498960,7 +499085,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
      * @param {int} encoding outcome side encoding
      * @returns {string} the token name
      */ outcomeToken(encoding) {
-        return '+' + encoding.toString();
+        return '+' + this.parseToInt(encoding).toString();
     }
     /**
      * @ignore
@@ -499024,7 +499149,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
@@ -499116,16 +499241,16 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
                     }
                 }
                 if (outcomeSlug !== undefined && outcomeSlug !== '') {
-                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId.toString();
+                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId;
                 }
-                return questionSlug + '_' + outcomeId.toString();
+                return questionSlug + '_' + outcomeId;
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (name !== undefined && name !== '') {
-            return this.shortenSlug(name) + '_' + outcomeId.toString();
+            return this.shortenSlug(name) + '_' + outcomeId;
         }
-        return 'OUTCOME_' + outcomeId.toString();
+        return 'OUTCOME_' + outcomeId;
     }
     /**
      * @method
@@ -499198,7 +499323,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             const outcomeInfo = this.safeDict(outcomesList, i, {});
             const outcomeId = this.safeInteger(outcomeInfo, 'outcome', i);
             const linkedQuestion = this.safeDict(outcomesToQuestions, outcomeId.toString(), {});
-            const market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
+            const market = this.parseOutcomeMarket(outcomeInfo, outcomeId.toString(), outcomeId, linkedQuestion);
             markets.push(market);
             // Build outcomes dictionary from market outcomes
             const marketOutcomes = this.safeList(market, 'outcomes', []);
@@ -499222,15 +499347,16 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
-     */ parseOutcomeMarket(outcomeInfo, outcomeId, question = {}) {
+     */ parseOutcomeMarket(outcomeInfo, outcomeKey, outcomeId, question = {}) {
         const description = this.safeString(outcomeInfo, 'description', '');
         const name = this.safeString(outcomeInfo, 'name', '');
         const sideSpecs = this.safeList(outcomeInfo, 'sideSpecs', []);
         const desc = this.parseOutcomeDescription(description);
-        const parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
+        const parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeKey, name, question);
         const yesEncoding = this.outcomeEncoding(outcomeId, 0);
         const noEncoding = this.outcomeEncoding(outcomeId, 1);
         const yesOutcomeSymbol = parentSymbol + ':YES';
@@ -499307,12 +499433,12 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             }
         ];
         const marketRow = this.safeMarketStructure({
-            'id': outcomeId.toString(),
+            'id': outcomeKey,
             'market': parentSymbol,
             'base': parentSymbol.split('/')[0],
             'quote': quoteCurrency,
             'settle': undefined,
-            'baseId': outcomeId.toString(),
+            'baseId': outcomeKey,
             'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
@@ -499387,7 +499513,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         const intPart = parts[0];
         const intPartLength = intPart.length;
         const szDecimalsInt = this.parseToInt(szDecimals);
-        const maxDecimals = 8 - szDecimalsInt;
+        const maxDecimals = this.parseToInt(8 - szDecimalsInt);
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         let digitsLeft = 0;
         if (intPartLength <= 5) {
@@ -499459,16 +499585,13 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             // no filter — warm the whole outcome set so identities resolve from the cache
             await this.loadOutcomes();
         }
-        const response = await this.publicPostInfo(this.extend({
+        const allMidsResponse = await this.publicPostInfo(this.extend({
             'type': 'allMids'
         }, params));
+        const allMids = this.infoDict(allMidsResponse);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        let allMids = {};
-        if (typeof response !== 'string' && !Array.isArray(response)) {
-            allMids = response;
-        }
         const mids = this.safeDict(allMids, 'mids', allMids);
         const tickers = {};
         const outcomesMap = this.outcomes !== undefined ? this.outcomes : {};
@@ -499665,7 +499788,8 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             }
         };
         const paramsOmitted = this.omit(params, 'until');
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -499682,10 +499806,6 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         //         }
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     /**
@@ -500287,12 +500407,9 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             'type': method,
             'user': userAddress
         };
-        const response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrders = this.infoList(rawOrdersResponse);
         const ordersWithStatus = [];
-        let rawOrders = [];
-        if (Array.isArray(response)) {
-            rawOrders = response;
-        }
         for(let i = 0; i < rawOrders.length; i++){
             const order = rawOrders[i];
             ordersWithStatus.push(this.extend(order, {
@@ -500325,13 +500442,10 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             'type': 'historicalOrders',
             'user': userAddress
         };
-        const response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrders = this.infoList(historicalOrdersResponse);
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped = {};
-        let historicalOrders = [];
-        if (Array.isArray(response)) {
-            historicalOrders = response;
-        }
         for(let i = 0; i < historicalOrders.length; i++){
             const raw = historicalOrders[i];
             let entry = this.safeDict(raw, 'order');
@@ -500387,11 +500501,8 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             const isCloid = id.length >= 34;
             request['oid'] = isCloid ? id : this.parseToNumeric(id);
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsValue));
-        let orderStatus = {};
-        if (typeof response !== 'string' && !Array.isArray(response)) {
-            orderStatus = response;
-        }
+        const orderStatusResponse = await this.publicPostInfo(this.extend(request, paramsValue));
+        const orderStatus = this.infoDict(orderStatusResponse);
         const orderWrapper = this.safeDict(orderStatus, 'order', orderStatus);
         const parsed = this.parsePredictionOrder(orderWrapper, undefined);
         if (outcome !== undefined) {
@@ -500877,8 +500988,8 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         const signature = (0,_base_functions_crypto_js__rspack_import_4/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_5/* .secp256k1 */.bI, undefined);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         return {
@@ -501127,6 +501238,31 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         }
         return this.safeValue(config, 'cost', 1);
     }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */ infoList(response) {
+        let result = [];
+        if (Array.isArray(response)) {
+            result = response;
+        }
+        return result;
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */ infoDict(response) {
+        if (typeof response !== 'string' && !Array.isArray(response)) {
+            return response;
+        }
+        return {};
+    }
 }
 // ---------------------------------------------------------------------------
 /**
@@ -501142,7 +501278,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7788(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_prediction_kalshi_js__rspack_import_0 = __webpack_require__(1695);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 /* import */ var _base_functions_rsa_js__rspack_import_3 = __webpack_require__(8748);
@@ -503729,7 +503865,7 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
             let cursor = undefined;
             for(let page = 0; page < maxPages; page++){
                 let reqLimit = pageLimit;
-                if (hasLimit && limitValue !== undefined) {
+                if (hasLimit) {
                     const collectedSoFar = rawEvents.length;
                     const remaining = this.parseToInt(limitValue - collectedSoFar);
                     if (remaining < reqLimit) {
@@ -504013,9 +504149,9 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3454(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4721);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(6885);
-/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(6834);
+/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4006);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(4608);
+/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(4725);
 /* import */ var _abstract_prediction_limitless_js__rspack_import_0 = __webpack_require__(4531);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -506454,8 +506590,8 @@ class limitless extends _abstract_prediction_limitless_js__rspack_import_0/* ["d
     }
     signHash(hash, privateKey) {
         const signature = (0,_base_functions_js__rspack_import_4/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_5/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         const rPadded = r.padStart(64, '0');
         const sPadded = s.padStart(64, '0');
@@ -507347,9 +507483,6 @@ class limitless extends _abstract_prediction_limitless_js__rspack_import_0/* ["d
             const categoryId = this.safeString(category, 'id');
             let matched = false;
             for(let wi = 0; wi < wanted.length; wi++){
-                if (name === undefined) {
-                    throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' fetchRawMarketsByTags() missing name');
-                }
                 if (name.indexOf(wanted[wi]) >= 0) {
                     matched = true;
                     break;
@@ -507484,8 +507617,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2244(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_myriad_js__rspack_import_0 = __webpack_require__(5843);
 /* import */ var _base_functions_crypto_js__rspack_import_4 = __webpack_require__(1093);
 /* import */ var _base_ws_Cache_js__rspack_import_6 = __webpack_require__(1697);
@@ -508726,8 +508859,8 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
         const encoded = this.ethEncodeStructuredData(domain, types, message);
         const digest = this.hash(encoded, _noble_hashes_sha3_js__rspack_import_3/* .keccak_256 */.lY, 'hex');
         const signature = (0,_base_functions_crypto_js__rspack_import_4/* .ecdsa */.h1)(digest, this.remove0xPrefix(this.privateKey), _noble_curves_secp256k1_js__rspack_import_5/* .secp256k1 */.bI, undefined);
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         const v = this.sum(27, signature['v']);
@@ -511612,8 +511745,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2478(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_opinion_js__rspack_import_0 = __webpack_require__(3647);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -513948,9 +514081,9 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7348(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_7 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_7 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_polymarket_js__rspack_import_0 = __webpack_require__(9715);
 /* import */ var _base_functions_crypto_js__rspack_import_6 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -514661,7 +514794,7 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
                 }
             } else {
                 const optionMaxPages = this.safeInteger(this.options, 'maxSearchPages', 5);
-                const maxSearchPages = this.safeInteger(params, 'maxSearchPages', optionMaxPages);
+                const maxSearchPages = this.parseToInt(this.safeInteger(params, 'maxSearchPages', optionMaxPages));
                 if (maxSearchPages < totalPages) {
                     totalPages = maxSearchPages;
                 }
@@ -515536,17 +515669,17 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds();
-        let startS;
-        let endS = nowS;
+        let startS = this.parseToInt(0);
+        let endS = this.parseToInt(nowS);
         if (since !== undefined) {
             startS = this.parseToInt(since / 1000);
             if (limit !== undefined) {
-                const endBound = this.sum(startS, limit * fidelityMin * 60);
+                const endBound = this.parseToInt(this.sum(startS, limit * fidelityMin * 60));
                 endS = endBound < nowS ? endBound : nowS;
             }
         } else {
             const barCount = limit !== undefined ? limit : 100;
-            startS = nowS - barCount * fidelityMin * 60;
+            startS = this.parseToInt(nowS - barCount * fidelityMin * 60);
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -515555,9 +515688,9 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
         const maxWindow = this.safeInteger(this.options, 'maxPricesHistoryWindow', 1296000);
         if (endS - startS > maxWindow) {
             if (since !== undefined) {
-                endS = this.sum(startS, maxWindow);
+                endS = this.parseToInt(this.sum(startS, maxWindow));
             } else {
-                startS = endS - maxWindow;
+                startS = this.parseToInt(endS - maxWindow);
             }
         }
         const request = {
@@ -517259,8 +517392,8 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
     signHash(hash, privateKey) {
         const signature = (0,_base_functions_crypto_js__rspack_import_6/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_7/* .secp256k1 */.bI, undefined);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         return {
@@ -517833,8 +517966,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4884(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_3 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_5 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_predictfun_js__rspack_import_0 = __webpack_require__(883);
 /* import */ var _base_functions_crypto_js__rspack_import_4 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -519684,8 +519817,8 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
      */ signHash(hash, privateKey) {
         const signature = (0,_base_functions_crypto_js__rspack_import_4/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_5/* .secp256k1 */.bI, undefined);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
@@ -521900,8 +522033,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2214(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_prediction_sxbet_js__rspack_import_0 = __webpack_require__(7559);
 /* import */ var _base_functions_crypto_js__rspack_import_5 = __webpack_require__(1093);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -522673,8 +522806,8 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(digest.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         const v = this.intToBase16(this.sum(27, signature['v']));
@@ -525625,7 +525758,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9222(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _apex_js__rspack_import_0 = __webpack_require__(8818);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -526114,7 +526247,8 @@ class apex extends _apex_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -527882,7 +528016,8 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, params);
-        return result[symbolValue][timeframe];
+        const bySymbol = result[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -528111,8 +528246,12 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
                     // waiters retry rather than proceed unauthenticated
                     throw new _base_errors_js__rspack_import_1.AuthenticationError(this.id + ' authenticate() received an empty listenKey');
                 }
-                this.options['listenKey'][type] = listenKey;
-                this.options['lastAuthenticatedTime'][type] = time;
+                const listenKeys = this.safeDict(this.options, 'listenKey', {});
+                listenKeys[type] = listenKey;
+                this.options['listenKey'] = listenKeys;
+                const lastAuthenticatedTimes = this.safeDict(this.options, 'lastAuthenticatedTime', {});
+                lastAuthenticatedTimes[type] = time;
+                this.options['lastAuthenticatedTime'] = lastAuthenticatedTimes;
                 const keepAliveParams = this.extend({
                     'type': type
                 }, params);
@@ -528151,7 +528290,9 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
                 client.reject(error, messageHash);
             }
             this.options['listenKey'][type] = undefined;
-            this.options['lastAuthenticatedTime'][type] = 0;
+            const lastAuthenticatedTimes = this.safeDict(this.options, 'lastAuthenticatedTime', {});
+            lastAuthenticatedTimes[type] = 0;
+            this.options['lastAuthenticatedTime'] = lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -528876,7 +529017,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6476(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_3 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_3 = __webpack_require__(5573);
 /* import */ var _backpack_js__rspack_import_0 = __webpack_require__(9264);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_4 = __webpack_require__(1697);
@@ -529559,7 +529700,8 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, query);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -530062,14 +530204,15 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         const deltaNonce = this.safeInteger(data, 'u');
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cacheSize = storedOrderBook.cache.length;
+            const cacheLength = this.parseToInt(cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache.push(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             const market = this.market(symbol);
             const isStockMarket = market['stock'] === true || marketId !== undefined && (marketId.indexOf('.US_') >= 0 || marketId.indexOf('.HK_') >= 0);
             const defaultSnapshotDelay = isStockMarket ? 0 : 10;
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay);
+            const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay));
             if (cacheLength === snapshotDelay) {
                 this.spawn(this.loadOrderBook, client, messageHash, symbol, undefined, {});
             }
@@ -530784,8 +530927,8 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7802(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4721);
-/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(7468);
+/* import */ var _noble_hashes_sha2_js__rspack_import_5 = __webpack_require__(4006);
+/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(5573);
 /* import */ var _binance_js__rspack_import_0 = __webpack_require__(2222);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -531005,7 +531148,8 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     isSpotUrl(client) {
@@ -531023,7 +531167,8 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString(normalizedIndex);
             if (subscriptionHash !== undefined) {
-                this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+                streamBySubscriptionsHash[subscriptionHash] = stream;
+                this.options['streamBySubscriptionsHash'] = streamBySubscriptionsHash;
             }
             const subscriptionsByStreams = this.safeDict(this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
@@ -531583,7 +531728,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const [rpi, paramsRpi] = this.handleOptionBoolAndParams(paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
         if (rpi && type === 'linear') {
             name = 'rpiDepth';
-            watchOrderBookRate = '500';
+            watchOrderBookRate = this.numberToString(500);
         }
         const subParams = [];
         const messageHashes = [];
@@ -531597,7 +531742,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             if (watchOrderBookRate === undefined) {
                 throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() watchOrderBookRate is required');
             }
-            const symbolHash = subscriptionHash + '@' + watchOrderBookRate.toString() + 'ms';
+            const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push(symbolHash);
         }
         const messageHashesLength = messageHashes.length;
@@ -532494,7 +532639,8 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, paramsStock);
-        return result[symbolValue][timeframe];
+        const bySymbol = result[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -533200,7 +533346,10 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         let firstMarket = undefined;
         const symbolsDefined = symbolsNormalized !== undefined;
         if (symbolsNormalized !== undefined) {
-            firstMarket = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                firstMarket = this.market(symbolsNormalized[0]);
+            }
         }
         const userDefaultType = this.safeString(this.options, 'defaultType');
         let defaultMarket = undefined;
@@ -536390,10 +536539,11 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         let market = undefined;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            symbolResolved = this.symbol(symbol);
         }
-        const symbolResolved = symbol !== undefined ? this.symbol(symbol) : symbol;
         const [type, subType, paramsAuth] = this.resolveAuthType('watchMyTrades', market, params);
         let messageHash = 'myTrades';
         let symbolParams = {};
@@ -536486,7 +536636,8 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
                                 if (feeCostString === undefined) {
                                     feeCostString = '0';
                                 }
-                                order['fee']['cost'] = parseFloat(feeCostString);
+                                fee['cost'] = parseFloat(feeCostString);
+                                order['fee'] = fee;
                             } else if (fee['currency'] === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
@@ -536678,7 +536829,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         }
         // reset connection if 5xx error
         const codeString = this.safeString(error, 'code');
-        if (codeString !== undefined && codeString[0] === '5') {
+        if (codeString !== undefined && codeString.startsWith('5')) {
             const resetError = new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' ' + this.json(message));
             client.reset(resetError);
         }
@@ -539805,7 +539956,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5019(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _bitfinex_js__rspack_import_0 = __webpack_require__(7967);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
@@ -541178,7 +541329,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1179(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _bitget_js__rspack_import_0 = __webpack_require__(8271);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
@@ -541281,27 +541432,21 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
     }
     getInstType(methodName, market, uta = false, params = {}) {
         const useProductType = market === undefined || this.safeBool(market, 'swap', false) || this.safeBool(market, 'future', false);
-        let productTypeAndParams = [
-            undefined,
-            {}
-        ];
+        let instTypeDefault = 'SPOT';
+        let paramsProductType = params;
         if (useProductType) {
-            productTypeAndParams = this.handleProductTypeAndParams(market, params);
-        } else {
-            productTypeAndParams = [
-                'SPOT',
-                params
+            [instTypeDefault, paramsProductType] = this.handleProductTypeAndParams(market, params);
+        }
+        const [instTypeOption, paramsInstType] = this.handleOptionStringAndParams(paramsProductType, methodName, 'instType', instTypeDefault);
+        if (uta && instTypeOption !== undefined) {
+            const instTypeLower = instTypeOption.toLowerCase();
+            return [
+                instTypeLower,
+                paramsInstType
             ];
         }
-        const instTypeDefault = productTypeAndParams[0];
-        const paramsProductType = productTypeAndParams[1];
-        const [instTypeOption, paramsInstType] = this.handleOptionStringAndParams(paramsProductType, methodName, 'instType', instTypeDefault);
-        let instType = instTypeOption;
-        if (uta && instTypeOption !== undefined) {
-            instType = instTypeOption.toLowerCase();
-        }
         return [
-            instType,
+            instTypeOption,
             paramsInstType
         ];
     }
@@ -542215,7 +542360,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                 const payload = payloadArray.join(':');
                 const calculatedChecksum = this.crc32(payload, true);
                 if (calculatedChecksum !== responseChecksum) {
-                    this.spawn(this.handleCheckSumError, client, symbol, messageHash);
+                    this.spawn(this.handleCheckSumError, client, symbol, messageHash, this.orderbookChecksumMessage(this.safeString(market, 'symbol', '')));
                     return;
                 }
             }
@@ -542246,9 +542391,9 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         }
         client.resolve(this.orderbooks[symbol], messageHash);
     }
-    async handleCheckSumError(client, symbol, messageHash) {
+    async handleCheckSumError(client, symbol, messageHash, checksumMessage) {
         await this.unWatchOrderBook(symbol);
-        const error = new _base_errors_js__rspack_import_1.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+        const error = new _base_errors_js__rspack_import_1.ChecksumError(this.id + ' ' + checksumMessage);
         client.reject(error, messageHash);
     }
     handleDelta(bookside, delta) {
@@ -543781,20 +543926,20 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                     const entry = this.safeDict(coins, j);
                     const currencyId = this.safeString(entry, 'coin');
                     const code = this.safeCurrencyCode(currencyId);
-                    let account = this.account();
+                    let coinAccount = this.account();
                     if (code !== undefined && code in this.balance) {
-                        account = this.safeDict(this.balance, code, account);
+                        coinAccount = this.safeDict(this.balance, code, coinAccount);
                     }
                     const borrow = this.safeString(entry, 'borrow');
                     const debts = this.safeString(entry, 'debts');
                     if (borrow !== undefined || debts !== undefined) {
-                        account['debt'] = _base_Precise_js__rspack_import_2/* .Precise.stringAdd */.Y.stringAdd(borrow, debts);
+                        coinAccount['debt'] = _base_Precise_js__rspack_import_2/* .Precise.stringAdd */.Y.stringAdd(borrow, debts);
                     }
-                    account['free'] = this.safeString(entry, 'available');
-                    account['used'] = this.safeString(entry, 'locked');
-                    account['total'] = this.safeString(entry, 'balance');
+                    coinAccount['free'] = this.safeString(entry, 'available');
+                    coinAccount['used'] = this.safeString(entry, 'locked');
+                    coinAccount['total'] = this.safeString(entry, 'balance');
                     if (code !== undefined) {
-                        this.balance[code] = account;
+                        this.balance[code] = coinAccount;
                     }
                 }
             } else {
@@ -544358,7 +544503,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 479(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _bithumb_js__rspack_import_0 = __webpack_require__(3267);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -545486,7 +545631,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5707(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _bitopro_js__rspack_import_0 = __webpack_require__(2847);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -548829,7 +548974,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6385(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _bitvavo_js__rspack_import_0 = __webpack_require__(1117);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
@@ -549285,7 +549430,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         const timeframe = this.findTimeframe(interval);
         const messageHash = name + '@' + this.safeString(message, 'market', '') + '_' + interval;
         const candles = this.safeList(message, 'candle', []);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -551524,7 +551669,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 270(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _blofin_js__rspack_import_0 = __webpack_require__(2114);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
@@ -552649,7 +552794,9 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
         const cookies = {
             'JWT_COOKIE': token
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict(this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const id = this.requestId().toString();
         const message = {
             'jsonrpc': '2.0',
@@ -553368,7 +553515,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7832(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _bybit_js__rspack_import_0 = __webpack_require__(1484);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -553593,8 +553740,8 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 url = accessibilityUrls['option'];
             }
         }
-        url = this.implodeHostname(url);
-        return url;
+        const urlResolved = this.implodeHostname(url);
+        return urlResolved;
     }
     cleanParams(params) {
         const paramsOmitted = this.omit(params, [
@@ -554096,7 +554243,8 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -554972,10 +555120,9 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         let messageHash = '';
         let symbolsNormalized = symbols;
         if (symbols !== undefined && !this.isEmpty(symbols)) {
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (symbolsNormalized !== undefined && !this.isEmpty(symbolsNormalized)) {
-            messageHash = '::' + symbolsNormalized.join(',');
+            const marketSymbols = this.marketSymbols(symbols);
+            symbolsNormalized = marketSymbols;
+            messageHash = '::' + marketSymbols.join(',');
         }
         const firstSymbol = this.safeString(symbolsNormalized, 0);
         const url = await this.getUrlByMarketType(firstSymbol, true, method, params);
@@ -554990,12 +555137,11 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
         }
-        const topics = [
-            'position'
-        ];
         const newPositions = await this.watchTopics(url, [
             messageHash
-        ], topics, params);
+        ], [
+            'position'
+        ], params);
         if (this.newUpdates) {
             return newPositions;
         }
@@ -555335,7 +555481,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 'user.openapi.perp.order'
             ]
         };
-        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        const topics = this.safeList(topicsByMarket, this.getPrivateType(url), []);
         const orders = await this.watchTopics(url, [
             messageHash
         ], topics, params);
@@ -556443,7 +556589,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6340(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _cex_js__rspack_import_0 = __webpack_require__(5704);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -556582,7 +556728,9 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         if (currentSymbol !== undefined && currentSymbol !== symbol) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        this.options['watchTrades']['symbol'] = symbol;
+        const watchTradesDict = this.safeDict(this.options, 'watchTrades', {});
+        watchTradesDict['symbol'] = symbol;
+        this.options['watchTrades'] = watchTradesDict;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -558081,7 +558229,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3434(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4006);
 /* import */ var _coinbase_js__rspack_import_0 = __webpack_require__(4038);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
@@ -558654,7 +558802,7 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
                     this.safeNumber(candle, 'close'),
                     this.safeNumber(candle, 'volume')
                 ];
-                this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+                this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
                 let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
                 if (stored === undefined) {
                     const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -559184,7 +559332,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4867(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _coinbaseexchange_js__rspack_import_0 = __webpack_require__(7455);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
@@ -559887,7 +560035,8 @@ class coinbaseexchange extends _coinbaseexchange_js__rspack_import_0/* ["default
                         }
                         const previousOrderFee = this.safeDict(previousOrder, 'fee', {});
                         if (this.safeNumber(previousOrderFee, 'cost') !== undefined && this.safeNumber(trade['fee'], 'cost') !== undefined) {
-                            previousOrder['fee']['cost'] = this.parseNumber(_base_Precise_js__rspack_import_4/* ["default"].stringAdd */.A.stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(trade['fee'], 'cost')));
+                            previousOrderFee['cost'] = this.parseNumber(_base_Precise_js__rspack_import_4/* ["default"].stringAdd */.A.stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(trade['fee'], 'cost')));
+                            previousOrder['fee'] = previousOrderFee;
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);
@@ -561089,7 +561238,8 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
                 timeframe
             ]
         ], since, limit, paramsResolved);
-        return ohlcvs[symbolResolved][timeframe];
+        const bySymbol = ohlcvs[symbolResolved];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -562846,7 +562996,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8202(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _cryptocom_js__rspack_import_0 = __webpack_require__(6214);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -564046,14 +564196,15 @@ class cryptocom extends _cryptocom_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         let market = undefined;
-        const request = {
-            'method': 'private/cancel-all-orders',
-            'params': this.extend({}, params)
-        };
+        const requestParams = this.extend({}, params);
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['params']['instrument_name'] = market['id'];
+            requestParams['instrument_name'] = market['id'];
         }
+        const request = {
+            'method': 'private/cancel-all-orders',
+            'params': requestParams
+        };
         const messageHash = this.incrementingNonce();
         return await this.watchPrivateRequest(messageHash, request);
     }
@@ -565661,7 +565812,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 673(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _deribit_js__rspack_import_0 = __webpack_require__(3045);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
@@ -566488,7 +566639,8 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, params);
-        return ohlcvs[symbolValue][timeframe];
+        const bySymbol = ohlcvs[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -566843,7 +566995,8 @@ class derive extends _derive_js__rspack_import_0/* ["default"] */.A {
         const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     async watchPublic(messageHash, message, subscription) {
@@ -569287,7 +569440,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2541(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _gate_js__rspack_import_0 = __webpack_require__(1305);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -569520,12 +569673,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol === undefined) {
-            market = undefined;
-        } else {
-            market = this.market(symbol);
-        }
+        const market = this.market(symbol);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_cancel_cp';
@@ -569737,15 +569885,17 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         const messageType = this.getTypeByMarket(market);
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
-        let defaultLimit = 100;
+        let limitResolved = this.parseToInt(100);
         if (this.safeBool(market, 'spot', false) || messageType === 'options') {
-            defaultLimit = 50;
+            limitResolved = this.parseToInt(50);
         }
-        let limitResolved = limit === undefined ? defaultLimit : limit;
+        if (limit !== undefined) {
+            limitResolved = this.parseToInt(limit);
+        }
         if (this.safeBool(market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
-            limitResolved = Math.min(limitResolved, maxSpotLimit);
+            limitResolved = this.parseToInt(Math.min(limitResolved, maxSpotLimit));
         }
         let payload = [];
         let channel = '';
@@ -569804,12 +569954,13 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         const interval = intervalDefault;
         const [intervalOption, paramsInterval] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket(market);
-        let limit = this.safeInteger(paramsInterval, 'limit');
-        if (limit === undefined) {
-            limit = this.safeBool(market, 'spot', false) ? 50 : 100; // max 100 atm
-            if (messageType === 'options') {
-                limit = 50; // max 50 for options
-            }
+        const limitParam = this.safeInteger(paramsInterval, 'limit');
+        let limit = this.parseToInt(this.safeBool(market, 'spot', false) ? 50 : 100); // max 100 atm
+        if (messageType === 'options') {
+            limit = this.parseToInt(50); // max 50 for options
+        }
+        if (limitParam !== undefined) {
+            limit = this.parseToInt(limitParam);
         }
         let payload = [];
         let channel = '';
@@ -570534,7 +570685,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
                     this.safeNumber(ohlcv, 'a')
                 ];
             }
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -571637,15 +571788,13 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
     getUrlByMarket(market) {
         if (this.safeBool(market, 'contract', false)) {
             const settleKey = this.safeBool(market, 'linear', false) ? 'usdt' : 'btc';
-            return this.safeString(this.urls['api'][market['type']], settleKey, '');
-        } else {
-            return this.safeString(this.urls['api'], market['type'], '');
+            const contractUrl = this.safeString(this.urls['api'][market['type']], settleKey, '');
+            return contractUrl;
         }
+        const spotUrl = this.safeString(this.urls['api'], market['type'], '');
+        return spotUrl;
     }
     getTypeByMarket(market) {
-        if (market === undefined) {
-            return undefined;
-        }
         if (this.safeBool(market, 'spot', false)) {
             return 'spot';
         } else if (this.safeBool(market, 'option', false)) {
@@ -571893,7 +572042,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4453(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _gemini_js__rspack_import_0 = __webpack_require__(841);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
@@ -573303,7 +573452,8 @@ class grvt extends _grvt_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, params);
-        return result[symbolValue][timeframe];
+        const bySymbol = result[symbolValue];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -574790,7 +574940,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3906(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _hitbtc_js__rspack_import_0 = __webpack_require__(3030);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
@@ -576439,7 +576589,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 293(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _hollaex_js__rspack_import_0 = __webpack_require__(33);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -577085,7 +577235,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 2404(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _htx_js__rspack_import_0 = __webpack_require__(8552);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -580591,11 +580741,8 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true);
         let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
-        const request = {
-            'method': 'subscribe',
-            'subscription': {
-                'type': 'allMids'
-            }
+        const subscription = {
+            'type': 'allMids'
         };
         let defaultDex = this.safeString(params, 'dex');
         const firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -580609,9 +580756,13 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         const paramsOmitted = defaultDex !== undefined ? this.omit(params, 'dex') : params;
         if (defaultDex !== undefined) {
             messageHash = 'tickers:' + defaultDex;
-            request['subscription']['type'] = 'allMids';
-            request['subscription']['dex'] = defaultDex;
+            subscription['type'] = 'allMids';
+            subscription['dex'] = defaultDex;
         }
+        const request = {
+            'method': 'subscribe',
+            'subscription': subscription
+        };
         // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
         await this.waitForPendingUnsubscribe(url, 'tickers');
         const tickers = await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash);
@@ -584304,7 +584455,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3690(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _krakenfutures_js__rspack_import_0 = __webpack_require__(5262);
 /* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
@@ -587807,7 +587958,7 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
             const nonce = this.safeInteger(orderbook, 'nonce');
             const deltaEnd = this.safeInteger2(data, 'sequenceEnd', 'timestamp');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cacheLength = this.parseToInt(orderbook.cache.length);
                 const subscriptions = Object.keys(client.subscriptions);
                 let subscription = undefined;
                 for(let i = 0; i < subscriptions.length; i++){
@@ -587818,7 +587969,7 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
                     }
                 }
                 const limit = this.safeInteger(subscription, 'limit');
-                const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 5));
                 if (cacheLength === snapshotDelay) {
                     this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
                 }
@@ -587871,10 +588022,10 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
             const nonce = this.safeInteger(orderbook, 'nonce');
             const deltaEnd = this.safeInteger(data, 'C');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cacheLength = this.parseToInt(orderbook.cache.length);
                 const subscription = this.safeDict(client.subscriptions, messageHash, {});
                 const limit = this.safeInteger(subscription, 'limit');
-                const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 5));
                 const utaParams = {
                     'uta': true
                 };
@@ -588029,8 +588180,8 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
         const subscription = this.safeDict(client.subscriptions, subscriptionHash);
         delete client.subscriptions[id];
         const method = this.safeValue(subscription, 'method');
-        if (method !== undefined) {
-            method.call(this, client, message, subscription);
+        if (subscription !== undefined && method !== undefined) {
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         const isUnSub = this.safeBool(subscription, 'unsubscribe', false);
         if (isUnSub) {
@@ -592090,7 +592241,8 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
         const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     /**
@@ -593010,14 +593162,9 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
             // frames still arriving until the client resubscribes
             return;
         }
-        const handlers = [
-            this.handleOrderBook,
-            this.handleTrades
-        ];
-        for(let j = 0; j < handlers.length; j++){
-            const handler = handlers[j];
-            handler.call(this, client, message, subscriptions[0]);
-        }
+        const subscription = this.safeDict(subscriptions, 0, {});
+        this.handleOrderBook(client, message, subscription);
+        this.handleTrades(client, message, subscription);
     }
 }
 //  ---------------------------------------------------------------------------
@@ -593031,7 +593178,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 941(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4006);
 /* import */ var _mexc_js__rspack_import_0 = __webpack_require__(2641);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
@@ -595312,7 +595459,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5931(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 /* import */ var _modetrade_js__rspack_import_0 = __webpack_require__(6479);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -595387,7 +595534,8 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     async watchPublic(messageHash, message) {
@@ -597050,7 +597198,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
 /* import */ var _base_Precise_js__rspack_import_4 = __webpack_require__(7749);
-/* import */ var _noble_hashes_sha3_js__rspack_import_2 = __webpack_require__(6834);
+/* import */ var _noble_hashes_sha3_js__rspack_import_2 = __webpack_require__(4725);
 //  ---------------------------------------------------------------------------
 
 
@@ -599532,7 +599680,7 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
-                method.call(this, client, message, subscription);
+                this.handleOrderBookSubscription(client, message, subscription);
             }
         }
     }
@@ -599592,7 +599740,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4302(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
 /* import */ var _okx_js__rspack_import_0 = __webpack_require__(5058);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -604209,7 +604357,7 @@ class p2b extends _p2b_js__rspack_import_0/* ["default"] */.A {
         const timeframe = this.findTimeframe(channel, timeframes);
         const symbol = this.safeString(market, 'symbol');
         const parsed = this.parseOHLCV(data, market);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
@@ -604531,7 +604679,11 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
                 headers['PF-API-KEY'] = this.options['apiKey'];
             }
         }
-        this.options['ws']['options']['headers'] = headers;
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const wsSubOptions = this.safeDict(wsOptions, 'options', {});
+        wsSubOptions['headers'] = headers;
+        wsOptions['options'] = wsSubOptions;
+        this.options['ws'] = wsOptions;
     }
     /**
      * @method
@@ -607176,7 +607328,8 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         const subMessageHashes = [];
         for(let i = 0; i < symbolsLength; i++){
             const symbol = symbolsNormalized[i];
-            const marketId = this.market(symbol)['id'];
+            const market = this.market(symbol);
+            const marketId = market['id'];
             marketIds.push(marketId);
             subscribeHashes.push(channel + '.' + marketId);
             subMessageHashes.push(channel + '.' + symbol);
@@ -607194,14 +607347,14 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
             return true;
         }
         // the markets left in the scoped subscription once these are removed
-        let remaining = 0;
+        let othersRemain = false;
         const keys = Object.keys(client.subscriptions);
         for(let i = 0; i < keys.length; i++){
             if (keys[i].indexOf(channel + '.') === 0 && !this.inArray(keys[i], subscribeHashes)) {
-                remaining = remaining + 1;
+                othersRemain = true;
             }
         }
-        if (symbolsLength === 0 || scopedHash in client.subscriptions && remaining === 0) {
+        if (symbolsLength === 0 || scopedHash in client.subscriptions && !othersRemain) {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             const channelSubscription = {
                 'topic': 'ticker',
@@ -607254,7 +607407,8 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
             channel + ':scoped'
         ];
         for(let i = 0; i < symbols.length; i++){
-            pendingHashes.push(channel + '.' + this.market(symbols[i])['id']);
+            const market = this.market(symbols[i]);
+            pendingHashes.push(channel + '.' + market['id']);
         }
         await this.waitForPendingUnsubscribe(url, pendingHashes);
         const client = this.client(url);
@@ -607272,7 +607426,8 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         const missingHashes = [];
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for(let i = 0; i < symbols.length; i++){
-            const marketId = this.market(symbols[i])['id'];
+            const market = this.market(symbols[i]);
+            const marketId = market['id'];
             const subscribeHash = channel + '.' + marketId;
             subscribeHashes.push(subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {
@@ -608788,7 +608943,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 8009(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _phemex_js__rspack_import_0 = __webpack_require__(5653);
 /* import */ var _base_Precise_js__rspack_import_1 = __webpack_require__(7749);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -609112,7 +609267,7 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
         }
         return await this.subscribePrivate(type, messageHash, paramsMarketType);
     }
-    handleBalance(type, client, message) {
+    handleBalance(client, message, type) {
         // spot
         //    [
         //       {
@@ -609163,8 +609318,9 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
             const currency = this.safeDict(this.currencies, code, {});
             const scale = this.safeInteger(currency, 'valueScale', 8);
             const account = this.account();
-            let used = this.safeString(balance, 'totalUsedBalanceRv');
-            if (used === undefined) {
+            const usedRv = this.safeString(balance, 'totalUsedBalanceRv');
+            let used = usedRv;
+            if (usedRv === undefined) {
                 let usedEv = this.safeString(balance, 'totalUsedBalanceEv');
                 if (usedEv === undefined) {
                     const lockedTradingBalanceEv = this.safeString(balance, 'lockedTradingBalanceEv');
@@ -609173,8 +609329,9 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
                 }
                 used = this.fromEn(usedEv, scale);
             }
-            let total = this.safeString(balance, 'accountBalanceRv');
-            if (total === undefined) {
+            const totalRv = this.safeString(balance, 'accountBalanceRv');
+            let total = totalRv;
+            if (totalRv === undefined) {
                 const totalEv = this.safeString2(balance, 'accountBalanceEv', 'balanceEv');
                 total = this.fromEn(totalEv, scale);
             }
@@ -610453,7 +610610,7 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
                 'accounts_p',
                 'wallets'
             ], []);
-            this.handleBalance(type, client, accounts);
+            this.handleBalance(client, accounts, type);
         }
     }
     handleAuthenticate(client, message) {
@@ -610548,7 +610705,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1818(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _poloniex_js__rspack_import_0 = __webpack_require__(2406);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_4 = __webpack_require__(1697);
@@ -611589,12 +611746,14 @@ class poloniex extends _poloniex_js__rspack_import_0/* ["default"] */.A {
                         previousOrder['average'] = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(totalCost, totalAmount));
                     }
                     previousOrder['cost'] = this.parseNumber(totalCost);
-                    if (previousOrder['filled'] !== undefined) {
+                    const previousOrderFilledRaw = this.safeString(previousOrder, 'filled');
+                    if (previousOrderFilledRaw !== undefined) {
                         const tradeAmount = this.numberToString(trade['amount']);
                         let previousOrderFilled = this.numberToString(previousOrder['filled']);
                         previousOrderFilled = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(previousOrderFilled, tradeAmount);
                         previousOrder['filled'] = previousOrderFilled;
-                        if (previousOrder['amount'] !== undefined) {
+                        const previousOrderAmountRaw = this.safeString(previousOrder, 'amount');
+                        if (previousOrderAmountRaw !== undefined) {
                             const previousOrderAmount = this.numberToString(previousOrder['amount']);
                             previousOrder['remaining'] = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(previousOrderAmount, previousOrderFilled));
                         }
@@ -613624,7 +613783,8 @@ class toobit extends _toobit_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -614618,7 +614778,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3296(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _upbit_js__rspack_import_0 = __webpack_require__(1692);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
 /* import */ var _base_functions_rsa_js__rspack_import_3 = __webpack_require__(8748);
@@ -615370,7 +615530,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7095(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
 /* import */ var _weex_js__rspack_import_0 = __webpack_require__(4691);
 /* import */ var _base_errors_js__rspack_import_4 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_3 = __webpack_require__(1697);
@@ -615963,7 +616123,8 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
                 timeframe
             ]
         ], since, limit, extendedParams);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -618566,7 +618727,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 3363(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _woo_js__rspack_import_0 = __webpack_require__(4615);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -620245,7 +620406,7 @@ class woo extends _woo_js__rspack_import_0/* ["default"] */.A {
         const subscription = this.safeDict(subscriptionsById, id, {});
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
-            method.call(this, client, message, subscription);
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         return message;
     }
@@ -620284,7 +620445,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 5959(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_5 = __webpack_require__(5573);
 /* import */ var _woofipro_js__rspack_import_0 = __webpack_require__(6499);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_2 = __webpack_require__(1697);
@@ -620359,7 +620520,8 @@ class woofipro extends _woofipro_js__rspack_import_0/* ["default"] */.A {
         const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     async watchPublic(messageHash, message) {
@@ -622909,8 +623071,8 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
             const orderbook = this.orderbooks[symbol];
             const nonce = this.safeInteger(orderbook, 'nonce');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
-                const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
+                const cacheLength = this.parseToInt(orderbook.cache.length);
+                const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 25));
                 if (cacheLength === snapshotDelay) {
                     this.spawn(this.loadOrderBook, client, messageHash, symbol, undefined, {});
                 }
@@ -623362,7 +623524,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6711(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_4 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_4 = __webpack_require__(5573);
 /* import */ var _abstract_revolutx_js__rspack_import_0 = __webpack_require__(7838);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_5 = __webpack_require__(7749);
@@ -625044,7 +625206,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7735(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 function createBaseCoin() {
@@ -625213,7 +625375,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7251(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 function createBaseMultiSignature() {
@@ -625304,7 +625466,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7076(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 function createBasePubKey() {
@@ -625390,7 +625552,7 @@ __webpack_require__.d(__webpack_exports__, {
 __webpack_require__.r(__webpack_exports__);
 /* import */ var _crypto_multisig_v1beta1_multisig_js__rspack_import_3 = __webpack_require__(7251);
 /* import */ var _google_protobuf_any_js__rspack_import_2 = __webpack_require__(7440);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 /* import */ var _helpers_js__rspack_import_1 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_1_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_1);
@@ -625732,7 +625894,7 @@ __webpack_require__.r(__webpack_exports__);
 /* import */ var _google_protobuf_any_js__rspack_import_2 = __webpack_require__(7440);
 /* import */ var _crypto_multisig_v1beta1_multisig_js__rspack_import_3 = __webpack_require__(7251);
 /* import */ var _base_v1beta1_coin_js__rspack_import_4 = __webpack_require__(7735);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 /* import */ var _helpers_js__rspack_import_1 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_1_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_1);
@@ -626450,7 +626612,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7378(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 /* import */ var _helpers_js__rspack_import_1 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_1_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_1);
@@ -626744,7 +626906,7 @@ __webpack_require__.d(__webpack_exports__, {
 7072(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
 /* import */ var _subaccounts_subaccount_js__rspack_import_1 = __webpack_require__(4784);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 /* import */ var _helpers_js__rspack_import_2 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_2_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_2);
@@ -627615,7 +627777,7 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var _order_js__rspack_import_1 = __webpack_require__(7072);
 /* import */ var _subaccounts_subaccount_js__rspack_import_2 = __webpack_require__(4784);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 
@@ -628382,7 +628544,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _subaccounts_subaccount_js__rspack_import_2 = __webpack_require__(4784);
 /* import */ var _helpers_js__rspack_import_1 = __webpack_require__(1291);
 /* import */ var _helpers_js__rspack_import_1_default = /*#__PURE__*/__webpack_require__.n(_helpers_js__rspack_import_1);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 
@@ -628637,7 +628799,7 @@ __webpack_require__.d(__webpack_exports__, {
 5489(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
 /* import */ var _transfer_js__rspack_import_1 = __webpack_require__(9670);
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 
@@ -628790,7 +628952,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4784(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 
@@ -628907,7 +629069,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7440(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(6946);
+/* import */ var protobufjs_minimal_js__rspack_import_0 = __webpack_require__(7635);
 /* import */ var protobufjs_minimal_js__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(protobufjs_minimal_js__rspack_import_0);
 
 function createBaseAny() {
@@ -629011,7 +629173,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 9660(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_tokocrypto_js__rspack_import_0 = __webpack_require__(273);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -631943,7 +632105,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 7939(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_toobit_js__rspack_import_0 = __webpack_require__(726);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -633388,8 +633550,9 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
             }
         } else if (since !== undefined && limit !== undefined) {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            const duration = this.parseTimeframe(timeframe) * 1000;
-            request['endTime'] = Math.min(this.sum(since, duration * limit) - 1, this.milliseconds());
+            const durationMs = this.parseTimeframe(timeframe) * 1000;
+            // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            request['endTime'] = Math.min(since - (1 - durationMs * limit), this.milliseconds());
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -634966,7 +635129,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         const transactType = type === 'deposits' ? 'deposit' : 'withdrawal';
         const results = [];
         for(let i = 0; i < response.length; i++){
-            results.push(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+            results.push(this.extend(this.parseTransactionWithType(this.safeDict(response, i, {}), currency, transactType), paramsUntil));
         }
         const sorted = this.sortBy(results, 'timestamp');
         const currencyCode = currency !== undefined ? currency['code'] : undefined;
@@ -635467,7 +635630,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1692(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_upbit_js__rspack_import_0 = __webpack_require__(2199);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -638079,7 +638242,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4691(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_weex_js__rspack_import_0 = __webpack_require__(950);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -642826,7 +642989,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 410(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_whitebit_js__rspack_import_0 = __webpack_require__(6415);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -644026,7 +644189,10 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
-                depositWithdrawFees[code]['info'][entry] = feeInfo;
+                const feeEntry = this.safeDict(depositWithdrawFees, code, {});
+                const feeEntryInfo = this.safeDict(feeEntry, 'info', {});
+                feeEntryInfo[entry] = feeInfo;
+                feeEntry['info'] = feeEntryInfo;
                 const networkId = this.safeString(splitEntry, 1);
                 const withdraw = this.safeDict(feeInfo, 'withdraw');
                 const deposit = this.safeDict(feeInfo, 'deposit');
@@ -644041,18 +644207,20 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
                     'percentage': depositFee !== undefined ? false : undefined
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length;
-                    const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
+                    const networkCode = this.networkIdToCode(networkId.slice(1, -1), code);
                     if (networkCode !== undefined) {
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
+                        feeEntryNetworks[networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult
                         };
+                        feeEntry['networks'] = feeEntryNetworks;
                     }
                 } else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
+                    feeEntry['withdraw'] = withdrawResult;
+                    feeEntry['deposit'] = depositResult;
                 }
+                depositWithdrawFees[code] = feeEntry;
             }
         }
         const depositWithdrawCodes = Object.keys(depositWithdrawFees);
@@ -645000,12 +645168,12 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
             const duration = this.parseTimeframe(timeframe);
             let endTime = undefined;
             if (until !== undefined) {
-                endTime = this.sum(this.parseToInt(until / 1000), duration);
+                endTime = this.parseToInt(this.sum(this.parseToInt(until / 1000), duration));
             }
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                const rangeEnd = this.sum(start, duration * cappedLimit);
+                const rangeEnd = this.parseToInt(this.sum(start, duration * cappedLimit));
                 if (endTime === undefined || rangeEnd < endTime) {
                     endTime = rangeEnd;
                 }
@@ -647438,7 +647606,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 4615(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_woo_js__rspack_import_0 = __webpack_require__(8208);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -652534,9 +652702,9 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6499(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(7468);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(6885);
+/* import */ var _noble_curves_ed25519_js__rspack_import_7 = __webpack_require__(5573);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_curves_secp256k1_js__rspack_import_6 = __webpack_require__(4608);
 /* import */ var _abstract_woofipro_js__rspack_import_0 = __webpack_require__(7758);
 /* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -656447,7 +656615,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 1434(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_xt_js__rspack_import_0 = __webpack_require__(6459);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
@@ -658785,7 +658953,10 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         let market = undefined;
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const request = {};
         let response = undefined;
@@ -658874,7 +659045,10 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchBidsAsks', market, paramsMarketType);
@@ -662917,7 +663091,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 100(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_zaif_js__rspack_import_0 = __webpack_require__(9109);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -663882,7 +664056,7 @@ __webpack_require__.d(__webpack_exports__, {
 },
 307(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
+/* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_zebpay_js__rspack_import_0 = __webpack_require__(2610);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
@@ -666006,7 +666180,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* (ignored) */
 
 },
-5017(module, exports) {
+4982(module, exports) {
 // GENERATED FILE. DO NOT EDIT.
 (function (global, factory) {
   function preferDefault(exports) {
@@ -667631,7 +667805,7 @@ __webpack_require__.d(__webpack_exports__, {
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
 
 
-var $protobuf = __webpack_require__(6946);
+var $protobuf = __webpack_require__(7635);
 
 // Common aliases
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
@@ -676870,10 +677044,10 @@ module.exports = $root;
 
 
 },
-7315(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+5376(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(6724);
-/* import */ var _modular_js__rspack_import_0 = __webpack_require__(2186);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(173);
+/* import */ var _modular_js__rspack_import_0 = __webpack_require__(9925);
 /**
  * Methods for elliptic curve multiplication by scalars.
  * Contains wNAF, pippenger.
@@ -677496,10 +677670,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-9228(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+3811(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(6724);
-/* import */ var _curve_js__rspack_import_0 = __webpack_require__(7315);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(173);
+/* import */ var _curve_js__rspack_import_0 = __webpack_require__(5376);
 /**
  * Twisted Edwards curve. The formula is: ax² + y² = 1 + dx²y².
  * For design rationale of types / exports, see weierstrass module documentation.
@@ -678201,9 +678375,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-2280(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+3459(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(6724);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(173);
 
 
 // Octet Stream to Integer. "spec" implementation of os2ip is 2.5x slower vs bytesToNumberBE.
@@ -678558,9 +678732,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-2186(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+9925(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(6724);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(173);
 /**
  * Utils for modular division and fields.
  * Field over 11 is a finite (Galois) field is integer number operations `mod 11`.
@@ -679427,10 +679601,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-5275(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+4946(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(6724);
-/* import */ var _modular_js__rspack_import_0 = __webpack_require__(2186);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(173);
+/* import */ var _modular_js__rspack_import_0 = __webpack_require__(9925);
 /**
  * Implements [Poseidon](https://www.poseidon-hash.info) ZK-friendly hash.
  *
@@ -679900,13 +680074,13 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-4032(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+103(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_hmac_js__rspack_import_4 = __webpack_require__(7474);
-/* import */ var _noble_hashes_utils_js__rspack_import_3 = __webpack_require__(508);
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(6724);
-/* import */ var _curve_js__rspack_import_1 = __webpack_require__(7315);
-/* import */ var _modular_js__rspack_import_2 = __webpack_require__(2186);
+/* import */ var _noble_hashes_hmac_js__rspack_import_4 = __webpack_require__(6909);
+/* import */ var _noble_hashes_utils_js__rspack_import_3 = __webpack_require__(1313);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(173);
+/* import */ var _curve_js__rspack_import_1 = __webpack_require__(5376);
+/* import */ var _modular_js__rspack_import_2 = __webpack_require__(9925);
 /**
  * Short Weierstrass curve methods. The formula is: y² = x³ + ax + b.
  *
@@ -681326,14 +681500,14 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-7468(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+5573(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4721);
-/* import */ var _noble_hashes_utils_js__rspack_import_4 = __webpack_require__(508);
-/* import */ var _abstract_edwards_js__rspack_import_1 = __webpack_require__(9228);
-/* import */ var _abstract_hash_to_curve_js__rspack_import_5 = __webpack_require__(2280);
-/* import */ var _abstract_modular_js__rspack_import_0 = __webpack_require__(2186);
-/* import */ var _utils_js__rspack_import_3 = __webpack_require__(6724);
+/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4006);
+/* import */ var _noble_hashes_utils_js__rspack_import_4 = __webpack_require__(1313);
+/* import */ var _abstract_edwards_js__rspack_import_1 = __webpack_require__(3811);
+/* import */ var _abstract_hash_to_curve_js__rspack_import_5 = __webpack_require__(3459);
+/* import */ var _abstract_modular_js__rspack_import_0 = __webpack_require__(9925);
+/* import */ var _utils_js__rspack_import_3 = __webpack_require__(173);
 /**
  * ed25519 Twisted Edwards curve with following addons:
  * - X25519 ECDH
@@ -681965,10 +682139,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-2431(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+7888(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4721);
-/* import */ var _abstract_weierstrass_js__rspack_import_0 = __webpack_require__(4032);
+/* import */ var _noble_hashes_sha2_js__rspack_import_1 = __webpack_require__(4006);
+/* import */ var _abstract_weierstrass_js__rspack_import_0 = __webpack_require__(103);
 /**
  * Internal module for NIST P256, P384, P521 curves.
  * Do not use for now.
@@ -682244,11 +682418,11 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6885(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+4608(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4721);
-/* import */ var _abstract_modular_js__rspack_import_0 = __webpack_require__(2186);
-/* import */ var _abstract_weierstrass_js__rspack_import_1 = __webpack_require__(4032);
+/* import */ var _noble_hashes_sha2_js__rspack_import_2 = __webpack_require__(4006);
+/* import */ var _abstract_modular_js__rspack_import_0 = __webpack_require__(9925);
+/* import */ var _abstract_weierstrass_js__rspack_import_1 = __webpack_require__(103);
 /**
  * SECG secp256k1. See [pdf](https://www.secg.org/sec2-v2.pdf).
  *
@@ -682722,9 +682896,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6724(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+173(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_hashes_utils_js__rspack_import_0 = __webpack_require__(508);
+/* import */ var _noble_hashes_utils_js__rspack_import_0 = __webpack_require__(1313);
 /**
  * Hex, bytes and number utilities.
  * @module
@@ -683354,9 +683528,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6793(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+8076(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(508);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(1313);
 /**
  * Internal Merkle-Damgard hash utils.
  * @module
@@ -683572,7 +683746,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6211(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+816(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
 const U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
 const _32n = /* @__PURE__ */ BigInt(32);
@@ -683682,9 +683856,9 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-7474(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+6909(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _utils_js__rspack_import_0 = __webpack_require__(508);
+/* import */ var _utils_js__rspack_import_0 = __webpack_require__(1313);
 /**
  * HMAC: RFC2104 message authentication code.
  * @module
@@ -683785,10 +683959,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-8858(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+1337(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _md_js__rspack_import_0 = __webpack_require__(6793);
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(508);
+/* import */ var _md_js__rspack_import_0 = __webpack_require__(8076);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(1313);
 /**
 
 SHA1 (RFC 3174), MD5 (RFC 1321), and RIPEMD160 legacy, weak hash functions.
@@ -684124,11 +684298,11 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-4721(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+4006(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _md_js__rspack_import_0 = __webpack_require__(6793);
-/* import */ var _u64_js__rspack_import_2 = __webpack_require__(6211);
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(508);
+/* import */ var _md_js__rspack_import_0 = __webpack_require__(8076);
+/* import */ var _u64_js__rspack_import_2 = __webpack_require__(816);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(1313);
 /**
  * SHA2 hash function. A.k.a. sha256, sha384, sha512, sha512_224, sha512_256.
  * SHA256 is the fastest hash implementable in JS, even faster than Blake3.
@@ -684596,10 +684770,10 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-6834(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+4725(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _u64_js__rspack_import_0 = __webpack_require__(6211);
-/* import */ var _utils_js__rspack_import_1 = __webpack_require__(508);
+/* import */ var _u64_js__rspack_import_0 = __webpack_require__(816);
+/* import */ var _utils_js__rspack_import_1 = __webpack_require__(1313);
 /**
  * SHA3 (keccak) hash function, based on a new "Sponge function" design.
  * Different from older hashes, the internal state is bigger than output size.
@@ -685038,7 +685212,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-508(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+1313(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
 /**
  * Checks if something is Uint8Array. Be careful: nodejs Buffer will return true.
@@ -685643,7 +685817,7 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-7116(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+9581(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
 /*! scure-base - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 function isBytes(a) {
@@ -686713,15 +686887,15 @@ __webpack_require__.d(__webpack_exports__, {
 
 
 },
-789(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
+9636(__unused_rspack___webpack_module__, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_abstract_modular_js__rspack_import_1 = __webpack_require__(2186);
-/* import */ var _noble_curves_abstract_poseidon_js__rspack_import_6 = __webpack_require__(5275);
-/* import */ var _noble_curves_abstract_weierstrass_js__rspack_import_2 = __webpack_require__(4032);
-/* import */ var _noble_curves_utils_js__rspack_import_0 = __webpack_require__(6724);
-/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4721);
-/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(6834);
-/* import */ var _noble_hashes_utils_js__rspack_import_5 = __webpack_require__(508);
+/* import */ var _noble_curves_abstract_modular_js__rspack_import_1 = __webpack_require__(9925);
+/* import */ var _noble_curves_abstract_poseidon_js__rspack_import_6 = __webpack_require__(4946);
+/* import */ var _noble_curves_abstract_weierstrass_js__rspack_import_2 = __webpack_require__(103);
+/* import */ var _noble_curves_utils_js__rspack_import_0 = __webpack_require__(173);
+/* import */ var _noble_hashes_sha2_js__rspack_import_3 = __webpack_require__(4006);
+/* import */ var _noble_hashes_sha3_js__rspack_import_4 = __webpack_require__(4725);
+/* import */ var _noble_hashes_utils_js__rspack_import_5 = __webpack_require__(1313);
 /*! scure-starknet - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 
 
