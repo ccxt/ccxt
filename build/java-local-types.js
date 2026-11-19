@@ -10838,6 +10838,13 @@ function wsReceiveTypeOf (printer, declaration) {
         }
         type = witness;
     }
+    // a `: WsOrderBook` annotation names the resolved class the same way a `.limit ()` call does
+    const annotated = declaration.type !== undefined && ts.isTypeReferenceNode (declaration.type)
+        && ts.isIdentifier (declaration.type.typeName) && declaration.type.typeName.text === 'WsOrderBook' ? ORDERBOOK_TYPE : undefined;
+    if (annotated !== undefined && type !== undefined && type !== annotated) {
+        return undefined;
+    }
+    type = type ?? annotated;
     if (type === undefined) {
         return undefined;
     }
