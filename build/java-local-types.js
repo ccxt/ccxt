@@ -27205,8 +27205,8 @@ export function installJavaNonNullMapPuts (transpiler) {
         if (key === undefined || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key) || j6StringStructureKey (printer, key))) {
             return printed;
         }
-        // a base field declared Map<String, Object>: the helper's Map branch is put for a non-null value
-        if (javaBaseMapField (printer, receiver)) {
+        // a base field declared Map<String, Object> (or the WsOrderBook-valued orderbooks): the helper's Map branch is put for a non-null value
+        if (javaBaseMapField (printer, receiver) || (thisPropName (receiver) === 'orderbooks' && javaTypedBaseFieldDeclared (printer, receiver.name))) {
             const field = `this.${receiver.name.text}`;
             const keyText = printer.printNode (key, 0);
             const rawKey = printer.printNode (node.left.argumentExpression, 0);
@@ -28410,4 +28410,31 @@ export function nativeJavaLongBoxLocals (content, after = (x) => x) {
         out.push (...member);
     }
     return changed ? out.join ('\n') : content;
+}
+
+// ===== base `orderbooks` field is Map<String, WsOrderBook> (BaseExchange.java) =====
+// delete / `in` bind on the typed field with no receiver cast; `this.orderbooks[s][lit] = v` with a
+// String s puts into the stored WsOrderBook (the helper's Map branch: put(lit, v), null value included).
+export function installJavaTypedOrderbooksField (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaTypedOrderbooksFieldPatched || typeof printer.javaBaseDeclaredMapCacheField !== 'function'
+        || typeof printer.printJavaElementWrite !== 'function') {
+        return;
+    }
+    printer._javaTypedOrderbooksFieldPatched = true;
+    const isField = (e) => e !== undefined && ts.isPropertyAccessExpression (e) && e.expression.kind === ts.SyntaxKind.ThisKeyword
+        && e.name.text === 'orderbooks' && javaTypedBaseFieldDeclared (printer, e.name);
+    const upstreamField = printer.javaBaseDeclaredMapCacheField.bind (printer);
+    printer.javaBaseDeclaredMapCacheField = function (expression) {
+        return upstreamField (expression) || isField (expression);
+    };
+    const upstreamWrite = printer.printJavaElementWrite.bind (printer);
+    printer.printJavaElementWrite = function (node, left, right) {
+        const row = ts.isElementAccessExpression (left) ? unwrapParens (left.expression) : undefined;
+        if (row !== undefined && ts.isElementAccessExpression (row) && ts.isStringLiteral (left.argumentExpression)
+            && isField (unwrapParens (row.expression)) && this.javaStringProvenKey (row.argumentExpression)) {
+            return `this.orderbooks.get(${this.printNode (row.argumentExpression, 0)}).put(${this.printNode (left.argumentExpression, 0)}, ${this.printNode (right, 0)})`;
+        }
+        return upstreamWrite (node, left, right);
+    };
 }

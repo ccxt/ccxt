@@ -71,7 +71,7 @@ import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaPredictionMapLocals } from './java-local-types.js';
 import { installJavaListParamSlots } from './java-local-types.js';
-import { installJavaEventsParamsSlots, installJavaCurrenciesByIdReads, installJavaSourceExchangeReads } from './java-local-types.js';
+import { installJavaEventsParamsSlots, installJavaCurrenciesByIdReads, installJavaSourceExchangeReads, installJavaTypedOrderbooksField } from './java-local-types.js';
 import { installJavaNonNullMapPuts } from './java-local-types.js';
 import { installJavaLocalElementWrites } from './java-local-types.js';
 import { installJavaStringListIndexOf } from './java-local-types.js';
@@ -1970,6 +1970,7 @@ class NewTranspiler {
             installJavaEventsParamsSlots,
             installJavaCurrenciesByIdReads,
             installJavaSourceExchangeReads,
+            installJavaTypedOrderbooksField,
         ];
         for (const install of installers) {
             install(this.transpiler);

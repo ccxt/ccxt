@@ -523,7 +523,7 @@ public class BaseExchange {
     public Object liquidations = null;   // ArrayCache, created by the first handler (TS: undefined)
     public Object myLiquidations = null;
     public Map<String, Object> trades = new ConcurrentHashMap<>();
-    public Map<String, Object> orderbooks = new ConcurrentHashMap<>();
+    public Map<String, io.github.ccxt.ws.WsOrderBook> orderbooks = new ConcurrentHashMap<>();
     // symbol -> timeframe row; every row is a plain HashMap (rows keep null values like JS)
     public Map<String, Map<String, Object>> ohlcvs = new ConcurrentHashMap<>();
     public Map<String, Client> clients = new java.util.concurrent.ConcurrentHashMap<String, Client>();
@@ -12555,9 +12555,9 @@ public Map<String, Object> describe()
                     }
                 } else if (java.util.Objects.equals(topic, "orderbook"))
                 {
-                    if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+                    if (this.orderbooks.containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.orderbooks).remove(symbol);
+                        this.orderbooks.remove(symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "ticker"))
                 {
