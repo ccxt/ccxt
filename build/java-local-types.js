@@ -10788,7 +10788,9 @@ export function patchJavaObjectKeysStringLists (transpiler) {
 // `const x = await this.watch* (...)` takes the class its own receiver calls prove: `.getLimit (...)`
 // a list stream (List<Object>), `.limit ()` a WsOrderBook; the typed base `<T> watch` binds it.
 const JAVA_WS_RECEIVE_WITNESS = { 'getLimit': JAVA_ARRAY_TYPE, 'limit': ORDERBOOK_TYPE };
-const JAVA_WS_RECEIVE_SCAN = { [JAVA_ARRAY_TYPE]: ARRAYCACHE_TYPE, [ORDERBOOK_TYPE]: ORDERBOOK_TYPE };
+const JAVA_WS_RECEIVE_SCAN = { [JAVA_ARRAY_TYPE]: ARRAYCACHE_TYPE, [ORDERBOOK_TYPE]: ORDERBOOK_TYPE, [JAVA_STRUCTURE_TYPE]: JAVA_STRUCTURE_TYPE };
+// a `: Ticker` / `: Dict` annotation is the author's proof that every resolver of the hash passes a Map
+const JAVA_WS_RECEIVE_ANNOTATION = { 'WsOrderBook': ORDERBOOK_TYPE, 'Ticker': JAVA_STRUCTURE_TYPE, 'Dict': JAVA_STRUCTURE_TYPE };
 
 function wsReceiveCall (declaration) {
     const value = unwrapParens (declaration.initializer);
@@ -10840,7 +10842,7 @@ function wsReceiveTypeOf (printer, declaration) {
     }
     // a `: WsOrderBook` annotation names the resolved class the same way a `.limit ()` call does
     const annotated = declaration.type !== undefined && ts.isTypeReferenceNode (declaration.type)
-        && ts.isIdentifier (declaration.type.typeName) && declaration.type.typeName.text === 'WsOrderBook' ? ORDERBOOK_TYPE : undefined;
+        && ts.isIdentifier (declaration.type.typeName) ? JAVA_WS_RECEIVE_ANNOTATION[declaration.type.typeName.text] : undefined;
     if (annotated !== undefined && type !== undefined && type !== annotated) {
         return undefined;
     }

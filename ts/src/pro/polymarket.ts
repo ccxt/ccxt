@@ -268,7 +268,7 @@ export default class polymarket extends polymarketRest {
             }
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
-        const newTicker = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const newTicker: Dict = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
@@ -337,7 +337,7 @@ export default class polymarket extends polymarketRest {
             channels.push ('bbo::' + this.safeString (market, 'id', ''));
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
-        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const ticker: Dict = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
