@@ -55,7 +55,7 @@ import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
 import { installJ84j6StringListLocals } from './java-local-types.js';
 import { installJavaPredictionMapLocals } from './java-local-types.js';
 import { installJavaListParamSlots } from './java-local-types.js';
-import { installJavaEventsParamsSlots, installJavaCurrenciesByIdReads } from './java-local-types.js';
+import { installJavaEventsParamsSlots, installJavaCurrenciesByIdReads, installJavaSourceExchangeReads } from './java-local-types.js';
 import { installJavaNonNullMapPuts } from './java-local-types.js';
 import { installJavaLocalElementWrites } from './java-local-types.js';
 import { installJavaStringListIndexOf } from './java-local-types.js';
@@ -251,6 +251,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots, handed,
         installJavaMapCopyLocals (cachedTranspiler);
         installJavaEventsParamsSlots (cachedTranspiler);
         installJavaCurrenciesByIdReads (cachedTranspiler);
+        installJavaSourceExchangeReads (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

@@ -6712,7 +6712,7 @@ public Map<String, Object> describe()
         // Validate that both exchanges are of the same type
         if (!java.util.Objects.equals(this.id, sourceExchange.id))
         {
-            throw new ArgumentsRequired((((this.id + " shareMarkets() can only share markets with exchanges of the same type (got ") + Helpers.GetValue(sourceExchange, "id")) + ")")) ;
+            throw new ArgumentsRequired((((this.id + " shareMarkets() can only share markets with exchanges of the same type (got ") + (sourceExchange == null ? null : sourceExchange.id)) + ")")) ;
         }
         // Validate that source exchange has loaded markets
         if ((java.util.Objects.equals(sourceExchange.markets, null)) || (java.util.Objects.equals(sourceExchange.markets, null)))
@@ -6734,9 +6734,9 @@ public Map<String, Object> describe()
         for (var i = 0; i < (sourceExchangeHelpers == null ? 0 : ((List<?>)sourceExchangeHelpers).size()); i++)
         {
             Object helper = (sourceExchangeHelpers == null || i < 0 || i >= sourceExchangeHelpers.size() ? null : sourceExchangeHelpers.get(i));
-            if (!java.util.Objects.equals(Helpers.GetValue(sourceExchange.options, helper), null))
+            if (!java.util.Objects.equals((sourceExchange == null || sourceExchange.options == null || !(helper instanceof String) ? null : sourceExchange.options.get(helper)), null))
             {
-                Helpers.addElementToObject(this.options, helper, Helpers.GetValue(sourceExchange.options, helper));
+                Helpers.addElementToObject(this.options, helper, (sourceExchange == null || sourceExchange.options == null || !(helper instanceof String) ? null : sourceExchange.options.get(helper)));
             }
         }
         return this;
@@ -10330,14 +10330,14 @@ public Map<String, Object> describe()
         }
         if ((code instanceof String))
         {
-            Object currencies = this.currencies;
-            Object currenciesById = this.currencies_by_id;
-            if (((Map<?, ?>)currencies).containsKey(code))
+            Map<String, Object> currencies = this.currencies;
+            Map<String, Object> currenciesById = this.currencies_by_id;
+            if (currencies.containsKey(code))
             {
-                return (Map<String, Object>) (Helpers.GetValue(currencies, code));
-            } else if ((!java.util.Objects.equals(currenciesById, null)) && (((Map<?, ?>)currenciesById).containsKey(code)))
+                return (Map<String, Object>) ((currencies == null || code == null ? null : currencies.get(code)));
+            } else if ((!java.util.Objects.equals(currenciesById, null)) && (currenciesById.containsKey(code)))
             {
-                return (Map<String, Object>) (Helpers.GetValue(currenciesById, code));
+                return (Map<String, Object>) ((currenciesById == null || code == null ? null : currenciesById.get(code)));
             }
         }
         throw new ExchangeError(((this.id + " does not have currency code ") + code)) ;

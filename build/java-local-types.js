@@ -12978,7 +12978,7 @@ function javaBaseMapFields () {
             return javaBaseMapFieldNames;
         }
         const header = text.split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0];
-        const field = /^ {4}(?:public |protected |private )?(?:volatile |static |final |transient )*([\w.<>, ?]+?) (\w+)\s*[=;]/gm;
+        const field = /^ {4}(?! )(?:public |protected |private )?(?:volatile |static |final |transient )*([\w.<>, ?]+?) (\w+)\s*[=;]/gm;
         for (const m of header.matchAll (field)) {
             if (/^(?:return|throw|new|else)$/.test (m[1])) {
                 continue;
@@ -27489,10 +27489,16 @@ function j08MapCopyWrite (printer, right) {
         && j08MapIdentifier (printer, value.arguments[0]) && isBaseDeclaration (printer, value);
 }
 
+// a const copy of a base field declared Map<String, Object> in the BaseExchange.java header
+function j10ConstBaseMapFieldCopy (printer, declaration) {
+    const value = unwrapParens (declaration.initializer);
+    return value !== undefined && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 && javaBaseMapField (printer, value);
+}
+
 function j08MapCopyLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
-        || !j08MapIdentifier (printer, declaration.initializer)) {
+        || !(j08MapIdentifier (printer, declaration.initializer) || j10ConstBaseMapFieldCopy (printer, declaration))) {
         return false;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
@@ -27600,5 +27606,49 @@ export function installJavaCurrenciesByIdReads (transpiler) {
         }
         const k = printer.printNode (key, 0);
         return `(this.currencies_by_id == null || ${k} == null ? null : this.currencies_by_id.get(${k}))`;
+    };
+}
+
+// ===== reads on setMarketsFromExchange's `sourceExchange` (printed `BaseExchange sourceExchange`) =====
+// GetValue on a BaseExchange reflects the public field `id`; on its Map<String, Object> `options` it is
+// get() for a String key and null otherwise; a null receiver answers null in both, so both stay guarded.
+function j10SourceExchangeParam (printer, node) {
+    if (node === undefined || !ts.isIdentifier (node) || node.text !== 'sourceExchange') {
+        return false;
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+    const method = declaration?.parent;
+    return declaration !== undefined && declaration.kind === ts.SyntaxKind.Parameter && method !== undefined && ts.isMethodDeclaration (method)
+        && method.name?.text === 'setMarketsFromExchange' && BASE_SOURCE_FILE.test (method.getSourceFile ().fileName)
+        && !printer.javaParameterIsWritten (declaration);
+}
+
+export function installJavaSourceExchangeReads (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printElementAccessExpression !== 'function' || printer._javaSourceExchangeReadsPatched) {
+        return;
+    }
+    printer._javaSourceExchangeReadsPatched = true;
+    const upstreamRead = printer.printElementAccessExpression.bind (printer);
+    printer.printElementAccessExpression = function (node, identation) {
+        const printed = upstreamRead (node, identation);
+        const receiver = unwrapParens (node?.expression);
+        const key = node?.argumentExpression;
+        try {
+            if (!String (printed).startsWith ('Helpers.GetValue(') || key === undefined) {
+                return printed;
+            }
+            if (j10SourceExchangeParam (printer, receiver) && ts.isStringLiteral (key) && key.text === 'id') {
+                return '(sourceExchange == null ? null : sourceExchange.id)';
+            }
+            if (receiver !== undefined && ts.isPropertyAccessExpression (receiver) && receiver.name.text === 'options'
+                && j10SourceExchangeParam (printer, receiver.expression) && ts.isIdentifier (key) && printer.javaRepeatableOperand (key)) {
+                const k = printer.printNode (key, 0);
+                return `(sourceExchange == null || sourceExchange.options == null || !(${k} instanceof String) ? null : sourceExchange.options.get(${k}))`;
+            }
+        } catch (e) {
+            return printed;
+        }
+        return printed;
     };
 }
