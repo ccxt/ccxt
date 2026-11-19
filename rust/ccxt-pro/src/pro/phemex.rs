@@ -449,13 +449,13 @@ impl Phemex {
         //
         let mut tickers: Vec<Value> = Vec::new();
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) {
-            let mut ticker: crate::value::Dict = __pro_message.get("market24h").cloned().unwrap_or_default().into_dict();
+            let mut ticker: crate::value::Dict = __pro_message.key_dict("market24h");
             tickers.push(self.parse_swap_ticker(&ticker, None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) {
-            let mut ticker: crate::value::Dict = __pro_message.get("spot_market24h").cloned().unwrap_or_default().into_dict();
+            let mut ticker: crate::value::Dict = __pro_message.key_dict("spot_market24h");
             tickers.push(self.parse_ticker(Value::Dict(ticker), None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("data"))) {
-            let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+            let mut data: crate::value::List = __pro_message.key_list("data");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_626: bool = true;
@@ -2127,7 +2127,7 @@ impl Phemex {
         //     }
         // }
         //
-        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = __pro_message.key_dict("result");
         let mut status: Option<String> = self.safe_string_k_opt(&result, "status", &[]);
         let mut messageHash: String = "authenticated".to_string();
         if (status.as_deref() == Some("success")) {

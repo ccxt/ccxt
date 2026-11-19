@@ -642,7 +642,7 @@ impl Weex {
         if (false) {
             return;
         }
-        let mut tickers: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
+        let mut tickers: crate::value::List = __pro_message.key_list("d");
         let mut data: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
         let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(&data, Some(&market)).as_map().cloned().unwrap_or_default();
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -915,7 +915,7 @@ impl Weex {
             CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
-        let mut data: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("d");
         let mut newTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1239,7 +1239,7 @@ impl Weex {
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
-        let mut data: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("d");
         let mut firstEntry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut interval: Option<String> = self.safe_string_k_opt(&firstEntry, "i", &[]);
         let mut timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1508,8 +1508,8 @@ impl Weex {
             std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), Value::from(nonce));
             orderbook.reset(Value::Dict(parsed));
         }  else {
-            let mut asks: crate::value::List = __pro_message.get("a").cloned().unwrap_or_default().into_list();
-            let mut bids: crate::value::List = __pro_message.get("b").cloned().unwrap_or_default().into_list();
+            let mut asks: crate::value::List = __pro_message.key_list("a");
+            let mut bids: crate::value::List = __pro_message.key_list("b");
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -1854,7 +1854,7 @@ impl Weex {
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut data: crate::value::List = message.get("d").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("d");
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2113,7 +2113,7 @@ impl Weex {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = message.get("d").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("d");
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2479,7 +2479,7 @@ impl Weex {
 })); }
         }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
-        let mut balanceUpdates: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
+        let mut balanceUpdates: crate::value::List = __pro_message.key_list("d");
         {
                         let mut i: i64 = 0;
             let mut __for_first_705: bool = true;
@@ -2682,7 +2682,7 @@ impl Weex {
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut data: crate::value::List = message.get("d").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("d");
         {
                         let mut i: i64 = 0;
             let mut __for_first_707: bool = true;

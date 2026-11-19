@@ -589,11 +589,11 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let mut rawCurrency: Value = rawCurrency.into();
         let __rawCurrency_empty = indexmap::IndexMap::new();
         let rawCurrency = rawCurrency.as_map().unwrap_or(&__rawCurrency_empty);
-        let mut token: crate::value::Dict = rawCurrency.get("_token").cloned().unwrap_or_default().into_dict();
+        let mut token: crate::value::Dict = rawCurrency.key_dict("_token");
         let mut currencyId: Option<String> = self.safe_string_k_opt(&token, "token", &[]);
         let mut networks: crate::value::List = self.safe_list_k_t(&token, "chain_details");
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut indexedChains: crate::value::Dict = rawCurrency.get("_indexedChains").cloned().unwrap_or_default().into_dict();
+        let mut indexedChains: crate::value::Dict = rawCurrency.key_dict("_indexedChains");
         let mut resultingNetworks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

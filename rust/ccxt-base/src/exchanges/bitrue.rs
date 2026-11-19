@@ -4135,7 +4135,7 @@ impl Bitrue {
             return config.get("noSymbol").cloned().unwrap_or(Value::Null);
         }  else if (config.contains_key("byLimit")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("limit"))) {
             let mut limit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
-            let mut byLimit: crate::value::List = config.get("byLimit").cloned().unwrap_or_default().into_list();
+            let mut byLimit: crate::value::List = config.key_list("byLimit");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_420: bool = true;

@@ -1671,7 +1671,7 @@ impl Coinsph {
         }  else if (config.contains_key("byNumberOfSymbols")) && hasSymbolsParam {
             let mut symbols: crate::value::List = self.safe_list_k_t(params, "symbols");
             let mut symbolsAmount: i64 = symbols.len() as i64;
-            let mut byNumberOfSymbols: crate::value::List = config.get("byNumberOfSymbols").cloned().unwrap_or_default().into_list();
+            let mut byNumberOfSymbols: crate::value::List = config.key_list("byNumberOfSymbols");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_577: bool = true;
@@ -1684,7 +1684,7 @@ impl Coinsph {
             }
             }
         }  else if (config.contains_key("byLimit")) && (limit.is_some()) {
-            let mut byLimit: crate::value::List = config.get("byLimit").cloned().unwrap_or_default().into_list();
+            let mut byLimit: crate::value::List = config.key_list("byLimit");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_578: bool = true;

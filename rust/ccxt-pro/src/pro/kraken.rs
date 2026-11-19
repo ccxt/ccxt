@@ -584,7 +584,7 @@ impl Kraken {
         //         "time_out": "2025-05-14T13:54:10.855046Z"
         //     }
         //
-        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = __pro_message.key_dict("result");
         let mut order: crate::value::Dict = self.parse_order(Value::Dict(result), None).into_dict();
         let mut messageHash: Option<String> = self.safe_string2_opt(message, Value::Str("reqid".into()), Value::Str("req_id".into()), &[]);
         client.resolve(Value::Dict(order), messageHash.as_deref());
@@ -852,7 +852,7 @@ impl Kraken {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
         let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -911,7 +911,7 @@ impl Kraken {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut trade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, Value::from(symbol.as_deref())]);
@@ -958,7 +958,7 @@ impl Kraken {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut marketId: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
@@ -1566,7 +1566,7 @@ impl Kraken {
         //     }
         //
         let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut symbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut a: crate::value::List = self.safe_list_k_t(&first, "asks");
@@ -1896,7 +1896,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "sequence": 10
         //     }
         //
-        let mut allTrades: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut allTrades: crate::value::List = message.key_list("data");
         let mut allTradesLength: i64 = allTrades.len() as i64;
         if allTradesLength > 0 {
             if (self.myTrades.is_none()) {
@@ -2066,7 +2066,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "sequence": 8
         //     }
         //
-        let mut allOrders: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut allOrders: crate::value::List = message.key_list("data");
         let mut allOrdersLength: i64 = allOrders.len() as i64;
         if allOrdersLength > 0 {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2328,7 +2328,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 })]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_435: bool = true;
@@ -2412,7 +2412,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "time_out": "2026-10-26T16:12:36.610502Z"
         //     }
         //
-        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = __pro_message.key_dict("result");
         let mut channel: Option<String> = self.safe_string_k_opt(&result, "channel", &[]);
         let mut symbol: Option<String> = self.safe_symbol(self.safe_string_k(&result, "symbol", &[]), None, &[]).as_str().map(str::to_owned);
         if (channel.as_deref() == Some("trade")) {
@@ -2489,7 +2489,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (channel.is_some()) {
             if (channel.as_deref() == Some("executions")) {
-                let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+                let mut data: crate::value::List = __pro_message.key_list("data");
                 let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
                 let mut execType: Option<String> = self.safe_string_k_opt(&first, "exec_type", &[]);
                 channel = (if (execType.as_deref() == Some("trade")) { Some("myTrades".to_string()) } else { Some("orders".to_string()) });

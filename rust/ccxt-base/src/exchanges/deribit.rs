@@ -4657,7 +4657,7 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut volatilityResult: crate::value::List = volatility.get("result").cloned().unwrap_or_default().into_list();
+        let mut volatilityResult: crate::value::List = volatility.key_list("result");
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

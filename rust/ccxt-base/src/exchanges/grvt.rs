@@ -3697,7 +3697,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let __order_empty = indexmap::IndexMap::new();
         let order = order.as_map().unwrap_or(&__order_empty);
         let mut priceMultiplier: i64 = 1000000000;
-        let mut orderLegs: crate::value::List = order.get("legs").cloned().unwrap_or_default().into_list();
+        let mut orderLegs: crate::value::List = order.key_list("legs");
         let mut legs: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

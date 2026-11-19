@@ -151,7 +151,7 @@ impl crate::exchange::DerivedExchange for Sxbet {
         if (accessLevel.as_deref() == Some("private")) && (self.apiKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(path)).into()), " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")));
         }
-        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "sxbet")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
@@ -2823,8 +2823,8 @@ impl Sxbet {
         let __snapshot_empty = indexmap::IndexMap::new();
         let snapshot = snapshot.as_map().unwrap_or(&__snapshot_empty);
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
-        let mut oneLevels: crate::value::List = snapshot.get("outcomeOne").cloned().unwrap_or_default().into_list();
-        let mut twoLevels: crate::value::List = snapshot.get("outcomeTwo").cloned().unwrap_or_default().into_list();
+        let mut oneLevels: crate::value::List = snapshot.key_list("outcomeOne");
+        let mut twoLevels: crate::value::List = snapshot.key_list("outcomeTwo");
         let mut bestOne: crate::value::Dict = self.safe_dict_t(&oneLevels, Value::Int(0));
         let mut bestTwo: crate::value::Dict = self.safe_dict_t(&twoLevels, Value::Int(0));
         return Value::Map({

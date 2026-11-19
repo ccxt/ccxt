@@ -469,7 +469,7 @@ impl Htx {
         //         }
         //     }
         //
-        let mut tick: crate::value::Dict = __pro_message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = __pro_message.key_dict("tick");
         let mut ch: Option<String> = (match __pro_message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (ch.is_none()) {
             return message;
@@ -597,7 +597,7 @@ impl Htx {
         //         }
         //     }
         //
-        let mut tick: crate::value::Dict = __pro_message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = __pro_message.key_dict("tick");
         let mut data: crate::value::List = self.safe_list_k_t(&tick, "data");
         let mut ch: Option<String> = (match __pro_message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (ch.is_none()) {
@@ -1105,7 +1105,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut tick: crate::value::Dict = message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = message.key_dict("tick");
         let mut seqNum: Option<i64> = self.safe_integer_k(&tick, "seqNum", &[]).as_i64();
         let mut prevSeqNum: Option<i64> = self.safe_integer_k(&tick, "prevSeqNum", &[]).as_i64();
         let mut event: Option<String> = self.safe_string_k_opt(&tick, "event", &[]);
@@ -1185,7 +1185,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut messageHash: Option<String> = (match __pro_message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut tick: crate::value::Dict = __pro_message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = __pro_message.key_dict("tick");
         let mut event: Option<String> = self.safe_string_k_opt(&tick, "event", &[]);
         let mut ch: Option<String> = (match __pro_message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (ch.is_none()) {
@@ -1714,7 +1714,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             // contract branch
             parsedOrder = self.parse_ws_order(message, Some(&market));
-            let mut rawTrades: crate::value::List = __pro_message.get("trade").cloned().unwrap_or_default().into_list();
+            let mut rawTrades: crate::value::List = __pro_message.key_list("trade");
             let mut tradesLength: i64 = rawTrades.len() as i64;
             if tradesLength > 0 {
                 let mut tradesObject: indexmap::IndexMap<String, Value> = ({
@@ -2246,7 +2246,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (topic.as_deref() == Some("positions_cross")) {
             defaultMarginMode = "cross".to_string();
         }
-        let mut rawPositions: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut rawPositions: crate::value::List = message.key_list("data");
         if self.is_empty(Value::Arr(rawPositions.clone())).as_bool() == Some(true) {
             let mut prefixes: crate::value::List = std::sync::Arc::new(vec![Value::Str("cross:positions".into()), Value::Str("isolated:positions".into())]);
             {
@@ -2567,7 +2567,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut channel: Option<String> = (match message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut timestamp: Value = self.safe_integer_k(&data, "changeTime", &[(match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null })]);
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
@@ -2592,7 +2592,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return;
             }
             if (topic.as_deref() == Some("account")) {
-                let mut accountData: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+                let mut accountData: crate::value::Dict = message.key_dict("data");
                 let mut details: crate::value::List = self.safe_list_k_t(&accountData, "details");
                 let mut detailsLength: i64 = details.len() as i64;
                 {
@@ -2763,8 +2763,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHashes: crate::value::List = __pro_message.get("messageHashes").cloned().unwrap_or_default().into_list();
-        let mut subMessageHashes: crate::value::List = __pro_message.get("subMessageHashes").cloned().unwrap_or_default().into_list();
+        let mut messageHashes: crate::value::List = __pro_message.key_list("messageHashes");
+        let mut subMessageHashes: crate::value::List = __pro_message.key_list("subMessageHashes");
         {
                         let mut i: i64 = 0;
             let mut __for_first_400: bool = true;
@@ -2935,7 +2935,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut action: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (action.as_deref() == Some("ping")) {
-                let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+                let mut data: crate::value::Dict = message.key_dict("data");
                 let mut pingTs: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3293,7 +3293,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut contractCode: Option<String> = (match __pro_message.get("contract_code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let mut market: Option<crate::types::Market> = (if (contractCode.is_some()) { Some(self.safe_market(contractCode.clone().map(Value::from).unwrap_or(Value::Null), None, &[])) } else { None });
                 if (matches!(&data, Value::Arr(_))) {
-                    let mut dataList: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+                    let mut dataList: crate::value::List = __pro_message.key_list("data");
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_401: bool = true;
@@ -3320,7 +3320,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else {
                 // this trades object is artificially created
                 // in handleOrder
-                let mut rawTrades: crate::value::List = __pro_message.get("trades").cloned().unwrap_or_default().into_list();
+                let mut rawTrades: crate::value::List = __pro_message.key_list("trades");
                 let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
                 let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 {

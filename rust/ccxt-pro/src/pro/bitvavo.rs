@@ -427,7 +427,7 @@ impl Bitvavo {
         //
         self.handle_bid_ask(client, message);
         let mut event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut tickers: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut tickers: crate::value::List = __pro_message.key_list("data");
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
@@ -484,7 +484,7 @@ impl Bitvavo {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut event: String = "bidask".to_string();
-        let mut tickers: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut tickers: crate::value::List = message.key_list("data");
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
@@ -837,7 +837,7 @@ impl Bitvavo {
         let mut timeframe: Option<String> = self.find_timeframe(Value::from(interval.clone()), &[]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into()), "_").into()), interval);
-        let mut candles: crate::value::List = message.get("candle").cloned().unwrap_or_default().into_list();
+        let mut candles: crate::value::List = message.key_list("candle");
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
@@ -2131,7 +2131,7 @@ impl Bitvavo {
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut response: crate::value::Dict = message.get("response").cloned().unwrap_or_default().into_dict();
+        let mut response: crate::value::Dict = message.key_dict("response");
         let mut withdraw: crate::value::Dict = self.parse_transaction(Value::Dict(response), None).into_dict();
         client.resolve(Value::Dict(withdraw), messageHash.as_deref());
 }
@@ -2291,7 +2291,7 @@ impl Bitvavo {
         //        ]
         //    }
         //
-        let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = message.key_list("response");
         let mut deposits: crate::value::List = self.parse_transactions(&response, None, &[Value::Null, Value::Null, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("deposit".into()));
@@ -2401,7 +2401,7 @@ impl Bitvavo {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = message.key_list("response");
         let mut currencies: crate::value::Dict = self.parse_currencies(&response).into_dict();
         client.resolve(Value::Dict(currencies), messageHash.as_deref());
 }
@@ -2470,7 +2470,7 @@ impl Bitvavo {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = message.key_list("response");
         let mut balance: crate::value::Dict = self.parent.parse_balance_list(&response).into_dict();
         client.resolve(Value::Dict(balance), messageHash.as_deref());
 }
@@ -2506,7 +2506,7 @@ impl Bitvavo {
         //        }
         //    }
         //
-        let mut response: crate::value::Dict = message.get("response").cloned().unwrap_or_default().into_dict();
+        let mut response: crate::value::Dict = message.key_dict("response");
         let mut order: crate::value::Dict = self.parse_order(Value::Dict(response), None).into_dict();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         client.resolve(Value::Dict(order), messageHash.as_deref());
@@ -2534,7 +2534,7 @@ impl Bitvavo {
         //        ]
         //    }
         //
-        let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = message.key_list("response");
         let mut markets: crate::value::List = self.parse_markets(&response).into_list();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         client.resolve(Value::Arr(markets), messageHash.as_deref());

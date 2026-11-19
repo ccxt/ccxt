@@ -324,7 +324,7 @@ impl Bitrue {
         //      "u": 2285311
         //    }
         //
-        let mut balances: crate::value::List = message.get("B").cloned().unwrap_or_default().into_list();
+        let mut balances: crate::value::List = message.key_list("B");
         self.parse_ws_balances(&balances);
         let mut messageHash: String = "balance".to_string();
         client.resolve(self.balance.clone(), messageHash.as_str());
@@ -645,7 +645,7 @@ impl Bitrue {
             return;
         }
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut tick: crate::value::Dict = message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = message.key_dict("tick");
         let mut parseable: Value = Value::from(&tick);
         if isFutures {
             let mut rawAsks: crate::value::List = self.safe_list_k_t(&tick, "asks");
@@ -924,7 +924,7 @@ if _try_result.is_err() {
         if !(__ch.has_subscription(messageHash.as_str())) {
             return;
         }
-        let mut tick: crate::value::Dict = message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = message.key_dict("tick");
         let mut data: crate::value::List = self.safe_list_k_t(&tick, "data");
         let mut appended: bool = false;
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);

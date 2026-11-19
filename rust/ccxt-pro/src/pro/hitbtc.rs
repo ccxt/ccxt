@@ -1991,7 +1991,7 @@ impl Hitbtc {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
+        let mut params: crate::value::List = message.key_list("params");
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while

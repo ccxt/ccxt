@@ -483,7 +483,7 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         // const marketId = messageHash.split('@')[0];
         let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
@@ -1028,7 +1028,7 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut dataType: String = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(dataType.split("@").map(Value::from).collect());
         let mut firstPart: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -1193,7 +1193,7 @@ impl Bingx {
                 candles = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_opt_list();
             }
         }  else {
-            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = message.key_dict("data");
             candles = Value::from(vec![self.safe_dict_k(&data, "K", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1908,7 +1908,7 @@ impl Bingx {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut data: crate::value::Dict = message.get("a").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("a");
         if !(data.contains_key("P")) {
             return;
         }
@@ -2357,7 +2357,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut a: crate::value::Dict = __pro_message.get("a").cloned().unwrap_or_default().into_dict();
+        let mut a: crate::value::Dict = __pro_message.key_dict("a");
         let mut data: crate::value::List = self.safe_list_k_t(&a, "B");
         let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("T".into()), Value::Str("E".into()), &[]).as_i64();
         let mut spotUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot", &[]);
@@ -2431,7 +2431,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return;
         }
         if dataType.contains("executionReport") {
-            let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = __pro_message.key_dict("data");
             let mut type_var: Option<String> = self.safe_string_k_opt(&data, "x", &[]);
             if (type_var.as_deref() == Some("TRADE")) {
                 self.handle_my_trades(&client, message.clone());
@@ -2446,7 +2446,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         if (e.as_deref() == Some("ORDER_TRADE_UPDATE")) {
             self.handle_order(&client, message.clone());
-            let mut data: crate::value::Dict = __pro_message.get("o").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = __pro_message.key_dict("o");
             let mut type_var: Option<String> = self.safe_string_k_opt(&data, "x", &[]);
             let mut status: Option<String> = self.safe_string_k_opt(&data, "X", &[]);
             let mut isExecution: bool = status.as_deref() == Some("FILLED");
@@ -2462,7 +2462,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 self.handle_my_trades(&client, message.clone());
             }
         }
-        let mut msgData: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut msgData: crate::value::Dict = __pro_message.key_dict("data");
         let mut msgEvent: Option<String> = self.safe_string_k_opt(&msgData, "e", &[]);
         if (msgEvent.as_deref() == Some("24hTicker")) {
             self.handle_ticker(&client, message.clone());
@@ -2500,8 +2500,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHashes: crate::value::List = __pro_message.get("messageHashes").cloned().unwrap_or_default().into_list();
-        let mut subMessageHashes: crate::value::List = __pro_message.get("subMessageHashes").cloned().unwrap_or_default().into_list();
+        let mut messageHashes: crate::value::List = __pro_message.key_list("messageHashes");
+        let mut subMessageHashes: crate::value::List = __pro_message.key_list("subMessageHashes");
         {
                         let mut i: i64 = 0;
             let mut __for_first_99: bool = true;

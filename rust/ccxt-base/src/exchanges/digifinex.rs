@@ -3787,8 +3787,8 @@ impl Digifinex {
 }));
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
-        let mut success: crate::value::List = response.get("success").cloned().unwrap_or_default().into_list();
-        let mut error: crate::value::List = response.get("error").cloned().unwrap_or_default().into_list();
+        let mut success: crate::value::List = response.key_list("success");
+        let mut error: crate::value::List = response.key_list("error");
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

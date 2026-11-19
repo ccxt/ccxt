@@ -3511,7 +3511,7 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[params]);
-        let mut byLimit: crate::value::List = config.get("byLimit").cloned().unwrap_or_default().into_list();
+        let mut byLimit: crate::value::List = config.key_list("byLimit");
         if (paramsDict.contains_key("noCoin")) && !(paramsDict.contains_key("coin")) {
             return (match config.get("noCoin") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         }  else if (paramsDict.contains_key("noSymbol")) && !(paramsDict.contains_key("symbol")) {

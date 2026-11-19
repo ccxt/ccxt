@@ -1770,7 +1770,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         //
         // currencie structure
         //
-        let mut networks: crate::value::Dict = fee.get("networks").cloned().unwrap_or_default().into_dict();
+        let mut networks: crate::value::Dict = fee.key_dict("networks");
         let mut networkCodes: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut networksLength: i64 = networkCodes.len() as i64;
         let mut result: indexmap::IndexMap<String, Value> = ({

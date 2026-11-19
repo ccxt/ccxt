@@ -7080,7 +7080,7 @@ if _try_result.is_err() {
         let mut portfolioData: Value = portfolioData.into();
         let __portfolioData_empty = indexmap::IndexMap::new();
         let portfolioData = portfolioData.as_map().unwrap_or(&__portfolioData_empty);
-        let mut breakdown: crate::value::Dict = portfolioData.get("breakdown").cloned().unwrap_or_default().into_dict();
+        let mut breakdown: crate::value::Dict = portfolioData.key_dict("breakdown");
         let mut portfolioInfo: crate::value::Dict = self.safe_dict_k_t(&breakdown, "portfolio");
         let mut portfolioName: String = self.safe_string_k(&portfolioInfo, "name", &[Value::Str("Unknown".into())]).as_str().unwrap_or("Unknown").to_string();
         let mut portfolioUuid: String = self.safe_string_k(&portfolioInfo, "uuid", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

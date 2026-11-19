@@ -887,7 +887,7 @@ impl Pacifica {
         //   }
         // }
         //
-        let mut entry: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut entry: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -1203,7 +1203,7 @@ impl Pacifica {
         // }
         //
         let mut parsedTickers: Vec<Value> = Vec::new();
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_580: bool = true;
@@ -1266,7 +1266,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut dataLength: i64 = data.len() as i64;
         if (dataLength == 0) {
             return;
@@ -1436,7 +1436,7 @@ impl Pacifica {
         //   ]
         // }
         //
-        let mut entry: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut entry: crate::value::List = message.key_list("data");
         let mut first: crate::value::Dict = self.safe_dict_t(&entry, Value::Int(0));
         let mut marketId: Option<String> = self.safe_string_k_opt(&first, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1695,7 +1695,7 @@ impl Pacifica {
         //   }
         // }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -1879,7 +1879,7 @@ impl Pacifica {
         //     }
         //   ]
         // }
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1929,7 +1929,7 @@ impl Pacifica {
         //
         let mut error: String = (match __pro_message.get("err").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut postType: String = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (id.is_none()) {
             id = self.safe_string_k_opt(&data, "id", &[]);
@@ -2062,7 +2062,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //      }
         //  }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut method: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (method.as_deref() == Some("unsubscribe")) {
             let mut subscription: crate::value::Dict = self.safe_dict_k_t(&data, "data");

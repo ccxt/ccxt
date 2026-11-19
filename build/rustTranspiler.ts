@@ -4230,6 +4230,12 @@ function rustIntLocalNullSinkOptionI64(content: string): string {
  */
 // A `self.<field>` read only by `==`/`!=` or as a whole `format!` argument is borrowed in place, so its
 // `.clone()` is dropped; a `format!` that also mentions another `self.` or `.await` keeps it (borrow order).
+// A literal-key read off a map (`IndexMap`, `&IndexMap` or `Dict`; `Value` and `Vec` have no `.get(&str)`, so the
+// compiler holds the receiver proof) yields the dict/list by reference through `KeyDictRead`: same empty answer.
+function rustKeyDictReads (content: string): string {
+    return content.replace(/\.get\(("[^"\\\n]*")\)\.cloned\(\)\.unwrap_or(?:_default\(\)|\((?:crate::)?Value::Null\))\.into_(dict|list)\(\)/g, '.key_$2($1)');
+}
+
 function rustSelfFieldReadClones (content: string): string {
     // `KeyRead` and `Rows` take `&Value`/`&Dict` alike, and `encode`/`base64_to_binary` take `impl Borrow<Value>`: lend the field.
     content = content.replace(/\bself\.((?:parent\.)?safe_[a-z0-9_]+)\(self\.(options|timeframes)\.clone\(\),/g, 'self.$1(&self.$2,');
@@ -10823,6 +10829,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedListNarrowers(rustContent);
                 rustContent = rustStrParamCopyDrop(rustContent);
                 rustContent = rustSelfFieldReadClones(rustContent);
+                rustContent = rustKeyDictReads(rustContent);
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
                 // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
                 {
@@ -11674,6 +11681,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedListNarrowers(finalFile);
         finalFile = rustStrParamCopyDrop(finalFile);
         finalFile = rustSelfFieldReadClones(finalFile);
+        finalFile = rustKeyDictReads(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)

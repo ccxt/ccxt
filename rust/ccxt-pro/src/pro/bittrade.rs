@@ -261,7 +261,7 @@ impl Bittrade {
         //         }
         //     }
         //
-        let mut tick: crate::value::Dict = __pro_message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = __pro_message.key_dict("tick");
         let mut ch: Option<String> = (match __pro_message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (ch.is_none()) {
             return message;
@@ -374,7 +374,7 @@ impl Bittrade {
         //         }
         //     }
         //
-        let mut tick: crate::value::Dict = __pro_message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = __pro_message.key_dict("tick");
         let mut data: crate::value::List = self.safe_list_k_t(&tick, "data");
         let mut ch: Option<String> = (match __pro_message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (ch.is_none()) {
@@ -719,7 +719,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
-        let mut tick: crate::value::Dict = message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut tick: crate::value::Dict = message.key_dict("tick");
         let mut seqNum: Option<i64> = self.safe_integer_k(&tick, "seqNum", &[]).as_i64();
         let mut prevSeqNum: Option<i64> = self.safe_integer_k(&tick, "prevSeqNum", &[]).as_i64();
         if (prevSeqNum.is_none()) || (seqNum.is_none()) {

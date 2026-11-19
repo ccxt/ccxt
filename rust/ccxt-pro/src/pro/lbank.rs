@@ -510,7 +510,7 @@ if _try_result.is_err() {
             let mut parsed: Value = Value::from(vec![self.safe_integer(&rawOHLCV, Value::Int(0), &[]), self.safe_number(&rawOHLCV, Value::Int(1), &[]), self.safe_number(&rawOHLCV, Value::Int(2), &[]), self.safe_number(&rawOHLCV, Value::Int(3), &[]), self.safe_number(&rawOHLCV, Value::Int(4), &[]), self.safe_number(&rawOHLCV, Value::Int(5), &[])]);
             stored.append(parsed);
         }  else {
-            let mut rawOHLCV: crate::value::Dict = message.get("kbar").cloned().unwrap_or_default().into_dict();
+            let mut rawOHLCV: crate::value::Dict = message.key_dict("kbar");
             let mut datetime: Option<String> = self.safe_string_k_opt(&rawOHLCV, "t", &[]);
             let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null))), self.safe_number_k(&rawOHLCV, "o", &[]), self.safe_number_k(&rawOHLCV, "h", &[]), self.safe_number_k(&rawOHLCV, "l", &[]), self.safe_number_k(&rawOHLCV, "c", &[]), self.safe_number_k(&rawOHLCV, "v", &[])]);
             stored.append(parsed);
@@ -1184,7 +1184,7 @@ if _try_result.is_err() {
         //         "TS": "2021-07-26T19:48:03.548"
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut timestamp: Option<i64> = self.parse8601((match message.get("TS") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         let mut datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }

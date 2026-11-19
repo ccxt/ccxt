@@ -1022,7 +1022,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 market = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market.as_ref(), &[Value::Str("-".into())]));
             }
-            let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = __pro_message.key_dict("data");
             let mut rawTicker: crate::value::Dict = self.safe_dict_k_or(&data, "data", Value::from(&data));
             let mut ticker: crate::value::Dict = self.parent.parse_spot_or_uta_ticker(&rawTicker, market.as_ref()).into_dict();
             let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1064,7 +1064,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //    }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(data), Some(&market)).into_dict();
@@ -1107,7 +1107,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut ticker: crate::value::Dict = self.parse_ws_uta_ticker(&data, Some(&market)).into_dict();
@@ -1515,7 +1515,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        "subject":"candle.stick"
         //    }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut candles: crate::value::List = self.safe_list_k_t(&data, "candles");
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -1565,7 +1565,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1837,7 +1837,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "type": "message"
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut trade: crate::value::Dict = self.parse_trade(Value::Dict(data), Some(&market)).into_dict();
@@ -1871,7 +1871,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut trade: crate::value::Dict = self.parse_ws_uta_trade(&data, Some(&market)).into_dict();
@@ -2394,7 +2394,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let mut type_var: Option<String> = (match message.get("t") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -3111,7 +3111,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut parsed: crate::value::Dict = self.parse_ws_uta_order(&data, None).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -3297,7 +3297,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut trade: crate::value::Dict = self.parse_ws_uta_trade(&data, Some(&market)).into_dict();
@@ -3607,7 +3607,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
         let mut relationEvent: Option<String> = self.safe_string_k_opt(&data, "relationEvent", &[]);
         let mut requestAccountType: Option<String> = None;
@@ -3669,7 +3669,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let mut type_var: String = "unified".to_string();
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "c", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         if !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key(type_var.as_str()))) {
@@ -4011,7 +4011,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut currentPosition: crate::value::Dict = self.get_current_position(symbol.as_deref().unwrap_or_default()).into_dict();
         let mut messageHash: String = format!("{}{}", "position:", symbol.as_deref().unwrap_or("null"));
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut newPosition: Value = self.parse_position(Value::Dict(data), None);
         let mut keys: Vec<Value> = object_keys(&newPosition).as_array().cloned().unwrap_or_default();
         {
@@ -4063,7 +4063,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolById::new(Value::Null));
         }
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
@@ -4246,7 +4246,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("d").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("d");
         let mut fundingRate: crate::value::Dict = self.parse_ws_funding_rate(&data, None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&fundingRate, "symbol", &[]);
         if (symbol.is_some()) {

@@ -217,7 +217,7 @@ impl Independentreserve {
         //        "Event": "Trade"
         //    }
         //
-        let mut data: crate::value::Dict = message.get("Data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("Data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "Pair", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
@@ -358,7 +358,7 @@ impl Independentreserve {
             return;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        let mut orderBook: crate::value::Dict = message.get("Data").cloned().unwrap_or_default().into_dict();
+        let mut orderBook: crate::value::Dict = message.key_dict("Data");
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook:", symbol).into()), ":").into()), depth);
         let mut subscription: crate::value::Dict = self.safe_dict_t(__ch.subscriptions.clone(), Value::from(messageHash.clone()));
         let mut receivedSnapshot: bool = self.safe_bool_k_opt(&subscription, "receivedSnapshot", &[Value::Bool(false)]).unwrap_or(false);

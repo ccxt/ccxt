@@ -992,7 +992,7 @@ impl Mexc {
         let mut timeframe: Option<String> = None;
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("publicSpotKline"))) {
             market = Some(self.safe_market(Value::from(self.symbol(self.safe_string_k(&message, "symbol", &[]))), None, &[]));
-            let mut data: crate::value::Dict = __pro_message.get("publicSpotKline").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = __pro_message.key_dict("publicSpotKline");
             let mut timeframeId: Option<String> = self.safe_string_k_opt(&data, "interval", &[]);
             timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[self.options.get("timeframes").cloned().unwrap_or(Value::Null)]);
             parsed = self.parse_ws_ohlcv(Value::Dict(data), market.as_ref());
@@ -2198,7 +2198,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "ts": 1771069020506
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(data), None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&fundingRate, "symbol", &[]);
         if (symbol.is_some()) {

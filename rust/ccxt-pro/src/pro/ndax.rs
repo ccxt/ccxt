@@ -200,7 +200,7 @@ impl Ndax {
     pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut payload: crate::value::Dict = message.get("o").cloned().unwrap_or_default().into_dict();
+        let mut payload: crate::value::Dict = message.key_dict("o");
         //
         //     {
         //         "OMSId": 1,
@@ -305,7 +305,7 @@ impl Ndax {
     pub fn handle_trades(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut payload: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
+        let mut payload: crate::value::List = message.key_list("o");
         //
         // initial snapshot
         //
@@ -443,7 +443,7 @@ impl Ndax {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        let mut payload: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
+        let mut payload: crate::value::List = message.key_list("o");
         //
         //     [
         //         [
@@ -648,7 +648,7 @@ impl Ndax {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        let mut payload: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
+        let mut payload: crate::value::List = message.key_list("o");
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -735,7 +735,7 @@ impl Ndax {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        let mut payload: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
+        let mut payload: crate::value::List = message.key_list("o");
         //
         //     [
         //         [

@@ -787,7 +787,7 @@ if _try_result.is_err() {
         let mut requestId: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut authSubscription: crate::value::Dict = self.safe_dict_k_t(__ch.subscriptions.clone(), "authenticated");
         let mut authRequestId: Option<String> = self.safe_string_k_opt(&authSubscription, "id", &[]);
-        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = __pro_message.key_dict("result");
         let mut isAuth: bool = ((requestId.is_some()) && (requestId == authRequestId)) || (self.safe_string_k(&result, "node_id", &[]) != Value::Null);
         if isAuth {
             self.handle_authentication_message(client.clone(), message.clone());
@@ -1141,7 +1141,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = __pro_message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut parsedTrade: crate::value::Dict = self.parse_trade(Value::from(&data), None).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&parsedTrade, "symbol");
@@ -1430,7 +1430,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "market", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -2103,7 +2103,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut bidAsk: crate::value::Dict = self.parse_ws_bid_ask(&data, None).into_dict();
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&bidAsk, "symbol").as_str().map(str::to_owned);
@@ -2219,7 +2219,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut parsed: crate::value::Dict = self.parse_order(Value::Dict(data), None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -2318,7 +2318,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut trade: crate::value::Dict = self.parse_trade(Value::Dict(data), None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
@@ -2426,7 +2426,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
@@ -2531,7 +2531,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
@@ -2617,7 +2617,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = __pro_message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -2788,7 +2788,7 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut fundingRate: crate::value::Dict = self.parse_funding_rate_ws(&data, None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&fundingRate, "symbol", &[]);

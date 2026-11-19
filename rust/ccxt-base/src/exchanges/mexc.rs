@@ -7888,7 +7888,7 @@ impl Mexc {
         //        ]
         //    }
         //
-        let mut networkList: crate::value::List = transaction.get("networkList").cloned().unwrap_or_default().into_list();
+        let mut networkList: crate::value::List = transaction.key_list("networkList");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

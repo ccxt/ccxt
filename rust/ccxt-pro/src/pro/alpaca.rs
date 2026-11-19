@@ -545,8 +545,8 @@ impl Alpaca {
             let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            let mut asks: crate::value::List = __pro_message.get("a").cloned().unwrap_or_default().into_list();
-            let mut bids: crate::value::List = __pro_message.get("b").cloned().unwrap_or_default().into_list();
+            let mut asks: crate::value::List = __pro_message.key_list("a");
+            let mut bids: crate::value::List = __pro_message.key_list("b");
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -808,7 +808,7 @@ impl Alpaca {
         //        }
         //      }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut rawOrder: crate::value::Dict = self.safe_dict_k_t(&data, "order");
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -872,7 +872,7 @@ impl Alpaca {
         //        }
         //      }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut event: Option<String> = self.safe_string_k_opt(&data, "event", &[]);
         if (event.as_deref() != Some("fill")) && (event.as_deref() != Some("partial_fill")) {
             return;
@@ -1057,7 +1057,7 @@ impl Alpaca {
         //    }
         //
         let mut T: Option<String> = (match __pro_message.get("T").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut status: Option<String> = self.safe_string_k_opt(&data, "status", &[]);
         if (T.as_deref() == Some("success")) || (status.as_deref() == Some("authorized")) {
             let mut promise: Value = __ch.futures.clone().as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);

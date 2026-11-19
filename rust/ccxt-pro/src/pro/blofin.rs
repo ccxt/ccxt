@@ -387,7 +387,7 @@ impl Blofin {
         //       ]
         //     }
         //
-        let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
+        let mut arg: crate::value::Dict = message.key_dict("arg");
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let mut data: Option<crate::value::List> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).into_opt_list();
         if (data.is_none()) {
@@ -512,7 +512,7 @@ impl Blofin {
         //     },
         // }
         //
-        let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
+        let mut arg: crate::value::Dict = message.key_dict("arg");
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let mut data: Option<crate::value::Dict> = message.get("data").cloned().unwrap_or_default().into_opt_dict();
         let mut marketId: Option<String> = self.safe_string_k_opt(&arg, "instId", &[]);
@@ -629,7 +629,7 @@ impl Blofin {
         //     }
         //
         self.handle_bid_ask(client, message);
-        let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
+        let mut arg: crate::value::Dict = __pro_message.key_dict("arg");
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).as_array().cloned().unwrap_or_default();
         {
@@ -914,7 +914,7 @@ impl Blofin {
         //         ],
         //     }
         //
-        let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
+        let mut arg: crate::value::Dict = message.key_dict("arg");
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
         let mut marketId: Option<String> = self.safe_string_k_opt(&arg, "instId", &[]);
@@ -1133,7 +1133,7 @@ impl Blofin {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
+        let mut arg: crate::value::Dict = message.key_dict("arg");
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
         {
@@ -1212,7 +1212,7 @@ impl Blofin {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
+        let mut arg: crate::value::Dict = message.key_dict("arg");
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
         let mut newPositions: Vec<Value> = Vec::new();
@@ -1300,7 +1300,7 @@ impl Blofin {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(first), None).into_dict();
         let mut symbol: String = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1468,7 +1468,7 @@ impl Blofin {
         //         }
         //     }
         //
-        let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
+        let mut arg: crate::value::Dict = message.key_dict("arg");
         let mut channel: String = self.safe_string_k(&arg, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: Option<String> = self.safe_string_k_opt(&arg, "instId", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1558,7 +1558,7 @@ impl Blofin {
         }  else if (event.as_deref() == Some("error")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " error: ").into()), json_stringify(&message))));
         }
-        let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
+        let mut arg: crate::value::Dict = __pro_message.key_dict("arg");
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         method = self.safe_value(&methods, channelName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (method.is_none()) && (channelName.as_deref().unwrap_or_default().contains("candle")) {

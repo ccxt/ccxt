@@ -781,7 +781,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //      baseId: 159
         //  }
         //
-        let mut interestValue: crate::value::Dict = interest.get("info").cloned().unwrap_or_default().into_dict();
+        let mut interestValue: crate::value::Dict = interest.key_dict("info");
         let mut coin: Option<String> = self.safe_string_k_opt(&interestValue, "name", &[]);
         let mut marketId: Option<String> = None;
         if (coin.is_some()) {
@@ -6993,7 +6993,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let config = config.as_map().unwrap_or(&__config_empty);
         if (config.contains_key("byType")) && (params.contains_key("type")) {
             let mut type_var: Value = params.get("type").cloned().unwrap_or(Value::Null);
-            let mut byType: crate::value::Dict = config.get("byType").cloned().unwrap_or_default().into_dict();
+            let mut byType: crate::value::Dict = config.key_dict("byType");
             if (matches!(&type_var, Value::Str(__k) if byType.contains_key(__k.as_ref()))) {
                 return crate::value::KeyRead::read(&&byType, &type_var);
             }

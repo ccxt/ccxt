@@ -548,7 +548,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     ]
         //
-        let mut response: crate::value::List = message.get("r").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = message.key_list("r");
         let mut first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
@@ -723,7 +723,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let mut response: crate::value::List = message.get("r").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = message.key_list("r");
         let mut first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
@@ -944,7 +944,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let mut response: crate::value::List = message.get("r").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = message.key_list("r");
         let mut first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
@@ -1102,7 +1102,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "mt": 1760975816446
         //     }
         //
-        let mut response: crate::value::List = __pro_message.get("r").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = __pro_message.key_list("r");
         let mut first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
@@ -1131,7 +1131,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_order_book_snapshot(&self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut entries: crate::value::List = message.get("r").cloned().unwrap_or_default().into_list();
+        let mut entries: crate::value::List = message.key_list("r");
         let mut first: crate::value::Dict = self.safe_dict_t(&entries, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
@@ -1202,7 +1202,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut timestamp: i64 = (match message.get("mt") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) }).as_i64().unwrap_or(0);
         let mut currentTimestamp: Option<i64> = self.safe_integer_k(&orderbook, "timestamp", &[]).as_i64();
         if (currentTimestamp.is_some()) && ((currentTimestamp.is_some() && Some(timestamp) > currentTimestamp)) {
-            let mut response: crate::value::List = message.get("r").cloned().unwrap_or_default().into_list();
+            let mut response: crate::value::List = message.key_list("r");
             self.handle_book_deltas(orderbook.clone(), Value::Arr(response));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -1304,7 +1304,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut result: crate::value::List = message.key_list("result");
         let mut first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
@@ -1402,7 +1402,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut result: crate::value::List = message.key_list("result");
         let mut first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
@@ -1574,7 +1574,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut result: crate::value::List = message.key_list("result");
         let mut first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
@@ -1733,7 +1733,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let mut response: crate::value::List = message.get("r").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = message.key_list("r");
         let mut first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut action: Option<String> = self.safe_string_k_opt(&data, "A", &[]); // 1 = subscribe, 0 = unsubscribe
@@ -1780,7 +1780,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let mut messageText: String = (match __pro_message.get("m").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut response: crate::value::List = __pro_message.get("r").cloned().unwrap_or_default().into_list();
+        let mut response: crate::value::List = __pro_message.key_list("r");
         let mut first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let mut data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let mut requestId: Option<i64> = self.safe_integer_k(&data, "L", &[]).as_i64();

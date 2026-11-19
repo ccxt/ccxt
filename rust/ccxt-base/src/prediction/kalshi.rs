@@ -625,7 +625,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&baseUrls, "kalshi", &[Value::Str("".into())])]);
         let mut implodedPath: String = self.implode_params(Value::from(path), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), implodedPath);
@@ -3510,7 +3510,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut collected: crate::value::List = std::sync::Arc::new(Vec::new());
         // tags / category -> documented /series listing
-        let mut tags: crate::value::List = params.get("tags").cloned().unwrap_or_default().into_list();
+        let mut tags: crate::value::List = params.key_list("tags");
         let mut tagsLength: i64 = tags.len() as i64;
         {
                         let mut ti: i64 = 0;

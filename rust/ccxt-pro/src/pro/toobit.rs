@@ -518,7 +518,7 @@ impl Toobit {
             CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         let mut parsedTrades: crate::value::List = self.array_concat_t(self.parse_ws_trades(&data, Some(&market), &[]), Value::from(vec![]));
         {
                         let mut i: i64 = 0;
@@ -678,7 +678,7 @@ impl Toobit {
         let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = __pro_message.key_dict("params");
         let mut timeframeId: Option<String> = self.safe_string_k_opt(&params, "klineType", &[]);
         let mut timeframe: Option<String> = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
@@ -692,7 +692,7 @@ impl Toobit {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
         }
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_673: bool = true;
@@ -1009,7 +1009,7 @@ impl Toobit {
         let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_677: bool = true;
@@ -1070,7 +1070,7 @@ impl Toobit {
     pub fn set_order_book_snapshot(&mut self, client: &Value, message: &Value, mut channel: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut length: i64 = data.len() as i64;
         if (length == 0) {
             return;
@@ -1209,7 +1209,7 @@ impl Toobit {
         // ]
         //
         let mut channel: Option<String> = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::List = message.get("B").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("B");
         let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut type_var: String = "spot".to_string();
         if (channel.as_deref() == Some("outboundContractAccountInfo")) {

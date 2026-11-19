@@ -549,7 +549,7 @@ impl Gemini {
         let mut marketId: Value = (self.safe_string_k(&message, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId, Some(&market), &[]).as_str().map(str::to_owned);
-        let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
+        let mut changes: crate::value::List = __pro_message.key_list("changes");
         let mut timeframe: Option<String> = self.find_timeframe(Value::from(timeframeId.clone()), &[]);
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
@@ -636,7 +636,7 @@ impl Gemini {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut isInitial: bool = (matches!(&message, Value::Dict(__d) if __d.contains_key("auction_events"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("trades"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("changes")));
-        let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
+        let mut changes: crate::value::List = __pro_message.key_list("changes");
         let mut marketId: Option<String> = self.safe_string_lower_k_opt(message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

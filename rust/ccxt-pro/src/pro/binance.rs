@@ -873,7 +873,7 @@ impl Binance {
         //        }
         //    }
         //
-        let mut rawLiquidation: crate::value::Dict = message.get("o").cloned().unwrap_or_default().into_dict();
+        let mut rawLiquidation: crate::value::Dict = message.key_dict("o");
         let mut marketId: Option<String> = self.safe_string_k_opt(&rawLiquidation, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into()), Value::Str("contract".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -1815,8 +1815,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHashes: crate::value::List = __pro_message.get("messageHashes").cloned().unwrap_or_default().into_list();
-        let mut subMessageHashes: crate::value::List = __pro_message.get("subMessageHashes").cloned().unwrap_or_default().into_list();
+        let mut messageHashes: crate::value::List = __pro_message.key_list("messageHashes");
+        let mut subMessageHashes: crate::value::List = __pro_message.key_list("subMessageHashes");
         {
                         let mut j: i64 = 0;
             let mut __for_first_61: bool = true;
@@ -2730,7 +2730,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             m
         });
         event = self.safe_string_opt(&eventMap, Value::from(event.as_deref()), &[Value::from(event.as_deref())]);
-        let mut kline: crate::value::Dict = message.get("k").cloned().unwrap_or_default().into_dict();
+        let mut kline: crate::value::Dict = message.key_dict("k");
         let mut marketId: Option<String> = self.safe_string2_opt(&kline, Value::Str("s".into()), Value::Str("ps".into()), &[]);
         if (event.as_deref() == Some("indexPriceKline")) {
             // indexPriceKline doesn't have the _PERP suffix
@@ -3759,7 +3759,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = message.key_dict("result");
         let mut ticker: crate::value::Dict = self.parse_ws_ticker(&result, Value::Str("contract".into())).into_dict();
         client.resolve(Value::Dict(ticker), messageHash.as_deref());
 }
@@ -4018,7 +4018,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subscriptions: Value = __ch.subscriptions.clone();
         let mut subscriptionsKeys: crate::value::List = object_keys(&subscriptions).into_list();
         let mut accountType: Option<String> = self.get_account_type_from_subscriptions(&subscriptionsKeys);
-        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = __pro_message.key_dict("result");
         let mut subscriptionId: Option<i64> = self.safe_integer_k(&result, "subscriptionId", &[]).as_i64();
         if (subscriptionId.is_none()) {
             __ch.remove_subscription(accountType.as_deref());
@@ -4605,7 +4605,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             rawBalance = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_opt_list();
         }  else {
             // account.status
-            let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+            let mut result: crate::value::Dict = message.key_dict("result");
             rawBalance = self.safe_list_k_or_o(&result, "assets", Value::from(vec![]));
         }
         let mut parsedBalances: Option<crate::value::Dict> = self.parent.parse_balance_custom(&rawBalance, None, None, &[]).into_opt_dict();
@@ -4662,7 +4662,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         // swap
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = message.key_dict("result");
         let mut parsedBalances: Option<crate::value::Dict> = self.parent.parse_balance_custom(&result, None, None, &[]).into_opt_dict();
         client.resolve(&parsedBalances, messageHash.as_deref());
 }
@@ -4811,7 +4811,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut result: crate::value::List = message.key_list("result");
         let mut positions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
@@ -5254,7 +5254,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = message.key_dict("result");
         let mut order: crate::value::Dict = self.parse_order(Value::Dict(result), None).into_dict();
         client.resolve(Value::Dict(order), messageHash.as_deref());
 }
@@ -5300,7 +5300,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut result: crate::value::List = message.key_list("result");
         let mut orders: crate::value::List = self.parse_orders(&result, None, &[]).into_list();
         client.resolve(Value::Arr(orders), messageHash.as_deref());
 }
@@ -5490,7 +5490,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = message.key_dict("result");
         let mut newSpotOrder: Option<crate::value::Dict> = self.safe_dict_k_o(&result, "newOrderResponse");
         let mut order: Value = Value::Null;
         if (newSpotOrder.is_some()) {
@@ -6522,7 +6522,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //         "e": "price"
         //     }
         //
-        let mut rates: crate::value::List = message.get("rates").cloned().unwrap_or_default().into_list();
+        let mut rates: crate::value::List = message.key_list("rates");
         let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -6620,7 +6620,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //         ]
         //     }
         //
-        let mut orders: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
+        let mut orders: crate::value::List = message.key_list("o");
         {
                         let mut i: i64 = 0;
             let mut __for_first_81: bool = true;
@@ -6892,7 +6892,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             CacheStore::put(&mut self.positionsByType, &accountType, ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&accountType);
-        let mut data: crate::value::Dict = message.get("a").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("a");
         let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "P");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -7250,7 +7250,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut result: crate::value::List = message.key_list("result");
         let mut trades: crate::value::List = self.parse_trades(&result, None, &[]).into_list();
         client.resolve(Value::Arr(trades), messageHash.as_deref());
 }
@@ -7525,7 +7525,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 })); }
         }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message.clone()); } }
-        let mut B: crate::value::List = __pro_message.get("B").cloned().unwrap_or_default().into_list();
+        let mut B: crate::value::List = __pro_message.key_list("B");
         {
                         let mut i: i64 = 0;
             let mut __for_first_86: bool = true;
@@ -7550,7 +7550,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             CacheStore::put(&mut self.positionsByType, &accountType, ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&accountType);
-        let mut P: crate::value::List = __pro_message.get("P").cloned().unwrap_or_default().into_list();
+        let mut P: crate::value::List = __pro_message.key_list("P");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
@@ -7597,7 +7597,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //
         let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut rejected: bool = false;
-        let mut error: crate::value::Dict = __pro_message.get("error").cloned().unwrap_or_default().into_dict();
+        let mut error: crate::value::Dict = __pro_message.key_dict("error");
         let mut code: Option<i64> = self.safe_integer_k(&error, "code", &[]).as_i64();
         let mut msg: Option<String> = self.safe_string_k_opt(&error, "msg", &[]);
         let mut codeValue: i64 = code.unwrap_or(0);

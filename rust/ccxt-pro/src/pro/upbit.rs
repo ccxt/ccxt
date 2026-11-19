@@ -500,7 +500,7 @@ impl Upbit {
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        let mut data: crate::value::List = __pro_message.get("orderbook_units").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("orderbook_units");
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         let mut bidsSnapshot: Vec<Value> = Vec::new();
         let mut asksSnapshot: Vec<Value> = Vec::new();
@@ -1056,7 +1056,7 @@ impl Upbit {
         //     "stream_type": "REALTIME"
         // }
         //
-        let mut data: crate::value::List = __pro_message.get("assets").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("assets");
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }

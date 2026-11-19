@@ -443,7 +443,7 @@ impl Onetrading {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        let mut tickers: crate::value::List = message.get("ticker_updates").cloned().unwrap_or_default().into_list();
+        let mut tickers: crate::value::List = message.key_list("ticker_updates");
         let mut datetime: Option<String> = (match message.get("time") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
@@ -668,7 +668,7 @@ impl Onetrading {
             let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else if (type_var == "ORDER_BOOK_UPDATE") {
-            let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
+            let mut changes: crate::value::List = __pro_message.key_list("changes");
             self.handle_book_deltas(Value::from(&orderbook), Value::Arr(changes));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOrderBook() did not recognize message type ").into()), type_var)));
@@ -1033,7 +1033,7 @@ impl Onetrading {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let mut rawOrders: crate::value::List = message.get("orders").cloned().unwrap_or_default().into_list();
+        let mut rawOrders: crate::value::List = message.key_list("orders");
         let mut rawOrdersLength: i64 = rawOrders.len() as i64;
         if (rawOrdersLength == 0) {
             return;
@@ -1298,7 +1298,7 @@ impl Onetrading {
         }
         let mut symbol: Option<String> = None;
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut update: crate::value::Dict = message.get("update").cloned().unwrap_or_default().into_dict();
+        let mut update: crate::value::Dict = message.key_dict("update");
         let mut updateType: Option<String> = self.safe_string_k_opt(&update, "type", &[]);
         if (updateType.as_deref() == Some("ORDER_REJECTED")) || (updateType.as_deref() == Some("ORDER_CLOSED")) || (updateType.as_deref() == Some("STOP_ORDER_TRIGGERED")) {
             let mut orderId: Option<String> = self.safe_string_k_opt(&update, "order_id", &[]);

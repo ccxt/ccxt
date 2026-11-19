@@ -1318,7 +1318,7 @@ impl Coinbaseexchange {
         }  else if (type_var.as_deref() == Some("l2update")) {
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             let mut timestamp: Option<i64> = self.parse8601((match __pro_message.get("time").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-            let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
+            let mut changes: crate::value::List = __pro_message.key_list("changes");
             let mut sides: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("sell".to_string(), Value::Str("asks".into()));

@@ -633,7 +633,7 @@ impl Hyperliquid {
         //         }
         //     }
         //
-        let mut entry: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut entry: crate::value::Dict = message.key_dict("data");
         let mut coin: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1093,7 +1093,7 @@ impl Hyperliquid {
         // }
         //
         // handle hip3 mids
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut mids: crate::value::Dict = self.safe_dict_k_t(&data, "mids");
         if (true) {
             let mut keys: Vec<Value> = Value::Array(mids.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -1150,7 +1150,7 @@ impl Hyperliquid {
         // the spot variant arrives on the activeSpotAssetCtx channel and carries
         // "circulatingSupply" instead of the swap-only fields
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut coin: Option<String> = self.safe_string_k_opt(&data, "coin", &[]);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1205,7 +1205,7 @@ impl Hyperliquid {
         //
         // an empty snapshot still seeds the liquidations cache
         self.handle_my_liquidations(client, &message);
-        let mut entry: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut entry: crate::value::Dict = __pro_message.key_dict("data");
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1256,7 +1256,7 @@ impl Hyperliquid {
         //         "method": "market"
         //     }
         //
-        let mut entry: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut entry: crate::value::Dict = message.key_dict("data");
         // every subscription starts with a snapshot, a resubscribe replays it
         let mut isSnapshot: bool = self.safe_bool_k_opt(&entry, "isSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         if isSnapshot || (self.myLiquidations.is_none()) {
@@ -1427,7 +1427,7 @@ impl Hyperliquid {
         //         ]
         //     }
         //
-        let mut entry: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut entry: crate::value::List = message.key_list("data");
         let mut entryLength: i64 = entry.len() as i64;
         if (entryLength == 0) {
             return;
@@ -1655,7 +1655,7 @@ impl Hyperliquid {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut base: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(base.as_deref());
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
@@ -1687,7 +1687,7 @@ impl Hyperliquid {
         //                  payload: { ... }
         //         }
         //    }
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut id: Option<String> = self.safe_string_k_opt(&data, "id", &[]);
         let mut response: crate::value::Dict = self.safe_dict_k_t(&data, "response");
         let mut payload: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "payload");
@@ -1878,7 +1878,7 @@ impl Hyperliquid {
         let mut rawBalances: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut account: Value = Value::Str("".into());
         let mut timestamp: Option<i64> = None;
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         if (topic.as_deref() == Some("spotState")) {
             let mut spotState: crate::value::Dict = self.safe_dict_k_t(&data, "spotState");
             rawBalances = self.safe_list_k_t(&spotState, "balances");
@@ -2067,7 +2067,7 @@ impl Hyperliquid {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut clearinghouseState: crate::value::Dict = self.safe_dict_k_t(&data, "clearinghouseState");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawPositions: crate::value::List = self.safe_list_k_t(&clearinghouseState, "assetPositions");
@@ -2293,7 +2293,7 @@ impl Hyperliquid {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -2384,7 +2384,7 @@ impl Hyperliquid {
             client.reject(error.clone(), None);
             return Value::Bool(true);
         }
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut id: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (id.is_none()) {
             id = self.safe_string_k_opt(&data, "id", &[]);
@@ -2649,7 +2649,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //      }
         //  }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut method: Option<String> = self.safe_string_k_opt(&data, "method", &[]);
         if (method.as_deref() == Some("unsubscribe")) {
             let mut subscription: crate::value::Dict = self.safe_dict_k_t(&data, "subscription");

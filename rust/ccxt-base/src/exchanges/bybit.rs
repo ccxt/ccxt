@@ -5881,7 +5881,7 @@ impl Bybit {
         let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
-        let mut result: crate::value::Dict = response.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = response.key_dict("result");
         let mut data: crate::value::List = self.safe_list_n(&result, Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]).into_list();
         let mut paginationCursor: Option<String> = self.safe_string2_opt(&result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]);
         let mut dataLength: i64 = data.len() as i64;

@@ -16265,8 +16265,8 @@ impl Binance {
         let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
-        let mut positions: crate::value::List = account.get("positions").cloned().unwrap_or_default().into_list();
-        let mut assets: crate::value::List = account.get("assets").cloned().unwrap_or_default().into_list();
+        let mut positions: crate::value::List = account.key_list("positions");
+        let mut assets: crate::value::List = account.key_list("assets");
         let mut balances: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -18365,7 +18365,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else if (config.contains_key("byLimit")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("limit"))) {
             let mut limit: Value = params.as_map().and_then(|__m| __m.get("limit")).cloned().unwrap_or(Value::Null);
             // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
-            let mut byLimit: crate::value::List = config.get("byLimit").cloned().unwrap_or_default().into_list();
+            let mut byLimit: crate::value::List = config.key_list("byLimit");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_312: bool = true;

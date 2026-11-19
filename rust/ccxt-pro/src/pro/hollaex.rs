@@ -340,7 +340,7 @@ impl Hollaex {
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
@@ -428,7 +428,7 @@ impl Hollaex {
         // }
         //
         let mut channel: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut rawTrades: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut rawTrades: crate::value::List = message.key_list("data");
         // usually the first message is an empty array
         // when the user does not have any trades yet
         let mut dataLength: i64 = rawTrades.len() as i64;
@@ -675,7 +675,7 @@ impl Hollaex {
         //     }
         //
         let mut messageHash: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut keys: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(message, "time", &[]).as_i64();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }

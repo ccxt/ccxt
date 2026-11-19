@@ -976,7 +976,7 @@ impl Bybit {
         //
         let mut topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut updateType: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut isSpot: bool = self.safe_string_k(&data, "usdIndexPrice", &[]) != Value::Null;
         let mut type_var: String = "contract".to_string();
         if isSpot {
@@ -1288,7 +1288,7 @@ impl Bybit {
         //         "type": "snapshot"
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut topicParts: crate::value::List = crate::value::List::new(topic.split(".").map(Value::from).collect());
         let mut topicLength: i64 = topicParts.len() as i64;
@@ -1572,7 +1572,7 @@ impl Bybit {
         let mut isSpot: bool = __ch.url.as_str().unwrap_or("").contains("spot");
         let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut isSnapshot: bool = type_var.as_deref() == Some("snapshot");
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut marketType: String = "contract".to_string();
         if isSpot {
@@ -2140,7 +2140,7 @@ impl Bybit {
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         let mut spot: bool = topic.as_deref() == Some("ticketInfo");
         let mut executionFast: bool = topic.as_deref() == Some("execution.fast");
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -2371,7 +2371,7 @@ impl Bybit {
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut rawPositions: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut rawPositions: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_204: bool = true;
@@ -2530,7 +2530,7 @@ impl Bybit {
         //     }
         //
         if (matches!(&message.get("data").cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-            let mut rawLiquidations: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+            let mut rawLiquidations: crate::value::List = message.key_list("data");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_206: bool = true;
@@ -2551,7 +2551,7 @@ impl Bybit {
             }
             }
         }  else {
-            let mut rawLiquidation: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut rawLiquidation: crate::value::Dict = message.key_dict("data");
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawLiquidation, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into()), Value::Str("contract".into())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -2738,7 +2738,7 @@ impl Bybit {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("reqId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut order: crate::value::Dict = self.parse_order(Value::Dict(data), None).into_dict();
         client.resolve(Value::Dict(order), messageHash.as_deref());
 }
@@ -2834,7 +2834,7 @@ impl Bybit {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut rawOrders: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut rawOrders: crate::value::List = message.key_list("data");
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3102,7 +3102,7 @@ impl Bybit {
         let mut account: Option<String> = None;
         if (topic.as_deref() == Some("outboundAccountInfo")) {
             account = Some("spot".to_string());
-            let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+            let mut data: crate::value::List = message.key_list("data");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_209: bool = true;
@@ -3114,7 +3114,7 @@ impl Bybit {
             info = Value::Arr(rawBalances.clone());
         }
         if (topic.as_deref() == Some("wallet")) {
-            let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+            let mut data: crate::value::List = message.key_list("data");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_210: bool = true;
@@ -3428,7 +3428,7 @@ impl Bybit {
             let mut success: Option<bool> = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null }).as_bool();
             if (success.is_some()) && (!(success == Some(true))) {
                 let mut ret_msg: String = (match __pro_message.get("ret_msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-                let mut request: crate::value::Dict = __pro_message.get("request").cloned().unwrap_or_default().into_dict();
+                let mut request: crate::value::Dict = __pro_message.key_dict("request");
                 let mut op: Option<String> = self.safe_string_k_opt(&request, "op", &[]);
                 if (op.as_deref() == Some("auth")) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", "Authentication failed: ", ret_msg)));

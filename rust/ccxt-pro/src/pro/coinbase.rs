@@ -694,7 +694,7 @@ impl Coinbase {
         //
         //
         let mut channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut events: crate::value::List = __pro_message.get("events").cloned().unwrap_or_default().into_list();
+        let mut events: crate::value::List = __pro_message.key_list("events");
         let mut datetime: Option<String> = self.safe_string_k_opt(message, "timestamp", &[]);
         let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         let mut newTickers: Vec<Value> = Vec::new();
@@ -1516,7 +1516,7 @@ impl Coinbase {
         //        events: [ { subscriptions: {} } ]
         //      }
         //
-        let mut events: crate::value::List = __pro_message.get("events").cloned().unwrap_or_default().into_list();
+        let mut events: crate::value::List = __pro_message.key_list("events");
         let mut firstEvent: crate::value::Dict = self.safe_dict_t(&events, Value::Int(0));
         let mut isUnsub: bool = firstEvent.contains_key("subscriptions");
         let mut subKeys: Vec<Value> = object_keys(&crate::value::KeyRead::key_read(&&firstEvent, "subscriptions")).as_array().cloned().unwrap_or_default();

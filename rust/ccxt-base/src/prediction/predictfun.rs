@@ -312,7 +312,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " sign() requires the \"apiKey\" credential for all endpoints")));
         }
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "predictfun")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         let mut query: crate::value::Dict = self.omit_t(params.clone(), self.extract_params(Value::from(path)), &[]);
@@ -1845,7 +1845,7 @@ impl Predictfun {
             eventHandle = self.shorten_slug(topicSlug.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut title: Option<String> = self.safe_string_k_opt(&rawMarket, "title", &[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut topicMarkets: crate::value::List = rawTopic.get("markets").cloned().unwrap_or_default().into_list();
+        let mut topicMarkets: crate::value::List = rawTopic.key_list("markets");
         let mut marketCount: i64 = topicMarkets.len() as i64;
         let mut symbolTitle: Option<String> = self.title_for_market_symbol(topicSlug.as_deref(), title.as_deref(), &[Value::from(marketCount)]);
         let mut marketSymbol: Option<String> = self.slug_to_market_symbol(topicSlug.map(Value::from).unwrap_or(Value::Null), symbolTitle.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
@@ -3976,7 +3976,7 @@ impl Predictfun {
         let message = message.as_map().unwrap_or(&__message_empty);
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
-        let mut rawError: crate::value::Dict = message.get("error").cloned().unwrap_or_default().into_dict();
+        let mut rawError: crate::value::Dict = message.key_dict("error");
         let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " subscribe request rejected ").into()), json_stringify(&rawError))));
         // watch () registers a subscription before it sends and only sends while the hash is still
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
@@ -4019,8 +4019,8 @@ impl Predictfun {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut messageHashes: crate::value::List = __pro_message.get("messageHashes").cloned().unwrap_or_default().into_list();
-        let mut subMessageHashes: crate::value::List = __pro_message.get("subMessageHashes").cloned().unwrap_or_default().into_list();
+        let mut messageHashes: crate::value::List = __pro_message.key_list("messageHashes");
+        let mut subMessageHashes: crate::value::List = __pro_message.key_list("subMessageHashes");
         let mut messageHashesLength: i64 = messageHashes.len() as i64;
         // one wallet hash stands for a family: 'orders' is what an unnarrowed caller waits on and
         // 'orders::<outcome>' what a narrowed one waits on, so the base matches it as a prefix and
@@ -4355,7 +4355,7 @@ impl Predictfun {
  * @returns {string} the url to connect to
  */
     pub fn socket_url(&self) -> Option<String> {
-        let mut urls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
+        let mut urls: crate::value::Dict = self.urls.key_dict("api");
         let mut base: Option<String> = self.safe_string_k_opt(&urls, "ws", &[]);
         if (base.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " does not have a sandbox websocket endpoint")));
@@ -4480,7 +4480,7 @@ impl Predictfun {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "marketId", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "updateTimestampMs", &[]).as_i64();
         let mut rawAsks: crate::value::List = self.safe_list_k_t(&data, "asks");
@@ -4610,7 +4610,7 @@ impl Predictfun {
         // sends but does not document), orderTransactionSubmitted, orderTransactionSuccess and
         // orderCancelled - the latter arrives with the same envelope and no fill
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut order: crate::value::Dict = self.parse_wallet_event_order(&data).into_dict();
         self.handle_wallet_event_order(client.clone(), Value::from(&order));
         // only a confirmed on-chain settlement is a trade: a submitted transaction has not landed

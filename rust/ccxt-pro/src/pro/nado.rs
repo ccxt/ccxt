@@ -2509,7 +2509,7 @@ impl Nado {
         //     }
         //
         let mut timestamp: Option<i64> = (match message.get("time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut bbos: crate::value::Dict = message.get("bbos").cloned().unwrap_or_default().into_dict();
+        let mut bbos: crate::value::Dict = message.key_dict("bbos");
         let mut marketIds: Vec<Value> = Value::Array(bbos.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2619,8 +2619,8 @@ impl Nado {
             client.reject(error, messageHash.as_str());
             return;
         }
-        let mut asks: crate::value::List = __pro_message.get("asks").cloned().unwrap_or_default().into_list();
-        let mut bids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
+        let mut asks: crate::value::List = __pro_message.key_list("asks");
+        let mut bids: crate::value::List = __pro_message.key_list("bids");
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null)), Value::Arr(asks));
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null)), Value::Arr(bids));
         let mut timestamp: Option<i64> = self.parse_ws_timestamp(message, Value::Str("max_timestamp".into())).as_i64();
@@ -2815,7 +2815,7 @@ impl Nado {
         //         "id": 10
         //     }
         //
-        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = __pro_message.key_dict("result");
         let __ws_arg_18 = self.milliseconds();
         crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(&result, "server_time", &[Value::Int(__ws_arg_18)]));
         return message;

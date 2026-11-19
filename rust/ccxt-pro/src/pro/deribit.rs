@@ -323,7 +323,7 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
         let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
@@ -495,7 +495,7 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "instrument_name", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
@@ -589,7 +589,7 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(&data, None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
@@ -717,7 +717,7 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(channel.split(".").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
@@ -832,7 +832,7 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut trades: crate::value::List = self.safe_list_k_t(&params, "data");
         let mut cachedTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
@@ -987,7 +987,7 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
@@ -1170,7 +1170,7 @@ impl Deribit {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut data: Value = self.safe_value_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1294,7 +1294,7 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = message.key_dict("params");
         let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(channel.split(".").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(2), &[]);
@@ -1456,7 +1456,7 @@ impl Deribit {
         if (error != Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&error))));
         }
-        let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = __pro_message.key_dict("params");
         let mut channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         if (channel.is_some()) {
             let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
@@ -1485,7 +1485,7 @@ impl Deribit {
             }
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " no handler found for this message ").into()), json_stringify(&message))));
         }
-        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = __pro_message.key_dict("result");
         let mut accessToken: Option<String> = self.safe_string_k_opt(&result, "access_token", &[]);
         if (accessToken.is_some()) {
             self.handle_authentication_message(client, message);

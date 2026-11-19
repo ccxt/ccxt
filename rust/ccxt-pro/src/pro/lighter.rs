@@ -359,7 +359,7 @@ impl Lighter {
     pub fn handle_order_book_message(&self, client: &Value, mut message: Value, mut orderbook: Value) -> Value {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut data: crate::value::Dict = __pro_message.get("order_book").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("order_book");
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
         orderbook.set_book_meta("nonce", self.safe_integer_k(&data, "offset", &[]));
@@ -399,7 +399,7 @@ impl Lighter {
         //     "type": "update/order_book"
         // }
         //
-        let mut data: crate::value::Dict = __pro_message.get("order_book").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("order_book");
         let mut channel: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(channel.split(":").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
@@ -973,12 +973,12 @@ impl Lighter {
         //         "type": "subscribed/trade"
         //     }
         //
-        let mut liquidationData: crate::value::List = __pro_message.get("liquidation_trades").cloned().unwrap_or_default().into_list();
+        let mut liquidationData: crate::value::List = __pro_message.key_list("liquidation_trades");
         let mut liquidationDataLength: i64 = liquidationData.len() as i64;
         if liquidationDataLength > 0 {
             self.handle_liquidation(client, &message);
         }
-        let mut data: crate::value::List = __pro_message.get("trades").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("trades");
         let mut channel: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(channel.split(":").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
@@ -1219,7 +1219,7 @@ impl Lighter {
         let mut channel: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(channel.split(":").map(Value::from).collect());
         let mut accountIndex: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
-        let mut data: crate::value::Dict = message.get("trades").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("trades");
         let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut idsLength: i64 = marketIds.len() as i64;
         if (idsLength == 0) {
@@ -1456,7 +1456,7 @@ impl Lighter {
         //         "type": "subscribed/trade"
         //     }
         //
-        let mut data: crate::value::List = message.get("liquidation_trades").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("liquidation_trades");
         let mut channel: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(channel.split(":").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
@@ -1636,7 +1636,7 @@ impl Lighter {
             m
         })]).as_map().cloned().unwrap_or_default();
         if (type_var == "spot") {
-            let mut assets: crate::value::Dict = __pro_message.get("assets").cloned().unwrap_or_default().into_dict();
+            let mut assets: crate::value::Dict = __pro_message.key_dict("assets");
             let mut assetIds: Vec<Value> = Value::Array(assets.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
@@ -1655,7 +1655,7 @@ impl Lighter {
             }
             }
         }  else {
-            let mut stats: crate::value::Dict = __pro_message.get("stats").cloned().unwrap_or_default().into_dict();
+            let mut stats: crate::value::Dict = __pro_message.key_dict("stats");
             let mut account: crate::value::Dict = self.account().into_dict();
             std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&stats, "available_balance", &[]));
             std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&stats, "collateral", &[]));
@@ -1994,7 +1994,7 @@ impl Lighter {
         //        "type": "update/account_all_orders"
         //    }
         //
-        let mut data: crate::value::Dict = message.get("orders").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("orders");
         let mut marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut idsLength: i64 = marketIds.len() as i64;
         if (idsLength == 0) {

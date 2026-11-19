@@ -2344,7 +2344,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut data: crate::value::Dict = message.get("a").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("a");
         let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "P");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {

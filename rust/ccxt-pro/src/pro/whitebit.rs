@@ -286,7 +286,7 @@ impl Whitebit {
         //     "id": null
         // }
         //
-        let mut params: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
+        let mut params: crate::value::List = __pro_message.key_list("params");
         {
                         let mut i: i64 = 0;
             let mut __for_first_710: bool = true;
@@ -394,7 +394,7 @@ impl Whitebit {
         //     "id":null
         //  }
         //
-        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
+        let mut params: crate::value::List = message.key_list("params");
         let mut isSnapshot: bool = self.safe_bool_opt(&params, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut marketId: Option<String> = self.safe_string_opt(&params, Value::Int(2), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -546,7 +546,7 @@ impl Whitebit {
         //       "id": null
         //   }
         //
-        let mut tickers: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
+        let mut tickers: crate::value::List = __pro_message.key_list("params");
         let mut marketId: Option<String> = self.safe_string_opt(&tickers, Value::Int(0), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
@@ -651,7 +651,7 @@ impl Whitebit {
         //        ]
         //    }
         //
-        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
+        let mut params: crate::value::List = message.key_list("params");
         let mut marketId: Option<String> = self.safe_string_opt(&params, Value::Int(0), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -906,7 +906,7 @@ impl Whitebit {
         //     "id": null
         // }
         //
-        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
+        let mut params: crate::value::List = message.key_list("params");
         let mut data: crate::value::Dict = self.safe_dict_t(&params, Value::Int(1));
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1176,7 +1176,7 @@ impl Whitebit {
             return;
         }
         let mut isMargin: bool = method.as_deref().unwrap_or_default().contains("Margin");
-        let mut data: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("params");
         {
                         let mut i: i64 = 0;
             let mut __for_first_716: bool = true;

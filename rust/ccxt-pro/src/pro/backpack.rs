@@ -732,7 +732,7 @@ impl Backpack {
         //         stream: 'bookTicker.ETH_USDC'
         //     }
         //
-        let mut ticker: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut ticker: crate::value::Dict = message.key_dict("data");
         let mut stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut subscriptions: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -838,7 +838,7 @@ impl Backpack {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut subscriptions: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -958,7 +958,7 @@ impl Backpack {
         //         },
         //         stream: 'bookTicker.ETH_USDC'
         //     }
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut subscriptions: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1235,7 +1235,7 @@ impl Backpack {
         //         stream: 'kline.2h.ETH_USDC'
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: String = (market).symbol.clone();
@@ -1453,7 +1453,7 @@ impl Backpack {
         //         stream: 'trade.ETH_USDC_PERP'
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: String = (market).symbol.clone();
@@ -1714,7 +1714,7 @@ impl Backpack {
         //         "stream": "depth.ETH_USDC"
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         if !(self.orderbooks.has(&symbol)) {
@@ -1950,7 +1950,7 @@ impl Backpack {
         //     }
         //
         let mut messageHash: String = "orders".to_string();
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -2112,7 +2112,7 @@ impl Backpack {
     pub fn handle_balance(&mut self, client: &Value, mut message: Value) -> Value {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut assetId: Option<String> = self.safe_string_k_opt(&data, "a", &[]);
         if (assetId.is_none()) {
             return Value::Bool(false);
@@ -2383,7 +2383,7 @@ impl Backpack {
         //     }
         //
         let mut messageHash: String = "positions".to_string();
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolById::new(Value::Null));
         }
@@ -2485,7 +2485,7 @@ impl Backpack {
         if (self.handle_error_message(&client, message.clone()).as_bool() != Some(true)) {
             return;
         }
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut event: Option<String> = self.safe_string_k_opt(&data, "e", &[]);
         if (event.as_deref() == Some("stockPrice")) || (event.as_deref() == Some("stockIndicativeQuote")) {
             self.handle_stock_ticker(&client, &message);
@@ -2522,7 +2522,7 @@ impl Backpack {
         //         }
         //     }
         //
-        let mut error: crate::value::Dict = message.get("error").cloned().unwrap_or_default().into_dict();
+        let mut error: crate::value::Dict = message.key_dict("error");
         let mut code: Option<i64> = self.safe_integer_k(&error, "code", &[]).as_i64();
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (code.is_some()) {

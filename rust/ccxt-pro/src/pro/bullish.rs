@@ -368,7 +368,7 @@ impl Bullish {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
@@ -479,7 +479,7 @@ impl Bullish {
         //     }
         //
         let mut updateType: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
@@ -562,7 +562,7 @@ impl Bullish {
         //     }
         //
         // current channel is 'l2Orderbook' which returns only snapshots
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "orderbook::", symbol.as_deref().unwrap_or("null"));
@@ -717,7 +717,7 @@ impl Bullish {
         let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("update")) {
-            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = message.key_dict("data");
             std::sync::Arc::make_mut(&mut rawOrders).push(Value::Dict(data)); // update is a single order
         }  else {
             rawOrders = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list(); // snapshot is a list of orders
@@ -858,7 +858,7 @@ impl Bullish {
         let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawTrades: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("update")) {
-            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = message.key_dict("data");
             std::sync::Arc::make_mut(&mut rawTrades).push(Value::Dict(data)); // update is a single trade
         }  else {
             rawTrades = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list(); // snapshot is a list of trades
@@ -996,7 +996,7 @@ impl Bullish {
         }
         let mut messageType: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (messageType.as_deref() == Some("snapshot")) {
-            let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+            let mut data: crate::value::List = __pro_message.key_list("data");
             let mut parsed: crate::value::Dict = self.parent.parse_balance_list(&data).into_dict();
             let mut parsedKeys: Vec<Value> = Value::Array(parsed.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
@@ -1009,7 +1009,7 @@ impl Bullish {
             }
             { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), tradingAccountId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(tradingAccountId.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }  else {
-            let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = __pro_message.key_dict("data");
             let mut assetId: Option<String> = self.safe_string_k_opt(&data, "assetSymbol", &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&data, "availableQuantity", &[]));
@@ -1087,7 +1087,7 @@ impl Bullish {
         let mut messageType: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         if (messageType.as_deref() == Some("update")) {
-            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = message.key_dict("data");
             std::sync::Arc::make_mut(&mut rawPositions).push(Value::Dict(data));
         }  else {
             rawPositions = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
@@ -1138,7 +1138,7 @@ impl Bullish {
         //         "type": "error"
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&data));
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut errorCode: Option<String> = self.safe_string_k_opt(&data, "errorCode", &[]);

@@ -243,7 +243,7 @@ impl Coinone {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut baseId: Option<String> = self.safe_string_upper_k_opt(&data, "target_currency", &[]);
         let mut quoteId: Option<String> = self.safe_string_upper_k_opt(&data, "quote_currency", &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
@@ -352,7 +352,7 @@ impl Coinone {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(&data, None).as_map().cloned().unwrap_or_default();
         let mut symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
         if (symbol.is_none()) {
@@ -499,7 +499,7 @@ impl Coinone {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut trade: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
         let mut symbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);

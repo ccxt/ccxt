@@ -272,7 +272,7 @@ impl Luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: crate::value::List = message.get("trade_updates").cloned().unwrap_or_default().into_list();
+        let mut rawTrades: crate::value::List = message.key_list("trade_updates");
         let mut length: i64 = rawTrades.len() as i64;
         if (length == 0) {
             return;

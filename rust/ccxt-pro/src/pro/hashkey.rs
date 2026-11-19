@@ -311,7 +311,7 @@ impl Hashkey {
         let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
+        let mut params: crate::value::Dict = __pro_message.key_dict("params");
         let mut klineType: Option<String> = self.safe_string_k_opt(&params, "klineType", &[]);
         let mut timeframe: Option<String> = self.find_timeframe(klineType.map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe.is_none()) {
@@ -324,7 +324,7 @@ impl Hashkey {
             let mut limit: i64 = self.safe_integer_k(&self.options, "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         {
                         let mut i: i64 = 0;
@@ -409,7 +409,7 @@ impl Hashkey {
         //         "shared": false
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut ticker: crate::value::Dict = self.parse_ticker(self.safe_dict(&data, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -591,7 +591,7 @@ impl Hashkey {
 })]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         let mut dataEntry: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
         let mut timestamp: Option<i64> = self.safe_integer_k(&dataEntry, "t", &[]).as_i64();
         let mut snapshot: crate::value::Dict = self.parse_order_book(&dataEntry, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
@@ -1123,7 +1123,7 @@ impl Hashkey {
         //     }
         //
         let mut event: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::List = __pro_message.get("B").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("B");
         let mut balanceUpdate: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut isSpot: bool = event.as_deref() == Some("outboundAccountInfo");
         let mut type_var: String = "swap".to_string();

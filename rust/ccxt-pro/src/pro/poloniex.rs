@@ -645,7 +645,7 @@ impl Poloniex {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
@@ -1200,7 +1200,7 @@ impl Poloniex {
         //        ]
         //    }
         //
-        let mut dataList: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut dataList: crate::value::List = __pro_message.key_list("data");
         let mut data: Option<crate::value::Dict> = self.safe_dict_o(&dataList, Value::Int(0));
         let mut channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
@@ -1250,7 +1250,7 @@ impl Poloniex {
         //        ]
         //    }
         //
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_644: bool = true;
@@ -1466,7 +1466,7 @@ impl Poloniex {
         //        ]
         //    }
         //
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         if (self.orders.is_none()) {
             let mut limit: Option<i64> = self.safe_integer_k(&self.options, "ordersLimit", &[]).as_i64();
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1681,7 +1681,7 @@ impl Poloniex {
         //        ]
         //    }
         //
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         let mut newTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1776,7 +1776,7 @@ impl Poloniex {
         //        "action": "update"
         //    }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut type_var: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut snapshot: bool = type_var.as_deref() == Some("snapshot");
         let mut update: bool = type_var.as_deref() == Some("update");
@@ -1881,7 +1881,7 @@ impl Poloniex {
         // message keeps a reference to the old object while Client.resolve is
         // a no-op with no waiter, so updates landing in that window would
         // never reach that consumer (same class as kraken issue #26773)
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut messageHash: String = "balances".to_string();
         if (self.balance == Value::Null) {
             self.balance = Value::Map({
@@ -1981,7 +1981,7 @@ impl Poloniex {
         }  else if (type_var.is_none()) {
             self.handle_order_request(&client, message.clone());
         }  else if (method.is_some()) {
-            let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+            let mut data: crate::value::List = __pro_message.key_list("data");
             let mut dataLength: i64 = data.len() as i64;
             if dataLength > 0 {
                 self.dispatch_ws_handler(&method, &[client, message]);
@@ -2000,7 +2000,7 @@ impl Poloniex {
         //    }
         //
         let mut channel: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut marketIds: crate::value::List = message.get("symbols").cloned().unwrap_or_default().into_list();
+        let mut marketIds: crate::value::List = message.key_list("symbols");
         let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "timeframes");
         let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.clone()), &[Value::Dict(timeframes)]);
         {
@@ -2065,7 +2065,7 @@ impl Poloniex {
         //
         let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut orderId: Option<String> = self.safe_string_k_opt(&first, "orderId", &[]);
         if (event.as_deref() == Some("error")) || (orderId.as_deref() == Some("0")) {
@@ -2107,7 +2107,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut success: bool = self.safe_bool_k_opt(&data, "success", &[Value::Bool(false)]).unwrap_or(false);
         let mut messageHash: String = "authenticated".to_string();
         if success {

@@ -2067,8 +2067,8 @@ impl Bigone {
         let mut orderbook: Value = orderbook.into();
         let __orderbook_empty = indexmap::IndexMap::new();
         let orderbook = orderbook.as_map().unwrap_or(&__orderbook_empty);
-        let mut responseBids: crate::value::Dict = orderbook.get("bids").cloned().unwrap_or_default().into_dict();
-        let mut responseAsks: crate::value::Dict = orderbook.get("asks").cloned().unwrap_or_default().into_dict();
+        let mut responseBids: crate::value::Dict = orderbook.key_dict("bids");
+        let mut responseAsks: crate::value::Dict = orderbook.key_dict("asks");
         let mut bids: crate::value::List = self.parse_contract_bids_asks(&responseBids).into_list();
         let mut asks: crate::value::List = self.parse_contract_bids_asks(&responseAsks).into_list();
         return Value::Map({

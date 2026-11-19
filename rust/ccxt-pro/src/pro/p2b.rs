@@ -510,7 +510,7 @@ impl P2b {
         //        "id": null
         //    }
         //
-        let mut params: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
+        let mut params: crate::value::List = __pro_message.key_list("params");
         let mut data: Option<crate::value::List> = self.safe_list_o(&params, Value::Int(0));
         let mut method: Option<String> = (match __pro_message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut splitMethod: crate::value::List = crate::value::List::new(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
@@ -562,7 +562,7 @@ impl P2b {
         //        "id": null
         //    }
         //
-        let mut data: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("params");
         let mut trades: crate::value::List = self.safe_list_t(&data, Value::Int(1));
         let mut marketId: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -624,7 +624,7 @@ impl P2b {
         //        "id": null
         //    }
         //
-        let mut data: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = __pro_message.key_list("params");
         let mut marketId: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut method: Option<String> = (match __pro_message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -677,7 +677,7 @@ impl P2b {
         //        "id": null
         //    }
         //
-        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
+        let mut params: crate::value::List = message.key_list("params");
         let mut isFullUpdate: bool = self.safe_bool_opt(&params, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut data: crate::value::Dict = self.safe_dict_t(&params, Value::Int(1));
         let mut asks: Option<crate::value::List> = self.safe_list_k_o(&data, "asks");

@@ -334,7 +334,7 @@ impl Bitopro {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut event: Option<String> = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut rawData: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut rawData: crate::value::List = message.key_list("data");
         let mut trades: crate::value::List = self.parse_trades(&rawData, Some(&market), &[]).into_list();
         let mut tradesCache: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesCache.is_none()) {
@@ -432,7 +432,7 @@ impl Bitopro {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut baseId: Option<String> = self.safe_string_k_opt(&data, "base", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(&data, "quote", &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
@@ -718,7 +718,7 @@ impl Bitopro {
         //     }
         //
         let mut event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut timestamp: Option<i64> = self.safe_integer_k(&message, "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k_opt(message, "datetime", &[]);
         let mut currencies: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();

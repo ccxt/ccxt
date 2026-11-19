@@ -359,7 +359,7 @@ impl Mudrex {
     pub fn handle_error_message(&self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut error: crate::value::Dict = message.get("error").cloned().unwrap_or_default().into_dict();
+        let mut error: crate::value::Dict = message.key_dict("error");
         let mut code: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let mut msg: String = self.safe_string_k(&error, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), msg);
@@ -379,7 +379,7 @@ impl Mudrex {
         let mut parts: Vec<Value> = Value::Array(if let Some(__s) = stream.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut interval: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut tf: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut s: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         if (s.is_none()) {
             return;
@@ -404,7 +404,7 @@ impl Mudrex {
     pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_507: bool = true;

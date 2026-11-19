@@ -288,7 +288,7 @@ impl Bit2me {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -355,7 +355,7 @@ impl Bit2me {
         let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut trade: crate::value::Dict = self.parse_ws_trade(&data, Some(&market)).into_dict();
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -506,7 +506,7 @@ impl Bit2me {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut order: crate::value::Dict = self.parse_ws_order(&data, None).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -648,7 +648,7 @@ impl Bit2me {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut trade: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -693,7 +693,7 @@ impl Bit2me {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut balances: crate::value::List = self.safe_list_k_t(&data, "balance");
         { let __t = self.parent.parse_balance_list(&balances); self.balance = __t; }
         client.resolve(self.balance.clone(), "balance");
@@ -803,7 +803,7 @@ impl Bit2me {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut order: crate::value::Dict = self.parse_order(Value::from(&data), None).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&data, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
@@ -858,7 +858,7 @@ impl Bit2me {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut orderId: Option<String> = self.safe_string_k_opt(&data, "orderId", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -926,7 +926,7 @@ impl Bit2me {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut deleted: crate::value::List = self.safe_list_k_t(&data, "ordersDeleted");
         let mut notDeleted: crate::value::List = self.safe_list_k_t(&data, "ordersNotDeletedReasons");
         let mut orders: Vec<Value> = Vec::new();
@@ -1012,7 +1012,7 @@ impl Bit2me {
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut ids: crate::value::List = self.safe_list_k_t(&data, "cancelledOrders");
         let mut orders: Vec<Value> = Vec::new();
         {
@@ -1108,7 +1108,7 @@ impl Bit2me {
         //     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
         //
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut error: crate::value::Dict = __pro_message.get("error").cloned().unwrap_or_default().into_dict();
+        let mut error: crate::value::Dict = __pro_message.key_dict("error");
         let mut code: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let mut errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message)).into());
@@ -1150,7 +1150,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-all-orders:".into()), __ws_arg_5).into()), Value::Null, &[exception.clone()]);
         }  else if (event.as_deref() == Some("subscribe")) {
             // a refused subscription names the channel and the symbol it was asked for
-            let mut subscription: crate::value::Dict = __pro_message.get("subscription").cloned().unwrap_or_default().into_dict();
+            let mut subscription: crate::value::Dict = __pro_message.key_dict("subscription");
             let mut name: Option<String> = self.safe_string_k_opt(&subscription, "name", &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);

@@ -4030,7 +4030,7 @@ if _try_result.is_err() {
         let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
-        let mut data: crate::value::List = response.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = response.key_list("data");
         let mut paginationCursor: Option<String> = (match response.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut hasMore: bool = (match response.get("has_more") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) }).as_bool().unwrap_or(false);
         let mut dataLength: i64 = data.len() as i64;

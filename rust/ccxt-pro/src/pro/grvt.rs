@@ -473,7 +473,7 @@ impl Grvt {
         //        "prev_sequence_number": "1061717"
         //    }
         //
-        let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("feed");
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(selector.split("@").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -606,7 +606,7 @@ impl Grvt {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("feed");
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(selector.split("@").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -753,7 +753,7 @@ impl Grvt {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("feed");
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(selector.split("@").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -923,7 +923,7 @@ impl Grvt {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("feed");
         let mut selector: String = (match message.get("selector") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = crate::value::List::new(selector.split("@").map(Value::from).collect());
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -1100,7 +1100,7 @@ impl Grvt {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("feed");
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1215,7 +1215,7 @@ impl Grvt {
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
-        let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("feed");
         let mut position: crate::value::Dict = self.parse_ws_position(&data, None).into_dict();
         self.positions.append(Value::from(&position));
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1386,7 +1386,7 @@ impl Grvt {
         //        "method": "subscribe"
         //    }
         //
-        let mut error: crate::value::Dict = __pro_message.get("error").cloned().unwrap_or_default().into_dict();
+        let mut error: crate::value::Dict = __pro_message.key_dict("error");
         let mut errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         if (errorCode.is_some()) {
             let mut body: Option<String> = json_stringify(&response).as_str().map(str::to_owned);

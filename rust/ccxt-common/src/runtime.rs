@@ -198,6 +198,17 @@ pub fn is_less_than_or_equal(a: &Value, b: &Value) -> bool {
     is_less_than(a, b) || is_equal(a, b)
 }
 
+/// The dict / list a map holds under `key`, read by reference: the shared container for a dict / list
+/// value, an empty one for a missing key or any other value (what `.get(k).cloned().unwrap_or_default().into_dict()` answers).
+pub trait KeyDictRead {
+    fn key_dict(&self, key: &str) -> crate::value::Dict;
+    fn key_list(&self, key: &str) -> crate::value::List;
+}
+impl KeyDictRead for HashMap<String, Value> {
+    fn key_dict(&self, key: &str) -> crate::value::Dict { if let Some(Value::Dict(m)) = self.get(key) { Arc::clone(m) } else { Arc::default() } }
+    fn key_list(&self, key: &str) -> crate::value::List { if let Some(Value::Arr(a)) = self.get(key) { Arc::clone(a) } else { Arc::default() } }
+}
+
 // ── type checks ─────────────────────────────────────────────────────────────
 
 /// `is_true(x)` — polymorphic truthy check. The transpiler emits

@@ -725,7 +725,7 @@ impl Bithumb {
 }), Value::from(obLimit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut units: crate::value::List = __pro_message.get("orderbook_units").cloned().unwrap_or_default().into_list();
+        let mut units: crate::value::List = __pro_message.key_list("orderbook_units");
         let mut gen2TimestampStr: Option<String> = self.safe_string2_opt(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
         let mut timestamp: Option<i64> = Some(self.milliseconds());
         if (gen2TimestampStr.is_some()) {
@@ -895,7 +895,7 @@ impl Bithumb {
         //         "stream_type": "REALTIME"
         //     }
         //
-        let mut content: crate::value::Dict = __pro_message.get("content").cloned().unwrap_or_default().into_dict();
+        let mut content: crate::value::Dict = __pro_message.key_dict("content");
         let mut rawTrades: Vec<Value> = self.safe_list_k(&content, "list", &[Value::from(vec![message])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1112,7 +1112,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //    }
         //
         let mut messageHash: String = "myAsset".to_string();
-        let mut assets: crate::value::List = __pro_message.get("assets").cloned().unwrap_or_default().into_list();
+        let mut assets: crate::value::List = __pro_message.key_list("assets");
         if (self.balance == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -4637,7 +4637,7 @@ pub trait ExchangeBase:
         let network = network.as_map().unwrap_or(&__network_empty);
         let mut withdrawEnabled: Option<bool> = (match network.get("withdraw") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool();
         let mut depositEnabled: Option<bool> = (match network.get("deposit") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool();
-        let mut limits: crate::value::Dict = network.get("limits").cloned().unwrap_or_default().into_dict();
+        let mut limits: crate::value::Dict = network.key_dict("limits");
         let mut withdraw: crate::value::Dict = self.safe_dict_k_t(&limits, "withdraw");
         let mut deposit: crate::value::Dict = self.safe_dict_k_t(&limits, "deposit");
         let mut isEnabled: Option<bool> = withdrawEnabled;
@@ -10253,10 +10253,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         let mut topic: Option<String> = (match subscription.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbols: crate::value::List = subscription.get("symbols").cloned().unwrap_or_default().into_list();
+        let mut symbols: crate::value::List = subscription.key_list("symbols");
         let mut symbolsLength: i64 = symbols.len() as i64;
         if (topic.as_deref() == Some("ohlcv")) {
-            let mut symbolsAndTimeframes: crate::value::List = subscription.get("symbolsAndTimeframes").cloned().unwrap_or_default().into_list();
+            let mut symbolsAndTimeframes: crate::value::List = subscription.key_list("symbolsAndTimeframes");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_180: bool = true;

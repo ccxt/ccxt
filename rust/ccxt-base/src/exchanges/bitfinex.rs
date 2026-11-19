@@ -205,7 +205,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         //         ...
         //     ]
         //
-        let mut tradeList: crate::value::List = trade.get("result").cloned().unwrap_or_default().into_list();
+        let mut tradeList: crate::value::List = trade.key_list("result");
         let mut tradeLength: i64 = tradeList.len() as i64;
         let mut isPrivate: bool = tradeLength > 5;
         let mut id: Option<String> = self.safe_string_opt(&tradeList, Value::Int(0), &[]);
@@ -2559,7 +2559,7 @@ impl Bitfinex {
         let mut name: Option<String> = self.safe_string_opt(&label, Value::Int(1), &[]);
         let mut pool: crate::value::List = self.safe_list_t(indexed.get("pool").cloned().unwrap_or(Value::Null), id.clone());
         let mut rawType: Option<String> = self.safe_string_opt(&pool, Value::Int(1), &[]);
-        let mut explorer: crate::value::Dict = indexed.get("explorer").cloned().unwrap_or_default().into_dict();
+        let mut explorer: crate::value::Dict = indexed.key_dict("explorer");
         let mut isCryptoCoin: bool = (rawType.is_some()) || (matches!(&id, Value::Str(__k) if explorer.contains_key(__k.as_ref()))); // "hacky" solution
         let mut type_var: Option<String> = (if isCryptoCoin { Some("crypto".to_string()) } else { None });
         let mut feeValues: crate::value::List = self.safe_list_t(indexed.get("fees").cloned().unwrap_or(Value::Null), id.clone());
@@ -2835,7 +2835,7 @@ impl Bitfinex {
         //   "id": "fUSTF0",
         //   "code": "USTF0",
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        let mut info: crate::value::List = currency.get("info").cloned().unwrap_or_default().into_list();
+        let mut info: crate::value::List = currency.key_list("info");
         let mut transferId: Option<String> = self.safe_string_opt(&info, Value::Int(0), &[]);
         let mut underlying: crate::value::List = self.safe_list_t(&info, Value::Int(4));
         if (type_var == "derivatives") {

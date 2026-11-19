@@ -246,7 +246,7 @@ impl Extended {
         //         "seq": 1
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "m", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -469,7 +469,7 @@ impl Extended {
                 m
             });
         }
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
         let mut balance: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "balance");
         if (balance.is_some()) {
@@ -589,7 +589,7 @@ impl Extended {
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut rawTrades: crate::value::List = self.safe_list_k_t(&data, "trades");
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -712,7 +712,7 @@ impl Extended {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut first: Option<crate::value::Dict> = self.safe_dict_o(&rawPositions, Value::Int(0));
@@ -790,7 +790,7 @@ impl Extended {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut rawOrders: Option<crate::value::List> = self.safe_list_k_o(&data, "orders");
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -892,7 +892,7 @@ impl Extended {
         //         "seq": 2
         //     }
         //
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut fundingRate: crate::value::Dict = self.parse_ws_funding_rate(&data, None, &[message]).into_dict();
         let mut symbol: String = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&fundingRate)); }
@@ -992,7 +992,7 @@ impl Extended {
         //         "seq": 1
         //     }
         //
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "m", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
@@ -1085,7 +1085,7 @@ impl Extended {
         //         "seq": 2
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut first: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
         if (first.is_none()) {
             return;
@@ -1240,7 +1240,7 @@ impl Extended {
             return;
         }
         add_element_to_object(&mut subscription, &Value::Str("nonce".into()), Value::from(nonce));
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_322: bool = true;

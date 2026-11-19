@@ -1326,7 +1326,7 @@ impl Krakenfutures {
         //            ...
         //        ]
         //    }
-        let mut orders: crate::value::List = message.get("orders").cloned().unwrap_or_default().into_list();
+        let mut orders: crate::value::List = message.key_list("orders");
         // reuse the existing cache: replacing it would orphan consumers holding
         // a reference to the old one across a reconnect snapshot
         if (self.orders.is_none()) {
@@ -2109,7 +2109,7 @@ impl Krakenfutures {
         //        ]
         //    }
         //
-        let mut trades: crate::value::List = message.get("fills").cloned().unwrap_or_default().into_list();
+        let mut trades: crate::value::List = message.key_list("fills");
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);

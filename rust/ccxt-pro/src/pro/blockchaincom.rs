@@ -262,7 +262,7 @@ impl Blockchaincom {
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message); }
-        let mut balances: crate::value::List = __pro_message.get("balances").cloned().unwrap_or_default().into_list();
+        let mut balances: crate::value::List = __pro_message.key_list("balances");
         {
                         let mut i: i64 = 0;
             let mut __for_first_166: bool = true;
@@ -788,7 +788,7 @@ impl Blockchaincom {
         }  else if (event.as_deref() == Some("rejected")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message))));
         }  else if (event.as_deref() == Some("snapshot")) {
-            let mut orders: crate::value::List = __pro_message.get("orders").cloned().unwrap_or_default().into_list();
+            let mut orders: crate::value::List = __pro_message.key_list("orders");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_167: bool = true;
@@ -1002,8 +1002,8 @@ impl Blockchaincom {
             let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else if (event == "updated") {
-            let mut asks: crate::value::List = __pro_message.get("asks").cloned().unwrap_or_default().into_list();
-            let mut bids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
+            let mut asks: crate::value::List = __pro_message.key_list("asks");
+            let mut bids: crate::value::List = __pro_message.key_list("bids");
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));

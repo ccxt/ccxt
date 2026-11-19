@@ -1019,7 +1019,7 @@ impl Gate {
         //      "time_ms":1777275365214,
         //      "event":"update"
         //   }
-        let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut result: crate::value::Dict = message.key_dict("result");
         let mut full: bool = self.safe_bool_k_opt(&result, "full", &[Value::Bool(false)]).unwrap_or(false);
         let mut marketIdWithPrefix: Option<String> = self.safe_string_k_opt(&result, "s", &[]);
         if (marketIdWithPrefix.is_none()) {
@@ -1443,7 +1443,7 @@ impl Gate {
         if (result.is_some()) {
             results = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         }  else {
-            let mut rawTicker: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+            let mut rawTicker: crate::value::Dict = message.key_dict("result");
             results = std::sync::Arc::new(vec![Value::Dict(rawTicker)]);
         }
         let mut isTicker: bool = objectName.as_str() == Some("ticker"); // whether ticker or bid-ask
@@ -1977,7 +1977,7 @@ impl Gate {
         //     ]
         // }
         //
-        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut result: crate::value::List = message.key_list("result");
         let mut tradesLength: i64 = result.len() as i64;
         if (tradesLength == 0) {
             return;
@@ -2135,7 +2135,7 @@ impl Gate {
         //       ]
         //   }
         //
-        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut result: crate::value::List = message.key_list("result");
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(result.clone())); }
         {
                         let mut i: i64 = 0;
@@ -2330,7 +2330,7 @@ impl Gate {
         //    }
         //
         let mut type_var: Value = self.get_market_type_by_url(client.url());
-        let mut data: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("result");
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&type_var);
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -2526,7 +2526,7 @@ impl Gate {
         //         ]
         //     }
         //
-        let mut orders: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut orders: crate::value::List = message.key_list("result");
         let mut channel: String = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut isTrigger: bool = (channel.contains("autoorders")) || (channel.contains("priceorders"));
         let mut hashPrefix: String = "orders".to_string();
@@ -2729,7 +2729,7 @@ impl Gate {
         //        ]
         //    }
         //
-        let mut rawLiquidations: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        let mut rawLiquidations: crate::value::List = message.key_list("result");
         let mut newLiquidations: crate::value::List = std::sync::Arc::new(Vec::new());
         if (self.liquidations.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2882,7 +2882,7 @@ impl Gate {
         //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
         //     }
         //
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut errs: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "errs");
         let mut error: Value = self.safe_dict_k(&message, "error", &[errs.clone().map_or(Value::Null, Value::Dict)]);
         let mut code: Option<String> = self.safe_string2_opt(&error, Value::Str("code".into()), Value::Str("label".into()), &[]);
@@ -2905,7 +2905,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 if (channel.is_some()) && (((if let (Some(__h), Some(__n)) = (channel.as_deref(), Some(".")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) > 0) {
                     let mut parsedChannel: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-                    let mut payload: crate::value::List = __pro_message.get("payload").cloned().unwrap_or_default().into_list();
+                    let mut payload: crate::value::List = __pro_message.key_list("payload");
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_343: bool = true;
@@ -3166,7 +3166,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return;
         }
         if (requestId.is_some()) {
-            let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = __pro_message.key_dict("data");
             // use safeValue as result may be Array or an Object
             let mut result: Value = self.safe_value_k(&data, "result", &[]);
             let mut ack: bool = (match __pro_message.get("ack").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);

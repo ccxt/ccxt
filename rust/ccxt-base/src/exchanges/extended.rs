@@ -3880,7 +3880,7 @@ impl Extended {
         let __rd_positionId: Option<String> = (match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut positionId: Option<String> = self.safe_string2_opt(&params, Value::Str("positionId".into()), Value::Str("l2Vault".into()), &[Value::from(__rd_positionId)]);
         let mut recipient: Option<String> = self.safe_string_k_opt(&params, "recipient", &[Value::from(address)]);
-        let mut currencyInfo: crate::value::Dict = currency.get("info").cloned().unwrap_or_default().into_dict();
+        let mut currencyInfo: crate::value::Dict = currency.key_dict("info");
         let mut collateralId: Option<String> = self.safe_string_k_opt(&params, "collateralId", &[self.safe_string2(&currencyInfo, Value::Str("starkexId".into()), Value::Str("l1Id".into()), &[])]);
         let mut resolution: Option<i64> = self.safe_integer_k(params, "resolution", &[self.safe_integer2(&currencyInfo, Value::Str("starkexResolution".into()), Value::Str("l1Resolution".into()), &[])]).as_i64();
         let mut starkKey: Option<String> = (match account.get("l2Key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -3933,7 +3933,7 @@ impl Extended {
         let mut fromVault: Option<String> = self.safe_string2_opt(&params, Value::Str("fromVault".into()), Value::Str("senderPositionId".into()), &[Value::from(__rd_fromVault)]);
         let __rd_fromL2Key: Option<String> = (match account.get("l2Key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut fromL2Key: Option<String> = self.safe_string2_opt(&params, Value::Str("fromL2Key".into()), Value::Str("senderPublicKey".into()), &[Value::from(__rd_fromL2Key)]);
-        let mut currencyInfo: crate::value::Dict = currency.get("info").cloned().unwrap_or_default().into_dict();
+        let mut currencyInfo: crate::value::Dict = currency.key_dict("info");
         let mut collateralId: Option<String> = self.safe_string2_opt(&params, Value::Str("assetId".into()), Value::Str("collateralId".into()), &[self.safe_string2(&currencyInfo, Value::Str("starkexId".into()), Value::Str("l1Id".into()), &[])]);
         let mut resolution: Option<i64> = self.safe_integer_k(params, "resolution", &[self.safe_integer2(&currencyInfo, Value::Str("starkexResolution".into()), Value::Str("l1Resolution".into()), &[])]).as_i64();
         if (fromVault.is_none()) || (fromL2Key.is_none()) || (collateralId.is_none()) || (resolution.is_none()) {
@@ -5009,7 +5009,7 @@ impl Extended {
         let mut withdrawalTypeHash: Value =
             self.convert_to_big_int(self.extended_starknet_get_selector_from_name(Value::Str("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")".into())));
         let mut domainHash: Value = self.get_extended_domain_hash();
-        let mut expiration: crate::value::Dict = settlement.get("expiration").cloned().unwrap_or_default().into_dict();
+        let mut expiration: crate::value::Dict = settlement.key_dict("expiration");
         let mut withdrawalHash: Value = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements(Value::from(vec![withdrawalTypeHash, self.convert_to_big_int((match settlement.get("recipient") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0".into()) })), self.convert_to_big_int((match settlement.get("positionId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0".into()) })), self.convert_to_big_int((match settlement.get("collateralId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),

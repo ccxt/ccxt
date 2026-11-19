@@ -296,7 +296,7 @@ impl Cex {
         // to this.balance, and Client.resolve is a no-op while nobody is
         // awaiting, so a replaced object would make responses landing in that
         // window invisible to the consumer forever (same class as issue #26773)
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut freeBalance: crate::value::Dict = self.safe_dict_k_t(&data, "balance");
         let mut usedBalance: crate::value::Dict = self.safe_dict_k_t(&data, "obalance");
         if (self.balance == Value::Null) {
@@ -466,7 +466,7 @@ impl Cex {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         // elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut symbol: Option<String> = self.safe_string_k_opt(self.options.get("watchTrades").cloned().unwrap_or(Value::Null), "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -651,7 +651,7 @@ impl Cex {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, None).into_dict();
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
         if (symbol.is_none()) {
@@ -885,7 +885,7 @@ impl Cex {
     pub fn handle_transaction(&mut self, client: &Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = __pro_message.key_dict("data");
         let mut symbol2: Option<String> = self.safe_string_k_opt(&data, "symbol2", &[]);
         if (symbol2.is_none()) {
             return;
@@ -939,7 +939,7 @@ impl Cex {
         //             "id": "59091012962"
         //         }
         //     }
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1098,7 +1098,7 @@ impl Cex {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut isTransaction: bool = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("tx");
         let mut orderId: Option<String> = self.safe_string2_opt(&data, Value::Str("id".into()), Value::Str("order".into()), &[]);
         let mut remains: Option<String> = self.safe_string_k_opt(&data, "remains", &[]);
@@ -1310,7 +1310,7 @@ impl Cex {
         //     }
         //
         let mut symbol: String = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string(); // symbol is set as requestId in watchOrders
-        let mut rawOrders: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut rawOrders: crate::value::List = message.key_list("data");
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1410,7 +1410,7 @@ impl Cex {
         //         "ok": "ok"
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut pair: Option<String> = self.safe_string_k_opt(&data, "pair", &[]);
         let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
@@ -1478,7 +1478,7 @@ impl Cex {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut incrementalId: Option<i64> = self.safe_integer_k(&data, "id", &[]).as_i64();
         let mut pair: String = self.safe_string_k(&data, "pair", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut symbol: Option<String> = self.pair_to_symbol(Value::from(pair)).as_str().map(str::to_owned);
@@ -1610,7 +1610,7 @@ impl Cex {
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut market: crate::types::Market = self.safe_market(Value::from(symbol.as_str()), None, &[]);
         let mut messageHash: String = format!("{}{}", "ohlcv:", symbol);
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
@@ -1659,7 +1659,7 @@ impl Cex {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut data: crate::value::Dict = message.key_dict("data");
         let mut pair: Option<String> = self.safe_string_k_opt(&data, "pair", &[]);
         let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
@@ -1684,7 +1684,7 @@ impl Cex {
         //         "pair": "BTC:USD"
         //     }
         //
-        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = message.key_list("data");
         let mut pair: Option<String> = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
@@ -2081,7 +2081,7 @@ impl Cex {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            let mut data: crate::value::Dict = message.key_dict("data");
             let mut error: Option<String> = self.safe_string_k_opt(&data, "error", &[]);
             let mut event: String = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), event).into()), " ").into()), error.as_deref().unwrap_or("null"));

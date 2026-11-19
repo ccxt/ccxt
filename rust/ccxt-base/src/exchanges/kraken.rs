@@ -4617,7 +4617,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __result_empty = indexmap::IndexMap::new();
         let result = result.as_map().unwrap_or(&__result_empty);
         let mut cursor: Option<String> = (match result.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: crate::value::List = result.get("withdrawals").cloned().unwrap_or_default().into_list();
+        let mut data: crate::value::List = result.key_list("withdrawals");
         let mut dataLength: i64 = data.len() as i64;
         if (cursor.is_some()) && dataLength > 0 {
             let mut last: Value = crate::value::KeyRead::read(&&data, &Value::Int((dataLength - 1)));

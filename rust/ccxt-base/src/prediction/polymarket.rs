@@ -267,7 +267,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
+        let mut baseUrls: crate::value::Dict = self.urls.key_dict("api");
         let mut baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "gamma")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
         // an empty params container must not become a body: in PHP an empty array is
@@ -1823,7 +1823,7 @@ impl Polymarket {
         let event = event.as_map().unwrap_or(&__event_empty);
         let __rd_eventSlug: Option<String> = (match event.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut eventSlug: Option<String> = (match event.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(__rd_eventSlug) }).as_str().map(str::to_owned);
-        let mut rawMarkets: crate::value::List = event.get("markets").cloned().unwrap_or_default().into_list();
+        let mut rawMarkets: crate::value::List = event.key_list("markets");
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut mi: i64 = 0;
@@ -4695,8 +4695,8 @@ if _try_result.is_err() {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
         let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str()).as_i64();
-        let mut rawBids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
-        let mut rawAsks: crate::value::List = __pro_message.get("asks").cloned().unwrap_or_default().into_list();
+        let mut rawBids: crate::value::List = __pro_message.key_list("bids");
+        let mut rawAsks: crate::value::List = __pro_message.key_list("asks");
         let mut bids: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4735,7 +4735,7 @@ if _try_result.is_err() {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &event { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str()).as_i64();
-        let mut changes: crate::value::List = __pro_message.get("price_changes").cloned().unwrap_or_default().into_list();
+        let mut changes: crate::value::List = __pro_message.key_list("price_changes");
         let mut updated: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
