@@ -1896,7 +1896,6 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	if limit != nil {
 		request["count"] = limit
 	}
-	var response any = nil
 	var data any = []any{}
 	if generation == 2 {
 		request["market"] = this.GetGen2MarketId(market)
@@ -1905,7 +1904,7 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response := r1.Raw
 		//
 		//     [
 		//         {
@@ -1931,7 +1930,7 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response := r2.Raw
 		//
 		//     {
 		//         "status":"0000",
@@ -2959,7 +2958,6 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var response any = nil
 	var data any = nil
 	if twap != nil && *twap {
 
@@ -2967,7 +2965,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response := r1.Raw
 		//
 		//     {
 		//         "has_next": false,
@@ -2999,7 +2997,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response := r2.Raw
 		//
 		//     [
 		//         {

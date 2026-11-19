@@ -1589,11 +1589,10 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let response: any = undefined;
         let data: List = [];
         if (generation === 2) {
             request['market'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1TradesTicks (this.extend (request, paramsGeneration));
+            const response = await this.publicGetV1TradesTicks (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -1614,7 +1613,7 @@ export default class bithumb extends Exchange {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, paramsGeneration));
+            const response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -2427,10 +2426,9 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: any = undefined;
         let data = undefined;
         if (twap) {
-            response = await this.privateGetV1Twap (this.extend (request, paramsRequest));
+            const response = await this.privateGetV1Twap (this.extend (request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -2457,7 +2455,7 @@ export default class bithumb extends Exchange {
             //
             data = this.safeList (response, 'orders', []);
         } else {
-            response = await this.privateGetV1Orders (this.extend (request, paramsRequest));
+            const response = await this.privateGetV1Orders (this.extend (request, paramsRequest));
             //
             //     [
             //         {

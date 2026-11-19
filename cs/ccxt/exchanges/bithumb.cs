@@ -1757,12 +1757,11 @@ public partial class bithumb : Exchange
         {
             request["count"] = limit;
         }
-        object response = null;
-        object data = new List<object>() {};
+        List<object> data = new List<object>() {};
         if ((generation == 2))
         {
             request["market"] = this.getGen2MarketId(market);
-            response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
+            List<object> response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -1784,7 +1783,7 @@ public partial class bithumb : Exchange
         {
             request["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             request["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
+            Dictionary<string, object> response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -2673,11 +2672,10 @@ public partial class bithumb : Exchange
         {
             request["limit"] = limit;
         }
-        object response = null;
-        object data = null;
+        List<object> data = null;
         if ((twap == true))
         {
-            response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
+            Dictionary<string, object> response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -2705,7 +2703,7 @@ public partial class bithumb : Exchange
             data = this.safeList(response, "orders", new List<object>() {});
         } else
         {
-            response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
+            List<object> response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
             //
             //     [
             //         {

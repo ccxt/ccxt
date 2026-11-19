@@ -1813,12 +1813,11 @@ public class Bithumb extends BithumbApi
             {
                 request.put("count", limit);
             }
-            Object response = null;
             Object data = new ArrayList<Object>(Arrays.asList());
             if ((generation != null && generation == 2))
             {
                 request.put("market", this.getGen2MarketId(market));
-                response = (this.publicGetV1TradesTicks(this.extend(request, paramsGeneration))).join();
+                List<Object> response = (this.publicGetV1TradesTicks(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
                 //         {
@@ -1840,7 +1839,7 @@ public class Bithumb extends BithumbApi
             {
                 request.put("baseId", market.get("baseId"));
                 request.put("quoteId", market.get("quoteId"));
-                response = (this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
+                Map<String, Object> response = (this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
                 //
                 //     {
                 //         "status":"0000",
@@ -2766,11 +2765,10 @@ public class Bithumb extends BithumbApi
             {
                 request.put("limit", limit);
             }
-            Object response = null;
             Object data = null;
             if (Boolean.TRUE.equals(twap))
             {
-                response = (this.privateGetV1Twap(this.extend(request, paramsRequest))).join();
+                Map<String, Object> response = (this.privateGetV1Twap(this.extend(request, paramsRequest))).join();
                 //
                 //     {
                 //         "has_next": false,
@@ -2798,7 +2796,7 @@ public class Bithumb extends BithumbApi
                 data = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                response = (this.privateGetV1Orders(this.extend(request, paramsRequest))).join();
+                List<Object> response = (this.privateGetV1Orders(this.extend(request, paramsRequest))).join();
                 //
                 //     [
                 //         {
