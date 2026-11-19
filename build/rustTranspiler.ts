@@ -5284,11 +5284,16 @@ function rustTypedParsePositionFamilies (content: string): string {
     return content.split (Q).join ('');
 }
 
+// venue request builders whose every declaration returns a dict, one name per line
+const RUST_DICT_BUILDER_FNS: string[] = [
+    'edit_order_request',
+    'post_action_request',
+];
 // `editOrderRequest` / `postActionRequest` return a fresh map on every path in every venue (`extend` of a request, the
 // request map itself), so they return `Dict`; any other return throws. `.into_dict()` drops, `.as_map()` copies unwrap,
 // any other use (dispatch arms, `Value` locals) boxes it.
 function rustTypedRequestBuilders (content: string): string {
-    for (const fn of [ 'edit_order_request', 'post_action_request' ]) {
+    for (const fn of RUST_DICT_BUILDER_FNS) {
         const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
         let d: RegExpExecArray | null;
@@ -6532,7 +6537,15 @@ function typePredictionPositionsList(content: string): string {
 // filterByLimit / filterBy*SinceLimit / arraySlice always build a list (stubs `array_slice` returns a slice; the filters
 // return `[]`, a slice, or filterByLimit's own list argument): they return `List`, `.into_list()` at a caller drops,
 // any other caller boxes the Arc by move.
-const RUST_FILTER_LIST_FNS = 'filter_by_limit|filter_by_since_limit|filter_by_value_since_limit|filter_by_symbol_since_limit|filter_by_currency_since_limit|filter_by_symbols_since_limit|array_slice';
+const RUST_FILTER_LIST_FNS = [
+    'filter_by_limit',
+    'filter_by_since_limit',
+    'filter_by_value_since_limit',
+    'filter_by_symbol_since_limit',
+    'filter_by_currency_since_limit',
+    'filter_by_symbols_since_limit',
+    'array_slice',
+].join('|');
 function typeFilterSliceLists(content: string): string {
     content = content.replace(new RegExp(String.raw`(\n {4}fn (${RUST_FILTER_LIST_FNS})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (_m, sig, _n, open, body) =>
         `${sig}crate::value::List${open}${body.replace(/\breturn Value::from\(vec!\[\]\);/g, 'return Default::default();').replace(/\breturn array;/g, 'return array.into_list();')}\n}`);
@@ -6558,7 +6571,13 @@ function typeFilterSliceLists(content: string): string {
 
 // parseTrades / parseOrders / parsePositions / parseSettlements (and the shared trades helper) return a list when every
 // return is a typed filter, `[]`, a built `result` vec, a list member of this set, or (positions) toArray's list.
-const RUST_PARSE_LIST_FNS = ['parse_trades', 'parse_trades_helper', 'parse_orders', 'parse_positions', 'parse_settlements'];
+const RUST_PARSE_LIST_FNS = [
+    'parse_trades',
+    'parse_trades_helper',
+    'parse_orders',
+    'parse_positions',
+    'parse_settlements',
+];
 function typeParseListReturns(content: string): string {
     const typed = new Set<string>();
     const failed = new Set<string>();
