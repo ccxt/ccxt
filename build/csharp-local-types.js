@@ -18461,6 +18461,15 @@ export const CSHARP_STRING_PARAMS = {
     'watchSwapPrivate': { 0: 'string?' },
     'watchWalletEvents': { 0: 'string?' },
     'wathPublic': { 1: 'string?', 2: 'string?' },
+    // file-scoped: these bodies guard every concatenated position against undefined first
+    'orderbookChecksumMessage': { 0: 'string?' },
+    'pro/bitget.handleCheckSumError': { 1: 'string?', 2: 'string?' },
+    'pro/binance.getStockUnifiedSymbol': { 0: 'string?', 1: 'string?' },
+    'prediction/myriad.marketOutcomeToSymbol': { 0: 'string?', 1: 'string?', 2: 'string?' },
+    'coinbaseinternational.createAuthToken': { 1: 'string?', 2: 'string?' },
+    'derive.hashMessage': { 0: 'string?' },
+    'derive.signMessage': { 0: 'string?' },
+    'hibachi.signMessage': { 1: 'string?' },
 };
 
 // the table type for a parameter of a listed generated method whose checker type is string-ish
