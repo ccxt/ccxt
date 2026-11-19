@@ -8941,8 +8941,7 @@ class htx(Exchange, ImplicitAPI):
             settlement = self.safe_dict(settlements, i)
             list = self.safe_list(settlement, 'list')
             if self.safe_bool(market, 'linear', False):
-                parsedSettlement = self.parse_settlement(settlement, market)
-                result.append(parsedSettlement)
+                result.append(self.parse_settlement(settlement, market))
             elif list is not None:
                 timestamp = self.safe_integer(settlement, 'settlement_time')
                 timestampDetails = {

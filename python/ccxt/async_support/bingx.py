@@ -6211,7 +6211,7 @@ class bingx(Exchange, ImplicitAPI):
             requestUntil['limit'] = min(limit, 100)  # api maximum 100
         subType, paramsSubType = self.handle_sub_type_and_params('fetchMyLiquidations', market, paramsUntil)
         response: dict
-        liquidations = None
+        key = 'data'
         if subType == 'inverse':
             response = await self.cswapV1PrivateGetTradeForceOrders(self.extend(requestUntil, paramsSubType))
             #
@@ -6241,9 +6241,8 @@ class bingx(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            liquidations = self.safe_list(response, 'data', [])
         else:
-            response = await self.swapV2PrivateGetTradeForceOrders(self.extend(requestUntil, paramsSubType))
+            swapResponse = await self.swapV2PrivateGetTradeForceOrders(self.extend(requestUntil, paramsSubType))
             #
             #     {
             #         "code": 0,
@@ -6273,8 +6272,9 @@ class bingx(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_dict(response, 'data', {})
-            liquidations = self.safe_list(data, 'orders', [])
+            response = self.safe_dict(swapResponse, 'data', {})
+            key = 'orders'
+        liquidations = self.safe_list(response, key, [])
         return self.parse_liquidations(liquidations, market, since, limit)
 
     def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:

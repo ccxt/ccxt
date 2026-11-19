@@ -243,12 +243,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             base = base + '_' + expiryDate
         return base + ':' + label
 
-    def build_outcome_parent_symbol(self, desc: dict, outcomeId: float, name: str = '', question: dict = {}) -> str:
+    def build_outcome_parent_symbol(self, desc: dict, outcomeId: str, name: str = '', question: dict = {}) -> str:
         """
  @ignore
         builds a market id(parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
         :param dict desc: parsed outcome description
-        :param int outcomeId: integer outcome id
+        :param str outcomeId: outcome id
         :param str [name]: outcome name
         :param dict [question]: linked question object from outcomeMeta
         :returns str: the parent market outcome
@@ -324,12 +324,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     else:
                         outcomeSlug = ''
                 if (outcomeSlug is not None) and (outcomeSlug != ''):
-                    return questionSlug + '_' + outcomeSlug + '_' + str(outcomeId)
-                return questionSlug + '_' + str(outcomeId)
+                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId
+                return questionSlug + '_' + outcomeId
         # Fallback: use name slugified, or OUTCOME-<id>
         if (name is not None) and (name != ''):
-            return self.shorten_slug(name) + '_' + str(outcomeId)
-        return 'OUTCOME_' + str(outcomeId)
+            return self.shorten_slug(name) + '_' + outcomeId
+        return 'OUTCOME_' + outcomeId
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
@@ -395,7 +395,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             outcomeInfo = self.safe_dict(outcomesList, i, {})
             outcomeId = self.safe_integer(outcomeInfo, 'outcome', i)
             linkedQuestion = self.safe_dict(outcomesToQuestions, str(outcomeId), {})
-            market = self.parse_outcome_market(outcomeInfo, outcomeId, linkedQuestion)
+            market = self.parse_outcome_market(outcomeInfo, str(outcomeId), outcomeId, linkedQuestion)
             markets.append(market)
             # Build outcomes dictionary from market outcomes
             marketOutcomes = self.safe_list(market, 'outcomes', [])
@@ -409,11 +409,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     self.outcomes_by_id[outcomeId_] = outcome
         return markets
 
-    def parse_outcome_market(self, outcomeInfo: dict, outcomeId: float, question: dict = {}) -> Market:
+    def parse_outcome_market(self, outcomeInfo: dict, outcomeKey: str, outcomeId: float, question: dict = {}) -> Market:
         """
  @ignore
         parses a single binary outcome market into a CCXT market structure with outcomes[]
         :param dict outcomeInfo: raw entry from outcomeMeta outcomes array
+        :param str outcomeKey: outcome id as a string
         :param int outcomeId: integer outcome id
         :param dict [question]: linked question object from outcomeMeta questions array
         :returns dict: a [market structure](https://docs.ccxt.com/#/?id=market-structure)
@@ -422,7 +423,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         name = self.safe_string(outcomeInfo, 'name', '')
         sideSpecs = self.safe_list(outcomeInfo, 'sideSpecs', [])
         desc = self.parse_outcome_description(description)
-        parentSymbol = self.build_outcome_parent_symbol(desc, outcomeId, name, question)
+        parentSymbol = self.build_outcome_parent_symbol(desc, outcomeKey, name, question)
         yesEncoding = self.outcome_encoding(outcomeId, 0)
         noEncoding = self.outcome_encoding(outcomeId, 1)
         yesOutcomeSymbol = parentSymbol + ':YES'
@@ -496,12 +497,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             },
         ]
         marketRow = self.safe_market_structure({
-            'id': str(outcomeId),
+            'id': outcomeKey,
             'market': parentSymbol,
             'base': parentSymbol.split('/')[0],
             'quote': quoteCurrency,
             'settle': None,
-            'baseId': str(outcomeId),
+            'baseId': outcomeKey,
             'quoteId': quoteCurrency,
             'settleId': None,
             'type': 'prediction',

@@ -992,7 +992,7 @@ class cex(ccxt.async_support.cex):
         }
         client.resolve(orderbook, messageHash)
 
-    def pair_to_symbol(self, pair: object) -> str:
+    def pair_to_symbol(self, pair: Str) -> str:
         parts = pair.split(':')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)

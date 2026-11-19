@@ -224,8 +224,8 @@ class bybit(ccxt.async_support.bybit):
             else:
                 # option
                 url = accessibilityUrls['option']
-        url = self.implode_hostname(url)
-        return url
+        urlResolved = self.implode_hostname(url)
+        return urlResolved
 
     def clean_params(self, params: dict) -> dict:
         paramsOmitted = self.omit(params, ['type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin'])
