@@ -4681,14 +4681,18 @@ function rustTypedMergeResults (content: string): string {
     return out === content ? out : rustTypedMergeResults (out);
 }
 
-// A List-declared implicit-API wrapper (`*_api.rs` `fn x(..) -> crate::value::List`, the list or an empty one) already
-// is `.await.into_list()` / `call_method_lt`; other `.into_*` reads keep their dispatcher form (below), and a site that
-// keeps the raw body calls the dispatcher the wrapper wraps.
+// A List-declared implicit-API wrapper (`*_api.rs` `fn x(..) -> Option<crate::value::List>`, None for a non-list body) already
+// is `.await.into_opt_list()`, and `.unwrap_or_default()` on it is `.into_list()`; dict reads keep their dispatcher form
+// (below), and a site that keeps the raw body calls the dispatcher the wrapper wraps.
 let rustListApiNames: Set<string> | undefined;
 function rustTypedListApiResults (content: string, own: Set<string>): string {
     if (rustListApiNames === undefined) {
         rustListApiNames = new Set ();
+<<<<<<< merged
         const body = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> crate::value::List \{\n\s*if let Value::Arr\(a\) = self\.call_method\(Value::Str\("([a-z0-9_]+)"\.into\(\)\), optional_args\)\.await \{ a \} else \{ Default::default\(\) \}\n\s*\}/g;
+=======
+        const body = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[Value\]\) -> Option<crate::value::List> \{\n\s*if let Value::Arr\(a\) = self\.call_method\(Value::Str\("([a-z0-9_]+)"\.into\(\)\), optional_args\)\.await \{ Some\(a\) \} else \{ None \}\n\s*\}/g;
+>>>>>>> R14
         for (const d of [ 'exchanges', 'prediction' ].map ((x) => path.join (__dirname, '..', 'rust', 'ccxt-base', 'src', x))) {
             for (const f of fs.existsSync (d) ? fs.readdirSync (d).filter ((x) => x.endsWith ('_api.rs')) : []) {
                 for (const m of fs.readFileSync (path.join (d, f), 'utf8').matchAll (body)) if (m[1] === m[2]) rustListApiNames.add (m[1]);
@@ -4696,7 +4700,6 @@ function rustTypedListApiResults (content: string, own: Set<string>): string {
         }
     }
     const names = rustListApiNames;
-    content = content.replace (/\bself((?:\.parent)?)\.call_method_lt\("([a-z0-9_]+)", /g, (s, parent: string, n: string) => (names.has (n) && !own.has (n) ? `self${parent}.${n}(` : s));
     const head = /\bself(?:\.parent)?\.([a-z0-9_]+)\(/g;
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) {
@@ -4704,9 +4707,10 @@ function rustTypedListApiResults (content: string, own: Set<string>): string {
         const open = m.index + m[0].length;
         const close = balancedCloseIndex (content, open);
         if (close >= content.length || !content.startsWith ('.await', close + 1)) continue;
-        if (content.startsWith ('.await.into_list()', close + 1)) {
-            out += content.slice (last, close + 1 + '.await'.length);
-            last = close + 1 + '.await.into_list()'.length;
+        const conv = content.slice (close + 1).match (/^\.await\.into_(opt_)?list\(\)/);
+        if (conv !== null) {
+            out += content.slice (last, close + 1 + '.await'.length) + (conv[1] ? '' : '.unwrap_or_default()');
+            last = close + 1 + conv[0].length;
         } else if (!/^\.await\.into_(?:opt_)?(?:dict|list)\(\)/.test (content.slice (close + 1, close + 40))) {
             const args = content.slice (open, close);
             out += content.slice (last, m.index + m[0].length - m[1].length - 1) + 'call_method(Value::Str("' + m[1] + '".into()), ' + args;
