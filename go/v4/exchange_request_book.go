@@ -1,7 +1,5 @@
 package ccxt
 
-import "sync"
-
 // Request book: the "last request/response" bookkeeping fields and the request id / nonce
 // counters. Parallel fetches on one exchange write them from different goroutines, so
 // every access goes through requestBookMu.
