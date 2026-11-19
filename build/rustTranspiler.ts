@@ -10920,8 +10920,8 @@ impl std::ops::DerefMut for ${coreName} {
                 // a clone. Route both to the real struct field. (Run last,
                 // after the get_value_mut/prop rewrites have settled.)
                 content = content.replace(
-                    /(?:crate::|ccxt::)?set_value\(&mut exchange,\s*&Value::Str\("([a-zA-Z_][a-zA-Z0-9_]*)"\.to_string\(\)\),\s*([^;]+?)\)/g,
-                    'exchange.$1 = $2');
+                    /(?:crate::|ccxt::)?set_value\(&mut (exchange\d*),\s*&Value::Str\("([a-zA-Z_][a-zA-Z0-9_]*)"\.to_string\(\)\),\s*([^;]+?)\)/g,
+                    '$1.$2 = $3');
                 content = content.replace(
                     /&mut exchange\.prop\(&&?Value::Str\("([a-zA-Z_][a-zA-Z0-9_]*)"\.to_string\(\)\)\)/g,
                     '&mut exchange.$1');
