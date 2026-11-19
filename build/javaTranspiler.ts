@@ -71,7 +71,7 @@ import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaPredictionMapLocals } from './java-local-types.js';
 import { installJavaListParamSlots } from './java-local-types.js';
-import { installJavaEventsParamsSlots } from './java-local-types.js';
+import { installJavaEventsParamsSlots, installJavaCurrenciesByIdReads } from './java-local-types.js';
 import { installJavaNonNullMapPuts } from './java-local-types.js';
 import { installJavaLocalElementWrites } from './java-local-types.js';
 import { installJavaStringListIndexOf } from './java-local-types.js';
@@ -1965,6 +1965,7 @@ class NewTranspiler {
             installJavaR93j2ListLocals,
             installJavaMapCopyLocals,
             installJavaEventsParamsSlots,
+            installJavaCurrenciesByIdReads,
         ];
         for (const install of installers) {
             install(this.transpiler);

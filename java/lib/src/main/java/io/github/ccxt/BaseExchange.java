@@ -204,7 +204,7 @@ public class BaseExchange {
 
     public Object limits = new HashMap<String, Object>();
     public int precisionMode = DECIMAL_PLACES;
-    public volatile Object currencies_by_id = new HashMap<String, Object>();
+    public volatile Map<String, Object> currencies_by_id = new HashMap<String, Object>();
 
     public Object accounts = new HashMap<String, Object>();
     public Object accountsById = new HashMap<String, Object>();
@@ -9411,9 +9411,9 @@ public Map<String, Object> describe()
         {
             return (Map<String, Object>) (currency);
         }
-        if ((!java.util.Objects.equals(currencyId, null)) && (!java.util.Objects.equals(this.currencies_by_id, null)) && (((Map<?, ?>)this.currencies_by_id).containsKey(currencyId)) && (!java.util.Objects.equals(Helpers.GetValue(this.currencies_by_id, currencyId), null)))
+        if ((!java.util.Objects.equals(currencyId, null)) && (!java.util.Objects.equals(this.currencies_by_id, null)) && (((Map<?, ?>)this.currencies_by_id).containsKey(currencyId)) && (!java.util.Objects.equals((this.currencies_by_id == null || currencyId == null ? null : this.currencies_by_id.get(currencyId)), null)))
         {
-            return (Map<String, Object>) (Helpers.GetValue(this.currencies_by_id, currencyId));
+            return (Map<String, Object>) ((this.currencies_by_id == null || currencyId == null ? null : this.currencies_by_id.get(currencyId)));
         }
         String code = currencyId;
         if (!java.util.Objects.equals(currencyId, null))

@@ -27550,3 +27550,33 @@ export function installJavaEventsParamsSlots (transpiler) {
         return j09EventsParamsType (printer, node) ?? upstreamType (node);
     };
 }
+
+// ===== currencies_by_id reads: `this.currencies_by_id[k]` with a String-typed identifier key =====
+// The field is declared Map<String, Object> in BaseExchange.java; GetValue's Map branch with a
+// String key is `get(k)`, and a null receiver or key answers null, so both stay guarded.
+export function installJavaCurrenciesByIdReads (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printCheckerTypedElementAccessRead !== 'function' || printer._javaCurrenciesByIdReadsPatched) {
+        return;
+    }
+    printer._javaCurrenciesByIdReadsPatched = true;
+    const upstreamRead = printer.printCheckerTypedElementAccessRead.bind (printer);
+    printer.printCheckerTypedElementAccessRead = function (node) {
+        const printed = upstreamRead (node);
+        const receiver = unwrapParens (node?.expression);
+        const key = node?.argumentExpression;
+        if (printed !== undefined || thisPropName (receiver) !== 'currencies_by_id' || !javaBaseMapField (printer, receiver)
+            || key === undefined || !ts.isIdentifier (key) || !printer.javaRepeatableOperand (key)) {
+            return printed;
+        }
+        try {
+            if (!printer.isJavaStringType (printer.getChecker ().getTypeAtLocation (key)) && !printer.javaDeclaredStringType (key)) {
+                return printed;
+            }
+        } catch (e) {
+            return printed;
+        }
+        const k = printer.printNode (key, 0);
+        return `(this.currencies_by_id == null || ${k} == null ? null : this.currencies_by_id.get(${k}))`;
+    };
+}
