@@ -1168,7 +1168,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("watchLiquidationsForSymbols")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("watchLiquidationsForSymbols")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("watchLiquidationsForSymbols").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("watchLiquidationsForSymbols").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.watch_liquidations_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchLiquidations() is not supported yet")));
@@ -1207,7 +1207,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("watchMyLiquidationsForSymbols")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("watchMyLiquidationsForSymbols")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("watchMyLiquidationsForSymbols").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("watchMyLiquidationsForSymbols").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.watch_my_liquidations_for_symbols(vec![symbol.to_string()], since.as_i64(), limit.as_i64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchMyLiquidations() is not supported yet")));
@@ -1430,7 +1430,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchMarginModes")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarginModes")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchMarginModes").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchMarginModes").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut marginModes: crate::types::MarginModes = (match self.fetch_margin_modes((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marginMode: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(marginModes), symbol);
             return marginMode.map_or(Value::Null, Value::Dict);
@@ -1963,7 +1963,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchLeverages")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchLeverages")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchLeverages").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchLeverages").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut leverages: crate::types::Leverages = (match self.fetch_leverages((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut leverage: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(leverages), symbol);
             return leverage.map_or(Value::Null, Value::Dict);
@@ -2342,10 +2342,10 @@ pub trait ExchangeBase:
             while { if !__for_first_81 { i += 1; } __for_first_81 = false; i < (targets.len() as i64) } {
             let mut target: Option<String> = targets.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut source: Value = fallbacks.get(target.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let mut sourceDefined: bool = (matches!((&self.has, &source), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && ((if let (Some(__m), Some(__k)) = (self.has.as_map(), source.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
-            let mut targetDefined: bool = (matches!((&self.has, target.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) && ((if let (Some(__m), Some(__k)) = (self.has.as_map(), target.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
+            let mut sourceDefined: bool = (matches!(&source, Value::Str(__k) if self.has.contains_key(__k.as_ref()))) && ((if let Some(__k) = source.as_str() { self.has.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
+            let mut targetDefined: bool = (matches!(target.as_deref(), Some(__k) if self.has.contains_key(__k))) && ((if let Some(__k) = target.as_deref() { self.has.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
             if sourceDefined && !targetDefined {
-                { let __be_tmp = (if let (Some(__m), Some(__k)) = (self.has.as_map(), source.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }); if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert(target.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+                { let __be_tmp = (if let Some(__k) = source.as_str() { self.has.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }); { let __d = &mut self.has.clone(); std::sync::Arc::make_mut(__d).insert(target.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             }
         }
         }
@@ -4179,7 +4179,7 @@ pub trait ExchangeBase:
     m
 }));
         let mut message: String = "".to_string();
-        if (self.has.as_map().and_then(|__m| __m.get("fetchTrades")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTrades")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchTrades").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchTrades").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file".to_string();
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() is not supported yet").into()), message)));
@@ -4240,7 +4240,7 @@ pub trait ExchangeBase:
     m
 }));
         let mut message: String = "".to_string();
-        if (self.has.as_map().and_then(|__m| __m.get("fetchTradesWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTradesWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchTradesWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchTradesWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file".to_string();
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.").into()), message)));
@@ -4947,7 +4947,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchTradingLimits")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTradingLimits")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchTradingLimits").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchTradingLimits").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if reload.as_bool() == Some(true) || !(self.options.contains_key("limitsLoaded")) {
                 let mut response: Value = self.fetch_trading_limits(&[symbols.clone()]).await;
                 let mut symbolsArray: Value = self.require_value(symbols, &[Value::Str("loadTradingLimits() requires a symbols argument".into())]);
@@ -6392,7 +6392,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchTransactionFees")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchTransactionFees")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("fetchTransactionFees").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("fetchTransactionFees").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTransactionFee() is not supported yet")));
         }
         return self.fetch_transaction_fees(&[Value::from(vec![code]), params]).await;
@@ -6446,7 +6446,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchDepositWithdrawFees")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchDepositWithdrawFees")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("fetchDepositWithdrawFees").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("fetchDepositWithdrawFees").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchDepositWithdrawFee() is not supported yet")));
         }
         let mut fees: crate::types::DepositWithdrawFees = (match self.fetch_deposit_withdraw_fees((Value::from(vec![code.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -6487,7 +6487,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        if (self.has.as_map().and_then(|__m| __m.get("fetchBorrowRates")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchBorrowRates")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("fetchBorrowRates").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("fetchBorrowRates").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchCrossBorrowRate() is not supported yet")));
         }
         let mut borrowRates: crate::types::CrossBorrowRates = (match self.fetch_cross_borrow_rates(params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -6512,7 +6512,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        if (self.has.as_map().and_then(|__m| __m.get("fetchBorrowRates")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchBorrowRates")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("fetchBorrowRates").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("fetchBorrowRates").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchIsolatedBorrowRate() is not supported yet")));
         }
         let mut borrowRates: crate::types::IsolatedBorrowRates = (match self.fetch_isolated_borrow_rates(params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -7054,7 +7054,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchPositionsADLRank").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchPositionsADLRank").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolResolved: String = (market).symbol.clone();
@@ -7545,14 +7545,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddresses")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddresses")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchDepositAddresses").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchDepositAddresses").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut depositAddressesList: Vec<crate::types::DepositAddress> = (match self.fetch_deposit_addresses((Value::from(vec![code.clone()])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut depositAddresses: crate::value::Dict = self.index_by(crate::types::IntoRaw::into_raw(depositAddressesList), Value::Str("currency".into())).into_dict();
             if (self.safe_dict(&depositAddresses, code.clone(), &[]) == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress() could not find a deposit address for ").into()), code).into()), ", make sure you have created a corresponding deposit address in your wallet on the exchange website")));
             }
             return self.safe_dict(&depositAddresses, code.clone(), &[]);
-        }  else if (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddressesByNetwork")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchDepositAddressesByNetwork")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        }  else if (self.has.get("fetchDepositAddressesByNetwork").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchDepositAddressesByNetwork").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut network: Option<String> = self.safe_string_k_opt(&params, "network", &[]);
             let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
             let mut addressStructures: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsOmitted)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -7965,7 +7965,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchLeverageTiers").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchLeverageTiers").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(market).contract {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " fetchMarketLeverageTiers() supports contract markets only")));
@@ -8601,7 +8601,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchFundingRates").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchFundingRates").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolResolved: String = (market).symbol.clone();
@@ -8637,7 +8637,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchFundingIntervals").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchFundingIntervals").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolResolved: String = (market).symbol.clone();
@@ -8683,7 +8683,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
-        if (self.has.as_map().and_then(|__m| __m.get("fetchMarkOHLCV")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarkOHLCV")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchMarkOHLCV").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchMarkOHLCV").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("mark".into()));
@@ -8722,7 +8722,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
-        if (self.has.as_map().and_then(|__m| __m.get("fetchIndexOHLCV")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchIndexOHLCV")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchIndexOHLCV").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchIndexOHLCV").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("index".into()));
@@ -8765,7 +8765,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
-        if (self.has.as_map().and_then(|__m| __m.get("fetchPremiumIndexOHLCV")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPremiumIndexOHLCV")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchPremiumIndexOHLCV").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchPremiumIndexOHLCV").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("premiumIndex".into()));
@@ -9081,7 +9081,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
-        if (self.has.as_map().and_then(|__m| __m.get("fetchDepositsWithdrawals")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchDepositsWithdrawals")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchDepositsWithdrawals").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchDepositsWithdrawals").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), params).await);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTransactions () is not supported yet")));
@@ -10481,7 +10481,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
-        if (self.has.as_map().and_then(|__m| __m.get("fetchPositionsHistory")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPositionsHistory")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchPositionsHistory").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchPositionsHistory").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.fetch_positions_history((Value::from(vec![symbol])).to_opt_str_vec(), since.as_i64(), limit.as_i64(), params).await);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPositionHistory () is not supported yet")));
@@ -10639,7 +10639,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchMarkPrices").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchMarkPrices").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolResolved: String = (market).symbol.clone();
@@ -10918,9 +10918,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((self.has.as_map().and_then(|__m| __m.get("createMarketOrderWithCostWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketOrderWithCostWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) || (((self.has.as_map().and_then(|__m|
-            __m.get("createMarketBuyOrderWithCostWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketBuyOrderWithCostWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) && ((self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCostWs")).cloned().unwrap_or(Value::Null) !=
-            Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCostWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)))) {
+        if ((self.has.get("createMarketOrderWithCostWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketOrderWithCostWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) || (((self.has.as_map().and_then(|__m|
+            __m.get("createMarketBuyOrderWithCostWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketBuyOrderWithCostWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) && ((self.has.get("createMarketSellOrderWithCostWs").cloned().unwrap_or(Value::Null) !=
+            Value::Null) && (self.has.get("createMarketSellOrderWithCostWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)))) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketOrderWithCostWs() is not supported yet")));
@@ -11004,7 +11004,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         let mut paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]).into_dict();
-        if (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLossWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLossWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createOrderWithTakeProfitAndStopLossWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createOrderWithTakeProfitAndStopLossWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsValue)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")));
@@ -11063,7 +11063,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createPostOnlyOrderWs")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createPostOnlyOrderWs")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createPostOnlyOrderWs").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createPostOnlyOrderWs").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createPostOnlyOrderWs() is not supported yet")));
         }
         let mut query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -11091,7 +11091,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createReduceOnlyOrderWs")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createReduceOnlyOrderWs")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createReduceOnlyOrderWs").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createReduceOnlyOrderWs").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createReduceOnlyOrderWs() is not supported yet")));
         }
         let mut query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -11119,7 +11119,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createStopLimitOrderWs")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createStopLimitOrderWs")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createStopLimitOrderWs").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createStopLimitOrderWs").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createStopLimitOrderWs() is not supported yet")));
         }
         let mut query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -11169,7 +11169,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("stopLossPrice".to_string(), stopLossPrice);
             m
         })]);
-        if (self.has.as_map().and_then(|__m| __m.get("createStopLossOrderWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createStopLossOrderWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createStopLossOrderWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createStopLossOrderWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsExtended)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createStopLossOrderWs() is not supported yet")));
@@ -11191,7 +11191,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createStopMarketOrderWs")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createStopMarketOrderWs")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createStopMarketOrderWs").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createStopMarketOrderWs").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createStopMarketOrderWs() is not supported yet")));
         }
         let mut query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -11220,7 +11220,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createStopOrderWs")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createStopOrderWs")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createStopOrderWs").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createStopOrderWs").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createStopOrderWs() is not supported yet")));
         }
         if (triggerPrice == Value::Null) {
@@ -11273,7 +11273,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("takeProfitPrice".to_string(), takeProfitPrice);
             m
         })]);
-        if (self.has.as_map().and_then(|__m| __m.get("createTakeProfitOrderWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTakeProfitOrderWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createTakeProfitOrderWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createTakeProfitOrderWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsExtended)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createTakeProfitOrderWs() is not supported yet")));
@@ -11319,7 +11319,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (trailingTriggerPrice != Value::Null) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
         }
-        if (self.has.as_map().and_then(|__m| __m.get("createTrailingAmountOrderWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTrailingAmountOrderWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createTrailingAmountOrderWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createTrailingAmountOrderWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createTrailingAmountOrderWs() is not supported yet")));
@@ -11365,7 +11365,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (trailingTriggerPrice != Value::Null) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
         }
-        if (self.has.as_map().and_then(|__m| __m.get("createTrailingPercentOrderWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTrailingPercentOrderWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createTrailingPercentOrderWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createTrailingPercentOrderWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createTrailingPercentOrderWs() is not supported yet")));
@@ -11410,7 +11410,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("triggerPrice".to_string(), triggerPrice);
             m
         })]);
-        if (self.has.as_map().and_then(|__m| __m.get("createTriggerOrderWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTriggerOrderWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createTriggerOrderWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createTriggerOrderWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsExtended)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createTriggerOrderWs() is not supported yet")));
@@ -11453,7 +11453,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchOrdersWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchOrdersWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchOrdersWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchOrdersWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut orders: Vec<crate::types::Order> = (match self.fetch_orders_ws(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             return self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]);
         }
@@ -11493,7 +11493,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchOrdersWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchOrdersWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchOrdersWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchOrdersWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut orders: Vec<crate::types::Order> = (match self.fetch_orders_ws(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             return self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("open".into()), &[]);
         }
@@ -11597,7 +11597,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchTickersWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchTickersWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolResolved: String = (market).symbol.clone();
@@ -11770,7 +11770,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchOpenInterests")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchOpenInterests")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchOpenInterests").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchOpenInterests").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut openInterests: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut openInterest: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(openInterests), symbol);
             return openInterest.map_or(Value::Null, Value::Dict);
@@ -11999,7 +11999,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchTickers").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchTickers").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolResolved: String = (market).symbol.clone();
@@ -12219,7 +12219,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (trailingTriggerPrice != Value::Null) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
         }
-        if (self.has.as_map().and_then(|__m| __m.get("createTrailingAmountOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTrailingAmountOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createTrailingAmountOrder").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createTrailingAmountOrder").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createTrailingAmountOrder() is not supported yet")));
@@ -12265,7 +12265,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (trailingTriggerPrice != Value::Null) {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
         }
-        if (self.has.as_map().and_then(|__m| __m.get("createTrailingPercentOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTrailingPercentOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createTrailingPercentOrder").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createTrailingPercentOrder").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createTrailingPercentOrder() is not supported yet")));
@@ -12296,9 +12296,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((self.has.as_map().and_then(|__m| __m.get("createMarketOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) || (((self.has.as_map().and_then(|__m|
-            __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) && ((self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCost")).cloned().unwrap_or(Value::Null) !=
-            Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)))) {
+        if ((self.has.get("createMarketOrderWithCost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) || (((self.has.as_map().and_then(|__m|
+            __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketBuyOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) && ((self.has.get("createMarketSellOrderWithCost").cloned().unwrap_or(Value::Null) !=
+            Value::Null) && (self.has.get("createMarketSellOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false)))) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketOrderWithCost() is not supported yet")));
@@ -12328,7 +12328,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if ((match &(self.options.get("createMarketBuyOrderRequiresPrice").cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) || ((self.has.as_map().and_then(|__m| __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketBuyOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
+            Some(__y) if __y == 1.0) })) || ((self.has.get("createMarketBuyOrderWithCost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketBuyOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketBuyOrderWithCost() is not supported yet")));
@@ -12358,7 +12358,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if ((match &(self.options.get("createMarketSellOrderRequiresPrice").cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) || ((self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCost")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createMarketSellOrderWithCost")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
+            Some(__y) if __y == 1.0) })) || ((self.has.get("createMarketSellOrderWithCost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketSellOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketSellOrderWithCost() is not supported yet")));
@@ -12403,7 +12403,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("triggerPrice".to_string(), triggerPrice);
             m
         })]);
-        if (self.has.as_map().and_then(|__m| __m.get("createTriggerOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTriggerOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createTriggerOrder").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createTriggerOrder").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsExtended)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createTriggerOrder() is not supported yet")));
@@ -12448,7 +12448,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("stopLossPrice".to_string(), stopLossPrice);
             m
         })]);
-        if (self.has.as_map().and_then(|__m| __m.get("createStopLossOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createStopLossOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createStopLossOrder").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createStopLossOrder").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsExtended)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createStopLossOrder() is not supported yet")));
@@ -12493,7 +12493,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("takeProfitPrice".to_string(), takeProfitPrice);
             m
         })]);
-        if (self.has.as_map().and_then(|__m| __m.get("createTakeProfitOrder")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createTakeProfitOrder")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createTakeProfitOrder").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createTakeProfitOrder").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsExtended)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createTakeProfitOrder() is not supported yet")));
@@ -12541,7 +12541,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         let mut paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]).into_dict();
-        if (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLoss")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("createOrderWithTakeProfitAndStopLoss")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("createOrderWithTakeProfitAndStopLoss").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createOrderWithTakeProfitAndStopLoss").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsValue)).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")));
@@ -12726,8 +12726,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if ((self.has.as_map().and_then(|__m| __m.get("fetchOpenOrders")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchOpenOrders")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) && ((self.has.as_map().and_then(|__m| __m.get("fetchClosedOrders")).cloned().unwrap_or(Value::Null) !=
-            Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchClosedOrders")).cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
+        if ((self.has.get("fetchOpenOrders").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchOpenOrders").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) && ((self.has.get("fetchClosedOrders").cloned().unwrap_or(Value::Null) !=
+            Value::Null) && (self.has.get("fetchClosedOrders").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")));
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrders() is not supported yet")));
@@ -12789,7 +12789,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchOrders")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchOrders")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchOrders").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchOrders").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             return self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("open".into()), &[]);
         }
@@ -12815,7 +12815,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchOrders")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchOrders")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
+        if (self.has.get("fetchOrders").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchOrders").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             return self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]);
         }
@@ -13005,7 +13005,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createPostOnlyOrder")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createPostOnlyOrder")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createPostOnlyOrder").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createPostOnlyOrder").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createPostOnlyOrder() is not supported yet")));
         }
         let mut query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -13033,7 +13033,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createReduceOnlyOrder")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createReduceOnlyOrder")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createReduceOnlyOrder").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createReduceOnlyOrder").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createReduceOnlyOrder() is not supported yet")));
         }
         let mut query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -13062,7 +13062,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createStopOrder")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createStopOrder")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createStopOrder").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createStopOrder").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createStopOrder() is not supported yet")));
         }
         if (triggerPrice == Value::Null) {
@@ -13093,7 +13093,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createStopLimitOrder")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createStopLimitOrder")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createStopLimitOrder").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createStopLimitOrder").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createStopLimitOrder() is not supported yet")));
         }
         let mut query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -13120,7 +13120,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("createStopMarketOrder")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("createStopMarketOrder")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("createStopMarketOrder").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("createStopMarketOrder").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createStopMarketOrder() is not supported yet")));
         }
         let mut query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -13148,7 +13148,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.has.as_map().and_then(|__m| __m.get("fetchTradingFees")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchTradingFees")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
+        if (self.has.get("fetchTradingFees").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("fetchTradingFees").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTradingFee() is not supported yet")));
         }
         let mut fees: crate::types::TradingFees = (match self.fetch_trading_fees(params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

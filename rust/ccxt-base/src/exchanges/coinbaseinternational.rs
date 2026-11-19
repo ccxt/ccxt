@@ -4678,8 +4678,8 @@ impl Coinbaseinternational {
             { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("coinbase".into())); }
         }
         { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("routeBackend".into(), Value::Bool(deribit)); }
-        if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!deribit)); }
-        if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!deribit)); }
+        { let __d = &mut self.has.clone(); std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!deribit)); }
+        { let __d = &mut self.has.clone(); std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!deribit)); }
         return self.omit_t(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);
 
     Default::default()

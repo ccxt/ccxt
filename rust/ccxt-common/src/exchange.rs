@@ -396,7 +396,7 @@ pub struct Exchange {
     pub limits:            Value,
     pub fees:              crate::value::Dict,
     pub features:          Value,
-    pub has:               Value,
+    pub has:               crate::value::Dict,
     pub exceptions:        Value,
     /// Plain dict, never tagged: reads and writes are the stdlib map ops.
     pub urls:              crate::value::Dict,
@@ -466,7 +466,7 @@ pub struct Exchange {
     pub networkAliases:            Value,
     pub MAX_VALUE:                 Value,
     pub returnResponseHeaders:     Value,
-    pub httpExceptions:            Value,
+    pub httpExceptions:            crate::value::Dict,
     pub status:                    Value,
 
     // user-agent / fetch behavior
@@ -627,7 +627,7 @@ fn deep_merge(a: &Value, b: &Value) -> Value {
     }
 }
 
-fn base_http_exceptions() -> Value {
+fn base_http_exceptions() -> crate::value::Dict {
     let mut m = HashMap::new();
     for (code, class) in [
         ("422", "ExchangeError"),         ("418", "DDoSProtection"),
@@ -646,7 +646,7 @@ fn base_http_exceptions() -> Value {
     ] {
         m.insert(code.to_string(), Value::Str(class.to_string().into()));
     }
-    Value::Map(m)
+    Arc::new(m)
 }
 
 impl Exchange {
@@ -745,7 +745,7 @@ impl Exchange {
             limits:            base_limits(),
             fees:              base_fees(),
             features:          Value::Null,
-            has:               Value::Map(HashMap::new()),
+            has:               crate::value::Dict::default(),
             exceptions:        Value::Null,
             urls:              base_urls(),
             api:               Value::Null,
@@ -876,7 +876,7 @@ impl Exchange {
         };
         assign(&mut self.api, get("api"));
         if let Value::Dict(m) = get("urls") { self.urls = m; }
-        assign(&mut self.has, get("has"));
+        if let Value::Dict(m) = get("has") { self.has = m; }
         assign(&mut self.hostname, get("hostname"));
         assign(&mut self.version, get("version"));
         assign(&mut self.id, get("id"));
@@ -1978,7 +1978,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             return self.markets.clone();
         }
         let has_fetch_currencies = matches!(
-            crate::get_value(&self.has, &Value::Str("fetchCurrencies".into())),
+            self.has.get("fetchCurrencies").cloned().unwrap_or(Value::Null),
             Value::Bool(true),
         );
         let mut currencies = Value::Null;
@@ -2011,7 +2011,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             crate::exchange_stubs::synthesize_currencies_from_markets(&fetched, &self.precisionMode)
         };
         let is_prediction = matches!(
-            crate::get_value(&self.has, &Value::Str("prediction".into())),
+            self.has.get("prediction").cloned().unwrap_or(Value::Null),
             Value::Bool(true),
         );
         if is_prediction {

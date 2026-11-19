@@ -3872,10 +3872,14 @@ function typedUrlsField(content: string): string {
 // `options`, `fees`, `userAgents` are typed `Dict`s too (always a dict, never tagged): the same
 // map ops as `typedUrlsField`; a value the `Dict` cannot satisfy is boxed back as `Value::Dict`.
 function typedBaseDictFields(content: string): string {
-    for (const f of ['options', 'fees', 'userAgents']) {
+    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions']) {
         const r = 'self\\.' + f;
         const k = '("[^"\\\\]*")';
         const make = 'std::sync::Arc::make_mut(';
+        const arg = '((?:[^()]|\\((?:[^()]|\\([^()]*\\))*\\))+?)';
+        content = content
+            .replace(new RegExp('\\(if let \\(Some\\(__m\\), Some\\(__k\\)\\) = \\(' + r + '\\.as_map\\(\\), ' + arg + '\\) \\{ __m\\.get\\(__k\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\) \\} else \\{ Value::Null \\}\\)', 'g'), '(if let Some(__k) = $1 { self.' + f + '.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })')
+            .replace(new RegExp('matches!\\(\\(&' + r + ', ' + arg + '\\), \\(Value::Dict\\(__d\\), (Some\\(__k\\)|Value::Str\\(__k\\))\\) if __d\\.contains_key\\((__k(?:\\.as_ref\\(\\))?)\\)\\)', 'g'), 'matches!($1, $2 if self.' + f + '.contains_key($3))');
         content = content
             .replace(new RegExp(r + '\\.as_map\\(\\)\\.and_then\\(\\|__m\\| __m\\.get\\(' + k + '\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)', 'g'), 'self.' + f + '.get($1).cloned().unwrap_or(Value::Null)')
             .replace(new RegExp('crate::value::get_value_k\\(&' + r + ', ' + k + '\\)', 'g'), 'self.' + f + '.get($1).cloned().unwrap_or(Value::Null)')

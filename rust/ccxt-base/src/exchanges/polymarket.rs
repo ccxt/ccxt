@@ -690,7 +690,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
             // http status fallback can apply a retryable classification, while
             // covering statuses the base table does not know
             let mut codeAsString: String = format!("{}", code);
-            if (code.as_f64().unwrap_or(f64::NAN) < ((400i64) as f64)) || !(matches!((&self.httpExceptions, Some(codeAsString.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            if (code.as_f64().unwrap_or(f64::NAN) < ((400i64) as f64)) || !(matches!(Some(codeAsString.as_str()), Some(__k) if self.httpExceptions.contains_key(__k))) {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

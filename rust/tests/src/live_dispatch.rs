@@ -413,7 +413,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // those reads against the Core directly. Lightweight
                 // fields (`has`, `options`, `codes`, `ids`) still mirror
                 // here so helpers that scan them work synchronously.
-                m.insert("has".to_string(),                  core.has.clone());
+                m.insert("has".to_string(),                  Value::Dict(core.has.clone()));
                 m.insert("options".to_string(),              Value::Dict(core.options.clone()));
                 // `symbols`, `codes`, `ids` resolve through LIVE_LOOKUP
                 // — even the string lists are heavy (~4k strings for
@@ -436,7 +436,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     "symbols"          => Value::Arr(core.symbols.clone()),
                     "codes"            => core.codes.clone(),
                     "ids"              => core.ids.clone(),
-                    "has"              => core.has.clone(),
+                    "has"              => Value::Dict(core.has.clone()),
                     "options"          => Value::Dict(core.options.clone()),
                     "last_request_url"     => core.last_request_url.clone(),
                     "last_request_body"    => core.last_request_body.clone(),

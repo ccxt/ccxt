@@ -1374,14 +1374,13 @@ impl Exchange {
     /// `httpExceptions` class for the status; a status outside the table passes.
     pub fn handle_http_status_code(&self, code: Value, reason: Value, url: Value, method: Value, body: Value) {
         let code_as_string = Value::Str(stringify_param(&code).into());
-        if crate::runtime::in_op(&self.httpExceptions, &code_as_string) {
-            let error_class = crate::runtime::get_value(&self.httpExceptions, &code_as_string);
+        if let Some(error_class) = self.httpExceptions.get(code_as_string.as_str().unwrap_or_default()) {
             let message = [&self.id, &method, &url, &code_as_string, &reason, &body]
                 .iter()
                 .map(|part| stringify_param(part))
                 .collect::<Vec<_>>()
                 .join(" ");
-            panic!("{}", crate::exchange_errors::create_error(&stringify_param(&error_class), message));
+            panic!("{}", crate::exchange_errors::create_error(&stringify_param(error_class), message));
         }
     }
 
@@ -2546,7 +2545,7 @@ impl Exchange {
         put("limits", &self.limits);
         put("fees", &Value::Dict(self.fees.clone()));
         put("features", &self.features);
-        put("has", &self.has);
+        put("has", &Value::Dict(self.has.clone()));
         put("exceptions", &self.exceptions);
         put("urls", &Value::Dict(self.urls.clone()));
         put("api", &self.api);
@@ -2588,7 +2587,7 @@ impl Exchange {
         put("networkAliases", &self.networkAliases);
         put("MAX_VALUE", &self.MAX_VALUE);
         put("returnResponseHeaders", &self.returnResponseHeaders);
-        put("httpExceptions", &self.httpExceptions);
+        put("httpExceptions", &Value::Dict(self.httpExceptions.clone()));
         put("status", &self.status);
         put("userAgent", &self.userAgent);
         put("user_agent", &self.user_agent);
