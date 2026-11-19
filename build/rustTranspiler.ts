@@ -1307,6 +1307,8 @@ class ContainerOpProver {
         // through the client may be one, so it is never a plain key source.
         const tagged = e.includes ('subscriptions') || e.includes ('client');
         if (containerOpIsCall (e, 'Value::Map')) return lit ('map', !tagged && !e.includes ('__ws_sub'));
+        // A copy of the base `networkAliases` Dict: plain string pairs, no marker, no ws tag key.
+        if (/^(?:Value::Dict\(self\.networkAliases\.clone\(\)\)|self\.networkAliases\.clone\(\))$/.test (e)) return lit ('map');
         if (containerOpIsCall (e, 'Value::List') || containerOpIsCall (e, 'Value::Array') || containerOpIsCall (e, 'Value::from')) {
             return e.includes ('vec![') ? lit ('arr') : undefined;
         }
@@ -1491,7 +1493,7 @@ function containerOpBorrowedKeys (content: string, start: number, close: number,
     // The key list is only measured or read as `&str`; the dict is only shared-borrowed afterwards.
     const read = new RegExp (`\\b${ks}\\.get\\(([a-z_][A-Za-z0-9_]*) as usize\\)\\.and_then\\(Value::as_str\\)`, 'g');
     if (new RegExp (`\\b${ks}\\b`).test (rest.replace (read, '').replace (new RegExp (`\\b${ks}\\.len\\(\\)`, 'g'), ''))) return undefined;
-    if (new RegExp (`\\b${dict}\\b`).test (rest.replace (new RegExp (`&${dict}\\b(?![.\\w]|\\s*=)`, 'g'), ''))) return undefined;
+    if (new RegExp (`\\b${dict}\\b`).test (rest.replace (new RegExp (`&${dict}\\b(?![.\\w]|\\s*=)|(?<![A-Za-z0-9_.&])${dict}\\.as_map\\(\\)`, 'g'), ''))) return undefined;
     const out = [ { start: lineStart, end: from, text: `${decl[1]}: Vec<&str> = ${dict}.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();` } ];
     for (const r of rest.matchAll (read)) {
         const at = from + (r.index as number);
@@ -1642,6 +1644,13 @@ function nativeContainerOpsSelfTest (): string[] {
     // A later write to the dict keeps the owned key list.
     const written = grouped.replace ('f(&g, a);', 'f(&g, a); crate::runtime::append_to_object_array(&mut g, &k, v.clone());');
     if (nativeContainerOps (written).includes ('Vec<&str>')) problems.push ('borrowed keys: written dict accepted');
+    // A copy of the alias field read back through `as_map()`: keys borrow too; a stray use keeps them owned.
+    const field = fn ('        let mut a: Value = Value::Dict(self.networkAliases.clone());\n        let mut ks: Vec<Value> = object_keys(&a).as_array().cloned().unwrap_or_default();\n        let mut k: Option<&str> = ks.get(i as usize).and_then(Value::as_str);\n        let v = a.as_map().and_then(|__m| __m.get("x"));');
+    check ('field keys', field, field.replace ('let mut ks: Vec<Value> = object_keys(&a).as_array().cloned().unwrap_or_default();', 'let mut ks: Vec<&str> = a.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();').replace ('ks.get(i as usize).and_then(Value::as_str)', 'ks.get(i as usize).copied()'));
+    const fieldMoved = field.replace ('let v = a.as_map()', 'g(a); let v = a.as_map()');
+    if (nativeContainerOps (fieldMoved).includes ('Vec<&str>')) problems.push ('field keys: moved dict accepted');
+    const otherField = field.replace ('self.networkAliases', 'self.options');
+    if (nativeContainerOps (otherField) !== otherField) problems.push ('field keys: unlisted field accepted');
     // A side marker keeps the helper: the store holds its entries, not the dict.
     const side = fn ('        let mut storedAsks: Value = self.safe_value_k(book.clone(), "asks", &[]);\n        let n: Value = get_array_length(&storedAsks);');
     if (nativeContainerOps (side) !== side) problems.push ('side marker: helper not kept');
