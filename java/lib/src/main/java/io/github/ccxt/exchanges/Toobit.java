@@ -965,7 +965,7 @@ public class Toobit extends ToobitApi
             //
             List<Object> coins = this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < coins.size(); i++)
+            for (var i = 0; i < ((List<?>)coins).size(); i++)
             {
                 Object coin = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
                 Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(coin);
@@ -986,7 +986,7 @@ public class Toobit extends ToobitApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> rawNetworks = this.safeList(rawCurrency, "chainTypes", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < rawNetworks.size(); j++)
+        for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
         {
             Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
             String networkId = this.safeString(rawNetwork, "chainType");
@@ -1196,7 +1196,7 @@ public class Toobit extends ToobitApi
             List<Object> contracts = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             List<Object> all = (List<Object>) this.arrayConcat(symbols, contracts);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < all.size(); i++)
+            for (var i = 0; i < ((List<?>)all).size(); i++)
             {
                 Map<String, Object> market = this.safeDict(all, i, new HashMap<String, Object>() {{}});
                 MarketInterface parsed = this.parseMarket(market);
@@ -1565,8 +1565,9 @@ public class Toobit extends ToobitApi
             } else if ((!java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(limit, null)))
             {
                 // without an end time the exchange returns the latest candles, not the ones starting at since
-                Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                request.put("endTime", ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(Helpers.subtract(this.sum(since, (duration * limit)), 1), this.milliseconds()));
+                Long durationMs = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+                request.put("endTime", Math.min((since - ((1L - (durationMs * limit)))), this.milliseconds()));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1631,7 +1632,7 @@ public class Toobit extends ToobitApi
                 {
                     market = this.market(symbol);
                 }
-                Integer length = symbolsNormalized.size();
+                Integer length = ((List<?>)symbolsNormalized).size();
                 if ((java.util.Objects.equals(length, 1)) && (!java.util.Objects.equals(market, null)))
                 {
                     request.put("symbol", market.get("id"));
@@ -1665,7 +1666,7 @@ public class Toobit extends ToobitApi
             //        ...
             //
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < response.size(); i++)
+            for (var i = 0; i < ((List<?>)response).size(); i++)
             {
                 Object ticker = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 String marketId = this.safeString(ticker, "s");
@@ -1739,7 +1740,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = symbolsNormalized.size();
+                Integer length = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -1797,7 +1798,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = symbolsNormalized.size();
+                Integer length = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -1824,7 +1825,7 @@ public class Toobit extends ToobitApi
     public Object parseBidsAsksCustom(List<Object> tickers, Object symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < tickers.size(); i++)
+        for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
             Map<String, Object> parsedTicker = this.parseBidAskCustom((Map<String, Object>) ((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i))));
             Map<String, Object> ticker = this.extend(parsedTicker, parameters);
@@ -1875,7 +1876,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = symbolsNormalized.size();
+                Integer length = ((List<?>)symbolsNormalized).size();
                 if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -2779,7 +2780,7 @@ public class Toobit extends ToobitApi
             {
                 responseList = response;
             }
-            for (var i = 0; i < responseList.size(); i++)
+            for (var i = 0; i < ((List<?>)responseList).size(); i++)
             {
                 HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i)));
@@ -3175,7 +3176,7 @@ public class Toobit extends ToobitApi
             }
             String transactType = (((java.util.Objects.equals(type, "deposits")))) ? "deposit" : "withdrawal";
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < response.size(); i++)
+            for (var i = 0; i < ((List<?>)response).size(); i++)
             {
                 ((List<Object>)results).add(this.extend(this.parseTransactionWithType((Map<String, Object>) (this.safeDict(response, i, new HashMap<String, Object>() {{}})), currency, transactType), paramsUntil));
             }
@@ -3587,7 +3588,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer length = symbols.size();
+                Integer length = ((List<?>)symbols).size();
                 if ((length != null && length > 1))
                 {
                     throw new BadRequest((this.id + " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
