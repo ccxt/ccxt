@@ -7222,6 +7222,12 @@ function resolveLocalReadType (csharp, context, identifier) {
         // every member re-checks its own writes against that box, so a bad write still fails
         return 'double?';
     }
+    if ((context.stack.has (declaration) || classifyInProgress.has (declaration)) && annotationType (declaration) === 'Int64?' && declaration.getStart () < identifier.getStart ()) {
+        return 'Int64?'; // an `Int` local in a write cycle: assumed, and its own writes are checked when it is classified
+    }
+    if ((context.stack.has (declaration) || classifyInProgress.has (declaration)) && sumOfIntLocalsInitializer (declaration) && declaration.getStart () < identifier.getStart ()) {
+        return 'Int64'; // `const w = this.sum (<Int local>, …)` in the same cycle: the Int64 sum twin
+    }
     if (context.stack.has (declaration) || context.depth >= MAX_RESOLVE_DEPTH) {
         return undefined; // cycle (`a = b; b = a;`) or a pathological chain
     }
@@ -7360,7 +7366,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
                     const written = typedCoreListFunnelWriteBox (csharp, declaration, parent.right) ?? csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context) ?? nullSeedStringConcatWriteType90c4 (csharp, declaration, parent.right, context)
-                        ?? funnelListWriteType (declaration, parent.right);
+                        ?? funnelListWriteType (declaration, parent.right)
+                        ?? (((csharpType === 'Int64' || csharpType === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -13728,6 +13735,53 @@ function selfMinMaxInt64WriteType (csharp, context, declaration, node) {
     }
 }
 
+// `const w = this.sum (a, b)` whose identifier operands are all `Int`-annotated locals
+function sumOfIntLocalsInitializer (declaration) {
+    const call = stripParens (declaration.initializer);
+    const callee = call?.expression;
+    if (!(declaration.parent?.flags & ts.NodeFlags.Const) || call?.kind !== ts.SyntaxKind.CallExpression || call.arguments.length !== 2
+            || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.text !== 'sum') {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const ids = call.arguments.filter ((a) => a.kind === ts.SyntaxKind.Identifier);
+    return (ids.length > 0) && ids.every ((a) => {
+        let found = 0;
+        let annotated = false;
+        const visit = (n) => {
+            if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier && n.name.text === a.text) {
+                found++;
+                annotated = annotationType (n) === 'Int64?';
+            }
+            n.forEachChild (visit);
+        };
+        scope?.forEachChild (visit);
+        return found === 1 && annotated;
+    });
+}
+
+// a write into an `Int` local: the Int64 sum twin, Math.Min/Max over two Int64 locals, or a lifted Int64? `-`/`*` chain
+function int64AnnotatedLocalWriteType (csharp, declaration, node, context) {
+    const direct = integerBoxCastType (csharp, stripParens (node), context) ?? int64LocalsMinMaxWriteType (csharp, declaration, node, context);
+    if (direct !== undefined) {
+        return direct;
+    }
+    return liftedIntegerChain (csharp, node, context)?.nullable ? 'Int64?' : undefined;
+}
+
+// `x = Math.min (a, b)` over two other locals both declared Int64: the declared-Int64 min/max pass prints
+// Math.Min(a, b), the same Int64 box the helper hands back
+function int64LocalsMinMaxWriteType (csharp, declaration, node, context) {
+    const call = stripParens (node);
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || call.arguments?.length !== 2 || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.Identifier || callee.expression.text !== 'Math' || (callee.name?.text !== 'min' && callee.name?.text !== 'max')) {
+        return undefined;
+    }
+    const ok = call.arguments.every ((a) => a.kind === ts.SyntaxKind.Identifier && a.text !== declaration.name.text && resolveLocalReadType (csharp, context, a) === 'Int64');
+    return ok ? 'Int64' : undefined;
+}
+
 // the declaration whose later write is being resolved right now, with the type a read of it
 // will have once the declaration is retyped (see selfReadWriteType)
 const selfReadStack = [];
@@ -13881,6 +13935,8 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
         // `x = Math.min (x, y)` / `Math.max` on an Int64 local: native only when the printer itself prints
         // Math.Min/Max over Int64 / null-tested Int64? reads (no literal: the helper would keep its Int32 box)
         written ??= (type === 'Int64' && !sawNull) ? selfMinMaxInt64WriteType (csharp, context, declaration, parent.right) : undefined;
+        // `Int` local writes the printer types natively (int64AnnotatedLocalWriteType)
+        written ??= ((type === 'Int64' || type === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined;
         if (written === undefined) {
             // `x = c ? D : x` — the default-if-unset ternary write: the value reads this very
             // local, so the write's contribution is the OTHER arm's type (selfTernaryWriteType);
