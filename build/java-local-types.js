@@ -17035,6 +17035,37 @@ function javaReplaceStringTyped (printer, node) {
     return sawString;
 }
 
+// `this.urlencode(..)` prints hand-written BaseExchange `public String urlencode` (Encode: String.join, never null)
+function javaReplaceNonNullBaseCall (receiver) {
+    return receiver !== undefined && ts.isCallExpression (receiver) && ts.isPropertyAccessExpression (receiver.expression)
+        && receiver.expression.expression.kind === ts.SyntaxKind.ThisKeyword && receiver.expression.name.text === 'urlencode';
+}
+
+function javaReceiverCallReplaceText (printer, node, out) {
+    const args = node?.arguments;
+    const receiver = javaReplaceReceiverNode (node);
+    if (!javaReplaceNonNullBaseCall (receiver) || args?.length !== 2 || !ts.isStringLiteral (args[0]) || !ts.isStringLiteral (args[1])
+        || args[0].text === '' || JAVA_REPLACE_REGEX_CHARS.test (args[0].text) || /[$\\]/.test (args[1].text)) {
+        return out;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (receiver)?.declaration?.resolve ();
+    } catch (e) {
+        return out;
+    }
+    if (declaration === undefined || !BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
+        return out;
+    }
+    const lits = `${JSON.stringify (args[0].text)}, ${JSON.stringify (args[1].text)}`;
+    const castLits = `(String)${JSON.stringify (args[0].text)}, (String)${JSON.stringify (args[1].text)}`;
+    const m = /^Helpers\.replace\(\(*(?:String\))?\(*(?:String\))?(this\.urlencode\((?:[^()"]|\([^()"]*\))*\))/.exec (out);
+    if (m === null || !/^[\w$., ]*$/.test (m[1].slice (15, -1)) || !(out.endsWith (`, ${lits})`) || out.endsWith (`, ${castLits})`))) {
+        return out;
+    }
+    return `${m[1]}.replaceFirst(${lits})`;
+}
+
 function javaReceiverReplaceText (printer, node, out) {
     const args = node?.arguments;
     if (typeof out !== 'string' || args === undefined || args.length !== 2
@@ -17070,12 +17101,13 @@ export function installJavaLiteralReplace (transpiler) {
     const entry = RECEIVER_METHOD_LOCAL_ENTRIES.replace;
     const previous = entry.match;
     const guarded = /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/;
-    entry.match = { test: (text) => previous.test (text) || guarded.test (text) };
+    const urlencoded = /^this\.urlencode\(.*\)\.replaceFirst\("/;
+    entry.match = { test: (text) => previous.test (text) || guarded.test (text) || urlencoded.test (text) };
     const upstream = printer.printReplaceCall.bind (printer);
     printer.printReplaceCall = function (node, identation, name, parsedArg, parsedArg2) {
         const out = upstream (node, identation, name, parsedArg, parsedArg2);
         try {
-            return javaReceiverReplaceText (this, node, out);
+            return javaReceiverCallReplaceText (this, node, javaReceiverReplaceText (this, node, out));
         } catch (e) {
             return out;
         }
