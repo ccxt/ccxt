@@ -7376,6 +7376,9 @@ function lendWatchMultipleHashes(content: string): string {
         args.push(cur);
         if (args.length !== 5 || depth !== 0) return call;
         for (const i of [1, 3]) args[i] = args[i].replace(/^(\s*)([A-Za-z_]\w*)\.clone\(\)$/, '$1&$2');
+        // the same local moved into the other slot is lent too: a borrow and a move cannot share one call
+        if (args[1].trim() === '&' + args[3].trim()) args[3] = args[3].replace(/(\S)/, '&$1');
+        else if (args[3].trim() === '&' + args[1].trim()) args[1] = args[1].replace(/(\S)/, '&$1');
         return '.watch_multiple(' + args.join(',') + ').await';
     });
 }
