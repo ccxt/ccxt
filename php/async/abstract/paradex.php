@@ -221,265 +221,265 @@ abstract class paradex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_account($params = array()) {
-        return $this->request('account', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_compliance($params = array()) {
-        return $this->request('account/compliance', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/compliance', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_history($params = array()) {
-        return $this->request('account/history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_info($params = array()) {
-        return $this->request('account/info', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/info', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_margin($params = array()) {
-        return $this->request('account/margin', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/margin', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_profile($params = array()) {
-        return $this->request('account/profile', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/profile', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_settings($params = array()) {
-        return $this->request('account/settings', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/settings', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_subaccounts($params = array()) {
-        return $this->request('account/subaccounts', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/subaccounts', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_summary($params = array()) {
-        return $this->request('account/summary', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/summary', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_balance($params = array()) {
-        return $this->request('balance', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('balance', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_fills($params = array()) {
-        return $this->request('fills', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('fills', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_funding_payments($params = array()) {
-        return $this->request('funding/payments', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('funding/payments', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_positions($params = array()) {
-        return $this->request('positions', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('positions', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_tradebusts($params = array()) {
-        return $this->request('tradebusts', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('tradebusts', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_transactions($params = array()) {
-        return $this->request('transactions', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('transactions', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_keys_subkeys($params = array()) {
-        return $this->request('account/keys/subkeys', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/keys/subkeys', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_keys_subkeys_public_key($params = array()) {
-        return $this->request('account/keys/subkeys/{public_key}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/keys/subkeys/{public_key}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account_tokens($params = array()) {
-        return $this->request('account/tokens', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/tokens', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_algo_orders($params = array()) {
-        return $this->request('algo/orders', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('algo/orders', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_algo_orders_history($params = array()) {
-        return $this->request('algo/orders-history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('algo/orders-history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_algo_orders_algo_id($params = array()) {
-        return $this->request('algo/orders/{algo_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('algo/orders/{algo_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_block_trades($params = array()) {
-        return $this->request('block-trades', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('block-trades', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_block_trades_block_trade_id($params = array()) {
-        return $this->request('block-trades/{block_trade_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('block-trades/{block_trade_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_block_trades_block_trade_id_offers($params = array()) {
-        return $this->request('block-trades/{block_trade_id}/offers', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('block-trades/{block_trade_id}/offers', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_block_trades_block_trade_id_offers_offer_id($params = array()) {
-        return $this->request('block-trades/{block_trade_id}/offers/{offer_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('block-trades/{block_trade_id}/offers/{offer_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_liquidations($params = array()) {
-        return $this->request('liquidations', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('liquidations', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_orders($params = array()) {
-        return $this->request('orders', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('orders', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_orders_history($params = array()) {
-        return $this->request('orders-history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('orders-history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_orders_by_client_id_client_id($params = array()) {
-        return $this->request('orders/by_client_id/{client_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('orders/by_client_id/{client_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_orders_order_id($params = array()) {
-        return $this->request('orders/{order_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('orders/{order_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_referrals_qr_code($params = array()) {
-        return $this->request('referrals/qr-code', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('referrals/qr-code', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_referrals_summary($params = array()) {
-        return $this->request('referrals/summary', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('referrals/summary', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_rfqs($params = array()) {
-        return $this->request('rfqs', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('rfqs', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_rfqs_drafts($params = array()) {
-        return $this->request('rfqs/drafts', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('rfqs/drafts', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_rfqs_markets($params = array()) {
-        return $this->request('rfqs/markets', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('rfqs/markets', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_rfqs_rfq_id_bbo($params = array()) {
-        return $this->request('rfqs/{rfq_id}/bbo', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('rfqs/{rfq_id}/bbo', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_staking_balance_history($params = array()) {
-        return $this->request('staking/balance/history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('staking/balance/history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_staking_history($params = array()) {
-        return $this->request('staking/history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('staking/history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_staking_summary($params = array()) {
-        return $this->request('staking/summary', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('staking/summary', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_transfers($params = array()) {
-        return $this->request('transfers', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('transfers', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_vaults_account_summary($params = array()) {
-        return $this->request('vaults/account-summary', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('vaults/account-summary', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_vaults_mine($params = array()) {
-        return $this->request('vaults/mine', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('vaults/mine', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_xp_account_balance($params = array()) {
-        return $this->request('xp/account-balance', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('xp/account-balance', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_xp_transfers($params = array()) {
-        return $this->request('xp/transfers', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('xp/transfers', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -587,7 +587,7 @@ abstract class paradex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_auth($params = array()) {
-        return $this->request('auth', array('private'), 'POST', $params, array("cost" => 1));
+        return $this->request('auth', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -617,7 +617,7 @@ abstract class paradex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_onboarding($params = array()) {
-        return $this->request('onboarding', array('private'), 'POST', $params, array("cost" => 1));
+        return $this->request('onboarding', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -653,13 +653,13 @@ abstract class paradex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_v2_auth($params = array()) {
-        return $this->request('v2/auth', array('private'), 'POST', $params, array("cost" => 1));
+        return $this->request('v2/auth', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_v2_onboarding($params = array()) {
-        return $this->request('v2/onboarding', array('private'), 'POST', $params, array("cost" => 1));
+        return $this->request('v2/onboarding', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -983,265 +983,265 @@ abstract class paradex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetAccount($params = array()) {
-        return $this->request('account', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountCompliance($params = array()) {
-        return $this->request('account/compliance', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/compliance', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountHistory($params = array()) {
-        return $this->request('account/history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountInfo($params = array()) {
-        return $this->request('account/info', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/info', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountMargin($params = array()) {
-        return $this->request('account/margin', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/margin', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountProfile($params = array()) {
-        return $this->request('account/profile', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/profile', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountSettings($params = array()) {
-        return $this->request('account/settings', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/settings', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountSubaccounts($params = array()) {
-        return $this->request('account/subaccounts', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/subaccounts', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountSummary($params = array()) {
-        return $this->request('account/summary', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/summary', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetBalance($params = array()) {
-        return $this->request('balance', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('balance', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFills($params = array()) {
-        return $this->request('fills', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('fills', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFundingPayments($params = array()) {
-        return $this->request('funding/payments', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('funding/payments', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetPositions($params = array()) {
-        return $this->request('positions', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('positions', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetTradebusts($params = array()) {
-        return $this->request('tradebusts', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('tradebusts', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetTransactions($params = array()) {
-        return $this->request('transactions', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('transactions', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountKeysSubkeys($params = array()) {
-        return $this->request('account/keys/subkeys', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/keys/subkeys', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountKeysSubkeysPublicKey($params = array()) {
-        return $this->request('account/keys/subkeys/{public_key}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/keys/subkeys/{public_key}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccountTokens($params = array()) {
-        return $this->request('account/tokens', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('account/tokens', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAlgoOrders($params = array()) {
-        return $this->request('algo/orders', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('algo/orders', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAlgoOrdersHistory($params = array()) {
-        return $this->request('algo/orders-history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('algo/orders-history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAlgoOrdersAlgoId($params = array()) {
-        return $this->request('algo/orders/{algo_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('algo/orders/{algo_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetBlockTrades($params = array()) {
-        return $this->request('block-trades', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('block-trades', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetBlockTradesBlockTradeId($params = array()) {
-        return $this->request('block-trades/{block_trade_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('block-trades/{block_trade_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetBlockTradesBlockTradeIdOffers($params = array()) {
-        return $this->request('block-trades/{block_trade_id}/offers', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('block-trades/{block_trade_id}/offers', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetBlockTradesBlockTradeIdOffersOfferId($params = array()) {
-        return $this->request('block-trades/{block_trade_id}/offers/{offer_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('block-trades/{block_trade_id}/offers/{offer_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetLiquidations($params = array()) {
-        return $this->request('liquidations', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('liquidations', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOrders($params = array()) {
-        return $this->request('orders', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('orders', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOrdersHistory($params = array()) {
-        return $this->request('orders-history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('orders-history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOrdersByClientIdClientId($params = array()) {
-        return $this->request('orders/by_client_id/{client_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('orders/by_client_id/{client_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOrdersOrderId($params = array()) {
-        return $this->request('orders/{order_id}', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('orders/{order_id}', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetReferralsQrCode($params = array()) {
-        return $this->request('referrals/qr-code', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('referrals/qr-code', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetReferralsSummary($params = array()) {
-        return $this->request('referrals/summary', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('referrals/summary', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetRfqs($params = array()) {
-        return $this->request('rfqs', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('rfqs', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetRfqsDrafts($params = array()) {
-        return $this->request('rfqs/drafts', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('rfqs/drafts', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetRfqsMarkets($params = array()) {
-        return $this->request('rfqs/markets', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('rfqs/markets', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetRfqsRfqIdBbo($params = array()) {
-        return $this->request('rfqs/{rfq_id}/bbo', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('rfqs/{rfq_id}/bbo', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetStakingBalanceHistory($params = array()) {
-        return $this->request('staking/balance/history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('staking/balance/history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetStakingHistory($params = array()) {
-        return $this->request('staking/history', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('staking/history', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetStakingSummary($params = array()) {
-        return $this->request('staking/summary', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('staking/summary', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetTransfers($params = array()) {
-        return $this->request('transfers', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('transfers', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetVaultsAccountSummary($params = array()) {
-        return $this->request('vaults/account-summary', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('vaults/account-summary', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetVaultsMine($params = array()) {
-        return $this->request('vaults/mine', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('vaults/mine', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetXpAccountBalance($params = array()) {
-        return $this->request('xp/account-balance', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('xp/account-balance', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetXpTransfers($params = array()) {
-        return $this->request('xp/transfers', array('private'), 'GET', $params, array("cost" => 1));
+        return $this->request('xp/transfers', array('private'), 'GET', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1349,7 +1349,7 @@ abstract class paradex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostAuth($params = array()) {
-        return $this->request('auth', array('private'), 'POST', $params, array("cost" => 1));
+        return $this->request('auth', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1379,7 +1379,7 @@ abstract class paradex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOnboarding($params = array()) {
-        return $this->request('onboarding', array('private'), 'POST', $params, array("cost" => 1));
+        return $this->request('onboarding', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1415,13 +1415,13 @@ abstract class paradex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostV2Auth($params = array()) {
-        return $this->request('v2/auth', array('private'), 'POST', $params, array("cost" => 1));
+        return $this->request('v2/auth', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostV2Onboarding($params = array()) {
-        return $this->request('v2/onboarding', array('private'), 'POST', $params, array("cost" => 1));
+        return $this->request('v2/onboarding', array('private'), 'POST', $params, array("cost" => 2.5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

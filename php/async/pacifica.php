@@ -2990,7 +2990,7 @@ class pacifica extends Exchange {
          */
         $operationType = 'update_leverage';
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

@@ -66,6 +66,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "watchFundingRates", true );
                 put( "unWatchTicker", true );
                 put( "unWatchTickers", true );
+                put( "unWatchMarkPrice", true );
+                put( "unWatchMarkPrices", true );
                 put( "unWatchOHLCV", true );
                 put( "unWatchOHLCVForSymbols", true );
                 put( "unWatchOrderBook", true );
@@ -700,6 +702,70 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
+
+    }
+
+    /**
+     * @method
+     * @name okx#unWatchMarkPrice
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches a mark price
+     * @param {string} symbol unified symbol of the market to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.unWatchMarkPrices(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name okx#unWatchMarkPrices
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches mark prices
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Object> unWatchMarkPrices(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+            String channel = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "channel", "mark-price")).get(0);
+            List<Object> topics = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < symbolsNormalized.size(); i++)
+            {
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                messageHashes.add(("unsubscribe:mark-price:" + symbol));
+                String marketId = this.marketId(symbol);
+                Map<String, Object> topic = new HashMap<String, Object>() {{
+                    put( "channel", channel );
+                    put( "instId", marketId );
+                }};
+                ((List<Object>)topics).add(topic);
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "op", "unsubscribe" );
+                put( "args", topics );
+            }};
+            String url = this.getUrl(channel, "public");
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+        });
 
     }
 
@@ -3358,6 +3424,17 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
     }
 
+    public void handleUnsubscriptionMarkPrice(Client client, String symbol, String channel)
+    {
+        String subMessageHash = ((channel + "::") + symbol);
+        String messageHash = ("unsubscribe:mark-price:" + symbol);
+        this.cleanUnsubscription(client, subMessageHash, messageHash, false);
+        if (this.tickers.containsKey(symbol))
+        {
+            this.tickers.remove((String)symbol);
+        }
+    }
+
     public void handleUnsubscription(Client client, Map<String, Object> message)
     {
         //
@@ -3388,6 +3465,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         } else if ((channel.startsWith(((String)"bbo"))) || (channel.startsWith(((String)"book"))))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
+        } else if (java.util.Objects.equals(channel, "mark-price"))
+        {
+            this.handleUnsubscriptionMarkPrice(client, symbol, channel);
         } else if (((String)channel).indexOf("tickers") > -1)
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);

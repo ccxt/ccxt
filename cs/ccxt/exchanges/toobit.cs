@@ -2642,7 +2642,7 @@ public partial class toobit : Exchange
         List<object> response = new List<object>() {};
         if (marketType == "spot")
         {
-            throw new NotSupported ((((this.id + " fetchOrders() is not supported for ") + marketType) + " markets")) ;
+            throw new NotSupported ((((this.id + " fetchClosedOrders() is not supported for ") + marketType) + " markets")) ;
         } else
         {
             response = await this.privateGetApiV1FuturesHistoryOrders(requestUntil);

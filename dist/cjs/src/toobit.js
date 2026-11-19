@@ -2415,7 +2415,7 @@ class toobit extends toobit$1["default"] {
         const marketType = this.handleMarketTypeAndParams('fetchClosedOrders', market, paramsUntil)[0];
         let response = [];
         if (marketType === 'spot') {
-            throw new errors.NotSupported(this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
+            throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported for ' + marketType + ' markets');
         }
         else {
             response = await this.privateGetApiV1FuturesHistoryOrders(requestUntil);

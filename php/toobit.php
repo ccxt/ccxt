@@ -2420,7 +2420,7 @@ class toobit extends Exchange {
         $marketType = $this->handle_market_type_and_params('fetchClosedOrders', $market, $paramsUntil)[0];
         $response = array();
         if ($marketType === 'spot') {
-            throw new NotSupported($this->id . ' fetchOrders() is not supported for ' . $marketType . ' markets');
+            throw new NotSupported($this->id . ' fetchClosedOrders() is not supported for ' . $marketType . ' markets');
         } else {
             $response = $this->privateGetApiV1FuturesHistoryOrders($requestUntil);
             //

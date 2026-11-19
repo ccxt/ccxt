@@ -3004,7 +3004,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	marketType, _ := this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil)
 	var response any = []any{}
 	if marketType != nil && *marketType == "spot" {
-		panic(NotSupported(this.Id + " fetchOrders() is not supported for " + *marketType + " markets"))
+		panic(NotSupported(this.Id + " fetchClosedOrders() is not supported for " + *marketType + " markets"))
 	} else {
 
 		r1 := <-this.PrivateGetApiV1FuturesHistoryOrders(requestUntil)

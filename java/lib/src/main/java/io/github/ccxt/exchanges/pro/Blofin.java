@@ -1030,7 +1030,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             List<Object> rawSubscriptions = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if ((!java.util.Objects.equals(symbols, null)) && (symbols.size() > 0))
+            Integer symbolsLength = (((java.util.Objects.equals(symbols, null)))) ? 0 : symbols.size();
+            if ((symbolsLength != null && symbolsLength > 0))
             {
                 for (var i = 0; i < symbols.size(); i++)
                 {

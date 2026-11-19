@@ -4513,7 +4513,7 @@ public partial class woo : Exchange
         } else
         {
             string? marketType = this.safeString(market, "type", "");
-            throw new NotSupported ((((this.id + " fetchLeverage() is not supported for ") + marketType) + " markets")) ;
+            throw new NotSupported ((((this.id + " setLeverage() is not supported for ") + marketType) + " markets")) ;
         }
     }
 

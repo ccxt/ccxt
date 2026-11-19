@@ -4874,6 +4874,7 @@ fetches option data that is commonly found in an option chain
 [derive](/exchanges/derive.md#fetchoption)
 [gate](/exchanges/gate.md#fetchoption)
 [okx](/exchanges/okx.md#fetchoption)
+[paradex](/exchanges/paradex.md#fetchoption)
 
 ---
 
@@ -4896,6 +4897,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 [deribit](/exchanges/deribit.md#fetchoptionchain)
 [gate](/exchanges/gate.md#fetchoptionchain)
 [okx](/exchanges/okx.md#fetchoptionchain)
+[paradex](/exchanges/paradex.md#fetchoptionchain)
 
 ---
 
@@ -7673,6 +7675,7 @@ unWatches best bid & ask for symbols
 [aster](/exchanges/aster.md#unwatchbidsasks)
 [backpack](/exchanges/backpack.md#unwatchbidsasks)
 [binance](/exchanges/binance.md#unwatchbidsasks)
+[bybit](/exchanges/bybit.md#unwatchbidsasks)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchbidsasks)
 [mexc](/exchanges/mexc.md#unwatchbidsasks)
 [nado](/exchanges/nado.md#unwatchbidsasks)
@@ -7744,6 +7747,7 @@ unWatches a mark price for a specific market
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchmarkprice)
 [kucoin](/exchanges/kucoin.md#unwatchmarkprice)
 [lighter](/exchanges/lighter.md#unwatchmarkprice)
+[okx](/exchanges/okx.md#unwatchmarkprice)
 
 ---
 
@@ -7767,6 +7771,7 @@ watches the mark price for all markets
 [binance](/exchanges/binance.md#unwatchmarkprices)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchmarkprices)
 [lighter](/exchanges/lighter.md#unwatchmarkprices)
+[okx](/exchanges/okx.md#unwatchmarkprices)
 
 ---
 

@@ -4758,7 +4758,7 @@ public class Woo extends WooApi
             } else
             {
                 String marketType = this.safeString(market, "type", "");
-                throw new NotSupported((((this.id + " fetchLeverage() is not supported for ") + marketType) + " markets")) ;
+                throw new NotSupported((((this.id + " setLeverage() is not supported for ") + marketType) + " markets")) ;
             }
         });
 

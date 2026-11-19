@@ -931,7 +931,8 @@ public partial class blofin : ccxt.blofin
         }
         List<object> rawSubscriptions = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        if (((symbols != null)) && ((symbols?.Count ?? 0) > 0))
+        int symbolsLength = ((symbols == null)) ? 0 : (symbols?.Count ?? 0);
+        if (symbolsLength > 0)
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {

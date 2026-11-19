@@ -55,6 +55,7 @@ class bybit(ccxt.async_support.bybit):
                 'watchTradesForSymbols': True,
                 'unWatchTicker': True,
                 'unWatchTickers': True,
+                'unWatchBidsAsks': True,
                 'unWatchOHLCV': True,
                 'unWatchOHLCVForSymbols': True,
                 'unWatchOrderBook': True,
@@ -639,6 +640,32 @@ class bybit(ccxt.async_support.bybit):
         if self.newUpdates:
             return ticker
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsValue)
+
+    async def un_watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> object:
+        """
+        unWatches best bid & ask for symbols
+
+        https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsValue = self.market_symbols(symbols, None, False)
+        messageHashes = []
+        subMessageHashes = []
+        marketIds = self.market_ids(symbolsValue)
+        topics = []
+        for i in range(0, len(marketIds)):
+            marketId = self.safe_string(marketIds, i, '')
+            symbol = symbolsValue[i]
+            topics.append('orderbook.1.' + marketId)
+            subMessageHashes.append('bidask:' + symbol)
+            messageHashes.append('unsubscribe:bidask:' + symbol)
+        url = await self.get_url_by_market_type(symbolsValue[0], False, 'watchBidsAsks', params)
+        return await self.un_watch_topics(url, 'bidsasks', symbolsValue, messageHashes, subMessageHashes, topics, params)
 
     def parse_ws_bid_ask(self, orderbook: object, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(orderbook, 'timestamp')

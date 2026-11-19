@@ -2829,7 +2829,7 @@ class pacifica extends pacifica$1["default"] {
     async setLeverage(leverage, symbol = undefined, params = {}) {
         const operationType = 'update_leverage';
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
