@@ -366,6 +366,7 @@ export const CORE_STRING_ARGS = {
     'fetchMarkPrice': [ 0 ],
     'fetchMarket': [ 0 ],
     'fetchMarketById': [ 0 ],
+    'fetchAccountIdByType': [ 0 ],
     'fetchMarketLeverageTiers': [ 0 ],
     'fetchMyBuys': [ 0 ],
     'fetchMySells': [ 0 ],
