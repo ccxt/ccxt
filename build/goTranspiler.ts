@@ -7049,6 +7049,13 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'cancelOrdersForSymbols': { 0: '[]any' }, 'editOrders': { 0: '[]any' },
     // symbol-list params every caller hands a `[]any` literal; the typed wrapper converts its []string
     'watchOrderBookForSymbols': { 0: '[]any' }, 'watchTradesForSymbols': { 0: '[]any' },
+    // base List params with no override and no interface line; every ts/src caller hands a `[]any` local or ToArray
+    'parseFundingRates': { 0: '[]any' }, 'parseFundingRateHistories': { 0: '[]any' },
+    'parseLongShortRatioHistory': { 0: '[]any' }, 'parseIsolatedBorrowRates': { 0: '[]any' },
+    // createOrdersWs (orders: OrderRequest[]) on the base, gate and hyperliquid; the typed wrapper converts
+    'createOrdersWs': { 0: '[]any' },
+    // venue createOrdersRequest (gate, hyperliquid, pacifica): callers are createOrders/createOrdersWs cores
+    'createOrdersRequest': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
@@ -16736,7 +16743,7 @@ function goDerefGuardedListReads (lines: string[], masked: string[], start: numb
         }
         const t = typeAt (name, k);
         // the unified row-list `[]any` parameters keep GetValue (a native read trades it for a closure)
-        if ((((name === 'orders') && /\b(?:createOrders|cancelOrdersForSymbols|editOrders)Body\(/.test (masked[start] ?? ''))
+        if ((((name === 'orders') && /\b(?:createOrders(?:Ws)?|cancelOrdersForSymbols|editOrders)Body\(/.test (masked[start] ?? ''))
             || ((name === 'symbolsAndTimeframes') && /\b(?:un[Ww]|w)atchOHLCVForSymbolsBody\(/.test (masked[start] ?? '')))) {
             continue;
         }
