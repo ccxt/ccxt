@@ -1757,6 +1757,7 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'currencyIds': 'IList<object>',
     'marketCodes': 'IList<object>',
     'marketSymbols': 'IList<object>',
+    'marketsForSymbols': 'IList<object>',
     'parseMarkets': 'IList<object>',
     // parseCurrencies accumulates a code-keyed Dictionary and returns it (base + bitstamp
     // override), so it is retyped to the dict, not the list
@@ -21234,7 +21235,7 @@ function clockValue84c7 (csharp, node, depth) {
 // add one of the census-counted ((IDictionary…) / ((IList…) spellings), so the declaration names it behind the
 // exact cast back; csharpLocalIsSafeToRetype re-checks every use and write.
 const CSHARP_84C7_PASS_THROUGH_TYPES = {
-    'requireValue': [ 'Dictionary<string, object>', 'List<object>' ],
+    'requireValue': [ 'Dictionary<string, object>', 'List<object>', 'IList<object>' ],
     'clone': [ 'Dictionary<string, object>', 'List<object>' ],
 };
 

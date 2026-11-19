@@ -3963,15 +3963,15 @@ public partial class BaseExchange
             if (reload == true || !(this.options.ContainsKey("limitsLoaded")))
             {
                 Dictionary<string, object> response = await this.FetchTradingLimits(symbols);
-                object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
+                IList<object> symbolsArray = ((IList<object>)this.requireValue(symbols, "loadTradingLimits() requires a symbols argument"));
                 IDictionary<string, object> markets = this.markets;
                 if ((markets == null))
                 {
                     throw new ExchangeError ((this.id + " markets not loaded")) ;
                 }
-                for (int i = 0; i < getArrayLength(symbolsArray); i++)
+                for (int i = 0; i < (symbolsArray?.Count ?? 0); i++)
                 {
-                    string? symbol = ((string)getValue(symbolsArray, i));
+                    string? symbol = ((string)symbolsArray[i]);
                     markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null), (response != null && symbol != null && response.ContainsKey(symbol) ? response[symbol] : null));
                 }
                 this.options["limitsLoaded"] = this.milliseconds();

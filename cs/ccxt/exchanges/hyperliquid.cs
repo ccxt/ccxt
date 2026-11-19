@@ -828,7 +828,7 @@ public partial class hyperliquid : Exchange
             string? decimalPart = this.safeString(priceSplitted, 1, "");
             // Count the number of leading zeros in the decimal part
             Int64? leadingZeros = 0;
-            while (((leadingZeros == null || leadingZeros <= decimalPart.Length)) && (isEqual(getValue(decimalPart, leadingZeros), "0")))
+            while (((leadingZeros == null || leadingZeros <= decimalPart.Length)) && (isEqual((decimalPart != null && leadingZeros != null ? decimalPart[Convert.ToInt32(leadingZeros.Value)].ToString () : null), "0")))
             {
                 leadingZeros = (leadingZeros + 1);
             }

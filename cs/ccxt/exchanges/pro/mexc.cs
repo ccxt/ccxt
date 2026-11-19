@@ -438,8 +438,8 @@ public partial class mexc : ccxt.mexc
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks required symbols argument")) ;
         }
-        object markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), "watchBidsAsks() markets is required");
-        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
+        IList<object> markets = ((IList<object>)this.requireValue(this.marketsForSymbols(symbolsNormalized), "watchBidsAsks() markets is required"));
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", (markets != null && 0 < markets.Count ? markets[0] : null), parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         bool isSpot = (marketType == "spot");
@@ -1994,8 +1994,8 @@ public partial class mexc : ccxt.mexc
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks required symbols argument")) ;
         }
-        object markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), "unWatchBidsAsks() markets is required");
-        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
+        IList<object> markets = ((IList<object>)this.requireValue(this.marketsForSymbols(symbolsNormalized), "unWatchBidsAsks() markets is required"));
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", (markets != null && 0 < markets.Count ? markets[0] : null), parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         bool isSpot = (marketType == "spot");
