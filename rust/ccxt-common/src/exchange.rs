@@ -865,7 +865,7 @@ impl Exchange {
         let props = if matches!(self.userConfig, Value::Null) {
             described
         } else {
-            crate::runtime::deep_merge_dict(&described, &self.userConfig.clone())
+            crate::runtime::deep_merge_dict(&described, &self.userConfig)
         };
         let get = |k: &str| crate::get_value(&props, &Value::Str(k.to_string().into()));
         let assign = |field: &mut Value, v: Value| {

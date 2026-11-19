@@ -14306,8 +14306,10 @@ impl ${coreName} {
         let described = ${coreName}::describe(self);
         self.exchange.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
