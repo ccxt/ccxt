@@ -11175,7 +11175,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context) ?? currenciesViewLocal93c7 (csharp, declaration, context) ?? int64ChainLocal (csharp, declaration, context) ?? arrayGuardedConditionalListLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context) ?? currenciesViewLocal93c7 (csharp, declaration, context) ?? int64ChainLocal (csharp, declaration, context) ?? arrayGuardedConditionalListLocal (csharp, declaration, context) ?? int64IndexGroupLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -23502,3 +23502,93 @@ csharpLocalDeclaration = function (csharp, declaration, context) {
     const copy = c84UpstreamLocalDeclaration (csharp, declaration, context);
     return (copy !== undefined && copy.cast === undefined && copy.type === 'IDictionary<string, object>' && !c84SlotWrittenDeclarations.has (declaration)) ? copy : undefined;
 };
+
+// `let i = 0; ... i = j; i = this.sum (j, 1);` index locals linked only by copies and sum writes: every write
+// is an int literal, a group member, or `this.sum (<member>, <int literal>)` (the Int64 twin, the same Int64 box
+// the object sum returns), and every read is a group write operand, a list/dict index or a `this.safe*` key
+// (both convert the key through Convert.ToInt32 / ToString, so an Int64 box answers as the Int32 box did).
+function int64IndexGroupLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || !isBlockScopedDeclaration (declaration) || declaration.parent?.declarations?.length !== 1
+            || declaration.type !== undefined || !integerLiteralArithmeticLiteral (stripParens (declaration.initializer))) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined || typeNameIsShadowed (csharp, scope, declaration, 'Int64')) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const memberOf = (node) => {
+        const value = stripParens (node);
+        if (value?.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+        const found = index.declarations.get (value.text) ?? [];
+        const d = found.length === 1 ? found[0] : undefined;
+        return (d !== undefined && d.name?.kind === ts.SyntaxKind.Identifier && isBlockScopedDeclaration (d) && d.parent?.declarations?.length === 1
+            && d.type === undefined && integerLiteralArithmeticLiteral (stripParens (d.initializer))
+            && useRefersToDeclaration (csharp, scope, d, value) === true) ? d : undefined;
+    };
+    const group = new Set ([ declaration ]);
+    const queue = [ declaration ];
+    let reads = 0;
+    while (queue.length > 0) {
+        const member = queue.pop ();
+        for (const n of (index.identifiers.get (member.name.text) ?? [])) {
+            if (n === member.name || isNotAUse (n)) {
+                continue;
+            }
+            const refers = useRefersToDeclaration (csharp, scope, member, n);
+            if (refers === undefined) {
+                return undefined;
+            }
+            if (refers === false) {
+                continue;
+            }
+            const parent = n.parent;
+            const add = (d) => {
+                if (d === undefined) {
+                    return false;
+                }
+                if (!group.has (d)) {
+                    group.add (d);
+                    queue.push (d);
+                }
+                return true;
+            };
+            const groupWrite = (bin) => bin?.kind === ts.SyntaxKind.BinaryExpression && bin.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                && bin.parent?.kind === ts.SyntaxKind.ExpressionStatement && add (memberOf (bin.left));
+            if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+                const value = stripParens (parent.right);
+                const sumWrite = integerOverloadCallType (value) === 'Int64' && integerLiteralArithmeticLiteral (stripParens (value.arguments[1]));
+                if (!groupWrite (parent) || !(integerLiteralArithmeticLiteral (value) || add (memberOf (value)) || (sumWrite && add (memberOf (value.arguments[0]))))) {
+                    return undefined;
+                }
+                continue;
+            }
+            if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === n && groupWrite (parent)) {
+                continue;
+            }
+            const call = parent?.kind === ts.SyntaxKind.CallExpression ? parent : undefined;
+            if (call !== undefined && integerOverloadCallType (call) === 'Int64' && call.arguments[0] === n && groupWrite (call.parent)) {
+                continue;
+            }
+            if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.argumentExpression === n
+                    && !(parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent && ASSIGNMENT_OPERATORS.includes (parent.parent.operatorToken.kind))
+                    && parent.parent?.kind !== ts.SyntaxKind.DeleteExpression) {
+                reads++;
+                continue;
+            }
+            if (call !== undefined && call.arguments[1] === n && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                    && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && ROW_USE_PURE_READERS.has (call.expression.name?.text)) {
+                reads++;
+                continue;
+            }
+            return undefined;
+        }
+    }
+    if (reads === 0) {
+        return undefined;
+    }
+    // the group's every use was enumerated above: each member is declared Int64 together
+    return { type: 'Int64' };
+}
