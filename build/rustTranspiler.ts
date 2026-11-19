@@ -6163,13 +6163,13 @@ function lendOptionalArgCalls(content: string, lend: Set<string>): string {
 
 // Move an owned local into `&[x]` / `Value::Map(x)` instead of cloning it when this is its last use:
 // no later mention in the fn, none elsewhere in the statement, not inside a loop or closure.
-function moveLocalsAtLastUse(content: string): string {
+function moveLocalsAtLastUse(content: string, sites?: RegExp): string {
     // comment lines blanked so sample payloads in them cannot unbalance the body scan
     const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
     const fnStarts = [...content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
     // also a whole by-value operand: call/ctor argument, element, `let` rhs, `return` or block tail value,
     // and the receiver of a consuming `.map(` / `.map_or(`
-    const site = /(&\[|Value::Map\(|(?<![&\w])[(\[]|, |(?<![=!<>+\-*/])= |\breturn |\{ )([A-Za-z_]\w*)\.clone\(\)(?=[\]),;]| \}|\.map(?:_or)?\()/g;
+    const site = sites ?? /(&\[|Value::Map\(|(?<![&\w])[(\[]|, |(?<![=!<>+\-*/])= |\breturn |\{ )([A-Za-z_]\w*)\.clone\(\)(?=[\]),;]| \}|\.map(?:_or)?\()/g;
     const edits: [number, number, string][] = [];
     let fi = -1;
     for (const m of content.matchAll(site)) {
@@ -6181,10 +6181,10 @@ function moveLocalsAtLastUse(content: string): string {
         if (open < 0 || open > pos) continue;
         const close = balancedCloseIndex(code, open + 1);
         const word = new RegExp(`(?<![\\w.])${name}\\b`);
-        const divEnd = rustDivergingStmtEnd(code, open + 1, pos);
         const body = content.slice(open + 1, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
-        const loopEnd = divEnd < 0 ? rustLoopBodyLetScopeEnd(code, open, pos, name) : undefined;
-        if (word.test(code.slice(end, divEnd >= 0 ? divEnd : loopEnd ?? close))) continue;
+        const divEnd = sites === undefined ? rustDivergingStmtEnd(code, open + 1, pos) : -1;
+        const loopEnd = sites === undefined && divEnd < 0 ? rustLoopBodyLetScopeEnd(code, open, pos, name) : undefined;
+        if (sites === undefined ? word.test(code.slice(end, divEnd >= 0 ? divEnd : loopEnd ?? close)) : usedAfterBranch(code, end, close, word)) continue;
         // owned binding: `let [mut] x: T = ` (T not a reference) or untyped `let x = get_arg(`
         let decl: RegExpMatchArray | undefined = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
         // or an owned by-value parameter of this fn (`[mut] x: T`, T not a reference / impl / slice)
@@ -8084,6 +8084,18 @@ function lendCollectionRows(content: string): string {
 }
 //
 // unit slot 055
+// `xs.push(x.clone())`, `xs.push(Value::from(x.clone()))` and `Some(x.clone())` move x at its last use
+const RUST_PUSH_SOME_MOVE_SITES = /(\.push\((?:Value::from\()?|(?<![\w:])Some\()([A-Za-z_]\w*)\.clone\(\)(?=\))/g;
+// A later mention only in a sibling `else` / `else if` branch of the site's own block is not a later use
+function usedAfterBranch(code: string, end: number, close: number, word: RegExp): boolean {
+    const semi = code.indexOf(';', end);
+    if (semi < 0 || semi > close) return true;
+    let be = balancedCloseIndex(code, semi + 1);
+    if (be >= close || word.test(code.slice(end, be))) return true;
+    for (let m; (m = /^\s*else\s*(?:if\b[^{;]*)?\{/.exec(code.slice(be + 1))) !== null;) be = balancedCloseIndex(code, be + 1 + m[0].length);
+    return word.test(code.slice(be + 1, close));
+}
+const movePushSomeAtLastUse = (content: string): string => moveLocalsAtLastUse(content, RUST_PUSH_SOME_MOVE_SITES);
 //
 // unit slot 056
 //
@@ -9197,6 +9209,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendCollectionRows,
     //
     // pass slot 055
+    movePushSomeAtLastUse,
     //
     // pass slot 056
     //
