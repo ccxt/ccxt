@@ -14032,7 +14032,9 @@ ${constStatements.join('\n')}
             const file = this.baseFileNilCompares (this.goBaseFileHeader () + baseMethods + "\n");
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
-            this.writeGeneratedOnce (BASE_METHODS_FILE, this.declareBaseFileStdlibImports (goBaseNativePasses (file), baseFile.stdlibImports));
+            // orderbookChecksumMessage (: string, no venue override) throws on a nil symbol, so its one return is a Go string
+            const baseStringReturns = { 'OrderbookChecksumMessage': [ 'return *symbol + " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\\"watchOrderBook\\"][\\"checksum\\"] = false"' ] };
+            this.writeGeneratedOnce (BASE_METHODS_FILE, goRetypeStringReturns (this.declareBaseFileStdlibImports (goBaseNativePasses (file), baseFile.stdlibImports), 'BaseExchange', baseStringReturns));
         }
     }
 
@@ -17280,7 +17282,7 @@ function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
 // ===== native `+` for Add chains over proven Go strings =====
 // Add(a, b) -> a + b only when every leaf is a non-nil Go string (literal, never-redeclared `string` local/param,
 // ToString(..), string fields, base method returning `string`); any other leaf keeps Add.
-function goAddStringMethods (): Set<string> { return new Set ([ 'HashString', 'IntToBase16', 'Remove0xPrefix', 'PadHexAddress', 'ShortenSlug', 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2' ]); }
+function goAddStringMethods (): Set<string> { return new Set ([ 'HashString', 'IntToBase16', 'Remove0xPrefix', 'PadHexAddress', 'ShortenSlug', 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2', 'OrderbookChecksumMessage' ]); }
 // the credential fields are declared `string` in go/v4/exchange.go, so they are non-nil leaves too
 function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname', 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey', 'Login', 'Twofa' ]); }
 

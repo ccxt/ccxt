@@ -1045,7 +1045,7 @@ export default class bitget extends bitgetRest {
                 const payload = payloadArray.join (':');
                 const calculatedChecksum = this.crc32 (payload, true);
                 if (calculatedChecksum !== responseChecksum) {
-                    this.spawn (this.handleCheckSumError, client, symbol, messageHash);
+                    this.spawn (this.handleCheckSumError, client, symbol, messageHash, this.orderbookChecksumMessage (this.safeString (market, 'symbol', '')));
                     return;
                 }
             }
@@ -1077,9 +1077,9 @@ export default class bitget extends bitgetRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string, checksumMessage: string) {
         await this.unWatchOrderBook (symbol);
-        const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        const error = new ChecksumError (this.id + ' ' + checksumMessage);
         client.reject (error, messageHash);
     }
 
