@@ -19837,6 +19837,11 @@ function nativeAddNonNullOperandKind (csharp, node, plus) {
     if (kind !== 'Int64?') {
         return { kind, demoted: false };
     }
+    // a product of non-null small ints / int literals is the non-null Int64 the native `*` already prints
+    if (operand.kind === ts.SyntaxKind.BinaryExpression && operand.operatorToken.kind === ts.SyntaxKind.AsteriskToken
+            && [ operand.left, operand.right ].every ((side) => NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (nativeAddNonNullOperandKind (csharp, side, plus).kind))) {
+        return { kind: 'Int64', demoted: true };
+    }
     if (nativeInt64ValueIsNonNull (csharp, operand, 0)) {
         return { kind: 'Int64', demoted: true };
     }
@@ -19865,6 +19870,10 @@ function nativeInt64Add (csharp, node) {
         return undefined; // nativeArithmeticIsProven's decision
     }
     const small = (k) => NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (k);
+    if (left.kind === 'Int64?' && right.demoted && small (right.kind)) {
+        // lifted `+`: null left -> null, as add(object, object); the right is proven non-null
+        return '(' + csharp.printNode (node.left, 0) + ' + ' + csharp.printNode (node.right, 0) + ')';
+    }
     if (!small (left.kind) || !small (right.kind) || (left.kind !== 'Int64' && right.kind !== 'Int64')) {
         return undefined;
     }
