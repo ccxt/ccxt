@@ -6725,7 +6725,6 @@ function typeDictPushLists(content: string): string {
     return content;
 }
 
-// unit slot 001
 // `return ..;` / `panic!(..);` holding pos ends the fn: index of its end, or -1 when the statement does not diverge
 function rustDivergingStmtEnd(code: string, from: number, pos: number): number {
     const head = code.slice(from, pos);
@@ -6753,8 +6752,6 @@ function rustBorrowsFrom(body: string, rest: string, name: string): boolean {
 function rustOnlyCloneMentions(stmt: string, name: string): boolean {
     return new RegExp(`(?<![\\w.])${name}\\b(?!\\.clone\\(\\))`).test(stmt);
 }
-//
-// unit slot 002
 // `(if c { x.clone() } else { .. })` arm values: an arm runs at most once, so an owned local named nowhere after the
 // whole `if` expression (rest of the statement and fn) is moved; `if let Value::Dict(__d) = &x { __d.clone() }` then
 // matches `x` by value. Arms inside loops or closures keep their clone.
@@ -6823,8 +6820,6 @@ function moveIfArmLocals(content: string): string {
     for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 003
 // `let mut a: T = b.clone();`: drop the copy and use `b` for `a` when `b` (owned, type T) is never named after the
 // first write of `a`; with writes, `b` must be `mut` and no loop may enclose the alias since `b`'s declaration.
 // A consuming use must be the last mention, alone in its statement.
@@ -6890,16 +6885,12 @@ function dropReadOnlyAliases(content: string): string {
         if (done) return content;
     }
 }
-//
-// unit slot 004
 // A literal constructor is a fresh temporary: `.clone()` on it copies a value nobody else holds, so drop it.
 const RUST_LITERAL_CLONE_RE = /(?<![\w:])((?:crate::)?Value::(?:Str\("(?:\\.|[^"\\])*"\.into\(\)\)|Int\(-?\d+\)|Bool\((?:true|false)\)|Null))\.clone\(\)/g;
 const RUST_LITERAL_VEC_CLONE_RE = /(?<![\w:])(Value::from\(vec!\[(?:Value::Str\("(?:\\.|[^"\\])*"\.into\(\)\)(?:, )?)*\]\))\.clone\(\)/g;
 function dropLiteralClones(content: string): string {
     return content.replace(RUST_LITERAL_CLONE_RE, '$1').replace(RUST_LITERAL_VEC_CLONE_RE, '$1');
 }
-//
-// unit slot 005
 // A ws handler's `__pro_message` view borrows `message` instead of cloning its Arc when nothing moves,
 // reassigns or mutably borrows `message` up to the view's last read (a loop, async block or closure
 // opened before that read, in a fn that moves `message`, keeps the Arc).
@@ -6921,8 +6912,6 @@ function borrowProMessageView(content: string): string {
             + `${ind}let __pro_message: &indexmap::IndexMap<String, Value> = ${name}.as_map().unwrap_or(&__pro_message_empty);`;
     });
 }
-//
-// unit slot 006
 // A safe_string match consumed as Option<String>/String prints String arms directly instead of a Value copied twice.
 const RUST_SAFE_STR_ARMS = 'Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => ';
 function rustSafeStringOwnedArms (content: string): string {
@@ -6938,8 +6927,6 @@ function rustSafeStringOwnedArms (content: string): string {
         .replace (new RegExp (esc + 'Value::Str\\((' + lit + ')\\.into\\(\\)\\) \\}\\)\\.as_str\\(\\)\\.map\\(str::to_owned\\)', 'g'), (_m, d) => arms (some) + `Some(${d}.to_string()) })`)
         .replace (new RegExp (esc + 'Value::Str\\((' + lit + ')\\.into\\(\\)\\) \\}\\)\\.as_str\\(\\)\\.unwrap_or\\(' + lit + '\\)\\.to_string\\(\\)', 'g'), (_m, d) => arms ((x) => x) + `${d}.to_string() })`);
 }
-//
-// unit slot 007
 // A list/dict default read already narrowed by its match guard binds the typed payload directly, so the
 // `.into_*()` conversion of the boxed arm is not printed; the null/empty default keeps the helper's answer.
 function typeGuardedDefaultReads (content: string): string {
@@ -6956,8 +6943,6 @@ function typeGuardedDefaultReads (content: string): string {
         return '(match ' + read + ' { Some(Value::' + variant + '(__a)) => Some(__a.clone()), _ => ' + miss + ' })';
     });
 }
-//
-// unit slot 008
 // A key list of a bare dict local that is only counted and read as `&str` borrows the map keys
 // instead of boxing a clone of every key; the source must not be written or moved later in the fn.
 function borrowLocalDictKeyLists(content: string): string {
@@ -6995,8 +6980,6 @@ function borrowLocalDictKeyLists(content: string): string {
     }
     return lines.join('\n');
 }
-//
-// unit slot 009
 // Lend a typed map local instead of boxing a deep copy: `Value::Map(x.clone())` as the head of
 // `extend[_t]` / `safe_balance` (`impl ExtendHead`: `&IndexMap` copies, as the clone did), the container of a
 // `safe_*` reader (`impl KeyRead`: reads the borrowed map) or the sole merge operand `&[Value::Map(x.clone())]`
@@ -7062,8 +7045,6 @@ function lendLocalMapBoxes(content: string): string {
     for (const [a, b, t] of edits) { if (a < last) continue; out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 010
 // `marketIds` / `getMarketFromSymbols` only read their list: they take `Option<&Vec<Value>>` (None = undefined) and
 // callers lend the list they hold instead of boxing a copy; a non-list `Value` reads as None (TS types it `Strings`).
 const RUST_LENT_SYMBOL_LIST_FNS = ['market_ids', 'get_market_from_symbols'];
@@ -7106,11 +7087,6 @@ function lendSymbolListArgs (content: string): string {
     }
     return out + content.slice (last);
 }
-// unit slot 011
-//
-// unit slot 012
-//
-// unit slot 013
 // The base exception matchers only read their arguments: `exact`/`broad` take `impl Borrow<Value>`, `string`
 // `impl ScalarArg` (only a string can match, as before) and `message` `impl ToErrorMessage`; callers lend.
 const RUST_THROW_MATCHED_BASE: Record<string, string> = {
@@ -7160,12 +7136,6 @@ function lendThrowMatchedArgs(content: string): string {
     for (const [a, b, s] of edits) { res += content.slice(last, a) + s; last = b; }
     return res + content.slice(last);
 }
-//
-// unit slot 014
-//
-// unit slot 015
-//
-// unit slot 016
 // The `_or` readers borrow their default (`impl Borrow<Value>`): lend a `Value` local given as `x.clone()`, and
 // `f(x.clone(), .., x)` (container and default the same local) lends both. The default is copied only when used.
 function lendReaderDefaults(content: string): string {
@@ -7195,8 +7165,6 @@ function lendReaderDefaults(content: string): string {
     for (const [x, y, r] of edits) { out += content.slice(last, x) + r; last = y; }
     return out + content.slice(last);
 }
-//
-// unit slot 017
 // `safe_string_opt` / `safe_string_k_opt` / `safe_string2_opt` take their default as `&[&dyn ScalarArg]`: every
 // default element is lent (a proven scalar local `x`, its clone or its `Value` box lends `&x`), and so is a
 // `safe_string_opt` key boxed or cloned from a scalar local.
@@ -7247,18 +7215,12 @@ function lendStringReaderDefaultsOnce(content: string): string {
     for (const [a, b, t] of edits) { if (a < last) continue; out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 018
-//
-// unit slot 019
 // `price_to_precision` (base and venue overrides) takes its value as `impl ScalarArg` so callers lend it
 // (row in RUST_SCALAR_LENT_FNS); the body boxes it once, as the old `price.into()` prologue did.
 function lendPriceToPrecisionValue(content: string): string {
     return content.replace(/(\bfn price_to_precision\(&self, (?:symbol: Option<&str>|mut outcome: Value), price: )impl Into<crate::Value>(\) -> Option<String> \{\n\s*let mut price: Value = )price\.into\(\);/g,
         '$1impl crate::value::ScalarArg$2Value::from(crate::value::ScalarArg::scalar(&price));');
 }
-//
-// unit slot 020
 // The value slot of `amount|cost_to_precision` (base, venue and prediction bodies) takes `impl ScalarArg`,
 // so callers lend `&x` (RUST_SCALAR_LENT_FNS); the body boxes it once into the same `Value` as before.
 function lendPrecisionValueSlot(content: string): string {
@@ -7266,8 +7228,6 @@ function lendPrecisionValueSlot(content: string): string {
     return content.replace(head, (all, pre, x, mid, y, ty) => y !== x ? all
         : `${pre}${x}: impl crate::value::ScalarArg${mid}${x}${ty}crate::value::ScalarArg::scalar(&${x}).to_value();`);
 }
-//
-// unit slot 021
 // `CacheStore::put(.., h.clone()); client.resolve(Value::from(&h), ..);` with no later `h` in the fn: take the
 // resolve value first (the same marker share it already made), move `h` into the store, resolve after the store.
 function moveCacheHandleIntoStoreBeforeResolve(content: string): string {
@@ -7291,10 +7251,6 @@ function moveCacheHandleIntoStoreBeforeResolve(content: string): string {
     }
     return lines.join ('\n');
 }
-//
-// unit slot 022
-//
-// unit slot 023
 // The ws control handlers are inherent per-venue methods, called only from their own file: decide them per venue,
 // with every other file's names (except these) and the other crates counted as outside callers.
 const RUST_WS_CONTROL_HANDLERS = /^handle_(?:error_message|pong|ping|subscription_status|authenticate)$/;
@@ -7310,8 +7266,6 @@ function rustBorrowWsControlHandlers (files: Map<string, string>, outside: strin
     }
     return out;
 }
-//
-// unit slot 024
 // Data handlers whose first use of `message` is `let message = message.as_map()..` only read it: the param
 // becomes `message: &Value` when the file holds one such definition and every other mention is a `self.` call,
 // and those calls lend the argument (`x.clone()` / `x` become `&x`).
@@ -7351,34 +7305,18 @@ function lendDataHandlerMessage(content: string): string {
     for (const [at, len, text] of edits.sort((a, b) => b[0] - a[0])) out = out.slice(0, at) + text + out.slice(at + len);
     return out;
 }
-//
-// unit slot 025
 // by-name dispatch (`call_dynamic`) takes `&[Value]`: an inline spawn lends its argument array
 function lendCallDynamicArgs(content: string): string {
     return content.replace(/\bself\.call_dynamic\(("[a-z0-9_]+"), vec!\[/g, 'self.call_dynamic($1, &[');
 }
-//
-// unit slot 026
-//
-// unit slot 027
 /** `implode_params` takes `impl Borrow<Value>` and only reads it: lend a bare local instead of cloning it. */
 function lendImplodeParams(content: string): string {
     return content.replace(/\.implode_params\(((?:[^()\n]|\((?:[^()\n]|\([^()\n]*\))*\))*?), ([A-Za-z_][A-Za-z0-9_]*)\.clone\(\)\)/g, '.implode_params($1, &$2)');
 }
-//
-// unit slot 028
-//
-// unit slot 029
-//
-// unit slot 030
-//
-// unit slot 031
 // parseToInt / parseToNumeric only hand their argument to number_to_string: take `impl ScalarArg` like it
 function lendParseToNumberParams(content: string): string {
     return content.replace(/\bfn (parse_to_int|parse_to_numeric)\(&self, mut number: Value\)/g, 'fn $1(&self, number: impl crate::value::ScalarArg)');
 }
-//
-// unit slot 032
 // Lend a map local as the head of omit/extend: `f(x.clone(), ..)` / `f(Value::Map(x.clone()), ..)` prints `f(&x, ..)` when x is
 // declared in this fn as Value / Dict / Option<Dict> / IndexMap (the borrowed `OmitSource` / `ExtendHead` impls copy exactly
 // as the clone did; `&Option<Dict>` merges `None` onto an empty map like the boxed Null). Skipped if the call names x again.
@@ -7403,8 +7341,6 @@ function lendOmitExtendHeads(content: string): string {
     for (const [a, b, s] of edits) { out += content.slice(last, a) + s; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 033
 // Lend a boxed local to the encoders that read it (`urlencode`, `rawencode`, `urlencode_nested`,
 // `urlencode_with_array_repeat`, `json` take `impl EncodeOperand`; `encode` takes `Borrow<Value>`):
 // `self.f(x.clone()` prints `self.f(&x` when x is declared `Value` in this fn and not named again in the call.
@@ -7426,8 +7362,6 @@ function lendEncoderOperands(content: string): string {
     for (const [a, b, r] of edits) { out += content.slice(last, a) + r; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 034
 // `watch_multiple` reads both hash lists in place (`impl WsHashList`): lend a bare local instead of cloning it.
 function lendWatchMultipleHashes(content: string): string {
     return content.replace(/\.watch_multiple\(([^;\n]*?)\)\.await/g, (call, inner: string) => {
@@ -7445,8 +7379,6 @@ function lendWatchMultipleHashes(content: string): string {
         return '.watch_multiple(' + args.join(',') + ').await';
     });
 }
-//
-// unit slot 035
 // `self.spawn(&[..])` / `self.delay(ms, &[..])` queue owned copies of their elements: when the call is directly
 // followed by `return`, an owned local or by-value parameter cloned into an element is moved instead
 // (not inside a loop body head, closure or async block, and not mentioned elsewhere in the call or the return).
@@ -7495,8 +7427,6 @@ function moveSpawnArgsBeforeReturn(content: string): string {
     for (const [a, b, t] of edits.sort((x, y) => x[0] - y[0])) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 036
 // `client.reject|resolve(x.clone(), ..)` take `impl Into<Value>`: move an owned local when no path after the call
 // reads it again; sibling `else` arms of enclosing blocks and code after a same-level `return` / `panic!` are off-path.
 function settleRestOnPath(code: string, from: number, close: number): string | undefined {
@@ -7569,8 +7499,6 @@ function moveClientSettleOperands(content: string): string {
     for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 037
 // Transpiled base tests call the lent tuple handlers on an `exchange.` receiver: lend each slice element there too.
 const RUST_LENT_TUPLE_HANDLERS = /\bexchange\.(?:handle_market_type_and_params|handle_sub_type_and_params|handle_margin_mode_and_params|handle_max_entries_per_request_and_params)\(/g;
 function lendTupleHandlerTestCalls(content: string): string {
@@ -7586,8 +7514,6 @@ function lendTupleHandlerTestCalls(content: string): string {
     }
     return out + content.slice(last);
 }
-//
-// unit slot 038
 // `check_required_argument` only compares its argument (`== Null`, `in_array`): it takes `&Value` and every
 // caller lends; `x.clone()` of a `Value` prints `&x`, an `Option<String|&str>` clone boxes from the borrow.
 function lendRequiredArgument(content: string): string {
@@ -7619,12 +7545,6 @@ function lendRequiredArgument(content: string): string {
     for (const [s, e, t] of edits) { res += content.slice(last, s) + t; last = e; }
     return res + content.slice(last);
 }
-//
-// unit slot 039
-//
-// unit slot 040
-//
-// unit slot 041
 // `handle_delta` / `custom_handle_delta` lend their order-book side (`&mut Side`): the side is a shared handle whose
 // writes land on the book's store, so the loop in `handle_deltas` lends it instead of cloning it per delta.
 function lendBookSideToHandleDelta(content: string): string {
@@ -7639,8 +7559,6 @@ function lendBookSideToHandleDelta(content: string): string {
         return sig.includes(`mut bookside: ${side},`) ? `${head}&mut bookside, ` : line;
     });
 }
-//
-// unit slot 042
 // Dict literal `"info"` row `m.insert("info".to_string(), x.clone());` with x an owned local named nowhere after the
 // literal: move x. If later rows still read x, the row inserts `Value::Null` (fixing key order) and x is moved into
 // the same key right after the last row that reads it (IndexMap::insert keeps an existing key's position).
@@ -7737,10 +7655,6 @@ function moveDictLiteralInfoRows(content: string): string {
     for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 043
-//
-// unit slot 044
 // Dict-literal row boxing an owned `Option<String>` local that later rows of the same literal only borrow:
 // insert `Value::Null` at the row (keeps key order) and overwrite it with the moved local after the last
 // borrowing row. Skipped when the local is named after the literal, or inside a loop / closure.
@@ -7809,8 +7723,6 @@ function moveOptionRowsAfterLastRead(content: string): string {
     for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 045
 // `m.insert("k".into(), x.clone()[.map(Value::from).unwrap_or(Value::Null)]);` as a statement: drop the clone when x
 // is a Copy scalar, or move x when no later code on any path from here names it (walking out through
 // if/else arms and plain blocks; an arm ending in `return` / `panic!` ends the path). Loops and closures refused.
@@ -7870,8 +7782,6 @@ function moveInsertedLocalsOnPath(content: string): string {
     for (const [a, b, s] of edits) { out += content.slice(last, a) + s; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 046
 // Move a map key local at its last use: `m.insert(k.clone(), ..)` / `.entry(k.clone())` where `k` is an owned
 // `let k: String` with no later mention in its declaring block and no loop/closure opened between declaration and site.
 function moveInsertKeysAtLastUse(content: string): string {
@@ -7902,7 +7812,6 @@ function moveInsertKeysAtLastUse(content: string): string {
     return out + content.slice(last);
 }
 
-// unit slot 047
 // A venue `since` / `limit` binding whose wrapper took `Option<i64>` and boxed it as `Value::from(V)` in the same
 // `__args` slot holds exactly that `Int` / `Null`: bind the captured `Option<i64>` and read it natively, boxing
 // with `Value::from(V)` (a copy) where a `Value` is taken. Any write, shadow or unknown method keeps the box.
@@ -7957,8 +7866,6 @@ function typeOptionalIntArgs(content: string): string {
     for (const [a, b, r] of edits) out = out.slice(0, a) + r + out.slice(b);
     return out;
 }
-//
-// unit slot 048
 // A typed unified method rebinds its `f64` / `Option<f64>` price, amount and cost arguments as the `Value` they were
 // boxed to (`Value::from(x)`, so the same `Float` / `Null`); read the Copy parameter instead and box at each use.
 function readTypedNumericArgs(content: string): string {
@@ -8007,8 +7914,6 @@ function readTypedNumericArgs(content: string): string {
     for (const [a, b, t] of edits) { if (a < last) continue; out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 049
 // `f(.., &[x.clone()])` on a `&[Value]` default slot, x a string-argument local declared `Value` in this fn
 // (get_arg / `: Value`): lend it as `std::slice::from_ref(&x)`; skipped when the same call moves x.
 function lendStringArgDefaultSlice(content: string): string {
@@ -8025,8 +7930,6 @@ function lendStringArgDefaultSlice(content: string): string {
         return `std::slice::from_ref(&${x}))`;
     });
 }
-//
-// unit slot 050
 // A local declared by `let` directly in a loop body is a fresh binding per iteration: its last use
 // is judged up to that body's close. Returns that close, or undefined when the site is elsewhere.
 function rustLoopBodyLetScopeEnd(code: string, open: number, pos: number, name: string): number | undefined {
@@ -8052,8 +7955,6 @@ function rustDropOwnedReads(stmt: string, name: string): string {
     const re = new RegExp(`(?<![\\w.])${name}\\.(?:is_(?:some|none)\\(\\)|as_deref\\(\\)\\.unwrap_or\\("\\w*"\\)\\.to_string\\(\\)|as_map\\(\\)\\.and_then\\(\\|__m\\| __m\\.get\\("\\w+"\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\))`, 'g');
     return stmt.replace(re, r => ' '.repeat(r.length)).replace(/"(?:[^"\\]|\\.)*"/g, q => ' '.repeat(q.length));
 }
-//
-// unit slot 051
 // `x.clone()` on a local whose every declaration in the function is bool / i64 / f64 (or Option of one) is a copy:
 // print `x`. Any untyped, pattern or closure binding of the name keeps the clone. A Value-rebound sync
 // `set_sandbox_mode` flag lends its exact bool (`Value::from(bool)` payload) to the bool-taking super shim.
@@ -8078,8 +7979,6 @@ function copyLocalClones(content: string): string {
         return shadow.test(head) ? m : x;
     });
 }
-//
-// unit slot 052
 // `format!` only borrows its arguments: print a cloned place directly, and an `Option<String>` local boxed to
 // `Value` as `x.as_deref().unwrap_or("null")` (Value::Null displays "null"). Only plain `{}` format strings.
 function borrowFormatArgs(content: string): string {
@@ -8133,8 +8032,6 @@ function splitFormatArgs(s: string): string[] {
     out.push(cur);
     return out;
 }
-//
-// unit slot 053
 // Same-venue calls taking typed symbol lists: `Value::from(vec![x.clone()]).to_opt_str_vec()` is `Some(vec![x.to_string()])`
 // (an Arr is never Null; each element is its Display text), so copy each element once instead of clone-then-stringify.
 // Applies only when `x` is declared in the enclosing fn as `Value` / `String` (both Display as the bridge does).
@@ -8181,8 +8078,6 @@ function singleCopySymbolListArgs(content: string): string {
     }
     return lines.join('\n');
 }
-//
-// unit slot 054
 // Base collection helpers whose rows argument takes `impl Rows` (exchange_stubs.rs, and the generated
 // getListFromObjectValues below): a `Value` / list / dict local is lent as `&x` for `x.clone()`.
 const RUST_ROWS_LENT_FNS = ['index_by', 'index_by_safe', 'group_by', 'sort_by', 'sort_by_t', 'array_slice', 'get_list_from_object_values', 'filter_by_array'];
@@ -8203,8 +8098,6 @@ function lendCollectionRows(content: string): string {
         return m.replace(`${x}.clone()`, `&${x}`);
     });
 }
-//
-// unit slot 055
 // `xs.push(x.clone())`, `xs.push(Value::from(x.clone()))` and `Some(x.clone())` move x at its last use
 const RUST_PUSH_SOME_MOVE_SITES = /(\.push\((?:Value::from\()?|(?<![\w:])Some\()([A-Za-z_]\w*)\.clone\(\)(?=\))/g;
 // A later mention only in a sibling `else` / `else if` branch of the site's own block is not a later use
@@ -8217,20 +8110,6 @@ function usedAfterBranch(code: string, end: number, close: number, word: RegExp)
     return word.test(code.slice(be + 1, close));
 }
 const movePushSomeAtLastUse = (content: string): string => moveLocalsAtLastUse(content, RUST_PUSH_SOME_MOVE_SITES);
-//
-// unit slot 056
-//
-// unit slot 057
-//
-// unit slot 058
-//
-// unit slot 059
-//
-// unit slot 060
-//
-// unit slot 061
-//
-// unit slot 062
 // Credential fields are `Value` (PartialEq + Display): a null compare or a direct format! argument borrows them.
 const RUST_CRED_CLONE = /self\.(?:apiKey|secret|password|uid|privateKey|walletAddress|accountId)\.clone\(\)/g;
 function lendCredentialFieldReads(content: string): string {
@@ -8252,8 +8131,6 @@ function lendCredentialFieldReads(content: string): string {
         });
     }).join('\n');
 }
-//
-// unit slot 063
 // `Value::from((market).f.clone())` over a `String` field of `Market`: `.as_str()` lends the field,
 // `.as_str().map(str::to_owned)` copies it once, and a top-level `format!` argument prints it directly.
 function lendMarketStringMembers(content: string): string {
@@ -8283,8 +8160,6 @@ function lendMarketStringMembers(content: string): string {
     for (const [a, b, s] of edits) { if (a < last) continue; res += out.slice(last, a) + s; last = b; }
     return res + out.slice(last);
 }
-//
-// unit slot 064
 // `let mut x: Option<Cache> = self.f.clone();` is a second handle on the same cache: when every later use of `x`
 // is a borrow / method receiver / plain reassignment stored straight back, the fn awaits nothing and calls no
 // `&mut self` method, `x` is the field itself, so its reads and writes go to `self.f` and the copy goes away.
@@ -8343,8 +8218,6 @@ function wsCacheFieldAliases(content: string): string {
     }
     return lines.filter(l => l !== '\u0000').join('\n');
 }
-//
-// unit slot 065
 // Lend read-only base fields instead of copying them: `safe_dict(self.accounts.clone(), ..)` reads through
 // `impl KeyRead` (lend `&self.accounts`), `format!` borrows its arguments, and a `List` loop local copied from
 // `self.symbols` that is only indexed while every call in its live range takes `&self` becomes `&self.symbols`.
@@ -8392,16 +8265,12 @@ function lendBaseFieldReads(content: string): string {
         return `${ind}let ${x}: &crate::value::List = &self.symbols;`;
     });
 }
-//
-// unit slot 066
 // A client's subscription map is lent to readers that take `impl KeyRead` or `&Value`, not copied.
 function lendClientSubscriptions (content: string): string {
     return content
         .replace (/(self\.safe_(?:value|dict|string)[a-z_]*\()(__ch|\(client\))\.subscriptions\.clone\(\),/g, '$1&$2.subscriptions,')
         .replace (/\b((?:object_keys|object_values|get_value)\(&(?:__ch|\(client\))\.subscriptions)\.clone\(\)/g, '$1');
 }
-//
-// unit slot 067
 // `get_url_by_market` only key-reads its market: take `impl KeyRead` and lend a typed market (`&market`)
 // instead of copying its raw map; Value callers and dispatch arms still pass a `Value` (also KeyRead).
 const RUST_KEYREAD_MARKET_FNS = ['get_url_by_market'];
@@ -8426,8 +8295,6 @@ function lendTypedMarketRaw(content: string): string {
         return new RegExp(`\\blet (?:mut )?${v}: crate::types::[A-Z]\\w*\\b(?!<)`).test(content.slice(fnAt, off)) ? `&(${v}).raw` : s;
     });
 }
-//
-// unit slot 068
 // gate prepareRequest's settle return answers `omit (params, 'settle')`: the typed omit_t gives the Dict slot of its tuple
 function typeGatePrepareRequestOmit(content: string): string {
     if (!/\bpub struct Gate\b/.test(content)) return content;
@@ -8464,10 +8331,6 @@ function typeGateTupleTernaries(content: string): string {
     }
     return out;
 }
-//
-// unit slot 069
-//
-// unit slot 070
 // a venue tuple fn already retyped to `(slot 0, Dict)` whose returns build `[v, self.extend(..)]`: return the pair,
 // slot 1 through extend_t (a map on every input); an Option<i64> slot drops its box only for a typed local or parse_to_int
 function typeVenueTupleExtendReturns(content: string): string {
@@ -8478,15 +8341,11 @@ function typeVenueTupleExtendReturns(content: string): string {
         return x !== null && (x[1].startsWith('self.parse_to_int(') || new RegExp(String.raw`let mut ${x[1]}: Option<i64> = `).test(body)) ? `return (${x[1]}, self.extend_t(${d}, &[]));` : r;
     }));
 }
-//
-// unit slot 071
 // grvt handleUntilOptionString answers `(request, omit(params))` on its until branch: return the pair, moving the local
 function typeUntilOptionTupleReturn(content: string): string {
     return content.replace(/(\n {4}pub fn handle_until_option_string\([^\n]*\) -> \(Value, crate::value::Dict\) \{\n[\s\S]*?)return Value::from\(vec!\[(\w+)(?:\.clone\(\))?, (self\.omit\(&params, &\["until", "till"\], &\[\]\))\]\);/g,
         (_m, head, req, omit) => `${head}return (${req}, ${omit}.into_dict());`);
 }
-//
-// unit slot 072
 // a venue `[x, Dict]` tuple re-boxed only to read slot 1 through safe_dict*: slot 1 is always a Dict, so read `.1`
 function readVenueTupleDictSlot(content: string): string {
     if (!RUST_TUPLE_VENUE_FNS.some(r => content.includes(r[0] + '('))) return content;
@@ -8510,10 +8369,6 @@ function readVenueTupleDictSlot(content: string): string {
     }
     return out + content.slice(last);
 }
-//
-// unit slot 073
-//
-// unit slot 074
 // [builder, venue] whose venue declaration returns a dict on every path (a list-returning venue has no row);
 // `prediction/` prefixes a prediction venue. The pro file of the venue types its `self.parent.` callers.
 const RUST_DICT_BUILDER_VENUE_FNS: Array<[string, string]> = [
@@ -8587,8 +8442,6 @@ function typedReturnOwner (content: string, at: number, typed: Set<string>): boo
     const name = /^\n    pub fn (\w+)\(/.exec (content.slice (h, h + 80));
     return !!name && typed.has (name[1]) && content.slice (h, at).includes (') -> crate::value::Dict {');
 }
-//
-// unit slot 075
 // `account()` always builds the three-key `{ free, used, total }` literal, so it returns `Dict`: `.into_dict()` drops,
 // an owned-map copy unwraps the fresh Arc, any other use (dispatch arm, `Value` locals, arguments) boxes it.
 function rustTypedAccountBuilder (content: string): string {
@@ -8607,10 +8460,6 @@ function rustTypedAccountBuilder (content: string): string {
     }
     return out;
 }
-//
-// unit slot 076
-//
-// unit slot 077
 // `Value::from(&x).into_dict()` where every binding of `x` in the fn is a `Dict`: the box round trip is one
 // Arc share, so print `x` when nothing in the fn reads it afterwards, else `std::sync::Arc::clone(&x)`;
 // `v.clone().into_dict()` on a `Value` local with no later read moves `v`.
@@ -8645,8 +8494,6 @@ function unboxDictRewraps(content: string): string {
     for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
-//
-// unit slot 078
 // `safeLiquidation` writes keys into its map argument and returns it, and every caller passes a map literal, so it takes
 // and returns `Dict`. A pro `parse_ws_*` whose every return is a map returns `Dict`: callers drop `.into_dict()`, an
 // `.as_map()` copy unwraps, any other use boxes it with `Value::Dict(..)`. An unproven body keeps `Value`.
@@ -8717,8 +8564,6 @@ function typedWsParseProducers (content: string): string {
     for (const name of typed) if (!failed.has (name)) box (name);
     return content;
 }
-//
-// unit slot 079
 // venue-only parsers (no trait slot) whose every return is an object literal or a typed map local, one name per line
 const RUST_LITERAL_PARSE_FNS: string[] = [
     'parse_margin_loan',
@@ -8781,8 +8626,6 @@ function rustTypedLiteralParsers (content: string): string {
     }
     return content;
 }
-//
-// unit slot 080
 // A venue's own parseWsOHLCV returns a List when every return is a `vec![..]` row or a List local; same-file callers
 // drop `.into_list()`, other callers re-box with `Value::Arr(..)`.
 function typeWsOhlcvReturns(content: string): string {
@@ -8812,16 +8655,10 @@ function typeWsOhlcvReturns(content: string): string {
     }
     return out + content.slice(last);
 }
-//
-// unit slot 081
-//
-// unit slot 082
 // getListFromObjectValues returns the `results` vec it built: once typeFilterSliceLists retypes it, that vec moves out.
 function typedObjectValuesListBody(content: string): string {
     return content.replace(/(\n {4}fn get_list_from_object_values\([^\n]*\) -> crate::value::List \{\n[\s\S]*?)return Value::from\(results\);/, '$1return std::sync::Arc::new(results);');
 }
-//
-// unit slot 083
 /** `promise_all` answers a `List`: drop the re-wrap of its result, copy it into a `Vec` local, box it for a `Value` slot. */
 function typedPromiseAllResults(content: string): string {
     if (!content.includes('promise_all(')) return content;
@@ -8848,8 +8685,6 @@ function typedPromiseAllResults(content: string): string {
     }
     return out + content.slice(last);
 }
-//
-// unit slot 084
 // `(match x.get(k) { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list()` reads
 // the list arm directly; `if (matches!(&x, Value::Arr(_))) { y = x.into_list();` binds the list in the guard (same Arc moved).
 function rustTypedListReads(content: string): string {
@@ -8860,8 +8695,6 @@ function rustTypedListReads(content: string): string {
         /\bif \(matches!\(&(\w+), Value::Arr\(_\)\)\) \{(\n[ \t]*)(\w+) = \1\.into_list\(\);/g,
         'if let Value::Arr(__a) = $1 {$2$3 = __a;');
 }
-//
-// unit slot 085
 // venue producers whose every return is a typed dict: [name, 'dict' (all returns `safe_balance`) | 'opt' (all
 // returns `parse_order`)]. The declaration returns that type; `.into_opt_dict()` / `.into_dict()` callers take it
 // as is and any other caller (dispatch arms, `Value` returns) re-boxes it exactly as the old return did.
@@ -8915,8 +8748,6 @@ function rustTypedDictProducers (content: string): string {
     }
     return content;
 }
-//
-// unit slot 086
 // A string key read on a local declared `crate::types::Market` reads the market's own map and moves nothing out of a
 // temporary: print the borrowed map read (`Some` for a string entry, `None` otherwise, exactly as `into_opt_string`).
 // `Value::Arr(self.symbols.clone()).into_opt_list()` is always `Some(..)` of the typed list.
@@ -8942,8 +8773,6 @@ function nativeMarketKeyStringReads(content: string): string {
     }
     return lines.join('\n');
 }
-//
-// unit slot 087
 // A name the venue's own `<venue>_api.rs` declares with a `Value` return keeps its direct wrapper call even when
 // another venue declares it List (prediction files read the `prediction` dir); every other name stays in `all`.
 function rustVenueListApiNames (content: string, all: Set<string>): Set<string> {
@@ -8955,8 +8784,6 @@ function rustVenueListApiNames (content: string, all: Set<string>): Set<string> 
     const keep = new Set ([ ...fs.readFileSync (file, 'utf8').matchAll (own) ].filter ((m) => m[1] === m[2]).map ((m) => m[1]));
     return new Set ([ ...all ].filter ((n) => !keep.has (n)));
 }
-//
-// unit slot 088
 // `hmac` / `hash` / `hash_binary` take the algorithm as `&str`: every call names it with a string literal.
 const RUST_ALGO_ARG_FNS: Array<[string, number]> = [['hmac', 2], ['hash', 1], ['hash_binary', 1]];
 function lendAlgoLiterals(content: string): string {
@@ -8989,10 +8816,6 @@ function lendAlgoLiterals(content: string): string {
     for (const [a, b, t] of edits) out = out.slice(0, a) + t + out.slice(b);
     return out;
 }
-//
-// unit slot 089
-//
-// unit slot 090
 /** `&x` where the `Value` local `x` is bound once to a value that is always `Value::Str` (a `Str` literal, or an
  *  `Option<String>` local boxed only on the branch that tests it present): a nested hop keys the map by that string. */
 function boxedStrKey (arg: string, body: string): boolean {
@@ -9010,8 +8833,6 @@ function boxedStrKey (arg: string, body: string): boolean {
     const other = test === 'some' ? b : a;
     return new RegExp('^[ \\t]*let mut ' + o + ': Option<String> = ', 'm').test(body) && some.trim() === o + '.clone().map(Value::from).unwrap_or(Value::Null)' && str(other);
 }
-//
-// unit slot 091
 /** `list` is bound once to `[Value::Arr(]self.parse_positions(..)` (base body, overridden neither here nor on the REST parent:
  *  fresh `extend_t(parse_position(..), params)` dicts) and never written. */
 function parsedPositionsList (proof: Proof, list: string, body: string): boolean {
@@ -9022,12 +8843,6 @@ function parsedPositionsList (proof: Proof, list: string, body: string): boolean
     const parent = proof.parentFile();
     return !overrides(proof.content) && (parent === undefined || (fs.existsSync(parent) && !overrides(fs.readFileSync(parent, 'utf8'))));
 }
-//
-// unit slot 092
-//
-// unit slot 093
-//
-// unit slot 094
 // `remove(&mut d, key)` with a string key on a fn-local `Value` none of whose writes reads a ws client: only a
 // client subscriptions snapshot carries the live-registry tag, so the helper's answer is the dict's own ordered
 // delete (and nothing for a non-dict or a missing key); any other receiver or key keeps the helper call.
@@ -9079,10 +8894,6 @@ function nativeLocalStrKeyRemove (content: string): string {
     }
     return at === 0 ? content : out + content.slice (at);
 }
-//
-// unit slot 095
-//
-// unit slot 096
 // Small helper calls whose operand type is fixed by the line that declares it: print the std operation.
 // Each pattern matches only its declaration-proven shape; anything else keeps the helper.
 function nativeSmallHelperCalls (content: string): string {
@@ -9104,8 +8915,6 @@ function nativeSmallHelperCalls (content: string): string {
         (_m, call) => `${call}.as_str().and_then(|__s| __s.trim().parse::<f64>().ok()).map(Value::Float).unwrap_or(Value::Null)`);
     return out;
 }
-//
-// unit slot 097
 // `get_value(&Value::from(&b), s.as_str())` on a declared `Option<Book>` local with a declared `String` key reads the
 // book directly: `book_field` is the same `get_value_k` lookup, and an absent book answers `Null` as the boxed read did.
 function readTypedBookFields(content: string): string {
@@ -9126,8 +8935,6 @@ function readTypedBookFields(content: string): string {
     }
     return lines.join('\n');
 }
-//
-// unit slot 098
 // A sync try body whose only exits are `return X;` and `panic!("{}", E);` over pure reads prints a labelled block.
 const RUST_SYNC_TRY_OPEN = 'let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {';
 const RUST_SYNC_TRY_TAIL = ' #[allow(unreachable_code)] { Value::Null }}));\n';
@@ -9176,8 +8983,6 @@ function rustSyncTryBlocks(content: string): string {
         i = lineEnd;
     }
 }
-//
-// unit slot 099
 // `indexOf` on a provably string-or-null haystack with a `format!` needle: the loose dispatch reduces to
 // its Str arm (`find`, byte index) and -1 otherwise. Haystacks: an all-Str `msg` match local, a ws client
 // `__ch.url` (Str|Null), and `get_value(&k, &Value::Int(i))` where `k = object_keys(..)` (Str elements).
@@ -9210,8 +9015,6 @@ function rustStrHaystackIndexOf (content: string): string {
     }
     return out + content.slice(at);
 }
-//
-// unit slot 100
 // An implicit-API wrapper whose every caller in the crate takes its body back as a dict (`call_method_t` / `_o` by its
 // name) answers `Option<Dict>` (the `call_method_o` body: None for any non-map body); `_t` callers add `.unwrap_or_default()`.
 // Any other use of the name anywhere under rust/ (raw Value read, by-name arm, hand-written call) keeps the Value wrapper.
@@ -9287,27 +9090,6 @@ function rustTypedDictEndpointsCrate (): Map<string, string> {
     }
     return out;
 }
-//
-// unit slot 101
-//
-// unit slot 102
-//
-// unit slot 103
-//
-// unit slot 104
-//
-// unit slot 105
-//
-// unit slot 106
-//
-// unit slot 107
-//
-// unit slot 108
-//
-// unit slot 109
-//
-// unit slot 110
-//
 
 // Write-time passes over one generated Rust file, applied top to bottom; splitLongRustLines stays last.
 const RUST_WRITE_PASSES: Array<(content: string) => string> = [
@@ -9327,293 +9109,73 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typeFilterSliceLists,
     typeParseListReturns,
     typeDictPushLists,
-    // pass slot 001
-    //
-    // pass slot 002
     moveIfArmLocals,
-    //
-    // pass slot 003
     dropReadOnlyAliases,
-    //
-    // pass slot 004
     dropLiteralClones,
-    //
-    // pass slot 005
     borrowProMessageView,
-    //
-    // pass slot 006
     rustSafeStringOwnedArms,
-    //
-    // pass slot 007
     typeGuardedDefaultReads,
-    //
-    // pass slot 008
     borrowLocalDictKeyLists,
-    //
-    // pass slot 009
     moveMapLocalsAtReturn,
     lendLocalMapBoxes,
-    //
-    // pass slot 010
     lendSymbolListArgs,
-    //
-    // pass slot 011
-    //
-    // pass slot 012
-    //
-    // pass slot 013
     lendThrowMatchedArgs,
-    //
-    // pass slot 014
-    //
-    // pass slot 015
-    //
-    // pass slot 016
     lendReaderDefaults,
-    //
-    // pass slot 017
     lendStringReaderDefaults,
-    //
-    // pass slot 018
-    //
-    // pass slot 019
     lendPriceToPrecisionValue,
-    //
-    // pass slot 020
     lendPrecisionValueSlot,
-    //
-    // pass slot 021
     moveCacheHandleIntoStoreBeforeResolve,
-    //
-    // pass slot 022
-    //
-    // pass slot 023
-    //
-    // pass slot 024
     lendDataHandlerMessage,
-    //
-    // pass slot 025
     lendCallDynamicArgs,
-    //
-    // pass slot 026
-    //
-    // pass slot 027
     lendImplodeParams,
-    //
-    // pass slot 028
-    //
-    // pass slot 029
-    //
-    // pass slot 030
-    //
-    // pass slot 031
     lendParseToNumberParams,
-    //
-    // pass slot 032
     lendOmitExtendHeads,
-    //
-    // pass slot 033
     lendEncoderOperands,
-    //
-    // pass slot 034
     lendWatchMultipleHashes,
-    //
-    // pass slot 035
     moveSpawnArgsBeforeReturn,
-    //
-    // pass slot 036
     moveClientSettleOperands,
-    //
-    // pass slot 037
     lendTupleHandlerTestCalls,
-    //
-    // pass slot 038
     lendRequiredArgument,
-    //
-    // pass slot 039
-    //
-    // pass slot 040
-    //
-    // pass slot 041
     lendBookSideToHandleDelta,
-    //
-    // pass slot 042
     moveDictLiteralInfoRows,
-    //
-    // pass slot 043
-    //
-    // pass slot 044
     moveOptionRowsAfterLastRead,
-    //
-    // pass slot 045
     moveInsertedLocalsOnPath,
-    //
-    // pass slot 046
     moveInsertKeysAtLastUse,
-    //
-    // pass slot 047
     typeOptionalIntArgs,
-    //
-    // pass slot 048
     readTypedNumericArgs,
-    //
-    // pass slot 049
     lendStringArgDefaultSlice,
-    //
-    // pass slot 050
-    //
-    // pass slot 051
     copyLocalClones,
-    //
-    // pass slot 052
     borrowFormatArgs,
-    //
-    // pass slot 053
     singleCopySymbolListArgs,
-    //
-    // pass slot 054
     lendCollectionRows,
-    //
-    // pass slot 055
     movePushSomeAtLastUse,
-    //
-    // pass slot 056
-    //
-    // pass slot 057
-    //
-    // pass slot 058
-    //
-    // pass slot 059
-    //
-    // pass slot 060
-    //
-    // pass slot 061
-    //
-    // pass slot 062
     lendCredentialFieldReads,
-    //
-    // pass slot 063
     lendMarketStringMembers,
-    //
-    // pass slot 064
     wsCacheFieldAliases,
-    //
-    // pass slot 065
     lendBaseFieldReads,
-    //
-    // pass slot 066
     lendClientSubscriptions,
-    //
-    // pass slot 067
     lendTypedMarketRaw,
-    //
-    // pass slot 068
     typeGatePrepareRequestOmit,
     typeGateTupleTernaries,
-    //
-    // pass slot 069
-    //
-    // pass slot 070
     typeVenueTupleExtendReturns,
-    //
-    // pass slot 071
     typeUntilOptionTupleReturn,
-    //
-    // pass slot 072
     readVenueTupleDictSlot,
-    //
-    // pass slot 073
-    //
-    // pass slot 074
-    //
-    // pass slot 075
     rustTypedAccountBuilder,
-    //
-    // pass slot 076
-    //
-    // pass slot 077
     unboxDictRewraps,
-    //
-    // pass slot 078
     typedWsParseProducers,
-    //
-    // pass slot 079
     rustTypedLiteralParsers,
-    //
-    // pass slot 080
     typeWsOhlcvReturns,
-    //
-    // pass slot 081
-    //
-    // pass slot 082
     typedObjectValuesListBody,
-    //
-    // pass slot 083
     typedPromiseAllResults,
-    //
-    // pass slot 084
     rustTypedListReads,
-    //
-    // pass slot 085
     rustTypedDictProducers,
-    //
-    // pass slot 086
     nativeMarketKeyStringReads,
-    //
-    // pass slot 087
-    //
-    // pass slot 088
     lendAlgoLiterals,
-    //
-    // pass slot 089
-    //
-    // pass slot 090
-    //
-    // pass slot 091
-    //
-    // pass slot 092
-    //
-    // pass slot 093
-    //
-    // pass slot 094
     nativeLocalStrKeyRemove,
-    //
-    // pass slot 095
-    //
-    // pass slot 096
     nativeSmallHelperCalls,
-    //
-    // pass slot 097
     readTypedBookFields,
-    //
-    // pass slot 098
     rustSyncTryBlocks,
-    //
-    // pass slot 099
     rustStrHaystackIndexOf,
-    //
-    // pass slot 100
-    //
-    // pass slot 101
-    //
-    // pass slot 102
-    //
-    // pass slot 103
-    //
-    // pass slot 104
-    //
-    // pass slot 105
-    //
-    // pass slot 106
-    //
-    // pass slot 107
-    //
-    // pass slot 108
-    //
-    // pass slot 109
-    //
-    // pass slot 110
-    //
     splitLongRustLines,
 ];
 function applyRustWritePasses(content: string): string {
