@@ -671,11 +671,7 @@ type PredictionOrderBook struct {
 	Market    *string
 }
 
-func NewPredictionOrderBook(data any) PredictionOrderBook {
-	if data == nil {
-		return PredictionOrderBook{}
-	}
-	m := MapOrEmpty(data)
+func NewPredictionOrderBook(m map[string]any) PredictionOrderBook {
 	return PredictionOrderBook{
 		Bids:      parseOrderBookEntries(m, "bids"),
 		Asks:      parseOrderBookEntries(m, "asks"),

@@ -349,15 +349,7 @@ func NewMarketInterface(data any) MarketInterface {
 	}
 }
 
-func NewMarketsMap(data2 any) map[string]MarketInterface {
-	if data2 == nil {
-		data2 = make(map[string]any)
-	}
-	// data := ConvertToMap(data2)
-	if dataMap, ok := data2.(*sync.Map); ok {
-		data2 = SafeMapToMap(dataMap)
-	}
-	data := MapOrEmpty(data2)
+func NewMarketsMap(data map[string]any) map[string]MarketInterface {
 	result := make(map[string]MarketInterface)
 	for key, value := range data {
 		result[key] = NewMarketInterface(value)
@@ -515,8 +507,7 @@ type Market struct {
 	Created       time.Time
 }
 
-func NewMarket(data any) Market {
-	m := MapOrEmpty(data)
+func NewMarket(m map[string]any) Market {
 	var precision *Precision
 	var marginModes *MarketMarginModes
 	var limits *Limits
@@ -1531,8 +1522,7 @@ type CrossBorrowRates struct {
 	CrossBorrowRates map[string]CrossBorrowRate
 }
 
-func NewCrossBorrowRates(data2 any) CrossBorrowRates {
-	data := MapOrEmpty(data2)
+func NewCrossBorrowRates(data map[string]any) CrossBorrowRates {
 	info := GetInfo(data)
 	rates := make(map[string]CrossBorrowRate)
 	for key, value := range data {
@@ -1574,8 +1564,7 @@ type IsolatedBorrowRates struct {
 	IsolatedBorrowRates map[string]IsolatedBorrowRate
 }
 
-func NewIsolatedBorrowRates(data2 any) IsolatedBorrowRates {
-	data := MapOrEmpty(data2)
+func NewIsolatedBorrowRates(data map[string]any) IsolatedBorrowRates {
 	info := GetInfo(data)
 	rates := make(map[string]IsolatedBorrowRate)
 	for key, value := range data {
@@ -1810,8 +1799,7 @@ type MarginModes struct {
 	MarginModes map[string]MarginMode
 }
 
-func NewMarginModes(data2 any) MarginModes {
-	data := MapOrEmpty(data2)
+func NewMarginModes(data map[string]any) MarginModes {
 	info := GetInfo(data)
 	marginModes := make(map[string]MarginMode)
 	for key, value := range data {
@@ -1857,8 +1845,7 @@ type Leverages struct {
 	Leverages map[string]Leverage
 }
 
-func NewLeverages(data2 any) Leverages {
-	data := MapOrEmpty(data2)
+func NewLeverages(data map[string]any) Leverages {
 	info := GetInfo(data)
 	leverages := make(map[string]Leverage)
 	for key, value := range data {
@@ -1966,8 +1953,7 @@ type OptionChain struct {
 	Chains map[string]Option
 }
 
-func NewOptionChain(data2 any) OptionChain {
-	data := MapOrEmpty(data2)
+func NewOptionChain(data map[string]any) OptionChain {
 	info := GetInfo(data)
 	chains := make(map[string]Option)
 	for key, value := range data {
@@ -2281,11 +2267,7 @@ type Currencies struct {
 	Currencies map[string]Currency
 }
 
-func NewCurrencies(data2 any) Currencies {
-	if data2 == nil {
-		data2 = make(map[string]any)
-	}
-	data := MapOrEmpty(data2)
+func NewCurrencies(data map[string]any) Currencies {
 	info := GetInfo(data)
 	currencies := make(map[string]Currency)
 	for key, value := range data {
@@ -2333,8 +2315,7 @@ type TradingFees struct {
 	TradingFees map[string]TradingFeeInterface
 }
 
-func NewTradingFees(data2 any) TradingFees {
-	data := MapOrEmpty(data2)
+func NewTradingFees(data map[string]any) TradingFees {
 	info := GetInfo(data)
 	tradingFees := make(map[string]TradingFeeInterface)
 	for key, value := range data {
@@ -2408,8 +2389,7 @@ type LeverageTiers struct {
 	Tiers map[string][]LeverageTier
 }
 
-func NewLeverageTiers(data2 any) LeverageTiers {
-	data := MapOrEmpty(data2)
+func NewLeverageTiers(data map[string]any) LeverageTiers {
 	info := data["info"]
 	tiers := make(map[string][]LeverageTier)
 	for key, value := range data {
@@ -2973,14 +2953,7 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 	}
 }
 
-func NewDepositWithdrawFeeMap(data2 any) map[string]DepositWithdrawFee {
-	if data2 == nil {
-		data2 = make(map[string]any)
-	}
-	if dataMap, ok := data2.(*sync.Map); ok {
-		data2 = SafeMapToMap(dataMap)
-	}
-	data := MapOrEmpty(data2)
+func NewDepositWithdrawFeeMap(data map[string]any) map[string]DepositWithdrawFee {
 	result := make(map[string]DepositWithdrawFee)
 	for key, value := range data {
 		result[key] = NewDepositWithdrawFee(value)
@@ -2993,11 +2966,7 @@ type DepositWithdrawFees struct {
 	DepositWithdrawFees map[string]DepositWithdrawFee
 }
 
-func NewDepositWithdrawFees(data2 any) DepositWithdrawFees {
-	if data2 == nil {
-		data2 = make(map[string]any)
-	}
-	data := MapOrEmpty(data2)
+func NewDepositWithdrawFees(data map[string]any) DepositWithdrawFees {
 	info := GetInfo(data)
 	fees := make(map[string]DepositWithdrawFee)
 	for key, value := range data {

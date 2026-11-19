@@ -13785,7 +13785,7 @@ ${constStatements.join('\n')}
             // (and add the element-access assertions formatGoSource would have added)
             // padHexAddress / shortenSlug (: string, no venue override) answer a Go string on every return path
             const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ] };
-            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file))))))))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
+            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file))))))))))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -15456,7 +15456,11 @@ async function runMain () {
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
             goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ],
             [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
+<<<<<<< merged
             goTernaryAnyTypedCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
+=======
+            goTernaryAnyTypedCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ]
+>>>>>>> G21
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
@@ -16203,6 +16207,7 @@ function goSafeListSliceReads (content: string): string {
     return out + content.substring (cursor);
 }
 
+<<<<<<< merged
 // `var m map[string]any = SafeMapTyped(c.(*ArrayCache).Hashmap, k)` (Hashmap is map[string]map[string]any) is
 // the native row read when k is a once-declared string (or *string, nil -> nil map); a missing or nil row is
 // the nil map SafeMapTyped answers. The cache assertion is evaluated exactly once in both forms.
@@ -16236,6 +16241,33 @@ function goHashmapRowReadsSelfTest (ok: SelfTestOk): void {
         f ('c any', '\tvar s string = \"a\"\n\tvar o map[string]any = ccxt.SafeMapTyped(c.(*ccxt.ArrayCacheByTimestamp).Hashmap, s)\n') ];
     keep.forEach ((b, i) => ok (goHashmapRowReads (b) === b, 'negative ' + i));
     ok (goHashmapRowReads (str) === str, 'idempotent');
+=======
+// `ListTyped([]any{..})` of a balanced literal is that literal: ListTyped hands a non-nil []any back as is
+function goListTypedOfLiteral (content: string): string {
+    const call = /\b(?:ccxt\.)?ListTyped\(\[\]any\{/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = call.exec (content); m !== null; m = call.exec (content)) {
+        const open = m.index + m[0].indexOf ('(');
+        const brace = m.index + m[0].length - 1;
+        const end = goMatchingCloseText (content, open, '()');
+        if ((end < 0) || (goMatchingCloseText (content, brace, '{}') !== end - 1)) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + content.substring (open + 1, end);
+        cursor = end + 1;
+        call.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
+}
+
+function goListTypedOfLiteralSelfTest (ok: SelfTestOk): void {
+    const pos = goListTypedOfLiteral ('\treturn ListTyped([]any{q})\n\treturn ccxt.ListTyped([]any{f(a, b), "x"})\n');
+    ok (pos === '\treturn []any{q}\n\treturn []any{f(a, b), "x"}\n', 'literal unwrapped: ' + pos);
+    const keep = [ '\treturn ListTyped(result)\n', '\treturn ListTyped([]any{a}[0:1])\n', '\treturn SafeListTyped([]any{a}, 0)\n' ];
+    keep.forEach ((b, i) => ok (goListTypedOfLiteral (b) === b, 'negative ' + i));
+    ok (goListTypedOfLiteral (pos) === pos, 'idempotent');
+>>>>>>> G21
 }
 
 // `x = MapTyped(this.SafeBalance(x))` of a once-declared map[string]any local is the bare call: the base

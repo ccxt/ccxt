@@ -82,9 +82,9 @@ func (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) []any {
 	_ = params
 	var singleQuery *string = this.SafeString(params, "query")
 	if singleQuery != nil {
-		return ListTyped([]any{singleQuery})
+		return []any{singleQuery}
 	}
-	return ListTyped(this.SafeList(params, "queries", []any{}))
+	return this.SafeListSlice(params, "queries", []any{})
 }
 func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 	// fetchEvents must be scoped by at least one selector — an unfiltered call would page the
