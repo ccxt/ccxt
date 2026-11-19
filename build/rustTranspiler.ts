@@ -7202,6 +7202,20 @@ function lendRequiredArgument(content: string): string {
 // unit slot 040
 //
 // unit slot 041
+// `handle_delta` / `custom_handle_delta` lend their order-book side (`&mut Side`): the side is a shared handle whose
+// writes land on the book's store, so the loop in `handle_deltas` lends it instead of cloning it per delta.
+function lendBookSideToHandleDelta(content: string): string {
+    const side = 'crate::pro::order_book::Side';
+    const decl = /(fn (?:custom_)?handle_delta\(&self, )mut bookside: crate::pro::order_book::Side, /g;
+    if (!content.includes('handle_delta(')) return content;
+    content = content.replace(decl, `$1bookside: &mut ${side}, `);
+    content = content.replace(/(self\.(?:custom_)?handle_delta\()(crate::pro::order_book::Side::of\()/g, '$1&mut $2');
+    return content.replace(/^(\s*self\.(?:custom_)?handle_delta\()bookside\.clone\(\), /gm, (line, head, off) => {
+        const fnStart = content.lastIndexOf('\n    ', content.lastIndexOf(' fn ', off));
+        const sig = content.slice(fnStart, content.indexOf('{', content.indexOf(' fn ', fnStart)));
+        return sig.includes(`mut bookside: ${side},`) ? `${head}&mut bookside, ` : line;
+    });
+}
 //
 // unit slot 042
 //
@@ -7526,6 +7540,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 040
     //
     // pass slot 041
+    lendBookSideToHandleDelta,
     //
     // pass slot 042
     //
