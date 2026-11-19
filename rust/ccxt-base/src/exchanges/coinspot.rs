@@ -36,8 +36,10 @@ impl Coinspot {
         let described = Coinspot::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -124,7 +126,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         let mut priceString: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
         let mut audTotal: Option<String> = self.safe_string_k_opt(&trade, "audtotal", &[]);
-        let mut costString: Option<String> = self.safe_string_k_opt(&trade, "total", &[audTotal.map(Value::from).unwrap_or(Value::Null)]);
+        let mut costString: Option<String> = self.safe_string_k_opt(&trade, "total", &[&audTotal]);
         let mut side: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(&trade, "amount", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&trade, "market", &[]);
@@ -193,7 +195,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
                     let mut currencyId: Option<&str> = currencyIdsList.get(j as usize).and_then(Value::as_str);
                     let mut balance: crate::value::Dict = self.safe_dict_t(&currencies, Value::from(currencyId.as_deref()));
                     let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-                    let mut account: crate::value::Dict = self.account().into_dict();
+                    let mut account: crate::value::Dict = self.account();
                     std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
                     if (code.is_some()) {
                         result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
@@ -203,14 +205,14 @@ impl crate::exchange::DerivedExchange for Coinspot {
             }
             }
         }  else {
-            let mut currencyIdsMap: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut currencyIdsMap: Vec<&str> = balances.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_586: bool = true;
                 while { if !__for_first_586 { i += 1; } __for_first_586 = false; i < (currencyIdsMap.len() as i64) } {
-                let mut currencyId: Option<&str> = currencyIdsMap.get(i as usize).and_then(Value::as_str);
+                let mut currencyId: Option<&str> = currencyIdsMap.get(i as usize).copied();
                 let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-                let mut account: crate::value::Dict = self.account().into_dict();
+                let mut account: crate::value::Dict = self.account();
                 std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string(&balances, Value::from(currencyId.as_deref()), &[]));
                 if (code.is_some()) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
@@ -237,7 +239,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         if isVersionedApi {
             accessType = api.as_array().into_iter().flatten().nth(1).and_then(Value::as_str).map(str::to_owned);
         }
-        let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), params.clone()));
+        let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), &params));
         let mut fullPath: String = endpoint.clone();
         if isVersionedApi {
             fullPath = format!("{}{}", Value::Str(format!("{}{}", "/", api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).into()), endpoint);
@@ -261,7 +263,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
-                    m.insert("sign".to_string(), Value::from(self.hmac(self.encode(Value::from(requestBody.as_deref())), self.encode(&self.secret), Value::Str("sha512".into()), &[])));
+                    m.insert("sign".to_string(), Value::from(self.hmac(self.encode(Value::from(requestBody.as_deref())), self.encode(&self.secret), "sha512", &[])));
                 m
             }));
         }
@@ -292,7 +294,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
 }
 
 impl crate::exchange_generated::ExchangeBase for Coinspot {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -1157,12 +1159,12 @@ impl Coinspot {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchBalance", &[Value::Str("privatePostMyBalances".into())]);
+        let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchBalance", &[&Value::Str("privatePostMyBalances".into())]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("private_post_ro_my_balances")) || (method.as_deref() == Some("privatePostRoMyBalances")) {
             response = self.call_method_o("private_post_ro_my_balances", &[&params]).await;
         }  else {
-            response = self.call_method_o("private_post_my_balances", &[&params]).await;
+            response = self.private_post_my_balances(&[&params]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
@@ -1186,7 +1188,7 @@ impl Coinspot {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1201,7 +1203,7 @@ impl Coinspot {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: crate::value::Dict = self.call_method_t("private_post_orders", &[&__ws_arg_0]).await;
+        let mut orderbook: crate::value::Dict = self.private_post_orders(&[&__ws_arg_0]).await.unwrap_or_default();
         return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]));
         Value::Null
         }).await?))
@@ -1232,7 +1234,7 @@ impl Coinspot {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: crate::value::Dict = self.call_method_t("public_get_latest", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_latest(&[&params]).await.unwrap_or_default();
         let mut id: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         id = id.to_lowercase();
         let mut prices: crate::value::Dict = self.safe_dict_k_t(&response, "prices");
@@ -1277,7 +1279,7 @@ impl Coinspot {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("public_get_latest", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_latest(&[&params]).await.unwrap_or_default();
         //
         //    {
         //        "status": "ok",
@@ -1340,8 +1342,8 @@ impl Coinspot {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1356,7 +1358,7 @@ impl Coinspot {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_orders_history", &[&__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.private_post_orders_history(&[&__ws_arg_1]).await.unwrap_or_default();
         //
         //     {
         //         "status":"ok",
@@ -1366,7 +1368,7 @@ impl Coinspot {
         //     }
         //
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "orders");
-        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1389,8 +1391,8 @@ impl Coinspot {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1406,11 +1408,11 @@ impl Coinspot {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        if (since != Value::Null) {
-            request.insert("startdate".into(), self.yyyymmdd(since.clone(), &[]));
+        if (since.is_some()) {
+            request.insert("startdate".into(), self.yyyymmdd(Value::from(since), &[]));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_ro_my_transactions", &[&__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.private_post_ro_my_transactions(&[&__ws_arg_2]).await.unwrap_or_default();
         //  {
         //      "status": "ok",
         //      "buyorders": [
@@ -1454,7 +1456,7 @@ impl Coinspot {
         }
         }
         let mut trades: crate::value::List = self.array_concat_t(Value::Arr(buyTrades), Value::Arr(sellTrades));
-        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1479,11 +1481,10 @@ impl Coinspot {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1491,7 +1492,7 @@ impl Coinspot {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
+        self.check_required_argument(Value::Str("createOrder".into()), &side, Value::Str("side".into()), &[]);
         let mut sideUpper: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         if (type_var.as_str() == Some("market")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createOrder() allows limit orders only")));
@@ -1500,17 +1501,17 @@ impl Coinspot {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cointype".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), amount);
-                m.insert("rate".to_string(), price);
+                m.insert("amount".to_string(), Value::from(amount));
+                m.insert("rate".to_string(), Value::from(price));
             m
         });
         let mut response: Option<crate::value::Dict> = None;
         if (sideUpper == "BUY") {
             let __ws_arg_3 = self.extend(&request, &[&params]);
-            response = self.call_method_o("private_post_my_buy", &[&__ws_arg_3]).await;
+            response = self.private_post_my_buy(&[&__ws_arg_3]).await;
         }  else if (sideUpper == "SELL") {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("private_post_my_sell", &[&__ws_arg_4]).await;
+            response = self.private_post_my_sell(&[&__ws_arg_4]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder only support buy/sell side")));
         }
@@ -1559,10 +1560,10 @@ impl Coinspot {
         let mut response: Option<crate::value::Dict> = None;
         if (side.as_deref() == Some("buy")) {
             let __ws_arg_5 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method_o("private_post_my_buy_cancel", &[&__ws_arg_5]).await;
+            response = self.private_post_my_buy_cancel(&[&__ws_arg_5]).await;
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_o("private_post_my_sell_cancel", &[&__ws_arg_6]).await;
+            response = self.private_post_my_sell_cancel(&[&__ws_arg_6]).await;
         }
         return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

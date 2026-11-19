@@ -56,7 +56,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     m
 })); }
         if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("crypto".into())); }; // crypto, fiat, leverage, other
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("fiat".into()), Value::Str("crypto".into()), Value::Str("leveraged".into()), Value::Str("other".into()), Value::Null]).clone()]); // todo: remove undefined
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()), Value::from(vec![Value::Str("fiat".into()), Value::Str("crypto".into()), Value::Str("leveraged".into()), Value::Str("other".into()), Value::Null]).clone()]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
         if (currencyType.as_deref() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("depositForNonCrypto".into()))) {
             append_to_array(&mut emptyAllowedFor, Value::Str("deposit".into()));
@@ -102,8 +102,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
     }
     //
-    crate::tests_support::shared::check_precision_accuracy(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("precision".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::check_precision_accuracy(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("precision".into())]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".into()), Value::Str("0".into())]);
     if !(in_op(&skippedProperties, &Value::Str("limits".into()))) {
         let mut limits: Value = exchange.safe_value(&entry, Value::Str("limits".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -117,19 +117,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits.clone(), Value::Str("min".into()).clone(), Value::Str("0".into()).clone()]);
-        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits.clone(), Value::Str("max".into()).clone(), Value::Str("0".into()).clone()]);
-        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("min".into()).clone(), Value::Str("0".into()).clone()]);
-        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("max".into()).clone(), Value::Str("0".into()).clone()]);
+        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits.clone(), Value::Str("min".into()), Value::Str("0".into())]);
+        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits.clone(), Value::Str("max".into()), Value::Str("0".into())]);
+        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("min".into()), Value::Str("0".into())]);
+        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("max".into()), Value::Str("0".into())]);
         // max should be more than min (withdrawal limits)
         let mut minStringWithdrawal: Option<String> = exchange.safe_string_opt(&withdrawLimits, Value::Str("min".into()), &[]);
         if (minStringWithdrawal.is_some()) {
-            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits, Value::Str("max".into()).clone(), minStringWithdrawal.map(Value::from).unwrap_or(Value::Null).clone()]);
+            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits, Value::Str("max".into()), minStringWithdrawal.map(Value::from).unwrap_or(Value::Null).clone()]);
         }
         // max should be more than min (deposit limits)
         let mut minStringDeposit: Option<String> = exchange.safe_string_opt(&depositLimits, Value::Str("min".into()), &[]);
         if (minStringDeposit.is_some()) {
-            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits, Value::Str("max".into()).clone(), minStringDeposit.map(Value::from).unwrap_or(Value::Null).clone()]);
+            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits, Value::Str("max".into()), minStringDeposit.map(Value::from).unwrap_or(Value::Null).clone()]);
         }
         // check valid ID & CODE
         crate::tests_support::shared::assert_valid_currency_id_and_code(exchange.clone(), &[skippedProperties.clone(), method, entry.clone(), entry.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);

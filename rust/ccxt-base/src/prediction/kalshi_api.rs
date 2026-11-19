@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Kalshi {
     /// Auto-generated wrapper for the `kalshiPublicGetEvents` implicit endpoint.
-    pub async fn kalshi_public_get_events(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_events".into()), optional_args).await
+    pub async fn kalshi_public_get_events(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_events".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetEventsMultivariate` implicit endpoint.
@@ -28,8 +28,8 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetEventsEventTicker` implicit endpoint.
-    pub async fn kalshi_public_get_events_event_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_events_event_ticker".into()), optional_args).await
+    pub async fn kalshi_public_get_events_event_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_events_event_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetEventsEventTickerMetadata` implicit endpoint.
@@ -38,8 +38,8 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeries` implicit endpoint.
-    pub async fn kalshi_public_get_series(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_series".into()), optional_args).await
+    pub async fn kalshi_public_get_series(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_series".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeriesFeeChanges` implicit endpoint.
@@ -53,8 +53,8 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks` implicit endpoint.
-    pub async fn kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_series_series_ticker_markets_ticker_candlesticks".into()), optional_args).await
+    pub async fn kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_series_series_ticker_markets_ticker_candlesticks".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks` implicit endpoint.
@@ -68,13 +68,13 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarkets` implicit endpoint.
-    pub async fn kalshi_public_get_markets(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_markets".into()), optional_args).await
+    pub async fn kalshi_public_get_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_markets".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsTrades` implicit endpoint.
-    pub async fn kalshi_public_get_markets_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_markets_trades".into()), optional_args).await
+    pub async fn kalshi_public_get_markets_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_markets_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsOrderbooks` implicit endpoint.
@@ -88,18 +88,18 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsTicker` implicit endpoint.
-    pub async fn kalshi_public_get_markets_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_markets_ticker".into()), optional_args).await
+    pub async fn kalshi_public_get_markets_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_markets_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetMarketsTickerOrderbook` implicit endpoint.
-    pub async fn kalshi_public_get_markets_ticker_orderbook(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_markets_ticker_orderbook".into()), optional_args).await
+    pub async fn kalshi_public_get_markets_ticker_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_markets_ticker_orderbook".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetExchangeStatus` implicit endpoint.
-    pub async fn kalshi_public_get_exchange_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_public_get_exchange_status".into()), optional_args).await
+    pub async fn kalshi_public_get_exchange_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_public_get_exchange_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPublicGetExchangeSchedule` implicit endpoint.
@@ -198,18 +198,18 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioBalance` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_private_get_portfolio_balance".into()), optional_args).await
+    pub async fn kalshi_private_get_portfolio_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_private_get_portfolio_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrders` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_private_get_portfolio_orders".into()), optional_args).await
+    pub async fn kalshi_private_get_portfolio_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_private_get_portfolio_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrdersOrderId` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_private_get_portfolio_orders_order_id".into()), optional_args).await
+    pub async fn kalshi_private_get_portfolio_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_private_get_portfolio_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition` implicit endpoint.
@@ -223,18 +223,18 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioPositions` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_positions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_private_get_portfolio_positions".into()), optional_args).await
+    pub async fn kalshi_private_get_portfolio_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_private_get_portfolio_positions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioFills` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_fills(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_private_get_portfolio_fills".into()), optional_args).await
+    pub async fn kalshi_private_get_portfolio_fills(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_private_get_portfolio_fills".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioSettlements` implicit endpoint.
-    pub async fn kalshi_private_get_portfolio_settlements(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_private_get_portfolio_settlements".into()), optional_args).await
+    pub async fn kalshi_private_get_portfolio_settlements(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_private_get_portfolio_settlements".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPrivateGetPortfolioDeposits` implicit endpoint.
@@ -293,8 +293,8 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioEventsOrders` implicit endpoint.
-    pub async fn kalshi_private_post_portfolio_events_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("kalshi_private_post_portfolio_events_orders".into()), optional_args).await
+    pub async fn kalshi_private_post_portfolio_events_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("kalshi_private_post_portfolio_events_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `kalshiPrivatePostPortfolioOrdersBatched` implicit endpoint.
@@ -378,8 +378,8 @@ impl Kalshi {
     }
 
     /// Auto-generated wrapper for the `electionsPublicGetSearchSeries` implicit endpoint.
-    pub async fn elections_public_get_search_series(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("elections_public_get_search_series".into()), optional_args).await
+    pub async fn elections_public_get_search_series(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("elections_public_get_search_series".into()), optional_args).await { Some(m) } else { None }
     }
 
 }

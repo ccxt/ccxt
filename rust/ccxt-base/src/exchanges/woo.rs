@@ -36,8 +36,10 @@ impl Woo {
         let described = Woo::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -314,8 +316,9 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -466,7 +469,7 @@ impl crate::exchange::DerivedExchange for Woo {
             while { if !__for_first_1178 { i += 1; } __for_first_1178 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]).as_str(), None);
-            let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+            let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "availableBalance", &[]));
             if (code.is_some()) {
@@ -561,7 +564,7 @@ impl crate::exchange::DerivedExchange for Woo {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), position.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -578,7 +581,8 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("contracts".to_string(), self.parse_number(size.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number2(position, Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number2(&position, Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
+        m.insert("info".to_string(), position);
         m.insert("markPrice".to_string(), self.parse_number(markPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("positionMargin".to_string(), Value::from(positionMargin));
@@ -694,7 +698,7 @@ impl crate::exchange::DerivedExchange for Woo {
         //
         let mut networkizedCode: Option<String> = self.safe_string_k_opt(&item, "token", &[]);
         let mut code: Option<String> = self.safe_currency_code(networkizedCode.as_deref(), currency);
-        let mut currencyResolved: crate::types::Currency = self.safe_currency(code.clone().map(Value::from).unwrap_or(Value::Null), currency);
+        let mut currencyResolved: crate::types::Currency = self.safe_currency(code.as_deref(), currency);
         let mut amount: Option<f64> = self.safe_number_k(&item, "amount", &[]).as_f64();
         let mut side: Option<String> = self.safe_string_k_opt(&item, "tokenSide", &[]);
         let mut direction: String = "out".to_string();
@@ -705,7 +709,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::from(vec![Value::Str("feeToken".into())]), Value::from(vec![Value::Str("feeAmount".into())]));
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), item.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), self.safe_string_k(&item, "id", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(&item, "account", &[]));
@@ -718,7 +722,8 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("direction".to_string(), Value::from(direction));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item, "type", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(&item, "type", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("info".to_string(), item);
         m.insert("fee".to_string(), fee);
     m
 }), Some(&currencyResolved));
@@ -932,7 +937,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut timestamp: Option<i64> = self.safe_timestamp_n(&transaction, Value::from(vec![Value::Str("created_time".into()), Value::Str("createdTime".into())]), &[self.safe_integer_k(&transaction, "timestamp", &[])]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), self.safe_string_n(&transaction, Value::from(vec![Value::Str("id".into()), Value::Str("withdraw_id".into()), Value::Str("withdrawId".into())]), &[]));
         m.insert("txid".to_string(), self.safe_string2(&transaction, Value::Str("tx_id".into()), Value::Str("txId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -951,7 +956,8 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
-        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(transaction, "network", &[]), code.map(Value::from).unwrap_or(Value::Null)])));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(&transaction, "network", &[]), code.map(Value::from).unwrap_or(Value::Null)])));
+        m.insert("info".to_string(), transaction);
     m
 });
 
@@ -1153,7 +1159,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut requestBody: Option<String> = None;
         let mut version: Option<&str> = section.get(0).and_then(Value::as_str);
         let mut access: Option<&str> = section.get(1).and_then(Value::as_str);
-        let mut pathWithParams: String = self.implode_params(Value::from(path), params.clone());
+        let mut pathWithParams: String = self.implode_params(Value::from(path), &params);
         let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(access.as_deref()), &[]);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
@@ -1178,7 +1184,7 @@ impl crate::exchange::DerivedExchange for Woo {
                 let mut isSandboxMode: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
                 if !isSandboxMode {
                     let mut applicationId: String = "bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string();
-                    let mut brokerId: Option<String> = self.safe_string_k_opt(&self.options, "brokerId", &[Value::from(applicationId)]);
+                    let mut brokerId: Option<String> = self.safe_string_k_opt(&self.options, "brokerId", &[&applicationId]);
                     let mut isTrigger: bool = Some(path).unwrap_or("").contains("algo");
                     if isTrigger {
                         paramsSorted.insert("brokerId".into(), Value::from(brokerId.as_deref()));
@@ -1225,7 +1231,7 @@ impl crate::exchange::DerivedExchange for Woo {
                 auth = format!("{}{}", Value::Str(format!("{}{}", encodedParams, "|").into()), ts);
                 signedHeaders.insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into()));
             }
-            signedHeaders.insert("x-api-signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha256".into()), &[])));
+            signedHeaders.insert("x-api-signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), "sha256", &[])));
             requestHeaders = Some(crate::value::Dict::new(signedHeaders));
         }
         return Value::Map({
@@ -1251,8 +1257,8 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
         if !success {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, Value::from(feedback));
         }
         return Value::Null;
 
@@ -1261,7 +1267,7 @@ impl crate::exchange::DerivedExchange for Woo {
 }
 
 impl crate::exchange_generated::ExchangeBase for Woo {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -1338,7 +1344,7 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_margin_loan" => self.parse_margin_loan(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_margin_loan" => Value::Dict(self.parse_margin_loan(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1346,7 +1352,7 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_token_and_fee_temp" => self.parse_token_and_fee_temp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_trading_fee" => Value::Dict(self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
@@ -2675,7 +2681,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_system_info", &[&params]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_system_info(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -2726,7 +2732,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_system_info", &[&params]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_system_info(&[&params]).await.unwrap_or_default();
         return self.safe_integer_k(&response, "timestamp", &[]);
         Value::Null
         }).await?))
@@ -2753,7 +2759,7 @@ impl Woo {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_instruments", &[&params]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_instruments(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -2812,8 +2818,8 @@ impl Woo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2827,11 +2833,11 @@ impl Woo {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_market_trades", &[&__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_market_trades(&[&__ws_arg_0]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -2852,7 +2858,7 @@ impl Woo {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return Value::Arr(self.parse_trades(&rows, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&rows, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2876,22 +2882,23 @@ impl Woo {
     Value::Null
 }
 
-    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut fee: Value = fee.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fee.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&fee, "makerFee", &[]), &Value::Str("100".into())), &[]));
-        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(fee, "takerFee", &[]), &Value::Str("100".into())), &[]));
+        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&fee, "takerFee", &[]), &Value::Str("100".into())), &[]));
+        m.insert("info".to_string(), fee);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2926,7 +2933,7 @@ impl Woo {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_trade_trading_fee", &[&__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_trade_trading_fee(&[&__ws_arg_1]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -2939,7 +2946,7 @@ impl Woo {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return self.parse_trading_fee(&data, Some(&market));
+        return Value::Dict(self.parse_trading_fee(&data, Some(&market)));
         Value::Null
         }).await?))
     }
@@ -2965,7 +2972,7 @@ impl Woo {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_account_info", &[&params]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_account_info(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -3052,7 +3059,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tokenResponsePromise: crate::value::Dict = self.call_method_t("v1_public_get_token", &[&params]).await;
+        let mut tokenResponsePromise: crate::value::Dict = self.v1_public_get_token(&[&params]).await.unwrap_or_default();
         //
         //    {
         //      "rows": [
@@ -3098,7 +3105,7 @@ impl Woo {
         // }
         //
         // only make one request for currencies...
-        let mut tokenNetworkResponsePromise: crate::value::Dict = self.call_method_t("v1_public_get_token_network", &[&params]).await;
+        let mut tokenNetworkResponsePromise: crate::value::Dict = self.v1_public_get_token_network(&[&params]).await.unwrap_or_default();
         //
         // {
         //     "rows": [
@@ -3127,7 +3134,7 @@ impl Woo {
         //     "success": true
         // }
         //
-        let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenResponsePromise), Value::Dict(tokenNetworkResponsePromise)])).await.as_array().cloned().unwrap_or_default();
+        let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenResponsePromise), Value::Dict(tokenNetworkResponsePromise)])).await.to_vec();
         let mut tokenResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut tokenNetworkResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tokenRows: crate::value::List = self.safe_list_k_t(&tokenResponse, "rows");
@@ -3174,7 +3181,7 @@ impl Woo {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
-        let mut cost = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -3189,7 +3196,7 @@ impl Woo {
         if !(market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
         }
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost, Some(1.0), params).await);
         Value::Null
         }).await?))
     }
@@ -3208,7 +3215,7 @@ impl Woo {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
-        let mut cost = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -3223,7 +3230,7 @@ impl Woo {
         if !(market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketSellOrderWithCost() supports spot orders only")));
         }
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost, Some(1.0), params).await);
         Value::Null
         }).await?))
     }
@@ -3249,11 +3256,10 @@ impl Woo {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -3268,7 +3274,7 @@ impl Woo {
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingAmount".into(), trailingAmount); }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, params).await);
         Value::Null
         }).await?))
     }
@@ -3294,11 +3300,10 @@ impl Woo {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
@@ -3313,7 +3318,7 @@ impl Woo {
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingPercent".into(), trailingPercent); }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, params).await);
         Value::Null
         }).await?))
     }
@@ -3350,11 +3355,10 @@ impl Woo {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3373,7 +3377,7 @@ impl Woo {
                 m.insert("side".to_string(), Value::from(orderSide.clone()));
             m
         });
-        let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::Dict(paramsOmitted)]);
+        let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&Value::Dict(paramsOmitted)]);
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
         if (marginMode.is_some()) {
@@ -3385,7 +3389,7 @@ impl Woo {
         let mut hasStopLoss: bool = (stopLoss != Value::Null);
         let mut hasTakeProfit: bool = (takeProfit != Value::Null);
         let mut algoType: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "algoType", &[]);
-        let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsMarginMode), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[Value::from(self.number_to_string(&price))]);
+        let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsMarginMode), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[&Value::from(self.number_to_string(&price))]);
         let mut trailingAmount: Option<String> = self.safe_string2_opt(Value::from(&paramsMarginMode), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
         let mut trailingPercent: Option<String> = self.safe_string2_opt(Value::from(&paramsMarginMode), Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
         let mut isTrailingAmountOrder: bool = (trailingAmount.is_some());
@@ -3412,18 +3416,18 @@ impl Woo {
         if (reduceOnly == Some(true)) {
             request.insert("reduceOnly".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
-        if !isMarket && (price != Value::Null) {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
+        if !isMarket && (price.is_some()) {
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), &Value::from(price))));
         }
         let mut isMarketNotConditional: bool = isMarket && !isConditional;
-        let mut paramsCost: crate::value::Dict = Value::from(&paramsMarginMode).into_dict();
+        let mut paramsCost: crate::value::Dict = std::sync::Arc::clone(&paramsMarginMode);
         if isMarketNotConditional {
             paramsCost = self.omit_t(&paramsMarginMode, &["cost", "order_amount", "orderAmount"], &[]);
         }
         if isMarketNotConditional {
             // for market buy it requires the amount of quote currency to spend
             let mut cost: Option<String> = self.safe_string_n_opt(Value::Dict(paramsMarginMode), Value::from(vec![Value::Str("cost".into()), Value::Str("order_amount".into()), Value::Str("orderAmount".into())]), &[]);
-            let mut isPriceProvided: bool = price != Value::Null;
+            let mut isPriceProvided: bool = price.is_some();
             if (market).spot && (isPriceProvided || (cost.is_some())) {
                 let mut quoteAmount: Option<String> = None;
                 if (cost.is_some()) {
@@ -3436,7 +3440,7 @@ impl Woo {
                 }
                 request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }  else {
-                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
             }
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
@@ -3509,10 +3513,10 @@ impl Woo {
         let mut response: Option<crate::value::Dict> = None;
         if isConditional {
             let __ws_arg_2 = self.extend(&request, &[&paramsRequest]);
-            response = self.call_method_o("v3_private_post_trade_algo_order", &[&__ws_arg_2]).await;
+            response = self.v3_private_post_trade_algo_order(&[&__ws_arg_2]).await;
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.call_method_o("v3_private_post_trade_order", &[&__ws_arg_3]).await;
+            response = self.v3_private_post_trade_order(&[&__ws_arg_3]).await;
         }
         let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3536,7 +3540,7 @@ impl Woo {
                 m.insert("isolated".to_string(), Value::Str("ISOLATED".into()));
             m
         });
-        return self.safe_string_opt(&modes, Value::from(mode), &[Value::from(mode)]);
+        return self.safe_string_opt(&modes, &mode, &[&mode]);
 }
 
 /*
@@ -3572,8 +3576,6 @@ impl Woo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut amount = get_arg(optional_args, 0, Value::Null);
-        let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3586,20 +3588,20 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (price != Value::Null) {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
+        if (price.is_some()) {
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), &Value::from(price))));
         }
-        if (amount != Value::Null) {
+        if (amount.is_some()) {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
         let mut clientOrderIdUnified: Option<String> = self.safe_string2_opt(&params, Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k_opt(&params, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
+        let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k_opt(&params, "client_order_id", &[&clientOrderIdUnified]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
         let mut triggerPrice: Option<f64> = self.safe_number_n(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {
             request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
         }
-        let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[Value::from(self.number_to_string(price))]);
+        let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[&Value::from(self.number_to_string(price))]);
         let mut trailingAmount: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);
         let mut trailingPercent: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingPercent".into()), Value::Str("callbackRate".into()), &[]);
         let mut isTrailingAmountOrder: bool = (trailingAmount.is_some());
@@ -3627,7 +3629,7 @@ impl Woo {
                 request.insert("algoOrderId".into(), id.clone());
             }
             let __ws_arg_5 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method_o("v3_private_put_trade_algo_order", &[&__ws_arg_5]).await;
+            response = self.v3_private_put_trade_algo_order(&[&__ws_arg_5]).await;
         }  else {
             if isByClientOrder {
                 request.insert("clientOrderId".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
@@ -3635,7 +3637,7 @@ impl Woo {
                 request.insert("orderId".into(), id.clone());
             }
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_o("v3_private_put_trade_order", &[&__ws_arg_6]).await;
+            response = self.v3_private_put_trade_order(&[&__ws_arg_6]).await;
         }
         //
         //     {
@@ -3699,7 +3701,7 @@ impl Woo {
             m
         });
         let mut clientOrderIdUnified: Option<String> = self.safe_string2_opt(&paramsOmitted, Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k_opt(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
+        let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k_opt(&paramsOmitted, "client_order_id", &[&clientOrderIdUnified]);
         let mut paramsOmitted2: crate::value::Dict = self.omit_t(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
         let mut response: Option<crate::value::Dict> = None;
@@ -3710,7 +3712,7 @@ impl Woo {
                 request.insert("algoOrderId".into(), id.clone());
             }
             let __ws_arg_7 = self.extend(&request, &[&paramsOmitted2]);
-            response = self.call_method_o("v3_private_delete_trade_algo_order", &[&__ws_arg_7]).await;
+            response = self.v3_private_delete_trade_algo_order(&[&__ws_arg_7]).await;
         }  else {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             if isByClientOrder {
@@ -3719,7 +3721,7 @@ impl Woo {
                 request.insert("orderId".into(), id.clone());
             }
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.call_method_o("v3_private_delete_trade_order", &[&__ws_arg_8]).await;
+            response = self.v3_private_delete_trade_order(&[&__ws_arg_8]).await;
         }
         //
         //     {
@@ -3782,11 +3784,11 @@ impl Woo {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            response = self.call_method_o("v3_private_delete_trade_algo_orders", &[&Value::from(&paramsOmitted)]).await;
+            response = self.v3_private_delete_trade_algo_orders(&[&Value::from(&paramsOmitted)]).await;
         }  else {
             // cancels both regular and algo orders
             let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_o("v3_private_delete_trade_all_orders", &[&__ws_arg_9]).await;
+            response = self.v3_private_delete_trade_all_orders(&[&__ws_arg_9]).await;
         }
         //
         //     {
@@ -3837,7 +3839,7 @@ impl Woo {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_post_trade_cancel_all_after", &[&__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.v3_private_post_trade_cancel_all_after(&[&__ws_arg_10]).await.unwrap_or_default();
         return Value::Dict(response);
 
     Value::Null
@@ -3884,12 +3886,12 @@ impl Woo {
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
             if (clientOrderId.is_some()) {
-                request.insert("clientAlgoOrderId".into(), id.clone());
+                request.insert("clientAlgoOrderId".into(), id);
             }  else {
-                request.insert("algoOrderId".into(), id.clone());
+                request.insert("algoOrderId".into(), id);
             }
             let __ws_arg_11 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method_o("v3_private_get_trade_algo_order", &[&__ws_arg_11]).await;
+            response = self.v3_private_get_trade_algo_order(&[&__ws_arg_11]).await;
         }  else {
             if (clientOrderId.is_some()) {
                 request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -3897,7 +3899,7 @@ impl Woo {
                 request.insert("orderId".into(), id);
             }
             let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_o("v3_private_get_trade_order", &[&__ws_arg_12]).await;
+            response = self.v3_private_get_trade_order(&[&__ws_arg_12]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref());
@@ -3928,8 +3930,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3941,7 +3943,7 @@ impl Woo {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::from(&paramsPaginate), &Value::Str("page".into()), &Value::Int(500)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3954,28 +3956,28 @@ impl Woo {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64(); // unified in milliseconds
         let mut paramsOmitted2: crate::value::Dict = self.omit_t(&paramsOmitted, &["until"], &[]);
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        if (limit != Value::Null) {
-            request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
+        if (limit.is_some()) {
+            request.insert("size".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(500)));
         }
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
             let __ws_arg_13 = self.extend(&request, &[&paramsOmitted2]);
-            response = self.call_method_o("v3_private_get_trade_algo_orders", &[&__ws_arg_13]).await;
+            response = self.v3_private_get_trade_algo_orders(&[&__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.call_method_o("v3_private_get_trade_orders", &[&__ws_arg_14]).await;
+            response = self.v3_private_get_trade_orders(&[&__ws_arg_14]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4004,8 +4006,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4018,7 +4020,7 @@ impl Woo {
                 m.insert("status".to_string(), Value::Str("INCOMPLETE".into()));
             m
         })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(extendedParams)).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, Value::Dict(extendedParams)).await);
         Value::Null
         }).await?))
     }
@@ -4047,8 +4049,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4061,7 +4063,7 @@ impl Woo {
                 m.insert("status".to_string(), Value::Str("COMPLETED".into()));
             m
         })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(extendedParams)).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, Value::Dict(extendedParams)).await);
         Value::Null
         }).await?))
     }
@@ -4094,7 +4096,7 @@ impl Woo {
                     m.insert("COMPLETED".to_string(), Value::Str("closed".into()));
                 m
             });
-            return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+            return self.safe_string_opt(&statuses, &status, &[&status]);
         }
         return None;
 }
@@ -4116,7 +4118,7 @@ impl Woo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4130,11 +4132,11 @@ impl Woo {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("maxLevel".into(), limit);
+        if (limit.is_some()) {
+            request.insert("maxLevel".into(), Value::from(limit));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_orderbook", &[&__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_orderbook(&[&__ws_arg_15]).await.unwrap_or_default();
         //
         // }
         //     {
@@ -4197,7 +4199,7 @@ impl Woo {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_futures", &[&__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_futures(&[&__ws_arg_16]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4280,7 +4282,7 @@ impl Woo {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true), Value::Bool(true)]);
         let mut paramsRequest: Value = params.clone();
         if (symbolsNormalized.is_none()) {
-            let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), None, &[params, Value::Str("swap".into())]);
+            let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), None, &[&params, &Value::Str("swap".into())]);
             let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
             let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
             if (marketType.as_deref() != Some("swap")) {
@@ -4288,7 +4290,7 @@ impl Woo {
             }
             paramsRequest = Value::Dict(paramsMarketType);
         }
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_futures", &[&paramsRequest]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_futures(&[&paramsRequest]).await.unwrap_or_default();
         //
         // same as fetchTicker, with multiple rows
         //
@@ -4342,8 +4344,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4355,14 +4357,14 @@ impl Woo {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("type".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
+                m.insert("type".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+        if (limit.is_some()) {
+            request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000)));
         }
-        if (since != Value::Null) {
-            request.insert("after".into(), (match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); // #27793
+        if (since.is_some()) {
+            request.insert("after".into(), (match (&(Value::from(since)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); // #27793
         }
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("until".into()), &[]);
@@ -4370,7 +4372,7 @@ impl Woo {
             request.insert("before".into(), Value::from(until));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_kline_history", &[&__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_kline_history(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4395,7 +4397,7 @@ impl Woo {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -4421,8 +4423,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4440,7 +4442,7 @@ impl Woo {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.call_method_t("v1_private_get_order_oid_trades", &[&__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.v1_private_get_order_oid_trades(&[&__ws_arg_19]).await.unwrap_or_default();
         // {
         //     "success": true,
         //     "rows": [
@@ -4460,7 +4462,7 @@ impl Woo {
         //     ]
         // }
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "rows");
-        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit, params]));
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit), &params]));
         Value::Null
         }).await?))
     }
@@ -4484,8 +4486,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4497,7 +4499,7 @@ impl Woo {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::from(&paramsPaginate), &Value::Str("page".into()), &Value::Int(500)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4508,19 +4510,19 @@ impl Woo {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64(); // unified in milliseconds
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, &["until"], &[]);
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_trade_transaction_history", &[&__ws_arg_20]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_trade_transaction_history(&[&__ws_arg_20]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4552,7 +4554,7 @@ impl Woo {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut trades: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]));
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Dict(paramsOmitted)]));
         Value::Null
         }).await?))
     }
@@ -4576,7 +4578,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut mainAccountPromise: crate::value::Dict = self.call_method_t("v3_private_get_account_info", &[&params]).await;
+        let mut mainAccountPromise: crate::value::Dict = self.v3_private_get_account_info(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4606,7 +4608,7 @@ impl Woo {
         //         "timestamp": 1752062807915
         //     }
         //
-        let mut subAccountPromise: crate::value::Dict = self.call_method_t("v3_private_get_account_sub_accounts_all", &[&params]).await;
+        let mut subAccountPromise: crate::value::Dict = self.v3_private_get_account_sub_accounts_all(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4622,7 +4624,7 @@ impl Woo {
         //         "timestamp": 1721295317627
         //     }
         //
-        let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(mainAccountPromise), Value::Dict(subAccountPromise)])).await.as_array().cloned().unwrap_or_default();
+        let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(mainAccountPromise), Value::Dict(subAccountPromise)])).await.to_vec();
         let mut mainAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut subAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut mainData: crate::value::Dict = self.safe_dict_k_t(&mainAccountResponse, "data");
@@ -4657,7 +4659,7 @@ impl Woo {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_asset_balances", &[&params]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_asset_balances(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4723,7 +4725,7 @@ impl Woo {
             m
         });
         let __ws_arg_21 = self.extend(&request, &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_asset_wallet_deposit", &[&__ws_arg_21]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_asset_wallet_deposit(&[&__ws_arg_21]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4753,7 +4755,7 @@ impl Woo {
         let mut networkCodeRaw: Option<String> = networkCodeRawparamsNetworkCodeVariable.0.as_str().map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeRawparamsNetworkCodeVariable.1;
         let mut networks: crate::value::Dict = currency.key_dict("networks");
-        let mut currencyCode: String = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+        let mut currencyCode: String = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let mut networkCode: Option<String> = self.network_id_to_code(&[networkCodeRaw.map(Value::from).unwrap_or(Value::Null), Value::from(currencyCode)]);
         let mut networkEntry: Option<crate::value::Dict> = (if (networkCode.is_none()) { None } else { self.safe_dict_o(&networks, networkCode.map(Value::from).unwrap_or(Value::Null)) });
         if (networkEntry.is_none()) {
@@ -4802,7 +4804,7 @@ impl Woo {
             request.insert("type".into(), transactionType.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_asset_wallet_history", &[&__ws_arg_23]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_asset_wallet_history(&[&__ws_arg_23]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4863,18 +4865,18 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[&params]).await.into_list();
+        let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&params]).await.into_list();
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        return self.parse_ledger(&rows, currency.as_ref(), &[since, limit, params]);
+        return self.parse_ledger(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]);
         Value::Null
         }).await?))
     }
@@ -4887,7 +4889,7 @@ impl Woo {
                 m.insert("COLLATERAL".to_string(), Value::Str("transfer".into()));
             m
         });
-        return self.safe_string_opt(&types, Value::from(type_var), &[Value::from(type_var)]);
+        return self.safe_string_opt(&types, &type_var, &[&type_var]);
 }
 
     pub fn get_currency_from_chaincode(&self, networkizedCode: &str, optional_args: &[&Value]) -> Value {
@@ -4898,11 +4900,11 @@ impl Woo {
             let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = Some(networkizedCode) { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut partsLength: i64 = parts.len() as i64;
             let mut firstPart: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
-            let mut currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
+            let mut currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[&firstPart]);
             if partsLength > 2 {
                 currencyId = Some(format!("{}{}", currencyId.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("_".into()), self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]))));
             }
-            return crate::types::IntoRaw::into_raw(self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), None));
+            return crate::types::IntoRaw::into_raw(self.safe_currency(currencyId.as_deref(), None));
         }
 
     Value::Null
@@ -4926,8 +4928,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4938,7 +4940,7 @@ impl Woo {
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_24).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since, limit, __ws_arg_24).await);
         Value::Null
         }).await?))
     }
@@ -4961,8 +4963,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4973,7 +4975,7 @@ impl Woo {
             m
         });
         let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_25).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since, limit, __ws_arg_25).await);
         Value::Null
         }).await?))
     }
@@ -4996,8 +4998,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5008,12 +5010,12 @@ impl Woo {
             m
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
-        let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[&__ws_arg_26]).await.into_list();
+        let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&__ws_arg_26]).await.into_list();
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        return self.parse_transactions(&rows, currency.as_ref(), &[since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
+        return Value::Arr(self.parse_transactions(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &self.omit(params, Value::Str("tokenSide".into()), &[])]));
         Value::Null
         }).await?))
     }
@@ -5029,7 +5031,7 @@ impl Woo {
                 m.insert("CANCELED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 /*
@@ -5048,7 +5050,7 @@ impl Woo {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut fromAccount = __it.next().unwrap_or_default();
         let mut toAccount = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
@@ -5065,7 +5067,7 @@ impl Woo {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("token".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.parse_to_numeric(amount.clone()));
+                m.insert("amount".to_string(), self.parse_to_numeric(&Value::from(amount)));
                 m.insert("from".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("applicationId".to_string(), fromAccount.clone());
@@ -5079,7 +5081,7 @@ impl Woo {
             m
         });
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_post_asset_transfer", &[&__ws_arg_27]).await;
+        let mut response: crate::value::Dict = self.v3_private_post_asset_transfer(&[&__ws_arg_27]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -5097,7 +5099,7 @@ impl Woo {
         let mut transferOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "transfer");
         let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
-            std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), amount);
+            std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), Value::from(amount));
             std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);
             std::sync::Arc::make_mut(&mut transfer).insert("toAccount".into(), toAccount);
         }
@@ -5125,8 +5127,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5139,11 +5141,11 @@ impl Woo {
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        if (limit != Value::Null) {
-            request.insert("size".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("size".into(), Value::from(limit));
         }
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64(); // unified in milliseconds
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["until"], &[]);
@@ -5151,7 +5153,7 @@ impl Woo {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_asset_transfer_history", &[&__ws_arg_28]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_asset_transfer_history(&[&__ws_arg_28]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -5185,7 +5187,7 @@ impl Woo {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_transfers(&rows, currency.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]);
+        return Value::Arr(self.parse_transfers(&rows, currency.as_ref(), &[Value::from(since), Value::from(limit), Value::Dict(paramsOmitted)]));
         Value::Null
         }).await?))
     }
@@ -5207,7 +5209,7 @@ impl Woo {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut address = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -5226,7 +5228,7 @@ impl Woo {
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), amount.clone());
+                m.insert("amount".to_string(), Value::from(amount));
                 m.insert("address".to_string(), address.clone());
             m
         });
@@ -5241,7 +5243,7 @@ impl Woo {
         request.insert("token".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         request.insert("network".into(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(&currency, "code", &[])]));
         let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_post_asset_wallet_withdraw", &[&__ws_arg_29]).await;
+        let mut response: crate::value::Dict = self.v3_private_post_asset_wallet_withdraw(&[&__ws_arg_29]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -5251,13 +5253,13 @@ impl Woo {
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let __ws_arg_30 = self.safe_string_k(&data, "withdrawId", &[]);
         let __ws_arg_31 = self.safe_integer_k(&response, "timestamp", &[]);
-        let __ws_arg_32 = self.safe_string(&self.networkAliases, network.clone().map(Value::from).unwrap_or(Value::Null), &[network.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let __ws_arg_32 = self.safe_string(&self.networkAliases, &network, &[network.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut transactionData: crate::value::Dict = self.extend_t(&data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), __ws_arg_30);
                 m.insert("timestamp".to_string(), __ws_arg_31);
                 m.insert("currency".to_string(), code);
-                m.insert("amount".to_string(), amount);
+                m.insert("amount".to_string(), Value::from(amount));
                 m.insert("addressTo".to_string(), address);
                 m.insert("tag".to_string(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
                 m.insert("network".to_string(), __ws_arg_32);
@@ -5285,7 +5287,7 @@ impl Woo {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -5302,20 +5304,20 @@ impl Woo {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("token".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount.clone(), &[])));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), Value::from(amount), &[])));
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v1_private_post_interest_repay", &[&__ws_arg_33]).await;
+        let mut response: crate::value::Dict = self.v1_private_post_interest_repay(&[&__ws_arg_33]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
         //     }
         //
-        let mut transaction: crate::value::Dict = self.parse_margin_loan(&response, Some(&currency)).into_dict();
+        let mut transaction: crate::value::Dict = self.parse_margin_loan(&response, Some(&currency));
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("symbol".to_string(), symbolResolved);
     m
 })]);
@@ -5323,9 +5325,9 @@ impl Woo {
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> crate::value::Dict {
         let mut info: Value = info.into();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
         m.insert("currency".to_string(), self.safe_currency_code(None, currency).map(Value::from).unwrap_or(Value::Null));
@@ -5337,7 +5339,7 @@ impl Woo {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 
@@ -5363,8 +5365,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5376,7 +5378,7 @@ impl Woo {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(500)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::from(&paramsPaginate), &Value::Str("page".into()), &Value::Int(500)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5387,19 +5389,19 @@ impl Woo {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64(); // unified in milliseconds
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, &["until"], &[]);
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        if (limit != Value::Null) {
-            request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
+        if (limit.is_some()) {
+            request.insert("size".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(500)));
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_futures_funding_fee_history", &[&__ws_arg_34]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_futures_funding_fee_history(&[&__ws_arg_34]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -5429,7 +5431,7 @@ impl Woo {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_incomes(&rows, &[crate::Value::from(market.as_ref()), since, limit]);
+        return self.parse_incomes(&rows, &[crate::Value::from(market.as_ref()), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -5490,7 +5492,7 @@ impl Woo {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_funding_rate", &[&__ws_arg_35]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_funding_rate(&[&__ws_arg_35]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -5543,7 +5545,7 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_funding_rate", &[&params]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_funding_rate(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -5591,8 +5593,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5604,7 +5606,7 @@ impl Woo {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(25)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchFundingRateHistory".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::from(&paramsPaginate), &Value::Str("page".into()), &Value::Int(25)]).await;
         }
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
@@ -5616,14 +5618,14 @@ impl Woo {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]);
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_36 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_public_get_funding_rate_history", &[&__ws_arg_36]).await;
+        let mut response: crate::value::Dict = self.v3_public_get_funding_rate_history(&[&__ws_arg_36]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -5668,7 +5670,7 @@ impl Woo {
         }
         }
         let mut sorted: crate::value::List = self.sort_by_t(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return Value::Arr(self.filter_by_symbol_since_limit(&sorted, symbolValue.as_deref(), since.as_i64(), limit.as_i64(), &[]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&sorted, symbolValue.as_deref(), since, limit, &[]));
         Value::Null
         }).await?))
     }
@@ -5701,7 +5703,7 @@ impl Woo {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_put_futures_position_mode", &[&__ws_arg_37]).await;
+        let mut response: crate::value::Dict = self.v3_private_put_futures_position_mode(&[&__ws_arg_37]).await.unwrap_or_default();
         return Value::Dict(response);
 
     Value::Null
@@ -5736,19 +5738,19 @@ impl Woo {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            response = self.call_method_o("v3_private_get_account_info", &[&params]).await;
+            response = self.v3_private_get_account_info(&[&params]).await;
         }  else if (market).swap {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params, Value::Str("cross".into())]);
+            let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[&params, &Value::Str("cross".into())]);
             let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
             request.insert("marginMode".into(), self.encode_margin_mode(marginMode.as_deref()).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.call_method_o("v3_private_get_futures_leverage", &[&__ws_arg_38]).await;
+            response = self.v3_private_get_futures_leverage(&[&__ws_arg_38]).await;
         }  else {
             let mut marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchLeverage() is not supported for ").into()), marketType).into()), " markets")));
@@ -5802,7 +5804,7 @@ impl Woo {
             return self.v3_private_post_spot_margin_leverage(&[&__ws_arg_39]).await;
         }  else if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
-            let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]);
+            let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[&params, &Value::Str("cross".into())]);
             let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
             request.insert("marginMode".into(), self.encode_margin_mode(marginMode.as_deref()).map(Value::from).unwrap_or(Value::Null));
@@ -5831,7 +5833,7 @@ impl Woo {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -5839,7 +5841,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "ADD", &[&params]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "ADD", &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -5859,7 +5861,7 @@ impl Woo {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -5867,7 +5869,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "REDUCE", &[&params]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "REDUCE", &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -5925,7 +5927,7 @@ impl Woo {
             m
         });
         let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_futures_positions", &[&__ws_arg_42]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_futures_positions(&[&__ws_arg_42]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -6001,7 +6003,7 @@ impl Woo {
             }
         }
         let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_futures_positions", &[&__ws_arg_43]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_futures_positions(&[&__ws_arg_43]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -6060,7 +6062,6 @@ impl Woo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6076,7 +6077,7 @@ impl Woo {
             m
         });
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_convert_rfq", &[&__ws_arg_44]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_convert_rfq(&[&__ws_arg_44]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -6094,9 +6095,9 @@ impl Woo {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let mut fromCurrencyId: Option<String> = self.safe_string_k_opt(&data, "sellToken", &[fromCode]);
+        let mut fromCurrencyId: Option<String> = self.safe_string_k_opt(&data, "sellToken", &[&fromCode]);
         let mut fromCurrency: crate::types::Currency = self.currency(fromCurrencyId.as_deref());
-        let mut toCurrencyId: Option<String> = self.safe_string_k_opt(&data, "buyToken", &[toCode]);
+        let mut toCurrencyId: Option<String> = self.safe_string_k_opt(&data, "buyToken", &[&toCode]);
         let mut toCurrency: crate::types::Currency = self.currency(toCurrencyId.as_deref());
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &data, Some(&fromCurrency), Some(&toCurrency));
         Value::Null
@@ -6124,7 +6125,6 @@ impl Woo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6138,7 +6138,7 @@ impl Woo {
             m
         });
         let __ws_arg_45 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_post_convert_rft", &[&__ws_arg_45]).await;
+        let mut response: crate::value::Dict = self.v3_private_post_convert_rft(&[&__ws_arg_45]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -6186,7 +6186,7 @@ impl Woo {
             m
         });
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_convert_trade", &[&__ws_arg_46]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_convert_trade(&[&__ws_arg_46]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -6236,8 +6236,8 @@ impl Woo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6249,17 +6249,17 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
-        if (limit != Value::Null) {
-            request.insert("size".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("size".into(), Value::from(limit));
         }
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let mut requestUntil: crate::value::Dict = __until0;
         let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_47 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_convert_trades", &[&__ws_arg_47]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_convert_trades(&[&__ws_arg_47]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -6282,7 +6282,7 @@ impl Woo {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut rows: crate::value::List = self.safe_list_k_t(&data, "tradeVos");
-        return self.parse_conversions(&rows, &[code, Value::Str("sellAsset".into()), Value::Str("buyAsset".into()), since, limit]);
+        return self.parse_conversions(&rows, &[code, Value::Str("sellAsset".into()), Value::Str("buyAsset".into()), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -6309,7 +6309,7 @@ impl Woo {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_convert_asset_info", &[&params]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_convert_asset_info(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -6418,7 +6418,7 @@ impl Woo {
             }
         }
         let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("v3_private_get_futures_positions", &[&__ws_arg_48]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_futures_positions(&[&__ws_arg_48]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -6482,7 +6482,7 @@ impl Woo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        self.super_set_sandbox_mode(enable.clone());
+        self.super_set_sandbox_mode(enable.as_bool() == Some(true));
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable); }
         Value::Null
         })).expect("a sync body never awaits")?))

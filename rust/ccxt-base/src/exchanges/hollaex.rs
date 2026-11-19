@@ -36,8 +36,10 @@ impl Hollaex {
         let described = Hollaex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -84,7 +86,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), ticker.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
@@ -101,7 +103,8 @@ impl crate::exchange::DerivedExchange for Hollaex {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(ticker, "volume", &[]));
+        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
+        m.insert("info".to_string(), ticker);
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 }), Some(&marketResolved)));
@@ -136,7 +139,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string_k_opt(&trade, "timestamp", &[]);
-        let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut timestamp: Option<i64> = self.parse8601(&datetime);
         let mut side: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
         let mut orderId: Option<String> = self.safe_string_k_opt(&trade, "order_id", &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
@@ -268,7 +271,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: String = self.safe_string(&currencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut code: Option<String> = self.safe_currency_code(Some(currencyId.as_str()), None);
-            let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+            let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("free".into(), self.safe_string(&response, Value::Str(format!("{}{}", currencyId, "_available").into()), &[]));
             account.insert("total".into(), self.safe_string(&response, Value::Str(format!("{}{}", currencyId, "_balance").into()), &[]));
             if (code.is_some()) {
@@ -301,7 +304,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         }
         self.check_address(&[&Value::from(address.as_deref())]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(&depositAddress, "currency", &[]);
-        let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
+        let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
         let mut networkId: Option<String> = self.safe_string_k_opt(&depositAddress, "network", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -452,7 +455,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             tagTo = tag.clone();
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency", &[]);
-        let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
+        let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
         let mut completed: bool = self.safe_bool_k_opt(&transaction, "status", &[Value::Bool(false)]).unwrap_or(false);
         let mut dismissed: bool = self.safe_bool_k_opt(&transaction, "dismissed", &[Value::Bool(false)]).unwrap_or(false);
         let mut rejected: bool = self.safe_bool_k_opt(&transaction, "rejected", &[Value::Bool(false)]).unwrap_or(false);
@@ -480,7 +483,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -497,7 +500,8 @@ impl crate::exchange::DerivedExchange for Hollaex {
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
-        m.insert("comment".to_string(), self.safe_string_k(transaction, "message", &[]));
+        m.insert("comment".to_string(), self.safe_string_k(&transaction, "message", &[]));
+        m.insert("info".to_string(), transaction);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
@@ -608,7 +612,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut query: crate::value::Dict = self.omit_t(params.clone(), self.extract_params(Value::from(path)), &[]);
+        let mut query: crate::value::Dict = self.omit_t(&params, self.extract_params(Value::from(path)), &[]);
         let mut requestPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version).into()), "/").into()), self.implode_params(Value::from(path), params));
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
             if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
@@ -642,7 +646,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
                     auth.push_str(requestBody.as_deref().unwrap_or("null"));
                 }
             }
-            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), "sha256", &[]);
             if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("api-signature".to_string(), Value::from(signature)); }
         }
         let mut bodyResult: Option<String> = requestBody;
@@ -663,7 +667,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut statusCode: Option<i64> = self.parse_to_int(code.clone());
+        let mut statusCode: Option<i64> = self.parse_to_int(&code);
         if (statusCode >= Some(400)) && ((statusCode.is_some() && statusCode <= Some(503))) {
             //
             //  { "message": "Invalid token" }
@@ -676,9 +680,9 @@ impl crate::exchange::DerivedExchange for Hollaex {
             //
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
             let mut message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
             let mut status: String = format!("{}", code);
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(status), Value::from(feedback));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(status), Value::from(feedback));
         }
         return Value::Null;
 
@@ -687,7 +691,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
 }
 
 impl crate::exchange_generated::ExchangeBase for Hollaex {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -1242,7 +1246,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_constants(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "coins": {
@@ -1388,7 +1392,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_constants(&[&params]).await.unwrap_or_default();
         //
         //    {
         //        "coins": {
@@ -1483,7 +1487,7 @@ impl Hollaex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1491,7 +1495,7 @@ impl Hollaex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("public_get_orderbooks", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_orderbooks(&[&params]).await.unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1530,7 +1534,7 @@ impl Hollaex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1649,14 +1653,14 @@ impl Hollaex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut keys: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<&str> = tickers.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_765: bool = true;
             while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < (keys.len() as i64) } {
-            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut key: Option<&str> = keys.get(i as usize).copied();
             let mut ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::from(key.as_deref()));
-            let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[Value::from(key.as_deref())]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[&Value::from(key.as_deref())]);
             let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let __ws_arg_2 = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
@@ -1687,8 +1691,8 @@ impl Hollaex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1718,7 +1722,7 @@ impl Hollaex {
         //     }
         //
         let mut trades: crate::value::List = self.safe_list_t(&response, Value::from((market).id.as_deref()));
-        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1745,7 +1749,7 @@ impl Hollaex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("public_get_tiers", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_tiers(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "1": {
@@ -1829,8 +1833,8 @@ impl Hollaex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1842,7 +1846,7 @@ impl Hollaex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
+                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
             m
         });
         let mut paginate: bool = false;
@@ -1851,22 +1855,22 @@ impl Hollaex {
         let mut paginateOption: bool = paginateOptionparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateOptionparamsPaginateVariable.1;
         if paginateOption {
-            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since, limit, timeframe.as_str(), &[&Value::from(&paramsPaginate), &Value::from(maxLimit)]).await;
         }
         let mut now: i64 = self.milliseconds();
         // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[Value::from(now)]).as_i64();
-        let mut timeDelta: i64 = ((((self.parse_timeframe(timeframe.clone())) * maxLimit)) * 1000);
-        if (since == Value::Null) {
+        let mut timeDelta: i64 = ((((self.parse_timeframe(&timeframe)) * maxLimit)) * 1000);
+        if (since.is_none()) {
             request.insert("from".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = until { Some(__l - timeDelta) } else { None })) { Some((__l as f64) / 1000.0) } else { None }))))); // convert to seconds
         }  else {
-            request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // convert to seconds
+            request.insert("from".into(), Value::from(self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // convert to seconds
         }
         request.insert("to".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))))); // convert to seconds
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]);
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_chart(&[&__ws_arg_4]).await.unwrap_or_default();
-        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -1894,7 +1898,7 @@ impl Hollaex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_balance", &[&params]).await;
+        let mut response: crate::value::Dict = self.private_get_user_balance(&[&params]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1931,7 +1935,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_order", &[&__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.private_get_order(&[&__ws_arg_5]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -1955,8 +1959,8 @@ impl Hollaex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1967,7 +1971,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_6).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_6).await);
         Value::Null
         }).await?))
     }
@@ -1990,8 +1994,8 @@ impl Hollaex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2002,7 +2006,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_7).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_7).await);
         Value::Null
         }).await?))
     }
@@ -2038,7 +2042,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Option<crate::value::Dict> = self.call_method_o("private_get_order", &[&__ws_arg_8]).await;
+        let mut response: Option<crate::value::Dict> = self.private_get_order(&[&__ws_arg_8]).await;
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -2087,8 +2091,8 @@ impl Hollaex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2105,11 +2109,11 @@ impl Hollaex {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        if (since != Value::Null) {
-            request.insert("start_date".into(), self.iso8601(since.clone()));
+        if (since.is_some()) {
+            request.insert("start_date".into(), self.iso8601(&Value::from(since)));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 50, max 100
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 50, max 100
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_orders", &[&__ws_arg_9]).await;
@@ -2143,7 +2147,7 @@ impl Hollaex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2157,7 +2161,7 @@ impl Hollaex {
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 
@@ -2182,11 +2186,10 @@ impl Hollaex {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2223,7 +2226,7 @@ impl Hollaex {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"], &[]);
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_order", &[&__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.private_post_order(&[&__ws_arg_10]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         None
         }).await?))
@@ -2260,7 +2263,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_delete_order", &[&__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.private_delete_order(&[&__ws_arg_11]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         None
         }).await?))
@@ -2324,8 +2327,8 @@ impl Hollaex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2342,14 +2345,14 @@ impl Hollaex {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 50, max 100
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 50, max 100
         }
-        if (since != Value::Null) {
-            request.insert("start_date".into(), self.iso8601(since.clone()));
+        if (since.is_some()) {
+            request.insert("start_date".into(), self.iso8601(&Value::from(since)));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_trades", &[&__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.private_get_user_trades(&[&__ws_arg_13]).await.unwrap_or_default();
         //
         //     {
         //         "count": 1,
@@ -2366,7 +2369,7 @@ impl Hollaex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_trades(&data, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_trades(&data, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2397,7 +2400,7 @@ impl Hollaex {
         }
         let mut network: Option<String> = self.safe_string_k_opt(&params, "network", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user", &[&Value::Dict(paramsOmitted)]).await;
+        let mut response: crate::value::Dict = self.private_get_user(&[&Value::Dict(paramsOmitted)]).await.unwrap_or_default();
         //
         //     {
         //         "id":620,
@@ -2447,7 +2450,7 @@ impl Hollaex {
         if (network.is_none()) {
             return self.parse_deposit_addresses(&wallet, &[codes.clone(), Value::Bool(false)]);
         }
-        let mut addresses: Value = self.filter_by(Value::Arr(wallet), Value::Str("network".into()), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[]), &[]);
+        let mut addresses: Value = Value::Arr(self.filter_by(Value::Arr(wallet), Value::Str("network".into()), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[]), &[]));
         return self.parse_deposit_addresses(addresses, &[codes, Value::Bool(false)]);
         Value::Null
         }).await?))
@@ -2471,8 +2474,8 @@ impl Hollaex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2489,14 +2492,14 @@ impl Hollaex {
             currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 50, max 100
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 50, max 100
         }
-        if (since != Value::Null) {
-            request.insert("start_date".into(), self.iso8601(since.clone()));
+        if (since.is_some()) {
+            request.insert("start_date".into(), self.iso8601(&Value::from(since)));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_deposits", &[&__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_get_user_deposits(&[&__ws_arg_14]).await.unwrap_or_default();
         //
         //     {
         //         "count": 1,
@@ -2521,7 +2524,7 @@ impl Hollaex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_transactions(&data, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&data, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2555,7 +2558,7 @@ impl Hollaex {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_withdrawals", &[&__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.private_get_user_withdrawals(&[&__ws_arg_15]).await.unwrap_or_default();
         //
         //     {
         //         "count": 1,
@@ -2604,8 +2607,8 @@ impl Hollaex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2622,14 +2625,14 @@ impl Hollaex {
             currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 50, max 100
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 50, max 100
         }
-        if (since != Value::Null) {
-            request.insert("start_date".into(), self.iso8601(since.clone()));
+        if (since.is_some()) {
+            request.insert("start_date".into(), self.iso8601(&Value::from(since)));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_user_withdrawals", &[&__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_get_user_withdrawals(&[&__ws_arg_16]).await.unwrap_or_default();
         //
         //     {
         //         "count": 1,
@@ -2654,7 +2657,7 @@ impl Hollaex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_transactions(&data, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&data, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2676,7 +2679,7 @@ impl Hollaex {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut address = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -2704,13 +2707,13 @@ impl Hollaex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), amount);
+                m.insert("amount".to_string(), Value::from(amount));
                 m.insert("address".to_string(), Value::from(addressWithTag));
                 m.insert("network".to_string(), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[code]));
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[])]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_user_withdrawal", &[&__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.private_post_user_withdrawal(&[&__ws_arg_17]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -2737,7 +2740,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_constants", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_constants(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "coins":{

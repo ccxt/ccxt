@@ -36,8 +36,10 @@ impl Mercado {
         let described = Mercado::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -238,7 +240,7 @@ impl crate::exchange::DerivedExchange for Mercado {
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (matches!(currencyId.as_deref(), Some(__k) if balances.contains_key(__k))) {
                 let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::from(currencyId.as_deref()));
-                let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+                let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
                 account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
                 account.insert("total".into(), self.safe_string_k(&balance, "total", &[]));
                 if (code.is_some()) {
@@ -266,7 +268,7 @@ impl crate::exchange::DerivedExchange for Mercado {
         //         "updated_timestamp": "1453912088"
         //     }
         //
-        let mut currencyResolved: crate::types::Currency = self.safe_currency(Value::Null, currency);
+        let mut currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
@@ -309,12 +311,12 @@ impl crate::exchange::DerivedExchange for Mercado {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/");
-        let mut query: crate::value::Dict = self.omit_t(params.clone(), self.extract_params(Value::from(path)), &[]);
+        let mut query: crate::value::Dict = self.omit_t(&params, self.extract_params(Value::from(path)), &[]);
         let mut isPublic: bool = (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("v4Public")) || (apiName.as_deref() == Some("v4PublicNet"));
         let mut privateBody: String = "".to_string();
         let mut privateHeaders: Option<crate::value::Dict> = None;
         if isPublic {
-            url.push_str(&(self.implode_params(Value::from(path), params.clone())).to_string());
+            url.push_str(&(self.implode_params(Value::from(path), &params)).to_string());
             if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
@@ -335,7 +337,7 @@ impl crate::exchange::DerivedExchange for Mercado {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("TAPI-ID".to_string(), self.apiKey.clone());
-                    m.insert("TAPI-MAC".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha512".into()), &[])));
+                    m.insert("TAPI-MAC".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), "sha512", &[])));
                 m
             }));
         }
@@ -378,7 +380,7 @@ impl crate::exchange::DerivedExchange for Mercado {
 }
 
 impl crate::exchange_generated::ExchangeBase for Mercado {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -993,7 +995,7 @@ impl Mercado {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1008,7 +1010,7 @@ impl Mercado {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_coin_orderbook", &[&__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_coin_orderbook(&[&__ws_arg_0]).await.unwrap_or_default();
         return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]));
         Value::Null
         }).await?))
@@ -1044,7 +1046,7 @@ impl Mercado {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_coin_ticker", &[&__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_coin_ticker(&[&__ws_arg_1]).await.unwrap_or_default();
         let mut ticker: crate::value::Dict = self.safe_dict_k_t(&response, "ticker");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -1069,8 +1071,8 @@ impl Mercado {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1084,22 +1086,22 @@ impl Mercado {
                 m.insert("coin".to_string(), Value::from((market).base.clone()));
             m
         });
-        if (since != Value::Null) {
-            request.insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+        if (since.is_some()) {
+            request.insert("from".into(), Value::from(self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut to: Option<i64> = self.safe_integer_k(&params, "to", &[]).as_i64();
         let mut response: Option<crate::value::List> = None;
-        if (since != Value::Null) && (to.is_some()) {
+        if (since.is_some()) && (to.is_some()) {
             let __ws_arg_2 = self.extend(&request, &[&params]);
             response = self.public_get_coin_trades_from_to(&[&__ws_arg_2]).await;
-        }  else if (since != Value::Null) {
+        }  else if (since.is_some()) {
             let __ws_arg_3 = self.extend(&request, &[&params]);
             response = self.public_get_coin_trades_from(&[&__ws_arg_3]).await;
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
             response = self.public_get_coin_trades(&[&__ws_arg_4]).await;
         }
-        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1125,7 +1127,7 @@ impl Mercado {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_post_get_account_info", &[&params]).await;
+        let mut response: crate::value::Dict = self.private_post_get_account_info(&[&params]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1149,11 +1151,10 @@ impl Mercado {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1169,29 +1170,29 @@ impl Mercado {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
-            request.insert("limit_price".into(), Value::from(self.price_to_precision((Value::from((market).symbol.clone())).as_str(), price.clone())));
-            request.insert("quantity".into(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount.clone())));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), &Value::from(price))));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), &Value::from(amount))));
             if (side.as_str() == Some("buy")) {
                 let __ws_arg_5 = self.extend(&request, &[&params]);
-                response = self.call_method_o("private_post_place_buy_order", &[&__ws_arg_5]).await;
+                response = self.private_post_place_buy_order(&[&__ws_arg_5]).await;
             }  else {
                 let __ws_arg_6 = self.extend(&request, &[&params]);
-                response = self.call_method_o("private_post_place_sell_order", &[&__ws_arg_6]).await;
+                response = self.private_post_place_sell_order(&[&__ws_arg_6]).await;
             }
         }  else {
             if (side.as_str() == Some("buy")) {
-                if (price == Value::Null) {
+                if (price.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")));
                 }
                 let mut amountString: Option<String> = self.number_to_string(&amount);
                 let mut priceString: Option<String> = self.number_to_string(price);
-                request.insert("cost".into(), Value::from(self.price_to_precision((Value::from((market).symbol.clone())).as_str(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)))));
+                request.insert("cost".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)))));
                 let __ws_arg_7 = self.extend(&request, &[&params]);
-                response = self.call_method_o("private_post_place_market_buy_order", &[&__ws_arg_7]).await;
+                response = self.private_post_place_market_buy_order(&[&__ws_arg_7]).await;
             }  else {
-                request.insert("quantity".into(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount)));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount))));
                 let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-                response = self.call_method_o("private_post_place_market_sell_order", &[&__ws_arg_8]).await;
+                response = self.private_post_place_market_sell_order(&[&__ws_arg_8]).await;
             }
         }
         return Value::Dict(self.safe_order(Value::Map({
@@ -1239,7 +1240,7 @@ impl Mercado {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_order", &[&__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_post_cancel_order(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //     {
         //         "response_data": {
@@ -1278,7 +1279,7 @@ impl Mercado {
                 m.insert("4".to_string(), Value::Str("closed".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 
@@ -1317,7 +1318,7 @@ impl Mercado {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_get_order", &[&__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.private_post_get_order(&[&__ws_arg_10]).await.unwrap_or_default();
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut order: Option<crate::value::Dict> = self.safe_dict_k_o(&responseData, "order");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
@@ -1340,7 +1341,7 @@ impl Mercado {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut address = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -1360,7 +1361,7 @@ impl Mercado {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("quantity".to_string(), Value::str(format!("{:.*}", 10, amount.as_f64().unwrap_or(0.0))));
+                m.insert("quantity".to_string(), Value::str(format!("{:.*}", 10, Some(amount).unwrap_or(0.0))));
                 m.insert("address".to_string(), address);
             m
         });
@@ -1385,7 +1386,7 @@ impl Mercado {
             }
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw_coin", &[&__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.private_post_withdraw_coin(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //     {
         //         "response_data": {
@@ -1433,8 +1434,8 @@ impl Mercado {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("15m".into()));
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1443,25 +1444,25 @@ impl Mercado {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: crate::value::Dict = Value::Map({
+        let mut request: crate::value::Dict = std::sync::Arc::new({
             let mut m = indexmap::IndexMap::new();
-                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
+                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
                 m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).base.as_str()), Value::Str("-".into())).into()), Value::from((market).quote.as_str())).into()));
             m
-        }).into_dict();
+        });
         // set some default limit, as it's required if user doesn't provide it
-        let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
-        if (since != Value::Null) {
-            std::sync::Arc::make_mut(&mut request).insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
-            { let __be_tmp = self.sum(&[crate::value::KeyRead::key_read(&&request, "from"), Value::Int((limitResolved * (self.parse_timeframe(timeframe.clone()))))]); std::sync::Arc::make_mut(&mut request).insert("to".into(), __be_tmp); }
+        let mut limitResolved: i64 = limit.unwrap_or(100);
+        if (since.is_some()) {
+            std::sync::Arc::make_mut(&mut request).insert("from".into(), Value::from(self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+            { let __be_tmp = self.sum(&[crate::value::KeyRead::key_read(&&request, "from"), Value::Int((limitResolved * (self.parse_timeframe(&timeframe))))]); std::sync::Arc::make_mut(&mut request).insert("to".into(), __be_tmp); }
         }  else {
             let mut to: i64 = self.seconds();
             std::sync::Arc::make_mut(&mut request).insert("to".into(), Value::from(to));
-            std::sync::Arc::make_mut(&mut request).insert("from".into(), Value::Int((to - ((limitResolved * (self.parse_timeframe(timeframe.clone())))))));
+            std::sync::Arc::make_mut(&mut request).insert("from".into(), Value::Int((to - ((limitResolved * (self.parse_timeframe(&timeframe)))))));
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.v4_public_net_get_candles(&[&__ws_arg_12]).await;
-        return self.parse_trading_view_ohlcv(response, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
+        return self.parse_trading_view_ohlcv(response, Some(&market), &[timeframe, Value::from(since), Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1483,8 +1484,8 @@ impl Mercado {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1502,10 +1503,10 @@ impl Mercado {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_list_orders", &[&__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.private_post_list_orders(&[&__ws_arg_13]).await.unwrap_or_default();
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut orders: crate::value::List = self.safe_list_k_t(&responseData, "orders");
-        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1527,8 +1528,8 @@ impl Mercado {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1547,10 +1548,10 @@ impl Mercado {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_list_orders", &[&__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_post_list_orders(&[&__ws_arg_14]).await.unwrap_or_default();
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut orders: crate::value::List = self.safe_list_k_t(&responseData, "orders");
-        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1572,8 +1573,8 @@ impl Mercado {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1592,12 +1593,12 @@ impl Mercado {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_list_orders", &[&__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.private_post_list_orders(&[&__ws_arg_15]).await.unwrap_or_default();
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut ordersRaw: crate::value::List = self.safe_list_k_t(&responseData, "orders");
-        let mut orders: crate::value::List = self.parse_orders(&ordersRaw, Some(&market), &[since.clone(), limit.clone()]);
+        let mut orders: crate::value::List = self.parse_orders(&ordersRaw, Some(&market), &[&Value::from(since), &Value::from(limit)]);
         let mut trades: crate::value::List = self.orders_to_trades(Value::Arr(orders)).into_list();
-        return Value::Arr(self.filter_by_symbol_since_limit(&trades, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, Some((market).symbol.as_str()), since, limit, &[]));
         Value::Null
         }).await?))
     }

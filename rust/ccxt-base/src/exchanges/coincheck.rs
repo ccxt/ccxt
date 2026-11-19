@@ -36,8 +36,10 @@ impl Coincheck {
         let described = Coincheck::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -254,7 +256,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
             let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
             let mut free: Option<String> = self.safe_string_opt(&response, Value::from(currencyId.as_deref()), &[]);
             if (free.is_some()) {
-                let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+                let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
                 let mut reserved: String = format!("{}{}", currencyId.as_deref().unwrap_or("null"), "_reserved");
                 account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));
                 account.insert("used".into(), self.safe_string(&response, Value::from(reserved), &[]));
@@ -355,7 +357,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), &params));
         let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
         let mut hasQuery: bool = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64);
         if (apiName.as_deref() == Some("public")) {
@@ -382,7 +384,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-NONCE".to_string(), Value::from(nonce));
-                    m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha256".into()), &[])));
+                    m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), "sha256", &[])));
                 m
             }));
         }
@@ -411,8 +413,8 @@ impl crate::exchange::DerivedExchange for Coincheck {
         if !success {
             let mut error: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -422,7 +424,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
 }
 
 impl crate::exchange_generated::ExchangeBase for Coincheck {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -950,7 +952,7 @@ impl Coincheck {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_exchange_status", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_exchange_status(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "exchange_status": [
@@ -1018,7 +1020,7 @@ impl Coincheck {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_accounts_balance", &[&params]).await;
+        let mut response: crate::value::Dict = self.private_get_accounts_balance(&[&params]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1042,8 +1044,8 @@ impl Coincheck {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1056,9 +1058,9 @@ impl Coincheck {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_exchange_orders_opens", &[&params]).await;
+        let mut response: crate::value::Dict = self.private_get_exchange_orders_opens(&[&params]).await.unwrap_or_default();
         let mut rawOrders: crate::value::List = self.safe_list_k_t(&response, "orders");
-        let mut parsedOrders: Vec<Value> = Value::Arr(self.parse_orders(&rawOrders, market.as_ref(), &[since, limit])).as_array().cloned().unwrap_or_default();
+        let mut parsedOrders: Vec<Value> = Value::Arr(self.parse_orders(&rawOrders, market.as_ref(), &[&Value::from(since), &Value::from(limit)])).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1094,7 +1096,7 @@ impl Coincheck {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1109,7 +1111,7 @@ impl Coincheck {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_order_books", &[&__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_order_books(&[&__ws_arg_0]).await.unwrap_or_default();
         return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]));
         Value::Null
         }).await?))
@@ -1174,8 +1176,8 @@ impl Coincheck {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1188,11 +1190,11 @@ impl Coincheck {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_exchange_orders_transactions_pagination", &[&__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.private_get_exchange_orders_transactions_pagination(&[&__ws_arg_2]).await.unwrap_or_default();
         //
         //      {
         //          "success": true,
@@ -1216,7 +1218,7 @@ impl Coincheck {
         //      }
         //
         let mut transactions: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_trades(&transactions, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&transactions, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1239,8 +1241,8 @@ impl Coincheck {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1254,8 +1256,8 @@ impl Coincheck {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[&__ws_arg_3]).await;
@@ -1270,7 +1272,7 @@ impl Coincheck {
         //      }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_trades(&data, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&data, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1368,11 +1370,10 @@ impl Coincheck {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1389,7 +1390,7 @@ impl Coincheck {
         if (type_var.as_str() == Some("market")) {
             request.insert("order_type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, "_").into()), side).into()));
             if (side.as_str() == Some("sell")) {
-                request.insert("amount".into(), amount.clone());
+                request.insert("amount".into(), Value::from(amount));
             }  else {
                 let mut cost: Option<f64> = self.safe_number_k(&params, "cost", &[]).as_f64();
                 if (cost.is_some()) {
@@ -1399,11 +1400,11 @@ impl Coincheck {
             }
         }  else {
             request.insert("order_type".into(), side);
-            request.insert("rate".into(), price);
-            request.insert("amount".into(), amount);
+            request.insert("rate".into(), Value::from(price));
+            request.insert("amount".into(), Value::from(amount));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("cost".into()), &[])]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_exchange_orders", &[&__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_post_exchange_orders(&[&__ws_arg_4]).await.unwrap_or_default();
         let mut id: Option<String> = self.safe_string_k_opt(&response, "id", &[]);
         return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1443,7 +1444,7 @@ impl Coincheck {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_delete_exchange_orders_id", &[&__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.private_delete_exchange_orders_id(&[&__ws_arg_5]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         None
         }).await?))
@@ -1467,8 +1468,8 @@ impl Coincheck {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1485,11 +1486,11 @@ impl Coincheck {
             currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_deposit_money", &[&__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_get_deposit_money(&[&__ws_arg_6]).await.unwrap_or_default();
         // {
         //   "success": true,
         //   "deposits": [
@@ -1514,11 +1515,11 @@ impl Coincheck {
         //   ]
         // }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "deposits");
-        return self.parse_transactions(&data, currency.as_ref(), &[since, limit, Value::Map({
+        return Value::Arr(self.parse_transactions(&data, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".into()));
     m
-})]);
+})]));
         Value::Null
         }).await?))
     }
@@ -1541,8 +1542,8 @@ impl Coincheck {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1558,8 +1559,8 @@ impl Coincheck {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_withdraws", &[&__ws_arg_7]).await;
@@ -1585,11 +1586,11 @@ impl Coincheck {
         //   ]
         // }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_transactions(&data, currency.as_ref(), &[since, limit, Value::Map({
+        return Value::Arr(self.parse_transactions(&data, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".into()));
     m
-})]);
+})]));
         Value::Null
         }).await?))
     }
@@ -1605,7 +1606,7 @@ impl Coincheck {
                 m.insert("received".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 

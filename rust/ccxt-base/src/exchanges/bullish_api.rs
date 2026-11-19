@@ -18,8 +18,8 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `publicGetV1Time` implicit endpoint.
-    pub async fn public_get_v1_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_time".into()), optional_args).await
+    pub async fn public_get_v1_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV1Assets` implicit endpoint.
@@ -63,8 +63,8 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `publicGetV1MarketsSymbolOrderbookHybrid` implicit endpoint.
-    pub async fn public_get_v1_markets_symbol_orderbook_hybrid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_markets_symbol_orderbook_hybrid".into()), optional_args).await
+    pub async fn public_get_v1_markets_symbol_orderbook_hybrid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_markets_symbol_orderbook_hybrid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV1MarketsSymbolTrades` implicit endpoint.
@@ -73,8 +73,8 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `publicGetV1MarketsSymbolTick` implicit endpoint.
-    pub async fn public_get_v1_markets_symbol_tick(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_markets_symbol_tick".into()), optional_args).await
+    pub async fn public_get_v1_markets_symbol_tick(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v1_markets_symbol_tick".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV1MarketsSymbolCandle` implicit endpoint.
@@ -148,8 +148,8 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `privateGetV2OrdersOrderId` implicit endpoint.
-    pub async fn private_get_v2_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v2_orders_order_id".into()), optional_args).await
+    pub async fn private_get_v2_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v2_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV2OrdersClientOrderIdClientOrderId` implicit endpoint.
@@ -168,8 +168,8 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `privateGetV1WalletsTransactions` implicit endpoint.
-    pub async fn private_get_v1_wallets_transactions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v1_wallets_transactions".into()), optional_args).await
+    pub async fn private_get_v1_wallets_transactions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v1_wallets_transactions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV1WalletsLimitsSymbol` implicit endpoint.
@@ -228,8 +228,8 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `privateGetV1AccountsAssetSymbol` implicit endpoint.
-    pub async fn private_get_v1_accounts_asset_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v1_accounts_asset_symbol".into()), optional_args).await
+    pub async fn private_get_v1_accounts_asset_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v1_accounts_asset_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV1UsersLogout` implicit endpoint.
@@ -238,8 +238,8 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `privateGetV1UsersHmacLogin` implicit endpoint.
-    pub async fn private_get_v1_users_hmac_login(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v1_users_hmac_login".into()), optional_args).await
+    pub async fn private_get_v1_users_hmac_login(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v1_users_hmac_login".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV1AccountsTradingAccounts` implicit endpoint.
@@ -308,13 +308,13 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `privatePostV2Orders` implicit endpoint.
-    pub async fn private_post_v2_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v2_orders".into()), optional_args).await
+    pub async fn private_post_v2_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v2_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV2Command` implicit endpoint.
-    pub async fn private_post_v2_command(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v2_command".into()), optional_args).await
+    pub async fn private_post_v2_command(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v2_command".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV2AmmInstructions` implicit endpoint.
@@ -323,8 +323,8 @@ impl Bullish {
     }
 
     /// Auto-generated wrapper for the `privatePostV1WalletsWithdrawal` implicit endpoint.
-    pub async fn private_post_v1_wallets_withdrawal(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v1_wallets_withdrawal".into()), optional_args).await
+    pub async fn private_post_v1_wallets_withdrawal(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v1_wallets_withdrawal".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV2UsersLogin` implicit endpoint.

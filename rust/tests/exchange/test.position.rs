@@ -68,23 +68,23 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
     let mut emptyotAllowedFor: Value = Value::from(vec![Value::Str("positionMargin".into()), Value::Str("liquidationPrice".into()), Value::Str("initialMargin".into()), Value::Str("initialMarginPercentage".into()), Value::Str("maintenanceMargin".into()), Value::Str("maintenanceMarginPercentage".into()), Value::Str("marginRatio".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyotAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()).clone(), Value::from(vec![Value::Str("long".into()), Value::Str("short".into())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginMode".into()).clone(), Value::from(vec![Value::Str("cross".into()), Value::Str("isolated".into())]).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".into()).clone(), Value::Str("200".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMargin".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMarginPercentage".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMargin".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMarginPercentage".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("entryPrice".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("notional".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contracts".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contractSize".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginRatio".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("markPrice".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("collateral".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()), symbol.clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()), Value::from(vec![Value::Str("long".into()), Value::Str("short".into())])]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginMode".into()), Value::from(vec![Value::Str("cross".into()), Value::Str("isolated".into())])]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_less_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("leverage".into()), Value::Str("200".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMargin".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("initialMarginPercentage".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMargin".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("maintenanceMarginPercentage".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("entryPrice".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("notional".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contracts".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("contractSize".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("marginRatio".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("markPrice".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("collateral".into()), Value::Str("0".into())]);
     // testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
     let mut marginMode: Option<String> = exchange.safe_string_opt(&entry, Value::Str("marginMode".into()), &[]);
     if (marginMode.as_deref() == Some("isolated")) {
@@ -100,9 +100,9 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
         let mut unrealizedPnlString: Option<String> = exchange.safe_string_opt(&entry, Value::Str("unrealizedPnl".into()), &[]);
         if (entryPriceString.is_some()) && (liquidationPriceString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into()))) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into()))) {
             if (side.as_deref() == Some("long")) {
-                crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
+                crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()), Value::from(entryPriceString.as_deref()).clone()]);
             }  else if (side.as_deref() == Some("short")) {
-                crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method, entry.clone(), Value::Str("liquidationPrice".into()).clone(), Value::from(entryPriceString.as_deref()).clone()]);
+                crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method, entry.clone(), Value::Str("liquidationPrice".into()), Value::from(entryPriceString.as_deref()).clone()]);
             }
         }
         let mut marginString: Value = exchange.safe_string(&entry, Value::Str("positionMargin".into()), &[]);
@@ -130,7 +130,7 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
         let mut hasContractSize: bool = (contractSizeString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())));
         let mut hasMm: bool = (maintenanceMarginString.is_some()) && is_true(&ccxt::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())));
         if hasEntryMargin && hasEntryPrice && hasLiqPrice && hasContracts && hasContractSize && hasMm {
-            let mut symbolForMarket: Value = (if (symbol != Value::Null) { symbol.clone() } else { exchange.safe_string(&entry, Value::Str("symbol".into()), &[]) });
+            let mut symbolForMarket: Value = (if (symbol != Value::Null) { symbol } else { exchange.safe_string(&entry, Value::Str("symbol".into()), &[]) });
             let mut market: Value = Value::Null;
             if (symbolForMarket != Value::Null) && (get_value(&exchange, &Value::Str("markets".into())) != Value::Null) && is_true(&(crate::tests_support::shared::market_exists(&exchange, &symbolForMarket))) {
                 market = exchange.market(symbolForMarket);

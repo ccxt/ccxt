@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Bigone {
     /// Auto-generated wrapper for the `publicGetPing` implicit endpoint.
-    pub async fn public_get_ping(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_ping".into()), optional_args).await
+    pub async fn public_get_ping(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_ping".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetAssetPairs` implicit endpoint.
@@ -23,28 +23,28 @@ impl Bigone {
     }
 
     /// Auto-generated wrapper for the `publicGetAssetPairsAssetPairNameDepth` implicit endpoint.
-    pub async fn public_get_asset_pairs_asset_pair_name_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_asset_pairs_asset_pair_name_depth".into()), optional_args).await
+    pub async fn public_get_asset_pairs_asset_pair_name_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_asset_pairs_asset_pair_name_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetAssetPairsAssetPairNameTrades` implicit endpoint.
-    pub async fn public_get_asset_pairs_asset_pair_name_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_asset_pairs_asset_pair_name_trades".into()), optional_args).await
+    pub async fn public_get_asset_pairs_asset_pair_name_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_asset_pairs_asset_pair_name_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetAssetPairsAssetPairNameTicker` implicit endpoint.
-    pub async fn public_get_asset_pairs_asset_pair_name_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_asset_pairs_asset_pair_name_ticker".into()), optional_args).await
+    pub async fn public_get_asset_pairs_asset_pair_name_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_asset_pairs_asset_pair_name_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetAssetPairsAssetPairNameCandles` implicit endpoint.
-    pub async fn public_get_asset_pairs_asset_pair_name_candles(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_asset_pairs_asset_pair_name_candles".into()), optional_args).await
+    pub async fn public_get_asset_pairs_asset_pair_name_candles(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_asset_pairs_asset_pair_name_candles".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetAssetPairsTickers` implicit endpoint.
-    pub async fn public_get_asset_pairs_tickers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_asset_pairs_tickers".into()), optional_args).await
+    pub async fn public_get_asset_pairs_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_asset_pairs_tickers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccounts` implicit endpoint.
@@ -53,13 +53,13 @@ impl Bigone {
     }
 
     /// Auto-generated wrapper for the `privateGetFundAccounts` implicit endpoint.
-    pub async fn private_get_fund_accounts(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_fund_accounts".into()), optional_args).await
+    pub async fn private_get_fund_accounts(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_fund_accounts".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAssetsAssetSymbolAddress` implicit endpoint.
-    pub async fn private_get_assets_asset_symbol_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_assets_asset_symbol_address".into()), optional_args).await
+    pub async fn private_get_assets_asset_symbol_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_assets_asset_symbol_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOrders` implicit endpoint.
@@ -93,28 +93,28 @@ impl Bigone {
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
-    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders".into()), optional_args).await
+    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersIdCancel` implicit endpoint.
-    pub async fn private_post_orders_id_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders_id_cancel".into()), optional_args).await
+    pub async fn private_post_orders_id_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders_id_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersCancel` implicit endpoint.
-    pub async fn private_post_orders_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders_cancel".into()), optional_args).await
+    pub async fn private_post_orders_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawals` implicit endpoint.
-    pub async fn private_post_withdrawals(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdrawals".into()), optional_args).await
+    pub async fn private_post_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdrawals".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTransfer` implicit endpoint.
-    pub async fn private_post_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_transfer".into()), optional_args).await
+    pub async fn private_post_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `contractPublicGetSymbols` implicit endpoint.
@@ -128,8 +128,8 @@ impl Bigone {
     }
 
     /// Auto-generated wrapper for the `contractPublicGetDepthSymbolSnapshot` implicit endpoint.
-    pub async fn contract_public_get_depth_symbol_snapshot(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("contract_public_get_depth_symbol_snapshot".into()), optional_args).await
+    pub async fn contract_public_get_depth_symbol_snapshot(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("contract_public_get_depth_symbol_snapshot".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `contractPublicGetInstrumentsDifference` implicit endpoint.

@@ -13,23 +13,23 @@ use crate::exchange::ExchangeRuntime;
 
 impl Sxbet {
     /// Auto-generated wrapper for the `sxbetPublicGetMetadataObv3` implicit endpoint.
-    pub async fn sxbet_public_get_metadata_obv3(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_public_get_metadata_obv3".into()), optional_args).await
+    pub async fn sxbet_public_get_metadata_obv3(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_public_get_metadata_obv3".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPublicGetOrderbookV3Snapshot` implicit endpoint.
-    pub async fn sxbet_public_get_orderbook_v3_snapshot(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_public_get_orderbook_v3_snapshot".into()), optional_args).await
+    pub async fn sxbet_public_get_orderbook_v3_snapshot(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_public_get_orderbook_v3_snapshot".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPublicGetTradesV3Public` implicit endpoint.
-    pub async fn sxbet_public_get_trades_v3_public(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_public_get_trades_v3_public".into()), optional_args).await
+    pub async fn sxbet_public_get_trades_v3_public(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_public_get_trades_v3_public".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPublicGetMarketsActive` implicit endpoint.
-    pub async fn sxbet_public_get_markets_active(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_public_get_markets_active".into()), optional_args).await
+    pub async fn sxbet_public_get_markets_active(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_public_get_markets_active".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPublicGetMarketsFind` implicit endpoint.
@@ -93,18 +93,18 @@ impl Sxbet {
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetUserRealtimeTokenV3ApiKey` implicit endpoint.
-    pub async fn sxbet_private_get_user_realtime_token_v3_api_key(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_user_realtime_token_v3_api_key".into()), optional_args).await
+    pub async fn sxbet_private_get_user_realtime_token_v3_api_key(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_user_realtime_token_v3_api_key".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetUserProxy` implicit endpoint.
-    pub async fn sxbet_private_get_user_proxy(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_user_proxy".into()), optional_args).await
+    pub async fn sxbet_private_get_user_proxy(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_user_proxy".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetUserBalanceV3` implicit endpoint.
-    pub async fn sxbet_private_get_user_balance_v3(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_user_balance_v3".into()), optional_args).await
+    pub async fn sxbet_private_get_user_balance_v3(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_user_balance_v3".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetUserTransferToProxyPending` implicit endpoint.
@@ -118,53 +118,53 @@ impl Sxbet {
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetOrdersV3` implicit endpoint.
-    pub async fn sxbet_private_get_orders_v3(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_orders_v3".into()), optional_args).await
+    pub async fn sxbet_private_get_orders_v3(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_orders_v3".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetOrdersV3OrderId` implicit endpoint.
-    pub async fn sxbet_private_get_orders_v3_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_orders_v3_order_id".into()), optional_args).await
+    pub async fn sxbet_private_get_orders_v3_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_orders_v3_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetOrdersV3OddsBest` implicit endpoint.
-    pub async fn sxbet_private_get_orders_v3_odds_best(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_orders_v3_odds_best".into()), optional_args).await
+    pub async fn sxbet_private_get_orders_v3_odds_best(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_orders_v3_odds_best".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetTradesV3` implicit endpoint.
-    pub async fn sxbet_private_get_trades_v3(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_trades_v3".into()), optional_args).await
+    pub async fn sxbet_private_get_trades_v3(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_trades_v3".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetFillsV3` implicit endpoint.
-    pub async fn sxbet_private_get_fills_v3(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_fills_v3".into()), optional_args).await
+    pub async fn sxbet_private_get_fills_v3(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_fills_v3".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateGetPositionsV3` implicit endpoint.
-    pub async fn sxbet_private_get_positions_v3(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_get_positions_v3".into()), optional_args).await
+    pub async fn sxbet_private_get_positions_v3(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_get_positions_v3".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateDeleteOrdersV3` implicit endpoint.
-    pub async fn sxbet_private_delete_orders_v3(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_delete_orders_v3".into()), optional_args).await
+    pub async fn sxbet_private_delete_orders_v3(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_delete_orders_v3".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateDeleteOrdersV3Event` implicit endpoint.
-    pub async fn sxbet_private_delete_orders_v3_event(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_delete_orders_v3_event".into()), optional_args).await
+    pub async fn sxbet_private_delete_orders_v3_event(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_delete_orders_v3_event".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivateDeleteOrdersV3All` implicit endpoint.
-    pub async fn sxbet_private_delete_orders_v3_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_delete_orders_v3_all".into()), optional_args).await
+    pub async fn sxbet_private_delete_orders_v3_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_delete_orders_v3_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivatePostOrdersV3` implicit endpoint.
-    pub async fn sxbet_private_post_orders_v3(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_post_orders_v3".into()), optional_args).await
+    pub async fn sxbet_private_post_orders_v3(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_post_orders_v3".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivatePostUserDeployProxy` implicit endpoint.
@@ -173,8 +173,8 @@ impl Sxbet {
     }
 
     /// Auto-generated wrapper for the `sxbetPrivatePostUserTransferToProxy` implicit endpoint.
-    pub async fn sxbet_private_post_user_transfer_to_proxy(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sxbet_private_post_user_transfer_to_proxy".into()), optional_args).await
+    pub async fn sxbet_private_post_user_transfer_to_proxy(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sxbet_private_post_user_transfer_to_proxy".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sxbetPrivatePostHeartbeatV3` implicit endpoint.

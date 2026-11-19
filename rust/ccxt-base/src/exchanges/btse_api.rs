@@ -43,8 +43,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `publicGetSpotApiV33Time` implicit endpoint.
-    pub async fn public_get_spot_api_v33_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_spot_api_v33_time".into()), optional_args).await
+    pub async fn public_get_spot_api_v33_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_spot_api_v33_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetFuturesApiV23MarketSummary` implicit endpoint.
@@ -108,8 +108,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1Markets` implicit endpoint.
-    pub async fn public_get_public_api_market_v1_markets(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_public_api_market_v1_markets".into()), optional_args).await
+    pub async fn public_get_public_api_market_v1_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_public_api_market_v1_markets".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1ExchangeInfo` implicit endpoint.
@@ -118,23 +118,23 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1Orderbook` implicit endpoint.
-    pub async fn public_get_public_api_market_v1_orderbook(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_public_api_market_v1_orderbook".into()), optional_args).await
+    pub async fn public_get_public_api_market_v1_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_public_api_market_v1_orderbook".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1Trades` implicit endpoint.
-    pub async fn public_get_public_api_market_v1_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_public_api_market_v1_trades".into()), optional_args).await
+    pub async fn public_get_public_api_market_v1_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_public_api_market_v1_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1Klines` implicit endpoint.
-    pub async fn public_get_public_api_market_v1_klines(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_public_api_market_v1_klines".into()), optional_args).await
+    pub async fn public_get_public_api_market_v1_klines(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_public_api_market_v1_klines".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1Ticker24hr` implicit endpoint.
-    pub async fn public_get_public_api_market_v1_ticker24hr(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_public_api_market_v1_ticker24hr".into()), optional_args).await
+    pub async fn public_get_public_api_market_v1_ticker24hr(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_public_api_market_v1_ticker24hr".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1TickerPrice` implicit endpoint.
@@ -153,13 +153,13 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1RecentFundingHistory` implicit endpoint.
-    pub async fn public_get_public_api_market_v1_recent_funding_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_public_api_market_v1_recent_funding_history".into()), optional_args).await
+    pub async fn public_get_public_api_market_v1_recent_funding_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_public_api_market_v1_recent_funding_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiMarketV1RiskLimits` implicit endpoint.
-    pub async fn public_get_public_api_market_v1_risk_limits(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_public_api_market_v1_risk_limits".into()), optional_args).await
+    pub async fn public_get_public_api_market_v1_risk_limits(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_public_api_market_v1_risk_limits".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetPublicApiWalletV1CryptoList` implicit endpoint.
@@ -363,8 +363,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privateGetPublicApiWalletV1UserAssets` implicit endpoint.
-    pub async fn private_get_public_api_wallet_v1_user_assets(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_public_api_wallet_v1_user_assets".into()), optional_args).await
+    pub async fn private_get_public_api_wallet_v1_user_assets(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_public_api_wallet_v1_user_assets".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetPublicApiWalletV1UserWalletHistory` implicit endpoint.
@@ -513,8 +513,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privatePostSpotApiV4TradeOrdersCancelAllAfter` implicit endpoint.
-    pub async fn private_post_spot_api_v4_trade_orders_cancel_all_after(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_spot_api_v4_trade_orders_cancel_all_after".into()), optional_args).await
+    pub async fn private_post_spot_api_v4_trade_orders_cancel_all_after(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_spot_api_v4_trade_orders_cancel_all_after".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostSpotApiV4TradeOrdersAlgo` implicit endpoint.
@@ -528,8 +528,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesApiV3TradeOrdersCancelAllAfter` implicit endpoint.
-    pub async fn private_post_futures_api_v3_trade_orders_cancel_all_after(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_api_v3_trade_orders_cancel_all_after".into()), optional_args).await
+    pub async fn private_post_futures_api_v3_trade_orders_cancel_all_after(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_futures_api_v3_trade_orders_cancel_all_after".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesApiV3TradeOrdersAlgo` implicit endpoint.
@@ -558,8 +558,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesApiV3TradeLeverage` implicit endpoint.
-    pub async fn private_post_futures_api_v3_trade_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_api_v3_trade_leverage".into()), optional_args).await
+    pub async fn private_post_futures_api_v3_trade_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_futures_api_v3_trade_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostPublicApiWalletV1UserCryptoAddress` implicit endpoint.

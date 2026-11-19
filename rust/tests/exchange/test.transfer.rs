@@ -31,6 +31,6 @@ pub fn testTransfer(mut exchange: Value, mut skippedProperties: Value, mut metho
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Int(exchange.milliseconds()).clone()]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()).clone(), Value::from(vec![Value::Str("ok".into()), Value::Str("pending".into()), Value::Str("failed".into())]).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()), Value::from(vec![Value::Str("ok".into()), Value::Str("pending".into()), Value::Str("failed".into())])]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method, entry, Value::Str("amount".into()), Value::Str("0".into())]);
 }

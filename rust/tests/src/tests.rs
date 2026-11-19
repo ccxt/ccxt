@@ -259,7 +259,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             localSettings = ioFileRead(keysLocal, &[]);
         }
         let mut allSettings: Value = exchange.deep_extend(globalSettings, &[localSettings]);
-        let mut exchangeSettings: Value = exchange.safe_value(&allSettings, exchangeId.clone(), &[Value::Map({
+        let mut exchangeSettings: Value = exchange.safe_value(&allSettings, &exchangeId, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -411,7 +411,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
-        let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, ".").into()), self.ext.clone()).into())]);
+        let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, ".").into()), self.ext).into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1625: bool = true;
@@ -491,7 +491,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1627: bool = true;
             while { if !__for_first_1627 { i += 1; } __for_first_1627 = false; i < maxRetries } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic.clone()).await;
+                self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic).await;
                 return Value::Bool(true);
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let ex: Value = panic_to_value(_try_err); 
@@ -657,7 +657,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        let mut results: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
+        let mut results: Vec<Value> = promise_all(&Value::from(promises)).await.to_vec();
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         let mut failedMethods: Vec<Value> = Vec::new();
         {
@@ -667,7 +667,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut testName: Value = testNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut testReturnedValue: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_equal(&testReturnedValue, &Value::Bool(true)) {
-                failedMethods.push(testName.clone());
+                failedMethods.push(testName);
             }
         }
         }
@@ -710,7 +710,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_1630: bool = true;
             while { if !__for_first_1630 { i += 1; } __for_first_1630 = false; (i as f64) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
             let mut s: Value = get_value(&symbols, &Value::Int(i));
-            let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".into())), s.clone(), &[]);
+            let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".into())), &s, &[]);
             if (market != Value::Null) {
                 let mut active: Value = exchange.safe_value(market, Value::Str("active".into()), &[]);
                 if (is_equal(&active, &Value::Bool(true))) || (active == Value::Null) {
@@ -790,7 +790,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut __for_first_1633: bool = true;
                 while { if !__for_first_1633 { i += 1; } __for_first_1633 = false; i < (codes.len() as i64) } {
                 let mut currentCode: Value = codes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".into()), currentCode, &[]);
+                let mut marketsArrayForCurrentCode: Value = Value::Arr(exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".into()), currentCode, &[]));
                 let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode, Value::Str("symbol".into()));
                 let mut symbolsArrayForCurrentCode: Value = object_keys(&indexedMkts);
                 let mut symbolsLength: i64 = symbolsArrayForCurrentCode.len() as i64;
@@ -803,7 +803,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if (symbol == Value::Null) {
-            let mut activeMarkets: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("active".into()), Value::Bool(true), &[]);
+            let mut activeMarkets: Value = Value::Arr(exchange.filter_by(currentTypeMarkets.clone(), Value::Str("active".into()), Value::Bool(true), &[]));
             let mut activeSymbols: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
@@ -920,7 +920,7 @@ if _try_result.is_err() {
                             m
                         });
                         entry.insert("symbol".into(), tickerSymbol);
-                        entry.insert("volume".into(), volume.clone());
+                        entry.insert("volume".into(), volume);
                         append_to_array(&mut candidates, Value::Map(entry));
                     }
                 }
@@ -1893,7 +1893,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_1651 { i += 1; } __for_first_1651 = false; i < (rawSkipKeys.len() as i64) } {
             let mut key: Value = rawSkipKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !(exchange.in_array(key.clone(), forceCheckKeys.clone())) {
-                skipKeys.push(key.clone());
+                skipKeys.push(key);
             }
         }
         }
@@ -2017,10 +2017,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut storedNumeric: Value = sanitizedStoredOutput.clone();
                     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                         if isComputedString.as_bool() == Some(true) {
-                            computedNumeric = exchange.parse_to_numeric(sanitizedNewOutput.clone());
+                            computedNumeric = exchange.parse_to_numeric(&sanitizedNewOutput);
                         }
                         if isStoredString.as_bool() == Some(true) {
-                            storedNumeric = exchange.parse_to_numeric(sanitizedStoredOutput.clone());
+                            storedNumeric = exchange.parse_to_numeric(&sanitizedStoredOutput);
                         }
                         isNumber = true;
                      #[allow(unreachable_code)] { Value::Null }}));
@@ -2041,7 +2041,7 @@ if _try_result.is_err() {
                         // tmp c# number comparsion
                         let mut isNumber: bool = false;
                         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                            exchange.parse_to_numeric(sanitizedNewOutput.clone());
+                            exchange.parse_to_numeric(&sanitizedNewOutput);
                             isNumber = true;
                          #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
@@ -2049,7 +2049,7 @@ if _try_result.is_err() {
                             isNumber = false;
                         }
                         if isNumber {
-                            self.assert_static_error(Value::Bool(exchange.parse_to_numeric(sanitizedNewOutput.clone()).as_f64() == exchange.parse_to_numeric(sanitizedStoredOutput.clone()).as_f64()), Value::from(messageError.as_str()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                            self.assert_static_error(Value::Bool(exchange.parse_to_numeric(&sanitizedNewOutput).as_f64() == exchange.parse_to_numeric(&sanitizedStoredOutput).as_f64()), Value::from(messageError.as_str()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                             return Value::Bool(true);
                         }  else {
                             self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString.clone()), &convertAscii(storedOutputString.clone()))), Value::from(messageError.as_str()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
@@ -2262,7 +2262,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&isNullValue(current.clone())) {
                 newInput.push(Value::Null);
             }  else {
-                newInput.push(current.clone());
+                newInput.push(current);
             }
         }
         }
@@ -2311,7 +2311,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     while { if !__for_first_1656 { i += 1; } __for_first_1656 = false; i < (storedHeaderKeys.len() as i64) } {
                     let mut headerKey: Value = storedHeaderKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut storedHeaderValue: Value = get_value(&storedHeaders, &headerKey);
-                    let mut sentHeaderValue: Value = exchange.safe_string(&sentHeaders, headerKey.clone(), &[]);
+                    let mut sentHeaderValue: Value = exchange.safe_string(&sentHeaders, &headerKey, &[]);
                     self.assert_static_error(Value::Bool(is_equal(&sentHeaderValue, &storedHeaderValue)), Value::Str(format!("{}{}", "header mismatch for ", headerKey).into()), storedHeaderValue.clone(), sentHeaderValue.clone(), &[]);
                 }
                 }
@@ -2320,7 +2320,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.requestTestsFailed = Value::Bool(true);
             let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[",
-                self.lang.clone()).into()), "][STATIC_REQUEST]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
+                self.lang).into()), "][STATIC_REQUEST]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
             dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE]", errorMessage).into())]);
         }
         return Value::Bool(true);
@@ -2357,7 +2357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.responseTestsFailed = Value::Bool(true);
             let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[",
-                self.lang.clone()).into()), "][STATIC_RESPONSE]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
+                self.lang).into()), "][STATIC_RESPONSE]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
             dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE]", errorMessage).into())]);
         }
         setFetchResponse(&mut exchange, Value::Null); // reset state
@@ -2532,7 +2532,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // after the first resolution, so serialize only at the end
                 preloadWsMessages(exchange.clone(), url.clone(), messages); let mut __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; let mut __g = 0; if matches!(&method, Value::Str(__m) if __m.starts_with("unWatch")) { drainWsMessages(&mut exchange, url.clone()).await;
                     } else { while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; __g += 1; } } let mut promises: Value = Value::from(vec![__w, Value::Bool(true)]);
-                let mut results: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
+                let mut results: Vec<Value> = promise_all(&promises).await.to_vec();
                 let mut unifiedResult: Value = jsonParse(jsonStringify(results.get(0).cloned().unwrap_or(Value::Null)));
                 self.assert_static_response_output(exchange.clone(), skipKeys, unifiedResult, data.as_map().and_then(|__m| __m.get("parsedResponse")).cloned().unwrap_or(Value::Null));
                 self.assert_ws_sent_messages(exchange.clone(), url, data.clone());
@@ -2541,7 +2541,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.staticWsTestsFailed = Value::Bool(true);
             let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[",
-                self.lang.clone()).into()), "][STATIC_WS]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
+                self.lang).into()), "][STATIC_WS]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
             dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE]", errorMessage).into())]);
         }
         setFetchResponse(&mut exchange, Value::Null); // reset state
@@ -3139,15 +3139,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 self.responseTestsFailed = Value::Bool(true);
             }
-            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", self.lang.clone()).into()), "][STATIC_REQUEST]").into()), exceptionMessage(e));
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", self.lang).into()), "][STATIC_REQUEST]").into()), exceptionMessage(e));
             dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE]", errorMessage).into())]);
         }
         if is_true(&self.requestTestsFailed) || is_true(&self.responseTestsFailed) || is_true(&self.staticWsTestsFailed) {
             exitScript(Value::Int(1));
         }  else {
             let mut prefix: String = (if is_true(&(isSync())) { "[SYNC]".to_string() } else { "".to_string() });
-            let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", self.lang.clone()).into()), "]").into()), prefix).into()), "[TEST_SUCCESS] ").into()),
-                Value::Str(format!("{}", sum).into())).into()), " static ").into()), type_var).into()), " tests passed.");
+            let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", self.lang).into()), "]").into()), prefix).into()), "[TEST_SUCCESS] ").into()), Value::Str(format!("{}",
+                sum).into())).into()), " static ").into()), type_var).into()), " tests passed.");
             dump(&[Value::Str(format!("{}{}", "[INFO]", successMessage).into())]);
         }
         return Value::Bool(true);
@@ -3190,7 +3190,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.test_blofin().await, self.test_hyperliquid().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await,
             self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await, self.test_extended().await, self.test_bit2me().await]);
         promise_all(&promises).await;
-        let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", "[", self.lang.clone()).into()), "][TEST_SUCCESS] brokerId tests passed.");
+        let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", "[", self.lang).into()), "][TEST_SUCCESS] brokerId tests passed.");
         dump(&[Value::Str(format!("{}{}", "[INFO]", successMessage).into())]);
         exitScript(Value::Int(0));
         return Value::Bool(true);

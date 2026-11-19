@@ -28,8 +28,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v1PublicGetTicker` implicit endpoint.
-    pub async fn v1_public_get_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_ticker".into()), optional_args).await
+    pub async fn v1_public_get_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetSymbols` implicit endpoint.
@@ -48,8 +48,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v1PublicGetKline` implicit endpoint.
-    pub async fn v1_public_get_kline(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_kline".into()), optional_args).await
+    pub async fn v1_public_get_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_kline".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostAccountBalance` implicit endpoint.
@@ -148,8 +148,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PublicGetOrderbookMarket` implicit endpoint.
-    pub async fn v4_public_get_orderbook_market(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_public_get_orderbook_market".into()), optional_args).await
+    pub async fn v4_public_get_orderbook_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_public_get_orderbook_market".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PublicGetTicker` implicit endpoint.
@@ -163,8 +163,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PublicGetTime` implicit endpoint.
-    pub async fn v4_public_get_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_public_get_time".into()), optional_args).await
+    pub async fn v4_public_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_public_get_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PublicGetPing` implicit endpoint.
@@ -193,8 +193,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountBalance` implicit endpoint.
-    pub async fn v4_private_post_collateral_account_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_collateral_account_balance".into()), optional_args).await
+    pub async fn v4_private_post_collateral_account_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_collateral_account_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountBalanceSummary` implicit endpoint.
@@ -228,23 +228,23 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostCollateralAccountFundingHistory` implicit endpoint.
-    pub async fn v4_private_post_collateral_account_funding_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_collateral_account_funding_history".into()), optional_args).await
+    pub async fn v4_private_post_collateral_account_funding_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_collateral_account_funding_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountAddress` implicit endpoint.
-    pub async fn v4_private_post_main_account_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_address".into()), optional_args).await
+    pub async fn v4_private_post_main_account_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_main_account_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountBalance` implicit endpoint.
-    pub async fn v4_private_post_main_account_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_balance".into()), optional_args).await
+    pub async fn v4_private_post_main_account_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_main_account_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountCreateNewAddress` implicit endpoint.
-    pub async fn v4_private_post_main_account_create_new_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_create_new_address".into()), optional_args).await
+    pub async fn v4_private_post_main_account_create_new_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_main_account_create_new_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountCodes` implicit endpoint.
@@ -268,18 +268,18 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountFiatDepositUrl` implicit endpoint.
-    pub async fn v4_private_post_main_account_fiat_deposit_url(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_fiat_deposit_url".into()), optional_args).await
+    pub async fn v4_private_post_main_account_fiat_deposit_url(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_main_account_fiat_deposit_url".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountHistory` implicit endpoint.
-    pub async fn v4_private_post_main_account_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_history".into()), optional_args).await
+    pub async fn v4_private_post_main_account_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_main_account_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountWithdraw` implicit endpoint.
-    pub async fn v4_private_post_main_account_withdraw(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_main_account_withdraw".into()), optional_args).await
+    pub async fn v4_private_post_main_account_withdraw(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_main_account_withdraw".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostMainAccountWithdrawPay` implicit endpoint.
@@ -368,8 +368,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountBalance` implicit endpoint.
-    pub async fn v4_private_post_trade_account_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_trade_account_balance".into()), optional_args).await
+    pub async fn v4_private_post_trade_account_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_trade_account_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountExecutedHistory` implicit endpoint.
@@ -378,8 +378,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountOrderHistory` implicit endpoint.
-    pub async fn v4_private_post_trade_account_order_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_trade_account_order_history".into()), optional_args).await
+    pub async fn v4_private_post_trade_account_order_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_trade_account_order_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountOrderHistoryQuery` implicit endpoint.
@@ -388,18 +388,18 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostTradeAccountOrder` implicit endpoint.
-    pub async fn v4_private_post_trade_account_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_trade_account_order".into()), optional_args).await
+    pub async fn v4_private_post_trade_account_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_trade_account_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCollateralLimit` implicit endpoint.
-    pub async fn v4_private_post_order_collateral_limit(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_collateral_limit".into()), optional_args).await
+    pub async fn v4_private_post_order_collateral_limit(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_collateral_limit".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCollateralMarket` implicit endpoint.
-    pub async fn v4_private_post_order_collateral_market(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_collateral_market".into()), optional_args).await
+    pub async fn v4_private_post_order_collateral_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_collateral_market".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCollateralStopLimit` implicit endpoint.
@@ -408,8 +408,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCollateralTriggerMarket` implicit endpoint.
-    pub async fn v4_private_post_order_collateral_trigger_market(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_collateral_trigger_market".into()), optional_args).await
+    pub async fn v4_private_post_order_collateral_trigger_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_collateral_trigger_market".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCollateralBulk` implicit endpoint.
@@ -418,33 +418,33 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderNew` implicit endpoint.
-    pub async fn v4_private_post_order_new(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_new".into()), optional_args).await
+    pub async fn v4_private_post_order_new(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_new".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderMarket` implicit endpoint.
-    pub async fn v4_private_post_order_market(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_market".into()), optional_args).await
+    pub async fn v4_private_post_order_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_market".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderStockMarket` implicit endpoint.
-    pub async fn v4_private_post_order_stock_market(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_stock_market".into()), optional_args).await
+    pub async fn v4_private_post_order_stock_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_stock_market".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderStopLimit` implicit endpoint.
-    pub async fn v4_private_post_order_stop_limit(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_stop_limit".into()), optional_args).await
+    pub async fn v4_private_post_order_stop_limit(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_stop_limit".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderStopMarket` implicit endpoint.
-    pub async fn v4_private_post_order_stop_market(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_stop_market".into()), optional_args).await
+    pub async fn v4_private_post_order_stop_market(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_stop_market".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCancel` implicit endpoint.
-    pub async fn v4_private_post_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_cancel".into()), optional_args).await
+    pub async fn v4_private_post_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderCancelAll` implicit endpoint.
@@ -458,8 +458,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderKillSwitch` implicit endpoint.
-    pub async fn v4_private_post_order_kill_switch(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_kill_switch".into()), optional_args).await
+    pub async fn v4_private_post_order_kill_switch(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_kill_switch".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderKillSwitchStatus` implicit endpoint.
@@ -473,8 +473,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderModify` implicit endpoint.
-    pub async fn v4_private_post_order_modify(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_order_modify".into()), optional_args).await
+    pub async fn v4_private_post_order_modify(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_order_modify".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostOrderConditionalCancel` implicit endpoint.
@@ -508,23 +508,23 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostProfileWebsocketToken` implicit endpoint.
-    pub async fn v4_private_post_profile_websocket_token(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_profile_websocket_token".into()), optional_args).await
+    pub async fn v4_private_post_profile_websocket_token(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_profile_websocket_token".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostConvertEstimate` implicit endpoint.
-    pub async fn v4_private_post_convert_estimate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_convert_estimate".into()), optional_args).await
+    pub async fn v4_private_post_convert_estimate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_convert_estimate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostConvertConfirm` implicit endpoint.
-    pub async fn v4_private_post_convert_confirm(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_convert_confirm".into()), optional_args).await
+    pub async fn v4_private_post_convert_confirm(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_convert_confirm".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostConvertHistory` implicit endpoint.
-    pub async fn v4_private_post_convert_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_convert_history".into()), optional_args).await
+    pub async fn v4_private_post_convert_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_convert_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostSubAccountCreate` implicit endpoint.
@@ -543,8 +543,8 @@ impl Whitebit {
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostSubAccountList` implicit endpoint.
-    pub async fn v4_private_post_sub_account_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v4_private_post_sub_account_list".into()), optional_args).await
+    pub async fn v4_private_post_sub_account_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v4_private_post_sub_account_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v4PrivatePostSubAccountTransfer` implicit endpoint.

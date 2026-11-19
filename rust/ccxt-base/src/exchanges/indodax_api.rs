@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Indodax {
     /// Auto-generated wrapper for the `publicGetApiServerTime` implicit endpoint.
-    pub async fn public_get_api_server_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_server_time".into()), optional_args).await
+    pub async fn public_get_api_server_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_server_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetApiPairs` implicit endpoint.
@@ -33,13 +33,13 @@ impl Indodax {
     }
 
     /// Auto-generated wrapper for the `publicGetApiTickerPair` implicit endpoint.
-    pub async fn public_get_api_ticker_pair(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_ticker_pair".into()), optional_args).await
+    pub async fn public_get_api_ticker_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_ticker_pair".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetApiTickerAll` implicit endpoint.
-    pub async fn public_get_api_ticker_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_ticker_all".into()), optional_args).await
+    pub async fn public_get_api_ticker_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_ticker_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetApiTradesPair` implicit endpoint.
@@ -48,8 +48,8 @@ impl Indodax {
     }
 
     /// Auto-generated wrapper for the `publicGetApiDepthPair` implicit endpoint.
-    pub async fn public_get_api_depth_pair(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_depth_pair".into()), optional_args).await
+    pub async fn public_get_api_depth_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_depth_pair".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTradingviewHistoryV2` implicit endpoint.
@@ -58,38 +58,38 @@ impl Indodax {
     }
 
     /// Auto-generated wrapper for the `privatePostGetInfo` implicit endpoint.
-    pub async fn private_post_get_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_info".into()), optional_args).await
+    pub async fn private_post_get_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_get_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTransHistory` implicit endpoint.
-    pub async fn private_post_trans_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_trans_history".into()), optional_args).await
+    pub async fn private_post_trans_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_trans_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTrade` implicit endpoint.
-    pub async fn private_post_trade(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_trade".into()), optional_args).await
+    pub async fn private_post_trade(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_trade".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTradeHistory` implicit endpoint.
-    pub async fn private_post_trade_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_trade_history".into()), optional_args).await
+    pub async fn private_post_trade_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_trade_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOpenOrders` implicit endpoint.
-    pub async fn private_post_open_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_open_orders".into()), optional_args).await
+    pub async fn private_post_open_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_open_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrderHistory` implicit endpoint.
-    pub async fn private_post_order_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_history".into()), optional_args).await
+    pub async fn private_post_order_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_order_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostGetOrder` implicit endpoint.
-    pub async fn private_post_get_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_order".into()), optional_args).await
+    pub async fn private_post_get_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_get_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostGetOrderByClientOrderId` implicit endpoint.
@@ -98,8 +98,8 @@ impl Indodax {
     }
 
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
-    pub async fn private_post_cancel_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_cancel_order".into()), optional_args).await
+    pub async fn private_post_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancel_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostCancelByClientOrderId` implicit endpoint.
@@ -108,13 +108,13 @@ impl Indodax {
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawFee` implicit endpoint.
-    pub async fn private_post_withdraw_fee(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdraw_fee".into()), optional_args).await
+    pub async fn private_post_withdraw_fee(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdraw_fee".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawCoin` implicit endpoint.
-    pub async fn private_post_withdraw_coin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdraw_coin".into()), optional_args).await
+    pub async fn private_post_withdraw_coin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdraw_coin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostListDownline` implicit endpoint.

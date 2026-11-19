@@ -37,8 +37,10 @@ impl Luno {
         let described = Luno::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -72,7 +74,7 @@ impl crate::exchange::DerivedExchange for Luno {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -83,7 +85,8 @@ impl crate::exchange::DerivedExchange for Luno {
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_string_k(&trade, "base", &[]));
-        m.insert("cost".to_string(), self.safe_string_k(trade, "counter", &[]));
+        m.insert("cost".to_string(), self.safe_string_k(&trade, "counter", &[]));
+        m.insert("info".to_string(), trade);
         m.insert("fee".to_string(), Value::Null);
     m
 }), market));
@@ -93,7 +96,7 @@ impl crate::exchange::DerivedExchange for Luno {
 }
 
 impl crate::exchange_generated::ExchangeBase for Luno {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -212,8 +215,8 @@ impl Luno {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -245,11 +248,11 @@ impl Luno {
         });
         let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params]);
         let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), messageHash.as_str(), &request, subscriptionHash.as_str(), Value::Map(subscription)).await.into();
-        let mut limitResolved: Option<i64> = limit.as_i64();
+        let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -296,8 +299,9 @@ impl Luno {
             stored.append(Value::Dict(trade));
         }
         }
-        CacheStore::put(&mut self.trades, &symbolValue, stored.clone());
-        client.resolve(Value::from(&stored), messageHash.as_str());
+        let __resolved_stored = Value::from(&stored);
+        CacheStore::put(&mut self.trades, &symbolValue, stored);
+        client.resolve(__resolved_stored, messageHash.as_str());
 }
 
 
@@ -319,7 +323,7 @@ impl Luno {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -663,7 +667,7 @@ impl Luno {
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let mut subscriptions: Vec<Value> = object_values(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+        let mut subscriptions: Vec<Value> = object_values(&__ch.subscriptions).as_array().cloned().unwrap_or_default();
         let mut subscriptionsLength: i64 = subscriptions.len() as i64;
         if (subscriptionsLength == 0) {
             return;

@@ -18,8 +18,8 @@ impl Btcmarkets {
     }
 
     /// Auto-generated wrapper for the `publicGetMarketsMarketIdTicker` implicit endpoint.
-    pub async fn public_get_markets_market_id_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_markets_market_id_ticker".into()), optional_args).await
+    pub async fn public_get_markets_market_id_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_markets_market_id_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarketsMarketIdTrades` implicit endpoint.
@@ -28,8 +28,8 @@ impl Btcmarkets {
     }
 
     /// Auto-generated wrapper for the `publicGetMarketsMarketIdOrderbook` implicit endpoint.
-    pub async fn public_get_markets_market_id_orderbook(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_markets_market_id_orderbook".into()), optional_args).await
+    pub async fn public_get_markets_market_id_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_markets_market_id_orderbook".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarketsMarketIdCandles` implicit endpoint.
@@ -48,8 +48,8 @@ impl Btcmarkets {
     }
 
     /// Auto-generated wrapper for the `publicGetTime` implicit endpoint.
-    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_time".into()), optional_args).await
+    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOrders` implicit endpoint.
@@ -148,8 +148,8 @@ impl Btcmarkets {
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
-    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders".into()), optional_args).await
+    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostBatchorders` implicit endpoint.
@@ -158,8 +158,8 @@ impl Btcmarkets {
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawals` implicit endpoint.
-    pub async fn private_post_withdrawals(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdrawals".into()), optional_args).await
+    pub async fn private_post_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdrawals".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostReports` implicit endpoint.
@@ -178,13 +178,13 @@ impl Btcmarkets {
     }
 
     /// Auto-generated wrapper for the `privateDeleteBatchordersIds` implicit endpoint.
-    pub async fn private_delete_batchorders_ids(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_batchorders_ids".into()), optional_args).await
+    pub async fn private_delete_batchorders_ids(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_batchorders_ids".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePutOrdersId` implicit endpoint.
-    pub async fn private_put_orders_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_put_orders_id".into()), optional_args).await
+    pub async fn private_put_orders_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_put_orders_id".into()), optional_args).await { Some(m) } else { None }
     }
 
 }

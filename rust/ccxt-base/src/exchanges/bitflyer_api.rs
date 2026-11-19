@@ -28,13 +28,13 @@ impl Bitflyer {
     }
 
     /// Auto-generated wrapper for the `publicGetGetboard` implicit endpoint.
-    pub async fn public_get_getboard(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_getboard".into()), optional_args).await
+    pub async fn public_get_getboard(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_getboard".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetGetticker` implicit endpoint.
-    pub async fn public_get_getticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_getticker".into()), optional_args).await
+    pub async fn public_get_getticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_getticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetGetexecutions` implicit endpoint.
@@ -58,8 +58,8 @@ impl Bitflyer {
     }
 
     /// Auto-generated wrapper for the `publicGetGetfundingrate` implicit endpoint.
-    pub async fn public_get_getfundingrate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_getfundingrate".into()), optional_args).await
+    pub async fn public_get_getfundingrate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_getfundingrate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetGetfundingratehistory` implicit endpoint.
@@ -153,8 +153,8 @@ impl Bitflyer {
     }
 
     /// Auto-generated wrapper for the `privateGetGettradingcommission` implicit endpoint.
-    pub async fn private_get_gettradingcommission(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_gettradingcommission".into()), optional_args).await
+    pub async fn private_get_gettradingcommission(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_gettradingcommission".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostSendcoin` implicit endpoint.
@@ -163,18 +163,18 @@ impl Bitflyer {
     }
 
     /// Auto-generated wrapper for the `privatePostWithdraw` implicit endpoint.
-    pub async fn private_post_withdraw(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdraw".into()), optional_args).await
+    pub async fn private_post_withdraw(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdraw".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostSendchildorder` implicit endpoint.
-    pub async fn private_post_sendchildorder(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_sendchildorder".into()), optional_args).await
+    pub async fn private_post_sendchildorder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_sendchildorder".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostCancelchildorder` implicit endpoint.
-    pub async fn private_post_cancelchildorder(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_cancelchildorder".into()), optional_args).await
+    pub async fn private_post_cancelchildorder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_cancelchildorder".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostSendparentorder` implicit endpoint.

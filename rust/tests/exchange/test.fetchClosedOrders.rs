@@ -20,7 +20,7 @@ pub async fn testFetchClosedOrders(mut exchange: Value, mut skippedProperties: V
         while { if !__for_first_1573 { i += 1; } __for_first_1573 = false; i < (orders.len() as i64) } {
         let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), order.clone(), symbol.clone(), now.clone());
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), order, Value::Str("status".into()).clone(), Value::from(vec![Value::Str("closed".into()), Value::Str("canceled".into())]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), order, Value::Str("status".into()), Value::from(vec![Value::Str("closed".into()), Value::Str("canceled".into())])]);
     }
     }
     crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol, orders]);

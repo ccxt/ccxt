@@ -21,7 +21,7 @@ pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     if !exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone()) {
         chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     }
-    let mut durationMs: Value = (match (&(Value::Int(exchange.parse_timeframe(chosenTimeframeKey.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+    let mut durationMs: Value = (match (&(Value::Int(exchange.parse_timeframe(&chosenTimeframeKey))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
     //
     // check for all possible "since" & "limit" combinations, where one of them could be undefined and the other not
     //

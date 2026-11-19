@@ -18,13 +18,13 @@ impl Nado {
     }
 
     /// Auto-generated wrapper for the `gatewayPublicGetQuery` implicit endpoint.
-    pub async fn gateway_public_get_query(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("gateway_public_get_query".into()), optional_args).await
+    pub async fn gateway_public_get_query(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("gateway_public_get_query".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `gatewayPublicGetEdgeQuery` implicit endpoint.
-    pub async fn gateway_public_get_edge_query(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("gateway_public_get_edge_query".into()), optional_args).await
+    pub async fn gateway_public_get_edge_query(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("gateway_public_get_edge_query".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `gatewayPublicPostQuery` implicit endpoint.
@@ -38,8 +38,8 @@ impl Nado {
     }
 
     /// Auto-generated wrapper for the `gatewayPrivatePostExecute` implicit endpoint.
-    pub async fn gateway_private_post_execute(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("gateway_private_post_execute".into()), optional_args).await
+    pub async fn gateway_private_post_execute(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("gateway_private_post_execute".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `gatewayV2PublicGetAssets` implicit endpoint.
@@ -53,23 +53,23 @@ impl Nado {
     }
 
     /// Auto-generated wrapper for the `gatewayV2PublicGetOrderbook` implicit endpoint.
-    pub async fn gateway_v2_public_get_orderbook(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("gateway_v2_public_get_orderbook".into()), optional_args).await
+    pub async fn gateway_v2_public_get_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("gateway_v2_public_get_orderbook".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `archivePost` implicit endpoint.
-    pub async fn archive_post(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("archive_post".into()), optional_args).await
+    pub async fn archive_post(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("archive_post".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `archiveV2PublicGetTickers` implicit endpoint.
-    pub async fn archive_v2_public_get_tickers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("archive_v2_public_get_tickers".into()), optional_args).await
+    pub async fn archive_v2_public_get_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("archive_v2_public_get_tickers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `archiveV2PublicGetContracts` implicit endpoint.
-    pub async fn archive_v2_public_get_contracts(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("archive_v2_public_get_contracts".into()), optional_args).await
+    pub async fn archive_v2_public_get_contracts(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("archive_v2_public_get_contracts".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `archiveV2PublicGetTrades` implicit endpoint.
@@ -83,13 +83,13 @@ impl Nado {
     }
 
     /// Auto-generated wrapper for the `triggerPrivatePostExecute` implicit endpoint.
-    pub async fn trigger_private_post_execute(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("trigger_private_post_execute".into()), optional_args).await
+    pub async fn trigger_private_post_execute(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("trigger_private_post_execute".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `triggerPrivatePostQuery` implicit endpoint.
-    pub async fn trigger_private_post_query(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("trigger_private_post_query".into()), optional_args).await
+    pub async fn trigger_private_post_query(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("trigger_private_post_query".into()), optional_args).await { Some(m) } else { None }
     }
 
 }

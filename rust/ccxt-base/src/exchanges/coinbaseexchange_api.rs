@@ -28,8 +28,8 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `publicGetProductsIdBook` implicit endpoint.
-    pub async fn public_get_products_id_book(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_products_id_book".into()), optional_args).await
+    pub async fn public_get_products_id_book(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_products_id_book".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetProductsIdCandles` implicit endpoint.
@@ -38,13 +38,13 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `publicGetProductsIdStats` implicit endpoint.
-    pub async fn public_get_products_id_stats(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_products_id_stats".into()), optional_args).await
+    pub async fn public_get_products_id_stats(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_products_id_stats".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetProductsIdTicker` implicit endpoint.
-    pub async fn public_get_products_id_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_products_id_ticker".into()), optional_args).await
+    pub async fn public_get_products_id_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_products_id_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetProductsIdTrades` implicit endpoint.
@@ -53,13 +53,13 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `publicGetTime` implicit endpoint.
-    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_time".into()), optional_args).await
+    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetProductsSparkLines` implicit endpoint.
-    pub async fn public_get_products_spark_lines(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_products_spark_lines".into()), optional_args).await
+    pub async fn public_get_products_spark_lines(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_products_spark_lines".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetProductsVolumeSummary` implicit endpoint.
@@ -133,8 +133,8 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `privateGetFees` implicit endpoint.
-    pub async fn private_get_fees(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_fees".into()), optional_args).await
+    pub async fn private_get_fees(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_fees".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetMarginProfileInformation` implicit endpoint.
@@ -193,8 +193,8 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersClientClientOid` implicit endpoint.
-    pub async fn private_get_orders_client_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_client_client_oid".into()), optional_args).await
+    pub async fn private_get_orders_client_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_orders_client_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOtcOrders` implicit endpoint.
@@ -378,8 +378,8 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `privatePostCoinbaseAccountsIdAddresses` implicit endpoint.
-    pub async fn private_post_coinbase_accounts_id_addresses(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_coinbase_accounts_id_addresses".into()), optional_args).await
+    pub async fn private_post_coinbase_accounts_id_addresses(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_coinbase_accounts_id_addresses".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAddressBook` implicit endpoint.
@@ -393,8 +393,8 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
-    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders".into()), optional_args).await
+    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostPositionClose` implicit endpoint.
@@ -428,8 +428,8 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawalsCoinbaseAccount` implicit endpoint.
-    pub async fn private_post_withdrawals_coinbase_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdrawals_coinbase_account".into()), optional_args).await
+    pub async fn private_post_withdrawals_coinbase_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdrawals_coinbase_account".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawalsCounterparty` implicit endpoint.
@@ -438,13 +438,13 @@ impl Coinbaseexchange {
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawalsCrypto` implicit endpoint.
-    pub async fn private_post_withdrawals_crypto(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdrawals_crypto".into()), optional_args).await
+    pub async fn private_post_withdrawals_crypto(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdrawals_crypto".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawalsPaymentMethod` implicit endpoint.
-    pub async fn private_post_withdrawals_payment_method(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdrawals_payment_method".into()), optional_args).await
+    pub async fn private_post_withdrawals_payment_method(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdrawals_payment_method".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTransfersTransferIdTravelRules` implicit endpoint.

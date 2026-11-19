@@ -18,13 +18,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `publicGetInfoTime` implicit endpoint.
-    pub async fn public_get_info_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_time".into()), optional_args).await
+    pub async fn public_get_info_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_info_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoExchange` implicit endpoint.
-    pub async fn public_get_info_exchange(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_exchange".into()), optional_args).await
+    pub async fn public_get_info_exchange(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_info_exchange".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoAssets` implicit endpoint.
@@ -48,8 +48,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `publicGetInfoKlines` implicit endpoint.
-    pub async fn public_get_info_klines(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_klines".into()), optional_args).await
+    pub async fn public_get_info_klines(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_info_klines".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoMarkHistory` implicit endpoint.
@@ -63,8 +63,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `publicGetInfoBook` implicit endpoint.
-    pub async fn public_get_info_book(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_book".into()), optional_args).await
+    pub async fn public_get_info_book(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_info_book".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoIndex` implicit endpoint.
@@ -73,8 +73,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `publicGetInfoTrades` implicit endpoint.
-    pub async fn public_get_info_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_trades".into()), optional_args).await
+    pub async fn public_get_info_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_info_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoPortfolio` implicit endpoint.
@@ -88,13 +88,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `publicGetInfoFunding` implicit endpoint.
-    pub async fn public_get_info_funding(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_funding".into()), optional_args).await
+    pub async fn public_get_info_funding(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_info_funding".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoFees` implicit endpoint.
-    pub async fn public_get_info_fees(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_info_fees".into()), optional_args).await
+    pub async fn public_get_info_fees(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_info_fees".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetInfoLimitTiers` implicit endpoint.
@@ -128,13 +128,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountPortfolio` implicit endpoint.
-    pub async fn private_get_account_portfolio(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_portfolio".into()), optional_args).await
+    pub async fn private_get_account_portfolio(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_portfolio".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountFills` implicit endpoint.
-    pub async fn private_get_account_fills(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_fills".into()), optional_args).await
+    pub async fn private_get_account_fills(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_fills".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountEquity` implicit endpoint.
@@ -148,18 +148,18 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountFunding` implicit endpoint.
-    pub async fn private_get_account_funding(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_funding".into()), optional_args).await
+    pub async fn private_get_account_funding(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_funding".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountDeposits` implicit endpoint.
-    pub async fn private_get_account_deposits(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_deposits".into()), optional_args).await
+    pub async fn private_get_account_deposits(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_deposits".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountWithdrawals` implicit endpoint.
-    pub async fn private_get_account_withdrawals(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_withdrawals".into()), optional_args).await
+    pub async fn private_get_account_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_withdrawals".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountConfig` implicit endpoint.
@@ -168,8 +168,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountLimits` implicit endpoint.
-    pub async fn private_get_account_limits(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_limits".into()), optional_args).await
+    pub async fn private_get_account_limits(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_limits".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountAutoCancel` implicit endpoint.
@@ -183,13 +183,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `tradePostAccountProxy` implicit endpoint.
-    pub async fn trade_post_account_proxy(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("trade_post_account_proxy".into()), optional_args).await
+    pub async fn trade_post_account_proxy(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("trade_post_account_proxy".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `tradePostAccountWithdraw` implicit endpoint.
-    pub async fn trade_post_account_withdraw(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("trade_post_account_withdraw".into()), optional_args).await
+    pub async fn trade_post_account_withdraw(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("trade_post_account_withdraw".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `tradePatchTradeOrders` implicit endpoint.
@@ -203,18 +203,18 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `tradePatchTradeLeverage` implicit endpoint.
-    pub async fn trade_patch_trade_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("trade_patch_trade_leverage".into()), optional_args).await
+    pub async fn trade_patch_trade_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("trade_patch_trade_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `tradePatchTradeMargin` implicit endpoint.
-    pub async fn trade_patch_trade_margin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("trade_patch_trade_margin".into()), optional_args).await
+    pub async fn trade_patch_trade_margin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("trade_patch_trade_margin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `tradePatchTradeAutoCancel` implicit endpoint.
-    pub async fn trade_patch_trade_auto_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("trade_patch_trade_auto_cancel".into()), optional_args).await
+    pub async fn trade_patch_trade_auto_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("trade_patch_trade_auto_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `tradeDeleteTradeOrders` implicit endpoint.
@@ -228,8 +228,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `tradeDeleteTradeOrdersAll` implicit endpoint.
-    pub async fn trade_delete_trade_orders_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("trade_delete_trade_orders_all".into()), optional_args).await
+    pub async fn trade_delete_trade_orders_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("trade_delete_trade_orders_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `tradeDeleteAccountProxy` implicit endpoint.

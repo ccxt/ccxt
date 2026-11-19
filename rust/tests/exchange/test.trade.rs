@@ -50,17 +50,17 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("fees".into()), Value::Str("fee".into()), Value::Str("symbol".into()), Value::Str("order".into()), Value::Str("id".into()), Value::Str("takerOrMaker".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()), symbol.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()).clone(), Value::from(vec![Value::Str("buy".into()), Value::Str("sell".into())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()), Value::from(vec![Value::Str("buy".into()), Value::Str("sell".into())])]);
     if isPublicTrade.as_bool() == Some(true) {
         // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".into()).clone(), Value::from(vec![Value::Str("taker".into()), Value::Null]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".into()), Value::from(vec![Value::Str("taker".into()), Value::Null]).clone()]);
     }  else {
         // for private trades (fetchMyTrades & watchMyTrades), it can be any
-        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".into()).clone(), Value::from(vec![Value::Str("taker".into()), Value::Str("maker".into()), Value::Null]).clone()]);
+        crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".into()), Value::from(vec![Value::Str("taker".into()), Value::Str("maker".into()), Value::Null]).clone()]);
     }
-    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".into()).clone()]);
+    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".into())]);
     if !(in_op(&skippedProperties, &Value::Str("fees".into()))) {
         // todo: remove undefined check and probably non-empty array check later
         if (entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null) != Value::Null) {

@@ -18,8 +18,8 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `publicGetCandlesticksInstrumentCode` implicit endpoint.
-    pub async fn public_get_candlesticks_instrument_code(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_candlesticks_instrument_code".into()), optional_args).await
+    pub async fn public_get_candlesticks_instrument_code(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_candlesticks_instrument_code".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetFees` implicit endpoint.
@@ -33,8 +33,8 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `publicGetOrderBookInstrumentCode` implicit endpoint.
-    pub async fn public_get_order_book_instrument_code(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_order_book_instrument_code".into()), optional_args).await
+    pub async fn public_get_order_book_instrument_code(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_order_book_instrument_code".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarketTicker` implicit endpoint.
@@ -43,13 +43,13 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `publicGetMarketTickerInstrumentCode` implicit endpoint.
-    pub async fn public_get_market_ticker_instrument_code(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_ticker_instrument_code".into()), optional_args).await
+    pub async fn public_get_market_ticker_instrument_code(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_market_ticker_instrument_code".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTime` implicit endpoint.
-    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_time".into()), optional_args).await
+    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetFundingRate` implicit endpoint.
@@ -58,8 +58,8 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `publicGetFundingRateHistory` implicit endpoint.
-    pub async fn public_get_funding_rate_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_funding_rate_history".into()), optional_args).await
+    pub async fn public_get_funding_rate_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_funding_rate_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetFundingRateSettings` implicit endpoint.
@@ -68,13 +68,13 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountBalances` implicit endpoint.
-    pub async fn private_get_account_balances(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_balances".into()), optional_args).await
+    pub async fn private_get_account_balances(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_balances".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountFees` implicit endpoint.
-    pub async fn private_get_account_fees(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_fees".into()), optional_args).await
+    pub async fn private_get_account_fees(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_fees".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountOrders` implicit endpoint.
@@ -83,8 +83,8 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountOrdersOrderId` implicit endpoint.
-    pub async fn private_get_account_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_orders_order_id".into()), optional_args).await
+    pub async fn private_get_account_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountOrdersClientClientId` implicit endpoint.
@@ -93,13 +93,13 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountOrdersOrderIdTrades` implicit endpoint.
-    pub async fn private_get_account_orders_order_id_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_orders_order_id_trades".into()), optional_args).await
+    pub async fn private_get_account_orders_order_id_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_orders_order_id_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountTrades` implicit endpoint.
-    pub async fn private_get_account_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_account_trades".into()), optional_args).await
+    pub async fn private_get_account_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_account_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountTradeTradeId` implicit endpoint.
@@ -138,13 +138,13 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `privatePostAccountOrders` implicit endpoint.
-    pub async fn private_post_account_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_account_orders".into()), optional_args).await
+    pub async fn private_post_account_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_account_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostSubaccountsTransfers` implicit endpoint.
-    pub async fn private_post_subaccounts_transfers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_subaccounts_transfers".into()), optional_args).await
+    pub async fn private_post_subaccounts_transfers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_subaccounts_transfers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteAccountOrders` implicit endpoint.
@@ -153,13 +153,13 @@ impl Onetrading {
     }
 
     /// Auto-generated wrapper for the `privateDeleteAccountOrdersOrderId` implicit endpoint.
-    pub async fn private_delete_account_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_account_orders_order_id".into()), optional_args).await
+    pub async fn private_delete_account_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_account_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteAccountOrdersClientClientId` implicit endpoint.
-    pub async fn private_delete_account_orders_client_client_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_account_orders_client_client_id".into()), optional_args).await
+    pub async fn private_delete_account_orders_client_client_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_account_orders_client_client_id".into()), optional_args).await { Some(m) } else { None }
     }
 
 }

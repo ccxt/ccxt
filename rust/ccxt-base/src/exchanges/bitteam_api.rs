@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Bitteam {
     /// Auto-generated wrapper for the `historyGetApiTwHistoryPairNameResolution` implicit endpoint.
-    pub async fn history_get_api_tw_history_pair_name_resolution(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("history_get_api_tw_history_pair_name_resolution".into()), optional_args).await
+    pub async fn history_get_api_tw_history_pair_name_resolution(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("history_get_api_tw_history_pair_name_resolution".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiAsset` implicit endpoint.
@@ -23,8 +23,8 @@ impl Bitteam {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCurrencies` implicit endpoint.
-    pub async fn public_get_trade_api_currencies(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_api_currencies".into()), optional_args).await
+    pub async fn public_get_trade_api_currencies(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_trade_api_currencies".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiOrderbooksSymbol` implicit endpoint.
@@ -38,8 +38,8 @@ impl Bitteam {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiPairName` implicit endpoint.
-    pub async fn public_get_trade_api_pair_name(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_api_pair_name".into()), optional_args).await
+    pub async fn public_get_trade_api_pair_name(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_trade_api_pair_name".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiPairs` implicit endpoint.
@@ -73,8 +73,8 @@ impl Bitteam {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCcxtPairs` implicit endpoint.
-    pub async fn public_get_trade_api_ccxt_pairs(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_api_ccxt_pairs".into()), optional_args).await
+    pub async fn public_get_trade_api_ccxt_pairs(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_trade_api_ccxt_pairs".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcAssets` implicit endpoint.
@@ -83,8 +83,8 @@ impl Bitteam {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcOrderbookPair` implicit endpoint.
-    pub async fn public_get_trade_api_cmc_orderbook_pair(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_api_cmc_orderbook_pair".into()), optional_args).await
+    pub async fn public_get_trade_api_cmc_orderbook_pair(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_trade_api_cmc_orderbook_pair".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeApiCmcSummary` implicit endpoint.
@@ -103,43 +103,43 @@ impl Bitteam {
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtBalance` implicit endpoint.
-    pub async fn private_get_trade_api_ccxt_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_api_ccxt_balance".into()), optional_args).await
+    pub async fn private_get_trade_api_ccxt_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_trade_api_ccxt_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtOrderId` implicit endpoint.
-    pub async fn private_get_trade_api_ccxt_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_api_ccxt_order_id".into()), optional_args).await
+    pub async fn private_get_trade_api_ccxt_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_trade_api_ccxt_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtOrdersOfUser` implicit endpoint.
-    pub async fn private_get_trade_api_ccxt_orders_of_user(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_api_ccxt_orders_of_user".into()), optional_args).await
+    pub async fn private_get_trade_api_ccxt_orders_of_user(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_trade_api_ccxt_orders_of_user".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiCcxtTradesOfUser` implicit endpoint.
-    pub async fn private_get_trade_api_ccxt_trades_of_user(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_api_ccxt_trades_of_user".into()), optional_args).await
+    pub async fn private_get_trade_api_ccxt_trades_of_user(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_trade_api_ccxt_trades_of_user".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetTradeApiTransactionsOfUser` implicit endpoint.
-    pub async fn private_get_trade_api_transactions_of_user(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_api_transactions_of_user".into()), optional_args).await
+    pub async fn private_get_trade_api_transactions_of_user(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_trade_api_transactions_of_user".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTradeApiCcxtCancelAllOrder` implicit endpoint.
-    pub async fn private_post_trade_api_ccxt_cancel_all_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_trade_api_ccxt_cancel_all_order".into()), optional_args).await
+    pub async fn private_post_trade_api_ccxt_cancel_all_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_trade_api_ccxt_cancel_all_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTradeApiCcxtCancelorder` implicit endpoint.
-    pub async fn private_post_trade_api_ccxt_cancelorder(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_trade_api_ccxt_cancelorder".into()), optional_args).await
+    pub async fn private_post_trade_api_ccxt_cancelorder(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_trade_api_ccxt_cancelorder".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTradeApiCcxtOrdercreate` implicit endpoint.
-    pub async fn private_post_trade_api_ccxt_ordercreate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_trade_api_ccxt_ordercreate".into()), optional_args).await
+    pub async fn private_post_trade_api_ccxt_ordercreate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_trade_api_ccxt_ordercreate".into()), optional_args).await { Some(m) } else { None }
     }
 
 }

@@ -36,8 +36,10 @@ impl Tokocrypto {
         let described = Tokocrypto::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -244,7 +246,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         let mut marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string2_opt(&trade, Value::Str("t".into()), Value::Str("a".into()), &[]);
-        id = self.safe_string2_opt(&trade, Value::Str("id".into()), Value::Str("tradeId".into()), &[id.map(Value::from).unwrap_or(Value::Null)]);
+        id = self.safe_string2_opt(&trade, Value::Str("id".into()), Value::Str("tradeId".into()), &[&id]);
         let mut side: Option<String> = None;
         let mut orderId: Option<String> = self.safe_string_k_opt(&trade, "orderId", &[]);
         let mut buyerMaker: Option<bool> = self.safe_bool2_opt(&trade, Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]);
@@ -424,7 +426,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         let mut postOnly: bool = (isLimitMaker || (timeInForce.as_deref() == Some("PO")));
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -437,7 +439,8 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(order, "stopPrice", &[]))), &[]));
+        m.insert("triggerPrice".to_string(), self.parse_number(Value::from(self.omit_zero(self.safe_string_k(&order, "stopPrice", &[]))), &[]));
+        m.insert("info".to_string(), order);
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
@@ -693,7 +696,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
@@ -709,7 +712,8 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.safe_integer2(transaction, Value::Str("successTime".into()), Value::Str("updateTime".into()), &[]));
+        m.insert("updated".to_string(), self.safe_integer2(&transaction, Value::Str("successTime".into()), Value::Str("updateTime".into()), &[]));
+        m.insert("info".to_string(), transaction);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Bool(internal));
         m.insert("fee".to_string(), Value::Map(fee));
@@ -747,7 +751,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         }
         let mut userDataStream: bool = (path.as_str() == Some("userDataStream")) || (path.as_str() == Some("listenKey"));
         if userDataStream {
-            if (self.apiKey.clone() != Value::Null) && (self.apiKey.as_str() != Some("")) {
+            if (self.apiKey != Value::Null) && (self.apiKey.as_str() != Some("")) {
                 // v1 special case for userDataStream
                 let mut headersStream: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -791,7 +795,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
             }  else {
                 query = self.urlencode(&extendedParams, &[]);
             }
-            let mut signature: String = self.hmac(self.encode(Value::from(query.clone())), self.encode(&self.secret), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(query.clone())), self.encode(&self.secret), "sha256", &[]);
             query.push_str(&format!("{}{}", Value::Str(format!("{}{}", "&", "signature=").into()), signature));
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -869,8 +873,8 @@ if _try_result.is_err() {
         }
         let mut message: Option<String> = self.safe_string_k_opt(&responseParsed, "msg", &[]);
         if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
         }
         // checks against error codes
         let mut error: Option<String> = self.safe_string_k_opt(&responseParsed, "code", &[]);
@@ -890,7 +894,7 @@ if _try_result.is_err() {
             if (message.as_deref() == Some("No need to change margin type.")) {
                 panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback.clone()));
             }
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         if !success {
@@ -903,7 +907,7 @@ if _try_result.is_err() {
 }
 
 impl crate::exchange_generated::ExchangeBase for Tokocrypto {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -933,7 +937,7 @@ impl crate::exchange_generated::ExchangeBase for Tokocrypto {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "is_native_market" => self.is_native_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "nonce" => self.nonce(),
-                "parse_balance_custom" => self.parse_balance_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref()),
+                "parse_balance_custom" => Value::Dict(self.parse_balance_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1895,7 +1899,7 @@ impl Tokocrypto {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_open_v1_common_time", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_open_v1_common_time(&[&params]).await.unwrap_or_default();
         return self.safe_integer_k(&response, "timestamp", &[]);
         Value::Null
         }).await?))
@@ -1919,7 +1923,7 @@ impl Tokocrypto {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_open_v1_common_symbols", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_open_v1_common_symbols(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,
@@ -1984,7 +1988,7 @@ impl Tokocrypto {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1998,16 +2002,16 @@ impl Tokocrypto {
                 m.insert("symbol".to_string(), self.get_market_id_by_type(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let mut response: Option<crate::value::Dict> = None;
         if self.is_native_market(Some(&market)).as_bool() == Some(true) {
             let __ws_arg_0 = self.extend(&request, &[&params]);
-            response = self.call_method_o("public_get_open_v1_market_depth", &[&__ws_arg_0]).await;
+            response = self.public_get_open_v1_market_depth(&[&__ws_arg_0]).await;
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("binance_get_depth", &[&__ws_arg_1]).await;
+            response = self.binance_get_depth(&[&__ws_arg_1]).await;
         }
         //
         // future
@@ -2067,8 +2071,8 @@ impl Tokocrypto {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2086,13 +2090,13 @@ impl Tokocrypto {
         // with the underscore-less id, every other type by open/v1 with the raw id
         request.insert("symbol".into(), self.get_market_id_by_type(Some(&market)).map(Value::from).unwrap_or(Value::Null));
         if self.is_native_market(Some(&market)).as_bool() == Some(true) {
-            if (limit != Value::Null) {
-                request.insert("limit".into(), limit.clone());
+            if (limit.is_some()) {
+                request.insert("limit".into(), Value::from(limit));
             }
             // open/v1/market/trades answers an empty list for every market, the
             // aggregate endpoint is the one that carries data for these markets
             let __ws_arg_2 = self.extend(&request, &[&params]);
-            let mut responseInner: crate::value::Dict = self.call_method_t("public_get_open_v1_market_agg_trades", &[&__ws_arg_2]).await;
+            let mut responseInner: crate::value::Dict = self.public_get_open_v1_market_agg_trades(&[&__ws_arg_2]).await.unwrap_or_default();
             //
             //    {
             //       "code": 0,
@@ -2115,19 +2119,19 @@ impl Tokocrypto {
             //
             let mut data: crate::value::Dict = self.safe_dict_k_t(&responseInner, "data");
             let mut list: crate::value::List = self.safe_list_k_t(&data, "list");
-            return Value::Arr(self.parse_trades(&list, Some(&market), &[since.clone(), limit.clone()]));
+            return Value::Arr(self.parse_trades(&list, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default = 500, maximum = 1000
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default = 500, maximum = 1000
         }
         let mut defaultMethod: String = "binanceGetTrades".to_string();
-        let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchTradesMethod", &[Value::from(defaultMethod)]);
+        let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchTradesMethod", &[&defaultMethod]);
         let mut response: Option<crate::value::List> = None;
-        if (method.as_deref() == Some("binanceGetAggTrades")) && (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (method.as_deref() == Some("binanceGetAggTrades")) && (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
             // https://github.com/ccxt/ccxt/issues/6400
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-            request.insert("endTime".into(), self.sum(&[since.clone(), Value::Int(3600000)]));
+            request.insert("endTime".into(), self.sum(&[Value::from(since), Value::Int(3600000)]));
             let __ws_arg_3 = self.extend(&request, &[&params]);
             response = self.binance_get_agg_trades(&[&__ws_arg_3]).await;
         }  else {
@@ -2173,7 +2177,7 @@ impl Tokocrypto {
         //     ]
         //
         let mut responseList: crate::value::List = self.to_array_t(&response);
-        return Value::Arr(self.parse_trades(&responseList, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&responseList, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2207,7 +2211,7 @@ impl Tokocrypto {
         // the single symbol fetchTicker
         let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.binance_get_ticker24hr(&[&params]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         if !(response.is_some()) {
-            return self.parse_tickers(Value::from(vec![response__map.clone().map_or(Value::Null, Value::Dict)]), &[symbols.clone()]);
+            return self.parse_tickers(Value::from(vec![response__map.clone().map_or(Value::Null, Value::Dict)]), &[symbols]);
         }
         return self.parse_tickers(&response, &[symbols]);
         Value::Null
@@ -2340,8 +2344,8 @@ impl Tokocrypto {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2358,12 +2362,12 @@ impl Tokocrypto {
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["price", "until"], &[]);
         let mut limitValue: Option<i64> = Some(defaultLimit);
-        if (limit != Value::Null) {
-            limitValue = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None });
+        if (limit.is_some()) {
+            limitValue = (if let Some(__m0) = limit { Some(i64::min(__m0, maxLimit)) } else { None });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("interval".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
+                m.insert("interval".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
                 m.insert("limit".to_string(), Value::from(limitValue));
             m
         });
@@ -2373,8 +2377,8 @@ impl Tokocrypto {
             request.insert("symbol".into(), self.get_market_id_by_type(Some(&market)).map(Value::from).unwrap_or(Value::Null));
         }
         // const duration = this.parseTimeframe (timeframe);
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
@@ -2421,8 +2425,8 @@ impl Tokocrypto {
         //     }
         //
         let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            data = response.into_list();
+        if let Value::Arr(__a) = response {
+            data = __a;
         }  else {
             let mut dataList: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
             if (dataList.is_some()) {
@@ -2432,7 +2436,7 @@ impl Tokocrypto {
                 data = self.safe_list_k_t(&dataDict, "list");
             }
         }
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitValue)]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, Value::from(since), Value::from(limitValue)]);
         Value::Null
         }).await?))
     }
@@ -2462,7 +2466,7 @@ impl Tokocrypto {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut defaultType: String = self.safe_string2(&self.options, Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
-        let mut type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[Value::from(defaultType)]);
+        let mut type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[&defaultType]);
         let mut defaultMarginMode: Option<String> = self.safe_string2_opt(&self.options, Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[]);
         let mut marginMode: Option<String> = self.safe_string_lower_k_opt(&params, "marginMode", &[defaultMarginMode.map(Value::from).unwrap_or(Value::Null)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2470,13 +2474,13 @@ impl Tokocrypto {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_account_spot", &[&__ws_arg_8]).await;
-        return self.parse_balance_custom(&response, type_var.as_deref(), marginMode.as_deref());
+        let mut response: crate::value::Dict = self.private_get_open_v1_account_spot(&[&__ws_arg_8]).await.unwrap_or_default();
+        return Value::Dict(self.parse_balance_custom(&response, type_var.as_deref(), marginMode.as_deref()));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_custom(&self, response: impl Into<crate::Value>, type_var: Option<&str>, marginMode: Option<&str>) -> Value {
+    pub fn parse_balance_custom(&self, response: impl Into<crate::Value>, type_var: Option<&str>, marginMode: Option<&str>) -> crate::value::Dict {
         let mut response: Value = response.into();
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "updateTime", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -2495,7 +2499,7 @@ impl Tokocrypto {
             let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-            let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+            let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("free".into(), self.safe_string_k(&balance, "free", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
             if (code.is_some()) {
@@ -2503,9 +2507,9 @@ impl Tokocrypto {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
@@ -2528,7 +2532,7 @@ impl Tokocrypto {
                 m.insert("EXPIRED".to_string(), Value::Str("expired".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 
@@ -2542,7 +2546,7 @@ impl Tokocrypto {
                 m.insert("GTX".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string_opt(&timeInForces, Value::from(timeInForce), &[Value::from(timeInForce)]);
+        return self.safe_string_opt(&timeInForces, &timeInForce, &[&timeInForce]);
 }
 
     pub fn parse_order_type(&self, status: Option<&str>) -> Option<String> {
@@ -2554,7 +2558,7 @@ impl Tokocrypto {
                 m.insert("7".to_string(), Value::Str("limit".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 /*
@@ -2580,11 +2584,10 @@ impl Tokocrypto {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2701,7 +2704,7 @@ impl Tokocrypto {
                 if (cost.is_some()) {
                     quoteAmount = Value::from(cost);
                 }  else if createMarketBuyOrderRequiresPrice {
-                    if (price == Value::Null) {
+                    if (price.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(&amount);
@@ -2709,7 +2712,7 @@ impl Tokocrypto {
                         quoteAmount = crate::precise::Precise::stringMul(&amountString, &priceString);
                     }
                 }  else {
-                    quoteAmount = amount.clone();
+                    quoteAmount = Value::from(amount);
                 }
                 request.insert("quoteOrderQty".into(), self.decimal_to_precision(quoteAmount, Value::Int(crate::runtime::TRUNCATE), precision, &[self.precisionMode.clone()]));
             }  else {
@@ -2738,7 +2741,7 @@ impl Tokocrypto {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
         if priceIsRequired {
-            if (price == Value::Null) {
+            if (price.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a price argument for a ").into()), typeResolved).into()), " order")));
             }
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
@@ -2780,7 +2783,7 @@ impl Tokocrypto {
             }
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[paramsRequest]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_open_v1_orders", &[&__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_post_open_v1_orders(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -2843,7 +2846,7 @@ impl Tokocrypto {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_orders", &[&__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.private_get_open_v1_orders(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -2900,8 +2903,8 @@ impl Tokocrypto {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2918,14 +2921,14 @@ impl Tokocrypto {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_orders", &[&__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.private_get_open_v1_orders(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -2961,7 +2964,7 @@ impl Tokocrypto {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "list");
-        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2984,8 +2987,8 @@ impl Tokocrypto {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2996,7 +2999,7 @@ impl Tokocrypto {
             m
         }); // -1 = all, 1 = open, 2 = closed
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_12).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_12).await);
         Value::Null
         }).await?))
     }
@@ -3019,8 +3022,8 @@ impl Tokocrypto {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3031,7 +3034,7 @@ impl Tokocrypto {
             m
         }); // -1 = all, 1 = open, 2 = closed
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_13).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_13).await);
         Value::Null
         }).await?))
     }
@@ -3064,7 +3067,7 @@ impl Tokocrypto {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_open_v1_orders_cancel", &[&__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_post_open_v1_orders_cancel(&[&__ws_arg_14]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -3116,8 +3119,8 @@ impl Tokocrypto {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3135,18 +3138,18 @@ impl Tokocrypto {
             m
         });
         let mut endTime: Option<i64> = self.safe_integer2(&params, Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
         }
         let mut paramsOmitted: crate::value::Dict = (if (endTime.is_some()) { self.omit(&params, &["endTime", "until"], &[]) } else { params }).into_dict();
         if (endTime.is_some()) {
             request.insert("endTime".into(), Value::from(endTime));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_orders_trades", &[&__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.private_get_open_v1_orders_trades(&[&__ws_arg_15]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -3174,7 +3177,7 @@ impl Tokocrypto {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut trades: crate::value::List = self.safe_list_k_t(&data, "list");
-        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3210,7 +3213,7 @@ impl Tokocrypto {
         });
         let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
         let mut network: Option<String> = self.safe_string_upper_k_opt(&params, "network", &[]); // this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[Value::from(network.as_deref())]); // handle ERC20>ETH alias
+        network = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[&Value::from(network.as_deref())]); // handle ERC20>ETH alias
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (network.is_some()) { Value::Str("network".into()) } else { Value::Null }, &[]);
         if (network.is_some()) {
             request.insert("network".into(), network.map(Value::from).unwrap_or(Value::Null));
@@ -3218,7 +3221,7 @@ impl Tokocrypto {
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_deposits_address", &[&__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_get_open_v1_deposits_address(&[&__ws_arg_16]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,
@@ -3236,7 +3239,7 @@ impl Tokocrypto {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut address: Option<String> = self.safe_string_k_opt(&data, "address", &[]);
-        let mut tag: Option<String> = self.safe_string_k_opt(&data, "addressTag", &[Value::Str("".into())]);
+        let mut tag: Option<String> = self.safe_string_k_opt(&data, "addressTag", &[&Value::Str("".into())]);
         if (((tag.as_deref().unwrap_or_default().chars().count() as i64)) == 0) {
             tag = None;
         }
@@ -3273,8 +3276,8 @@ impl Tokocrypto {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3292,20 +3295,20 @@ impl Tokocrypto {
             currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            let mut endTime: Option<i64> = (if let Some(__m0) = since.as_i64() { Some((__m0 + 7776000000)) } else { None });
+            let mut endTime: Option<i64> = (if let Some(__m0) = since { Some((__m0 + 7776000000)) } else { None });
             if (until.is_some()) {
                 endTime = (if let (Some(__m0), Some(__m1)) = (endTime, until) { Some(i64::min(__m0, __m1)) } else { None });
             }
             request.insert("endTime".into(), Value::from(endTime));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_deposits", &[&__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.private_get_open_v1_deposits(&[&__ws_arg_17]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,
@@ -3331,7 +3334,7 @@ impl Tokocrypto {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut deposits: crate::value::List = self.safe_list_k_t(&data, "list");
-        return self.parse_transactions(&deposits, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&deposits, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3354,8 +3357,8 @@ impl Tokocrypto {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3372,16 +3375,16 @@ impl Tokocrypto {
             currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        if (since != Value::Null) {
-            request.insert("startTime".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("startTime".into(), Value::from(since));
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request.insert("endTime".into(), self.sum(&[since.clone(), Value::Int(7776000000)]));
+            request.insert("endTime".into(), self.sum(&[Value::from(since), Value::Int(7776000000)]));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_open_v1_withdraws", &[&__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.private_get_open_v1_withdraws(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,
@@ -3409,7 +3412,7 @@ impl Tokocrypto {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut withdrawals: crate::value::List = self.safe_list_k_t(&data, "list");
-        return self.parse_transactions(&withdrawals, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&withdrawals, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3437,7 +3440,7 @@ impl Tokocrypto {
             m
         });
         let mut statuses: crate::value::Dict = self.safe_dict_t(&statusesByType, Value::from(type_var));
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 
@@ -3457,7 +3460,7 @@ impl Tokocrypto {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut address = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -3492,7 +3495,7 @@ impl Tokocrypto {
             request.insert("network".into(), networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_open_v1_withdraws", &[&__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.private_post_open_v1_withdraws(&[&__ws_arg_19]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))

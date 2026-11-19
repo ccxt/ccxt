@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Latoken {
     /// Auto-generated wrapper for the `publicGetBookCurrencyQuote` implicit endpoint.
-    pub async fn public_get_book_currency_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_book_currency_quote".into()), optional_args).await
+    pub async fn public_get_book_currency_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_book_currency_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetChartWeek` implicit endpoint.
@@ -63,13 +63,13 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `publicGetTickerBaseQuote` implicit endpoint.
-    pub async fn public_get_ticker_base_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_ticker_base_quote".into()), optional_args).await
+    pub async fn public_get_ticker_base_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_ticker_base_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTime` implicit endpoint.
-    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_time".into()), optional_args).await
+    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeHistoryCurrencyQuote` implicit endpoint.
@@ -78,8 +78,8 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `publicGetTradeFeeCurrencyQuote` implicit endpoint.
-    pub async fn public_get_trade_fee_currency_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_trade_fee_currency_quote".into()), optional_args).await
+    pub async fn public_get_trade_fee_currency_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_trade_fee_currency_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTradeFeeLevels` implicit endpoint.
@@ -118,8 +118,8 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privateGetAuthOrderGetOrderId` implicit endpoint.
-    pub async fn private_get_auth_order_get_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_order_get_order_id".into()), optional_args).await
+    pub async fn private_get_auth_order_get_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_auth_order_get_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthOrderPairCurrencyQuote` implicit endpoint.
@@ -138,8 +138,8 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privateGetAuthStopOrderGetOrderId` implicit endpoint.
-    pub async fn private_get_auth_stop_order_get_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_stop_order_get_order_id".into()), optional_args).await
+    pub async fn private_get_auth_stop_order_get_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_auth_stop_order_get_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthStopOrderPairCurrencyQuote` implicit endpoint.
@@ -163,13 +163,13 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTradeFeeCurrencyQuote` implicit endpoint.
-    pub async fn private_get_auth_trade_fee_currency_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_trade_fee_currency_quote".into()), optional_args).await
+    pub async fn private_get_auth_trade_fee_currency_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_auth_trade_fee_currency_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTransaction` implicit endpoint.
-    pub async fn private_get_auth_transaction(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_transaction".into()), optional_args).await
+    pub async fn private_get_auth_transaction(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_auth_transaction".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTransactionBindings` implicit endpoint.
@@ -188,23 +188,23 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privateGetAuthTransfer` implicit endpoint.
-    pub async fn private_get_auth_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_auth_transfer".into()), optional_args).await
+    pub async fn private_get_auth_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_auth_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthOrderCancel` implicit endpoint.
-    pub async fn private_post_auth_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_order_cancel".into()), optional_args).await
+    pub async fn private_post_auth_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_order_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthOrderCancelAll` implicit endpoint.
-    pub async fn private_post_auth_order_cancel_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_order_cancel_all".into()), optional_args).await
+    pub async fn private_post_auth_order_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_order_cancel_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthOrderCancelAllCurrencyQuote` implicit endpoint.
-    pub async fn private_post_auth_order_cancel_all_currency_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_order_cancel_all_currency_quote".into()), optional_args).await
+    pub async fn private_post_auth_order_cancel_all_currency_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_order_cancel_all_currency_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthOrderCancelBulk` implicit endpoint.
@@ -213,8 +213,8 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privatePostAuthOrderPlace` implicit endpoint.
-    pub async fn private_post_auth_order_place(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_order_place".into()), optional_args).await
+    pub async fn private_post_auth_order_place(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_order_place".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthOrderPlaceBulk` implicit endpoint.
@@ -233,23 +233,23 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privatePostAuthStopOrderCancel` implicit endpoint.
-    pub async fn private_post_auth_stop_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_stop_order_cancel".into()), optional_args).await
+    pub async fn private_post_auth_stop_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_stop_order_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthStopOrderCancelAll` implicit endpoint.
-    pub async fn private_post_auth_stop_order_cancel_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_stop_order_cancel_all".into()), optional_args).await
+    pub async fn private_post_auth_stop_order_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_stop_order_cancel_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthStopOrderCancelAllCurrencyQuote` implicit endpoint.
-    pub async fn private_post_auth_stop_order_cancel_all_currency_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_stop_order_cancel_all_currency_quote".into()), optional_args).await
+    pub async fn private_post_auth_stop_order_cancel_all_currency_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_stop_order_cancel_all_currency_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthStopOrderPlace` implicit endpoint.
-    pub async fn private_post_auth_stop_order_place(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_stop_order_place".into()), optional_args).await
+    pub async fn private_post_auth_stop_order_place(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_stop_order_place".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthTransactionDepositAddress` implicit endpoint.
@@ -278,18 +278,18 @@ impl Latoken {
     }
 
     /// Auto-generated wrapper for the `privatePostAuthTransferEmail` implicit endpoint.
-    pub async fn private_post_auth_transfer_email(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_transfer_email".into()), optional_args).await
+    pub async fn private_post_auth_transfer_email(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_transfer_email".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthTransferId` implicit endpoint.
-    pub async fn private_post_auth_transfer_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_transfer_id".into()), optional_args).await
+    pub async fn private_post_auth_transfer_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_transfer_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAuthTransferPhone` implicit endpoint.
-    pub async fn private_post_auth_transfer_phone(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_auth_transfer_phone".into()), optional_args).await
+    pub async fn private_post_auth_transfer_phone(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_auth_transfer_phone".into()), optional_args).await { Some(m) } else { None }
     }
 
 }

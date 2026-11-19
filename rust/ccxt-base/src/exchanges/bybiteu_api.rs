@@ -148,33 +148,33 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `publicGetV5SystemStatus` implicit endpoint.
-    pub async fn public_get_v5_system_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_system_status".into()), optional_args).await
+    pub async fn public_get_v5_system_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_system_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketTime` implicit endpoint.
-    pub async fn public_get_v5_market_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_time".into()), optional_args).await
+    pub async fn public_get_v5_market_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketKline` implicit endpoint.
-    pub async fn public_get_v5_market_kline(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_kline".into()), optional_args).await
+    pub async fn public_get_v5_market_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_kline".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketMarkPriceKline` implicit endpoint.
-    pub async fn public_get_v5_market_mark_price_kline(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_mark_price_kline".into()), optional_args).await
+    pub async fn public_get_v5_market_mark_price_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_mark_price_kline".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketIndexPriceKline` implicit endpoint.
-    pub async fn public_get_v5_market_index_price_kline(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_index_price_kline".into()), optional_args).await
+    pub async fn public_get_v5_market_index_price_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_index_price_kline".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketPremiumIndexPriceKline` implicit endpoint.
-    pub async fn public_get_v5_market_premium_index_price_kline(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_premium_index_price_kline".into()), optional_args).await
+    pub async fn public_get_v5_market_premium_index_price_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_premium_index_price_kline".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketInstrumentsInfo` implicit endpoint.
@@ -183,8 +183,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketOrderbook` implicit endpoint.
-    pub async fn public_get_v5_market_orderbook(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_orderbook".into()), optional_args).await
+    pub async fn public_get_v5_market_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_orderbook".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketRpiOrderbook` implicit endpoint.
@@ -198,28 +198,28 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketTickers` implicit endpoint.
-    pub async fn public_get_v5_market_tickers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_tickers".into()), optional_args).await
+    pub async fn public_get_v5_market_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_tickers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketFundingHistory` implicit endpoint.
-    pub async fn public_get_v5_market_funding_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_funding_history".into()), optional_args).await
+    pub async fn public_get_v5_market_funding_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_funding_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketRecentTrade` implicit endpoint.
-    pub async fn public_get_v5_market_recent_trade(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_recent_trade".into()), optional_args).await
+    pub async fn public_get_v5_market_recent_trade(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_recent_trade".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketOpenInterest` implicit endpoint.
-    pub async fn public_get_v5_market_open_interest(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_open_interest".into()), optional_args).await
+    pub async fn public_get_v5_market_open_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_open_interest".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketHistoricalVolatility` implicit endpoint.
-    pub async fn public_get_v5_market_historical_volatility(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_historical_volatility".into()), optional_args).await
+    pub async fn public_get_v5_market_historical_volatility(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_historical_volatility".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketInsurance` implicit endpoint.
@@ -228,13 +228,13 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketRiskLimit` implicit endpoint.
-    pub async fn public_get_v5_market_risk_limit(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_risk_limit".into()), optional_args).await
+    pub async fn public_get_v5_market_risk_limit(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_risk_limit".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketDeliveryPrice` implicit endpoint.
-    pub async fn public_get_v5_market_delivery_price(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_delivery_price".into()), optional_args).await
+    pub async fn public_get_v5_market_delivery_price(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_delivery_price".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketNewDeliveryPrice` implicit endpoint.
@@ -243,8 +243,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketAccountRatio` implicit endpoint.
-    pub async fn public_get_v5_market_account_ratio(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_market_account_ratio".into()), optional_args).await
+    pub async fn public_get_v5_market_account_ratio(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_market_account_ratio".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5MarketIndexPriceComponents` implicit endpoint.
@@ -278,8 +278,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotMarginTradeData` implicit endpoint.
-    pub async fn public_get_v5_spot_margin_trade_data(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_v5_spot_margin_trade_data".into()), optional_args).await
+    pub async fn public_get_v5_spot_margin_trade_data(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_v5_spot_margin_trade_data".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetV5SpotMarginTradeCollateral` implicit endpoint.
@@ -373,8 +373,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5MarketInstrumentsInfo` implicit endpoint.
-    pub async fn private_get_v5_market_instruments_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_market_instruments_info".into()), optional_args).await
+    pub async fn private_get_v5_market_instruments_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_market_instruments_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV2PrivateWalletFundRecords` implicit endpoint.
@@ -653,13 +653,13 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5OrderRealtime` implicit endpoint.
-    pub async fn private_get_v5_order_realtime(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_order_realtime".into()), optional_args).await
+    pub async fn private_get_v5_order_realtime(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_order_realtime".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5OrderHistory` implicit endpoint.
-    pub async fn private_get_v5_order_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_order_history".into()), optional_args).await
+    pub async fn private_get_v5_order_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_order_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5OrderSpotBorrowCheck` implicit endpoint.
@@ -668,18 +668,18 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5PositionList` implicit endpoint.
-    pub async fn private_get_v5_position_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_position_list".into()), optional_args).await
+    pub async fn private_get_v5_position_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_position_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5ExecutionList` implicit endpoint.
-    pub async fn private_get_v5_execution_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_execution_list".into()), optional_args).await
+    pub async fn private_get_v5_execution_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_execution_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5PositionClosedPnl` implicit endpoint.
-    pub async fn private_get_v5_position_closed_pnl(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_position_closed_pnl".into()), optional_args).await
+    pub async fn private_get_v5_position_closed_pnl(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_position_closed_pnl".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5PositionGetClosedPositions` implicit endpoint.
@@ -728,8 +728,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountWalletBalance` implicit endpoint.
-    pub async fn private_get_v5_account_wallet_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_account_wallet_balance".into()), optional_args).await
+    pub async fn private_get_v5_account_wallet_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_account_wallet_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountBorrowHistory` implicit endpoint.
@@ -758,8 +758,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountFeeRate` implicit endpoint.
-    pub async fn private_get_v5_account_fee_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_account_fee_rate".into()), optional_args).await
+    pub async fn private_get_v5_account_fee_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_account_fee_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountInfo` implicit endpoint.
@@ -768,13 +768,13 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountTransactionLog` implicit endpoint.
-    pub async fn private_get_v5_account_transaction_log(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_account_transaction_log".into()), optional_args).await
+    pub async fn private_get_v5_account_transaction_log(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_account_transaction_log".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountContractTransactionLog` implicit endpoint.
-    pub async fn private_get_v5_account_contract_transaction_log(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_account_contract_transaction_log".into()), optional_args).await
+    pub async fn private_get_v5_account_contract_transaction_log(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_account_contract_transaction_log".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AccountQueryDcpInfo` implicit endpoint.
@@ -818,18 +818,18 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeQueryCoinList` implicit endpoint.
-    pub async fn private_get_v5_asset_exchange_query_coin_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_exchange_query_coin_list".into()), optional_args).await
+    pub async fn private_get_v5_asset_exchange_query_coin_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_exchange_query_coin_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeConvertResultQuery` implicit endpoint.
-    pub async fn private_get_v5_asset_exchange_convert_result_query(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_exchange_convert_result_query".into()), optional_args).await
+    pub async fn private_get_v5_asset_exchange_convert_result_query(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_exchange_convert_result_query".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeQueryConvertHistory` implicit endpoint.
-    pub async fn private_get_v5_asset_exchange_query_convert_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_exchange_query_convert_history".into()), optional_args).await
+    pub async fn private_get_v5_asset_exchange_query_convert_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_exchange_query_convert_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetExchangeOrderRecord` implicit endpoint.
@@ -853,8 +853,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDeliveryRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_delivery_record(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_delivery_record".into()), optional_args).await
+    pub async fn private_get_v5_asset_delivery_record(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_delivery_record".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetSettlementRecord` implicit endpoint.
@@ -868,8 +868,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryAccountCoinsBalance` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_account_coins_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_transfer_query_account_coins_balance".into()), optional_args).await
+    pub async fn private_get_v5_asset_transfer_query_account_coins_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_transfer_query_account_coins_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryAccountCoinBalance` implicit endpoint.
@@ -883,8 +883,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQueryInterTransferList` implicit endpoint.
-    pub async fn private_get_v5_asset_transfer_query_inter_transfer_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_transfer_query_inter_transfer_list".into()), optional_args).await
+    pub async fn private_get_v5_asset_transfer_query_inter_transfer_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_transfer_query_inter_transfer_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetTransferQuerySubMemberList` implicit endpoint.
@@ -903,8 +903,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQueryRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_deposit_query_record(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_deposit_query_record".into()), optional_args).await
+    pub async fn private_get_v5_asset_deposit_query_record(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_deposit_query_record".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQuerySubMemberRecord` implicit endpoint.
@@ -918,8 +918,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQueryAddress` implicit endpoint.
-    pub async fn private_get_v5_asset_deposit_query_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_deposit_query_address".into()), optional_args).await
+    pub async fn private_get_v5_asset_deposit_query_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_deposit_query_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetDepositQuerySubMemberAddress` implicit endpoint.
@@ -928,8 +928,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetCoinQueryInfo` implicit endpoint.
-    pub async fn private_get_v5_asset_coin_query_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_coin_query_info".into()), optional_args).await
+    pub async fn private_get_v5_asset_coin_query_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_coin_query_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetWithdrawQueryAddress` implicit endpoint.
@@ -938,8 +938,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetWithdrawQueryRecord` implicit endpoint.
-    pub async fn private_get_v5_asset_withdraw_query_record(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_asset_withdraw_query_record".into()), optional_args).await
+    pub async fn private_get_v5_asset_withdraw_query_record(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_asset_withdraw_query_record".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5AssetWithdrawWithdrawableAmount` implicit endpoint.
@@ -1073,8 +1073,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeInterestRateHistory` implicit endpoint.
-    pub async fn private_get_v5_spot_margin_trade_interest_rate_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_spot_margin_trade_interest_rate_history".into()), optional_args).await
+    pub async fn private_get_v5_spot_margin_trade_interest_rate_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_spot_margin_trade_interest_rate_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeState` implicit endpoint.
@@ -1138,8 +1138,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotCrossMarginTradeAccount` implicit endpoint.
-    pub async fn private_get_v5_spot_cross_margin_trade_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_v5_spot_cross_margin_trade_account".into()), optional_args).await
+    pub async fn private_get_v5_spot_cross_margin_trade_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_v5_spot_cross_margin_trade_account".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetV5SpotCrossMarginTradeOrders` implicit endpoint.
@@ -1688,43 +1688,43 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCreate` implicit endpoint.
-    pub async fn private_post_v5_order_create(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_order_create".into()), optional_args).await
+    pub async fn private_post_v5_order_create(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_order_create".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderAmend` implicit endpoint.
-    pub async fn private_post_v5_order_amend(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_order_amend".into()), optional_args).await
+    pub async fn private_post_v5_order_amend(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_order_amend".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCancel` implicit endpoint.
-    pub async fn private_post_v5_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_order_cancel".into()), optional_args).await
+    pub async fn private_post_v5_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_order_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCancelAll` implicit endpoint.
-    pub async fn private_post_v5_order_cancel_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_order_cancel_all".into()), optional_args).await
+    pub async fn private_post_v5_order_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_order_cancel_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCreateBatch` implicit endpoint.
-    pub async fn private_post_v5_order_create_batch(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_order_create_batch".into()), optional_args).await
+    pub async fn private_post_v5_order_create_batch(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_order_create_batch".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderAmendBatch` implicit endpoint.
-    pub async fn private_post_v5_order_amend_batch(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_order_amend_batch".into()), optional_args).await
+    pub async fn private_post_v5_order_amend_batch(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_order_amend_batch".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderCancelBatch` implicit endpoint.
-    pub async fn private_post_v5_order_cancel_batch(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_order_cancel_batch".into()), optional_args).await
+    pub async fn private_post_v5_order_cancel_batch(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_order_cancel_batch".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderDisconnectedCancelAll` implicit endpoint.
-    pub async fn private_post_v5_order_disconnected_cancel_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_order_disconnected_cancel_all".into()), optional_args).await
+    pub async fn private_post_v5_order_disconnected_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_order_disconnected_cancel_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5OrderPreCheck` implicit endpoint.
@@ -1733,13 +1733,13 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSetLeverage` implicit endpoint.
-    pub async fn private_post_v5_position_set_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_position_set_leverage".into()), optional_args).await
+    pub async fn private_post_v5_position_set_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_position_set_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSwitchIsolated` implicit endpoint.
-    pub async fn private_post_v5_position_switch_isolated(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_position_switch_isolated".into()), optional_args).await
+    pub async fn private_post_v5_position_switch_isolated(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_position_switch_isolated".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSetTpslMode` implicit endpoint.
@@ -1748,8 +1748,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSwitchMode` implicit endpoint.
-    pub async fn private_post_v5_position_switch_mode(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_position_switch_mode".into()), optional_args).await
+    pub async fn private_post_v5_position_switch_mode(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_position_switch_mode".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSetRiskLimit` implicit endpoint.
@@ -1758,8 +1758,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionTradingStop` implicit endpoint.
-    pub async fn private_post_v5_position_trading_stop(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_position_trading_stop".into()), optional_args).await
+    pub async fn private_post_v5_position_trading_stop(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_position_trading_stop".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5PositionSetAutoAddMargin` implicit endpoint.
@@ -1793,8 +1793,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetMarginMode` implicit endpoint.
-    pub async fn private_post_v5_account_set_margin_mode(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_account_set_margin_mode".into()), optional_args).await
+    pub async fn private_post_v5_account_set_margin_mode(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_account_set_margin_mode".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetHedgingMode` implicit endpoint.
@@ -1813,8 +1813,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountBorrow` implicit endpoint.
-    pub async fn private_post_v5_account_borrow(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_account_borrow".into()), optional_args).await
+    pub async fn private_post_v5_account_borrow(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_account_borrow".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountRepay` implicit endpoint.
@@ -1823,8 +1823,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountNoConvertRepay` implicit endpoint.
-    pub async fn private_post_v5_account_no_convert_repay(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_account_no_convert_repay".into()), optional_args).await
+    pub async fn private_post_v5_account_no_convert_repay(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_account_no_convert_repay".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5AccountSetLimitPxAction` implicit endpoint.
@@ -1838,18 +1838,18 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetExchangeQuoteApply` implicit endpoint.
-    pub async fn private_post_v5_asset_exchange_quote_apply(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_asset_exchange_quote_apply".into()), optional_args).await
+    pub async fn private_post_v5_asset_exchange_quote_apply(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_asset_exchange_quote_apply".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetExchangeConvertExecute` implicit endpoint.
-    pub async fn private_post_v5_asset_exchange_convert_execute(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_asset_exchange_convert_execute".into()), optional_args).await
+    pub async fn private_post_v5_asset_exchange_convert_execute(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_asset_exchange_convert_execute".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetTransferInterTransfer` implicit endpoint.
-    pub async fn private_post_v5_asset_transfer_inter_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_asset_transfer_inter_transfer".into()), optional_args).await
+    pub async fn private_post_v5_asset_transfer_inter_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_asset_transfer_inter_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetTransferSaveTransferSubMember` implicit endpoint.
@@ -1873,8 +1873,8 @@ impl Bybiteu {
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetWithdrawCreate` implicit endpoint.
-    pub async fn private_post_v5_asset_withdraw_create(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_v5_asset_withdraw_create".into()), optional_args).await
+    pub async fn private_post_v5_asset_withdraw_create(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_v5_asset_withdraw_create".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostV5AssetWithdrawCancel` implicit endpoint.

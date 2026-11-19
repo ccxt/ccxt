@@ -13,33 +13,33 @@ use crate::exchange::ExchangeRuntime;
 
 impl Revolutx {
     /// Auto-generated wrapper for the `publicGet20PublicOrderBookSymbol` implicit endpoint.
-    pub async fn public_get20_public_order_book_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get20_public_order_book_symbol".into()), optional_args).await
+    pub async fn public_get20_public_order_book_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get20_public_order_book_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGet10PublicTickers` implicit endpoint.
-    pub async fn public_get10_public_tickers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get10_public_tickers".into()), optional_args).await
+    pub async fn public_get10_public_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get10_public_tickers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGet10PublicCandlesSymbol` implicit endpoint.
-    pub async fn public_get10_public_candles_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get10_public_candles_symbol".into()), optional_args).await
+    pub async fn public_get10_public_candles_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get10_public_candles_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGet10PublicTradesAll` implicit endpoint.
-    pub async fn public_get10_public_trades_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get10_public_trades_all".into()), optional_args).await
+    pub async fn public_get10_public_trades_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get10_public_trades_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGet10PublicConfigurationCurrencies` implicit endpoint.
-    pub async fn public_get10_public_configuration_currencies(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get10_public_configuration_currencies".into()), optional_args).await
+    pub async fn public_get10_public_configuration_currencies(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get10_public_configuration_currencies".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGet10PublicConfigurationPairs` implicit endpoint.
-    pub async fn public_get10_public_configuration_pairs(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get10_public_configuration_pairs".into()), optional_args).await
+    pub async fn public_get10_public_configuration_pairs(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get10_public_configuration_pairs".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGet10Balances` implicit endpoint.
@@ -48,18 +48,18 @@ impl Revolutx {
     }
 
     /// Auto-generated wrapper for the `privateGet10OrdersActive` implicit endpoint.
-    pub async fn private_get10_orders_active(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get10_orders_active".into()), optional_args).await
+    pub async fn private_get10_orders_active(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get10_orders_active".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGet10OrdersHistorical` implicit endpoint.
-    pub async fn private_get10_orders_historical(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get10_orders_historical".into()), optional_args).await
+    pub async fn private_get10_orders_historical(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get10_orders_historical".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGet10OrdersVenueOrderId` implicit endpoint.
-    pub async fn private_get10_orders_venue_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get10_orders_venue_order_id".into()), optional_args).await
+    pub async fn private_get10_orders_venue_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get10_orders_venue_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGet10OrdersFillsVenueOrderId` implicit endpoint.
@@ -68,8 +68,8 @@ impl Revolutx {
     }
 
     /// Auto-generated wrapper for the `privateGet10TradesPrivateSymbol` implicit endpoint.
-    pub async fn private_get10_trades_private_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get10_trades_private_symbol".into()), optional_args).await
+    pub async fn private_get10_trades_private_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get10_trades_private_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGet10Transactions` implicit endpoint.
@@ -83,8 +83,8 @@ impl Revolutx {
     }
 
     /// Auto-generated wrapper for the `privatePut10OrdersVenueOrderId` implicit endpoint.
-    pub async fn private_put10_orders_venue_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_put10_orders_venue_order_id".into()), optional_args).await
+    pub async fn private_put10_orders_venue_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_put10_orders_venue_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDelete10Orders` implicit endpoint.
@@ -93,8 +93,8 @@ impl Revolutx {
     }
 
     /// Auto-generated wrapper for the `privateDelete10OrdersVenueOrderId` implicit endpoint.
-    pub async fn private_delete10_orders_venue_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete10_orders_venue_order_id".into()), optional_args).await
+    pub async fn private_delete10_orders_venue_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete10_orders_venue_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
 }

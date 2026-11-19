@@ -63,13 +63,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsSlugSlug` implicit endpoint.
-    pub async fn gamma_public_get_events_slug_slug(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_events_slug_slug".into()), optional_args).await
+    pub async fn gamma_public_get_events_slug_slug(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("gamma_public_get_events_slug_slug".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsId` implicit endpoint.
-    pub async fn gamma_public_get_events_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("gamma_public_get_events_id".into()), optional_args).await
+    pub async fn gamma_public_get_events_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("gamma_public_get_events_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `gammaPublicGetEventsIdCommentsCount` implicit endpoint.
@@ -243,8 +243,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPublicGetFeeRate` implicit endpoint.
-    pub async fn clob_public_get_fee_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_public_get_fee_rate".into()), optional_args).await
+    pub async fn clob_public_get_fee_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_public_get_fee_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPublicGetFeeRateTokenId` implicit endpoint.
@@ -303,8 +303,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPublicGetPricesHistory` implicit endpoint.
-    pub async fn clob_public_get_prices_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_public_get_prices_history".into()), optional_args).await
+    pub async fn clob_public_get_prices_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_public_get_prices_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPublicGetRebatesCurrent` implicit endpoint.
@@ -413,13 +413,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetAuthDeriveApiKey` implicit endpoint.
-    pub async fn clob_private_get_auth_derive_api_key(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_get_auth_derive_api_key".into()), optional_args).await
+    pub async fn clob_private_get_auth_derive_api_key(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_get_auth_derive_api_key".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetBalanceAllowance` implicit endpoint.
-    pub async fn clob_private_get_balance_allowance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_get_balance_allowance".into()), optional_args).await
+    pub async fn clob_private_get_balance_allowance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_get_balance_allowance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetBalanceAllowanceUpdate` implicit endpoint.
@@ -428,13 +428,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetDataOrderId` implicit endpoint.
-    pub async fn clob_private_get_data_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_get_data_order_id".into()), optional_args).await
+    pub async fn clob_private_get_data_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_get_data_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetDataOrders` implicit endpoint.
-    pub async fn clob_private_get_data_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_get_data_orders".into()), optional_args).await
+    pub async fn clob_private_get_data_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_get_data_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivateGetDataTrades` implicit endpoint.
@@ -478,8 +478,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivatePostAuthApiKey` implicit endpoint.
-    pub async fn clob_private_post_auth_api_key(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_post_auth_api_key".into()), optional_args).await
+    pub async fn clob_private_post_auth_api_key(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_post_auth_api_key".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivatePostAuthBuilderApiKey` implicit endpoint.
@@ -493,8 +493,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivatePostOrder` implicit endpoint.
-    pub async fn clob_private_post_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_post_order".into()), optional_args).await
+    pub async fn clob_private_post_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_post_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivatePostOrders` implicit endpoint.
@@ -518,13 +518,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivateDeleteCancelAll` implicit endpoint.
-    pub async fn clob_private_delete_cancel_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_delete_cancel_all".into()), optional_args).await
+    pub async fn clob_private_delete_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_delete_cancel_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivateDeleteCancelMarketOrders` implicit endpoint.
-    pub async fn clob_private_delete_cancel_market_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_delete_cancel_market_orders".into()), optional_args).await
+    pub async fn clob_private_delete_cancel_market_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_delete_cancel_market_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivateDeleteNotifications` implicit endpoint.
@@ -533,13 +533,13 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `clobPrivateDeleteOrder` implicit endpoint.
-    pub async fn clob_private_delete_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_delete_order".into()), optional_args).await
+    pub async fn clob_private_delete_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_delete_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `clobPrivateDeleteOrders` implicit endpoint.
-    pub async fn clob_private_delete_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("clob_private_delete_orders".into()), optional_args).await
+    pub async fn clob_private_delete_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("clob_private_delete_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetActivity` implicit endpoint.
@@ -573,8 +573,8 @@ impl Polymarket {
     }
 
     /// Auto-generated wrapper for the `dataPublicGetPositions` implicit endpoint.
-    pub async fn data_public_get_positions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("data_public_get_positions".into()), optional_args).await
+    pub async fn data_public_get_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("data_public_get_positions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dataPublicGetRevisions` implicit endpoint.

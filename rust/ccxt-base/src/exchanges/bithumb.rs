@@ -36,8 +36,10 @@ impl Bithumb {
         let described = Bithumb::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -518,7 +520,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -533,7 +535,8 @@ impl crate::exchange::DerivedExchange for Bithumb {
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_number_k(order, "avg_trade_price", &[]));
+        m.insert("average".to_string(), self.safe_number_k(&order, "avg_trade_price", &[]));
+        m.insert("info".to_string(), order);
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), remaining.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
@@ -612,11 +615,12 @@ impl crate::exchange::DerivedExchange for Bithumb {
         self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(&response, "net_type", &[]), code.map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), self.safe_string_k(response, "secondary_address", &[]));
+        m.insert("tag".to_string(), self.safe_string_k(&response, "secondary_address", &[]));
+        m.insert("info".to_string(), response);
     m
 });
 
@@ -648,7 +652,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
         //
         let mut type_var: Option<String> = self.safe_string_k_opt(&transaction, "type", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency", &[]);
-        let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
+        let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
         let mut datetime: Option<String> = self.safe_string_k_opt(&transaction, "created_at", &[]);
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         if (datetime.is_some()) && (datetime.as_deref().unwrap_or_default().contains("+09:00")) {
@@ -669,9 +673,10 @@ impl crate::exchange::DerivedExchange for Bithumb {
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
-        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), Value::Null);
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
         m.insert("status".to_string(), self.parse_transaction_status_by_type(self.safe_string_k(&transaction, "state", &[]).as_str(), type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -706,7 +711,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
             m
         });
         let mut requestBody: Option<String> = None;
-        let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), params.clone()));
+        let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), &params));
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
@@ -735,13 +740,13 @@ impl crate::exchange::DerivedExchange for Bithumb {
                         m.insert("OPEN-API-PARTNER".to_string(), Value::Str("CCXT".into()));
                     m
                 });
-                let mut request: crate::value::Dict = Value::Map({
+                let mut request: crate::value::Dict = std::sync::Arc::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("access_key".to_string(), self.apiKey.clone());
                         m.insert("nonce".to_string(), Value::from(self.uuid(&[])));
                         m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
                     m
-                }).into_dict();
+                });
                 let mut auth: Value = Value::Str("".into());
                 if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                     requestHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
@@ -754,7 +759,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), endpoint).into()), "?").into()), auth);
                 }
                 if hasQuery {
-                    std::sync::Arc::make_mut(&mut request).insert("query_hash".into(), Value::from(self.hash(self.encode(auth), Value::Str("sha512".into()), &[])));
+                    std::sync::Arc::make_mut(&mut request).insert("query_hash".into(), Value::from(self.hash(self.encode(auth), "sha512", &[])));
                     std::sync::Arc::make_mut(&mut request).insert("query_hash_alg".into(), Value::Str("SHA512".into()));
                 }
                 let mut token: String = jwt(&request, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
@@ -771,7 +776,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
                 requestBody = Some(bodyParts.iter().map(Value::to_string).collect::<Vec<String>>().join("+"));
                 let mut nonce: Option<String> = self.number_to_string(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
                 let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, "\\").into()), requestBody.as_deref().unwrap_or("null")).into()), "\\").into()), nonce.as_deref().unwrap_or("null")); // eslint-disable-line quotes
-                let mut signature: String = self.hmac(self.encode(Value::from(authPayload)), self.encode(&self.secret), Value::Str("sha512".into()), &[]);
+                let mut signature: String = self.hmac(self.encode(Value::from(authPayload)), self.encode(&self.secret), "sha512", &[]);
                 let mut signature64: String = self.string_to_base64(Value::from(signature), &[]);
                 requestHeaders = ({
                     let mut m = indexmap::IndexMap::new();
@@ -810,10 +815,10 @@ impl crate::exchange::DerivedExchange for Bithumb {
             let mut message: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null"));
             if (errorName.is_some()) {
-                self.throw_exactly_matched_exception(self.exceptions.clone(), errorName.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+                self.throw_exactly_matched_exception(&self.exceptions, &errorName, feedback.as_str());
             }
             if (message.is_some()) {
-                self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+                self.throw_exactly_matched_exception(&self.exceptions, &message, feedback.as_str());
             }
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
@@ -830,8 +835,8 @@ impl crate::exchange::DerivedExchange for Bithumb {
                 return Value::Null;
             }
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null"));
-            self.throw_exactly_matched_exception(self.exceptions.clone(), status.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
-            self.throw_exactly_matched_exception(self.exceptions.clone(), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_exactly_matched_exception(&self.exceptions, &status, feedback.as_str());
+            self.throw_exactly_matched_exception(&self.exceptions, &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -841,7 +846,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
 }
 
 impl crate::exchange_generated::ExchangeBase for Bithumb {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -854,8 +859,8 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
-                    &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
+                    &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_twap_order" => crate::types::IntoRaw::into_raw(self.create_twap_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
@@ -1650,8 +1655,8 @@ impl Bithumb {
         return self.super_safe_market(marketId, market, delimiter, Value::Str("spot".into()));
 }
 
-    pub fn amount_to_precision(&self, symbol: Option<&str>, amount: impl Into<crate::Value>) -> Option<String> {
-        let mut amount: Value = amount.into();
+    pub fn amount_to_precision(&self, symbol: Option<&str>, amount: impl crate::value::ScalarArg) -> Option<String> {
+        let mut amount: Value = crate::value::ScalarArg::scalar(&amount).to_value();
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
 }
@@ -1663,11 +1668,11 @@ impl Bithumb {
         }
         let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteId", &[]);
         if (quoteId.is_none()) {
-            quoteId = self.safe_string_k_opt(&market, "quote", &[Value::Str("".into())]);
+            quoteId = self.safe_string_k_opt(&market, "quote", &[&Value::Str("".into())]);
         }
         let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseId", &[]);
         if (baseId.is_none()) {
-            baseId = self.safe_string_k_opt(&market, "base", &[Value::Str("".into())]);
+            baseId = self.safe_string_k_opt(&market, "base", &[&Value::Str("".into())]);
         }
         return Some(format!("{}{}", Value::Str(format!("{}{}", quoteId.as_deref().unwrap_or("null"), "-").into()), baseId.as_deref().unwrap_or("null")));
 }
@@ -1803,7 +1808,7 @@ impl Bithumb {
                 promises.push(self.public_get_public_ticker_all_quote_id(&[&__ws_arg_1]).await);
             }
             }
-            let mut results: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+            let mut results: crate::value::List = promise_all(&Value::from(promises)).await;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_395: bool = true;
@@ -1948,7 +1953,7 @@ impl Bithumb {
                 let mut __for_first_396: bool = true;
                 while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (codes.len() as i64) } {
                 let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
-                let mut account: crate::value::Dict = self.account().into_dict();
+                let mut account: crate::value::Dict = self.account();
                 let mut currency: crate::types::Currency = self.currency(code.as_deref());
                 let mut lowerCurrencyId: String = self.safe_string_lower_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string(&balances, Value::Str(format!("{}{}", "total_", lowerCurrencyId).into()), &[]));
@@ -1963,7 +1968,7 @@ impl Bithumb {
                 let mut __for_first_397: bool = true;
                 while { if !__for_first_397 { i += 1; } __for_first_397 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
-                let mut account: crate::value::Dict = self.account().into_dict();
+                let mut account: crate::value::Dict = self.account();
                 let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 if (code.is_none()) {
@@ -2042,7 +2047,7 @@ impl Bithumb {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2115,11 +2120,11 @@ impl Bithumb {
         }  else {
             request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
             request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
-            if (limit != Value::Null) {
-                request.insert("count".into(), limit); // default 30, max 30
+            if (limit.is_some()) {
+                request.insert("count".into(), Value::from(limit)); // default 30, max 30
             }
             let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            let mut response: crate::value::Dict = self.call_method_t("public_get_public_orderbook_base_id_quote_id", &[&__ws_arg_4]).await;
+            let mut response: crate::value::Dict = self.public_get_public_orderbook_base_id_quote_id(&[&__ws_arg_4]).await.unwrap_or_default();
             //
             //     {
             //         "status":"0000",
@@ -2263,7 +2268,7 @@ impl Bithumb {
             //         },
             //     ]
             //
-            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await;
             let mut responsesLength: i64 = responses.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -2280,8 +2285,8 @@ impl Bithumb {
                     expectedMarketId = firstMarketId.take();
                 }
                 let mut tickers: crate::value::List = std::sync::Arc::new(Vec::new());
-                if (matches!(&response, Value::Arr(_))) {
-                    tickers = response.into_list();
+                if let Value::Arr(__a) = response {
+                    tickers = __a;
                 }  else if self.is_dictionary(response.clone()).as_bool() == Some(true) {
                     if (in_op(&response, &Value::Str("market".into()))) || (in_op(&response, &Value::Str("trade_date".into()))) || (in_op(&response, &Value::Str("trade_timestamp".into()))) {
                         tickers = std::sync::Arc::new(vec![response.clone()]);
@@ -2306,7 +2311,7 @@ impl Bithumb {
                     let mut __for_first_402: bool = true;
                     while { if !__for_first_402 { j += 1; } __for_first_402 = false; j < (tickers.len() as i64) } {
                     let mut entry: crate::value::Dict = tickers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
-                    let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "market", &[Value::from(expectedMarketId.as_deref())]);
+                    let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "market", &[&Value::from(expectedMarketId.as_deref())]);
                     if (marketId.is_none()) {
                         continue;
                     }
@@ -2356,7 +2361,7 @@ impl Bithumb {
                 promises.push(self.public_get_public_ticker_all_quote_id(&[&__ws_arg_6]).await);
             }
             }
-            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await.into_list();
+            let mut responses: crate::value::List = promise_all(&Value::from(promises)).await;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_407: bool = true;
@@ -2369,12 +2374,12 @@ impl Bithumb {
                 })]).as_map().cloned().unwrap_or_default();
                 let mut timestamp: Option<i64> = self.safe_integer_k(&data, "date", &[]).as_i64();
                 let mut tickers: Value = self.omit(Value::Map(data.clone()), Value::Str("date".into()), &[]);
-                let mut currencyIds: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut currencyIds: Vec<&str> = tickers.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_406: bool = true;
                     while { if !__for_first_406 { j += 1; } __for_first_406 = false; j < (currencyIds.len() as i64) } {
-                    let mut currencyId: Option<&str> = currencyIds.get(j as usize).and_then(Value::as_str);
+                    let mut currencyId: Option<&str> = currencyIds.get(j as usize).copied();
                     let mut ticker: Value = data.get(currencyId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                     let mut base: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                     if (base.is_none()) {
@@ -2427,10 +2432,10 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: crate::value::Dict = Value::Map({
+        let mut data: crate::value::Dict = std::sync::Arc::new({
             let mut m = indexmap::IndexMap::new();
             m
-        }).into_dict();
+        });
         if (generation == Some(2)) {
             request.insert("markets".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_7 = self.extend(&request, &[&paramsGeneration]);
@@ -2472,7 +2477,7 @@ impl Bithumb {
             request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
             request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            let mut response: crate::value::Dict = self.call_method_t("public_get_public_ticker_base_id_quote_id", &[&__ws_arg_8]).await;
+            let mut response: crate::value::Dict = self.public_get_public_ticker_base_id_quote_id(&[&__ws_arg_8]).await.unwrap_or_default();
             //
             //     {
             //         "status":"0000",
@@ -2528,7 +2533,7 @@ impl Bithumb {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2551,17 +2556,17 @@ impl Bithumb {
             let mut paginate: bool = paginateparamsPaginateVariable.0.as_bool() == Some(true);
             let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
             if paginate {
-                return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(200)]).await;
+                return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit, timeframe.as_str(), &[&Value::from(&paramsPaginate), &Value::Int(200)]).await;
             }
             let mut until: Option<i64> = self.safe_integer_k(&paramsGeneration, "until", &[]).as_i64();
             let mut requestParams: crate::value::Dict = self.omit_t(&paramsGeneration, &["until", "paginate"], &[]);
             request.insert("market".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
             let mut count: Option<i64> = Some(200);
-            if (limit != Value::Null) {
-                count = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, 200)) } else { None });
+            if (limit.is_some()) {
+                count = (if let Some(__m0) = limit { Some(i64::min(__m0, 200)) } else { None });
             }
-            if (limit != Value::Null) || (since != Value::Null) || (until.is_some()) {
+            if (limit.is_some()) || (since != Value::Null) || (until.is_some()) {
                 request.insert("count".into(), Value::from(count));
             }
             // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
@@ -2571,7 +2576,7 @@ impl Bithumb {
                 to = (if let Some(__m0) = until { Some((__m0 + 1000)) } else { None }); // `to` is exclusive with second precision, keep the candle that opens at `until`
             }
             if (since != Value::Null) {
-                let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
+                let mut duration: i64 = ((self.parse_timeframe(&timeframe)) * 1000);
                 let mut sinceEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__r) = count { Some(duration * __r) } else { None }))) { Some((__m0 + __m1)) } else { None });
                 if (to.is_none()) || ((sinceEnd.is_some() && to.is_some() && sinceEnd < to)) {
                     to = sinceEnd;
@@ -2590,7 +2595,7 @@ impl Bithumb {
                 let __ws_arg_11 = self.extend(&request, &[&requestParams]);
                 response = self.call_method(Value::Str("public_get_v1_candles_months".into()), &[&__ws_arg_11]).await;
             }  else {
-                let mut timeframeInteger: Option<i64> = self.safe_integer(&self.timeframes, timeframe.clone(), &[]).as_i64();
+                let mut timeframeInteger: Option<i64> = self.safe_integer(&self.timeframes, &timeframe, &[]).as_i64();
                 if (timeframeInteger.is_none()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() unsupported timeframe ").into()), timeframe)));
                 }
@@ -2632,7 +2637,7 @@ impl Bithumb {
                     m.insert("1M".to_string(), Value::Str("1mm".into()));
                 m
             });
-            request.insert("interval".into(), self.safe_string(&legacyTimeframes, timeframe.clone(), &[timeframe.clone()]));
+            request.insert("interval".into(), self.safe_string(&legacyTimeframes, &timeframe, std::slice::from_ref(&timeframe)));
             request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
             request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsGeneration]);
@@ -2662,7 +2667,7 @@ impl Bithumb {
             //
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_ohlc_vs(data, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, Some(&market), &[timeframe, since, Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -2688,8 +2693,8 @@ impl Bithumb {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2705,8 +2710,8 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (limit != Value::Null) {
-            request.insert("count".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("count".into(), Value::from(limit));
         }
         let mut data: Value = Value::from(vec![]);
         if (generation == Some(2)) {
@@ -2734,7 +2739,7 @@ impl Bithumb {
             request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
             request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            let mut response: crate::value::Dict = self.call_method_t("public_get_public_transaction_history_base_id_quote_id", &[&__ws_arg_15]).await;
+            let mut response: crate::value::Dict = self.public_get_public_transaction_history_base_id_quote_id(&[&__ws_arg_15]).await.unwrap_or_default();
             //
             //     {
             //         "status":"0000",
@@ -2751,7 +2756,7 @@ impl Bithumb {
             //
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }
-        return Value::Arr(self.parse_trades(data, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(data, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2816,7 +2821,7 @@ impl Bithumb {
             let mut amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let mut price: Value = self.safe_value_k(&rawOrder, "price", &[]);
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, &[&price, &Value::Dict(orderParams)]).into_dict();
+            let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, &[&price, &Value::Dict(orderParams)]);
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
@@ -2828,7 +2833,7 @@ impl Bithumb {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_v2_orders_batch", &[&__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_post_v2_orders_batch(&[&__ws_arg_16]).await.unwrap_or_default();
         //
         //     {
         //         "batch_orders_response": [
@@ -2849,7 +2854,7 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
+    pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2885,7 +2890,7 @@ impl Bithumb {
         request.insert("side".into(), sideRequest.map(Value::from).unwrap_or(Value::Null));
         let mut timeInForceRaw: Option<String> = self.safe_string2_opt(&params, Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut timeInForce: Option<String> = (if (timeInForceRaw.is_none()) { Some("GTC".to_string()) } else { timeInForceRaw.clone() });
-        let mut paramsTimeInForce: crate::value::Dict = (if (timeInForceRaw.is_none()) { params.clone() } else { self.omit(params, Value::Str("timeInForce".into()), &[]) }).into_dict();
+        let mut paramsTimeInForce: crate::value::Dict = (if (timeInForceRaw.is_none()) { params } else { self.omit(params, Value::Str("timeInForce".into()), &[]) }).into_dict();
         let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == "market"), Value::Bool(false), &[Value::from(&paramsTimeInForce)]);
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
@@ -2902,8 +2907,8 @@ impl Bithumb {
             request.insert("time_in_force".into(), Value::Str("ioc".into()));
         }
         if (type_var == "limit") {
-            request.insert("price".into(), Value::from(self.price_to_precision(Some(symbol), price.clone())));
-            request.insert("volume".into(), Value::from(self.amount_to_precision(Some(symbol), amount.clone())));
+            request.insert("price".into(), Value::from(self.price_to_precision(Some(symbol), &price)));
+            request.insert("volume".into(), Value::from(self.amount_to_precision(Some(symbol), &amount)));
             request.insert("order_type".into(), Value::Str("limit".into()));
         }  else {
             let mut typeRequest: Option<String> = None;
@@ -2935,9 +2940,9 @@ impl Bithumb {
             request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut paramsRequest: Value = (if (clientOrderId.is_some()) { self.omit(&paramsOrder, Value::Str("clientOrderId".into()), &[]) } else { paramsOrder });
-        return self.extend(Value::Map(request), &[paramsRequest]);
+        return self.extend_t(Value::Map(request), &[paramsRequest]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2968,11 +2973,10 @@ impl Bithumb {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2990,8 +2994,8 @@ impl Bithumb {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Option<crate::value::Dict> = None;
         if (generation == Some(2)) {
-            request = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[&price, &Value::from(&paramsGeneration)]).as_map().cloned().unwrap_or_default();
-            response = self.call_method_o("private_post_v2_orders", &[&Value::Map(request.clone())]).await;
+            request = std::sync::Arc::unwrap_or_clone(self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::from(&paramsGeneration)]));
+            response = self.private_post_v2_orders(&[&Value::Map(request.clone())]).await;
         }  else {
             request.insert("order_currency".into(), Value::from((market).base.clone()));
             request.insert("payment_currency".into(), Value::from((market).quote.clone()));
@@ -3006,13 +3010,13 @@ impl Bithumb {
                 }
                 request.insert("type".into(), typeRequest.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_17 = self.extend(&request, &[&paramsGeneration]);
-                response = self.call_method_o("private_post_trade_place", &[&__ws_arg_17]).await;
+                response = self.private_post_trade_place(&[&__ws_arg_17]).await;
             }  else if (side.as_str() == Some("buy")) {
                 let __ws_arg_18 = self.extend(&request, &[&paramsGeneration]);
-                response = self.call_method_o("private_post_trade_market_buy", &[&__ws_arg_18]).await;
+                response = self.private_post_trade_market_buy(&[&__ws_arg_18]).await;
             }  else {
                 let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsGeneration]);
-                response = self.call_method_o("private_post_trade_market_sell", &[&__ws_arg_19]).await;
+                response = self.private_post_trade_market_sell(&[&__ws_arg_19]).await;
             }
         }
         let mut id: Option<String> = self.safe_string_k_opt(&response, "order_id", &[]);
@@ -3048,7 +3052,7 @@ impl Bithumb {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
-        let mut cost = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -3070,7 +3074,7 @@ impl Bithumb {
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
     m
 })]);
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, __ws_arg_21).await);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost, None, __ws_arg_21).await);
         Value::Null
         }).await?))
     }
@@ -3095,7 +3099,7 @@ impl Bithumb {
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut duration = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -3122,7 +3126,7 @@ impl Bithumb {
                 m.insert("duration".to_string(), durationSeconds.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if (amount != Value::Null) {
+        if (Value::from(amount) != Value::Null) {
             request.insert("volume".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount))); // required for sale
         }
         let mut sideRequest: Option<String> = None;
@@ -3133,7 +3137,7 @@ impl Bithumb {
         }
         request.insert("side".into(), sideRequest.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_v1_twap", &[&__ws_arg_22]).await;
+        let mut response: crate::value::Dict = self.private_post_v1_twap(&[&__ws_arg_22]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -3192,7 +3196,7 @@ impl Bithumb {
                 }
                 request.insert("uuids".into(), Value::from(vec![id.clone()]));
                 let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
-                response = self.call_method_o("private_get_v1_twap", &[&__ws_arg_23]).await;
+                response = self.private_get_v1_twap(&[&__ws_arg_23]).await;
                 //
                 //     {
                 //         "has_next": false,
@@ -3231,7 +3235,7 @@ impl Bithumb {
                     request.insert("uuid".into(), id.clone());
                 }
                 let __ws_arg_24 = self.extend(&request, &[&paramsClientOrderId]);
-                response = self.call_method_o("private_get_v1_order", &[&__ws_arg_24]).await;
+                response = self.private_get_v1_order(&[&__ws_arg_24]).await;
                 //
                 //     {
                 //         "uuid": "C0101000003152406454",
@@ -3269,7 +3273,7 @@ impl Bithumb {
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_o("private_post_info_order_detail", &[&__ws_arg_25]).await;
+            response = self.private_post_info_order_detail(&[&__ws_arg_25]).await;
             //
             //     {
             //         "status": "0000",
@@ -3323,7 +3327,7 @@ impl Bithumb {
                 m.insert("progress".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 
@@ -3350,8 +3354,8 @@ impl Bithumb {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3362,7 +3366,7 @@ impl Bithumb {
         let generationparamsGenerationVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("generation".into()), &[Value::Int(2)]);
         let mut generation: Option<i64> = generationparamsGenerationVariable.0;
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.1;
-        let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
+        let mut limitResolved: i64 = limit.unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3376,24 +3380,24 @@ impl Bithumb {
         m.insert("state".to_string(), (if twap { Value::Str("progress".into()) } else { Value::Str("wait".into()) }));
     m
 })]);
-            let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_26).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]));
+            let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_26).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since, limit, &[]));
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrders() requires a symbol argument")));
             }
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if (since != Value::Null) {
-                request.insert("after".into(), since.clone());
+            if (since.is_some()) {
+                request.insert("after".into(), Value::from(since));
             }
             request.insert("count".into(), Value::from(limitResolved));
             request.insert("order_currency".into(), crate::value::KeyRead::key_read(&&market, "base"));
             request.insert("payment_currency".into(), crate::value::KeyRead::key_read(&&market, "quote"));
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.call_method_o("private_post_info_orders", &[&__ws_arg_27]).await;
+            response = self.private_post_info_orders(&[&__ws_arg_27]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[since, Value::from(limitResolved)]));
+        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[&Value::from(since), &Value::from(limitResolved)]));
         Value::Null
         }).await?))
     }
@@ -3421,8 +3425,8 @@ impl Bithumb {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3457,13 +3461,13 @@ impl Bithumb {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("market".into(), self.get_gen2_market_id(market.as_ref()).map(Value::from).unwrap_or(Value::Null));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let mut data: Value = Value::Null;
         if twap {
             let __ws_arg_28 = self.extend(&request, &[&paramsRequest]);
-            let mut response: crate::value::Dict = self.call_method_t("private_get_v1_twap", &[&__ws_arg_28]).await;
+            let mut response: crate::value::Dict = self.private_get_v1_twap(&[&__ws_arg_28]).await.unwrap_or_default();
             //
             //     {
             //         "has_next": false,
@@ -3517,7 +3521,7 @@ impl Bithumb {
             //
             data = response;
         }
-        return Value::Arr(self.parse_orders(data, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_orders(data, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3544,15 +3548,15 @@ impl Bithumb {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("done".into())); }
-        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]));
+        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since, limit, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since, limit, &[]));
         Value::Null
         }).await?))
     }
@@ -3579,15 +3583,15 @@ impl Bithumb {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("cancel".into())); }
-        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since.as_i64(), limit.as_i64(), &[]));
+        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since, limit, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since, limit, &[]));
         Value::Null
         }).await?))
     }
@@ -3638,7 +3642,7 @@ impl Bithumb {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsGeneration, Value::Str("twap".into()), &[]);
         let mut clientOrderId: Option<String> = self.safe_string2_opt(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         let mut useClientOrderId: bool = ((!(twap) && (generation == Some(2))) && (clientOrderId.is_some()));
-        let mut paramsRequest: crate::value::Dict = Value::from(&paramsOmitted).into_dict();
+        let mut paramsRequest: crate::value::Dict = std::sync::Arc::clone(&paramsOmitted);
         if useClientOrderId {
             paramsRequest = self.omit_t(&paramsOmitted, &["clientOrderId"], &[]);
         }
@@ -3654,10 +3658,10 @@ impl Bithumb {
         if (generation == Some(2)) {
             if twap {
                 let __ws_arg_30 = self.extend(&request, &[&paramsRequest]);
-                response = self.call_method_o("private_delete_v1_twap", &[&__ws_arg_30]).await;
+                response = self.private_delete_v1_twap(&[&__ws_arg_30]).await;
             }  else {
                 let __ws_arg_31 = self.extend(&request, &[&paramsRequest]);
-                response = self.call_method_o("private_delete_v2_order", &[&__ws_arg_31]).await;
+                response = self.private_delete_v2_order(&[&__ws_arg_31]).await;
             }
         }  else {
             if (symbol == Value::Null) {
@@ -3684,7 +3688,7 @@ impl Bithumb {
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsSide]);
-            response = self.call_method_o("private_post_trade_cancel", &[&__ws_arg_32]).await;
+            response = self.private_post_trade_cancel(&[&__ws_arg_32]).await;
         }
         let __ws_arg_33 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref()).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_33, &[Value::Map({
@@ -3745,7 +3749,7 @@ impl Bithumb {
             request.insert("order_ids".into(), ids);
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_v2_orders_cancel", &[&__ws_arg_34]).await;
+        let mut response: crate::value::Dict = self.private_post_v2_orders_cancel(&[&__ws_arg_34]).await.unwrap_or_default();
         //
         //     {
         //         "success": [
@@ -3817,7 +3821,7 @@ impl Bithumb {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut address = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -3845,7 +3849,7 @@ impl Bithumb {
         let mut response: Option<crate::value::Dict> = None;
         let mut destinationRequest: Option<String> = None;
         let mut requiresDestination: bool = (code.as_str() == Some("XRP")) || (code.as_str() == Some("XMR")) || (code.as_str() == Some("EOS")) || (code.as_str() == Some("STEEM")) || (code.as_str() == Some("TON"));
-        let mut paramsDestination: crate::value::Dict = Value::from(&paramsNetwork).into_dict();
+        let mut paramsDestination: crate::value::Dict = std::sync::Arc::clone(&paramsNetwork);
         if requiresDestination {
             paramsDestination = self.omit_t(&paramsNetwork, &["destination", "secondary_address"], &[]);
         }
@@ -3873,28 +3877,28 @@ impl Bithumb {
                     m
                 }); // KRW withdraw only accepts amount and two_factor_type parameters
                 let __ws_arg_38 = self.extend(Value::Map(krwRequest), &[&paramsReceiverType]);
-                response = self.call_method_o("private_post_v1_withdraws_krw", &[&__ws_arg_38]).await;
+                response = self.private_post_v1_withdraws_krw(&[&__ws_arg_38]).await;
             }  else {
                 if (network.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), code).into()), " withdraw() requires a network parameter")));
                 }
-                request.insert("address".into(), address.clone());
+                request.insert("address".into(), address);
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
                 request.insert("net_type".into(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]));
                 request.insert("amount".into(), Value::from(self.number_to_string(&amount)));
                 if (destinationRequest.is_some()) {
-                    request.insert("secondary_address".into(), destinationRequest.clone().map(Value::from).unwrap_or(Value::Null));
+                    request.insert("secondary_address".into(), destinationRequest.map(Value::from).unwrap_or(Value::Null));
                 }
                 if (receiverType.is_some()) {
-                    request.insert("receiver_type".into(), receiverType.clone().map(Value::from).unwrap_or(Value::Null));
+                    request.insert("receiver_type".into(), receiverType.map(Value::from).unwrap_or(Value::Null));
                 }
                 let __ws_arg_39 = self.extend(&request, &[&paramsReceiverType]);
-                response = self.call_method_o("private_post_v1_withdraws_coin", &[&__ws_arg_39]).await;
+                response = self.private_post_v1_withdraws_coin(&[&__ws_arg_39]).await;
             }
         }  else {
             request.insert("address".into(), address);
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            request.insert("units".into(), amount);
+            request.insert("units".into(), Value::from(amount));
             if (network.is_some()) {
                 request.insert("net_type".into(), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[code]));
             }
@@ -3911,7 +3915,7 @@ impl Bithumb {
                 }
             }
             let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsReceiverType]);
-            response = self.call_method_o("private_post_trade_btc_withdrawal", &[&__ws_arg_40]).await;
+            response = self.private_post_trade_btc_withdrawal(&[&__ws_arg_40]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
@@ -3948,7 +3952,7 @@ impl Bithumb {
             m
         });
         let mut statuses: crate::value::Dict = self.safe_dict_t(&statusesByType, Value::from(type_var));
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 /*
@@ -4019,7 +4023,7 @@ impl Bithumb {
             request.insert("uuid".into(), Value::from(id));
         }
         let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v1_withdraw", &[&__ws_arg_41]).await;
+        let mut response: crate::value::Dict = self.private_get_v1_withdraw(&[&__ws_arg_41]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
 
     Value::Null
@@ -4050,8 +4054,8 @@ impl Bithumb {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4069,8 +4073,8 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let mut response: Option<crate::value::List> = None;
         let mut currency: Option<crate::types::Currency> = None;
@@ -4086,7 +4090,7 @@ impl Bithumb {
             let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.private_get_v1_withdraws(&[&__ws_arg_43]).await;
         }
-        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4130,7 +4134,7 @@ impl Bithumb {
             request.insert("uuid".into(), Value::from(id));
         }
         let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v1_deposit", &[&__ws_arg_44]).await;
+        let mut response: crate::value::Dict = self.private_get_v1_deposit(&[&__ws_arg_44]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
 
     Value::Null
@@ -4161,8 +4165,8 @@ impl Bithumb {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4180,8 +4184,8 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let mut response: Option<crate::value::List> = None;
         let mut currency: Option<crate::types::Currency> = None;
@@ -4197,7 +4201,7 @@ impl Bithumb {
             let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.private_get_v1_deposits(&[&__ws_arg_46]).await;
         }
-        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4246,7 +4250,7 @@ impl Bithumb {
         }
         request.insert("net_type".into(), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[code]));
         let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_v1_deposits_generate_coin_address", &[&__ws_arg_47]).await;
+        let mut response: crate::value::Dict = self.private_post_v1_deposits_generate_coin_address(&[&__ws_arg_47]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -4296,7 +4300,7 @@ impl Bithumb {
         }
         request.insert("net_type".into(), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[code]));
         let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_v1_deposits_coin_address", &[&__ws_arg_48]).await;
+        let mut response: crate::value::Dict = self.private_get_v1_deposits_coin_address(&[&__ws_arg_48]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -4357,13 +4361,13 @@ impl Bithumb {
 
     pub fn urlencode_with_array_brackets(&self, query: impl Into<crate::Value>) -> Value {
         let mut query: Value = query.into();
-        let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<&str> = query.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         let mut result: String = "".to_string();
         {
                         let mut i: i64 = 0;
             let mut __for_first_410: bool = true;
             while { if !__for_first_410 { i += 1; } __for_first_410 = false; i < (keys.len() as i64) } {
-            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut key: Option<&str> = keys.get(i as usize).copied();
             let mut value: Option<crate::value::List> = self.safe_value(&query, Value::from(key.as_deref()), &[]).into_opt_list();
             if (value.is_some()) {
                 let mut encodedKey: String = format!("{}{}", self.encode_uri_component(Value::from(key.as_deref())), Value::Str("[]".into()));

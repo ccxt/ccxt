@@ -36,8 +36,10 @@ impl Deribit {
         let described = Deribit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -105,7 +107,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument_name", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string2_opt(&ticker, Value::Str("last_price".into()), Value::Str("last".into()), &[]);
-        let mut stats: crate::value::Dict = self.safe_dict_k_or(&ticker, "stats", ticker.clone());
+        let mut stats: crate::value::Dict = self.safe_dict_k_or(&ticker, "stats", &ticker);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -214,12 +216,13 @@ impl crate::exchange::DerivedExchange for Deribit {
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(&trade, "order_id", &[]));
-        m.insert("type".to_string(), self.safe_string_k(trade, "order_type", &[]));
+        m.insert("type".to_string(), self.safe_string_k(&trade, "order_type", &[]));
+        m.insert("info".to_string(), trade);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -354,7 +357,7 @@ impl crate::exchange::DerivedExchange for Deribit {
             let mut data: crate::value::Dict = self.safe_dict_t(&summaries, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
             let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-            let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+            let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("free".into(), self.safe_string_k(&data, "available_funds", &[]));
             account.insert("used".into(), self.safe_string_k(&data, "maintenance_margin", &[]));
             account.insert("total".into(), self.safe_string_k(&data, "equity", &[]));
@@ -405,7 +408,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut maintenanceMarginString: Option<String> = self.safe_string_k_opt(&position, "maintenance_margin", &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), position.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::Null);
@@ -424,7 +427,8 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("contractSize".to_string(), self.safe_number_k(&position, "contractSize", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "estimated_liquidation_price", &[]));
-        m.insert("markPrice".to_string(), self.safe_number_k(position, "mark_price", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(&position, "mark_price", &[]));
+        m.insert("info".to_string(), position);
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
@@ -629,7 +633,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&liquidation, "timestamp", &[]).as_i64();
-        return self.safe_liquidation(Value::Map({
+        return Value::Dict(self.safe_liquidation(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
@@ -641,7 +645,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-}), &[]);
+}), &[]));
 
     Value::Null
 }
@@ -649,9 +653,10 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut account: Value = account.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), account.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), self.safe_string_k(&account, "id", &[]));
-        m.insert("type".to_string(), self.safe_string_k(account, "type", &[]));
+        m.insert("type".to_string(), self.safe_string_k(&account, "type", &[]));
+        m.insert("info".to_string(), account);
         m.insert("code".to_string(), Value::Null);
     m
 });
@@ -709,7 +714,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "transaction_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -721,7 +726,8 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
+        m.insert("info".to_string(), transaction);
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(updated));
@@ -842,10 +848,10 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut base: Option<String> = None;
         let mut expiry: Option<String> = None;
         if hasSlash {
-            base = self.safe_string_opt(&symbolBase, Value::Int(0), &[Value::Str("".into())]);
+            base = self.safe_string_opt(&symbolBase, Value::Int(0), &[&Value::Str("".into())]);
             expiry = self.safe_string_opt(&optionParts, Value::Int(1), &[]);
         }  else {
-            base = self.safe_string_opt(&optionParts, Value::Int(0), &[Value::Str("".into())]);
+            base = self.safe_string_opt(&optionParts, Value::Int(0), &[&Value::Str("".into())]);
             expiry = self.convert_market_id_expire_date(self.safe_string(&optionParts, Value::Int(1), &[]).as_str()).as_str().map(str::to_owned);
         }
         if (base.is_none()) {
@@ -939,7 +945,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api/").into()), self.version.clone()).into()), "/").into()), apiName.as_deref().unwrap_or("null")).into()), "/").into()), Value::from(path));
+        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api/").into()), self.version).into()), "/").into()), apiName.as_deref().unwrap_or("null")).into()), "/").into()), Value::from(path));
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 request.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])));
@@ -955,11 +961,11 @@ impl crate::exchange::DerivedExchange for Deribit {
             }
             let mut requestData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, "\n").into()), request).into()), "\n").into()), requestBody).into()), "\n"); // eslint-disable-line quotes
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, "\n").into()), nonce).into()), "\n").into()), requestData); // eslint-disable-line quotes
-            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), "sha256", &[]);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "deri-hmac-sha256 id=", self.apiKey.clone()).into()), ",ts=").into()),
-                        timestamp).into()), ",sig=").into()), signature).into()), ",").into()), "nonce=").into()), nonce).into()));
+                    m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "deri-hmac-sha256 id=", self.apiKey).into()), ",ts=").into()), timestamp).into()),
+                        ",sig=").into()), signature).into()), ",").into()), "nonce=").into()), nonce).into()));
                 m
             });
             let mut baseApiUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "rest", &[]);
@@ -1014,7 +1020,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         if (error.is_some()) {
             let mut errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.clone(), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(&self.exceptions, &errorCode, &feedback);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1024,7 +1030,7 @@ impl crate::exchange::DerivedExchange for Deribit {
 }
 
 impl crate::exchange_generated::ExchangeBase for Deribit {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -2283,7 +2289,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_time", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_get_time(&[&params]).await.unwrap_or_default();
         return self.safe_integer_k(&response, "result", &[]);
         Value::Null
         }).await?))
@@ -2307,7 +2313,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_currencies", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_get_currencies(&[&params]).await.unwrap_or_default();
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -2348,7 +2354,7 @@ impl Deribit {
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut defaultCode: String = self.safe_string_k(&self.options, "code", &[Value::Str("BTC".into())]).as_str().unwrap_or("BTC").to_string();
         let mut options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from(methodName));
-        let mut code: Option<String> = self.safe_string_k_opt(&options, "code", &[Value::from(defaultCode)]);
+        let mut code: Option<String> = self.safe_string_k_opt(&options, "code", &[&defaultCode]);
         return (match params.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => code.map(Value::from).unwrap_or(Value::Null) }).as_str().map(str::to_owned);
 }
 
@@ -2370,7 +2376,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_status", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_status(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2420,7 +2426,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_subaccounts", &[&params]).await;
+        let mut response: crate::value::Dict = self.private_get_get_subaccounts(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2491,10 +2497,10 @@ impl Deribit {
         let mut fetchAllMarkets: bool = fetchAllMarketsparamsFetchAllMarketsVariable.0 == Some(true);
         let mut paramsFetchAllMarkets: crate::value::Dict = fetchAllMarketsparamsFetchAllMarketsVariable.1;
         if fetchAllMarkets {
-            let mut instrumentsResponse: Value = self.call_method(Value::Str("public_get_get_instruments".into()), &[&Value::from(&paramsFetchAllMarkets)]).await;
-            instrumentsResponses.push(instrumentsResponse.clone());
+            let mut instrumentsResponse: Value = self.public_get_get_instruments(&[&Value::from(&paramsFetchAllMarkets)]).await;
+            instrumentsResponses.push(instrumentsResponse);
         }  else {
-            let mut currenciesResponse: crate::value::Dict = self.call_method_t("public_get_get_currencies", &[&Value::from(&paramsFetchAllMarkets)]).await;
+            let mut currenciesResponse: crate::value::Dict = self.public_get_get_currencies(&[&Value::from(&paramsFetchAllMarkets)]).await.unwrap_or_default();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -2531,7 +2537,7 @@ impl Deribit {
                     m
                 });
                 let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsFetchAllMarkets]);
-                let mut instrumentsResponse: Value = self.call_method(Value::Str("public_get_get_instruments".into()), &[&__ws_arg_0]).await;
+                let mut instrumentsResponse: Value = self.public_get_get_instruments(&[&__ws_arg_0]).await;
                 //
                 //     {
                 //         "jsonrpc":"2.0",
@@ -2793,10 +2799,10 @@ impl Deribit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (code.is_none()) {
-            response = self.call_method_o("private_get_get_account_summaries", &[&Value::from(&paramsOmitted)]).await;
+            response = self.private_get_get_account_summaries(&[&Value::from(&paramsOmitted)]).await;
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_o("private_get_get_account_summary", &[&__ws_arg_1]).await;
+            response = self.private_get_get_account_summary(&[&__ws_arg_1]).await;
         }
         //
         //     {
@@ -2876,7 +2882,7 @@ impl Deribit {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_create_deposit_address", &[&__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.private_get_create_deposit_address(&[&__ws_arg_2]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2935,7 +2941,7 @@ impl Deribit {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_current_deposit_address", &[&__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.private_get_get_current_deposit_address(&[&__ws_arg_3]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3074,8 +3080,8 @@ impl Deribit {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency")));
                 }
                 if (code.is_none()) {
-                    code = Value::from((market).base.clone()).as_str().map(str::to_owned);
-                    type_var = Value::from((market).market_type.clone()).as_str().map(str::to_owned);
+                    code = Some((market).base.clone());
+                    type_var = Some((market).market_type.clone());
                 }
             }
             }
@@ -3099,7 +3105,7 @@ impl Deribit {
             }
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_book_summary_by_currency", &[&__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.public_get_get_book_summary_by_currency(&[&__ws_arg_5]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3173,8 +3179,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3186,31 +3192,31 @@ impl Deribit {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(5000)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since, limit, timeframe.as_str(), &[&Value::from(&paramsPaginate), &Value::Int(5000)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
+                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
             m
         });
-        let mut duration: i64 = self.parse_timeframe(timeframe.clone());
+        let mut duration: i64 = self.parse_timeframe(&timeframe);
         let mut now: i64 = self.milliseconds();
         // at max, it provides 5000 bars, but we set generous default here
         let mut defaultLimit: i64 = 1000;
-        let mut windowLimit: i64 = limit.as_i64().unwrap_or(defaultLimit);
-        let mut limitResolved: Option<i64> = (if ((since == Value::Null) && (limit == Value::Null)) { Some(defaultLimit) } else { limit.as_i64() });
-        let mut sinceResolved: Option<i64> = (if (since == Value::Null) { None } else { (if let Some(__m0) = ((if let Some(__l) = since.as_i64() { Some(__l - 1) } else { None })) { Some(i64::max(__m0, 0)) } else { None }) });
-        if (since == Value::Null) {
+        let mut windowLimit: i64 = limit.unwrap_or(defaultLimit);
+        let mut limitResolved: Option<i64> = (if ((since.is_none()) && (limit.is_none())) { Some(defaultLimit) } else { limit });
+        let mut sinceResolved: Option<i64> = (if (since.is_none()) { None } else { (if let Some(__m0) = ((if let Some(__l) = since { Some(__l - 1) } else { None })) { Some(i64::max(__m0, 0)) } else { None }) });
+        if (since.is_none()) {
             request.insert("start_timestamp".into(), Value::Int((now - ((((((windowLimit - 1)) * duration)) * 1000)))));
             request.insert("end_timestamp".into(), Value::from(now));
         }  else {
             request.insert("start_timestamp".into(), Value::from(sinceResolved));
-            if (limit == Value::Null) {
+            if (limit.is_none()) {
                 request.insert("end_timestamp".into(), Value::from(now));
             }  else {
-                request.insert("end_timestamp".into(), Value::from((if let (Some(__m0), Some(__m1)) = (sinceResolved, ((if let Some(__l) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some(__l * 1000) } else { None }))) { Some((__m0 + __m1)) } else { None })));
+                request.insert("end_timestamp".into(), Value::from((if let (Some(__m0), Some(__m1)) = (sinceResolved, ((if let Some(__l) = ((if let Some(__l) = limit { Some(__l * duration) } else { None })) { Some(__l * 1000) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             }
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
@@ -3219,7 +3225,7 @@ impl Deribit {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_tradingview_chart_data", &[&__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.public_get_get_tradingview_chart_data(&[&__ws_arg_6]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3267,8 +3273,8 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3283,11 +3289,11 @@ impl Deribit {
                 m.insert("include_old".to_string(), Value::Bool(true));
             m
         });
-        if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
+        if (since.is_some()) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), Value::from(since)); }
         }
-        if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }; // default 10
+        if (limit.is_some()) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000))); }; // default 10
         }
         let mut until: Option<i64> = self.safe_integer2(&params, Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, &["until"], &[]) } else { params }).into_dict();
@@ -3295,12 +3301,12 @@ impl Deribit {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), Value::from(until)); }
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (since == Value::Null) && !(matches!(&request, Value::Dict(__d) if __d.contains_key("end_timestamp"))) {
+        if (since.is_none()) && !(matches!(&request, Value::Dict(__d) if __d.contains_key("end_timestamp"))) {
             let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method_o("public_get_get_last_trades_by_instrument", &[&__ws_arg_7]).await;
+            response = self.public_get_get_last_trades_by_instrument(&[&__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(request, &[&paramsOmitted]);
-            response = self.call_method_o("public_get_get_last_trades_by_instrument_and_time", &[&__ws_arg_8]).await;
+            response = self.public_get_get_last_trades_by_instrument_and_time(&[&__ws_arg_8]).await;
         }
         //
         //      {
@@ -3329,7 +3335,7 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
-        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3364,7 +3370,7 @@ impl Deribit {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_account_summary", &[&__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_get_get_account_summary(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3465,14 +3471,14 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbols: crate::value::List = self.symbols.clone();
+        let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
             let mut __for_first_629: bool = true;
             while { if !__for_first_629 { i += 1; } __for_first_629 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut fee: crate::value::Dict = Value::Map({
+            let mut fee: crate::value::Dict = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), (market).raw.clone());
                     m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
@@ -3481,13 +3487,13 @@ impl Deribit {
                     m.insert("maker".to_string(), crate::value::KeyRead::key_read(&&market, "maker"));
                     m.insert("taker".to_string(), crate::value::KeyRead::key_read(&&market, "taker"));
                 m
-            }).into_dict();
+            });
             if (market).swap {
-                fee = self.extend_t(fee, &[Value::Map(perpetualFee.clone())]);
+                fee = self.extend_t(fee, &[&perpetualFee]);
             }  else if (market).future {
-                fee = self.extend_t(fee, &[Value::Map(futureFee.clone())]);
+                fee = self.extend_t(fee, &[&futureFee]);
             }  else if (market).option {
-                fee = self.extend_t(fee, &[Value::Map(optionFee.clone())]);
+                fee = self.extend_t(fee, &[&optionFee]);
             }
             parsedFees.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
         }
@@ -3514,7 +3520,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3528,11 +3534,11 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("depth".into(), limit);
+        if (limit.is_some()) {
+            request.insert("depth".into(), Value::from(limit));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_order_book", &[&__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.public_get_get_order_book(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3592,7 +3598,7 @@ impl Deribit {
                 m.insert("untriggered".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
     pub fn parse_time_in_force(&self, timeInForce: Option<&str>) -> Option<String> {
@@ -3603,7 +3609,7 @@ impl Deribit {
                 m.insert("immediate_or_cancel".to_string(), Value::Str("IOC".into()));
             m
         });
-        return self.safe_string_opt(&timeInForces, Value::from(timeInForce), &[Value::from(timeInForce)]);
+        return self.safe_string_opt(&timeInForces, &timeInForce, &[&timeInForce]);
 }
 
     pub fn parse_order_type(&self, orderType: Option<&str>) -> Option<String> {
@@ -3615,7 +3621,7 @@ impl Deribit {
                 m.insert("take_market".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string_opt(&orderTypes, Value::from(orderType), &[Value::from(orderType)]);
+        return self.safe_string_opt(&orderTypes, &orderType, &[&orderType]);
 }
 
 
@@ -3654,7 +3660,7 @@ impl Deribit {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_order_state", &[&__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.private_get_get_order_state(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3711,11 +3717,10 @@ impl Deribit {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3753,7 +3758,7 @@ impl Deribit {
         let mut isLimitOrder: bool = (((type_var.as_str() == Some("limit")) || isStopLimit) || isTakeLimit);
         let mut isMarketOrder: bool = (((type_var.as_str() == Some("market")) || isStopMarket) || isTakeMarket);
         let mut exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k_opt(&params, "post_only", &[]);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[&params]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[&params]);
         if isLimitOrder {
             request.insert("type".into(), Value::Str("limit".into()));
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
@@ -3808,10 +3813,10 @@ impl Deribit {
         let mut response: Option<crate::value::Dict> = None;
         if (Value::from(self.capitalize(side)).as_str() == Some("Buy")) {
             let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method_o("private_get_buy", &[&__ws_arg_12]).await;
+            response = self.private_get_buy(&[&__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_o("private_get_sell", &[&__ws_arg_13]).await;
+            response = self.private_get_sell(&[&__ws_arg_13]).await;
         }
         //
         //     {
@@ -3903,13 +3908,11 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut amount = get_arg(optional_args, 0, Value::Null);
-        let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (amount == Value::Null) {
+        if (amount.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires an amount argument")));
         }
         if (self.markets.is_none()) {
@@ -3921,7 +3924,7 @@ impl Deribit {
                 m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
-        if (price != Value::Null) {
+        if (price.is_some()) {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let mut trailingAmount: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]);
@@ -3934,7 +3937,7 @@ impl Deribit {
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_edit", &[&__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_get_edit(&[&__ws_arg_16]).await.unwrap_or_default();
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let __ws_arg_17 = self.safe_dict_k(&result, "order", &[]);
         let __ws_arg_18 = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
@@ -3979,7 +3982,7 @@ impl Deribit {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_cancel", &[&__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.private_get_cancel(&[&__ws_arg_19]).await.unwrap_or_default();
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
         None
@@ -4017,12 +4020,12 @@ impl Deribit {
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
             let __ws_arg_20 = self.extend(&request, &[&params]);
-            response = self.call_method_o("private_get_cancel_all", &[&__ws_arg_20]).await;
+            response = self.private_get_cancel_all(&[&__ws_arg_20]).await;
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), Value::from((market).id.as_deref()));
             let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("private_get_cancel_all_by_instrument", &[&__ws_arg_21]).await;
+            response = self.private_get_cancel_all_by_instrument(&[&__ws_arg_21]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4052,8 +4055,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4072,15 +4075,15 @@ impl Deribit {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_22 = self.extend(&request, &[&params]);
-            response = self.call_method_o("private_get_get_open_orders_by_currency", &[&__ws_arg_22]).await;
+            response = self.private_get_get_open_orders_by_currency(&[&__ws_arg_22]).await;
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("private_get_get_open_orders_by_instrument", &[&__ws_arg_23]).await;
+            response = self.private_get_get_open_orders_by_instrument(&[&__ws_arg_23]).await;
         }
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4104,8 +4107,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4119,8 +4122,8 @@ impl Deribit {
         });
         let mut market: Option<crate::types::Market> = None;
         let mut response: Option<crate::value::Dict> = None;
-        if (limit != Value::Null) {
-            request.insert("count".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("count".into(), Value::from(limit));
         }  else {
             request.insert("count".into(), Value::Int(1000)); // max value
         }
@@ -4129,15 +4132,15 @@ impl Deribit {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_24 = self.extend(&request, &[&params]);
-            response = self.call_method_o("private_get_get_order_history_by_currency", &[&__ws_arg_24]).await;
+            response = self.private_get_get_order_history_by_currency(&[&__ws_arg_24]).await;
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
             let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("private_get_get_order_history_by_instrument", &[&__ws_arg_25]).await;
+            response = self.private_get_get_order_history_by_instrument(&[&__ws_arg_25]).await;
         }
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4162,8 +4165,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4177,7 +4180,7 @@ impl Deribit {
             m
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_user_trades_by_order", &[&__ws_arg_26]).await;
+        let mut response: crate::value::Dict = self.private_get_get_user_trades_by_order(&[&__ws_arg_26]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4212,7 +4215,7 @@ impl Deribit {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return Value::Arr(self.parse_trades(&result, None, &[since, limit]));
+        return Value::Arr(self.parse_trades(&result, None, &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4238,8 +4241,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4253,32 +4256,32 @@ impl Deribit {
             m
         });
         let mut market: Option<crate::types::Market> = None;
-        if (limit != Value::Null) {
-            request.insert("count".into(), limit.clone()); // default 10
+        if (limit.is_some()) {
+            request.insert("count".into(), Value::from(limit)); // default 10
         }
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
             let mut code: Option<String> = self.code_from_options(Some("fetchMyTrades"), &[&params]);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            if (since == Value::Null) {
+            if (since.is_none()) {
                 let __ws_arg_27 = self.extend(&request, &[&params]);
-                response = self.call_method_o("private_get_get_user_trades_by_currency", &[&__ws_arg_27]).await;
+                response = self.private_get_get_user_trades_by_currency(&[&__ws_arg_27]).await;
             }  else {
-                request.insert("start_timestamp".into(), since.clone());
+                request.insert("start_timestamp".into(), Value::from(since));
                 let __ws_arg_28 = self.extend(&request, &[&params]);
-                response = self.call_method_o("private_get_get_user_trades_by_currency_and_time", &[&__ws_arg_28]).await;
+                response = self.private_get_get_user_trades_by_currency_and_time(&[&__ws_arg_28]).await;
             }
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            if (since == Value::Null) {
+            if (since.is_none()) {
                 let __ws_arg_29 = self.extend(&request, &[&params]);
-                response = self.call_method_o("private_get_get_user_trades_by_instrument", &[&__ws_arg_29]).await;
+                response = self.private_get_get_user_trades_by_instrument(&[&__ws_arg_29]).await;
             }  else {
-                request.insert("start_timestamp".into(), since.clone());
+                request.insert("start_timestamp".into(), Value::from(since));
                 let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
-                response = self.call_method_o("private_get_get_user_trades_by_instrument_and_time", &[&__ws_arg_30]).await;
+                response = self.private_get_get_user_trades_by_instrument_and_time(&[&__ws_arg_30]).await;
             }
         }
         //
@@ -4316,7 +4319,7 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
-        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4339,8 +4342,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4357,8 +4360,8 @@ impl Deribit {
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("count".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("count".into(), Value::from(limit));
         }
         let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_get_deposits", &[&__ws_arg_31]).await;
@@ -4384,7 +4387,7 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut data: crate::value::List = self.safe_list_k_t(&result, "data");
-        return self.parse_transactions(&data, Some(&currency), &[since, limit, params]);
+        return Value::Arr(self.parse_transactions(&data, Some(&currency), &[&Value::from(since), &Value::from(limit), &params]));
         Value::Null
         }).await?))
     }
@@ -4407,8 +4410,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4425,11 +4428,11 @@ impl Deribit {
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("count".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("count".into(), Value::from(limit));
         }
         let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_withdrawals", &[&__ws_arg_32]).await;
+        let mut response: crate::value::Dict = self.private_get_get_withdrawals(&[&__ws_arg_32]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4456,7 +4459,7 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut data: crate::value::List = self.safe_list_k_t(&result, "data");
-        return self.parse_transactions(&data, Some(&currency), &[since, limit, params]);
+        return Value::Arr(self.parse_transactions(&data, Some(&currency), &[&Value::from(since), &Value::from(limit), &params]));
         Value::Null
         }).await?))
     }
@@ -4468,7 +4471,7 @@ impl Deribit {
                 m.insert("unconfirmed".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 
@@ -4503,7 +4506,7 @@ impl Deribit {
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_position", &[&__ws_arg_33]).await;
+        let mut response: crate::value::Dict = self.private_get_get_position(&[&__ws_arg_33]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4573,7 +4576,7 @@ impl Deribit {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_positions", &[&__ws_arg_34]).await;
+        let mut response: crate::value::Dict = self.private_get_get_positions(&[&__ws_arg_34]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4633,7 +4636,7 @@ impl Deribit {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_historical_volatility", &[&__ws_arg_35]).await;
+        let mut response: crate::value::Dict = self.public_get_get_historical_volatility(&[&__ws_arg_35]).await.unwrap_or_default();
         return self.parse_volatility_history(&response);
 
     Value::Null
@@ -4698,8 +4701,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4716,11 +4719,11 @@ impl Deribit {
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("count".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("count".into(), Value::from(limit));
         }
         let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_transfers", &[&__ws_arg_36]).await;
+        let mut response: crate::value::Dict = self.private_get_get_transfers(&[&__ws_arg_36]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4756,7 +4759,7 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut transfers: crate::value::List = self.safe_list_k_t(&result, "data");
-        return self.parse_transfers(&transfers, Some(&currency), &[since, limit, params]);
+        return Value::Arr(self.parse_transfers(&transfers, Some(&currency), &[Value::from(since), Value::from(limit), params]));
         Value::Null
         }).await?))
     }
@@ -4778,7 +4781,7 @@ impl Deribit {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut fromAccount = __it.next().unwrap_or_default();
         let mut toAccount = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
@@ -4794,7 +4797,7 @@ impl Deribit {
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), amount);
+                m.insert("amount".to_string(), Value::from(amount));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("destination".to_string(), toAccount);
             m
@@ -4803,15 +4806,15 @@ impl Deribit {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("method".into()), &[]);
         if (method.is_none()) {
             let mut transferOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "transfer");
-            method = self.safe_string_k_opt(&transferOptions, "method", &[Value::Str("privateGetSubmitTransferToSubaccount".into())]);
+            method = self.safe_string_k_opt(&transferOptions, "method", &[&Value::Str("privateGetSubmitTransferToSubaccount".into())]);
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetSubmitTransferToUser")) {
             let __ws_arg_37 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method_o("private_get_submit_transfer_to_user", &[&__ws_arg_37]).await;
+            response = self.private_get_submit_transfer_to_user(&[&__ws_arg_37]).await;
         }  else {
             let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_o("private_get_submit_transfer_to_subaccount", &[&__ws_arg_38]).await;
+            response = self.private_get_submit_transfer_to_subaccount(&[&__ws_arg_38]).await;
         }
         //
         //     {
@@ -4846,7 +4849,7 @@ impl Deribit {
                 m.insert("waiting_for_admin".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 /*
@@ -4865,7 +4868,7 @@ impl Deribit {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut address = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -4886,14 +4889,14 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("address".to_string(), address);
-                m.insert("amount".to_string(), amount);
+                m.insert("amount".to_string(), Value::from(amount));
             m
         });
         if (self.twofa != Value::Null) {
             request.insert("tfa".into(), totp(self.twofa.clone()));
         }
         let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_withdraw", &[&__ws_arg_39]).await;
+        let mut response: crate::value::Dict = self.private_get_withdraw(&[&__ws_arg_39]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -4923,7 +4926,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_currencies", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_get_currencies(&[&params]).await.unwrap_or_default();
         //
         //    {
         //      "jsonrpc": "2.0",
@@ -4987,7 +4990,7 @@ impl Deribit {
             m
         });
         let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_funding_rate_value", &[&__ws_arg_40]).await;
+        let mut response: crate::value::Dict = self.public_get_get_funding_rate_value(&[&__ws_arg_40]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &response, Some(&market));
         Value::Null
         }).await?))
@@ -5013,8 +5016,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5035,16 +5038,16 @@ impl Deribit {
                     m.insert("isDeribitPaginationCall".to_string(), Value::Bool(true));
                 m
             })]);
-            return self.fetch_paginated_call_deterministic("fetchFundingRateHistory", symbol.as_str(), since.as_i64(), limit.as_i64(), Some(eachItemDuration.as_str()), &[Value::Dict(paginationParams), Value::from(maxEntriesPerRequest)]).await;
+            return self.fetch_paginated_call_deterministic("fetchFundingRateHistory", symbol.as_str(), since, limit, Some(eachItemDuration.as_str()), &[&Value::Dict(paginationParams), &Value::from(maxEntriesPerRequest)]).await;
         }
         let mut duration: i64 = ((self.parse_timeframe(Value::from(eachItemDuration))) * 1000);
         let mut now: i64 = self.milliseconds();
         let mut month: i64 = (((((((30 * 24)) * 60)) * 60)) * 1000);
         let mut defaultSince: i64 = (now - month);
-        let mut sinceResolved: i64 = since.as_i64().unwrap_or(defaultSince);
+        let mut sinceResolved: i64 = since.unwrap_or(defaultSince);
         let mut time: Option<i64> = Some(now);
-        if (since != Value::Null) {
-            time = self.parse_to_int(Value::from((if let Some(__l) = since.as_i64() { Some(__l + month) } else { None })));
+        if (since.is_some()) {
+            time = self.parse_to_int(Value::from((if let Some(__l) = since { Some(__l + month) } else { None })));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5060,19 +5063,19 @@ impl Deribit {
         }
         request.insert("end_timestamp".into(), Value::from(endTimestamp));
         let mut isPaginationCall: bool = self.safe_bool_k_opt(&paramsUntil, "isDeribitPaginationCall", &[Value::Bool(false)]).unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = Value::from(&paramsUntil).into_dict();
+        let mut paramsOmitted: crate::value::Dict = std::sync::Arc::clone(&paramsUntil);
         if isPaginationCall {
             paramsOmitted = self.omit_t(&paramsUntil, Value::Str("isDeribitPaginationCall".into()), &[]);
         }
         if isPaginationCall {
-            if (limit == Value::Null) {
+            if (limit.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a limit argument")));
             }
-            let mut maxUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__m1) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some((sinceResolved + __m1)) } else { None })));
+            let mut maxUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__m1) = ((if let Some(__l) = limit { Some(__l * duration) } else { None })) { Some((sinceResolved + __m1)) } else { None })));
             request.insert("end_timestamp".into(), (if ((endTimestamp.is_some() && maxUntil.is_some() && endTimestamp < maxUntil)) { Value::from(endTimestamp) } else { Value::from(maxUntil) }));
         }
         let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_funding_rate_history", &[&__ws_arg_41]).await;
+        let mut response: crate::value::Dict = self.public_get_get_funding_rate_history(&[&__ws_arg_41]).await.unwrap_or_default();
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -5099,7 +5102,7 @@ impl Deribit {
             rates.push(Value::Dict(rate));
         }
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), Some(sinceResolved), limit.as_i64(), &[]));
+        return Value::Arr(self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), Some(sinceResolved), limit, &[]));
         Value::Null
         }).await?))
     }
@@ -5124,8 +5127,8 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5137,7 +5140,7 @@ impl Deribit {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchLiquidations".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("continuation".into()), Value::Str("continuation".into()), Value::Null]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchLiquidations".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::from(&paramsPaginate), &Value::Str("continuation".into()), &Value::Str("continuation".into()), &Value::Null]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).spot {
@@ -5149,14 +5152,14 @@ impl Deribit {
                 m.insert("type".to_string(), Value::Str("bankruptcy".into()));
             m
         });
-        if (since != Value::Null) {
-            request.insert("search_start_timestamp".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("search_start_timestamp".into(), Value::from(since));
         }
-        if (limit != Value::Null) {
-            request.insert("count".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("count".into(), Value::from(limit));
         }
         let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsPaginate]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_last_settlements_by_instrument", &[&__ws_arg_42]).await;
+        let mut response: crate::value::Dict = self.public_get_get_last_settlements_by_instrument(&[&__ws_arg_42]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5185,7 +5188,7 @@ impl Deribit {
         let mut cursor: Option<String> = self.safe_string_k_opt(&result, "continuation", &[]);
         let mut settlements: crate::value::List = self.safe_list_k_t(&result, "settlements");
         let mut settlementsWithCursor: Option<crate::value::List> = self.add_pagination_cursor_to_result(cursor.as_deref(), Value::Arr(settlements)).into_opt_list();
-        return self.parse_liquidations(&settlementsWithCursor, Some(&market), &[since, limit]);
+        return self.parse_liquidations(&settlementsWithCursor, Some(&market), &[Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -5231,8 +5234,8 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5253,14 +5256,14 @@ impl Deribit {
                 m.insert("type".to_string(), Value::Str("bankruptcy".into()));
             m
         });
-        if (since != Value::Null) {
-            request.insert("search_start_timestamp".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("search_start_timestamp".into(), Value::from(since));
         }
-        if (limit != Value::Null) {
-            request.insert("count".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("count".into(), Value::from(limit));
         }
         let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_get_settlement_history_by_instrument", &[&__ws_arg_43]).await;
+        let mut response: crate::value::Dict = self.private_get_get_settlement_history_by_instrument(&[&__ws_arg_43]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5287,7 +5290,7 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut settlements: crate::value::List = self.safe_list_k_t(&result, "settlements");
-        return self.parse_liquidations(&settlements, Some(&market), &[since, limit]);
+        return self.parse_liquidations(&settlements, Some(&market), &[Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -5407,7 +5410,7 @@ impl Deribit {
             m
         });
         let __ws_arg_45 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_book_summary_by_instrument", &[&__ws_arg_45]).await;
+        let mut response: crate::value::Dict = self.public_get_get_book_summary_by_instrument(&[&__ws_arg_45]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5478,7 +5481,7 @@ impl Deribit {
             m
         });
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_book_summary_by_currency", &[&__ws_arg_46]).await;
+        let mut response: crate::value::Dict = self.public_get_get_book_summary_by_currency(&[&__ws_arg_46]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5550,7 +5553,7 @@ impl Deribit {
         let mut timestamp: Option<i64> = self.safe_integer_k(&chain, "timestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), chain.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -5566,7 +5569,8 @@ impl Deribit {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.safe_number_k(&chain, "price_change", &[]));
         m.insert("baseVolume".to_string(), self.safe_number_k(&chain, "volume", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_number_k(chain, "volume_usd", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_number_k(&chain, "volume_usd", &[]));
+        m.insert("info".to_string(), chain);
     m
 });
 
@@ -5606,7 +5610,7 @@ impl Deribit {
             m
         });
         let __ws_arg_47 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_get_book_summary_by_instrument", &[&__ws_arg_47]).await;
+        let mut response: crate::value::Dict = self.public_get_get_book_summary_by_instrument(&[&__ws_arg_47]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",

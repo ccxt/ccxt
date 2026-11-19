@@ -36,7 +36,7 @@ fn helperTestHandleMarketTypeAndParams() {
     //
     // case #1, should prevail: param
     //
-    let marketType1params1Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), <Option<ccxt::types::Market> as ccxt::types::FromRaw>::from_raw(market.clone()).as_ref(), &[initialParams.clone(), Value::Str("valueDefault".into())]);
+    let marketType1params1Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), <Option<ccxt::types::Market> as ccxt::types::FromRaw>::from_raw(market.clone()).as_ref(), &[&initialParams, &Value::Str("valueDefault".into())]);
     let mut marketType1: Value = marketType1params1Variable.0;
     let mut params1: Value = Value::Dict(marketType1params1Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&initialParams, Value::Dict(__d) if __d.contains_key("defaultType"))))));
@@ -45,27 +45,27 @@ fn helperTestHandleMarketTypeAndParams() {
     //
     // case #2, should prevail: market.type
     //
-    let marketType2params2Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), <Option<ccxt::types::Market> as ccxt::types::FromRaw>::from_raw(market.clone()).as_ref(), &[Value::Map({
+    let marketType2params2Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), <Option<ccxt::types::Market> as ccxt::types::FromRaw>::from_raw(market.clone()).as_ref(), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("valueDefault".into())]);
+}), &Value::Str("valueDefault".into())]);
     let mut marketType2: Value = marketType2params2Variable.0;
     let mut params2: Value = Value::Dict(marketType2params2Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType2.as_str() == Some("spot")))));
     //
     // case #3, should prevail: valueDefault
     //
-    let marketType3params3Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), None, &[Value::Map({
+    let marketType3params3Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), None, &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("valueDefault".into())]);
+}), &Value::Str("valueDefault".into())]);
     let mut marketType3: Value = marketType3params3Variable.0;
     let mut params3: Value = Value::Dict(marketType3params3Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType3.as_str() == Some("valueDefault")))));
     //
     // case #4, should prevail: method options
     //
-    let marketType4params4Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), None, &[Value::Map({
+    let marketType4params4Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), None, &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -75,10 +75,10 @@ fn helperTestHandleMarketTypeAndParams() {
     //
     // case #5, should prevail: options
     //
-    let marketType5params5Variable = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), None, &[Value::Map({
+    let marketType5params5Variable = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), None, &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Null]);
+}), &Value::Null]);
     let mut marketType5: Value = marketType5params5Variable.0;
     let mut params5: Value = Value::Dict(marketType5params5Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("option")))));
@@ -86,10 +86,10 @@ fn helperTestHandleMarketTypeAndParams() {
     // case #6, should prevail: spot (because hardcoded in base)
     //
     add_element_to_object(&mut exchange.options, &Value::Str("defaultType".into()), Value::Null);
-    let marketType6params6Variable = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), None, &[Value::Map({
+    let marketType6params6Variable = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), None, &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Null]);
+}), &Value::Null]);
     let mut marketType6: Value = marketType6params6Variable.0;
     let mut params6: Value = Value::Dict(marketType6params6Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType6.as_str() == Some("spot")))));
@@ -114,10 +114,10 @@ fn helperTestHandleTypedOptions() {
 }));
         m
     }));
-    let marginModeparams1Variable = exchange.handle_margin_mode_and_params(Value::Str("fetchX".into()), &[Value::Map({
+    let marginModeparams1Variable = exchange.handle_margin_mode_and_params(Value::Str("fetchX".into()), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("cross".into())]);
+}), &Value::Str("cross".into())]);
     let mut marginMode: Value = marginModeparams1Variable.0;
     let mut params1: Value = Value::Dict(marginModeparams1Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))));

@@ -52,7 +52,7 @@ pub fn testFilterBy() {
         m.insert("foo".to_string(), Value::Str("c".into()));
     m
 })]);
-    let mut currentValue: Value = exchange.filter_by(sampleArray, Value::Str("foo".into()), Value::Str("a".into()), &[]);
+    let mut currentValue: Value = Value::Arr(exchange.filter_by(sampleArray, Value::Str("foo".into()), Value::Str("a".into()), &[]));
     let mut storedValue: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".into()));
@@ -63,5 +63,5 @@ pub fn testFilterBy() {
         m.insert("bar".to_string(), Value::Str("b".into()));
     m
 })]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testFilterBy".into()).clone(), currentValue, storedValue]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testFilterBy".into()), currentValue, storedValue]);
 }

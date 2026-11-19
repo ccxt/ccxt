@@ -13,13 +13,13 @@ use crate::exchange::ExchangeRuntime;
 
 impl Coinsph {
     /// Auto-generated wrapper for the `publicGetOpenapiV1Ping` implicit endpoint.
-    pub async fn public_get_openapi_v1_ping(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_openapi_v1_ping".into()), optional_args).await
+    pub async fn public_get_openapi_v1_ping(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_openapi_v1_ping".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetOpenapiV1Time` implicit endpoint.
-    pub async fn public_get_openapi_v1_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_openapi_v1_time".into()), optional_args).await
+    pub async fn public_get_openapi_v1_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_openapi_v1_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetOpenapiV1UserIp` implicit endpoint.
@@ -43,13 +43,13 @@ impl Coinsph {
     }
 
     /// Auto-generated wrapper for the `publicGetOpenapiV1ExchangeInfo` implicit endpoint.
-    pub async fn public_get_openapi_v1_exchange_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_openapi_v1_exchange_info".into()), optional_args).await
+    pub async fn public_get_openapi_v1_exchange_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_openapi_v1_exchange_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetOpenapiQuoteV1Depth` implicit endpoint.
-    pub async fn public_get_openapi_quote_v1_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_openapi_quote_v1_depth".into()), optional_args).await
+    pub async fn public_get_openapi_quote_v1_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_openapi_quote_v1_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetOpenapiQuoteV1Klines` implicit endpoint.
@@ -83,8 +83,8 @@ impl Coinsph {
     }
 
     /// Auto-generated wrapper for the `privateGetOpenapiWalletV1DepositAddress` implicit endpoint.
-    pub async fn private_get_openapi_wallet_v1_deposit_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_openapi_wallet_v1_deposit_address".into()), optional_args).await
+    pub async fn private_get_openapi_wallet_v1_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_openapi_wallet_v1_deposit_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenapiWalletV1DepositHistory` implicit endpoint.
@@ -103,8 +103,8 @@ impl Coinsph {
     }
 
     /// Auto-generated wrapper for the `privateGetOpenapiV1Account` implicit endpoint.
-    pub async fn private_get_openapi_v1_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_openapi_v1_account".into()), optional_args).await
+    pub async fn private_get_openapi_v1_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_openapi_v1_account".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenapiV1ApiKeys` implicit endpoint.
@@ -123,8 +123,8 @@ impl Coinsph {
     }
 
     /// Auto-generated wrapper for the `privateGetOpenapiV1Order` implicit endpoint.
-    pub async fn private_get_openapi_v1_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_openapi_v1_order".into()), optional_args).await
+    pub async fn private_get_openapi_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_openapi_v1_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenapiV1HistoryOrders` implicit endpoint.
@@ -213,18 +213,18 @@ impl Coinsph {
     }
 
     /// Auto-generated wrapper for the `privatePostOpenapiWalletV1WithdrawApply` implicit endpoint.
-    pub async fn private_post_openapi_wallet_v1_withdraw_apply(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_openapi_wallet_v1_withdraw_apply".into()), optional_args).await
+    pub async fn private_post_openapi_wallet_v1_withdraw_apply(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_openapi_wallet_v1_withdraw_apply".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOpenapiV1OrderTest` implicit endpoint.
-    pub async fn private_post_openapi_v1_order_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_openapi_v1_order_test".into()), optional_args).await
+    pub async fn private_post_openapi_v1_order_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_openapi_v1_order_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOpenapiV1Order` implicit endpoint.
-    pub async fn private_post_openapi_v1_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_openapi_v1_order".into()), optional_args).await
+    pub async fn private_post_openapi_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_openapi_v1_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOpenapiV1OrderCancelReplace` implicit endpoint.
@@ -398,8 +398,8 @@ impl Coinsph {
     }
 
     /// Auto-generated wrapper for the `privateDeleteOpenapiV1Order` implicit endpoint.
-    pub async fn private_delete_openapi_v1_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_openapi_v1_order".into()), optional_args).await
+    pub async fn private_delete_openapi_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_openapi_v1_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOpenapiV1OpenOrders` implicit endpoint.

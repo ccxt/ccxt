@@ -18,8 +18,8 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `publicGetTickersSymbol` implicit endpoint.
-    pub async fn public_get_tickers_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_tickers_symbol".into()), optional_args).await
+    pub async fn public_get_tickers_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_tickers_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetSymbols` implicit endpoint.
@@ -33,8 +33,8 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `publicGetL2Symbol` implicit endpoint.
-    pub async fn public_get_l2_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_l2_symbol".into()), optional_args).await
+    pub async fn public_get_l2_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_l2_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetL3Symbol` implicit endpoint.
@@ -43,8 +43,8 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `privateGetFees` implicit endpoint.
-    pub async fn private_get_fees(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_fees".into()), optional_args).await
+    pub async fn private_get_fees(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_fees".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetInternalOrders` implicit endpoint.
@@ -58,8 +58,8 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersOrderId` implicit endpoint.
-    pub async fn private_get_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_order_id".into()), optional_args).await
+    pub async fn private_get_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetTrades` implicit endpoint.
@@ -78,8 +78,8 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `privateGetDepositsDepositId` implicit endpoint.
-    pub async fn private_get_deposits_deposit_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_deposits_deposit_id".into()), optional_args).await
+    pub async fn private_get_deposits_deposit_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deposits_deposit_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccounts` implicit endpoint.
@@ -108,23 +108,23 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawalsWithdrawalId` implicit endpoint.
-    pub async fn private_get_withdrawals_withdrawal_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_withdrawals_withdrawal_id".into()), optional_args).await
+    pub async fn private_get_withdrawals_withdrawal_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_withdrawals_withdrawal_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
-    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders".into()), optional_args).await
+    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostDepositsCurrency` implicit endpoint.
-    pub async fn private_post_deposits_currency(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_deposits_currency".into()), optional_args).await
+    pub async fn private_post_deposits_currency(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deposits_currency".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawals` implicit endpoint.
-    pub async fn private_post_withdrawals(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdrawals".into()), optional_args).await
+    pub async fn private_post_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdrawals".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrders` implicit endpoint.
@@ -133,8 +133,8 @@ impl Blockchaincom {
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrdersOrderId` implicit endpoint.
-    pub async fn private_delete_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_orders_order_id".into()), optional_args).await
+    pub async fn private_delete_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
 }

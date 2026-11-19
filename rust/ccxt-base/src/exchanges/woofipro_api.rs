@@ -28,8 +28,8 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicSystemInfo` implicit endpoint.
-    pub async fn v1_public_get_public_system_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_system_info".into()), optional_args).await
+    pub async fn v1_public_get_public_system_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_system_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicVaultBalance` implicit endpoint.
@@ -43,8 +43,8 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicChainInfo` implicit endpoint.
-    pub async fn v1_public_get_public_chain_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_chain_info".into()), optional_args).await
+    pub async fn v1_public_get_public_chain_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_chain_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetFaucetUsdc` implicit endpoint.
@@ -213,23 +213,23 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicFundingRateHistory` implicit endpoint.
-    pub async fn v1_public_get_public_funding_rate_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_funding_rate_history".into()), optional_args).await
+    pub async fn v1_public_get_public_funding_rate_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_funding_rate_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicFundingRateSymbol` implicit endpoint.
-    pub async fn v1_public_get_public_funding_rate_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_funding_rate_symbol".into()), optional_args).await
+    pub async fn v1_public_get_public_funding_rate_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_funding_rate_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicFundingRates` implicit endpoint.
-    pub async fn v1_public_get_public_funding_rates(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_funding_rates".into()), optional_args).await
+    pub async fn v1_public_get_public_funding_rates(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_funding_rates".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicInfo` implicit endpoint.
-    pub async fn v1_public_get_public_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_info".into()), optional_args).await
+    pub async fn v1_public_get_public_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicInfoSymbol` implicit endpoint.
@@ -238,23 +238,23 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicMarketTrades` implicit endpoint.
-    pub async fn v1_public_get_public_market_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_market_trades".into()), optional_args).await
+    pub async fn v1_public_get_public_market_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_market_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicToken` implicit endpoint.
-    pub async fn v1_public_get_public_token(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_token".into()), optional_args).await
+    pub async fn v1_public_get_public_token(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_token".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicFutures` implicit endpoint.
-    pub async fn v1_public_get_public_futures(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_futures".into()), optional_args).await
+    pub async fn v1_public_get_public_futures(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_futures".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetPublicFuturesSymbol` implicit endpoint.
-    pub async fn v1_public_get_public_futures_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_public_get_public_futures_symbol".into()), optional_args).await
+    pub async fn v1_public_get_public_futures_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_public_get_public_futures_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PublicGetStakingValor2BatchInfo` implicit endpoint.
@@ -288,33 +288,33 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetOrderOid` implicit endpoint.
-    pub async fn v1_private_get_order_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_order_oid".into()), optional_args).await
+    pub async fn v1_private_get_order_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_order_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetClientOrderClientOrderId` implicit endpoint.
-    pub async fn v1_private_get_client_order_client_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_client_order_client_order_id".into()), optional_args).await
+    pub async fn v1_private_get_client_order_client_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_client_order_client_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetAlgoOrderOid` implicit endpoint.
-    pub async fn v1_private_get_algo_order_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_algo_order_oid".into()), optional_args).await
+    pub async fn v1_private_get_algo_order_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_algo_order_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetAlgoClientOrderClientOrderId` implicit endpoint.
-    pub async fn v1_private_get_algo_client_order_client_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_algo_client_order_client_order_id".into()), optional_args).await
+    pub async fn v1_private_get_algo_client_order_client_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_algo_client_order_client_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetOrders` implicit endpoint.
-    pub async fn v1_private_get_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_orders".into()), optional_args).await
+    pub async fn v1_private_get_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetAlgoOrders` implicit endpoint.
-    pub async fn v1_private_get_algo_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_algo_orders".into()), optional_args).await
+    pub async fn v1_private_get_algo_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_algo_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetTradeTid` implicit endpoint.
@@ -323,13 +323,13 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetTrades` implicit endpoint.
-    pub async fn v1_private_get_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_trades".into()), optional_args).await
+    pub async fn v1_private_get_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetOrderOidTrades` implicit endpoint.
-    pub async fn v1_private_get_order_oid_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_order_oid_trades".into()), optional_args).await
+    pub async fn v1_private_get_order_oid_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_order_oid_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetClientLiquidatorLiquidations` implicit endpoint.
@@ -343,18 +343,18 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetAssetHistory` implicit endpoint.
-    pub async fn v1_private_get_asset_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_asset_history".into()), optional_args).await
+    pub async fn v1_private_get_asset_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_asset_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetClientHolding` implicit endpoint.
-    pub async fn v1_private_get_client_holding(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_client_holding".into()), optional_args).await
+    pub async fn v1_private_get_client_holding(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_client_holding".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetWithdrawNonce` implicit endpoint.
-    pub async fn v1_private_get_withdraw_nonce(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_withdraw_nonce".into()), optional_args).await
+    pub async fn v1_private_get_withdraw_nonce(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_withdraw_nonce".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetSettleNonce` implicit endpoint.
@@ -388,8 +388,8 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetClientInfo` implicit endpoint.
-    pub async fn v1_private_get_client_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_client_info".into()), optional_args).await
+    pub async fn v1_private_get_client_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_client_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetClientStatisticsDaily` implicit endpoint.
@@ -398,18 +398,18 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetPositions` implicit endpoint.
-    pub async fn v1_private_get_positions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_positions".into()), optional_args).await
+    pub async fn v1_private_get_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_positions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetPositionSymbol` implicit endpoint.
-    pub async fn v1_private_get_position_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_position_symbol".into()), optional_args).await
+    pub async fn v1_private_get_position_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_position_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetFundingFeeHistory` implicit endpoint.
-    pub async fn v1_private_get_funding_fee_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_funding_fee_history".into()), optional_args).await
+    pub async fn v1_private_get_funding_fee_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_funding_fee_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetNotificationInboxNotifications` implicit endpoint.
@@ -443,18 +443,18 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetOrderbookSymbol` implicit endpoint.
-    pub async fn v1_private_get_orderbook_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_orderbook_symbol".into()), optional_args).await
+    pub async fn v1_private_get_orderbook_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_orderbook_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetKline` implicit endpoint.
-    pub async fn v1_private_get_kline(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_kline".into()), optional_args).await
+    pub async fn v1_private_get_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_kline".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetClientMarginModes` implicit endpoint.
-    pub async fn v1_private_get_client_margin_modes(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_get_client_margin_modes".into()), optional_args).await
+    pub async fn v1_private_get_client_margin_modes(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_get_client_margin_modes".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetClientLeverages` implicit endpoint.
@@ -533,18 +533,18 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostOrder` implicit endpoint.
-    pub async fn v1_private_post_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_post_order".into()), optional_args).await
+    pub async fn v1_private_post_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_post_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostBatchOrder` implicit endpoint.
-    pub async fn v1_private_post_batch_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_post_batch_order".into()), optional_args).await
+    pub async fn v1_private_post_batch_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_post_batch_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostAlgoOrder` implicit endpoint.
-    pub async fn v1_private_post_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_post_algo_order".into()), optional_args).await
+    pub async fn v1_private_post_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_post_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostLiquidation` implicit endpoint.
@@ -558,8 +558,8 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostWithdrawRequest` implicit endpoint.
-    pub async fn v1_private_post_withdraw_request(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_post_withdraw_request".into()), optional_args).await
+    pub async fn v1_private_post_withdraw_request(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_post_withdraw_request".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostSettlePnl` implicit endpoint.
@@ -593,8 +593,8 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostPositionMargin` implicit endpoint.
-    pub async fn v1_private_post_position_margin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_post_position_margin".into()), optional_args).await
+    pub async fn v1_private_post_position_margin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_post_position_margin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostClientMaintenanceConfig` implicit endpoint.
@@ -703,33 +703,33 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivatePutOrder` implicit endpoint.
-    pub async fn v1_private_put_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_put_order".into()), optional_args).await
+    pub async fn v1_private_put_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_put_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivatePutAlgoOrder` implicit endpoint.
-    pub async fn v1_private_put_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_put_algo_order".into()), optional_args).await
+    pub async fn v1_private_put_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_put_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteOrder` implicit endpoint.
-    pub async fn v1_private_delete_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_delete_order".into()), optional_args).await
+    pub async fn v1_private_delete_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_delete_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteAlgoOrder` implicit endpoint.
-    pub async fn v1_private_delete_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_delete_algo_order".into()), optional_args).await
+    pub async fn v1_private_delete_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_delete_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteClientOrder` implicit endpoint.
-    pub async fn v1_private_delete_client_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_delete_client_order".into()), optional_args).await
+    pub async fn v1_private_delete_client_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_delete_client_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteAlgoClientOrder` implicit endpoint.
-    pub async fn v1_private_delete_algo_client_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_delete_algo_client_order".into()), optional_args).await
+    pub async fn v1_private_delete_algo_client_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_delete_algo_client_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteAlgoOrders` implicit endpoint.
@@ -743,13 +743,13 @@ impl Woofipro {
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteBatchOrder` implicit endpoint.
-    pub async fn v1_private_delete_batch_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_delete_batch_order".into()), optional_args).await
+    pub async fn v1_private_delete_batch_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_delete_batch_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v1PrivateDeleteClientBatchOrder` implicit endpoint.
-    pub async fn v1_private_delete_client_batch_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v1_private_delete_client_batch_order".into()), optional_args).await
+    pub async fn v1_private_delete_client_batch_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("v1_private_delete_client_batch_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `v2PrivatePostInternalTransfer` implicit endpoint.

@@ -110,7 +110,7 @@ pub fn testClone() {
     });
     // todo: results are different across langs.
     // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testDeepExtend".into()).clone(), deepExtended, compareTo]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testDeepExtend".into()), deepExtended, compareTo]);
     // -------------------------------------------------------------------------
     // test immutability / no cross-mutation between clone and original
     // -------------------------------------------------------------------------

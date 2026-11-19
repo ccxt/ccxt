@@ -102,7 +102,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         // accepts either `query` (a single search string) or `queries` (a list of strings)
-        let mut singleQuery: Option<String> = (match params.get("query") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut singleQuery: Option<String> = (match params.get("query") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (singleQuery.is_some()) {
             return Value::from(vec![singleQuery.map(Value::from).unwrap_or(Value::Null)]);
         }
@@ -163,8 +163,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // serve them later without another request
         self.set_events(events.clone());
         let mut result: Value = events;
-        let mut eventId: Option<String> = (match params.get("eventId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut slug: Option<String> = (match params.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut eventId: Option<String> = (match params.get("eventId") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        let mut slug: Option<String> = (match params.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (eventId.is_some()) || (slug.is_some()) {
             let mut filtered: crate::value::List = std::sync::Arc::new(Vec::new());
             {
@@ -192,7 +192,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if queriesLength > 0 {
             result = self.filter_events_by_search_in(result, queries, &[(match params.get("searchIn") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         }
-        let mut sort: Option<String> = (match params.get("sort") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut sort: Option<String> = (match params.get("sort") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (sort.is_some()) {
             let mut sortKey: Value = Value::Null;
             if (sort.as_deref() == Some("volume")) {
@@ -406,7 +406,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     fn fetch_events(&mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::PredictionEvent>>> + Send { async move {
         let __args: Vec<Value> = vec![params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_events", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_events", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -425,7 +425,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     fn fetch_event(&mut self, id: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::PredictionEvent>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(id), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_event", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_event", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -499,7 +499,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_198: bool = true;
             while { if !__for_first_198 { i += 1; } __for_first_198 = false; i < (keys.len() as i64) } {
             let mut event: Value = get_value(&self.pred().events, &keys.get(i as usize).cloned().unwrap_or(Value::Null));
-            let mut identity: Option<String> = self.safe_string2_opt(&event, Value::Str("id".into()), Value::Str("event".into()), &[keys.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            let mut identity: Option<String> = self.safe_string2_opt(&event, Value::Str("id".into()), Value::Str("event".into()), &[&keys.get(i as usize).cloned().unwrap_or(Value::Null)]);
             if !(matches!(identity.as_deref(), Some(__k) if seen.contains_key(__k))) {
                 seen.insert(identity.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 result.push(event);
@@ -544,43 +544,43 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if (self.pred().events.clone() != Value::Null) && (matches!((&self.pred().events, &eventIdOrSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return self.safe_dict(self.pred().events.clone(), eventIdOrSlug.clone(), &[]);
+            return self.safe_dict(self.pred().events.clone(), eventIdOrSlug, &[]);
         }
         if (self.pred().events_by_slug.clone() != Value::Null) && (matches!((&self.pred().events_by_slug, &eventIdOrSlug), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return self.safe_dict(self.pred().events_by_slug.clone(), eventIdOrSlug.clone(), &[]);
+            return self.safe_dict(self.pred().events_by_slug.clone(), eventIdOrSlug, &[]);
         }
         panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " has no cached event ").into()), eventIdOrSlug).into()), " - call fetchEvents ({ 'query': ... }) first")));
 
     Value::Null
 }
 
-    fn outcome(&self, mut outcomeSymbol: Value) -> Option<crate::types::Market> {
-        if (outcomeSymbol == Value::Null) {
+    fn outcome(&self, outcomeSymbol: Option<&str>) -> Option<crate::types::Market> {
+        if (outcomeSymbol.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " outcome() requires an outcomeSymbol argument")));
         }
         if (self.pred().outcomes.is_none()) || self.is_empty(&self.pred().outcomes).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")));
         }
-        if (matches!((&self.pred().outcomes, &outcomeSymbol), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(&self.pred().outcomes, outcomeSymbol.clone(), &[]));
+        if (matches!((&self.pred().outcomes, &Value::from(outcomeSymbol)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(&self.pred().outcomes, Value::from(outcomeSymbol), &[]));
         }
-        if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(self.pred().outcomes_by_id.clone(), outcomeSymbol.clone(), &[]));
+        if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &Value::from(outcomeSymbol)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(self.pred().outcomes_by_id.clone(), Value::from(outcomeSymbol), &[]));
         }
-        panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have outcome ").into()), outcomeSymbol).into()), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")));
+        panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have outcome ").into()), Value::from(outcomeSymbol)).into()), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")));
 }
 
-    fn has_outcome(&self, mut outcomeIdOrSymbol: Value) -> Value {
+    fn has_outcome(&self, outcomeIdOrSymbol: Option<&str>) -> Value {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
-        if (outcomeIdOrSymbol == Value::Null) {
+        if (outcomeIdOrSymbol.is_none()) {
             return Value::Bool(false);
         }
-        if (self.pred().outcomes.is_some()) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (self.pred().outcomes.is_some()) && (matches!((&self.pred().outcomes, &Value::from(outcomeIdOrSymbol)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return Value::Bool(true);
         }
-        if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &Value::from(outcomeIdOrSymbol)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return Value::Bool(true);
         }
         return Value::Bool(false);
@@ -588,13 +588,13 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 }
 
-    fn safe_outcome(&self, mut outcomeIdOrSymbol: Value, market: Option<&crate::types::Market>) -> Option<crate::types::Market> {
-        if (outcomeIdOrSymbol != Value::Null) {
-            if (self.pred().outcomes.is_some()) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(&self.pred().outcomes, outcomeIdOrSymbol.clone(), &[]));
+    fn safe_outcome(&self, outcomeIdOrSymbol: Option<&str>, market: Option<&crate::types::Market>) -> Option<crate::types::Market> {
+        if (outcomeIdOrSymbol.is_some()) {
+            if (self.pred().outcomes.is_some()) && (matches!((&self.pred().outcomes, &Value::from(outcomeIdOrSymbol)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(&self.pred().outcomes, Value::from(outcomeIdOrSymbol), &[]));
             }
-            if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(self.pred().outcomes_by_id.clone(), outcomeIdOrSymbol.clone(), &[]));
+            if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &Value::from(outcomeIdOrSymbol)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(self.pred().outcomes_by_id.clone(), Value::from(outcomeIdOrSymbol), &[]));
             }
         }
         if (market.is_some()) {
@@ -603,8 +603,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         let mut outcomeObjValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("outcome".to_string(), outcomeIdOrSymbol.clone());
-                m.insert("outcomeId".to_string(), outcomeIdOrSymbol);
+                m.insert("outcome".to_string(), Value::from(outcomeIdOrSymbol));
+                m.insert("outcomeId".to_string(), Value::from(outcomeIdOrSymbol));
                 m.insert("market".to_string(), Value::Null);
                 m.insert("label".to_string(), Value::Null);
                 m.insert("event".to_string(), Value::Null);
@@ -621,10 +621,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
         // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
         // handing it to safeOutcome (whose fallback slot is a Market)
-        if !(self.has_outcome(outcomeIdOrSymbol.clone()).as_bool() == Some(true)) && (outcomeObj != Value::Null) {
+        if !(self.has_outcome(outcomeIdOrSymbol.as_str()).as_bool() == Some(true)) && (outcomeObj != Value::Null) {
             return self.safe_string_k(outcomeObj, "outcome", &[]);
         }
-        let mut outcomeObjValue: Option<crate::types::Market> = self.safe_outcome(outcomeIdOrSymbol, None);
+        let mut outcomeObjValue: Option<crate::types::Market> = self.safe_outcome(outcomeIdOrSymbol.as_str(), None);
         return crate::value::KeyRead::key_read(&&outcomeObjValue, "outcome");
 
     Value::Null
@@ -942,7 +942,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut i: i64 = 0;
                 let mut __for_first_208: bool = true;
                 while { if !__for_first_208 { i += 1; } __for_first_208 = false; i < (outcomes.len() as i64) } {
-                if reload.as_bool() == Some(true) || !(self.has_outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                if reload.as_bool() == Some(true) || !(self.has_outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
                     if let Value::Arr(__a) = &mut missing { std::sync::Arc::make_mut(__a).push(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
                 }
             }
@@ -959,7 +959,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                         let mut i: i64 = 0;
                     let mut __for_first_209: bool = true;
                     while { if !__for_first_209 { i += 1; } __for_first_209 = false; i < missingLength } {
-                    if !(self.has_outcome(missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                    if !(self.has_outcome((missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
                         std::sync::Arc::make_mut(&mut stillMissing).push(missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                     }
                 }
@@ -992,7 +992,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
  */
     fn fetch_outcomes(&mut self, mut outcomeSymbols: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_outcomes", vec![outcomeSymbols.clone()]).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_outcomes", &[outcomeSymbols.clone()]).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
         }
 
@@ -1010,7 +1010,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 } }
 
-    fn load_outcome(&mut self, mut outcomeSymbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Option<crate::types::Market>> + Send { async move {
+    fn load_outcome(&mut self, outcomeSymbol: Option<&str>, optional_args: &[Value]) -> impl ::std::future::Future<Output = Option<crate::types::Market>> + Send { async move {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
@@ -1019,12 +1019,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
-        if (outcomeSymbol == Value::Null) {
+        if (outcomeSymbol.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " loadOutcome() requires an outcomeSymbol argument")));
         }
         if !(reload.as_bool() == Some(true)) {
-            if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                return self.safe_outcome(outcomeSymbol.clone(), None);
+            if self.has_outcome(outcomeSymbol).as_bool() == Some(true) {
+                return self.safe_outcome(outcomeSymbol, None);
             }
             let mut wasWarm: bool = (self.pred().outcomes.is_some()) && !(self.is_empty(&self.pred().outcomes).as_bool() == Some(true));
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
@@ -1032,8 +1032,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
             if !wasWarm && (self.markets.is_some()) && !(self.is_empty(Value::from(&self.markets)).as_bool() == Some(true)) {
                 self.populate_outcomes();
-                if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                    return self.safe_outcome(outcomeSymbol.clone(), None);
+                if self.has_outcome(outcomeSymbol).as_bool() == Some(true) {
+                    return self.safe_outcome(outcomeSymbol, None);
                 }
             }
             let mut loadAll: bool = self.safe_bool_k_opt(&self.options, "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
@@ -1043,12 +1043,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                 // the whole listing (which would mask typos and clobber offline-injected markets)
                 self.load_outcomes(&[]).await;
-                if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                    return self.safe_outcome(outcomeSymbol.clone(), None);
+                if self.has_outcome(outcomeSymbol).as_bool() == Some(true) {
+                    return self.safe_outcome(outcomeSymbol, None);
                 }
             }
         }
-        return self.fetch_outcome(outcomeSymbol).await;
+        return self.fetch_outcome(Value::from(outcomeSymbol)).await;
 } }
 
     fn outcome_search_query(&self, mut outcomeSymbol: Value) -> Value {
@@ -1116,7 +1116,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 
     fn fetch_outcome(&mut self, mut outcomeSymbol: Value) -> impl ::std::future::Future<Output = Option<crate::types::Market>> + Send { async move {
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_outcome", vec![outcomeSymbol.clone()]).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_outcome", &[outcomeSymbol.clone()]).await {
             if !matches!(__v, crate::Value::Null) { return crate::types::FromRaw::from_raw(__v); }
         }
 
@@ -1143,8 +1143,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     panic!("{}", e);
                 }
             }
-            if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                return self.safe_outcome(outcomeSymbol.clone(), None);
+            if self.has_outcome(outcomeSymbol.as_str()).as_bool() == Some(true) {
+                return self.safe_outcome(outcomeSymbol.as_str(), None);
             }
         }
         panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " could not resolve outcome ").into()), outcomeSymbol).into()), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")));
@@ -1161,7 +1161,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_ticker(&mut self, outcome: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Ticker>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcome), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_ticker", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_ticker", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1189,7 +1189,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_tickers(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_tickers", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_tickers", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1218,7 +1218,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_order_book(&mut self, outcome: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBook>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcome), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_order_book", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_order_book", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1250,7 +1250,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_ohlcv(&mut self, outcome: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcome), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_ohlcv", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_ohlcv", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1283,7 +1283,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_trades(&mut self, outcome: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcome), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_trades", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_trades", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1317,7 +1317,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn create_order(&mut self, outcome: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcome), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("create_order", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("create_order", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1350,7 +1350,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn cancel_order(&mut self, id: &str, outcome: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(id), outcome.map(Value::from).unwrap_or_default(), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("cancel_order", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("cancel_order", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1459,7 +1459,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_orders(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send { async move {
         let __args: Vec<Value> = vec![outcome.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_orders", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_orders", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1491,7 +1491,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_open_orders(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send { async move {
         let __args: Vec<Value> = vec![outcome.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_open_orders", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_open_orders", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1523,7 +1523,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_closed_orders(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send { async move {
         let __args: Vec<Value> = vec![outcome.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_closed_orders", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_closed_orders", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1585,7 +1585,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_my_trades(&mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send { async move {
         let __args: Vec<Value> = vec![outcome.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_my_trades", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_my_trades", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1615,7 +1615,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_position(&mut self, outcome: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Position>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcome), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_position", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_position", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1643,7 +1643,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_positions(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_positions", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_positions", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1671,7 +1671,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_trading_fee(&mut self, outcome: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::TradingFee>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcome), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1699,7 +1699,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn fetch_open_interest(&mut self, outcome: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OpenInterest>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(outcome), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_open_interest", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_open_interest", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1727,7 +1727,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send { async move {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("create_orders", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("create_orders", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -1756,7 +1756,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn cancel_orders(&mut self, ids: Vec<String>, outcome: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(Some(ids)), outcome.map(Value::from).unwrap_or_default(), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("cancel_orders", __args.clone()).await {
+        if let Some(__v) = self.dispatch_to_derived("cancel_orders", &__args).await {
             if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
         let mut __it = __args.into_iter();
@@ -2442,7 +2442,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     fn amount_to_prediction_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
-        let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
+        let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
         return Value::from(self.amount_to_precision(marketSymbol.as_deref(), amount));
 
@@ -2450,7 +2450,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     fn price_to_prediction_precision(&self, mut outcome: Value, mut price: Value) -> Value {
-        let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
+        let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
         return Value::from(self.price_to_precision(marketSymbol.as_deref(), price));
 
@@ -2458,7 +2458,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     fn cost_to_prediction_precision(&self, mut outcome: Value, mut cost: Value) -> Value {
-        let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
+        let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
         return Value::from(self.cost_to_precision(marketSymbol.as_deref(), cost));
 
@@ -2652,7 +2652,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 } }
     /// Prediction-base fall-through for a prediction Core's `call_dynamic`.
-    fn call_dynamic_prediction_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic_prediction_base<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -2696,15 +2696,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "filter_events_by_status" => <Self as crate::prediction_exchange_generated::PredictionBase>::filter_events_by_status(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "filter_events_by_tags" => <Self as crate::prediction_exchange_generated::PredictionBase>::filter_events_by_tags(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "get_event" => <Self as crate::prediction_exchange_generated::PredictionBase>::get_event(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "has_outcome" => <Self as crate::prediction_exchange_generated::PredictionBase>::has_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "has_outcome" => <Self as crate::prediction_exchange_generated::PredictionBase>::has_outcome(self, args.get(0).and_then(crate::Value::as_text).as_deref()),
             "hex_to_rlp_bytes" => <Self as crate::prediction_exchange_generated::PredictionBase>::hex_to_rlp_bytes(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "int_to_rlp_hex" => <Self as crate::prediction_exchange_generated::PredictionBase>::int_to_rlp_hex(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_prediction" => <Self as crate::prediction_exchange_generated::PredictionBase>::is_prediction(self),
             "load_events" => <Self as crate::prediction_exchange_generated::PredictionBase>::load_events(self, &args[..]).await,
             "load_events_helper" => <Self as crate::prediction_exchange_generated::PredictionBase>::load_events_helper(self, &args[..]).await,
-            "load_outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::load_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await),
+            "load_outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::load_outcome(self, args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]).await),
             "normalize_tag_key" => <Self as crate::prediction_exchange_generated::PredictionBase>::normalize_tag_key(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null))),
+            "outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::outcome(self, args.get(0).and_then(crate::Value::as_text).as_deref())),
             "outcome_search_query" => <Self as crate::prediction_exchange_generated::PredictionBase>::outcome_search_query(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pad_hex_address" => <Self as crate::prediction_exchange_generated::PredictionBase>::pad_hex_address(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pad_hex_to_even" => <Self as crate::prediction_exchange_generated::PredictionBase>::pad_hex_to_even(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2721,7 +2721,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "require_event_query" => <Self as crate::prediction_exchange_generated::PredictionBase>::require_event_query(self, &args[..].iter().collect::<Vec<_>>()),
             "rlp_encode_bytes" => <Self as crate::prediction_exchange_generated::PredictionBase>::rlp_encode_bytes(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "rlp_encode_list" => <Self as crate::prediction_exchange_generated::PredictionBase>::rlp_encode_list(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "safe_outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+            "safe_outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome(self, args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "safe_outcome_symbol" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome_symbol(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_prediction_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_prediction_order_book" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_order_book(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),

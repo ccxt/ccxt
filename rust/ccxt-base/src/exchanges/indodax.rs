@@ -36,8 +36,10 @@ impl Indodax {
         let described = Indodax::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -107,7 +109,7 @@ impl crate::exchange::DerivedExchange for Indodax {
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "tid", &[]));
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
@@ -116,7 +118,8 @@ impl crate::exchange::DerivedExchange for Indodax {
         m.insert("order".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(&trade, "price", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(trade, "amount", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(&trade, "amount", &[]));
+        m.insert("info".to_string(), trade);
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -178,7 +181,7 @@ impl crate::exchange::DerivedExchange for Indodax {
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "pair", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         if (true) {
-            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol").into_opt_string();
+            symbol = marketResolved.raw.at("symbol").as_str().map(str::to_owned);
             let mut quoteId: String = self.safe_string_k(&marketResolved, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut baseId: String = self.safe_string_k(&marketResolved, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (crate::value::KeyRead::key_read(&&marketResolved, "quoteId").as_str() == Some("idr")) && (self.safe_string_k(&order, "order_rp", &[]) != Value::Null) {
@@ -199,9 +202,10 @@ impl crate::exchange::DerivedExchange for Indodax {
         let mut id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
+        m.insert("info".to_string(), order);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -250,7 +254,7 @@ impl crate::exchange::DerivedExchange for Indodax {
             while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-            let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+            let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("free".into(), self.safe_string(&free, Value::from(currencyId.as_deref()), &[]));
             account.insert("used".into(), self.safe_string(&used, Value::from(currencyId.as_deref()), &[]));
             if (code.is_some()) {
@@ -365,8 +369,8 @@ impl crate::exchange::DerivedExchange for Indodax {
         let mut privateHeaders: Option<crate::value::Dict> = None;
         let mut isPublic: bool = apiName.as_deref() == Some("public");
         if isPublic {
-            let mut query: crate::value::Dict = self.omit_t(params.clone(), self.extract_params(Value::from(path)), &[]);
-            let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), params.clone()));
+            let mut query: crate::value::Dict = self.omit_t(&params, self.extract_params(Value::from(path)), &[]);
+            let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), &params));
             url = Some(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath));
             if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath).into()), "?").into()), self.urlencode_with_array_repeat(&query)));
@@ -385,7 +389,7 @@ impl crate::exchange::DerivedExchange for Indodax {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(privateBody.as_deref())), self.encode(&self.secret), Value::Str("sha512".into()), &[])));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(privateBody.as_deref())), self.encode(&self.secret), "sha512", &[])));
                 m
             }));
         }
@@ -436,8 +440,8 @@ impl crate::exchange::DerivedExchange for Indodax {
             }
         }
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(error.clone()), Value::from(feedback.clone()));
-        self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(error), Value::from(feedback.clone()));
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.clone()), &feedback);
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(error), &feedback);
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
     Value::Null
@@ -445,7 +449,7 @@ impl crate::exchange::DerivedExchange for Indodax {
 }
 
 impl crate::exchange_generated::ExchangeBase for Indodax {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -952,7 +956,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_api_server_time", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_api_server_time(&[&params]).await.unwrap_or_default();
         return self.safe_integer_k(&response, "server_time", &[]);
         Value::Null
         }).await?))
@@ -1115,7 +1119,7 @@ impl Indodax {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_post_get_info", &[&params]).await;
+        let mut response: crate::value::Dict = self.private_post_get_info(&[&params]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -1138,7 +1142,7 @@ impl Indodax {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1153,7 +1157,7 @@ impl Indodax {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: crate::value::Dict = self.call_method_t("public_get_api_depth_pair", &[&__ws_arg_0]).await;
+        let mut orderbook: crate::value::Dict = self.public_get_api_depth_pair(&[&__ws_arg_0]).await.unwrap_or_default();
         return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into())]));
         Value::Null
         }).await?))
@@ -1190,7 +1194,7 @@ impl Indodax {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_api_ticker_pair", &[&__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_api_ticker_pair(&[&__ws_arg_1]).await.unwrap_or_default();
         //
         //     {
         //         "ticker": {
@@ -1250,7 +1254,7 @@ impl Indodax {
         //     }
         // }
         //
-        let mut response: crate::value::Dict = self.call_method_t("public_get_api_ticker_all", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_api_ticker_all(&[&params]).await.unwrap_or_default();
         let mut tickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "tickers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1296,8 +1300,8 @@ impl Indodax {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1313,7 +1317,7 @@ impl Indodax {
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_api_trades_pair(&[&__ws_arg_2]).await.unwrap_or_default();
-        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1339,8 +1343,8 @@ impl Indodax {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1349,7 +1353,7 @@ impl Indodax {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut selectedTimeframe: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
+        let mut selectedTimeframe: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
         let mut now: i64 = self.seconds();
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[Value::from(now)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["until"], &[]);
@@ -1360,20 +1364,20 @@ impl Indodax {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut limitResolved: i64 = limit.as_i64().unwrap_or(1000);
-        if (since != Value::Null) {
-            request.insert("from".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
+        let mut limitResolved: i64 = limit.unwrap_or(1000);
+        if (since.is_some()) {
+            request.insert("from".into(), ((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }  else {
-            let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-            if (limit == Value::Null) {
+            let mut duration: i64 = self.parse_timeframe(&timeframe);
+            if (limit.is_none()) {
                 request.insert("from".into(), Value::Int((((now - ((1000 * duration)))) - 1)));
             }  else {
-                request.insert("from".into(), Value::from((if let Some(__l) = ((if let Some(__r) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some(now - __r) } else { None })) { Some(__l - 1) } else { None })));
+                request.insert("from".into(), Value::from((if let Some(__l) = ((if let Some(__r) = ((if let Some(__l) = limit { Some(__l * duration) } else { None })) { Some(now - __r) } else { None })) { Some(__l - 1) } else { None })));
             }
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_tradingview_history_v2(&[&__ws_arg_3]).await.unwrap_or_default();
-        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, Value::from(since), Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1386,7 +1390,7 @@ impl Indodax {
                 m.insert("cancelled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 
@@ -1426,7 +1430,7 @@ impl Indodax {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_get_order", &[&__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_post_get_order(&[&__ws_arg_4]).await.unwrap_or_default();
         let mut orders: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1461,8 +1465,8 @@ impl Indodax {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1480,7 +1484,7 @@ impl Indodax {
             request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_open_orders", &[&__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_post_open_orders(&[&__ws_arg_6]).await.unwrap_or_default();
         let mut openOrdersResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1492,7 +1496,7 @@ impl Indodax {
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (symbol != Value::Null) {
-            return Value::Arr(self.parse_orders(rawOrders, market.as_ref(), &[since.clone(), limit.clone()]));
+            return Value::Arr(self.parse_orders(rawOrders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         let mut ordersDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&openOrdersResult, "orders", &[Value::Map({
@@ -1508,7 +1512,7 @@ impl Indodax {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             market = Some(self.safe_market(marketId.as_deref(), None, &[]));
-            let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[since.clone(), limit.clone()]);
+            let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]);
             exchangeOrders = self.array_concat_t(Value::Arr(exchangeOrders), &parsedOrders);
         }
         }
@@ -1535,8 +1539,8 @@ impl Indodax {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1554,14 +1558,14 @@ impl Indodax {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_order_history", &[&__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.private_post_order_history(&[&__ws_arg_7]).await.unwrap_or_default();
         let mut historyResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
         let mut orders: crate::value::List = self.parse_orders(historyResult.get("orders").cloned().unwrap_or(Value::Null), Some(&market), &[]);
-        let mut closedOrders: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]).into_list();
-        return Value::Arr(self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]));
+        let mut closedOrders: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]);
+        return Value::Arr(self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since, limit, &[]));
         Value::Null
         }).await?))
     }
@@ -1585,11 +1589,10 @@ impl Indodax {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1602,7 +1605,7 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), side.clone());
-                m.insert("price".to_string(), price.clone());
+                m.insert("price".to_string(), Value::from(price));
             m
         });
         let mut priceIsRequired: bool = false;
@@ -1610,7 +1613,7 @@ impl Indodax {
         let mut isMarketBuy: bool = (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy"));
         let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
         if isMarketBuy {
-            paramsOmitted = self.omit_t(params.clone(), Value::Str("cost".into()), &[]);
+            paramsOmitted = self.omit_t(&params, Value::Str("cost".into()), &[]);
         }
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
@@ -1619,7 +1622,7 @@ impl Indodax {
                 if (cost.is_some()) {
                     quoteAmount = self.cost_to_precision(symbol.as_str(), cost);
                 }  else {
-                    if (price == Value::Null) {
+                    if (price.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")));
                     }
                     let mut amountString: Option<String> = self.number_to_string(&amount);
@@ -1639,16 +1642,16 @@ impl Indodax {
             }
         }
         if priceIsRequired {
-            if (price == Value::Null) {
+            if (price.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }
-            request.insert("price".into(), price);
+            request.insert("price".into(), Value::from(price));
         }
         if quantityIsRequired {
             request.insert(crate::runtime::stringify_param(&(Value::from((market).base_id.as_deref()))), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut result: crate::value::Dict = self.call_method_t("private_post_trade", &[&__ws_arg_8]).await;
+        let mut result: crate::value::Dict = self.private_post_trade(&[&__ws_arg_8]).await.unwrap_or_default();
         let mut data: crate::value::Dict = self.safe_dict_k_t(&result, "return");
         let mut id: Option<String> = self.safe_string_k_opt(&data, "order_id", &[]);
         return Value::Dict(self.safe_order(Value::Map({
@@ -1702,7 +1705,7 @@ impl Indodax {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_order", &[&__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_post_cancel_order(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //    {
         //        "success": 1,
@@ -1752,7 +1755,7 @@ impl Indodax {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw_fee", &[&__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.private_post_withdraw_fee(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //     {
         //         "success": 1,
@@ -1804,7 +1807,7 @@ impl Indodax {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw_fee", &[&__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.private_post_withdraw_fee(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //     {
         //         "success": 1,
@@ -1852,8 +1855,8 @@ impl Indodax {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1865,13 +1868,13 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (since != Value::Null) {
-            let mut startTime: Option<String> = self.yyyymmdd(since.clone(), &[]).as_str().map(str::to_owned);
+        if (since.is_some()) {
+            let mut startTime: Option<String> = self.yyyymmdd(Value::from(since), &[]).as_str().map(str::to_owned);
             request.insert("start".into(), startTime.map(Value::from).unwrap_or(Value::Null));
             request.insert("end".into(), self.yyyymmdd(Value::Int(self.milliseconds()), &[]));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_trans_history", &[&__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.private_post_trans_history(&[&__ws_arg_12]).await.unwrap_or_default();
         //
         //     {
         //         "success": 1,
@@ -1965,7 +1968,7 @@ impl Indodax {
             let mut deposits: crate::value::List = self.safe_list_t(&deposit, crate::value::KeyRead::key_read(&&currency, "id"));
             transactions = self.array_concat_t(&withdraws, &deposits);
         }
-        return self.parse_transactions(&transactions, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&transactions, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -1986,7 +1989,7 @@ impl Indodax {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut address = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -2013,7 +2016,7 @@ impl Indodax {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("withdraw_amount".to_string(), amount);
+                m.insert("withdraw_amount".to_string(), Value::from(amount));
                 m.insert("withdraw_address".to_string(), address);
                 m.insert("request_id".to_string(), Value::Str(format!("{}", requestId).into()));
             m
@@ -2022,7 +2025,7 @@ impl Indodax {
             request.insert("withdraw_memo".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_withdraw_coin", &[&__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.private_post_withdraw_coin(&[&__ws_arg_13]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -2035,7 +2038,7 @@ impl Indodax {
                 m.insert("success".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 /*
@@ -2061,7 +2064,7 @@ impl Indodax {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_post_get_info", &[&params]).await;
+        let mut response: crate::value::Dict = self.private_post_get_info(&[&params]).await.unwrap_or_default();
         //
         //    {
         //        success: '1',

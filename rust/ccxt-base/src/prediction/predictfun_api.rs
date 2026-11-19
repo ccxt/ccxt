@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Predictfun {
     /// Auto-generated wrapper for the `predictfunGetV1AuthMessage` implicit endpoint.
-    pub async fn predictfun_get_v1_auth_message(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_auth_message".into()), optional_args).await
+    pub async fn predictfun_get_v1_auth_message(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_auth_message".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Categories` implicit endpoint.
@@ -23,8 +23,8 @@ impl Predictfun {
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1CategoriesSlug` implicit endpoint.
-    pub async fn predictfun_get_v1_categories_slug(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_categories_slug".into()), optional_args).await
+    pub async fn predictfun_get_v1_categories_slug(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_categories_slug".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Tags` implicit endpoint.
@@ -38,8 +38,8 @@ impl Predictfun {
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsId` implicit endpoint.
-    pub async fn predictfun_get_v1_markets_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_markets_id".into()), optional_args).await
+    pub async fn predictfun_get_v1_markets_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_markets_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsIdStats` implicit endpoint.
@@ -53,8 +53,8 @@ impl Predictfun {
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsIdOrderbook` implicit endpoint.
-    pub async fn predictfun_get_v1_markets_id_orderbook(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_markets_id_orderbook".into()), optional_args).await
+    pub async fn predictfun_get_v1_markets_id_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_markets_id_orderbook".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1MarketsIdTimeseries` implicit endpoint.
@@ -68,18 +68,18 @@ impl Predictfun {
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1OrdersHash` implicit endpoint.
-    pub async fn predictfun_get_v1_orders_hash(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_orders_hash".into()), optional_args).await
+    pub async fn predictfun_get_v1_orders_hash(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_orders_hash".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Orders` implicit endpoint.
-    pub async fn predictfun_get_v1_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_orders".into()), optional_args).await
+    pub async fn predictfun_get_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1OrdersMatches` implicit endpoint.
-    pub async fn predictfun_get_v1_orders_matches(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_orders_matches".into()), optional_args).await
+    pub async fn predictfun_get_v1_orders_matches(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_orders_matches".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Account` implicit endpoint.
@@ -93,23 +93,23 @@ impl Predictfun {
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Positions` implicit endpoint.
-    pub async fn predictfun_get_v1_positions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_positions".into()), optional_args).await
+    pub async fn predictfun_get_v1_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_positions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1PositionsAddress` implicit endpoint.
-    pub async fn predictfun_get_v1_positions_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_positions_address".into()), optional_args).await
+    pub async fn predictfun_get_v1_positions_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_positions_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunGetV1Search` implicit endpoint.
-    pub async fn predictfun_get_v1_search(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_get_v1_search".into()), optional_args).await
+    pub async fn predictfun_get_v1_search(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_get_v1_search".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1Auth` implicit endpoint.
-    pub async fn predictfun_post_v1_auth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_post_v1_auth".into()), optional_args).await
+    pub async fn predictfun_post_v1_auth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_post_v1_auth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OrdersRemove` implicit endpoint.
@@ -118,13 +118,13 @@ impl Predictfun {
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1Orders` implicit endpoint.
-    pub async fn predictfun_post_v1_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_post_v1_orders".into()), optional_args).await
+    pub async fn predictfun_post_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_post_v1_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1OrdersRemoveByHash` implicit endpoint.
-    pub async fn predictfun_post_v1_orders_remove_by_hash(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("predictfun_post_v1_orders_remove_by_hash".into()), optional_args).await
+    pub async fn predictfun_post_v1_orders_remove_by_hash(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("predictfun_post_v1_orders_remove_by_hash".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `predictfunPostV1AccountReferral` implicit endpoint.

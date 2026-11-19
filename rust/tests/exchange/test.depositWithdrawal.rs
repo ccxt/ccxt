@@ -44,13 +44,13 @@ pub fn testDepositWithdrawal(mut exchange: Value, mut skippedProperties: Value, 
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     crate::tests_support::shared::assert_unified_network_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), exchange.safe_string(&entry, Value::Str("network".into()), &[]).clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()).clone(), Value::from(vec![Value::Str("ok".into()), Value::Str("pending".into()), Value::Str("failed".into()), Value::Str("rejected".into()), Value::Str("canceled".into())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method, entry.clone(), Value::Str("fee".into()).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()), Value::from(vec![Value::Str("ok".into()), Value::Str("pending".into()), Value::Str("failed".into()), Value::Str("rejected".into()), Value::Str("canceled".into())])]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())])]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()), Value::Str("0".into())]);
+    crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method, entry.clone(), Value::Str("fee".into())]);
     if (entry.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("deposit")) {
-        crate::tests_support::shared::assert_type(exchange.clone(), &[skippedProperties.clone(), entry.clone(), Value::Str("addressFrom".into()).clone(), format.clone()]);
+        crate::tests_support::shared::assert_type(exchange.clone(), &[skippedProperties.clone(), entry.clone(), Value::Str("addressFrom".into()), format.clone()]);
     }  else {
-        crate::tests_support::shared::assert_type(exchange.clone(), &[skippedProperties.clone(), entry, Value::Str("addressTo".into()).clone(), format]);
+        crate::tests_support::shared::assert_type(exchange.clone(), &[skippedProperties.clone(), entry, Value::Str("addressTo".into()), format]);
     }
 }

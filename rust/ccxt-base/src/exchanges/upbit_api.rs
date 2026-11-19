@@ -128,13 +128,13 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersChance` implicit endpoint.
-    pub async fn private_get_orders_chance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_chance".into()), optional_args).await
+    pub async fn private_get_orders_chance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_orders_chance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOrder` implicit endpoint.
-    pub async fn private_get_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_order".into()), optional_args).await
+    pub async fn private_get_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersClosed` implicit endpoint.
@@ -158,13 +158,13 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateGetWithdraw` implicit endpoint.
-    pub async fn private_get_withdraw(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_withdraw".into()), optional_args).await
+    pub async fn private_get_withdraw(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_withdraw".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawsChance` implicit endpoint.
-    pub async fn private_get_withdraws_chance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_withdraws_chance".into()), optional_args).await
+    pub async fn private_get_withdraws_chance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_withdraws_chance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawsCoinAddresses` implicit endpoint.
@@ -183,8 +183,8 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateGetDeposit` implicit endpoint.
-    pub async fn private_get_deposit(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_deposit".into()), optional_args).await
+    pub async fn private_get_deposit(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deposit".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetDepositsCoinAddresses` implicit endpoint.
@@ -193,8 +193,8 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateGetDepositsCoinAddress` implicit endpoint.
-    pub async fn private_get_deposits_coin_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_deposits_coin_address".into()), optional_args).await
+    pub async fn private_get_deposits_coin_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deposits_coin_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetTravelRuleVasps` implicit endpoint.
@@ -238,28 +238,28 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
-    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders".into()), optional_args).await
+    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersTest` implicit endpoint.
-    pub async fn private_post_orders_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders_test".into()), optional_args).await
+    pub async fn private_post_orders_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersCancelAndNew` implicit endpoint.
-    pub async fn private_post_orders_cancel_and_new(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders_cancel_and_new".into()), optional_args).await
+    pub async fn private_post_orders_cancel_and_new(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders_cancel_and_new".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawsCoin` implicit endpoint.
-    pub async fn private_post_withdraws_coin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdraws_coin".into()), optional_args).await
+    pub async fn private_post_withdraws_coin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdraws_coin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawsKrw` implicit endpoint.
-    pub async fn private_post_withdraws_krw(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdraws_krw".into()), optional_args).await
+    pub async fn private_post_withdraws_krw(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdraws_krw".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostDepositsKrw` implicit endpoint.
@@ -268,8 +268,8 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privatePostDepositsGenerateCoinAddress` implicit endpoint.
-    pub async fn private_post_deposits_generate_coin_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_deposits_generate_coin_address".into()), optional_args).await
+    pub async fn private_post_deposits_generate_coin_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deposits_generate_coin_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTravelRuleDepositUuid` implicit endpoint.
@@ -293,8 +293,8 @@ impl Upbit {
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrder` implicit endpoint.
-    pub async fn private_delete_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_order".into()), optional_args).await
+    pub async fn private_delete_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrdersOpen` implicit endpoint.

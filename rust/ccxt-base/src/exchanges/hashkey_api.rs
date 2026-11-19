@@ -13,13 +13,13 @@ use crate::exchange::ExchangeRuntime;
 
 impl Hashkey {
     /// Auto-generated wrapper for the `publicGetApiV1ExchangeInfo` implicit endpoint.
-    pub async fn public_get_api_v1_exchange_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v1_exchange_info".into()), optional_args).await
+    pub async fn public_get_api_v1_exchange_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_exchange_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetQuoteV1Depth` implicit endpoint.
-    pub async fn public_get_quote_v1_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_quote_v1_depth".into()), optional_args).await
+    pub async fn public_get_quote_v1_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_quote_v1_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetQuoteV1Trades` implicit endpoint.
@@ -73,8 +73,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Ping` implicit endpoint.
-    pub async fn public_get_api_v1_ping(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v1_ping".into()), optional_args).await
+    pub async fn public_get_api_v1_ping(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_ping".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Time` implicit endpoint.
@@ -83,8 +83,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1SpotOrder` implicit endpoint.
-    pub async fn private_get_api_v1_spot_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_spot_order".into()), optional_args).await
+    pub async fn private_get_api_v1_spot_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_api_v1_spot_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1SpotOpenOrders` implicit endpoint.
@@ -103,8 +103,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesOrder` implicit endpoint.
-    pub async fn private_get_api_v1_futures_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_order".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_api_v1_futures_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesOpenOrders` implicit endpoint.
@@ -158,8 +158,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountVipInfo` implicit endpoint.
-    pub async fn private_get_api_v1_account_vip_info(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_account_vip_info".into()), optional_args).await
+    pub async fn private_get_api_v1_account_vip_info(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_api_v1_account_vip_info".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Account` implicit endpoint.
@@ -223,8 +223,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountDepositAddress` implicit endpoint.
-    pub async fn private_get_api_v1_account_deposit_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_account_deposit_address".into()), optional_args).await
+    pub async fn private_get_api_v1_account_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_api_v1_account_deposit_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1AccountDepositOrders` implicit endpoint.
@@ -243,38 +243,38 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1UserDataStream` implicit endpoint.
-    pub async fn private_post_api_v1_user_data_stream(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_user_data_stream".into()), optional_args).await
+    pub async fn private_post_api_v1_user_data_stream(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_user_data_stream".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1SpotOrderTest` implicit endpoint.
-    pub async fn private_post_api_v1_spot_order_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_spot_order_test".into()), optional_args).await
+    pub async fn private_post_api_v1_spot_order_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_spot_order_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1SpotOrder` implicit endpoint.
-    pub async fn private_post_api_v1_spot_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_spot_order".into()), optional_args).await
+    pub async fn private_post_api_v1_spot_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_spot_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV11SpotOrder` implicit endpoint.
-    pub async fn private_post_api_v11_spot_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v11_spot_order".into()), optional_args).await
+    pub async fn private_post_api_v11_spot_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v11_spot_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1SpotBatchOrders` implicit endpoint.
-    pub async fn private_post_api_v1_spot_batch_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_spot_batch_orders".into()), optional_args).await
+    pub async fn private_post_api_v1_spot_batch_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_spot_batch_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1FuturesLeverage` implicit endpoint.
-    pub async fn private_post_api_v1_futures_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_futures_leverage".into()), optional_args).await
+    pub async fn private_post_api_v1_futures_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_futures_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1FuturesOrder` implicit endpoint.
-    pub async fn private_post_api_v1_futures_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_futures_order".into()), optional_args).await
+    pub async fn private_post_api_v1_futures_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_futures_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1FuturesMarginType` implicit endpoint.
@@ -283,8 +283,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1FuturesPositionMargin` implicit endpoint.
-    pub async fn private_post_api_v1_futures_position_margin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_futures_position_margin".into()), optional_args).await
+    pub async fn private_post_api_v1_futures_position_margin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_futures_position_margin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1FuturesPositionTradingStop` implicit endpoint.
@@ -293,13 +293,13 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1FuturesBatchOrders` implicit endpoint.
-    pub async fn private_post_api_v1_futures_batch_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_futures_batch_orders".into()), optional_args).await
+    pub async fn private_post_api_v1_futures_batch_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_futures_batch_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1AccountAssetTransfer` implicit endpoint.
-    pub async fn private_post_api_v1_account_asset_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_account_asset_transfer".into()), optional_args).await
+    pub async fn private_post_api_v1_account_asset_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_account_asset_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1AccountAuthAddress` implicit endpoint.
@@ -308,8 +308,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1AccountWithdraw` implicit endpoint.
-    pub async fn private_post_api_v1_account_withdraw(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_account_withdraw".into()), optional_args).await
+    pub async fn private_post_api_v1_account_withdraw(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_account_withdraw".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePutApiV1UserDataStream` implicit endpoint.
@@ -318,8 +318,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1SpotOrder` implicit endpoint.
-    pub async fn private_delete_api_v1_spot_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_api_v1_spot_order".into()), optional_args).await
+    pub async fn private_delete_api_v1_spot_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_api_v1_spot_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1SpotOpenOrders` implicit endpoint.
@@ -338,8 +338,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1FuturesOrder` implicit endpoint.
-    pub async fn private_delete_api_v1_futures_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_api_v1_futures_order".into()), optional_args).await
+    pub async fn private_delete_api_v1_futures_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_api_v1_futures_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1FuturesBatchOrders` implicit endpoint.

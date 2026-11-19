@@ -18,8 +18,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsActiveCategoryId` implicit endpoint.
-    pub async fn limitless_public_get_markets_active_category_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_public_get_markets_active_category_id".into()), optional_args).await
+    pub async fn limitless_public_get_markets_active_category_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_public_get_markets_active_category_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetCategories` implicit endpoint.
@@ -43,8 +43,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSearch` implicit endpoint.
-    pub async fn limitless_public_get_markets_search(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_public_get_markets_search".into()), optional_args).await
+    pub async fn limitless_public_get_markets_search(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_public_get_markets_search".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSlugOrderbook` implicit endpoint.
@@ -73,8 +73,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsSlugEvents` implicit endpoint.
-    pub async fn limitless_public_get_markets_slug_events(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_public_get_markets_slug_events".into()), optional_args).await
+    pub async fn limitless_public_get_markets_slug_events(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_public_get_markets_slug_events".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsTimeline` implicit endpoint.
@@ -148,8 +148,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioPositions` implicit endpoint.
-    pub async fn limitless_private_get_portfolio_positions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_get_portfolio_positions".into()), optional_args).await
+    pub async fn limitless_private_get_portfolio_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_get_portfolio_positions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioTrades` implicit endpoint.
@@ -163,8 +163,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetProfilesMe` implicit endpoint.
-    pub async fn limitless_private_get_profiles_me(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_get_profiles_me".into()), optional_args).await
+    pub async fn limitless_private_get_profiles_me(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_get_profiles_me".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetProfilesAccount` implicit endpoint.
@@ -178,8 +178,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioHistory` implicit endpoint.
-    pub async fn limitless_private_get_portfolio_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_get_portfolio_history".into()), optional_args).await
+    pub async fn limitless_private_get_portfolio_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_get_portfolio_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateGetPortfolioPoints` implicit endpoint.
@@ -223,8 +223,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrders` implicit endpoint.
-    pub async fn limitless_private_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_post_orders".into()), optional_args).await
+    pub async fn limitless_private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrdersCancel` implicit endpoint.
@@ -233,8 +233,8 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrdersCancelBatch` implicit endpoint.
-    pub async fn limitless_private_post_orders_cancel_batch(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_post_orders_cancel_batch".into()), optional_args).await
+    pub async fn limitless_private_post_orders_cancel_batch(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_post_orders_cancel_batch".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrdersBatchCancel` implicit endpoint.
@@ -243,13 +243,13 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostOrdersStatusBatch` implicit endpoint.
-    pub async fn limitless_private_post_orders_status_batch(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_post_orders_status_batch".into()), optional_args).await
+    pub async fn limitless_private_post_orders_status_batch(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_post_orders_status_batch".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostPortfolioRedeem` implicit endpoint.
-    pub async fn limitless_private_post_portfolio_redeem(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_post_portfolio_redeem".into()), optional_args).await
+    pub async fn limitless_private_post_portfolio_redeem(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_post_portfolio_redeem".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivatePostPortfolioWithdraw` implicit endpoint.
@@ -283,13 +283,13 @@ impl Limitless {
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateDeleteOrdersOrderId` implicit endpoint.
-    pub async fn limitless_private_delete_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_delete_orders_order_id".into()), optional_args).await
+    pub async fn limitless_private_delete_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_delete_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateDeleteOrdersAllSlug` implicit endpoint.
-    pub async fn limitless_private_delete_orders_all_slug(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("limitless_private_delete_orders_all_slug".into()), optional_args).await
+    pub async fn limitless_private_delete_orders_all_slug(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("limitless_private_delete_orders_all_slug".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `limitlessPrivateDeleteAuthApiTokensTokenId` implicit endpoint.

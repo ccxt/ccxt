@@ -38,8 +38,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `publicGetMarketStats` implicit endpoint.
-    pub async fn public_get_market_stats(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_stats".into()), optional_args).await
+    pub async fn public_get_market_stats(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_market_stats".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarkets` implicit endpoint.
@@ -48,8 +48,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `publicGetMarketOrderbookLevelLevelLimit` implicit endpoint.
-    pub async fn public_get_market_orderbook_level_level_limit(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_orderbook_level_level_limit".into()), optional_args).await
+    pub async fn public_get_market_orderbook_level_level_limit(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_market_orderbook_level_level_limit".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarketOrderbookLevel220` implicit endpoint.
@@ -63,8 +63,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `publicGetMarketHistories` implicit endpoint.
-    pub async fn public_get_market_histories(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_histories".into()), optional_args).await
+    pub async fn public_get_market_histories(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_market_histories".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarketCandles` implicit endpoint.
@@ -78,23 +78,23 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `publicGetTimestamp` implicit endpoint.
-    pub async fn public_get_timestamp(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_timestamp".into()), optional_args).await
+    pub async fn public_get_timestamp(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_timestamp".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetStatus` implicit endpoint.
-    pub async fn public_get_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_status".into()), optional_args).await
+    pub async fn public_get_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarkPriceSymbolCurrent` implicit endpoint.
-    pub async fn public_get_mark_price_symbol_current(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_mark_price_symbol_current".into()), optional_args).await
+    pub async fn public_get_mark_price_symbol_current(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_mark_price_symbol_current".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarkPriceAllSymbols` implicit endpoint.
-    pub async fn public_get_mark_price_all_symbols(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_mark_price_all_symbols".into()), optional_args).await
+    pub async fn public_get_mark_price_all_symbols(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_mark_price_all_symbols".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetMarginConfig` implicit endpoint.
@@ -128,8 +128,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `publicPostBulletPublic` implicit endpoint.
-    pub async fn public_post_bullet_public(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_post_bullet_public".into()), optional_args).await
+    pub async fn public_post_bullet_public(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_post_bullet_public".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetUserInfo` implicit endpoint.
@@ -153,18 +153,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetAccountsLedgers` implicit endpoint.
-    pub async fn private_get_accounts_ledgers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_accounts_ledgers".into()), optional_args).await
+    pub async fn private_get_accounts_ledgers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_accounts_ledgers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfAccountsLedgers` implicit endpoint.
-    pub async fn private_get_hf_accounts_ledgers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_accounts_ledgers".into()), optional_args).await
+    pub async fn private_get_hf_accounts_ledgers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_accounts_ledgers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginAccountLedgers` implicit endpoint.
-    pub async fn private_get_hf_margin_account_ledgers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_account_ledgers".into()), optional_args).await
+    pub async fn private_get_hf_margin_account_ledgers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_account_ledgers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetTransactionHistory` implicit endpoint.
@@ -198,18 +198,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetMarginAccounts` implicit endpoint.
-    pub async fn private_get_margin_accounts(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_margin_accounts".into()), optional_args).await
+    pub async fn private_get_margin_accounts(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_margin_accounts".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetIsolatedAccounts` implicit endpoint.
-    pub async fn private_get_isolated_accounts(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_isolated_accounts".into()), optional_args).await
+    pub async fn private_get_isolated_accounts(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_isolated_accounts".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetDepositAddresses` implicit endpoint.
-    pub async fn private_get_deposit_addresses(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_deposit_addresses".into()), optional_args).await
+    pub async fn private_get_deposit_addresses(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_deposit_addresses".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetDeposits` implicit endpoint.
@@ -218,8 +218,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetHistDeposits` implicit endpoint.
-    pub async fn private_get_hist_deposits(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hist_deposits".into()), optional_args).await
+    pub async fn private_get_hist_deposits(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hist_deposits".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawals` implicit endpoint.
@@ -228,13 +228,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetHistWithdrawals` implicit endpoint.
-    pub async fn private_get_hist_withdrawals(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hist_withdrawals".into()), optional_args).await
+    pub async fn private_get_hist_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hist_withdrawals".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawalsQuotas` implicit endpoint.
-    pub async fn private_get_withdrawals_quotas(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_withdrawals_quotas".into()), optional_args).await
+    pub async fn private_get_withdrawals_quotas(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_withdrawals_quotas".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetAccountsTransferable` implicit endpoint.
@@ -253,8 +253,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetTradeFees` implicit endpoint.
-    pub async fn private_get_trade_fees(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_trade_fees".into()), optional_args).await
+    pub async fn private_get_trade_fees(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_trade_fees".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetMarketOrderbookLevelLevel` implicit endpoint.
@@ -263,8 +263,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetMarketOrderbookLevel2` implicit endpoint.
-    pub async fn private_get_market_orderbook_level2(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_market_orderbook_level2".into()), optional_args).await
+    pub async fn private_get_market_orderbook_level2(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_market_orderbook_level2".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetMarketOrderbookLevel3` implicit endpoint.
@@ -273,13 +273,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetHfAccountsOpened` implicit endpoint.
-    pub async fn private_get_hf_accounts_opened(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_accounts_opened".into()), optional_args).await
+    pub async fn private_get_hf_accounts_opened(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_accounts_opened".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfOrdersActive` implicit endpoint.
-    pub async fn private_get_hf_orders_active(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_orders_active".into()), optional_args).await
+    pub async fn private_get_hf_orders_active(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_orders_active".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfOrdersActiveSymbols` implicit endpoint.
@@ -293,18 +293,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetHfOrdersDone` implicit endpoint.
-    pub async fn private_get_hf_orders_done(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_orders_done".into()), optional_args).await
+    pub async fn private_get_hf_orders_done(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_orders_done".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfOrdersOrderId` implicit endpoint.
-    pub async fn private_get_hf_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_orders_order_id".into()), optional_args).await
+    pub async fn private_get_hf_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfOrdersClientOrderClientOid` implicit endpoint.
-    pub async fn private_get_hf_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_orders_client_order_client_oid".into()), optional_args).await
+    pub async fn private_get_hf_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_orders_client_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfOrdersDeadCancelAllQuery` implicit endpoint.
@@ -313,8 +313,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetHfFills` implicit endpoint.
-    pub async fn private_get_hf_fills(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_fills".into()), optional_args).await
+    pub async fn private_get_hf_fills(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_fills".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOrders` implicit endpoint.
@@ -328,13 +328,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersOrderId` implicit endpoint.
-    pub async fn private_get_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_order_id".into()), optional_args).await
+    pub async fn private_get_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOrderClientOrderClientOid` implicit endpoint.
-    pub async fn private_get_order_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_order_client_order_client_oid".into()), optional_args).await
+    pub async fn private_get_order_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_order_client_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetFills` implicit endpoint.
@@ -348,18 +348,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetStopOrder` implicit endpoint.
-    pub async fn private_get_stop_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_stop_order".into()), optional_args).await
+    pub async fn private_get_stop_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_stop_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetStopOrderOrderId` implicit endpoint.
-    pub async fn private_get_stop_order_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_stop_order_order_id".into()), optional_args).await
+    pub async fn private_get_stop_order_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_stop_order_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetStopOrderQueryOrderByClientOid` implicit endpoint.
-    pub async fn private_get_stop_order_query_order_by_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_stop_order_query_order_by_client_oid".into()), optional_args).await
+    pub async fn private_get_stop_order_query_order_by_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_stop_order_query_order_by_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOcoOrderOrderId` implicit endpoint.
@@ -383,43 +383,43 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginOrdersActive` implicit endpoint.
-    pub async fn private_get_hf_margin_orders_active(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_orders_active".into()), optional_args).await
+    pub async fn private_get_hf_margin_orders_active(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_orders_active".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginOrdersDone` implicit endpoint.
-    pub async fn private_get_hf_margin_orders_done(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_orders_done".into()), optional_args).await
+    pub async fn private_get_hf_margin_orders_done(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_orders_done".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginOrdersOrderId` implicit endpoint.
-    pub async fn private_get_hf_margin_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_orders_order_id".into()), optional_args).await
+    pub async fn private_get_hf_margin_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginOrdersClientOrderClientOid` implicit endpoint.
-    pub async fn private_get_hf_margin_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_orders_client_order_client_oid".into()), optional_args).await
+    pub async fn private_get_hf_margin_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_orders_client_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginFills` implicit endpoint.
-    pub async fn private_get_hf_margin_fills(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_fills".into()), optional_args).await
+    pub async fn private_get_hf_margin_fills(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_fills".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginStopOrders` implicit endpoint.
-    pub async fn private_get_hf_margin_stop_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_stop_orders".into()), optional_args).await
+    pub async fn private_get_hf_margin_stop_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_stop_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginStopOrderOrderId` implicit endpoint.
-    pub async fn private_get_hf_margin_stop_order_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_stop_order_order_id".into()), optional_args).await
+    pub async fn private_get_hf_margin_stop_order_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_stop_order_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginStopOrderClientOid` implicit endpoint.
-    pub async fn private_get_hf_margin_stop_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_hf_margin_stop_order_client_oid".into()), optional_args).await
+    pub async fn private_get_hf_margin_stop_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_hf_margin_stop_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetHfMarginOcoOrderOrderId` implicit endpoint.
@@ -483,13 +483,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateGetMarginInterest` implicit endpoint.
-    pub async fn private_get_margin_interest(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_margin_interest".into()), optional_args).await
+    pub async fn private_get_margin_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_margin_interest".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetMarginBorrowRate` implicit endpoint.
-    pub async fn private_get_margin_borrow_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_margin_borrow_rate".into()), optional_args).await
+    pub async fn private_get_margin_borrow_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_margin_borrow_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetProjectList` implicit endpoint.
@@ -613,18 +613,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privatePostDepositAddresses` implicit endpoint.
-    pub async fn private_post_deposit_addresses(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_deposit_addresses".into()), optional_args).await
+    pub async fn private_post_deposit_addresses(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deposit_addresses".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostWithdrawals` implicit endpoint.
-    pub async fn private_post_withdrawals(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_withdrawals".into()), optional_args).await
+    pub async fn private_post_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_withdrawals".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAccountsUniversalTransfer` implicit endpoint.
-    pub async fn private_post_accounts_universal_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_accounts_universal_transfer".into()), optional_args).await
+    pub async fn private_post_accounts_universal_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_accounts_universal_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostAccountsSubTransfer` implicit endpoint.
@@ -633,8 +633,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privatePostAccountsInnerTransfer` implicit endpoint.
-    pub async fn private_post_accounts_inner_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_accounts_inner_transfer".into()), optional_args).await
+    pub async fn private_post_accounts_inner_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_accounts_inner_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostTransferOut` implicit endpoint.
@@ -648,33 +648,33 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privatePostHfOrders` implicit endpoint.
-    pub async fn private_post_hf_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_orders".into()), optional_args).await
+    pub async fn private_post_hf_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostHfOrdersTest` implicit endpoint.
-    pub async fn private_post_hf_orders_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_orders_test".into()), optional_args).await
+    pub async fn private_post_hf_orders_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_orders_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostHfOrdersSync` implicit endpoint.
-    pub async fn private_post_hf_orders_sync(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_orders_sync".into()), optional_args).await
+    pub async fn private_post_hf_orders_sync(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_orders_sync".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostHfOrdersMulti` implicit endpoint.
-    pub async fn private_post_hf_orders_multi(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_orders_multi".into()), optional_args).await
+    pub async fn private_post_hf_orders_multi(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_orders_multi".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostHfOrdersMultiSync` implicit endpoint.
-    pub async fn private_post_hf_orders_multi_sync(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_orders_multi_sync".into()), optional_args).await
+    pub async fn private_post_hf_orders_multi_sync(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_orders_multi_sync".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostHfOrdersAlter` implicit endpoint.
-    pub async fn private_post_hf_orders_alter(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_orders_alter".into()), optional_args).await
+    pub async fn private_post_hf_orders_alter(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_orders_alter".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostHfOrdersDeadCancelAll` implicit endpoint.
@@ -683,23 +683,23 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privatePostOrders` implicit endpoint.
-    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders".into()), optional_args).await
+    pub async fn private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersTest` implicit endpoint.
-    pub async fn private_post_orders_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders_test".into()), optional_args).await
+    pub async fn private_post_orders_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersMulti` implicit endpoint.
-    pub async fn private_post_orders_multi(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders_multi".into()), optional_args).await
+    pub async fn private_post_orders_multi(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_orders_multi".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostStopOrder` implicit endpoint.
-    pub async fn private_post_stop_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_stop_order".into()), optional_args).await
+    pub async fn private_post_stop_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_stop_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOcoOrder` implicit endpoint.
@@ -708,23 +708,23 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privatePostHfMarginOrder` implicit endpoint.
-    pub async fn private_post_hf_margin_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_margin_order".into()), optional_args).await
+    pub async fn private_post_hf_margin_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_margin_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostHfMarginOrderTest` implicit endpoint.
-    pub async fn private_post_hf_margin_order_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_margin_order_test".into()), optional_args).await
+    pub async fn private_post_hf_margin_order_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_margin_order_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostHfMarginStopOrder` implicit endpoint.
-    pub async fn private_post_hf_margin_stop_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_hf_margin_stop_order".into()), optional_args).await
+    pub async fn private_post_hf_margin_stop_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_hf_margin_stop_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostMarginOrder` implicit endpoint.
-    pub async fn private_post_margin_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_margin_order".into()), optional_args).await
+    pub async fn private_post_margin_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_margin_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostMarginOrderTest` implicit endpoint.
@@ -738,13 +738,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privatePostMarginBorrow` implicit endpoint.
-    pub async fn private_post_margin_borrow(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_margin_borrow".into()), optional_args).await
+    pub async fn private_post_margin_borrow(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_margin_borrow".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostMarginRepay` implicit endpoint.
-    pub async fn private_post_margin_repay(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_margin_repay".into()), optional_args).await
+    pub async fn private_post_margin_repay(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_margin_repay".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostPurchase` implicit endpoint.
@@ -773,8 +773,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privatePostBulletPrivate` implicit endpoint.
-    pub async fn private_post_bullet_private(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_bullet_private".into()), optional_args).await
+    pub async fn private_post_bullet_private(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_bullet_private".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostPositionUpdateUserLeverage` implicit endpoint.
@@ -783,8 +783,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privatePostDepositAddressCreate` implicit endpoint.
-    pub async fn private_post_deposit_address_create(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_deposit_address_create".into()), optional_args).await
+    pub async fn private_post_deposit_address_create(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_deposit_address_create".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteSubApiKey` implicit endpoint.
@@ -798,23 +798,23 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfOrdersOrderId` implicit endpoint.
-    pub async fn private_delete_hf_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_orders_order_id".into()), optional_args).await
+    pub async fn private_delete_hf_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfOrdersSyncOrderId` implicit endpoint.
-    pub async fn private_delete_hf_orders_sync_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_orders_sync_order_id".into()), optional_args).await
+    pub async fn private_delete_hf_orders_sync_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_orders_sync_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfOrdersClientOrderClientOid` implicit endpoint.
-    pub async fn private_delete_hf_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_orders_client_order_client_oid".into()), optional_args).await
+    pub async fn private_delete_hf_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_orders_client_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfOrdersSyncClientOrderClientOid` implicit endpoint.
-    pub async fn private_delete_hf_orders_sync_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_orders_sync_client_order_client_oid".into()), optional_args).await
+    pub async fn private_delete_hf_orders_sync_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_orders_sync_client_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfOrdersCancelOrderId` implicit endpoint.
@@ -823,23 +823,23 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfOrders` implicit endpoint.
-    pub async fn private_delete_hf_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_orders".into()), optional_args).await
+    pub async fn private_delete_hf_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfOrdersCancelAll` implicit endpoint.
-    pub async fn private_delete_hf_orders_cancel_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_orders_cancel_all".into()), optional_args).await
+    pub async fn private_delete_hf_orders_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_orders_cancel_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrdersOrderId` implicit endpoint.
-    pub async fn private_delete_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_orders_order_id".into()), optional_args).await
+    pub async fn private_delete_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrderClientOrderClientOid` implicit endpoint.
-    pub async fn private_delete_order_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_order_client_order_client_oid".into()), optional_args).await
+    pub async fn private_delete_order_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_order_client_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrders` implicit endpoint.
@@ -848,18 +848,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateDeleteStopOrderOrderId` implicit endpoint.
-    pub async fn private_delete_stop_order_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_stop_order_order_id".into()), optional_args).await
+    pub async fn private_delete_stop_order_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_stop_order_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteStopOrderCancelOrderByClientOid` implicit endpoint.
-    pub async fn private_delete_stop_order_cancel_order_by_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_stop_order_cancel_order_by_client_oid".into()), optional_args).await
+    pub async fn private_delete_stop_order_cancel_order_by_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_stop_order_cancel_order_by_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteStopOrderCancel` implicit endpoint.
-    pub async fn private_delete_stop_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_stop_order_cancel".into()), optional_args).await
+    pub async fn private_delete_stop_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_stop_order_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOcoOrderOrderId` implicit endpoint.
@@ -878,33 +878,33 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfMarginOrdersOrderId` implicit endpoint.
-    pub async fn private_delete_hf_margin_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_margin_orders_order_id".into()), optional_args).await
+    pub async fn private_delete_hf_margin_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_margin_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfMarginOrdersClientOrderClientOid` implicit endpoint.
-    pub async fn private_delete_hf_margin_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_margin_orders_client_order_client_oid".into()), optional_args).await
+    pub async fn private_delete_hf_margin_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_margin_orders_client_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfMarginOrders` implicit endpoint.
-    pub async fn private_delete_hf_margin_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_margin_orders".into()), optional_args).await
+    pub async fn private_delete_hf_margin_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_margin_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfMarginStopOrderCancelById` implicit endpoint.
-    pub async fn private_delete_hf_margin_stop_order_cancel_by_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_margin_stop_order_cancel_by_id".into()), optional_args).await
+    pub async fn private_delete_hf_margin_stop_order_cancel_by_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_margin_stop_order_cancel_by_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfMarginStopOrderCancelByClientOid` implicit endpoint.
-    pub async fn private_delete_hf_margin_stop_order_cancel_by_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_margin_stop_order_cancel_by_client_oid".into()), optional_args).await
+    pub async fn private_delete_hf_margin_stop_order_cancel_by_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_margin_stop_order_cancel_by_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfMarginStopOrderCancel` implicit endpoint.
-    pub async fn private_delete_hf_margin_stop_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_hf_margin_stop_order_cancel".into()), optional_args).await
+    pub async fn private_delete_hf_margin_stop_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_hf_margin_stop_order_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteHfMarginOcoOrderCancelById` implicit endpoint.
@@ -928,8 +928,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetContractsActive` implicit endpoint.
-    pub async fn futures_public_get_contracts_active(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_contracts_active".into()), optional_args).await
+    pub async fn futures_public_get_contracts_active(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_contracts_active".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetContractsSymbol` implicit endpoint.
@@ -938,38 +938,38 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetTicker` implicit endpoint.
-    pub async fn futures_public_get_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_ticker".into()), optional_args).await
+    pub async fn futures_public_get_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetAllTickers` implicit endpoint.
-    pub async fn futures_public_get_all_tickers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_all_tickers".into()), optional_args).await
+    pub async fn futures_public_get_all_tickers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_all_tickers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetLevel2Snapshot` implicit endpoint.
-    pub async fn futures_public_get_level2_snapshot(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_level2_snapshot".into()), optional_args).await
+    pub async fn futures_public_get_level2_snapshot(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_level2_snapshot".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetLevel2Depth20` implicit endpoint.
-    pub async fn futures_public_get_level2_depth20(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_level2_depth20".into()), optional_args).await
+    pub async fn futures_public_get_level2_depth20(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_level2_depth20".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetLevel2Depth100` implicit endpoint.
-    pub async fn futures_public_get_level2_depth100(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_level2_depth100".into()), optional_args).await
+    pub async fn futures_public_get_level2_depth100(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_level2_depth100".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetTradeHistory` implicit endpoint.
-    pub async fn futures_public_get_trade_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_trade_history".into()), optional_args).await
+    pub async fn futures_public_get_trade_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_trade_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetKlineQuery` implicit endpoint.
-    pub async fn futures_public_get_kline_query(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_kline_query".into()), optional_args).await
+    pub async fn futures_public_get_kline_query(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_kline_query".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetInterestQuery` implicit endpoint.
@@ -983,8 +983,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetMarkPriceSymbolCurrent` implicit endpoint.
-    pub async fn futures_public_get_mark_price_symbol_current(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_mark_price_symbol_current".into()), optional_args).await
+    pub async fn futures_public_get_mark_price_symbol_current(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_mark_price_symbol_current".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetPremiumQuery` implicit endpoint.
@@ -998,23 +998,23 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetFundingRateSymbolCurrent` implicit endpoint.
-    pub async fn futures_public_get_funding_rate_symbol_current(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_funding_rate_symbol_current".into()), optional_args).await
+    pub async fn futures_public_get_funding_rate_symbol_current(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_funding_rate_symbol_current".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetContractFundingRates` implicit endpoint.
-    pub async fn futures_public_get_contract_funding_rates(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_contract_funding_rates".into()), optional_args).await
+    pub async fn futures_public_get_contract_funding_rates(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_contract_funding_rates".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetTimestamp` implicit endpoint.
-    pub async fn futures_public_get_timestamp(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_timestamp".into()), optional_args).await
+    pub async fn futures_public_get_timestamp(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_timestamp".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetStatus` implicit endpoint.
-    pub async fn futures_public_get_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_status".into()), optional_args).await
+    pub async fn futures_public_get_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetLevel2MessageQuery` implicit endpoint.
@@ -1023,8 +1023,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetContractsRiskLimitSymbol` implicit endpoint.
-    pub async fn futures_public_get_contracts_risk_limit_symbol(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_get_contracts_risk_limit_symbol".into()), optional_args).await
+    pub async fn futures_public_get_contracts_risk_limit_symbol(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_get_contracts_risk_limit_symbol".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPublicGetLevel3MessageQuery` implicit endpoint.
@@ -1038,18 +1038,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPublicPostBulletPublic` implicit endpoint.
-    pub async fn futures_public_post_bullet_public(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_public_post_bullet_public".into()), optional_args).await
+    pub async fn futures_public_post_bullet_public(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_public_post_bullet_public".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetTransactionHistory` implicit endpoint.
-    pub async fn futures_private_get_transaction_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_transaction_history".into()), optional_args).await
+    pub async fn futures_private_get_transaction_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_transaction_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetAccountOverview` implicit endpoint.
-    pub async fn futures_private_get_account_overview(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_account_overview".into()), optional_args).await
+    pub async fn futures_private_get_account_overview(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_account_overview".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetAccountOverviewAll` implicit endpoint.
@@ -1063,13 +1063,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetOrders` implicit endpoint.
-    pub async fn futures_private_get_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_orders".into()), optional_args).await
+    pub async fn futures_private_get_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetStopOrders` implicit endpoint.
-    pub async fn futures_private_get_stop_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_stop_orders".into()), optional_args).await
+    pub async fn futures_private_get_stop_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_stop_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetRecentDoneOrders` implicit endpoint.
@@ -1078,18 +1078,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetOrdersOrderId` implicit endpoint.
-    pub async fn futures_private_get_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_orders_order_id".into()), optional_args).await
+    pub async fn futures_private_get_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetOrdersByClientOid` implicit endpoint.
-    pub async fn futures_private_get_orders_by_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_orders_by_client_oid".into()), optional_args).await
+    pub async fn futures_private_get_orders_by_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_orders_by_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetFills` implicit endpoint.
-    pub async fn futures_private_get_fills(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_fills".into()), optional_args).await
+    pub async fn futures_private_get_fills(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_fills".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetRecentFills` implicit endpoint.
@@ -1098,8 +1098,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetTradeFees` implicit endpoint.
-    pub async fn futures_private_get_trade_fees(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_trade_fees".into()), optional_args).await
+    pub async fn futures_private_get_trade_fees(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_trade_fees".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetOpenOrderStatistics` implicit endpoint.
@@ -1108,13 +1108,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetPosition` implicit endpoint.
-    pub async fn futures_private_get_position(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_position".into()), optional_args).await
+    pub async fn futures_private_get_position(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_position".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetPositions` implicit endpoint.
-    pub async fn futures_private_get_positions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_positions".into()), optional_args).await
+    pub async fn futures_private_get_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_positions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetMarginMaxWithdrawMargin` implicit endpoint.
@@ -1128,8 +1128,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetFundingHistory` implicit endpoint.
-    pub async fn futures_private_get_funding_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_funding_history".into()), optional_args).await
+    pub async fn futures_private_get_funding_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_funding_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetCopyTradeFuturesGetMaxOpenSize` implicit endpoint.
@@ -1143,28 +1143,28 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetHistoryPositions` implicit endpoint.
-    pub async fn futures_private_get_history_positions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_history_positions".into()), optional_args).await
+    pub async fn futures_private_get_history_positions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_history_positions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetPositionGetMarginMode` implicit endpoint.
-    pub async fn futures_private_get_position_get_margin_mode(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_position_get_margin_mode".into()), optional_args).await
+    pub async fn futures_private_get_position_get_margin_mode(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_position_get_margin_mode".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetPositionGetPositionMode` implicit endpoint.
-    pub async fn futures_private_get_position_get_position_mode(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_position_get_position_mode".into()), optional_args).await
+    pub async fn futures_private_get_position_get_position_mode(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_position_get_position_mode".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetDepositAddress` implicit endpoint.
-    pub async fn futures_private_get_deposit_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_deposit_address".into()), optional_args).await
+    pub async fn futures_private_get_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_deposit_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetDepositList` implicit endpoint.
-    pub async fn futures_private_get_deposit_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_deposit_list".into()), optional_args).await
+    pub async fn futures_private_get_deposit_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_deposit_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetWithdrawalsQuotas` implicit endpoint.
@@ -1173,8 +1173,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetWithdrawalList` implicit endpoint.
-    pub async fn futures_private_get_withdrawal_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_withdrawal_list".into()), optional_args).await
+    pub async fn futures_private_get_withdrawal_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_withdrawal_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetSubApiKey` implicit endpoint.
@@ -1193,8 +1193,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateGetGetCrossUserLeverage` implicit endpoint.
-    pub async fn futures_private_get_get_cross_user_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_get_get_cross_user_leverage".into()), optional_args).await
+    pub async fn futures_private_get_get_cross_user_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_get_get_cross_user_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostTransferOut` implicit endpoint.
@@ -1208,23 +1208,23 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostOrders` implicit endpoint.
-    pub async fn futures_private_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_orders".into()), optional_args).await
+    pub async fn futures_private_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostStOrders` implicit endpoint.
-    pub async fn futures_private_post_st_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_st_orders".into()), optional_args).await
+    pub async fn futures_private_post_st_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_st_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostOrdersTest` implicit endpoint.
-    pub async fn futures_private_post_orders_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_orders_test".into()), optional_args).await
+    pub async fn futures_private_post_orders_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_orders_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostOrdersMulti` implicit endpoint.
-    pub async fn futures_private_post_orders_multi(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_orders_multi".into()), optional_args).await
+    pub async fn futures_private_post_orders_multi(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_orders_multi".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostPositionMarginAutoDepositStatus` implicit endpoint.
@@ -1233,13 +1233,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostMarginWithdrawMargin` implicit endpoint.
-    pub async fn futures_private_post_margin_withdraw_margin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_margin_withdraw_margin".into()), optional_args).await
+    pub async fn futures_private_post_margin_withdraw_margin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_margin_withdraw_margin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostPositionMarginDepositMargin` implicit endpoint.
-    pub async fn futures_private_post_position_margin_deposit_margin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_position_margin_deposit_margin".into()), optional_args).await
+    pub async fn futures_private_post_position_margin_deposit_margin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_position_margin_deposit_margin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostPositionRiskLimitLevelChange` implicit endpoint.
@@ -1303,8 +1303,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostChangeCrossUserLeverage` implicit endpoint.
-    pub async fn futures_private_post_change_cross_user_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_change_cross_user_leverage".into()), optional_args).await
+    pub async fn futures_private_post_change_cross_user_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_change_cross_user_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostWithdrawals` implicit endpoint.
@@ -1323,38 +1323,38 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostPositionChangeMarginMode` implicit endpoint.
-    pub async fn futures_private_post_position_change_margin_mode(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_position_change_margin_mode".into()), optional_args).await
+    pub async fn futures_private_post_position_change_margin_mode(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_position_change_margin_mode".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostPositionSwitchPositionMode` implicit endpoint.
-    pub async fn futures_private_post_position_switch_position_mode(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_position_switch_position_mode".into()), optional_args).await
+    pub async fn futures_private_post_position_switch_position_mode(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_position_switch_position_mode".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostBulletPrivate` implicit endpoint.
-    pub async fn futures_private_post_bullet_private(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_bullet_private".into()), optional_args).await
+    pub async fn futures_private_post_bullet_private(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_post_bullet_private".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateDeleteOrdersOrderId` implicit endpoint.
-    pub async fn futures_private_delete_orders_order_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_delete_orders_order_id".into()), optional_args).await
+    pub async fn futures_private_delete_orders_order_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_delete_orders_order_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateDeleteOrdersClientOrderClientOid` implicit endpoint.
-    pub async fn futures_private_delete_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_delete_orders_client_order_client_oid".into()), optional_args).await
+    pub async fn futures_private_delete_orders_client_order_client_oid(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_delete_orders_client_order_client_oid".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateDeleteOrders` implicit endpoint.
-    pub async fn futures_private_delete_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_delete_orders".into()), optional_args).await
+    pub async fn futures_private_delete_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_delete_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateDeleteStopOrders` implicit endpoint.
-    pub async fn futures_private_delete_stop_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_delete_stop_orders".into()), optional_args).await
+    pub async fn futures_private_delete_stop_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_delete_stop_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateDeleteCopyTradeFuturesOrders` implicit endpoint.
@@ -1368,8 +1368,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `futuresPrivateDeleteOrdersMultiCancel` implicit endpoint.
-    pub async fn futures_private_delete_orders_multi_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_delete_orders_multi_cancel".into()), optional_args).await
+    pub async fn futures_private_delete_orders_multi_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("futures_private_delete_orders_multi_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `futuresPrivateDeleteWithdrawalsWithdrawalId` implicit endpoint.
@@ -1558,8 +1558,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaGetAssetCurrencies` implicit endpoint.
-    pub async fn uta_get_asset_currencies(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_asset_currencies".into()), optional_args).await
+    pub async fn uta_get_asset_currencies(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_asset_currencies".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetMarketInstrument` implicit endpoint.
@@ -1568,28 +1568,28 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaGetMarketTicker` implicit endpoint.
-    pub async fn uta_get_market_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_market_ticker".into()), optional_args).await
+    pub async fn uta_get_market_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_market_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetMarketTrade` implicit endpoint.
-    pub async fn uta_get_market_trade(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_market_trade".into()), optional_args).await
+    pub async fn uta_get_market_trade(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_market_trade".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetMarketKline` implicit endpoint.
-    pub async fn uta_get_market_kline(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_market_kline".into()), optional_args).await
+    pub async fn uta_get_market_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_market_kline".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetMarketFundingRate` implicit endpoint.
-    pub async fn uta_get_market_funding_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_market_funding_rate".into()), optional_args).await
+    pub async fn uta_get_market_funding_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_market_funding_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetMarketFundingRateHistory` implicit endpoint.
-    pub async fn uta_get_market_funding_rate_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_market_funding_rate_history".into()), optional_args).await
+    pub async fn uta_get_market_funding_rate_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_market_funding_rate_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetMarketCrossConfig` implicit endpoint.
@@ -1608,18 +1608,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaGetMarketPositionTiers` implicit endpoint.
-    pub async fn uta_get_market_position_tiers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_market_position_tiers".into()), optional_args).await
+    pub async fn uta_get_market_position_tiers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_market_position_tiers".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetMarketOpenInterest` implicit endpoint.
-    pub async fn uta_get_market_open_interest(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_market_open_interest".into()), optional_args).await
+    pub async fn uta_get_market_open_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_market_open_interest".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetServerStatus` implicit endpoint.
-    pub async fn uta_get_server_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_get_server_status".into()), optional_args).await
+    pub async fn uta_get_server_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_get_server_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaGetMarketBorrowableCurrency` implicit endpoint.
@@ -1638,13 +1638,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaV2GetMarketFundingRate` implicit endpoint.
-    pub async fn uta_v2_get_market_funding_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_v2_get_market_funding_rate".into()), optional_args).await
+    pub async fn uta_v2_get_market_funding_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_v2_get_market_funding_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaV2GetMarketOrderbook` implicit endpoint.
-    pub async fn uta_v2_get_market_orderbook(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_v2_get_market_orderbook".into()), optional_args).await
+    pub async fn uta_v2_get_market_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_v2_get_market_orderbook".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetMarketOrderbook` implicit endpoint.
@@ -1653,8 +1653,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountBalance` implicit endpoint.
-    pub async fn uta_private_get_account_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_balance".into()), optional_args).await
+    pub async fn uta_private_get_account_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountTransferQuota` implicit endpoint.
@@ -1663,13 +1663,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountMode` implicit endpoint.
-    pub async fn uta_private_get_account_mode(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_mode".into()), optional_args).await
+    pub async fn uta_private_get_account_mode(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_mode".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountLedger` implicit endpoint.
-    pub async fn uta_private_get_account_ledger(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_ledger".into()), optional_args).await
+    pub async fn uta_private_get_account_ledger(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_ledger".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountInterestHistory` implicit endpoint.
@@ -1678,8 +1678,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAssetDepositAddress` implicit endpoint.
-    pub async fn uta_private_get_asset_deposit_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_asset_deposit_address".into()), optional_args).await
+    pub async fn uta_private_get_asset_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_asset_deposit_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountDepositAddress` implicit endpoint.
@@ -1688,38 +1688,38 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModeAccountBalance` implicit endpoint.
-    pub async fn uta_private_get_account_mode_account_balance(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_mode_account_balance".into()), optional_args).await
+    pub async fn uta_private_get_account_mode_account_balance(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_mode_account_balance".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModeAccountOverview` implicit endpoint.
-    pub async fn uta_private_get_account_mode_account_overview(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_mode_account_overview".into()), optional_args).await
+    pub async fn uta_private_get_account_mode_account_overview(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_mode_account_overview".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModeOrderDetail` implicit endpoint.
-    pub async fn uta_private_get_account_mode_order_detail(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_mode_order_detail".into()), optional_args).await
+    pub async fn uta_private_get_account_mode_order_detail(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_mode_order_detail".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModeOrderOpenList` implicit endpoint.
-    pub async fn uta_private_get_account_mode_order_open_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_mode_order_open_list".into()), optional_args).await
+    pub async fn uta_private_get_account_mode_order_open_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_mode_order_open_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModeOrderHistory` implicit endpoint.
-    pub async fn uta_private_get_account_mode_order_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_mode_order_history".into()), optional_args).await
+    pub async fn uta_private_get_account_mode_order_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_mode_order_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModeOrderExecution` implicit endpoint.
-    pub async fn uta_private_get_account_mode_order_execution(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_mode_order_execution".into()), optional_args).await
+    pub async fn uta_private_get_account_mode_order_execution(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_mode_order_execution".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModePositionOpenList` implicit endpoint.
-    pub async fn uta_private_get_account_mode_position_open_list(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_mode_position_open_list".into()), optional_args).await
+    pub async fn uta_private_get_account_mode_position_open_list(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_mode_position_open_list".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModePositionHistory` implicit endpoint.
@@ -1728,8 +1728,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetPositionHistory` implicit endpoint.
-    pub async fn uta_private_get_position_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_position_history".into()), optional_args).await
+    pub async fn uta_private_get_position_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_position_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountModePositionTiers` implicit endpoint.
@@ -1743,8 +1743,8 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetUserFeeRate` implicit endpoint.
-    pub async fn uta_private_get_user_fee_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_user_fee_rate".into()), optional_args).await
+    pub async fn uta_private_get_user_fee_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_user_fee_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetDcpQuery` implicit endpoint.
@@ -1758,18 +1758,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetPositionFundingHistory` implicit endpoint.
-    pub async fn uta_private_get_position_funding_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_position_funding_history".into()), optional_args).await
+    pub async fn uta_private_get_position_funding_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_position_funding_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivateGetAccountInterestLimits` implicit endpoint.
-    pub async fn uta_private_get_account_interest_limits(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_get_account_interest_limits".into()), optional_args).await
+    pub async fn uta_private_get_account_interest_limits(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_get_account_interest_limits".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostAccountTransfer` implicit endpoint.
-    pub async fn uta_private_post_account_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_post_account_transfer".into()), optional_args).await
+    pub async fn uta_private_post_account_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_post_account_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostAccountMode` implicit endpoint.
@@ -1778,13 +1778,13 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostAccountModeAccountModifyLeverage` implicit endpoint.
-    pub async fn uta_private_post_account_mode_account_modify_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_post_account_mode_account_modify_leverage".into()), optional_args).await
+    pub async fn uta_private_post_account_mode_account_modify_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_post_account_mode_account_modify_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostAccountModeOrderPlace` implicit endpoint.
-    pub async fn uta_private_post_account_mode_order_place(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_post_account_mode_order_place".into()), optional_args).await
+    pub async fn uta_private_post_account_mode_order_place(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_post_account_mode_order_place".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostAccountModeOrderPlaceBatch` implicit endpoint.
@@ -1793,18 +1793,18 @@ impl Kucoinfutures {
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostAccountModeOrderCancel` implicit endpoint.
-    pub async fn uta_private_post_account_mode_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_post_account_mode_order_cancel".into()), optional_args).await
+    pub async fn uta_private_post_account_mode_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_post_account_mode_order_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostAccountModeOrderCancelBatch` implicit endpoint.
-    pub async fn uta_private_post_account_mode_order_cancel_batch(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_post_account_mode_order_cancel_batch".into()), optional_args).await
+    pub async fn uta_private_post_account_mode_order_cancel_batch(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_post_account_mode_order_cancel_batch".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostAccountModeOrderCancelAll` implicit endpoint.
-    pub async fn uta_private_post_account_mode_order_cancel_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("uta_private_post_account_mode_order_cancel_all".into()), optional_args).await
+    pub async fn uta_private_post_account_mode_order_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("uta_private_post_account_mode_order_cancel_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `utaPrivatePostSubAccountCanTransferOut` implicit endpoint.

@@ -36,8 +36,10 @@ impl Bitteam {
         let described = Bitteam::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -654,7 +656,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         let mut statuses: crate::value::Dict = self.safe_dict_t(&statusesResponse, numericId);
         let mut deposit: Option<bool> = self.safe_bool_k_opt(&statuses, "depositStatus", &[]);
         let mut withdraw: Option<bool> = self.safe_bool_k_opt(&statuses, "withdrawStatus", &[]);
-        let mut networkIds: Vec<Value> = Value::Array(feesByNetworkId.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut networkIds: Vec<&str> = feesByNetworkId.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -665,7 +667,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
                         let mut j: i64 = 0;
             let mut __for_first_443: bool = true;
             while { if !__for_first_443 { j += 1; } __for_first_443 = false; j < (networkIds.len() as i64) } {
-            let mut networkId: Option<&str> = networkIds.get(j as usize).and_then(Value::as_str);
+            let mut networkId: Option<&str> = networkIds.get(j as usize).copied();
             let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(networkId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkFee: Option<f64> = self.safe_number(&feesByNetworkId, Value::from(networkId.as_deref()), &[]).as_f64();
             if (networkCode.is_some()) {
@@ -817,7 +819,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         let mut status: Option<String> = self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -835,7 +837,8 @@ impl crate::exchange::DerivedExchange for Bitteam {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("comment".to_string(), self.safe_string_k(transaction, "description", &[]));
+        m.insert("comment".to_string(), self.safe_string_k(&transaction, "description", &[]));
+        m.insert("info".to_string(), transaction);
         m.insert("internal".to_string(), Value::Bool(false));
     m
 });
@@ -852,7 +855,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut request: crate::value::Dict = self.omit_t(params.clone(), self.extract_params(Value::from(path)), &[]);
+        let mut request: crate::value::Dict = self.omit_t(&params, self.extract_params(Value::from(path)), &[]);
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), params));
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]);
         if (apiUrl.is_none()) {
@@ -869,7 +872,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
             }  else if (((query.chars().count() as i64)) != 0) {
                 url.push_str(&format!("{}{}", "?", query));
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), ":").into()), self.secret.clone());
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.apiKey, ":").into()), self.secret);
             let mut auth64: String = self.string_to_base64(Value::from(auth), &[]);
             let mut signature: String = format!("{}{}", "Basic ", auth64);
             requestHeaders = Some(crate::value::Dict::new({
@@ -912,8 +915,8 @@ impl crate::exchange::DerivedExchange for Bitteam {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
             let mut message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
             let mut responseCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, &feedback);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -923,7 +926,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
 }
 
 impl crate::exchange_generated::ExchangeBase for Bitteam {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -1507,7 +1510,7 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_trade_api_ccxt_pairs", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_trade_api_ccxt_pairs(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -1620,7 +1623,7 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_trade_api_currencies", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_trade_api_currencies(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -1764,8 +1767,8 @@ impl Bitteam {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1774,7 +1777,7 @@ impl Bitteam {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut resolution: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
+        let mut resolution: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pairName".to_string(), Value::from((market).id.as_deref()));
@@ -1782,7 +1785,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("history_get_api_tw_history_pair_name_resolution", &[&__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.history_get_api_tw_history_pair_name_resolution(&[&__ws_arg_0]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -1812,7 +1815,7 @@ impl Bitteam {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut data: crate::value::List = self.safe_list_k_t(&result, "data");
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -1835,7 +1838,7 @@ impl Bitteam {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1850,7 +1853,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_trade_api_cmc_orderbook_pair", &[&__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get_trade_api_cmc_orderbook_pair(&[&__ws_arg_1]).await.unwrap_or_default();
         //
         //     {
         //         "timestamp": 1701166703284,
@@ -1904,8 +1907,8 @@ impl Bitteam {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1924,11 +1927,11 @@ impl Bitteam {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_ccxt_orders_of_user", &[&__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_orders_of_user(&[&__ws_arg_2]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2013,7 +2016,7 @@ impl Bitteam {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut orders: crate::value::List = self.safe_list_k_t(&result, "orders");
-        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2053,7 +2056,7 @@ impl Bitteam {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_ccxt_order_id", &[&__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_order_id(&[&__ws_arg_3]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2115,8 +2118,8 @@ impl Bitteam {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2130,7 +2133,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_4).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_4).await);
         Value::Null
         }).await?))
     }
@@ -2153,8 +2156,8 @@ impl Bitteam {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2168,7 +2171,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_5).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_5).await);
         Value::Null
         }).await?))
     }
@@ -2191,8 +2194,8 @@ impl Bitteam {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2206,7 +2209,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_6).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_6).await);
         Value::Null
         }).await?))
     }
@@ -2230,11 +2233,10 @@ impl Bitteam {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2252,14 +2254,14 @@ impl Bitteam {
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            if (price == Value::Null) {
+            if (price.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }  else {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_api_ccxt_ordercreate", &[&__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.private_post_trade_api_ccxt_ordercreate(&[&__ws_arg_7]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2320,7 +2322,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_api_ccxt_cancelorder", &[&__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.private_post_trade_api_ccxt_cancelorder(&[&__ws_arg_8]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2370,7 +2372,7 @@ impl Bitteam {
             request.insert("pairId".into(), Value::Str("0".into())); // '0' for all markets
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_trade_api_ccxt_cancel_all_order", &[&__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_post_trade_api_ccxt_cancel_all_order(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2400,7 +2402,7 @@ impl Bitteam {
                 m.insert("created".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
     pub fn parse_order_type(&self, status: Option<&str>) -> Option<String> {
@@ -2410,7 +2412,7 @@ impl Bitteam {
                 m.insert("limit".to_string(), Value::Str("limit".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
     pub fn parse_value_to_pricision(&self, mut valueObject: Value, valueKey: &str, preciseObject: impl Into<crate::Value>, precisionKey: &str) -> Option<String> {
@@ -2528,7 +2530,7 @@ impl Bitteam {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_trade_api_pair_name", &[&__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.public_get_trade_api_pair_name(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2738,8 +2740,8 @@ impl Bitteam {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2755,7 +2757,7 @@ impl Bitteam {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_trade_api_cmc_trades_pair(&[&__ws_arg_11]).await.unwrap_or_default();
-        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2778,8 +2780,8 @@ impl Bitteam {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2796,11 +2798,11 @@ impl Bitteam {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("pairId".into(), crate::value::KeyRead::key_read(&&market, "numericId"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_ccxt_trades_of_user", &[&__ws_arg_12]).await;
+        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_trades_of_user(&[&__ws_arg_12]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2936,7 +2938,7 @@ impl Bitteam {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
-        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2963,7 +2965,7 @@ impl Bitteam {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_ccxt_balance", &[&params]).await;
+        let mut response: crate::value::Dict = self.private_get_trade_api_ccxt_balance(&[&params]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response);
         Value::Null
         }).await?))
@@ -2988,8 +2990,8 @@ impl Bitteam {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3006,11 +3008,11 @@ impl Bitteam {
             currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "numericId"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_trade_api_transactions_of_user", &[&__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.private_get_trade_api_transactions_of_user(&[&__ws_arg_13]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -3101,7 +3103,7 @@ impl Bitteam {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut transactions: crate::value::List = self.safe_list_k_t(&result, "transactions");
-        return self.parse_transactions(&transactions, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&transactions, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3114,7 +3116,7 @@ impl Bitteam {
                 m.insert("withdraw".to_string(), Value::Str("withdrawal".into()));
             m
         });
-        return self.safe_string_opt(&types, Value::from(type_var), &[Value::from(type_var)]);
+        return self.safe_string_opt(&types, &type_var, &[&type_var]);
 }
 
     pub fn parse_transaction_status(&self, status: Option<&str>) -> Option<String> {
@@ -3124,7 +3126,7 @@ impl Bitteam {
                 m.insert("success".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 

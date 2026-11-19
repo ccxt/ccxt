@@ -18,8 +18,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetQuestionsId` implicit endpoint.
-    pub async fn myriad_public_get_questions_id(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_questions_id".into()), optional_args).await
+    pub async fn myriad_public_get_questions_id(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_get_questions_id".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarkets` implicit endpoint.
@@ -43,8 +43,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarketsIdOrderbook` implicit endpoint.
-    pub async fn myriad_public_get_markets_id_orderbook(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_markets_id_orderbook".into()), optional_args).await
+    pub async fn myriad_public_get_markets_id_orderbook(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_get_markets_id_orderbook".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarketsIdTrades` implicit endpoint.
@@ -68,8 +68,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetOrders` implicit endpoint.
-    pub async fn myriad_public_get_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_orders".into()), optional_args).await
+    pub async fn myriad_public_get_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_get_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetOrdersHash` implicit endpoint.
@@ -78,8 +78,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetUsersAddressEvents` implicit endpoint.
-    pub async fn myriad_public_get_users_address_events(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_users_address_events".into()), optional_args).await
+    pub async fn myriad_public_get_users_address_events(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_get_users_address_events".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetUsersAddressReferrals` implicit endpoint.
@@ -88,8 +88,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetUsersAddressPortfolio` implicit endpoint.
-    pub async fn myriad_public_get_users_address_portfolio(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_users_address_portfolio".into()), optional_args).await
+    pub async fn myriad_public_get_users_address_portfolio(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_get_users_address_portfolio".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetUsersAddressMarkets` implicit endpoint.
@@ -108,8 +108,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicPostMarketsQuote` implicit endpoint.
-    pub async fn myriad_public_post_markets_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_post_markets_quote".into()), optional_args).await
+    pub async fn myriad_public_post_markets_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_post_markets_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPublicPostMarketsClaim` implicit endpoint.
@@ -118,8 +118,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicPostOrders` implicit endpoint.
-    pub async fn myriad_public_post_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_post_orders".into()), optional_args).await
+    pub async fn myriad_public_post_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_post_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPublicPostOrdersCancelBatch` implicit endpoint.
@@ -128,8 +128,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicPostOrdersCancelAll` implicit endpoint.
-    pub async fn myriad_public_post_orders_cancel_all(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_post_orders_cancel_all".into()), optional_args).await
+    pub async fn myriad_public_post_orders_cancel_all(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_post_orders_cancel_all".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPublicPostPositionsSplit` implicit endpoint.
@@ -163,8 +163,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicDeleteOrdersHash` implicit endpoint.
-    pub async fn myriad_public_delete_orders_hash(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_delete_orders_hash".into()), optional_args).await
+    pub async fn myriad_public_delete_orders_hash(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("myriad_public_delete_orders_hash".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `myriadPrivatePostMarketsQuoteWithFee` implicit endpoint.

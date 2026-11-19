@@ -23,8 +23,8 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `binanceGetDepth` implicit endpoint.
-    pub async fn binance_get_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("binance_get_depth".into()), optional_args).await
+    pub async fn binance_get_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("binance_get_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `binanceGetTrades` implicit endpoint.
@@ -88,18 +88,18 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `publicGetOpenV1CommonTime` implicit endpoint.
-    pub async fn public_get_open_v1_common_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_open_v1_common_time".into()), optional_args).await
+    pub async fn public_get_open_v1_common_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_open_v1_common_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetOpenV1CommonSymbols` implicit endpoint.
-    pub async fn public_get_open_v1_common_symbols(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_open_v1_common_symbols".into()), optional_args).await
+    pub async fn public_get_open_v1_common_symbols(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_open_v1_common_symbols".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetOpenV1MarketDepth` implicit endpoint.
-    pub async fn public_get_open_v1_market_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_open_v1_market_depth".into()), optional_args).await
+    pub async fn public_get_open_v1_market_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_open_v1_market_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetOpenV1MarketTrades` implicit endpoint.
@@ -108,8 +108,8 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `publicGetOpenV1MarketAggTrades` implicit endpoint.
-    pub async fn public_get_open_v1_market_agg_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_open_v1_market_agg_trades".into()), optional_args).await
+    pub async fn public_get_open_v1_market_agg_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_open_v1_market_agg_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetOpenV1MarketKlines` implicit endpoint.
@@ -123,13 +123,13 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `privateGetOpenV1Orders` implicit endpoint.
-    pub async fn private_get_open_v1_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_open_v1_orders".into()), optional_args).await
+    pub async fn private_get_open_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_open_v1_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenV1AccountSpot` implicit endpoint.
-    pub async fn private_get_open_v1_account_spot(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_open_v1_account_spot".into()), optional_args).await
+    pub async fn private_get_open_v1_account_spot(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_open_v1_account_spot".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenV1AccountSpotAsset` implicit endpoint.
@@ -138,33 +138,33 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `privateGetOpenV1OrdersTrades` implicit endpoint.
-    pub async fn private_get_open_v1_orders_trades(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_open_v1_orders_trades".into()), optional_args).await
+    pub async fn private_get_open_v1_orders_trades(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_open_v1_orders_trades".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenV1Withdraws` implicit endpoint.
-    pub async fn private_get_open_v1_withdraws(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_open_v1_withdraws".into()), optional_args).await
+    pub async fn private_get_open_v1_withdraws(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_open_v1_withdraws".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenV1Deposits` implicit endpoint.
-    pub async fn private_get_open_v1_deposits(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_open_v1_deposits".into()), optional_args).await
+    pub async fn private_get_open_v1_deposits(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_open_v1_deposits".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenV1DepositsAddress` implicit endpoint.
-    pub async fn private_get_open_v1_deposits_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_open_v1_deposits_address".into()), optional_args).await
+    pub async fn private_get_open_v1_deposits_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_open_v1_deposits_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOpenV1Orders` implicit endpoint.
-    pub async fn private_post_open_v1_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_open_v1_orders".into()), optional_args).await
+    pub async fn private_post_open_v1_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_open_v1_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOpenV1OrdersCancel` implicit endpoint.
-    pub async fn private_post_open_v1_orders_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_open_v1_orders_cancel".into()), optional_args).await
+    pub async fn private_post_open_v1_orders_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_open_v1_orders_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOpenV1OrdersOco` implicit endpoint.
@@ -173,8 +173,8 @@ impl Tokocrypto {
     }
 
     /// Auto-generated wrapper for the `privatePostOpenV1Withdraws` implicit endpoint.
-    pub async fn private_post_open_v1_withdraws(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_open_v1_withdraws".into()), optional_args).await
+    pub async fn private_post_open_v1_withdraws(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_open_v1_withdraws".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOpenV1UserDataStream` implicit endpoint.

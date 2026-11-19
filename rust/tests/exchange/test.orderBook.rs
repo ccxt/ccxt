@@ -31,7 +31,7 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("nonce".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".into()).clone(), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".into()), symbol.clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), orderbook.clone());
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     let mut bids: Value = orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null);
@@ -50,8 +50,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
         }
         if !(in_op(&skippedProperties, &Value::Str("compareToZero".into()))) {
             // compare price & volume to zero
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &Value::Int(i)).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &Value::Int(i)).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &Value::Int(i)).clone(), Value::Int(0), Value::Str("0".into())]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &Value::Int(i)).clone(), Value::Int(1), Value::Str("0".into())]);
         }
     }
     }
@@ -71,8 +71,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
         }
         if !(in_op(&skippedProperties, &Value::Str("compareToZero".into()))) {
             // compare price & volume to zero
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &Value::Int(i)).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &Value::Int(i)).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &Value::Int(i)).clone(), Value::Int(0), Value::Str("0".into())]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &Value::Int(i)).clone(), Value::Int(1), Value::Str("0".into())]);
         }
     }
     }

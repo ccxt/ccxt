@@ -48,8 +48,8 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Ticker` implicit endpoint.
-    pub async fn public_get_api_v1_ticker(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v1_ticker".into()), optional_args).await
+    pub async fn public_get_api_v1_ticker(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_ticker".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Tickers` implicit endpoint.
@@ -58,8 +58,8 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Depth` implicit endpoint.
-    pub async fn public_get_api_v1_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v1_depth".into()), optional_args).await
+    pub async fn public_get_api_v1_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Prediction` implicit endpoint.
@@ -123,13 +123,13 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Status` implicit endpoint.
-    pub async fn public_get_api_v1_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v1_status".into()), optional_args).await
+    pub async fn public_get_api_v1_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Ping` implicit endpoint.
-    pub async fn public_get_api_v1_ping(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v1_ping".into()), optional_args).await
+    pub async fn public_get_api_v1_ping(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_api_v1_ping".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Time` implicit endpoint.
@@ -183,8 +183,8 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Capital` implicit endpoint.
-    pub async fn private_get_api_v1_capital(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_capital".into()), optional_args).await
+    pub async fn private_get_api_v1_capital(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_api_v1_capital".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1CapitalCollateral` implicit endpoint.
@@ -198,8 +198,8 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1CapitalDepositAddress` implicit endpoint.
-    pub async fn private_get_wapi_v1_capital_deposit_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_wapi_v1_capital_deposit_address".into()), optional_args).await
+    pub async fn private_get_wapi_v1_capital_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_wapi_v1_capital_deposit_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetWapiV1CapitalWithdrawals` implicit endpoint.
@@ -298,8 +298,8 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Order` implicit endpoint.
-    pub async fn private_get_api_v1_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_order".into()), optional_args).await
+    pub async fn private_get_api_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_api_v1_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1Orders` implicit endpoint.
@@ -318,13 +318,13 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `privatePostWapiV1CapitalWithdrawals` implicit endpoint.
-    pub async fn private_post_wapi_v1_capital_withdrawals(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_wapi_v1_capital_withdrawals".into()), optional_args).await
+    pub async fn private_post_wapi_v1_capital_withdrawals(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_wapi_v1_capital_withdrawals".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1Order` implicit endpoint.
-    pub async fn private_post_api_v1_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_order".into()), optional_args).await
+    pub async fn private_post_api_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1Orders` implicit endpoint.
@@ -333,18 +333,18 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1Rfq` implicit endpoint.
-    pub async fn private_post_api_v1_rfq(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_rfq".into()), optional_args).await
+    pub async fn private_post_api_v1_rfq(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_rfq".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1RfqAccept` implicit endpoint.
-    pub async fn private_post_api_v1_rfq_accept(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_rfq_accept".into()), optional_args).await
+    pub async fn private_post_api_v1_rfq_accept(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_rfq_accept".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1RfqCancel` implicit endpoint.
-    pub async fn private_post_api_v1_rfq_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_api_v1_rfq_cancel".into()), optional_args).await
+    pub async fn private_post_api_v1_rfq_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_api_v1_rfq_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostApiV1RfqQuote` implicit endpoint.
@@ -358,8 +358,8 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1Order` implicit endpoint.
-    pub async fn private_delete_api_v1_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_api_v1_order".into()), optional_args).await
+    pub async fn private_delete_api_v1_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_api_v1_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1Orders` implicit endpoint.

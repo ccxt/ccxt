@@ -36,8 +36,10 @@ impl Bigone {
         let described = Bigone::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
-        let user_config = self.userConfig.clone();
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
+        // moved out for the &mut self call (nothing else reads the field there), then put back
+        let mut user_config = [std::mem::take(&mut self.userConfig)];
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &user_config);
+        self.userConfig = std::mem::take(&mut user_config[0]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -351,7 +353,7 @@ impl crate::exchange::DerivedExchange for Bigone {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -369,7 +371,8 @@ impl crate::exchange::DerivedExchange for Bigone {
         m.insert("average".to_string(), self.safe_string_k(&order, "avg_deal_price", &[]));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order, "state", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(&order, "state", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("info".to_string(), order);
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -399,7 +402,7 @@ impl crate::exchange::DerivedExchange for Bigone {
             let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut symbol: Option<String> = self.safe_string_k_opt(&balance, "asset_symbol", &[]);
             let mut code: Option<String> = self.safe_currency_code(symbol.as_deref(), None);
-            let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+            let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "locked_balance", &[]));
             if (code.is_some()) {
@@ -646,7 +649,7 @@ impl crate::exchange::DerivedExchange for Bigone {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut bodySigned: Option<String> = None;
-        let mut query: crate::value::Dict = self.omit_t(params.clone(), self.extract_params(Value::from(path)), &[]);
+        let mut query: crate::value::Dict = self.omit_t(&params, self.extract_params(Value::from(path)), &[]);
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
@@ -664,13 +667,13 @@ impl crate::exchange::DerivedExchange for Bigone {
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Option<String> = self.number_to_string(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-            let mut request: crate::value::Dict = Value::Map({
+            let mut request: crate::value::Dict = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("OpenAPIV2".into()));
                     m.insert("sub".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
-            }).into_dict();
+            });
             let mut token: String = jwt(&request, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into()));
             if (method.as_str() == Some("GET")) {
@@ -682,7 +685,7 @@ impl crate::exchange::DerivedExchange for Bigone {
                 bodySigned = json_stringify(&query).as_str().map(str::to_owned);
             }
         }
-        headersValue.insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ccxt/", self.id).into()), "-").into()), self.version.clone()).into()));
+        headersValue.insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ccxt/", self.id).into()), "-").into()), self.version).into()));
         let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -707,9 +710,9 @@ impl crate::exchange::DerivedExchange for Bigone {
         let mut message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (codeError.as_deref() != Some("0")) && (codeError.is_some()) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -719,7 +722,7 @@ impl crate::exchange::DerivedExchange for Bigone {
 }
 
 impl crate::exchange_generated::ExchangeBase for Bigone {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -1572,7 +1575,7 @@ impl Bigone {
     m
 }));
         let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_asset_pairs(&[&params]).await, self.call_method(Value::Str("contract_public_get_symbols".into()), &[&params]).await]);
-        let mut promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await.into_list();
+        let mut promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await;
         let mut response: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(0));
         let mut contractResponse: Value = self.safe_value(&promisesResult, Value::Int(1), &[]);
         //
@@ -1820,7 +1823,7 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchTicker".into()), Some(&market), &[params]);
+        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchTicker".into()), Some(&market), &[&params]);
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         if (type_var.as_deref() == Some("spot")) {
@@ -1830,7 +1833,7 @@ impl Bigone {
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            let mut response: crate::value::Dict = self.call_method_t("public_get_asset_pairs_asset_pair_name_ticker", &[&__ws_arg_0]).await;
+            let mut response: crate::value::Dict = self.public_get_asset_pairs_asset_pair_name_ticker(&[&__ws_arg_0]).await.unwrap_or_default();
             //
             //     {
             //         "code":0,
@@ -1850,7 +1853,7 @@ impl Bigone {
             let mut ticker: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
         }  else {
-            let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), Value::Dict(paramsMarketType)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut tickers: crate::types::Tickers = (match self.fetch_tickers(Some(vec![symbol.to_string()]), Value::Dict(paramsMarketType)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut spotTicker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), symbol);
             return spotTicker.map_or(Value::Null, Value::Dict);
         }
@@ -1886,7 +1889,7 @@ impl Bigone {
         if (symbol.is_some()) {
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[params]);
+        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[&params]);
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
@@ -1898,11 +1901,11 @@ impl Bigone {
         let mut data: Value = Value::Null;
         if isSpot {
             if (symbolsNormalized.is_some()) {
-                let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+                let mut ids: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
                 request.insert("pair_names".into(), Value::Str(ids.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             }
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            let mut response: crate::value::Dict = self.call_method_t("public_get_asset_pairs_tickers", &[&__ws_arg_1]).await;
+            let mut response: crate::value::Dict = self.public_get_asset_pairs_tickers(&[&__ws_arg_1]).await.unwrap_or_default();
             //
             //    {
             //        "code": 0,
@@ -1959,7 +1962,7 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: crate::value::Dict = self.call_method_t("public_get_ping", &[&params]).await;
+        let mut response: crate::value::Dict = self.public_get_ping(&[&params]).await.unwrap_or_default();
         //
         //     {
         //         "data": {
@@ -1994,7 +1997,7 @@ impl Bigone {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2005,25 +2008,25 @@ impl Bigone {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Option<crate::value::Dict> = None;
         if (market).contract {
-            let mut request: crate::value::Dict = Value::Map({
+            let mut request: crate::value::Dict = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
-            }).into_dict();
+            });
             let __ws_arg_2 = self.extend(request, &[&params]);
-            response = self.call_method_o("contract_public_get_depth_symbol_snapshot", &[&__ws_arg_2]).await;
-            return self.parse_contract_order_book(&response, (Value::from((market).symbol.clone())).as_str().unwrap_or_default(), limit.as_i64());
+            response = self.contract_public_get_depth_symbol_snapshot(&[&__ws_arg_2]).await;
+            return self.parse_contract_order_book(&response, Some((market).symbol.as_str()).unwrap_or_default(), limit);
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            if (limit != Value::Null) {
-                request.insert("limit".into(), limit); // default 50, max 200
+            if (limit.is_some()) {
+                request.insert("limit".into(), Value::from(limit)); // default 50, max 200
             }
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("public_get_asset_pairs_asset_pair_name_depth", &[&__ws_arg_3]).await;
+            response = self.public_get_asset_pairs_asset_pair_name_depth(&[&__ws_arg_3]).await;
             //
             //     {
             //         "code":0,
@@ -2047,13 +2050,13 @@ impl Bigone {
 
     pub fn parse_contract_bids_asks(&self, bidsAsks: impl Into<crate::Value>) -> Value {
         let mut bidsAsks: Value = bidsAsks.into();
-        let mut bidsAsksKeys: Vec<Value> = Value::Array(bidsAsks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut bidsAsksKeys: Vec<&str> = bidsAsks.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_265: bool = true;
             while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (bidsAsksKeys.len() as i64) } {
-            let mut price: Option<&str> = bidsAsksKeys.get(i as usize).and_then(Value::as_str);
+            let mut price: Option<&str> = bidsAsksKeys.get(i as usize).copied();
             let mut amount: Value = (if let (Some(__m), Some(__k)) = (bidsAsks.as_map(), price.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             result.push(Value::from(vec![self.parse_number(Value::from(price.as_deref()), &[]), self.parse_number(amount, &[])]));
         }
@@ -2104,8 +2107,8 @@ impl Bigone {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut since = get_arg(optional_args, 0, Value::Null);
-        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2123,7 +2126,7 @@ impl Bigone {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_asset_pairs_asset_pair_name_trades", &[&__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.public_get_asset_pairs_asset_pair_name_trades(&[&__ws_arg_4]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -2146,7 +2149,7 @@ impl Bigone {
         //     }
         //
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2173,8 +2176,8 @@ impl Bigone {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2188,24 +2191,24 @@ impl Bigone {
         }
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         let mut untilIsDefined: bool = until.is_some();
-        let mut sinceIsDefined: bool = since != Value::Null;
+        let mut sinceIsDefined: bool = since.is_some();
         // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         let mut defaultLimit: i64 = 100;
         if sinceIsDefined && untilIsDefined {
             defaultLimit = 500;
         }
-        let mut limitResolved: i64 = limit.as_i64().unwrap_or(defaultLimit);
+        let mut limitResolved: i64 = limit.unwrap_or(defaultLimit);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("period".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
+                m.insert("period".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
                 m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
-        if (since != Value::Null) {
+        if (since.is_some()) {
             // const start = this.parseToInt (since / 1000);
-            let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-            let mut endByLimit: Option<i64> = self.parse_to_int(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((((limitResolved * duration)) * 1000)))) } else { None })));
+            let mut duration: i64 = self.parse_timeframe(&timeframe);
+            let mut endByLimit: Option<i64> = self.parse_to_int(Value::from((if let Some(__m0) = since { Some((__m0 + ((((limitResolved * duration)) * 1000)))) } else { None })));
             if (until.is_some()) {
                 request.insert("time".into(), self.iso8601(Value::from((if let (Some(__m0), Some(__m1)) = (endByLimit, ((if let Some(__l) = until { Some(__l + 1) } else { None }))) { Some(i64::min(__m0, __m1)) } else { None }))));
             }  else {
@@ -2216,7 +2219,7 @@ impl Bigone {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("until".into()), &[]);
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("public_get_asset_pairs_asset_pair_name_candles", &[&__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.public_get_asset_pairs_asset_pair_name_candles(&[&__ws_arg_5]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -2241,7 +2244,7 @@ impl Bigone {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, Value::from(since), Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2269,11 +2272,11 @@ impl Bigone {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[Value::Str("".into())]);
+        let mut type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[&Value::Str("".into())]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("type".into()), &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("funding")) || (type_var.as_deref() == Some("fund")) {
-            response = self.call_method_o("private_get_fund_accounts", &[&Value::from(&paramsOmitted)]).await;
+            response = self.private_get_fund_accounts(&[&Value::from(&paramsOmitted)]).await;
         }  else {
             response = self.call_method_o("private_get_accounts", &[&Value::Dict(paramsOmitted)]).await;
         }
@@ -2291,7 +2294,7 @@ impl Bigone {
                 m.insert("MARKET".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string_opt(&types, Value::from(type_var), &[Value::from(type_var)]);
+        return self.safe_string_opt(&types, &type_var, &[&type_var]);
 }
 
 
@@ -2309,7 +2312,7 @@ impl Bigone {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
-        let mut cost = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -2325,7 +2328,7 @@ impl Bigone {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, params).await);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost, None, params).await);
         Value::Null
         }).await?))
     }
@@ -2357,11 +2360,10 @@ impl Bigone {
         let mut symbol = __it.next().unwrap_or_default();
         let mut type_var = __it.next().unwrap_or_default();
         let mut side = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2386,11 +2388,11 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), Value::from(requestSide));
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
             m
         });
         if isLimit || (uppercaseType == "STOP_LIMIT") {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), &Value::from(price))));
             if isLimit {
                 let mut timeInForce: Option<String> = self.safe_string_k_opt(&query, "timeInForce", &[]);
                 if (timeInForce.as_deref() == Some("IOC")) {
@@ -2400,7 +2402,7 @@ impl Bigone {
                     request.insert("post_only".into(), Value::Bool(true));
                 }
             }
-            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
         }  else {
             if isBuy {
                 let mut createMarketBuyOrderRequiresPrice: Option<bool> = None;
@@ -2408,7 +2410,7 @@ impl Bigone {
                 let mut cost: Option<f64> = self.safe_number_k(&query, "cost", &[]).as_f64();
                 query = self.omit_t(&query, Value::Str("cost".into()), &[]);
                 if (createMarketBuyOrderRequiresPrice == Some(true)) {
-                    if (price == Value::Null) && (cost.is_none()) {
+                    if (price.is_none()) && (cost.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(&amount);
@@ -2418,7 +2420,7 @@ impl Bigone {
                         request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.as_str(), costRequest)));
                     }
                 }  else {
-                    request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.as_str(), amount.clone())));
+                    request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.as_str(), &Value::from(amount))));
                 }
             }  else {
                 request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
@@ -2440,7 +2442,7 @@ impl Bigone {
         }
         query = self.omit_t(&query, &["stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"], &[]);
         let __ws_arg_6 = self.extend(Value::Map(request), &[&query]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[&__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_post_orders(&[&__ws_arg_6]).await.unwrap_or_default();
         //
         //    {
         //        "id": 10,
@@ -2492,7 +2494,7 @@ impl Bigone {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_orders_id_cancel", &[&__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.private_post_orders_id_cancel(&[&__ws_arg_7]).await.unwrap_or_default();
         //    {
         //        "id": 10,
         //        "asset_pair_name": "EOS-BTC",
@@ -2541,7 +2543,7 @@ impl Bigone {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_orders_cancel", &[&__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.private_post_orders_cancel(&[&__ws_arg_8]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,
@@ -2647,8 +2649,8 @@ impl Bigone {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2665,8 +2667,8 @@ impl Bigone {
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 20, max 200
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 20, max 200
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_orders", &[&__ws_arg_10]).await;
@@ -2691,7 +2693,7 @@ impl Bigone {
         //    }
         //
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2714,8 +2716,8 @@ impl Bigone {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2732,8 +2734,8 @@ impl Bigone {
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 20, max 200
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 20, max 200
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_trades", &[&__ws_arg_11]).await;
@@ -2772,7 +2774,7 @@ impl Bigone {
         //     }
         //
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2806,8 +2808,8 @@ impl Bigone {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2818,7 +2820,7 @@ impl Bigone {
             m
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_12).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_12).await);
         Value::Null
         }).await?))
     }
@@ -2841,8 +2843,8 @@ impl Bigone {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2853,7 +2855,7 @@ impl Bigone {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_13).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_13).await);
         Value::Null
         }).await?))
     }
@@ -2893,7 +2895,7 @@ impl Bigone {
         let mut networkCode: Option<String> = networkCodeparamsOmittedVariable.0.as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = networkCodeparamsOmittedVariable.1;
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: crate::value::Dict = self.call_method_t("private_get_assets_asset_symbol_address", &[&__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_get_assets_asset_symbol_address(&[&__ws_arg_14]).await.unwrap_or_default();
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -2945,7 +2947,7 @@ impl Bigone {
                 m.insert("PENDING".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
+        return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
 
@@ -2967,8 +2969,8 @@ impl Bigone {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2985,8 +2987,8 @@ impl Bigone {
             currency = Some(self.currency(code.as_str()));
             request.insert("asset_symbol".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 50
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 50
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_deposits", &[&__ws_arg_15]).await;
@@ -3012,7 +3014,7 @@ impl Bigone {
         //     }
         //
         let mut deposits: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_transactions(&deposits, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&deposits, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3035,8 +3037,8 @@ impl Bigone {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
+        let mut since: Option<i64> = since;
+        let mut limit: Option<i64> = limit;
         let mut params = get_arg(optional_args, 3, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3053,8 +3055,8 @@ impl Bigone {
             currency = Some(self.currency(code.as_str()));
             request.insert("asset_symbol".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone()); // default 50
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit)); // default 50
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_withdrawals", &[&__ws_arg_16]).await;
@@ -3080,7 +3082,7 @@ impl Bigone {
         //     }
         //
         let mut withdrawals: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_transactions(&withdrawals, currency.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_transactions(&withdrawals, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3101,7 +3103,7 @@ impl Bigone {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut fromAccount = __it.next().unwrap_or_default();
         let mut toAccount = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
@@ -3116,20 +3118,20 @@ impl Bigone {
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
-        let mut fromId: Option<String> = self.safe_string_opt(&accountsByType, &fromAccount, &[fromAccount.clone()]);
-        let mut toId: Option<String> = self.safe_string_opt(&accountsByType, &toAccount, &[toAccount.clone()]);
-        let mut guid: Option<String> = self.safe_string_k_opt(&params, "guid", &[Value::from(self.uuid(&[]))]);
+        let mut fromId: Option<String> = self.safe_string_opt(&accountsByType, &fromAccount, &[&fromAccount]);
+        let mut toId: Option<String> = self.safe_string_opt(&accountsByType, &toAccount, &[&toAccount]);
+        let mut guid: Option<String> = self.safe_string_k_opt(&params, "guid", &[&Value::from(self.uuid(&[]))]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount.clone(), &[])));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), Value::from(amount), &[])));
                 m.insert("from".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("to".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("guid".to_string(), Value::from(guid.as_deref()));
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_transfer", &[&__ws_arg_17]).await;
+        let mut response: crate::value::Dict = self.private_post_transfer(&[&__ws_arg_17]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -3142,7 +3144,7 @@ impl Bigone {
         if fillResponseFromRequest {
             std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);
             std::sync::Arc::make_mut(&mut transfer).insert("toAccount".into(), toAccount);
-            std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), amount);
+            std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), Value::from(amount));
             std::sync::Arc::make_mut(&mut transfer).insert("id".into(), guid.map(Value::from).unwrap_or(Value::Null));
         }
         return Value::Dict(transfer);
@@ -3157,7 +3159,7 @@ impl Bigone {
                 m.insert("0".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string_opt(&statuses, Value::from(status), &[Value::Str("failed".into())]);
+        return self.safe_string_opt(&statuses, &status, &[&Value::Str("failed".into())]);
 }
 
 /*
@@ -3176,7 +3178,7 @@ impl Bigone {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
         let mut __it = __args.into_iter();
         let mut code = __it.next().unwrap_or_default();
-        let mut amount = __it.next().unwrap_or_default();
+        let _ = __it.next();
         let mut address = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
@@ -3197,7 +3199,7 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("target_address".to_string(), address);
-                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), Value::from(amount), &[])));
             m
         });
         if (tagWithdrawTag.is_some()) {
@@ -3211,7 +3213,7 @@ impl Bigone {
         }
         // requires write permission on the wallet
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: crate::value::Dict = self.call_method_t("private_post_withdrawals", &[&__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.private_post_withdrawals(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,

@@ -23,8 +23,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetSystemStatus` implicit endpoint.
-    pub async fn sapi_get_system_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_system_status".into()), optional_args).await
+    pub async fn sapi_get_system_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_system_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetAccountSnapshot` implicit endpoint.
@@ -73,13 +73,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetAssetDribblet` implicit endpoint.
-    pub async fn sapi_get_asset_dribblet(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_asset_dribblet".into()), optional_args).await
+    pub async fn sapi_get_asset_dribblet(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_asset_dribblet".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetAssetTransfer` implicit endpoint.
-    pub async fn sapi_get_asset_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_asset_transfer".into()), optional_args).await
+    pub async fn sapi_get_asset_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_asset_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetAssetAssetDetail` implicit endpoint.
@@ -88,8 +88,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetAssetTradeFee` implicit endpoint.
-    pub async fn sapi_get_asset_trade_fee(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_asset_trade_fee".into()), optional_args).await
+    pub async fn sapi_get_asset_trade_fee(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_asset_trade_fee".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetAssetLedgerTransferCloudMiningQueryByPage` implicit endpoint.
@@ -98,8 +98,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetAssetConvertTransferQueryByPage` implicit endpoint.
-    pub async fn sapi_get_asset_convert_transfer_query_by_page(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_asset_convert_transfer_query_by_page".into()), optional_args).await
+    pub async fn sapi_get_asset_convert_transfer_query_by_page(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_asset_convert_transfer_query_by_page".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetAssetWalletBalance` implicit endpoint.
@@ -138,8 +138,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetMarginInterestHistory` implicit endpoint.
-    pub async fn sapi_get_margin_interest_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_margin_interest_history".into()), optional_args).await
+    pub async fn sapi_get_margin_interest_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_margin_interest_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetMarginForceLiquidationRec` implicit endpoint.
@@ -148,8 +148,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetMarginOrder` implicit endpoint.
-    pub async fn sapi_get_margin_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_margin_order".into()), optional_args).await
+    pub async fn sapi_get_margin_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_margin_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetMarginOpenOrders` implicit endpoint.
@@ -393,8 +393,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetFiatOrders` implicit endpoint.
-    pub async fn sapi_get_fiat_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_fiat_orders".into()), optional_args).await
+    pub async fn sapi_get_fiat_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_fiat_orders".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetFiatPayments` implicit endpoint.
@@ -423,8 +423,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetCapitalDepositAddress` implicit endpoint.
-    pub async fn sapi_get_capital_deposit_address(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_capital_deposit_address".into()), optional_args).await
+    pub async fn sapi_get_capital_deposit_address(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_capital_deposit_address".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetCapitalDepositAddressList` implicit endpoint.
@@ -463,8 +463,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetConvertTradeFlow` implicit endpoint.
-    pub async fn sapi_get_convert_trade_flow(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_convert_trade_flow".into()), optional_args).await
+    pub async fn sapi_get_convert_trade_flow(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_convert_trade_flow".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetConvertExchangeInfo` implicit endpoint.
@@ -478,8 +478,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetConvertOrderStatus` implicit endpoint.
-    pub async fn sapi_get_convert_order_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_convert_order_status".into()), optional_args).await
+    pub async fn sapi_get_convert_order_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_convert_order_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetConvertLimitQueryOpenOrders` implicit endpoint.
@@ -1018,13 +1018,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetPayTransactions` implicit endpoint.
-    pub async fn sapi_get_pay_transactions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_pay_transactions".into()), optional_args).await
+    pub async fn sapi_get_pay_transactions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_pay_transactions".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetGiftcardVerify` implicit endpoint.
-    pub async fn sapi_get_giftcard_verify(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_giftcard_verify".into()), optional_args).await
+    pub async fn sapi_get_giftcard_verify(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_giftcard_verify".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetGiftcardCryptographyRsaPublicKey` implicit endpoint.
@@ -1348,13 +1348,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetEquityOrderHistory` implicit endpoint.
-    pub async fn sapi_get_equity_order_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_equity_order_history".into()), optional_args).await
+    pub async fn sapi_get_equity_order_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_equity_order_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetEquityOrderDetail` implicit endpoint.
-    pub async fn sapi_get_equity_order_detail(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_equity_order_detail".into()), optional_args).await
+    pub async fn sapi_get_equity_order_detail(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_equity_order_detail".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetEquityTradeHistory` implicit endpoint.
@@ -1363,13 +1363,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetEquityTokenizedConvertStatus` implicit endpoint.
-    pub async fn sapi_get_equity_tokenized_convert_status(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_equity_tokenized_convert_status".into()), optional_args).await
+    pub async fn sapi_get_equity_tokenized_convert_status(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_equity_tokenized_convert_status".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiGetEquityTokenizedHistory` implicit endpoint.
-    pub async fn sapi_get_equity_tokenized_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_equity_tokenized_history".into()), optional_args).await
+    pub async fn sapi_get_equity_tokenized_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_get_equity_tokenized_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostAssetDust` implicit endpoint.
@@ -1383,8 +1383,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostAssetTransfer` implicit endpoint.
-    pub async fn sapi_post_asset_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_asset_transfer".into()), optional_args).await
+    pub async fn sapi_post_asset_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_asset_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostAssetGetFundingAsset` implicit endpoint.
@@ -1393,8 +1393,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostAssetConvertTransfer` implicit endpoint.
-    pub async fn sapi_post_asset_convert_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_asset_convert_transfer".into()), optional_args).await
+    pub async fn sapi_post_asset_convert_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_asset_convert_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostAccountDisableFastWithdrawSwitch` implicit endpoint.
@@ -1408,8 +1408,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostCapitalWithdrawApply` implicit endpoint.
-    pub async fn sapi_post_capital_withdraw_apply(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_capital_withdraw_apply".into()), optional_args).await
+    pub async fn sapi_post_capital_withdraw_apply(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_capital_withdraw_apply".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostCapitalContractConvertibleCoins` implicit endpoint.
@@ -1423,8 +1423,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostMarginBorrowRepay` implicit endpoint.
-    pub async fn sapi_post_margin_borrow_repay(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_margin_borrow_repay".into()), optional_args).await
+    pub async fn sapi_post_margin_borrow_repay(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_margin_borrow_repay".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostMarginTransfer` implicit endpoint.
@@ -1443,8 +1443,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostMarginOrder` implicit endpoint.
-    pub async fn sapi_post_margin_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_margin_order".into()), optional_args).await
+    pub async fn sapi_post_margin_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_margin_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostMarginOrderOco` implicit endpoint.
@@ -1563,13 +1563,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostUserListenToken` implicit endpoint.
-    pub async fn sapi_post_user_listen_token(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_user_listen_token".into()), optional_args).await
+    pub async fn sapi_post_user_listen_token(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_user_listen_token".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostFuturesTransfer` implicit endpoint.
-    pub async fn sapi_post_futures_transfer(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_futures_transfer".into()), optional_args).await
+    pub async fn sapi_post_futures_transfer(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_futures_transfer".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostLendingCustomizedFixedPurchase` implicit endpoint.
@@ -1733,13 +1733,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostGiftcardCreateCode` implicit endpoint.
-    pub async fn sapi_post_giftcard_create_code(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_giftcard_create_code".into()), optional_args).await
+    pub async fn sapi_post_giftcard_create_code(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_giftcard_create_code".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostGiftcardRedeemCode` implicit endpoint.
-    pub async fn sapi_post_giftcard_redeem_code(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_giftcard_redeem_code".into()), optional_args).await
+    pub async fn sapi_post_giftcard_redeem_code(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_giftcard_redeem_code".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostGiftcardBuyCode` implicit endpoint.
@@ -1863,13 +1863,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostConvertGetQuote` implicit endpoint.
-    pub async fn sapi_post_convert_get_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_convert_get_quote".into()), optional_args).await
+    pub async fn sapi_post_convert_get_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_convert_get_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostConvertAcceptQuote` implicit endpoint.
-    pub async fn sapi_post_convert_accept_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_convert_accept_quote".into()), optional_args).await
+    pub async fn sapi_post_convert_accept_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_convert_accept_quote".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostConvertLimitPlaceOrder` implicit endpoint.
@@ -2008,13 +2008,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostEquityOrderPlace` implicit endpoint.
-    pub async fn sapi_post_equity_order_place(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_equity_order_place".into()), optional_args).await
+    pub async fn sapi_post_equity_order_place(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_equity_order_place".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostEquityOrderCancel` implicit endpoint.
-    pub async fn sapi_post_equity_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_equity_order_cancel".into()), optional_args).await
+    pub async fn sapi_post_equity_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_equity_order_cancel".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostEquityOrderCancelAll` implicit endpoint.
@@ -2028,8 +2028,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPostEquityTokenizedRedeem` implicit endpoint.
-    pub async fn sapi_post_equity_tokenized_redeem(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_post_equity_tokenized_redeem".into()), optional_args).await
+    pub async fn sapi_post_equity_tokenized_redeem(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_post_equity_tokenized_redeem".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiPostEquityAccountDisclaimer` implicit endpoint.
@@ -2063,8 +2063,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiDeleteMarginOrder` implicit endpoint.
-    pub async fn sapi_delete_margin_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_delete_margin_order".into()), optional_args).await
+    pub async fn sapi_delete_margin_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("sapi_delete_margin_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `sapiDeleteMarginOrderList` implicit endpoint.
@@ -2223,8 +2223,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPublicGetTime` implicit endpoint.
-    pub async fn dapi_public_get_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_public_get_time".into()), optional_args).await
+    pub async fn dapi_public_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_public_get_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPublicGetExchangeInfo` implicit endpoint.
@@ -2233,8 +2233,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPublicGetDepth` implicit endpoint.
-    pub async fn dapi_public_get_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_public_get_depth".into()), optional_args).await
+    pub async fn dapi_public_get_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_public_get_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPublicGetTrades` implicit endpoint.
@@ -2308,8 +2308,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPublicGetOpenInterest` implicit endpoint.
-    pub async fn dapi_public_get_open_interest(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_public_get_open_interest".into()), optional_args).await
+    pub async fn dapi_public_get_open_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_public_get_open_interest".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPublicGetFundingInfo` implicit endpoint.
@@ -2353,8 +2353,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetPositionSideDual` implicit endpoint.
-    pub async fn dapi_private_get_position_side_dual(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_get_position_side_dual".into()), optional_args).await
+    pub async fn dapi_private_get_position_side_dual(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_get_position_side_dual".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetOrderAmendment` implicit endpoint.
@@ -2363,13 +2363,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetOrder` implicit endpoint.
-    pub async fn dapi_private_get_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_get_order".into()), optional_args).await
+    pub async fn dapi_private_get_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_get_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetOpenOrder` implicit endpoint.
-    pub async fn dapi_private_get_open_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_get_open_order".into()), optional_args).await
+    pub async fn dapi_private_get_open_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_get_open_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetOpenOrders` implicit endpoint.
@@ -2383,8 +2383,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetAlgoOrder` implicit endpoint.
-    pub async fn dapi_private_get_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_get_algo_order".into()), optional_args).await
+    pub async fn dapi_private_get_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_get_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetAllAlgoOrders` implicit endpoint.
@@ -2443,8 +2443,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetCommissionRate` implicit endpoint.
-    pub async fn dapi_private_get_commission_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_get_commission_rate".into()), optional_args).await
+    pub async fn dapi_private_get_commission_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_get_commission_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetIncomeAsyn` implicit endpoint.
@@ -2488,18 +2488,18 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePostPositionSideDual` implicit endpoint.
-    pub async fn dapi_private_post_position_side_dual(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_post_position_side_dual".into()), optional_args).await
+    pub async fn dapi_private_post_position_side_dual(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_post_position_side_dual".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePostOrder` implicit endpoint.
-    pub async fn dapi_private_post_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_post_order".into()), optional_args).await
+    pub async fn dapi_private_post_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_post_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePostAlgoOrder` implicit endpoint.
-    pub async fn dapi_private_post_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_post_algo_order".into()), optional_args).await
+    pub async fn dapi_private_post_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_post_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePostBatchOrders` implicit endpoint.
@@ -2513,23 +2513,23 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePostLeverage` implicit endpoint.
-    pub async fn dapi_private_post_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_post_leverage".into()), optional_args).await
+    pub async fn dapi_private_post_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_post_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePostMarginType` implicit endpoint.
-    pub async fn dapi_private_post_margin_type(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_post_margin_type".into()), optional_args).await
+    pub async fn dapi_private_post_margin_type(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_post_margin_type".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePostPositionMargin` implicit endpoint.
-    pub async fn dapi_private_post_position_margin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_post_position_margin".into()), optional_args).await
+    pub async fn dapi_private_post_position_margin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_post_position_margin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePostListenKey` implicit endpoint.
-    pub async fn dapi_private_post_listen_key(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_post_listen_key".into()), optional_args).await
+    pub async fn dapi_private_post_listen_key(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_post_listen_key".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePutListenKey` implicit endpoint.
@@ -2538,8 +2538,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePutOrder` implicit endpoint.
-    pub async fn dapi_private_put_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_put_order".into()), optional_args).await
+    pub async fn dapi_private_put_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_put_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivatePutBatchOrders` implicit endpoint.
@@ -2548,13 +2548,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivateDeleteOrder` implicit endpoint.
-    pub async fn dapi_private_delete_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_delete_order".into()), optional_args).await
+    pub async fn dapi_private_delete_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_delete_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivateDeleteAlgoOrder` implicit endpoint.
-    pub async fn dapi_private_delete_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_delete_algo_order".into()), optional_args).await
+    pub async fn dapi_private_delete_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("dapi_private_delete_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `dapiPrivateDeleteAlgoOpenOrders` implicit endpoint.
@@ -2588,8 +2588,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetTime` implicit endpoint.
-    pub async fn fapi_public_get_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_public_get_time".into()), optional_args).await
+    pub async fn fapi_public_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_public_get_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetExchangeInfo` implicit endpoint.
@@ -2603,8 +2603,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetRpiDepth` implicit endpoint.
-    pub async fn fapi_public_get_rpi_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_public_get_rpi_depth".into()), optional_args).await
+    pub async fn fapi_public_get_rpi_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_public_get_rpi_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetTrades` implicit endpoint.
@@ -2678,8 +2678,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetOpenInterest` implicit endpoint.
-    pub async fn fapi_public_get_open_interest(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_public_get_open_interest".into()), optional_args).await
+    pub async fn fapi_public_get_open_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_public_get_open_interest".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetIndexInfo` implicit endpoint.
@@ -2718,8 +2718,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetSymbolAdlRisk` implicit endpoint.
-    pub async fn fapi_public_get_symbol_adl_risk(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_public_get_symbol_adl_risk".into()), optional_args).await
+    pub async fn fapi_public_get_symbol_adl_risk(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_public_get_symbol_adl_risk".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPublicGetTradingSchedule` implicit endpoint.
@@ -2773,8 +2773,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetOpenOrder` implicit endpoint.
-    pub async fn fapi_private_get_open_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_get_open_order".into()), optional_args).await
+    pub async fn fapi_private_get_open_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_get_open_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetOpenOrders` implicit endpoint.
@@ -2783,8 +2783,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetOrder` implicit endpoint.
-    pub async fn fapi_private_get_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_get_order".into()), optional_args).await
+    pub async fn fapi_private_get_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_get_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetAccount` implicit endpoint.
@@ -2813,8 +2813,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetPositionSideDual` implicit endpoint.
-    pub async fn fapi_private_get_position_side_dual(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_get_position_side_dual".into()), optional_args).await
+    pub async fn fapi_private_get_position_side_dual(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_get_position_side_dual".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetUserTrades` implicit endpoint.
@@ -2828,8 +2828,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetCommissionRate` implicit endpoint.
-    pub async fn fapi_private_get_commission_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_get_commission_rate".into()), optional_args).await
+    pub async fn fapi_private_get_commission_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_get_commission_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetRateLimitOrder` implicit endpoint.
@@ -2943,8 +2943,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetAccountConfig` implicit endpoint.
-    pub async fn fapi_private_get_account_config(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_get_account_config".into()), optional_args).await
+    pub async fn fapi_private_get_account_config(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_get_account_config".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetConvertOrderStatus` implicit endpoint.
@@ -2953,8 +2953,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetAlgoOrder` implicit endpoint.
-    pub async fn fapi_private_get_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_get_algo_order".into()), optional_args).await
+    pub async fn fapi_private_get_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_get_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivateGetOpenAlgoOrders` implicit endpoint.
@@ -2978,23 +2978,23 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostPositionSideDual` implicit endpoint.
-    pub async fn fapi_private_post_position_side_dual(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_post_position_side_dual".into()), optional_args).await
+    pub async fn fapi_private_post_position_side_dual(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_post_position_side_dual".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostPositionMargin` implicit endpoint.
-    pub async fn fapi_private_post_position_margin(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_post_position_margin".into()), optional_args).await
+    pub async fn fapi_private_post_position_margin(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_post_position_margin".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostMarginType` implicit endpoint.
-    pub async fn fapi_private_post_margin_type(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_post_margin_type".into()), optional_args).await
+    pub async fn fapi_private_post_margin_type(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_post_margin_type".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostOrder` implicit endpoint.
-    pub async fn fapi_private_post_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_post_order".into()), optional_args).await
+    pub async fn fapi_private_post_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_post_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostOrderTest` implicit endpoint.
@@ -3003,13 +3003,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostLeverage` implicit endpoint.
-    pub async fn fapi_private_post_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_post_leverage".into()), optional_args).await
+    pub async fn fapi_private_post_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_post_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostListenKey` implicit endpoint.
-    pub async fn fapi_private_post_listen_key(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_post_listen_key".into()), optional_args).await
+    pub async fn fapi_private_post_listen_key(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_post_listen_key".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostCountdownCancelAll` implicit endpoint.
@@ -3048,8 +3048,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePostAlgoOrder` implicit endpoint.
-    pub async fn fapi_private_post_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_post_algo_order".into()), optional_args).await
+    pub async fn fapi_private_post_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_post_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePutListenKey` implicit endpoint.
@@ -3058,8 +3058,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePutOrder` implicit endpoint.
-    pub async fn fapi_private_put_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_put_order".into()), optional_args).await
+    pub async fn fapi_private_put_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_put_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivatePutBatchOrders` implicit endpoint.
@@ -3073,8 +3073,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteOrder` implicit endpoint.
-    pub async fn fapi_private_delete_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_delete_order".into()), optional_args).await
+    pub async fn fapi_private_delete_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_delete_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteAllOpenOrders` implicit endpoint.
@@ -3088,8 +3088,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteAlgoOrder` implicit endpoint.
-    pub async fn fapi_private_delete_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_delete_algo_order".into()), optional_args).await
+    pub async fn fapi_private_delete_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("fapi_private_delete_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteAlgoOpenOrders` implicit endpoint.
@@ -3163,8 +3163,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `eapiPublicGetDepth` implicit endpoint.
-    pub async fn eapi_public_get_depth(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("eapi_public_get_depth".into()), optional_args).await
+    pub async fn eapi_public_get_depth(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("eapi_public_get_depth".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `eapiPublicGetKlines` implicit endpoint.
@@ -3188,8 +3188,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `eapiPublicGetOpenInterest` implicit endpoint.
-    pub async fn eapi_public_get_open_interest(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("eapi_public_get_open_interest".into()), optional_args).await
+    pub async fn eapi_public_get_open_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("eapi_public_get_open_interest".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `eapiPrivateGetAccount` implicit endpoint.
@@ -3253,8 +3253,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `eapiPrivateGetOrder` implicit endpoint.
-    pub async fn eapi_private_get_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("eapi_private_get_order".into()), optional_args).await
+    pub async fn eapi_private_get_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("eapi_private_get_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `eapiPrivateGetBlockOrderOrders` implicit endpoint.
@@ -3283,8 +3283,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `eapiPrivatePostOrder` implicit endpoint.
-    pub async fn eapi_private_post_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("eapi_private_post_order".into()), optional_args).await
+    pub async fn eapi_private_post_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("eapi_private_post_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `eapiPrivatePostBatchOrders` implicit endpoint.
@@ -3293,8 +3293,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `eapiPrivatePostListenKey` implicit endpoint.
-    pub async fn eapi_private_post_listen_key(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("eapi_private_post_listen_key".into()), optional_args).await
+    pub async fn eapi_private_post_listen_key(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("eapi_private_post_listen_key".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `eapiPrivatePostMmpSet` implicit endpoint.
@@ -3343,8 +3343,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `eapiPrivateDeleteOrder` implicit endpoint.
-    pub async fn eapi_private_delete_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("eapi_private_delete_order".into()), optional_args).await
+    pub async fn eapi_private_delete_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("eapi_private_delete_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `eapiPrivateDeleteBatchOrders` implicit endpoint.
@@ -3373,13 +3373,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `publicGetPing` implicit endpoint.
-    pub async fn public_get_ping(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_ping".into()), optional_args).await
+    pub async fn public_get_ping(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_ping".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetTime` implicit endpoint.
-    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_time".into()), optional_args).await
+    pub async fn public_get_time(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_get_time".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicGetDepth` implicit endpoint.
@@ -3473,8 +3473,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `publicPostUserDataStream` implicit endpoint.
-    pub async fn public_post_user_data_stream(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_post_user_data_stream".into()), optional_args).await
+    pub async fn public_post_user_data_stream(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("public_post_user_data_stream".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `publicDeleteUserDataStream` implicit endpoint.
@@ -3498,8 +3498,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `privateGetOrder` implicit endpoint.
-    pub async fn private_get_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_order".into()), optional_args).await
+    pub async fn private_get_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_get_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateGetOpenOrders` implicit endpoint.
@@ -3573,28 +3573,28 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `privatePostSorOrder` implicit endpoint.
-    pub async fn private_post_sor_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_sor_order".into()), optional_args).await
+    pub async fn private_post_sor_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_sor_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostSorOrderTest` implicit endpoint.
-    pub async fn private_post_sor_order_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_sor_order_test".into()), optional_args).await
+    pub async fn private_post_sor_order_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_sor_order_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrder` implicit endpoint.
-    pub async fn private_post_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_order".into()), optional_args).await
+    pub async fn private_post_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrderCancelReplace` implicit endpoint.
-    pub async fn private_post_order_cancel_replace(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_cancel_replace".into()), optional_args).await
+    pub async fn private_post_order_cancel_replace(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_order_cancel_replace".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privatePostOrderTest` implicit endpoint.
-    pub async fn private_post_order_test(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_order_test".into()), optional_args).await
+    pub async fn private_post_order_test(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_post_order_test".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `privateDeleteOpenOrders` implicit endpoint.
@@ -3608,8 +3608,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrder` implicit endpoint.
-    pub async fn private_delete_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_delete_order".into()), optional_args).await
+    pub async fn private_delete_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("private_delete_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetPing` implicit endpoint.
@@ -3618,13 +3618,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiGetUmOrder` implicit endpoint.
-    pub async fn papi_get_um_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_um_order".into()), optional_args).await
+    pub async fn papi_get_um_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_um_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetUmOpenOrder` implicit endpoint.
-    pub async fn papi_get_um_open_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_um_open_order".into()), optional_args).await
+    pub async fn papi_get_um_open_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_um_open_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetUmOpenOrders` implicit endpoint.
@@ -3638,13 +3638,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiGetCmOrder` implicit endpoint.
-    pub async fn papi_get_cm_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_cm_order".into()), optional_args).await
+    pub async fn papi_get_cm_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_cm_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetCmOpenOrder` implicit endpoint.
-    pub async fn papi_get_cm_open_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_cm_open_order".into()), optional_args).await
+    pub async fn papi_get_cm_open_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_cm_open_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetCmOpenOrders` implicit endpoint.
@@ -3678,8 +3678,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiGetUmAlgoAlgoOrder` implicit endpoint.
-    pub async fn papi_get_um_algo_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_um_algo_algo_order".into()), optional_args).await
+    pub async fn papi_get_um_algo_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_um_algo_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetUmAlgoOpenAlgoOrders` implicit endpoint.
@@ -3693,8 +3693,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiGetCmConditionalOpenOrder` implicit endpoint.
-    pub async fn papi_get_cm_conditional_open_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_cm_conditional_open_order".into()), optional_args).await
+    pub async fn papi_get_cm_conditional_open_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_cm_conditional_open_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetCmConditionalOpenOrders` implicit endpoint.
@@ -3713,8 +3713,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiGetMarginOrder` implicit endpoint.
-    pub async fn papi_get_margin_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_margin_order".into()), optional_args).await
+    pub async fn papi_get_margin_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_margin_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetMarginOpenOrders` implicit endpoint.
@@ -3828,13 +3828,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiGetUmCommissionRate` implicit endpoint.
-    pub async fn papi_get_um_commission_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_um_commission_rate".into()), optional_args).await
+    pub async fn papi_get_um_commission_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_um_commission_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetCmCommissionRate` implicit endpoint.
-    pub async fn papi_get_cm_commission_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_cm_commission_rate".into()), optional_args).await
+    pub async fn papi_get_cm_commission_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_cm_commission_rate".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetMarginMarginLoan` implicit endpoint.
@@ -3848,8 +3848,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiGetMarginMarginInterestHistory` implicit endpoint.
-    pub async fn papi_get_margin_margin_interest_history(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_margin_margin_interest_history".into()), optional_args).await
+    pub async fn papi_get_margin_margin_interest_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_get_margin_margin_interest_history".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiGetPortfolioInterestHistory` implicit endpoint.
@@ -3963,8 +3963,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiPostUmOrder` implicit endpoint.
-    pub async fn papi_post_um_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_um_order".into()), optional_args).await
+    pub async fn papi_post_um_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_um_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostUmConditionalOrder` implicit endpoint.
@@ -3973,33 +3973,33 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiPostUmAlgoOrder` implicit endpoint.
-    pub async fn papi_post_um_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_um_algo_order".into()), optional_args).await
+    pub async fn papi_post_um_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_um_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostCmOrder` implicit endpoint.
-    pub async fn papi_post_cm_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_cm_order".into()), optional_args).await
+    pub async fn papi_post_cm_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_cm_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostCmConditionalOrder` implicit endpoint.
-    pub async fn papi_post_cm_conditional_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_cm_conditional_order".into()), optional_args).await
+    pub async fn papi_post_cm_conditional_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_cm_conditional_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostMarginOrder` implicit endpoint.
-    pub async fn papi_post_margin_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_margin_order".into()), optional_args).await
+    pub async fn papi_post_margin_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_margin_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostMarginLoan` implicit endpoint.
-    pub async fn papi_post_margin_loan(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_margin_loan".into()), optional_args).await
+    pub async fn papi_post_margin_loan(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_margin_loan".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostRepayLoan` implicit endpoint.
-    pub async fn papi_post_repay_loan(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_repay_loan".into()), optional_args).await
+    pub async fn papi_post_repay_loan(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_repay_loan".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostMarginOrderOco` implicit endpoint.
@@ -4008,23 +4008,23 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiPostUmLeverage` implicit endpoint.
-    pub async fn papi_post_um_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_um_leverage".into()), optional_args).await
+    pub async fn papi_post_um_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_um_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostCmLeverage` implicit endpoint.
-    pub async fn papi_post_cm_leverage(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_cm_leverage".into()), optional_args).await
+    pub async fn papi_post_cm_leverage(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_cm_leverage".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostUmPositionSideDual` implicit endpoint.
-    pub async fn papi_post_um_position_side_dual(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_um_position_side_dual".into()), optional_args).await
+    pub async fn papi_post_um_position_side_dual(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_um_position_side_dual".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostCmPositionSideDual` implicit endpoint.
-    pub async fn papi_post_cm_position_side_dual(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_cm_position_side_dual".into()), optional_args).await
+    pub async fn papi_post_cm_position_side_dual(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_cm_position_side_dual".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostAutoCollection` implicit endpoint.
@@ -4048,8 +4048,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiPostListenKey` implicit endpoint.
-    pub async fn papi_post_listen_key(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_listen_key".into()), optional_args).await
+    pub async fn papi_post_listen_key(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_listen_key".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostAssetCollection` implicit endpoint.
@@ -4058,8 +4058,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiPostMarginRepayDebt` implicit endpoint.
-    pub async fn papi_post_margin_repay_debt(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_post_margin_repay_debt".into()), optional_args).await
+    pub async fn papi_post_margin_repay_debt(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_post_margin_repay_debt".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPostUmFeeBurn` implicit endpoint.
@@ -4078,18 +4078,18 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiPutUmOrder` implicit endpoint.
-    pub async fn papi_put_um_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_put_um_order".into()), optional_args).await
+    pub async fn papi_put_um_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_put_um_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiPutCmOrder` implicit endpoint.
-    pub async fn papi_put_cm_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_put_cm_order".into()), optional_args).await
+    pub async fn papi_put_cm_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_put_cm_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiDeleteUmOrder` implicit endpoint.
-    pub async fn papi_delete_um_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_delete_um_order".into()), optional_args).await
+    pub async fn papi_delete_um_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_delete_um_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiDeleteUmConditionalOrder` implicit endpoint.
@@ -4108,8 +4108,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiDeleteUmAlgoOrder` implicit endpoint.
-    pub async fn papi_delete_um_algo_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_delete_um_algo_order".into()), optional_args).await
+    pub async fn papi_delete_um_algo_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_delete_um_algo_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiDeleteUmAlgoAllOpenOrders` implicit endpoint.
@@ -4118,13 +4118,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiDeleteCmOrder` implicit endpoint.
-    pub async fn papi_delete_cm_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_delete_cm_order".into()), optional_args).await
+    pub async fn papi_delete_cm_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_delete_cm_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiDeleteCmConditionalOrder` implicit endpoint.
-    pub async fn papi_delete_cm_conditional_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_delete_cm_conditional_order".into()), optional_args).await
+    pub async fn papi_delete_cm_conditional_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_delete_cm_conditional_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiDeleteCmAllOpenOrders` implicit endpoint.
@@ -4138,8 +4138,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiDeleteMarginOrder` implicit endpoint.
-    pub async fn papi_delete_margin_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_delete_margin_order".into()), optional_args).await
+    pub async fn papi_delete_margin_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_delete_margin_order".into()), optional_args).await { Some(m) } else { None }
     }
 
     /// Auto-generated wrapper for the `papiDeleteMarginAllOpenOrders` implicit endpoint.
@@ -4158,8 +4158,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiV2GetUmAccount` implicit endpoint.
-    pub async fn papi_v2_get_um_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_v2_get_um_account".into()), optional_args).await
+    pub async fn papi_v2_get_um_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.call_method(Value::Str("papi_v2_get_um_account".into()), optional_args).await { Some(m) } else { None }
     }
 
 }
