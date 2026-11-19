@@ -118,7 +118,7 @@ const TAG_ACCESS = [
 const BUILDERS = new Set(['account', 'safe_ledger_entry', 'deposit_withdraw_fee']);
 
 // Copy-on-write of a proven tag-free source keeps the result tag-free.
-const EXTENDERS = new Set(['extend', 'omit', 'keysort']);
+const EXTENDERS = new Set(['extend', 'omit', 'keysort', 'extend_t']);
 
 // Parser methods whose return value is a fresh plain dict; the trait shims for
 // these forward to a per-exchange `*Core` impl, so the body is not always in the
@@ -537,6 +537,8 @@ class Proof {
         if (depth > 2) return false;
         if (t.startsWith('Value::Map(')) return true;
         if (t.startsWith('Value::Null')) return true;
+        // a typed builder boxed into a `Value` local proves like the unboxed call
+        if (t.startsWith('Value::Dict(self.') && closeParenAt(t, 'Value::Dict'.length) === t.length) return this.srcTagFree(t.slice('Value::Dict('.length, -1), body, region, depth, self);
         if (/^\(\{\s*let mut m = indexmap::IndexMap::new\(\);[\s\S]*\n\s*m\s*\}\)$/.test(t)) return true;
         const destr = t.match(/^(__destr_tmp\w*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\);/);
         if (destr !== null) return this.destrSlot0Plain(destr[1], body.indexOf(src), body);
@@ -5220,6 +5222,45 @@ function rustTypedParsePositionFamilies (content: string): string {
     typeAll ('parse_ws_position');
     typeAll ('parse_event');
     return content.split (Q).join ('');
+}
+
+// `editOrderRequest` / `postActionRequest` return a fresh map on every path in every venue (`extend` of a request, the
+// request map itself), so they return `Dict`; any other return throws. `.into_dict()` drops, `.as_map()` copies unwrap,
+// any other use (dispatch arms, `Value` locals) boxes it.
+function rustTypedRequestBuilders (content: string): string {
+    for (const fn of [ 'edit_order_request', 'post_action_request' ]) {
+        const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
+        const tail = '\n\n    Value::Null\n}';
+        let d: RegExpExecArray | null;
+        while ((d = decl.exec (content)) !== null) {
+            const open = d.index + d[0].length, end = content.indexOf (tail, open);
+            if (end < 0) throw new Error (fn + ': declaration without the Value::Null tail');
+            const body = content.slice (open, end).replace (/^( *return )([^\n]*)$/gm, (_l, r: string, e: string) => {
+                if (e.startsWith ('self.extend(') && e.endsWith (');')) return r + 'self.extend_t(' + e.slice ('self.extend('.length);
+                const m = e.match (/^Value::(Map|Dict)\((\w+)\);$/);
+                if (m && new RegExp ('\\blet mut ' + m[2] + ': ' + (m[1] === 'Map' ? 'indexmap::IndexMap<String, Value>' : 'crate::value::Dict') + ' = ').test (content.slice (open, end))) {
+                    return r + (m[1] === 'Map' ? 'std::sync::Arc::new(' + m[2] + ')' : m[2]) + ';';
+                }
+                throw new Error (fn + ': unproven return ' + e.slice (0, 80));
+            });
+            content = content.slice (0, d.index) + d[0].replace (') -> Value {', ') -> crate::value::Dict {') + body + '\n\n    Default::default()\n}' + content.slice (end + tail.length);
+            decl.lastIndex = d.index + d[0].length;
+        }
+        const head = new RegExp ('(?<![\\w.])self\\.(?:parent\\.)?' + fn + '\\(', 'g'), starts: number[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = head.exec (content)) !== null) starts.push (m.index);
+        const copy = '.as_map().cloned().unwrap_or_default()';
+        for (const s of starts.reverse ()) {
+            let close = balancedCloseIndex (content, content.indexOf ('(', s) + 1);
+            if (close >= content.length) continue;
+            if (content.startsWith ('.await', close + 1)) close += '.await'.length;
+            const rest = content.slice (close + 1);
+            if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            else if (rest.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice (copy.length);
+            else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
+        }
+    }
+    return content;
 }
 
 // Every `safeTrade` caller passes an object literal (`Value::Map(..)`), so it takes and returns `Dict`; a venue
@@ -12268,7 +12309,11 @@ impl std::ops::DerefMut for ${coreName} {
             rustContent = rustTypedParseOrder(rustContent);
             rustContent = rustTypedParseTrade(rustContent);
             rustContent = rustTypedParseTicker(rustContent);
+<<<<<<< merged
             rustContent = rustTypedParsePositionFamilies(rustContent);
+=======
+            rustContent = rustTypedRequestBuilders(rustContent);
+>>>>>>> R05
 
             // Phase 2 — lexical sanity check. A file with mismatched
             // delimiters would break the whole crate, so a failure here is
