@@ -11724,6 +11724,8 @@ function overwriteFileAndFolder (path: string, content: string) {
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
     if (path.endsWith ('.go')) {
         content = goDropRedundantTyped (goStructReturnsPass (content));
+        // the base file gains its struct-to-map row wraps only here (parseLedger's itemOrItems is never an array)
+        content = (path === BASE_METHODS_FILE) ? goTypedShapeHelpers (content, '') : content;
     }
     // layout last: the passes above splice operands (derefs, natives) after spacing and the
     // comment columns were computed; recompute both from the final text
