@@ -17726,7 +17726,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return (cached === null) ? undefined : cached;
     }
     const alias = (parameter.type?.getText !== undefined) ? parameter.type.getText () : undefined;
-    const mapped = (alias === undefined) ? undefined : (CSHARP_PARAMETER_ALIAS_TYPES[alias] ?? asyncParameterStringAlias (alias, parameter));
+    const mapped = (alias === undefined) ? undefined : (CSHARP_PARAMETER_ALIAS_TYPES[alias] ?? asyncParameterStringAlias (alias, parameter) ?? anyParameterLengthList (parameter, alias));
     if (mapped === undefined) {
         csharpParameterTypeDecisions.set (parameter, null);
         return undefined;
@@ -17897,6 +17897,15 @@ function foreignCallsPassSafeLists (rel, name) {
         return writes.length > 0 && writes.every ((write) => new RegExp ('^' + argument + '\\s*=\\s*this\\.safeList\\s*\\(').test (write))
             && new RegExp ('const\\s+' + argument + '\\s*=').test (body);
     });
+}
+
+// an `any` parameter read as a list (`.length` loop bound, index reads) in the closed table below
+// goes through the same per-declaration call-site proof as a `List` one; a failing caller keeps `object`
+const ANY_LIST_PARAMETERS = { 'parseBalanceList': 0 };
+function anyParameterLengthList (parameter, alias) {
+    const owner = parameter.parent;
+    return ((alias === 'any') && (owner?.name !== undefined) && (ANY_LIST_PARAMETERS[owner.name.text] === owner.parameters.indexOf (parameter)))
+        ? CSHARP_PARAMETER_ALIAS_TYPES['List'] : undefined;
 }
 
 function coreArgParamPosition (name, position) {
