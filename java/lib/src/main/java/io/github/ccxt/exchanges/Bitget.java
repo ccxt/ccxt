@@ -3643,7 +3643,7 @@ public class Bitget extends BitgetApi
         this.setSandboxMode(enabled);
     }
 
-    public Object handleProductTypeAndParams(Map<String, Object> market, Map<String, Object> parameters)
+    public Pair<String, Map<String, Object>> handleProductTypeAndParams(Map<String, Object> market, Map<String, Object> parameters)
     {
         String subType = null;
         Map<String, Object> paramsSubType = null;
@@ -3702,7 +3702,7 @@ public class Bitget extends BitgetApi
             throw new ArgumentsRequired((this.id + " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"")) ;
         }
         paramsSubType = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("productType", "category")));
-        return new ArrayList<Object>(Arrays.asList(productType, paramsSubType));
+        return new Pair<>(productType, paramsSubType);
     }
 
     public CompletableFuture<Object> handleUTAAndParams(Map<String, Object> parameters, String methodName, Boolean defaultValue)
@@ -4645,9 +4645,9 @@ public class Bitget extends BitgetApi
             Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "isolated");
             marginMode = marginModeparamsMarginModeVariable.first();
             paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            List<Object> productTypeparamsMarginModeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsMarginMode);
-            productType = (String) ((List<Object>) productTypeparamsMarginModeVariable).get(0);
-            paramsMarginMode = (Map<String, Object>) ((List<Object>) productTypeparamsMarginModeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsMarginModeVariable = this.handleProductTypeAndParams(market, paramsMarginMode);
+            productType = productTypeparamsMarginModeVariable.first();
+            paramsMarginMode = productTypeparamsMarginModeVariable.second();
             List<Object> utaparamsMarginModeVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsMarginMode), "fetchMarketLeverageTiers", false)).join();
             uta = (Boolean) ((List<Object>) utaparamsMarginModeVariable).get(0);
             paramsMarginMode = (Map<String, Object>) ((List<Object>) utaparamsMarginModeVariable).get(1);
@@ -5495,9 +5495,9 @@ public class Bitget extends BitgetApi
             {
                 request.put("limit", limit);
             }
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> response = null;
             Boolean isStock = (Boolean) market.get("stock");
             Map<String, Object> paramsStock = this.omit(paramsProductType, "stock");
@@ -5740,9 +5740,9 @@ public class Bitget extends BitgetApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> response = null;
             Boolean isStock = (Boolean) market.get("stock");
             Map<String, Object> paramsStock = this.omit(paramsProductType, "stock");
@@ -5919,9 +5919,9 @@ public class Bitget extends BitgetApi
                 throw new NotSupported((this.id + " fetchMarkPrice() is not supported for spot markets")) ;
             } else
             {
-                List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-                String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-                Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+                String productType = productTypeparamsProductTypeVariable.first();
+                Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
                 request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, paramsProductType))).join();
             }
@@ -5972,9 +5972,9 @@ public class Bitget extends BitgetApi
             // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
             // with higher priority and only default to spot, if `subType` is not set in params
             String passedSubType = this.safeString(paramsMarketType, "subType");
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsMarketType);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, paramsMarketType);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsProductType), "fetchTickers", "stock", stockDefault);
             Boolean stock = stockparamsStockVariable.first();
             Map<String, Object> paramsStock = stockparamsStockVariable.second();
@@ -6376,9 +6376,9 @@ public class Bitget extends BitgetApi
             Map<String, Object> options = this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
             Map<String, Object> response = null;
             String productType = null;
-            List<Object> productTypeparamsPaginateVariable = (List<Object>) this.handleProductTypeAndParams(market, ((Map<String, Object>) (switch ((Object) (paramsPaginate)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
-            productType = (String) ((List<Object>) productTypeparamsPaginateVariable).get(0);
-            paramsPaginate = ((List<Object>) productTypeparamsPaginateVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsPaginateVariable = this.handleProductTypeAndParams(market, ((Map<String, Object>) (switch ((Object) (paramsPaginate)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            productType = productTypeparamsPaginateVariable.first();
+            paramsPaginate = productTypeparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(isStockSpot))
             {
                 if (!java.util.Objects.equals(since, null))
@@ -6541,9 +6541,9 @@ public class Bitget extends BitgetApi
             if (java.util.Objects.equals(uta, true))
             {
                 String productType = null;
-                List<Object> productTypeparamsUTAVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsUTA);
-                productType = (String) ((List<Object>) productTypeparamsUTAVariable).get(0);
-                paramsUTA = (Map<String, Object>) ((List<Object>) productTypeparamsUTAVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsUTAVariable = this.handleProductTypeAndParams(market, paramsUTA);
+                productType = productTypeparamsUTAVariable.first();
+                paramsUTA = productTypeparamsUTAVariable.second();
                 request.put("category", productType);
                 Map<String, Object> utaResponse = (this.privateUtaGetV3AccountFeeRate(this.extend(request, paramsUTA))).join();
                 //
@@ -6649,9 +6649,9 @@ public class Bitget extends BitgetApi
                 } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
                 {
                     String utaProductType = null;
-                    List<Object> utaProductTypeparamsMarginModeVariable = (List<Object>) this.handleProductTypeAndParams((Map<String, Object>) null, paramsMarginMode);
-                    utaProductType = (String) ((List<Object>) utaProductTypeparamsMarginModeVariable).get(0);
-                    paramsMarginMode = (Map<String, Object>) ((List<Object>) utaProductTypeparamsMarginModeVariable).get(1);
+                    Pair<String, Map<String, Object>> utaProductTypeparamsMarginModeVariable = this.handleProductTypeAndParams((Map<String, Object>) null, paramsMarginMode);
+                    utaProductType = utaProductTypeparamsMarginModeVariable.first();
+                    paramsMarginMode = utaProductTypeparamsMarginModeVariable.second();
                     request.put("category", utaProductType);
                 } else
                 {
@@ -6706,9 +6706,9 @@ public class Bitget extends BitgetApi
             } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
             {
                 String productType = null;
-                List<Object> productTypeparamsMarginModeVariable = (List<Object>) this.handleProductTypeAndParams((Map<String, Object>) null, paramsMarginMode);
-                productType = (String) ((List<Object>) productTypeparamsMarginModeVariable).get(0);
-                paramsMarginMode = (Map<String, Object>) ((List<Object>) productTypeparamsMarginModeVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsMarginModeVariable = this.handleProductTypeAndParams((Map<String, Object>) null, paramsMarginMode);
+                productType = productTypeparamsMarginModeVariable.first();
+                paramsMarginMode = productTypeparamsMarginModeVariable.second();
                 Helpers.addElementToObject(paramsMarginMode, "productType", productType);
                 response = (this.publicMixGetV2MixMarketContracts(paramsMarginMode)).join();
             } else
@@ -7005,9 +7005,9 @@ public class Bitget extends BitgetApi
             List<Object> priceTypeparamsPriceVariable = (List<Object>) this.handleParamString(paramsOmitted, "price", (String) null);
             String priceType = (String) ((List<Object>) priceTypeparamsPriceVariable).get(0);
             Map<String, Object> paramsPrice = (Map<String, Object>) ((List<Object>) priceTypeparamsPriceVariable).get(1);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsPrice);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, paramsPrice);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             if ((Boolean.TRUE.equals(isStockSpot) && (!java.util.Objects.equals(priceType, null))))
             {
                 throw new BadRequest((this.id + " fetchOHLCV() for stock markets supports only market-price candles")) ;
@@ -7166,9 +7166,9 @@ public class Bitget extends BitgetApi
             } else if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
             {
                 String productType = null;
-                List<Object> productTypeparamsUTAVariable = (List<Object>) this.handleProductTypeAndParams((Map<String, Object>) null, paramsUTA);
-                productType = (String) ((List<Object>) productTypeparamsUTAVariable).get(0);
-                paramsUTA = (Map<String, Object>) ((List<Object>) productTypeparamsUTAVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsUTAVariable = this.handleProductTypeAndParams((Map<String, Object>) null, paramsUTA);
+                productType = productTypeparamsUTAVariable.first();
+                paramsUTA = productTypeparamsUTAVariable.second();
                 request.put("productType", productType);
                 response = (this.privateMixGetV2MixAccountAccounts(this.extend(request, paramsUTA))).join();
             } else if (java.util.Objects.equals(marginMode, "isolated"))
@@ -8007,9 +8007,9 @@ public class Bitget extends BitgetApi
         Map<String, Object> market = this.market(symbol);
         String productType = null;
         Map<String, Object> paramsProductType = null;
-        List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-        productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-        paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+        Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = productTypeparamsProductTypeVariable.first();
+        paramsProductType = productTypeparamsProductTypeVariable.second();
         if (java.util.Objects.equals(productType, "SPOT"))
         {
             String marginMode = null;
@@ -8271,9 +8271,9 @@ public class Bitget extends BitgetApi
             request.put("marginCoin", market.get("settleId"));
             request.put("size", this.amountToPrecision(symbol, amount));
             String productType = null;
-            List<Object> productTypeparamsMarketTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsMarketType);
-            productType = (String) ((List<Object>) productTypeparamsMarketTypeVariable).get(0);
-            paramsMarketType = (Map<String, Object>) ((List<Object>) productTypeparamsMarketTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsMarketTypeVariable = this.handleProductTypeAndParams(market, paramsMarketType);
+            productType = productTypeparamsMarketTypeVariable.first();
+            paramsMarketType = productTypeparamsMarketTypeVariable.second();
             request.put("productType", productType);
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -8650,9 +8650,9 @@ public class Bitget extends BitgetApi
                 request.put("marginMode", marginModeRequest);
                 request.put("marginCoin", market.get("settleId"));
                 String productType = null;
-                List<Object> productTypeparamsUTAVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsUTA);
-                productType = (String) ((List<Object>) productTypeparamsUTAVariable).get(0);
-                paramsUTA = (Map<String, Object>) ((List<Object>) productTypeparamsUTAVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsUTAVariable = this.handleProductTypeAndParams(market, paramsUTA);
+                productType = productTypeparamsUTAVariable.first();
+                paramsUTA = productTypeparamsUTAVariable.second();
                 request.put("productType", productType);
                 response = (this.privateMixPostV2MixOrderBatchPlaceOrder(request)).join();
             } else if (java.util.Objects.equals(marginMode, "isolated"))
@@ -8779,9 +8779,9 @@ public class Bitget extends BitgetApi
             Map<String, Object> response = null;
             String productType = null;
             Boolean uta = null;
-            List<Object> productTypeparamsOmittedVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsOmitted);
-            productType = (String) ((List<Object>) productTypeparamsOmittedVariable).get(0);
-            paramsOmitted = (Map<String, Object>) ((List<Object>) productTypeparamsOmittedVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsOmittedVariable = this.handleProductTypeAndParams(market, paramsOmitted);
+            productType = productTypeparamsOmittedVariable.first();
+            paramsOmitted = productTypeparamsOmittedVariable.second();
             List<Object> utaparamsOmittedVariable = (List<Object>) (this.handleUTAAndParams(paramsOmitted, "editOrder", false)).join();
             uta = (Boolean) ((List<Object>) utaparamsOmittedVariable).get(0);
             paramsOmitted = (Map<String, Object>) ((List<Object>) utaparamsOmittedVariable).get(1);
@@ -9090,9 +9090,9 @@ public class Bitget extends BitgetApi
             } else if (Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false))))
             {
                 String productType = null;
-                List<Object> productTypeparamsMarginModeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsMarginMode);
-                productType = (String) ((List<Object>) productTypeparamsMarginModeVariable).get(0);
-                paramsMarginMode = (Map<String, Object>) ((List<Object>) productTypeparamsMarginModeVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsMarginModeVariable = this.handleProductTypeAndParams(market, paramsMarginMode);
+                productType = productTypeparamsMarginModeVariable.first();
+                paramsMarginMode = productTypeparamsMarginModeVariable.second();
                 request.put("productType", productType);
                 if (Boolean.TRUE.equals(trailing))
                 {
@@ -9216,8 +9216,8 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Object> productTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeVariable).get(0);
+            Pair<String, Map<String, Object>> productTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeVariable.first();
             List<Object> requestList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
@@ -9334,9 +9334,9 @@ public class Bitget extends BitgetApi
             } else
             {
                 String productType = null;
-                List<Object> productTypeparamsUTAVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsUTA);
-                productType = (String) ((List<Object>) productTypeparamsUTAVariable).get(0);
-                paramsUTA = (Map<String, Object>) ((List<Object>) productTypeparamsUTAVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsUTAVariable = this.handleProductTypeAndParams(market, paramsUTA);
+                productType = productTypeparamsUTAVariable.first();
+                paramsUTA = productTypeparamsUTAVariable.second();
                 request.put("productType", productType);
                 if (java.util.Objects.equals(trigger, true))
                 {
@@ -9405,9 +9405,9 @@ public class Bitget extends BitgetApi
             marginMode = marginModeparamsMarginModeVariable.first();
             paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String productType = null;
-            List<Object> productTypeparamsMarginModeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsMarginMode);
-            productType = (String) ((List<Object>) productTypeparamsMarginModeVariable).get(0);
-            paramsMarginMode = (Map<String, Object>) ((List<Object>) productTypeparamsMarginModeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsMarginModeVariable = this.handleProductTypeAndParams(market, paramsMarginMode);
+            productType = productTypeparamsMarginModeVariable.first();
+            paramsMarginMode = productTypeparamsMarginModeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -9545,9 +9545,9 @@ public class Bitget extends BitgetApi
             } else if (Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false))))
             {
                 request.put("symbol", market.get("id"));
-                List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsUTA);
-                String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-                Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, paramsUTA);
+                String productType = productTypeparamsProductTypeVariable.first();
+                Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
                 request.put("productType", productType);
                 response = (this.privateMixGetV2MixOrderDetail(this.extend(request, paramsProductType))).join();
             } else
@@ -9805,9 +9805,9 @@ public class Bitget extends BitgetApi
                 }
             }
             String productType = null;
-            List<Object> productTypeparamsMarginModeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsMarginMode);
-            productType = (String) ((List<Object>) productTypeparamsMarginModeVariable).get(0);
-            paramsMarginMode = (Map<String, Object>) ((List<Object>) productTypeparamsMarginModeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsMarginModeVariable = this.handleProductTypeAndParams(market, paramsMarginMode);
+            productType = productTypeparamsMarginModeVariable.first();
+            paramsMarginMode = productTypeparamsMarginModeVariable.second();
             paramsMarginMode = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("type", "stop", "trigger", "trailing")));
             if (java.util.Objects.equals(uta, true))
             {
@@ -10375,9 +10375,9 @@ public class Bitget extends BitgetApi
             } else
             {
                 String productType = null;
-                List<Object> productTypeparamsUTAVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsUTA);
-                productType = (String) ((List<Object>) productTypeparamsUTAVariable).get(0);
-                paramsUTA = (Map<String, Object>) ((List<Object>) productTypeparamsUTAVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsUTAVariable = this.handleProductTypeAndParams(market, paramsUTA);
+                productType = productTypeparamsUTAVariable.first();
+                paramsUTA = productTypeparamsUTAVariable.second();
                 request.put("productType", productType);
                 String planTypeValue = this.safeString(paramsUTA, "planType");
                 Boolean planTypeDefined = (!java.util.Objects.equals(planTypeValue, null));
@@ -10614,9 +10614,9 @@ public class Bitget extends BitgetApi
             }
             String productType = null;
             Map<String, Object> paramsProductType = null;
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            productType = productTypeparamsProductTypeVariable.first();
+            paramsProductType = productTypeparamsProductTypeVariable.second();
             if (java.util.Objects.equals(productType, "SPOT"))
             {
                 String marginMode = null;
@@ -10631,14 +10631,14 @@ public class Bitget extends BitgetApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("category", productType);
             Boolean paginate = false;
-            Pair<Boolean, Map<String, Object>> paginateparamsProductTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsProductType), "fetchCanceledAndClosedOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsProductTypeVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchCanceledAndClosedOrders", "paginate", false);
             paginate = paginateparamsProductTypeVariable.first();
             paramsProductType = paginateparamsProductTypeVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, paramsProductType, "cursor", "cursor", (Long) null, (Long) null)).join();
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsProductTypeVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsProductType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsProductTypeVariable = this.handleUntilOption("endTime", request, paramsProductType, 1);
             request = requestparamsProductTypeVariable.first();
             paramsProductType = requestparamsProductTypeVariable.second();
             if (!java.util.Objects.equals(since, null))
@@ -10872,9 +10872,9 @@ public class Bitget extends BitgetApi
                     } else
                     {
                         String utaProductType = null;
-                        List<Object> utaProductTypeparamsOmittedVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsOmitted);
-                        utaProductType = (String) ((List<Object>) utaProductTypeparamsOmittedVariable).get(0);
-                        paramsOmitted = (Map<String, Object>) ((List<Object>) utaProductTypeparamsOmittedVariable).get(1);
+                        Pair<String, Map<String, Object>> utaProductTypeparamsOmittedVariable = this.handleProductTypeAndParams(market, paramsOmitted);
+                        utaProductType = utaProductTypeparamsOmittedVariable.first();
+                        paramsOmitted = utaProductTypeparamsOmittedVariable.second();
                         request.put("category", utaProductType);
                     }
                     if (!java.util.Objects.equals(symbol, null))
@@ -10897,9 +10897,9 @@ public class Bitget extends BitgetApi
                     request.put("symbol", this.safeString(market, "id"));
                 }
                 String productType = null;
-                List<Object> productTypeparamsOmittedVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsOmitted);
-                productType = (String) ((List<Object>) productTypeparamsOmittedVariable).get(0);
-                paramsOmitted = (Map<String, Object>) ((List<Object>) productTypeparamsOmittedVariable).get(1);
+                Pair<String, Map<String, Object>> productTypeparamsOmittedVariable = this.handleProductTypeAndParams(market, paramsOmitted);
+                productType = productTypeparamsOmittedVariable.first();
+                paramsOmitted = productTypeparamsOmittedVariable.second();
                 request.put("productType", productType);
                 response = (this.privateMixGetV2MixAccountBill(this.extend(request, paramsOmitted))).join();
             }
@@ -11361,9 +11361,9 @@ public class Bitget extends BitgetApi
                 } else
                 {
                     String productType = null;
-                    List<Object> productTypeparamsUTAVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsUTA);
-                    productType = (String) ((List<Object>) productTypeparamsUTAVariable).get(0);
-                    paramsUTA = (Map<String, Object>) ((List<Object>) productTypeparamsUTAVariable).get(1);
+                    Pair<String, Map<String, Object>> productTypeparamsUTAVariable = this.handleProductTypeAndParams(market, paramsUTA);
+                    productType = productTypeparamsUTAVariable.first();
+                    paramsUTA = productTypeparamsUTAVariable.second();
                     request.put("productType", productType);
                     response = (this.privateMixGetV2MixOrderFills(this.extend(request, paramsUTA))).join();
                 }
@@ -11539,9 +11539,9 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -11694,9 +11694,9 @@ public class Bitget extends BitgetApi
                 }
             }
             String productType = null;
-            List<Object> productTypeparamsPaginateVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsPaginate);
-            productType = (String) ((List<Object>) productTypeparamsPaginateVariable).get(0);
-            paramsPaginate = (Map<String, Object>) ((List<Object>) productTypeparamsPaginateVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsPaginateVariable = this.handleProductTypeAndParams(market, paramsPaginate);
+            productType = productTypeparamsPaginateVariable.first();
+            paramsPaginate = productTypeparamsPaginateVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             Boolean isHistory = false;
@@ -12154,9 +12154,9 @@ public class Bitget extends BitgetApi
             Map<String, Object> response = null;
             List<Object> result = null;
             Map<String, Object> paramsProductType = null;
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            productType = productTypeparamsProductTypeVariable.first();
+            paramsProductType = productTypeparamsProductTypeVariable.second();
             List<Object> utaparamsProductTypeVariable = (List<Object>) (this.handleUTAAndParams(paramsProductType, "fetchFundingRateHistory", false)).join();
             uta = (Boolean) ((List<Object>) utaparamsProductTypeVariable).get(0);
             paramsProductType = (Map<String, Object>) ((List<Object>) utaparamsProductTypeVariable).get(1);
@@ -12269,9 +12269,9 @@ public class Bitget extends BitgetApi
             }
             String productType = null;
             Map<String, Object> paramsProductType = null;
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            productType = productTypeparamsProductTypeVariable.first();
+            paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -12334,9 +12334,9 @@ public class Bitget extends BitgetApi
                 market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "fetchFundingRates", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
@@ -12588,9 +12588,9 @@ public class Bitget extends BitgetApi
             {
                 throw new BadSymbol((this.id + " fetchFundingHistory() supports swap contracts only")) ;
             }
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsPaginate);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, paramsPaginate);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsProductType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
@@ -12702,9 +12702,9 @@ public class Bitget extends BitgetApi
             }
             String holdSide = this.safeString(parameters, "holdSide");
             Map<String, Object> market = this.market(symbol);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "marginCoin", market.get("settleId") );
@@ -12838,9 +12838,9 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "marginCoin", market.get("settleId") );
@@ -12936,9 +12936,9 @@ public class Bitget extends BitgetApi
             Map<String, Object> market = this.market(symbol);
             String productType = null;
             Map<String, Object> paramsProductType = null;
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            productType = productTypeparamsProductTypeVariable.first();
+            paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "leverage", Bitget.this.numberToString(leverage) );
@@ -13008,9 +13008,9 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("symbol", market.get("id"));
             request.put("marginCoin", market.get("settleId"));
@@ -13070,9 +13070,9 @@ public class Bitget extends BitgetApi
                 market = this.market(symbol);
             }
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "setPositionMode", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
@@ -13116,9 +13116,9 @@ public class Bitget extends BitgetApi
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -14392,9 +14392,9 @@ public class Bitget extends BitgetApi
                 put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = null;
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "closePosition", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
@@ -14444,9 +14444,9 @@ public class Bitget extends BitgetApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams((Map<String, Object>) null, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams((Map<String, Object>) null, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "closeAllPositions", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
@@ -14485,9 +14485,9 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "marginCoin", market.get("settleId") );
@@ -14591,9 +14591,9 @@ public class Bitget extends BitgetApi
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, paramsUntil);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, paramsUntil);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsProductType), "fetchPositionsHistory", false)).join();
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
@@ -14955,9 +14955,9 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
-            String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
-            Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
+            Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
+            String productType = productTypeparamsProductTypeVariable.first();
+            Map<String, Object> paramsProductType = productTypeparamsProductTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};

@@ -13089,6 +13089,15 @@ function longLimitLongArm (lines, from, to, arm) {
         && ops.every ((o) => /^-?\d+L?$/.test (o) || longLimitIsLong (lines, from, to, o));
 }
 
+// longLimitSplitTernary over a value whose string literals are masked; cond keeps the original text
+function longLimitSplitTernaryMasked (value) {
+    const masked = value.replace (/"(?:[^"\\]|\\.)*"/g, (x) => 'S'.repeat (x.length));
+    const t = longLimitSplitTernary (masked);
+    if (t === undefined || /S/.test (t.whenTrue + t.whenFalse)) return undefined;
+    const q = masked.indexOf (t.cond) + t.cond.length;
+    return { cond: value.slice (0, q).trim (), whenTrue: t.whenTrue, whenFalse: t.whenFalse };
+}
+
 // the printed initializer with `L` literals, or undefined; `boxChanges` = the old box was Integer
 // (a bare int literal local fed to Long slots is typed by the printer: javaLongLimitLiteralLocal)
 function longLimitInitializer (lines, from, to, type, value) {
@@ -13096,7 +13105,13 @@ function longLimitInitializer (lines, from, to, type, value) {
     if (type === 'Object' && longLimitLongArm (lines, from, to, value)) {
         return { text: value, boxChanges: false };
     }
-    const t = longLimitSplitTernary (value);
+    // requireValue hands its argument back or throws: a Long argument keeps the Long box
+    const required = /^this\.requireValue\(([A-Za-z_]\w*), "(?:[^"\\]|\\.)*"\)$/.exec (value);
+    if (type === 'Object' && required !== null && longLimitIsLong (lines, from, to, required[1])) {
+        return { text: `(Long) ${value}`, boxChanges: false };
+    }
+    // string literals in the condition (`safeBool(m, "spot", false)`) are masked for the split only
+    const t = longLimitSplitTernaryMasked (value);
     if (t === undefined || /\?|:/.test (t.whenTrue + t.whenFalse)) {
         return undefined;
     }
@@ -13165,7 +13180,7 @@ function longLimitUseOk (line, name, boxChanges) {
         if ((callee === 'Helpers.mathMin' || callee === 'Helpers.mathMax')
             && (!boxChanges || /^\s*(?:\w+\.)?put\(""\s*,\s*Helpers\.math(?:Min|Max)\([^()]*\)\);\s*$/.test (code))) continue;
         // a Long-typed slot binds the same way (the Object local held a Long already)
-        if (!boxChanges && callee !== undefined && /^this\.(?:filterBy\w*|parse\w+s|fetchPaginatedCall\w+)$/.test (callee)) continue;
+        if (!boxChanges && callee !== undefined && /^this\.(?:filterBy\w*|parse\w+s|parseToInt|fetchPaginatedCall\w+)$/.test (callee)) continue;
         return false;
     }
     return true;
@@ -13325,12 +13340,13 @@ function longLimitType (ctx, expr, group, old) {
         const ts = ops.map ((a) => longLimitType (ctx, a, group, true));
         return (ts.every (prim) && ts.some (wide)) ? leaf ('long') : undefined;
     }
-    const t = longLimitSplitTernary (e);
+    const t = longLimitSplitTernaryMasked (e);
     if (t === undefined) return undefined;
     const a = longLimitType (ctx, t.whenTrue, group, old);
     const b = longLimitType (ctx, t.whenFalse, group, old);
     if (a === undefined || b === undefined || /\?/.test (t.cond)) return undefined;
-    const kinds = [ a.kind, b.kind ];
+    // a new-mode literal arm prints with an `L` suffix: it is a long
+    const kinds = [ a.kind, b.kind ].map ((k) => (!old && k === 'lit' ? 'long' : k));
     const numeric = (k) => [ 'long', 'lit', 'Long', 'int', 'Integer' ].includes (k);
     let kind;
     if (kinds.includes ('Object')) kind = 'Object';
@@ -14994,6 +15010,7 @@ const PAIR_ACCESSORS = [ 'first', 'second' ];
 const PAIR_VENUE_TYPES = {
     'handleTypePostOnlyAndTimeInForce': { file: /[\\/]ts[\\/]src[\\/]deepcoin\.ts$/, types: [ 'String', PAIR_MAP ] },
     'getInstType': { file: /[\\/]ts[\\/]src[\\/]pro[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
+    'handleProductTypeAndParams': { file: /[\\/]ts[\\/]src[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
 };
 
 function pairJavaType (types) {

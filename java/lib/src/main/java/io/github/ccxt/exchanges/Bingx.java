@@ -1738,8 +1738,8 @@ public class Bingx extends BingxApi
             if (Boolean.TRUE.equals(paginate))
             {
                 // klines return up to 1440 candles only for 1m, 1000 for 5m and above
-                Integer paginationLimit = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1m")))) ? maxLimit : 1000;
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, ((Long) (switch ((Object) (paginationLimit)) { case null -> (Long) null; case Long hx4J40v1 -> hx4J40v1; case Number hx4J40v1 -> Long.valueOf(hx4J40v1.longValue()); case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v1.getClass().getName()); })))).join();
+                Long paginationLimit = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1m")))) ? maxLimit : 1000L;
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, paginationLimit)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
