@@ -190919,15 +190919,9 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
             let matched = false;
             for(let qi = 0; qi < queriesLength; qi++){
                 const q = this.safeString(queries, qi, '').toLowerCase();
-                if (title === undefined) {
-                    throw new _errors_js__rspack_import_1.ExchangeError(this.id + ' filterEventsBySearchIn() missing title');
-                }
                 if (checkTitle && title.indexOf(q) >= 0) {
                     matched = true;
                     break;
-                }
-                if (description === undefined) {
-                    throw new _errors_js__rspack_import_1.ExchangeError(this.id + ' filterEventsBySearchIn() missing description');
                 }
                 if (checkDescription && description.indexOf(q) >= 0) {
                     matched = true;
@@ -207159,9 +207153,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 const request = {
                     'symbols': this.json(this.marketIds(symbolsNormalized))
                 };
-                response = await this.publicGetTicker(this.extend(request, paramsMarketType));
+                const rollingResponse = await this.publicGetTicker(this.extend(request, paramsMarketType));
                 // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return this.parseTickersForRolling(response, symbolsNormalized);
+                return this.parseTickersForRolling(rollingResponse, symbolsNormalized);
             } else {
                 const request = {};
                 if (symbolsNormalized !== undefined) {
@@ -263520,8 +263514,19 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
             'address': address,
             'destination_tag': tagWithdrawTag
         };
-        const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod](this.extend(request, paramsWithdrawTag));
+        const withdrawRequest = this.extend(request, paramsWithdrawTag);
+        let response = undefined;
+        if (method === 'Bitcoin') {
+            response = await this.privatePostBitcoinWithdrawal(withdrawRequest);
+        } else if (method === 'Ether') {
+            response = await this.privatePostEtherWithdrawal(withdrawRequest);
+        } else if (method === 'Ripple') {
+            response = await this.privatePostRippleWithdrawal(withdrawRequest);
+        } else if (method === 'Bcash') {
+            response = await this.privatePostBcashWithdrawal(withdrawRequest);
+        } else {
+            response = await this.privatePostLitecoinWithdrawal(withdrawRequest);
+        }
         //
         //     {
         //         "success": true,
@@ -507067,9 +507072,6 @@ class limitless extends _abstract_prediction_limitless_js__rspack_import_0/* ["d
             const categoryId = this.safeString(category, 'id');
             let matched = false;
             for(let wi = 0; wi < wanted.length; wi++){
-                if (name === undefined) {
-                    throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' fetchRawMarketsByTags() missing name');
-                }
                 if (name.indexOf(wanted[wi]) >= 0) {
                     matched = true;
                     break;
@@ -541947,7 +541949,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                 const payload = payloadArray.join(':');
                 const calculatedChecksum = this.crc32(payload, true);
                 if (calculatedChecksum !== responseChecksum) {
-                    this.spawn(this.handleCheckSumError, client, symbol, messageHash);
+                    this.spawn(this.handleCheckSumError, client, symbol, messageHash, this.orderbookChecksumMessage(this.safeString(market, 'symbol', '')));
                     return;
                 }
             }
@@ -541978,9 +541980,9 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         }
         client.resolve(this.orderbooks[symbol], messageHash);
     }
-    async handleCheckSumError(client, symbol, messageHash) {
+    async handleCheckSumError(client, symbol, messageHash, checksumMessage) {
         await this.unWatchOrderBook(symbol);
-        const error = new _base_errors_js__rspack_import_1.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+        const error = new _base_errors_js__rspack_import_1.ChecksumError(this.id + ' ' + checksumMessage);
         client.reject(error, messageHash);
     }
     handleDelta(bookside, delta) {
@@ -543513,20 +543515,20 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                     const entry = this.safeDict(coins, j);
                     const currencyId = this.safeString(entry, 'coin');
                     const code = this.safeCurrencyCode(currencyId);
-                    let account = this.account();
+                    let coinAccount = this.account();
                     if (code !== undefined && code in this.balance) {
-                        account = this.safeDict(this.balance, code, account);
+                        coinAccount = this.safeDict(this.balance, code, coinAccount);
                     }
                     const borrow = this.safeString(entry, 'borrow');
                     const debts = this.safeString(entry, 'debts');
                     if (borrow !== undefined || debts !== undefined) {
-                        account['debt'] = _base_Precise_js__rspack_import_2/* .Precise.stringAdd */.Y.stringAdd(borrow, debts);
+                        coinAccount['debt'] = _base_Precise_js__rspack_import_2/* .Precise.stringAdd */.Y.stringAdd(borrow, debts);
                     }
-                    account['free'] = this.safeString(entry, 'available');
-                    account['used'] = this.safeString(entry, 'locked');
-                    account['total'] = this.safeString(entry, 'balance');
+                    coinAccount['free'] = this.safeString(entry, 'available');
+                    coinAccount['used'] = this.safeString(entry, 'locked');
+                    coinAccount['total'] = this.safeString(entry, 'balance');
                     if (code !== undefined) {
-                        this.balance[code] = account;
+                        this.balance[code] = coinAccount;
                     }
                 }
             } else {
@@ -587738,8 +587740,8 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
         const subscription = this.safeDict(client.subscriptions, subscriptionHash);
         delete client.subscriptions[id];
         const method = this.safeValue(subscription, 'method');
-        if (method !== undefined) {
-            method.call(this, client, message, subscription);
+        if (subscription !== undefined && method !== undefined) {
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         const isUnSub = this.safeBool(subscription, 'unsubscribe', false);
         if (isUnSub) {
@@ -599238,7 +599240,7 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
-                method.call(this, client, message, subscription);
+                this.handleOrderBookSubscription(client, message, subscription);
             }
         }
     }
@@ -619904,7 +619906,7 @@ class woo extends _woo_js__rspack_import_0/* ["default"] */.A {
         const subscription = this.safeDict(subscriptionsById, id, {});
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
-            method.call(this, client, message, subscription);
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         return message;
     }
@@ -643705,8 +643707,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
                     'percentage': depositFee !== undefined ? false : undefined
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length;
-                    const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
+                    const networkCode = this.networkIdToCode(networkId.slice(1, -1), code);
                     if (networkCode !== undefined) {
                         const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
                         feeEntryNetworks[networkCode] = {

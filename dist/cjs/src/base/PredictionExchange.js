@@ -224,15 +224,9 @@ class PredictionExchange extends Exchange.BaseExchange {
             let matched = false;
             for (let qi = 0; qi < queriesLength; qi++) {
                 const q = this.safeString(queries, qi, '').toLowerCase();
-                if (title === undefined) {
-                    throw new errors.ExchangeError(this.id + ' filterEventsBySearchIn() missing title');
-                }
                 if (checkTitle && (title.indexOf(q) >= 0)) {
                     matched = true;
                     break;
-                }
-                if (description === undefined) {
-                    throw new errors.ExchangeError(this.id + ' filterEventsBySearchIn() missing description');
                 }
                 if (checkDescription && (description.indexOf(q) >= 0)) {
                     matched = true;

@@ -1025,7 +1025,7 @@ class bitget extends bitget$1["default"] {
                 const payload = payloadArray.join(':');
                 const calculatedChecksum = this.crc32(payload, true);
                 if (calculatedChecksum !== responseChecksum) {
-                    this.spawn(this.handleCheckSumError, client, symbol, messageHash);
+                    this.spawn(this.handleCheckSumError, client, symbol, messageHash, this.orderbookChecksumMessage(this.safeString(market, 'symbol', '')));
                     return;
                 }
             }
@@ -1057,9 +1057,9 @@ class bitget extends bitget$1["default"] {
         }
         client.resolve(this.orderbooks[symbol], messageHash);
     }
-    async handleCheckSumError(client, symbol, messageHash) {
+    async handleCheckSumError(client, symbol, messageHash, checksumMessage) {
         await this.unWatchOrderBook(symbol);
-        const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+        const error = new errors.ChecksumError(this.id + ' ' + checksumMessage);
         client.reject(error, messageHash);
     }
     handleDelta(bookside, delta) {
@@ -2569,20 +2569,20 @@ class bitget extends bitget$1["default"] {
                     const entry = this.safeDict(coins, j);
                     const currencyId = this.safeString(entry, 'coin');
                     const code = this.safeCurrencyCode(currencyId);
-                    let account = this.account();
+                    let coinAccount = this.account();
                     if ((code !== undefined) && (code in this.balance)) {
-                        account = this.safeDict(this.balance, code, account);
+                        coinAccount = this.safeDict(this.balance, code, coinAccount);
                     }
                     const borrow = this.safeString(entry, 'borrow');
                     const debts = this.safeString(entry, 'debts');
                     if ((borrow !== undefined) || (debts !== undefined)) {
-                        account['debt'] = Precise["default"].stringAdd(borrow, debts);
+                        coinAccount['debt'] = Precise["default"].stringAdd(borrow, debts);
                     }
-                    account['free'] = this.safeString(entry, 'available');
-                    account['used'] = this.safeString(entry, 'locked');
-                    account['total'] = this.safeString(entry, 'balance');
+                    coinAccount['free'] = this.safeString(entry, 'available');
+                    coinAccount['used'] = this.safeString(entry, 'locked');
+                    coinAccount['total'] = this.safeString(entry, 'balance');
                     if (code !== undefined) {
-                        this.balance[code] = account;
+                        this.balance[code] = coinAccount;
                     }
                 }
             }

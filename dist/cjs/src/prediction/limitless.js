@@ -3103,9 +3103,6 @@ class limitless extends limitless$1["default"] {
             const categoryId = this.safeString(category, 'id');
             let matched = false;
             for (let wi = 0; wi < wanted.length; wi++) {
-                if (name === undefined) {
-                    throw new errors.ExchangeError(this.id + ' fetchRawMarketsByTags() missing name');
-                }
                 if (name.indexOf(wanted[wi]) >= 0) {
                     matched = true;
                     break;

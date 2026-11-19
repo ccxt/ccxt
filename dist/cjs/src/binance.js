@@ -5002,9 +5002,9 @@ class binance extends binance$1["default"] {
                 const request = {
                     'symbols': this.json(this.marketIds(symbolsNormalized)),
                 };
-                response = await this.publicGetTicker(this.extend(request, paramsMarketType));
+                const rollingResponse = await this.publicGetTicker(this.extend(request, paramsMarketType));
                 // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return this.parseTickersForRolling(response, symbolsNormalized);
+                return this.parseTickersForRolling(rollingResponse, symbolsNormalized);
             }
             else {
                 const request = {};

@@ -1830,8 +1830,23 @@ export default class bitso extends Exchange {
             'address': address,
             'destination_tag': tagWithdrawTag,
         };
-        const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod](this.extend(request, paramsWithdrawTag));
+        const withdrawRequest = this.extend(request, paramsWithdrawTag);
+        let response = undefined;
+        if (method === 'Bitcoin') {
+            response = await this.privatePostBitcoinWithdrawal(withdrawRequest);
+        }
+        else if (method === 'Ether') {
+            response = await this.privatePostEtherWithdrawal(withdrawRequest);
+        }
+        else if (method === 'Ripple') {
+            response = await this.privatePostRippleWithdrawal(withdrawRequest);
+        }
+        else if (method === 'Bcash') {
+            response = await this.privatePostBcashWithdrawal(withdrawRequest);
+        }
+        else {
+            response = await this.privatePostLitecoinWithdrawal(withdrawRequest);
+        }
         //
         //     {
         //         "success": true,

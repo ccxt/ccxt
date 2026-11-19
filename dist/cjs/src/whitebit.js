@@ -946,8 +946,7 @@ class whitebit extends whitebit$1["default"] {
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length;
-                    const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
+                    const networkCode = this.networkIdToCode(networkId.slice(1, -1), code);
                     if (networkCode !== undefined) {
                         const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
                         feeEntryNetworks[networkCode] = {

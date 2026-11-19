@@ -379,7 +379,7 @@ export default class woo extends Exchange {
         id: Str;
         name: Str;
         code: undefined;
-        type: Str;
+        type: string;
     };
     /**
      * @method
