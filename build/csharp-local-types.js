@@ -17071,6 +17071,9 @@ export const SIGNATURE_ARG_TYPES = {
     'applyEventFetchParams': { 0: 'IList<object>' },
     // every caller passes a declared dictionary member, an entry view (exceptionsExact / exceptionsWsExact) or a dictionary local
     'throwExactlyMatchedException': { 0: 'IDictionary<string, object>' },
+    // base-only, no overrides; every caller passes a declared dictionary local (bigone/gate/htx/bybit, mexc/nado)
+    'selectNetworkKeyFromNetworks': { 2: 'IDictionary<string, object>' },
+    'handleTriggerDirectionAndParams': { 0: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
