@@ -1413,18 +1413,18 @@ func (this *Hyperliquid) FindOutcomeInMarket(market map[string]any, optionalArgs
 	}
 	return this.SafeDict(outcomesList, 0, map[string]any{})
 }
-func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput any) any {
-	if (ccxt.IsEqual(outcomeInput, nil)) || (ccxt.IsEqual(outcomeInput, "")) {
+func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput *string) any {
+	if (outcomeInput == nil) || (outcomeInput != nil && *outcomeInput == "") {
 		return nil
 	}
-	var colonIndex int = ccxt.GetIndexOf(outcomeInput, ":")
+	var colonIndex int = strings.Index(*outcomeInput, ":")
 	if (colonIndex > -1) && (colonIndex < ccxt.GetLength(outcomeInput)-1) {
 		var side string = strings.ToUpper(ccxt.Slice(outcomeInput, colonIndex+1, nil))
 		if (side == "YES") || (side == "NO") {
 			return side
 		}
 	}
-	var lower string = ccxt.ToLower(outcomeInput)
+	var lower string = strings.ToLower(*outcomeInput)
 	if strings.HasSuffix(lower, "-yes") {
 		return "YES"
 	}
@@ -1433,17 +1433,17 @@ func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput any) any {
 	}
 	return nil
 }
-func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
-	if ccxt.IsEqual(outcomeInput, nil) {
+func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput string) any {
+	if false {
 		panic(ccxt.ArgumentsRequired(this.Id + " resolveOutcomeInput() requires an outcome symbol or id"))
 	}
 	if (this.Outcomes == nil) || (this.Outcomes_by_id == nil) {
 		panic(ccxt.ExchangeError(this.Id + " outcomes not loaded"))
 	}
-	var sideHint any = this.ParseOutcomeInputSideHint(outcomeInput)
+	var sideHint any = this.ParseOutcomeInputSideHint(&outcomeInput)
 	var candidates []any = []any{outcomeInput}
-	if ccxt.StartsWith(outcomeInput, "+") {
-		candidates = append(candidates, "#"+ccxt.Slice(outcomeInput, 1, nil))
+	if strings.HasPrefix(outcomeInput, "+") {
+		candidates = append(candidates, "#"+outcomeInput[1:])
 	}
 	var digitChars string = "0123456789"
 	var inputChars []string = this.StringToCharsArray(outcomeInput)
@@ -1456,7 +1456,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 		}
 	}
 	if isNumericInput {
-		candidates = append(candidates, ccxt.Add("#", outcomeInput)) // encoding id without #
+		candidates = append(candidates, "#"+outcomeInput) // encoding id without #
 		var numeric int64 = this.ParseToInt(outcomeInput)
 		candidates = append(candidates, this.OutcomeCoin(this.OutcomeEncoding(numeric, 0))) // raw outcome id -> YES encoding
 		candidates = append(candidates, this.OutcomeCoin(this.OutcomeEncoding(numeric, 1))) // raw outcome id -> NO encoding
@@ -1470,7 +1470,9 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 			return this.SafeDict(this.Outcomes_by_id, key, map[string]any{})
 		}
 	}
-	if ((this.Markets != nil) && (ccxt.InOp(this.Markets, outcomeInput))) || ((this.Markets_by_id != nil) && (ccxt.InOp(this.Markets_by_id, outcomeInput))) {
+	_, has3 := this.Markets[outcomeInput]
+	_, has4 := this.Markets_by_id[outcomeInput]
+	if ((this.Markets != nil) && has3) || ((this.Markets_by_id != nil) && has4) {
 		var market map[string]any = this.SafeMarket(outcomeInput)
 		var sideHintOrDefault any = "YES"
 		if sideHint != nil {
@@ -1481,7 +1483,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 			return found
 		}
 	}
-	panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" cannot resolve outcome from input: ", outcomeInput), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")))
+	panic(ccxt.ArgumentsRequired(this.Id + " cannot resolve outcome from input: " + outcomeInput + ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side."))
 }
 
 /**
@@ -1960,7 +1962,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		var oid *string = this.SafeString(entry, "oid")
 		if oid != nil {
 			if _, ok := deduped[*oid]; !ok {
-				ccxt.AddElementToObject(deduped, oid, raw)
+				deduped[*oid] = raw
 			} else {
 				var existingTs *int64 = this.SafeInteger(func() any {
 					if oid == nil {
@@ -1970,7 +1972,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 				}(), "statusTimestamp")
 				var currentTs *int64 = this.SafeInteger(raw, "statusTimestamp")
 				if (currentTs != nil) && ((existingTs == nil) || (*currentTs > *existingTs)) {
-					ccxt.AddElementToObject(deduped, oid, raw)
+					deduped[*oid] = raw
 				}
 			}
 		}
@@ -3015,7 +3017,13 @@ func (this *Hyperliquid) InfoDict(response any) map[string]any {
 	if m, ok := response.(map[string]any); ok {
 		return m
 	}
-	return map[string]any{}
+	if _, ok := response.(string); ok {
+		return map[string]any{}
+	}
+	if _, ok := response.([]any); ok {
+		return map[string]any{}
+	}
+	return nil
 }
 
 func NewHyperliquid(userConfig map[string]any) *Hyperliquid {

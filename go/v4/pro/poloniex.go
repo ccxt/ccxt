@@ -1910,14 +1910,16 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	this.Balance["info"] = this.SafeList(message, "data", []any{})
 	var firstBalance map[string]any = ccxt.SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(firstBalance, "ts")
-	if this.Balance != nil {
-		if timestamp != nil {
-			this.Balance["timestamp"] = *timestamp
-		} else {
-			this.Balance["timestamp"] = nil
-		}
+	if timestamp != nil {
+		this.Balance["timestamp"] = *timestamp
+	} else {
+		this.Balance["timestamp"] = nil
 	}
-	this.Balance["datetime"] = this.Iso8601(timestamp)
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		this.Balance["datetime"] = *ptrValue
+	} else {
+		this.Balance["datetime"] = nil
+	}
 	for i := 0; i < len(data); i++ {
 		var balance map[string]any = ccxt.SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")

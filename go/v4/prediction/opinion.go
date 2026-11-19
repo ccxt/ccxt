@@ -1179,7 +1179,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan ccxt.AsyncResult[map[string]any]
 		var entry any = list[i]
 		var address *string = this.SafeStringLower(entry, "quoteTokenAddress")
 		if address != nil {
-			ccxt.AddElementToObject(quoteTokens, address, entry)
+			quoteTokens[*address] = entry
 		}
 	}
 	this.Options["quoteTokens"] = quoteTokens

@@ -2115,14 +2115,10 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		messageHash = "triggerOrder"
 	}
 	var subscriptionHash any = "order:trades"
-	var symbolResolved any = nil
+	var symbolResolved *string = symbol
 	if symbol != nil {
 		market = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		if derefPtr := this.SafeString(market, "id"); derefPtr != nil {
 			marketId = *derefPtr
 		} else {
@@ -2703,14 +2699,10 @@ func (this *Bitget) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	}
 	var market any = nil
 	var messageHash any = "myTrades"
-	var symbolResolved any = nil
+	var symbolResolved *string = symbol
 	if symbol != nil {
 		market = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)

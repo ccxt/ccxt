@@ -2796,12 +2796,11 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	}
 	// amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
 	signRequest["makerAmount"] = this.ParseToInt(this.ApplyScale(makerAmount, true))
-	signRequest["takerAmount"] = func() any {
-		if isMarket {
-			return 1
-		}
-		return this.ParseToInt(this.ApplyScale(takerAmount, true))
-	}()
+	if isMarket {
+		signRequest["takerAmount"] = 1
+	} else {
+		signRequest["takerAmount"] = this.ParseToInt(this.ApplyScale(takerAmount, true))
+	}
 	var signature string = this.SignOrderRequest(signRequest, marketSymbol)
 	signRequest["signature"] = signature
 	// price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)

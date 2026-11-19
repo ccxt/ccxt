@@ -1083,12 +1083,12 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	signedFields = append(signedFields, this.RlpEncodeBytes(sHex))
 	return ccxt.Add("0x02", this.RlpEncodeList(signedFields))
 }
-func (this *Myriad) EthRpcAsync(rpcUrl any, method any, rpcParams any) <-chan ccxt.AsyncResult[any] {
+func (this *Myriad) EthRpcAsync(rpcUrl any, method string, rpcParams any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.ethRpcBody(ch, rpcUrl, method, rpcParams)
 	return ch
 }
-func (this *Myriad) ethRpcBody(ch chan ccxt.AsyncResult[any], rpcUrl any, method any, rpcParams any) any {
+func (this *Myriad) ethRpcBody(ch chan ccxt.AsyncResult[any], rpcUrl any, method string, rpcParams any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var payload map[string]any = map[string]any{
@@ -1108,7 +1108,7 @@ func (this *Myriad) ethRpcBody(ch chan ccxt.AsyncResult[any], rpcUrl any, method
 	response := r.Value
 	var rpcError any = this.SafeValue(response, "error")
 	if rpcError != nil {
-		panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" rpc ", method), " error: "), this.Json(rpcError))))
+		panic(ccxt.ExchangeError(this.Id + " rpc " + method + " error: " + this.Json(rpcError)))
 	}
 
 	// the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —

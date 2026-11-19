@@ -1066,9 +1066,9 @@ func (this *Gate) HandleBidAsks(bookSide any, bidAsks []any) {
 }
 func (this *Gate) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var timestamp *int64 = this.SafeInteger(delta, "t")
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
+	orderbook.SetNonce(this.SafeInteger(delta, "u"))
 	var bids []any = this.SafeListSlice(delta, "b", []any{})
 	var asks []any = this.SafeListSlice(delta, "a", []any{})
 	var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
@@ -2066,14 +2066,16 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 		var currencyId string = *this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var timestamp *int64 = this.SafeInteger2(rawBalance, "time_ms", "timestamp_ms")
-		if this.Balance != nil {
-			if timestamp != nil {
-				this.Balance["timestamp"] = *timestamp
-			} else {
-				this.Balance["timestamp"] = nil
-			}
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
 		}
-		this.Balance["datetime"] = this.Iso8601(timestamp)
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			this.Balance["datetime"] = *ptrValue
+		} else {
+			this.Balance["datetime"] = nil
+		}
 		account["used"] = this.SafeString(rawBalance, "freeze")
 		account["free"] = this.SafeString(rawBalance, "available")
 		account["total"] = this.SafeString2(rawBalance, "total", "balance")
@@ -2297,9 +2299,9 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 	//        }]
 	//    }
 	//
-	var typeVar any = this.GetMarketTypeByUrl(client.(ccxt.ClientInterface).GetUrl())
+	var typeVar string = this.GetMarketTypeByUrl(client.(ccxt.ClientInterface).GetUrl())
 	var data []any = ccxt.SafeListTyped(message, "result")
-	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar]
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var rawPosition any = data[i]
@@ -2334,21 +2336,18 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 			cache.Append(position)
 		}
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(typeVar, ":positions::")))
+	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), typeVar+":positions::"))
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = nil
-		if 1 >= 0 && 1 < len(parts) {
-			symbolsString = &parts[1]
-		}
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, ccxt.Add(typeVar, ":positions"))
+	client.(ccxt.ClientInterface).Resolve(newPositions, typeVar+":positions")
 }
 
 /**
@@ -3211,27 +3210,22 @@ func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) *string {
 		return this.SafeString(this.Urls["api"], typeVar)
 	}
 }
-func (this *Gate) GetMarketTypeByUrl(url string) any {
-	var findBy map[string]any = map[string]any{
-		"op-":          "option",
-		"/ws/options/": "option",
-		"delivery":     "future",
-		"fx":           "swap",
-		"/ws/futures/": "swap",
+func (this *Gate) GetMarketTypeByUrl(url string) string {
+	// same order as the url table: delivery urls also contain 'fx'
+	if strings.Index(url, "op-") >= 0 {
+		return "option"
 	}
-	var keys []string = nil
-	if findBy != nil {
-		keys = make([]string, 0, len(findBy))
-		for objectKey := range findBy {
-			keys = append(keys, objectKey)
-		}
+	if strings.Index(url, "/ws/options/") >= 0 {
+		return "option"
 	}
-	for i := 0; i < len(keys); i++ {
-		var key string = keys[i]
-		var value any = findBy[key]
-		if strings.Index(url, key) >= 0 {
-			return value
-		}
+	if strings.Index(url, "delivery") >= 0 {
+		return "future"
+	}
+	if strings.Index(url, "fx") >= 0 {
+		return "swap"
+	}
+	if strings.Index(url, "/ws/futures/") >= 0 {
+		return "swap"
 	}
 	return "spot"
 }

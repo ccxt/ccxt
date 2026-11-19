@@ -4681,7 +4681,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			request["chain"] = strings.ToLower(*_netIdTmp)
 		}
 	}
-	var version any = this.GetDepositAddressesVersion()
+	var version string = this.GetDepositAddressesVersion()
 	this.SetDepositAddressesVersion("v1")
 
 	r4 := <-this.PrivateGetDepositAddresses(this.Extend(request, paramsRequest))
@@ -4865,7 +4865,7 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[s
 		}
 		response = r2.Value
 	} else {
-		var version any = this.GetDepositAddressesVersion()
+		var version string = this.GetDepositAddressesVersion()
 		this.SetDepositAddressesVersion("v2")
 
 		r3 := <-this.PrivateGetDepositAddresses(this.Extend(request, paramsRequest))
@@ -9252,12 +9252,11 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 	var isMargin bool = (marginMode != nil)
 	if isMargin {
 		hf = true
-		request["tradeType"] = func() any {
-			if marginMode == nil {
-				return nil
-			}
-			return this.SafeString(this.Options["marginModes"], marginMode, marginMode)
-		}()
+		if marginMode == nil {
+			request["tradeType"] = nil
+		} else {
+			request["tradeType"] = this.SafeString(this.Options["marginModes"], marginMode, marginMode)
+		}
 	}
 	if (hf) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol parameter for hf or margin orders"))
@@ -15809,15 +15808,15 @@ func (this *Kucoin) isUTAEnabledBody(ch chan AsyncResult[bool], optionalArgs ...
 	ch <- AsyncResult[bool]{Value: uta}
 	return nil
 }
-func (this *Kucoin) GetDepositAddressesVersion() any {
+func (this *Kucoin) GetDepositAddressesVersion() string {
 	var getVersions map[string]any = SafeMapTyped(this.SafeDict(this.SafeDict(this.Options, "versions", map[string]any{}), "private", map[string]any{}), "GET")
-	return this.SafeString(getVersions, "deposit-addresses", "v1")
+	return *this.SafeString(getVersions, "deposit-addresses", "v1")
 }
-func (this *Kucoin) SetDepositAddressesVersion(version any) {
+func (this *Kucoin) SetDepositAddressesVersion(version string) {
 	var versions map[string]any = this.SafeDictMap(this.Options, "versions", map[string]any{})
 	var privateVersions map[string]any = this.SafeDictMap(versions, "private", map[string]any{})
 	var getVersions map[string]any = this.SafeDictMap(privateVersions, "GET", map[string]any{})
-	AddElementToObject(getVersions, "deposit-addresses", version)
+	getVersions["deposit-addresses"] = version
 	privateVersions["GET"] = getVersions
 	versions["private"] = privateVersions
 	this.Options["versions"] = versions

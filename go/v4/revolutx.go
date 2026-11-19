@@ -1778,12 +1778,11 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	} else if since != nil {
 		var now int64 = this.Milliseconds()
 		var thirtyDaysAgo int64 = now - thirtyDays
-		request["end_date"] = func() any {
-			if *since < thirtyDaysAgo {
-				return *since + thirtyDays
-			}
-			return now
-		}()
+		if *since < thirtyDaysAgo {
+			request["end_date"] = *since + thirtyDays
+		} else {
+			request["end_date"] = now
+		}
 	}
 	if limit != nil {
 		request["limit"] = *limit
@@ -1971,12 +1970,11 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	} else if since != nil {
 		var now int64 = this.Milliseconds()
 		var thirtyDaysAgo int64 = now - thirtyDays
-		request["end_date"] = func() any {
-			if *since < thirtyDaysAgo {
-				return *since + thirtyDays
-			}
-			return now
-		}()
+		if *since < thirtyDaysAgo {
+			request["end_date"] = *since + thirtyDays
+		} else {
+			request["end_date"] = now
+		}
 	}
 	if limit != nil {
 		request["limit"] = *limit

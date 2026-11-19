@@ -1215,7 +1215,7 @@ func (this *Mexc) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) 
 		// so, we just skip old updates
 		return
 	}
-	ccxt.AddElementToObject(orderbook, "nonce", deltaNonce)
+	orderbook.SetNonce(deltaNonce)
 	var asks []any = this.SafeListSlice(delta, "asks", []any{})
 	var bids []any = this.SafeListSlice(delta, "bids", []any{})
 	var asksOrderSide ccxt.IOrderBookSide = orderbook.GetAsks()
@@ -2030,8 +2030,20 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = data
 	}
-	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		if timestamp != nil {
+			entry["timestamp"] = *timestamp
+		} else {
+			entry["timestamp"] = nil
+		}
+	}
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			entry["datetime"] = *ptrValue
+		} else {
+			entry["datetime"] = nil
+		}
+	}
 	var currencyId *string = this.SafeString2(data, "currency", "vcoinName")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()

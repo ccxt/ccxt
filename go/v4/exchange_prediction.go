@@ -115,7 +115,7 @@ func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 	}
 	panic(ArgumentsRequired(Add(Add(this.Id+" fetchEvents() requires at least one of query, queries, tags, eventId, slug", extraNames), " to scope the search")))
 }
-func (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs ...any) []any {
+func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs ...any) []any {
 	// applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
 	// so exchanges whose API can't filter natively still support them consistently.
 	// every fetched event lands in the cache before filtering, so loadEvents()/event()
@@ -457,7 +457,7 @@ func (this *PredictionExchange) loadEventsBody(ch chan AsyncResult[map[string]Pr
 	ch <- AsyncResult[map[string]PredictionEvent]{Value: r.Value}
 	return nil
 }
-func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
+func (this *PredictionExchange) GetEvent(eventIdOrSlug string) any {
 	// cache-only event resolver (the event analogue of this.outcome) - the cache fills
 	// through fetchEvents; this never fetches
 	if (this.Events != nil) && (InOp(this.Events, eventIdOrSlug)) {
@@ -466,7 +466,7 @@ func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
 	if (this.Events_by_slug != nil) && (InOp(this.Events_by_slug, eventIdOrSlug)) {
 		return this.SafeDict(this.Events_by_slug, eventIdOrSlug)
 	}
-	panic(BadSymbol(Add(Add(this.Id+" has no cached event ", eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
+	panic(BadSymbol(this.Id + " has no cached event " + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first"))
 }
 func (this *PredictionExchange) Outcome(outcomeSymbol any) map[string]any {
 	if IsEqual(outcomeSymbol, nil) {
@@ -2143,7 +2143,7 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	var rows []any = this.ToArray(trades)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(DerefScalar(rows[i]), outcomeObj)
+		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(rows[i], outcomeObj)
 		var trade map[string]any = this.Extend(parsed, params)
 		results = append(results, trade)
 	}
@@ -2177,7 +2177,7 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	var rows []any = this.ToArray(orders)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(DerefScalar(rows[i]), outcomeObj)
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(rows[i], outcomeObj)
 		var order map[string]any = this.Extend(parsed, params)
 		results = append(results, order)
 	}
@@ -2205,7 +2205,7 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	var rows []any = this.ToArray(positions)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(DerefScalar(rows[i]))
+		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rows[i])
 		var position map[string]any = this.Extend(parsed, params)
 		results = append(results, position)
 	}
@@ -2297,9 +2297,9 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 	var lengthOfLength int64 = this.ParseToInt(float64(GetLength(lengthHex)) / 2)
 	return Add(Add(this.IntToBase16(183+lengthOfLength), lengthHex), hex)
 }
-func (this *PredictionExchange) RlpEncodeList(items any) any {
+func (this *PredictionExchange) RlpEncodeList(items []any) any {
 	var concatenated string = ""
-	for i := 0; i < GetArrayLength(items); i++ {
+	for i := 0; i < len(items); i++ {
 		concatenated = concatenated + *this.SafeString(items, i, "")
 	}
 	var byteLength int64 = this.ParseToInt(float64(len(concatenated)) / 2)
@@ -2344,12 +2344,12 @@ func (this *PredictionExchange) HexToRlpBytes(hexValue any) any {
 func (this *PredictionExchange) SignEvmTransaction(tx any, privateKey any) any {
 	panic(NotSupported(this.Id + " signEvmTransaction() must be overridden by the exchange"))
 }
-func (this *PredictionExchange) EthRpcAsync(rpcUrl any, method any, rpcParams any) <-chan AsyncResult[any] {
+func (this *PredictionExchange) EthRpcAsync(rpcUrl any, method string, rpcParams any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.ethRpcBody(ch, rpcUrl, method, rpcParams)
 	return ch
 }
-func (this *PredictionExchange) ethRpcBody(ch chan AsyncResult[any], rpcUrl any, method any, rpcParams any) any {
+func (this *PredictionExchange) ethRpcBody(ch chan AsyncResult[any], rpcUrl any, method string, rpcParams any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var payload map[string]any = map[string]any{
@@ -2369,7 +2369,7 @@ func (this *PredictionExchange) ethRpcBody(ch chan AsyncResult[any], rpcUrl any,
 	response := r.Value
 	var rpcError any = this.SafeValue(response, "error")
 	if rpcError != nil {
-		panic(ExchangeError(Add(Add(Add(this.Id+" rpc ", method), " error: "), this.Json(rpcError))))
+		panic(ExchangeError(this.Id + " rpc " + method + " error: " + this.Json(rpcError)))
 	}
 
 	// the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —

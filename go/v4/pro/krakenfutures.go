@@ -1875,8 +1875,20 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		if entry, ok := this.Balance["cash"].(map[string]any); ok && (entry != nil) {
 			entry["info"] = message
 		}
-		ccxt.AddElementToObject(this.Balance["cash"], "timestamp", timestamp)
-		ccxt.AddElementToObject(this.Balance["cash"], "datetime", this.Iso8601(timestamp))
+		if entry, ok := this.Balance["cash"].(map[string]any); ok && (entry != nil) {
+			if timestamp != nil {
+				entry["timestamp"] = *timestamp
+			} else {
+				entry["timestamp"] = nil
+			}
+		}
+		if entry, ok := this.Balance["cash"].(map[string]any); ok && (entry != nil) {
+			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+				entry["datetime"] = *ptrValue
+			} else {
+				entry["datetime"] = nil
+			}
+		}
 		var holdingCodes map[string]any = map[string]any{}
 		for i := 0; i < len(holdingKeys); i++ {
 			var key string = holdingKeys[i]
@@ -1906,8 +1918,20 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		if entry, ok := this.Balance["margin"].(map[string]any); ok && (entry != nil) {
 			entry["info"] = message
 		}
-		ccxt.AddElementToObject(this.Balance["margin"], "timestamp", timestamp)
-		ccxt.AddElementToObject(this.Balance["margin"], "datetime", this.Iso8601(timestamp))
+		if entry, ok := this.Balance["margin"].(map[string]any); ok && (entry != nil) {
+			if timestamp != nil {
+				entry["timestamp"] = *timestamp
+			} else {
+				entry["timestamp"] = nil
+			}
+		}
+		if entry, ok := this.Balance["margin"].(map[string]any); ok && (entry != nil) {
+			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+				entry["datetime"] = *ptrValue
+			} else {
+				entry["datetime"] = nil
+			}
+		}
 		var futuresSymbols map[string]any = map[string]any{}
 		for i := 0; i < len(futuresKeys); i++ {
 			var key string = futuresKeys[i]
@@ -1950,8 +1974,20 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		if entry, ok := this.Balance["flex"].(map[string]any); ok && (entry != nil) {
 			entry["info"] = message
 		}
-		ccxt.AddElementToObject(this.Balance["flex"], "timestamp", timestamp)
-		ccxt.AddElementToObject(this.Balance["flex"], "datetime", this.Iso8601(timestamp))
+		if entry, ok := this.Balance["flex"].(map[string]any); ok && (entry != nil) {
+			if timestamp != nil {
+				entry["timestamp"] = *timestamp
+			} else {
+				entry["timestamp"] = nil
+			}
+		}
+		if entry, ok := this.Balance["flex"].(map[string]any); ok && (entry != nil) {
+			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+				entry["datetime"] = *ptrValue
+			} else {
+				entry["datetime"] = nil
+			}
+		}
 		var flexCodes map[string]any = map[string]any{}
 		for i := 0; i < len(flexFuturesKeys); i++ {
 			var key string = flexFuturesKeys[i]

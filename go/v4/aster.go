@@ -4385,12 +4385,11 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]Margin
 		"symbol": market["id"],
 	}
 	if typeVar != nil {
-		request["type"] = func() int {
-			if typeVar != nil && *typeVar == "add" {
-				return 1
-			}
-			return 2
-		}()
+		if typeVar != nil && *typeVar == "add" {
+			request["type"] = 1
+		} else {
+			request["type"] = 2
+		}
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1000)

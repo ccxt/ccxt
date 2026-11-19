@@ -4109,7 +4109,7 @@ func (this *Coinbaseinternational) setLeverageBody(ch chan AsyncResult[map[strin
  * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
  * @returns {string} signed JWT
  */
-func (this *Coinbaseinternational) CreateAuthToken(seconds any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) CreateAuthToken(seconds int64, optionalArgs ...any) any {
 	var method *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = method
 	url := GetArg(optionalArgs, 1, nil)

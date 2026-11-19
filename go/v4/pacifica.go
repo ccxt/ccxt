@@ -2200,7 +2200,7 @@ func (this *Pacifica) CreateOrderRequest(symbol *string, typeVar string, side *s
 	var isTakeProfitOrder bool = (takeProfitPrice != nil)
 	var isStopLossOrder bool = (stopLossPrice != nil)
 	var isStopOrder bool = (triggerPrice != nil)
-	var timeInForce any = this.MapTimeInForce(tifRaw)
+	var timeInForce string = this.MapTimeInForce(tifRaw)
 	if isMarket {
 		operationType = "create_market_order"
 		sigPayload["reduce_only"] = reduceOnly
@@ -3486,7 +3486,7 @@ func (this *Pacifica) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Pacifica) MapTimeInForce(tifRaw *string) any {
+func (this *Pacifica) MapTimeInForce(tifRaw *string) string {
 	var tifMap map[string]any = map[string]any{
 		"GTC":       "GTC",
 		"IOC":       "IOC",
@@ -3500,7 +3500,7 @@ func (this *Pacifica) MapTimeInForce(tifRaw *string) any {
 		return "GTC"
 	}
 	var tif string = strings.ToUpper(*tifRaw)
-	return this.SafeString(tifMap, tif, "GTC")
+	return *this.SafeString(tifMap, tif, "GTC")
 }
 func (this *Pacifica) MapSide(sideRaw string) *string {
 	var sideMap map[string]any = map[string]any{

@@ -3642,7 +3642,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = OrderToMap(this.ParseOrder(DerefScalar(orders[j]), marketNew))
+			var order map[string]any = OrderToMap(this.ParseOrder(orders[j], marketNew))
 			results = append(results, this.Extend(order, map[string]any{
 				"status": "closed",
 			}))

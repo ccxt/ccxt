@@ -11069,9 +11069,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 			"instId": market["id"],
 			"period": timeframeValue,
 		}
-		instrumentRequestWindowparamsWindowVariable := this.HandleTradingStatisticsWindow(instrumentRequest, timeframeValue, since, limit, paramsMarketType)
-		instrumentRequestWindow := GetValue(instrumentRequestWindowparamsWindowVariable, 0)
-		paramsWindow := GetValue(instrumentRequestWindowparamsWindowVariable, 1)
+		instrumentRequestWindow, paramsWindow := this.HandleTradingStatisticsWindow(instrumentRequest, timeframeValue, since, limit, paramsMarketType)
 
 		r1 := <-this.PublicGetRubikStatContractsOpenInterestHistory(this.Extend(instrumentRequestWindow, paramsWindow))
 		if r1.Err != nil {
@@ -11159,7 +11157,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
  * @param {int} [params.until] the latest time in ms of the entries to fetch
  * @returns {object[]} the request and the remaining params
  */
-func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period any, optionalArgs ...any) []any {
+func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -11215,7 +11213,7 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period an
 	if end != nil {
 		request["end"] = end
 	}
-	return []any{request, paramsOmitted}
+	return request, paramsOmitted
 }
 func (this *Okx) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
 	//
@@ -11638,7 +11636,7 @@ func (this *Okx) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		result = append(result, this.ParseSettlement(DerefScalar(data[i]), market))
+		result = append(result, this.ParseSettlement(data[i], market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 
@@ -13102,9 +13100,7 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongShortR
 		}
 		request["period"] = period
 	}
-	requestWindowparamsWindowVariable := this.HandleTradingStatisticsWindow(request, period, since, limit, params)
-	requestWindow := GetValue(requestWindowparamsWindowVariable, 0)
-	paramsWindow := GetValue(requestWindowparamsWindowVariable, 1)
+	requestWindow, paramsWindow := this.HandleTradingStatisticsWindow(request, period, since, limit, params)
 
 	r1 := <-this.PublicGetRubikStatContractsLongShortAccountRatioContract(this.Extend(requestWindow, paramsWindow))
 	if r1.Err != nil {

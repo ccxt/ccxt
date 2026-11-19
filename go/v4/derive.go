@@ -4790,12 +4790,11 @@ func (this *Derive) transferBody(ch chan AsyncResult[TransferEntry], code string
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		// normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
 		transferEntry["fromAccount"] = this.NumberToString(fromId)
-		transferEntry["toAccount"] = func() any {
-			if toId != 0 {
-				return this.NumberToString(toId)
-			}
-			return nil
-		}()
+		if toId != 0 {
+			transferEntry["toAccount"] = this.NumberToString(toId)
+		} else {
+			transferEntry["toAccount"] = nil
+		}
 		transferEntry["amount"] = this.ParseNumber(amountString)
 	}
 

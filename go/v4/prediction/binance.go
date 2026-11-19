@@ -1409,7 +1409,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			panic(r1.Err)
 		}
 		outcomeObj = this.Outcome(outcome)
-		var market map[string]any = this.Market(ccxt.GetValue(outcomeObj, "market"))
+		var market map[string]any = this.Market(this.SafeString(outcomeObj, "market"))
 		request["marketId"] = market["id"]
 	}
 	if limit != nil {
@@ -1754,7 +1754,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 			panic(r.Err)
 		}
 		outcomeObj = this.Outcome(outcome)
-		var market map[string]any = this.Market(ccxt.GetValue(outcomeObj, "market"))
+		var market map[string]any = this.Market(this.SafeString(outcomeObj, "market"))
 		request["marketTopicId"] = ccxt.GetValue(market["info"], "marketTopicId")
 	}
 

@@ -2201,14 +2201,14 @@ func (this *Bitfinex) ParseOrderFlags(flags *string) []any {
 	}
 	return this.SafeListSlice(flagValues, flags, []any{})
 }
-func (this *Bitfinex) ParseTimeInForce(orderType *string) *string {
+func (this *Bitfinex) ParseTimeInForce(orderType *string) string {
 	var orderTypes map[string]any = map[string]any{
 		"EXCHANGE IOC": "IOC",
 		"EXCHANGE FOK": "FOK",
 		"IOC":          "IOC",
 		"FOK":          "FOK",
 	}
-	return this.SafeString(orderTypes, orderType, "GTC")
+	return *this.SafeString(orderTypes, orderType, "GTC")
 }
 func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -2229,7 +2229,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var orderType *string = this.SafeString(orderList, 8)
 	var typeVar *string = this.SafeString(this.SafeDict(this.Options, "exchangeTypes"), orderType)
-	var timeInForce *string = this.ParseTimeInForce(orderType)
+	var timeInForce string = this.ParseTimeInForce(orderType)
 	var rawFlags *string = this.SafeString(orderList, 12)
 	var flags []any = this.ParseOrderFlags(rawFlags)
 	var postOnly bool = false

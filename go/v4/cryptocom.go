@@ -2357,10 +2357,12 @@ func (this *Cryptocom) editOrderBody(ch chan AsyncResult[Order], id string, symb
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil
 }
-func (this *Cryptocom) EditOrderRequest(id *string, symbol string, amount any, optionalArgs ...any) map[string]any {
-	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+func (this *Cryptocom) EditOrderRequest(id *string, symbol string, optionalArgs ...any) map[string]any {
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	_ = amount
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
 	if id != nil {
@@ -2379,7 +2381,7 @@ func (this *Cryptocom) EditOrderRequest(id *string, symbol string, amount any, o
 		}
 		return params
 	}()
-	if (IsEqual(amount, nil)) || (price == nil) {
+	if (amount == nil) || (price == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values"))
 	}
 	request["new_quantity"] = this.AmountToPrecision(symbol, amount)

@@ -1242,12 +1242,11 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar string, side string,
 	request["order_expiry"] = orderExpiry
 	request["order_type"] = orderTypeNum
 	request["time_in_force"] = timeInForceNum
-	request["reduce_only"] = func() int {
-		if reduceOnly != nil && *reduceOnly {
-			return 1
-		}
-		return 0
-	}()
+	if reduceOnly != nil && *reduceOnly {
+		request["reduce_only"] = 1
+	} else {
+		request["reduce_only"] = 0
+	}
 	request["client_order_index"] = clientOrderId
 	request["base_amount"] = this.ParseToInt(Precise.StringMul(amountStr, amountScale))
 	request["avg_execution_price"] = this.ParseToInt(Precise.StringMul(priceStr, priceScale))

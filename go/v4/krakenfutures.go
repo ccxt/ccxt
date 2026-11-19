@@ -1058,7 +1058,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan AsyncResult[map[string]T
 		var schedule any = feeSchedules[i]
 		var uid *string = this.SafeString(schedule, "uid")
 		if uid != nil {
-			AddElementToObject(schedulesByUid, uid, schedule)
+			schedulesByUid[*uid] = schedule
 		}
 	}
 	var result map[string]any = map[string]any{}

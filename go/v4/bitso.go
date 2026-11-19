@@ -1599,7 +1599,7 @@ func (this *Bitso) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, 
 	if !true {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() ids argument should be an array"))
 	}
-	var market map[string]any = nil
+	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1622,8 +1622,12 @@ func (this *Bitso) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, 
 	var payload []any = SafeListTyped(response, "payload")
 	var orders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var id any = payload[i]
-		orders = append(orders, OrderToMap(this.ParseOrder(id, market)))
+		var id *string = this.SafeString(payload, i)
+		orders = append(orders, OrderToMap(this.SafeOrder(map[string]any{
+			"info":   this.SafeString(payload, i),
+			"id":     id,
+			"symbol": this.SafeSymbol(nil, market, "_"),
+		}, market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(orders)}
@@ -1669,8 +1673,12 @@ func (this *Bitso) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	var payload []any = SafeListTyped(response, "payload")
 	var canceledOrders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var order map[string]any = OrderToMap(this.ParseOrder(payload[i]))
-		canceledOrders = append(canceledOrders, order)
+		var id *string = this.SafeString(payload, i)
+		canceledOrders = append(canceledOrders, OrderToMap(this.SafeOrder(map[string]any{
+			"info":   this.SafeString(payload, i),
+			"id":     id,
+			"symbol": this.SafeSymbol(nil, nil, "_"),
+		})))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(canceledOrders)}
@@ -1686,23 +1694,9 @@ func (this *Bitso) ParseOrderStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Bitso) ParseOrder(order any, optionalArgs ...any) Order {
-	//
-	//
-	// canceledOrder
-	// yWTQGxDMZ0VimZgZ
-	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var id any = nil
-	if IsString(order) {
-		id = order
-	} else {
-		if derefPtr := this.SafeString(order, "oid"); derefPtr != nil {
-			id = *derefPtr
-		} else {
-			id = nil
-		}
-	}
+	var id *string = this.SafeString(order, "oid")
 	var side *string = this.SafeString(order, "side")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "book")

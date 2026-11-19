@@ -247,7 +247,7 @@ func (this *Xt) GetCacheIndex(orderbook any, cache []any) any {
 	return len(cache)
 }
 func (this *Xt) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger2(delta, "i", "u"))
+	orderbook.SetNonce(this.SafeInteger2(delta, "i", "u"))
 	var obAsks []any = ccxt.SafeListTyped(delta, "a")
 	var obBids []any = ccxt.SafeListTyped(delta, "b")
 	var bids ccxt.IOrderBookSide = orderbook.GetBids()

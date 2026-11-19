@@ -2616,9 +2616,9 @@ func (this *Kucoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any
 	if timestamp == nil {
 		timestamp = this.SafeInteger2(delta, "time", "timestamp")
 	}
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeIntegerN(delta, []any{"sequenceEnd", "sequence", "C"}, timestamp))
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetNonce(this.SafeIntegerN(delta, []any{"sequenceEnd", "sequence", "C"}, timestamp))
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	var change *string = this.SafeString(delta, "change")
 	var changes any = this.SafeDict(delta, "changes", delta)
 	var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
@@ -3781,8 +3781,20 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 			entry["info"] = data
 		}
 		var timestamp *int64 = this.SafeInteger2(data, "time", "timestamp")
-		ccxt.AddElementToObject(this.Balance[*uniformType], "timestamp", timestamp)
-		ccxt.AddElementToObject(this.Balance[*uniformType], "datetime", this.Iso8601(timestamp))
+		if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
+			if timestamp != nil {
+				entry["timestamp"] = *timestamp
+			} else {
+				entry["timestamp"] = nil
+			}
+		}
+		if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
+			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+				entry["datetime"] = *ptrValue
+			} else {
+				entry["datetime"] = nil
+			}
+		}
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		var used *string = this.SafeString2(data, "hold", "holdBalance")
@@ -3829,8 +3841,20 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 		entry["info"] = data
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(data, "U", 0.000001)
-	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		if timestamp != nil {
+			entry["timestamp"] = *timestamp
+		} else {
+			entry["timestamp"] = nil
+		}
+	}
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			entry["datetime"] = *ptrValue
+		} else {
+			entry["datetime"] = nil
+		}
+	}
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(data, "a")
 	account["used"] = this.SafeString(data, "h")

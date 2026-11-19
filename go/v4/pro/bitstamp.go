@@ -264,9 +264,9 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 }
 func (this *Bitstamp) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var timestamp *int64 = this.SafeTimestamp(delta, "timestamp")
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "microtimestamp"))
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
+	orderbook.SetNonce(this.SafeInteger(delta, "microtimestamp"))
 	var bids []any = this.SafeListSlice(delta, "bids", []any{})
 	var asks []any = this.SafeListSlice(delta, "asks", []any{})
 	this.HandleBidAsks(orderbook.GetBids(), bids)

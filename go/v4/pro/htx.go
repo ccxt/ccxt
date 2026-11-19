@@ -2539,14 +2539,16 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "ch")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var timestamp *int64 = this.SafeInteger(data, "changeTime", this.SafeInteger(message, "ts"))
-	if this.Balance != nil {
-		if timestamp != nil {
-			this.Balance["timestamp"] = *timestamp
-		} else {
-			this.Balance["timestamp"] = nil
-		}
+	if timestamp != nil {
+		this.Balance["timestamp"] = *timestamp
+	} else {
+		this.Balance["timestamp"] = nil
 	}
-	this.Balance["datetime"] = this.Iso8601(timestamp)
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		this.Balance["datetime"] = *ptrValue
+	} else {
+		this.Balance["datetime"] = nil
+	}
 	this.Balance["info"] = this.SafeList(message, "data", []any{})
 	if channel != nil {
 		// spot balance

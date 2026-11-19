@@ -2077,14 +2077,16 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 	}
 	var ts *int64 = this.SafeInteger(message, "ts")
 	this.Balance["info"] = data
-	if this.Balance != nil {
-		if ts != nil {
-			this.Balance["timestamp"] = *ts
-		} else {
-			this.Balance["timestamp"] = nil
-		}
+	if ts != nil {
+		this.Balance["timestamp"] = *ts
+	} else {
+		this.Balance["timestamp"] = nil
 	}
-	this.Balance["datetime"] = this.Iso8601(ts)
+	if ptrValue := this.Iso8601(ts); ptrValue != nil {
+		this.Balance["datetime"] = *ptrValue
+	} else {
+		this.Balance["datetime"] = nil
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var value map[string]any = ccxt.SafeMapTyped(balances, key)

@@ -368,14 +368,16 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	if this.Balance != nil {
-		if timestamp != nil {
-			this.Balance["timestamp"] = *timestamp
-		} else {
-			this.Balance["timestamp"] = nil
-		}
+	if timestamp != nil {
+		this.Balance["timestamp"] = *timestamp
+	} else {
+		this.Balance["timestamp"] = nil
 	}
-	this.Balance["datetime"] = this.Iso8601(timestamp)
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		this.Balance["datetime"] = *ptrValue
+	} else {
+		this.Balance["datetime"] = nil
+	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
@@ -984,7 +986,7 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 		subscription["nonce"] = nil
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i]), market))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
 		stored.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

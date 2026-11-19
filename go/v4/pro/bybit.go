@@ -3292,8 +3292,16 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 			this.Balance["info"] = info
 		}
 		var timestamp *int64 = this.SafeInteger(message, "ts")
-		ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
-		this.Balance["datetime"] = this.Iso8601(timestamp)
+		if timestamp != nil {
+			this.Balance["timestamp"] = *timestamp
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			this.Balance["datetime"] = *ptrValue
+		} else {
+			this.Balance["datetime"] = nil
+		}
 		this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 		messageHash = "balances"
 		client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)

@@ -5999,29 +5999,26 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 				panic(ArgumentsRequired(this.Id + " stop/trigger orders require a triggerDirection parameter, either \"ascending\" or \"descending\" to determine the direction of the trigger."))
 			}
 			var isAsending bool = ((triggerDirection != nil && *triggerDirection == "ascending") || (triggerDirection != nil && *triggerDirection == "above") || (triggerDirection != nil && *triggerDirection == "1"))
-			request["triggerDirection"] = func() int {
-				if isAsending {
-					return 1
-				}
-				return 2
-			}()
+			if isAsending {
+				request["triggerDirection"] = 1
+			} else {
+				request["triggerDirection"] = 2
+			}
 		}
 		request["triggerPrice"] = this.GetPrice(symbolValue, triggerPrice)
 	} else if (isStopLossOrder || isTakeProfitOrder) && !endpointIsTradingStop {
 		if isBuy {
-			request["triggerDirection"] = func() int {
-				if isStopLossOrder {
-					return 1
-				}
-				return 2
-			}()
+			if isStopLossOrder {
+				request["triggerDirection"] = 1
+			} else {
+				request["triggerDirection"] = 2
+			}
 		} else {
-			request["triggerDirection"] = func() int {
-				if isStopLossOrder {
-					return 2
-				}
-				return 1
-			}()
+			if isStopLossOrder {
+				request["triggerDirection"] = 2
+			} else {
+				request["triggerDirection"] = 1
+			}
 		}
 		if isStopLossOrder {
 			triggerPrice = stopLossTriggerPrice
@@ -6082,12 +6079,11 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 		} else {
 			isBuyPosition = (side != nil && *side == "buy")
 		}
-		request["positionIdx"] = func() int {
-			if isBuyPosition {
-				return 1
-			}
-			return 2
-		}()
+		if isBuyPosition {
+			request["positionIdx"] = 1
+		} else {
+			request["positionIdx"] = 2
+		}
 	}
 	query = this.Omit(query, []any{"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"})
 	return this.Extend(request, query)

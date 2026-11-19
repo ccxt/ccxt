@@ -2422,8 +2422,20 @@ func (this *Bingx) HandleBalance(client any, message map[string]any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = data
 	}
-	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		if timestamp != nil {
+			entry["timestamp"] = *timestamp
+		} else {
+			entry["timestamp"] = nil
+		}
+	}
+	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			entry["datetime"] = *ptrValue
+		} else {
+			entry["datetime"] = nil
+		}
+	}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "a")

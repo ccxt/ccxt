@@ -1058,14 +1058,16 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 	}
 	this.Balance["info"] = message
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if this.Balance != nil {
-		if timestamp != nil {
-			this.Balance["timestamp"] = *timestamp
-		} else {
-			this.Balance["timestamp"] = nil
-		}
+	if timestamp != nil {
+		this.Balance["timestamp"] = *timestamp
+	} else {
+		this.Balance["timestamp"] = nil
 	}
-	this.Balance["datetime"] = this.Iso8601(timestamp)
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		this.Balance["datetime"] = *ptrValue
+	} else {
+		this.Balance["datetime"] = nil
+	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }

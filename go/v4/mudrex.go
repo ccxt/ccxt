@@ -1401,7 +1401,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state s
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		orders = append(orders, OrderToMap(this.ParseOrder(DerefScalar(rows[i]), market)))
+		orders = append(orders, OrderToMap(this.ParseOrder(rows[i], market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}

@@ -189,7 +189,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("subscribe", params)
-	var url any = this.GetWsUrl(false)
+	var url string = this.GetWsUrl(false)
 	var method string = "public/subscribe"
 	if isPrivate == true {
 		url = this.GetWsUrl(true)
@@ -200,7 +200,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
 			panic(r.Err)
 		}
 	}
-	if url == nil {
+	if false {
 		panic(ccxt.NotSupported(this.Id + " websocket is not supported"))
 	}
 	var request map[string]any = map[string]any{
@@ -1827,7 +1827,7 @@ func (this *Coinbaseinternational) HandleTrades(client any, message map[string]a
 	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.DerefScalar(data[i]), market))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
 		tradesArray.Append(trade)
 	}
 	this.Trades[*symbol] = tradesArray
@@ -2879,7 +2879,7 @@ func (this *Coinbaseinternational) fetchBalanceWsBody(ch chan ccxt.AsyncResult[c
 	}
 	result := r.Value
 	var summaries []any = ccxt.SafeListTyped(result, "summaries")
-	var balance any = map[string]any{
+	var balance map[string]any = map[string]any{
 		"info": result,
 	}
 	var summariesLength int = len(summaries)

@@ -7096,7 +7096,7 @@ func (this *Coinbase) IsEddsaApiKey() bool {
 	// using the size might be fragile, so we add an option to force v2 cloud api key if needed
 	return (len(this.Secret) == 88) || (*this.SafeBool(this.Options, "v2CloudAPiKey", false)) || strings.HasSuffix(this.Secret, "=")
 }
-func (this *Coinbase) CreateAuthToken(seconds any, url string, optionalArgs ...any) string {
+func (this *Coinbase) CreateAuthToken(seconds int64, url string, optionalArgs ...any) string {
 	// v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
 	// v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
 	var method *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7127,7 +7127,7 @@ func (this *Coinbase) CreateAuthToken(seconds any, url string, optionalArgs ...a
 		"aud": []any{aud},
 		"iss": iss,
 		"nbf": seconds,
-		"exp": Add(seconds, 120),
+		"exp": seconds + 120,
 		"sub": this.ApiKey,
 		"iat": seconds,
 	}

@@ -645,19 +645,15 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	this.Balance["info"] = data
-	if this.Balance != nil {
-		if timestamp != nil {
-			this.Balance["timestamp"] = *timestamp
-		} else {
-			this.Balance["timestamp"] = nil
-		}
+	if timestamp != nil {
+		this.Balance["timestamp"] = *timestamp
+	} else {
+		this.Balance["timestamp"] = nil
 	}
-	if this.Balance != nil {
-		if datetime != nil {
-			this.Balance["datetime"] = *datetime
-		} else {
-			this.Balance["datetime"] = nil
-		}
+	if datetime != nil {
+		this.Balance["datetime"] = *datetime
+	} else {
+		this.Balance["datetime"] = nil
 	}
 	for i := 0; i < len(currencies); i++ {
 		var currency *string = this.SafeString(currencies, i)

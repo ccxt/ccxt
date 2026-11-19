@@ -8176,12 +8176,11 @@ func (this *Mexc) setMarginModeBody(ch chan AsyncResult[Leverage], marginMode st
 		request["symbol"] = market["id"]
 	}
 	if direction != nil {
-		request["positionType"] = func() int {
-			if direction != nil && *direction == "short" {
-				return 2
-			}
-			return 1
-		}()
+		if direction != nil && *direction == "short" {
+			request["positionType"] = 2
+		} else {
+			request["positionType"] = 1
+		}
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "direction")
 

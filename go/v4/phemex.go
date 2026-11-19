@@ -5688,12 +5688,11 @@ func (this *Phemex) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 		if currentLeverage == nil {
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a \"leverage\" parameter for USDT markets"))
 		}
-		request["leverageRr"] = func() any {
-			if isCross {
-				return Precise.StringNeg(Precise.StringAbs(currentLeverage))
-			}
-			return Precise.StringAbs(currentLeverage)
-		}()
+		if isCross {
+			request["leverageRr"] = Precise.StringNeg(Precise.StringAbs(currentLeverage))
+		} else {
+			request["leverageRr"] = Precise.StringAbs(currentLeverage)
+		}
 
 		r1 := <-this.PrivatePutGPositionsLeverage(this.Extend(request, params))
 		if r1.Err != nil {

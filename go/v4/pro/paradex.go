@@ -163,17 +163,17 @@ func (this *Paradex) sendRequestBody(ch chan ccxt.AsyncResult[any], url any, req
 	defer ccxt.ReturnPanicError(ch)
 	var subscribeHash *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subscribeHash
-	var requestHash any = ccxt.Add("request:", this.SafeString(request, "id"))
+	var requestHash string = "request:" + *this.SafeString(request, "id", "")
 	var subscription map[string]any = map[string]any{
 		"id":            request["id"],
 		"messageHashes": []any{requestHash},
 	}
-	var hash any = func() any {
-		if subscribeHash == nil {
-			return requestHash
-		}
-		return subscribeHash
-	}()
+	var hash string
+	if subscribeHash == nil {
+		hash = requestHash
+	} else {
+		hash = *subscribeHash
+	}
 
 	r := <-this.Watch(url, requestHash, request, hash, subscription)
 	if r.Err != nil {
@@ -1472,7 +1472,7 @@ func (this *Paradex) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], cli
 	// the whole connection
 	var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
 	var subscribe map[string]any = this.SubscribeRequest(channel)
-	var unsubscribeHash any = ccxt.Add("request:", this.SafeString(unsubscribe, "id"))
+	var unsubscribeHash string = "request:" + *this.SafeString(unsubscribe, "id", "")
 	client.(ccxt.ClientInterface).SubscriptionSet(unsubscribeHash, map[string]any{
 		"id":            unsubscribe["id"],
 		"messageHashes": []any{},

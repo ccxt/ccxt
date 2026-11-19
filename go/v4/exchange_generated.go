@@ -1324,7 +1324,7 @@ func (this *BaseExchange) ParseCurrencies(rawCurrencies any) map[string]any {
 	var arr []any = this.ToArray(rawCurrencies)
 	for i := 0; i < len(arr); i++ {
 
-		var parsed any = this.DerivedExchange.ParseCurrency(DerefScalar(arr[i]))
+		var parsed any = this.DerivedExchange.ParseCurrency(arr[i])
 		PanicOnError(parsed)
 		if IsEqual(parsed, nil) {
 			continue
@@ -4086,31 +4086,31 @@ func (this *BaseExchange) HandleNetworkCodeAndParams(params any) (*string, map[s
 	// if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
 	return networkCodeInParams, MapTyped(paramsOmitted)
 }
-func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, networkCode any, indexedNetworkEntries any, optionalArgs ...any) any {
+func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, networkCode *string, indexedNetworkEntries any, optionalArgs ...any) any {
 	// this method is used against raw & unparse network entries, which are just indexed by network id
 	var isIndexedByUnifiedNetworkCode bool = GetArgBool(optionalArgs, 0, false)
 	_ = isIndexedByUnifiedNetworkCode
 	var chosenNetworkId any = nil
 	var availableNetworkIds []string = ObjectKeys(indexedNetworkEntries)
 	var responseNetworksLength int = len(availableNetworkIds)
-	if !IsEqual(networkCode, nil) {
+	if networkCode != nil {
 		if responseNetworksLength == 0 {
-			panic(NotSupported(Add(Add(Add(this.Id+" - ", networkCode), " network did not return any result for "), currencyCode)))
+			panic(NotSupported(Add(this.Id+" - "+*networkCode+" network did not return any result for ", currencyCode)))
 		} else {
 			// if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-			var networkIdOrCode any = func() any {
-				if isIndexedByUnifiedNetworkCode == true {
-					return networkCode
-				}
-				return this.NetworkCodeToId(networkCode, currencyCode)
-			}()
+			var networkIdOrCode *string
+			if isIndexedByUnifiedNetworkCode == true {
+				networkIdOrCode = networkCode
+			} else {
+				networkIdOrCode = this.NetworkCodeToId(networkCode, currencyCode)
+			}
 			if networkIdOrCode == nil {
-				panic(NotSupported(Add(Add(Add(this.Id+" - ", networkCode), " network was not found for "), currencyCode)))
+				panic(NotSupported(Add(this.Id+" - "+*networkCode+" network was not found for ", currencyCode)))
 			}
 			if InOp(indexedNetworkEntries, networkIdOrCode) {
 				chosenNetworkId = networkIdOrCode
 			} else {
-				panic(NotSupported(Add(Add(Add(Add(Add(this.Id+" - ", networkIdOrCode), " network was not found for "), currencyCode), ", use one of "), strings.Join(availableNetworkIds, ", "))))
+				panic(NotSupported(Add(Add(Add(this.Id+" - "+*networkIdOrCode+" network was not found for ", currencyCode), ", use one of "), strings.Join(availableNetworkIds, ", "))))
 			}
 		}
 	} else {
@@ -4630,7 +4630,7 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) []a
 	var positionsArray []any = this.ToArray(positions)
 	var result []any = []any{}
 	for i := 0; i < len(positionsArray); i++ {
-		var position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(DerefScalar(positionsArray[i]))), params)
+		var position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positionsArray[i])), params)
 		result = append(result, position)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbolsNormalized)
@@ -4652,7 +4652,7 @@ func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) []any {
 	var ranksArray []any = this.ToArray(ranks)
 	var result []any = []any{}
 	for i := 0; i < len(ranksArray); i++ {
-		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(DerefScalar(ranksArray[i])), params)
+		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(ranksArray[i]), params)
 		result = append(result, rank)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbolsNormalized)
@@ -4663,7 +4663,7 @@ func (this *BaseExchange) ParseAccounts(accounts any, optionalArgs ...any) []any
 	var accountsArray []any = this.ToArray(accounts)
 	var result []any = []any{}
 	for i := 0; i < len(accountsArray); i++ {
-		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(DerefScalar(accountsArray[i])), params)
+		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(accountsArray[i]), params)
 		result = append(result, account)
 	}
 	return result
@@ -4683,11 +4683,11 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 		var parsed any = nil
 		if EvalTruthy(isWs) {
 
-			parsed = this.DerivedExchange.ParseWsTrade(DerefScalar(tradesArray[i]), market)
+			parsed = this.DerivedExchange.ParseWsTrade(tradesArray[i], market)
 			PanicOnError(parsed)
 		} else {
 
-			parsed = TradeToMap(this.DerivedExchange.ParseTrade(DerefScalar(tradesArray[i]), market))
+			parsed = TradeToMap(this.DerivedExchange.ParseTrade(tradesArray[i], market))
 			PanicOnError(parsed)
 		}
 		var trade map[string]any = this.Extend(parsed, params)
@@ -4755,7 +4755,7 @@ func (this *BaseExchange) ParseTransfers(transfers any, optionalArgs ...any) []a
 	var transfersArray []any = this.ToArray(transfers)
 	var result []any = []any{}
 	for i := 0; i < len(transfersArray); i++ {
-		var transfer map[string]any = this.Extend(TransferEntryToMap(this.DerivedExchange.ParseTransfer(DerefScalar(transfersArray[i]), currency)), params)
+		var transfer map[string]any = this.Extend(TransferEntryToMap(this.DerivedExchange.ParseTransfer(transfersArray[i], currency)), params)
 		result = append(result, transfer)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4780,7 +4780,7 @@ func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) []any {
 	var arrayData []any = this.ToArray(data)
 	for i := 0; i < len(arrayData); i++ {
 
-		var itemOrItems any = LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(DerefScalar(arrayData[i]), currency))
+		var itemOrItems any = LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(arrayData[i], currency))
 		PanicOnError(itemOrItems)
 		if false {
 			for j := 0; j < GetArrayLength(itemOrItems); j++ {
@@ -7959,7 +7959,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					response := r.Value
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
-						var backwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(i+1)), " method "), method), " response length "), strconv.Itoa(responseLength))
+						var backwardMessage any = "Dynamic pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
 						if !IsEqual(paginationTimestamp, nil) {
 							backwardMessage = Add(backwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
 						}
@@ -7991,7 +7991,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					response := r1.Value
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
-						var forwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(i+1)), " method "), method), " response length "), strconv.Itoa(responseLength))
+						var forwardMessage any = "Dynamic pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
 						if !IsEqual(paginationTimestamp, nil) {
 							forwardMessage = Add(forwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
 						}
@@ -8457,8 +8457,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 				errors = 0
 				var responseLength int = GetArrayLength(response)
 				if this.Verbose {
-					var iteration any = (i + 1)
-					var incrementalMessage string = "Incremental pagination call " + ToString(iteration) + " method " + method + " response length " + strconv.Itoa(responseLength)
+					var incrementalMessage string = "Incremental pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
 					this.Log(incrementalMessage)
 				}
 				if responseLength == 0 {
@@ -11474,12 +11473,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048815Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048815 []any = retRes1048815Recv
-	if retRes1048815 == nil {
+	retRes1048715Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048715 []any = retRes1048715Recv
+	if retRes1048715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048715)}
 	}
 	return nil
 }

@@ -1955,8 +1955,20 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	if entry, ok := this.Balance[account].(map[string]any); ok && (entry != nil) {
 		entry["info"] = info
 	}
-	ccxt.AddElementToObject(this.Balance[account], "timestamp", timestamp)
-	ccxt.AddElementToObject(this.Balance[account], "datetime", this.Iso8601(timestamp))
+	if entry, ok := this.Balance[account].(map[string]any); ok && (entry != nil) {
+		if timestamp != nil {
+			entry["timestamp"] = *timestamp
+		} else {
+			entry["timestamp"] = nil
+		}
+	}
+	if entry, ok := this.Balance[account].(map[string]any); ok && (entry != nil) {
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			entry["datetime"] = *ptrValue
+		} else {
+			entry["datetime"] = nil
+		}
+	}
 	this.Balance[account] = this.SafeBalance(this.Balance[account])
 	if topic != nil {
 		var messageHash string = *topic + "::balance"
