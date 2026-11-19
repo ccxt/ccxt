@@ -7668,6 +7668,22 @@ function readTypedNumericArgs(content: string): string {
 }
 //
 // unit slot 049
+// `f(.., &[x.clone()])` on a `&[Value]` default slot, x a string-argument local declared `Value` in this fn
+// (get_arg / `: Value`): lend it as `std::slice::from_ref(&x)`; skipped when the same call moves x.
+function lendStringArgDefaultSlice(content: string): string {
+    return content.replace(/&\[(timeframe|symbol|code|method|side|type_var)\.clone\(\)\]\)/g, (hit, x: string, off: number) => {
+        const open = content.lastIndexOf('(', off);
+        const fnAt = content.lastIndexOf('fn ', off);
+        if (open < 0 || fnAt < 0) return hit;
+        const stmt = content.slice(Math.max(content.lastIndexOf(';', off), content.lastIndexOf('{', off), content.lastIndexOf('\n', off)) + 1, off);
+        if (/\|/.test(stmt) || new RegExp(`(?<![\\w.&])${x}\\b(?!\\.clone\\(\\)|\\.as_|\\.is_)`).test(stmt.replace(/"[^"]*"/g, '""').replace(/^\s*let (mut )?\w+(:[^=]+)?=/, ''))) return hit;
+        const decls = [...content.slice(fnAt, off).matchAll(new RegExp(`(?<![\\w.])(?:let (?:mut )?)?${x}\\s*(?::\\s*([^=;,)]+?)\\s*)?(=|[;,)])(?!=)\\s*(get_arg\\()?`, 'g'))]
+            .filter(d => d[1] !== undefined || d[3] !== undefined);
+        const last = decls[decls.length - 1];
+        if (last === undefined || !(last[3] !== undefined || (last[1] ?? '').trim() === 'Value')) return hit;
+        return `std::slice::from_ref(&${x}))`;
+    });
+}
 //
 // unit slot 050
 //
@@ -8095,6 +8111,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     readTypedNumericArgs,
     //
     // pass slot 049
+    lendStringArgDefaultSlice,
     //
     // pass slot 050
     //
