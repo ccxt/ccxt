@@ -2387,8 +2387,20 @@ function integerLocalHasBoxedEquality (declaration) {
             return false;
         }
         const other = unwrapParens (parent.left === child ? parent.right : parent.left);
-        return other === undefined || other.kind !== ts.SyntaxKind.NumericLiteral;
+        return other === undefined || (other.kind !== ts.SyntaxKind.NumericLiteral && !integerLengthLocalPeer (scope, other));
     });
+}
+
+// another never-written `const n = <x>.length` local of the same scope: the compare is int against int
+function integerLengthLocalPeer (scope, other) {
+    if (!ts.isIdentifier (other)) {
+        return false;
+    }
+    const decls = (identifierIndex (scope).get (String (other.text)) ?? []).filter ((n) => ts.isVariableDeclaration (n.parent) && n.parent.name === n);
+    const declaration = decls.length === 1 ? decls[0].parent : undefined;
+    const init = unwrapParens (declaration?.initializer);
+    return declaration !== undefined && (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) !== 0
+        && init !== undefined && ts.isPropertyAccessExpression (init) && init.name.text === 'length';
 }
 
 // ===== local narrowing (initializer -> Java type) =====
@@ -15015,6 +15027,7 @@ const PAIR_VENUE_TYPES = {
     'getInstType': { file: /[\\/]ts[\\/]src[\\/]pro[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
     'handleProductTypeAndParams': { file: /[\\/]ts[\\/]src[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
     'orderRequest': { file: /[\\/]ts[\\/]src[\\/]poloniex\.ts$/, types: [ PAIR_MAP, PAIR_MAP ] },
+    'getBybitType': { file: /[\\/]ts[\\/]src[\\/]bybit\.ts$/, types: [ 'String', PAIR_MAP ] },
 };
 
 function pairJavaType (types) {
@@ -15127,7 +15140,11 @@ function pairRewriteBlock (printer, printed, holderName, types, targets) {
             continue;
         }
         if (!(pairSameType (declared, element) || declared === 'Object') || (cast !== undefined && !pairSameType (cast, element))) {
-            continue; // a narrower/other declared type keeps the list read
+            // a narrower/other declared type keeps the list read; the local still holds its declared type
+            if (target.binding !== undefined && cast !== undefined && pairSameType (cast, declared) && declared !== 'var') {
+                PAIR_BOUND_TYPES.set (target.binding, declared);
+            }
+            continue;
         }
         lines[k] = `${indent}${declared} ${name} = ${read}${tail}`;
         if (target.binding !== undefined) {
@@ -17453,6 +17470,7 @@ const JAVA_VENUE_PARAM_TYPES = {
     'Dict[]': 'java.util.List<Object>',
     // a venue-only `string[]` parameter: every caller hands a bare List (literal, safeList, List<Object> local)
     'string[]': 'java.util.List<Object>',
+    'Market[]': 'java.util.List<Object>',
 };
 const JAVA_VENUE_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
 const JAVA_LIB_SOURCE_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
@@ -17510,6 +17528,33 @@ function javaVenueIndexFile (file) {
     return index;
 }
 
+// same-named methods in other venues are unrelated classes when this file declares the name once and no
+// ts/src file imports this one (so no subclass can override it)
+let javaVenueImportedFilesCache;
+function javaVenueLeafOwnName (file, name) {
+    let own = 0;
+    const visit = (n) => {
+        if (ts.isMethodDeclaration (n) && n.name !== undefined && ts.isIdentifier (n.name) && n.name.text === name) {
+            own++;
+        }
+        n.forEachChild (visit);
+    };
+    visit (file);
+    if (own !== 1) {
+        return false;
+    }
+    if (javaVenueImportedFilesCache === undefined) {
+        javaVenueImportedFilesCache = new Set ();
+        for (const full of javaVenueNameIndex ().files) {
+            const text = readTsIndexSource (full) ?? '';
+            for (const m of text.matchAll (/\bfrom\s+'(\.{1,2}\/[^']+)'/g)) {
+                javaVenueImportedFilesCache.add (path.resolve (path.dirname (full), m[1].replace (/\.js$/, '.ts')));
+            }
+        }
+    }
+    return !javaVenueImportedFilesCache.has (path.resolve (file.fileName));
+}
+
 function javaVenueIndexSource (sf, declared, referenced, literals) {
     const visit = (n) => {
         if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
@@ -17532,6 +17577,23 @@ function javaVenueIndexSource (sf, declared, referenced, literals) {
 // the argument already prints the target Java type (no checkcast, so no new ClassCastException):
 // a literal of the family, a local/parameter declared that type, a primitive boolean
 // expression, an array literal, or safeList* with a list default
+// `const x: Market[] = []` prints `List<Object> x = new ArrayList<Object>(..)` whatever was printed first
+function javaEmptyMarketListLocal (printer, id) {
+    if (!ts.isIdentifier (id) || printer.printNode (id, 0) !== id.text) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (id)?.valueDeclaration?.resolve?.();
+    } catch (e) {
+        return false;
+    }
+    const init = unwrapParens (declaration?.initializer);
+    return declaration !== undefined && ts.isVariableDeclaration (declaration) && ts.isIdentifier (declaration.name)
+        && (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) !== 0 && declaration.type?.getText () === 'Market[]'
+        && init !== undefined && ts.isArrayLiteralExpression (init) && init.elements.length === 0;
+}
+
 function javaArgumentTypeAgrees (printer, arg, target) {
     const bare = unwrapParens (arg);
     if (bare === undefined || ts.isSpreadElement (bare)) {
@@ -17551,6 +17613,9 @@ function javaArgumentTypeAgrees (printer, arg, target) {
     }
     if (ts.isArrayLiteralExpression (bare)) {
         return !bare.elements.some ((e) => ts.isSpreadElement (e));
+    }
+    if (target === 'java.util.List<Object>' && javaEmptyMarketListLocal (printer, bare)) {
+        return true;
     }
     return ts.isCallExpression (bare) && ts.isPropertyAccessExpression (bare.expression)
         && bare.expression.expression.kind === ts.SyntaxKind.ThisKeyword
@@ -17628,7 +17693,7 @@ function javaVenueParamType (printer, node) {
         const name = method.name.text;
         const index = method.parameters.indexOf (node);
         const { declared, referenced, literals, java } = javaVenueIndexFile (file);
-        const unique = declared.get (name) === 1 && !referenced.has (name) && !literals.has (name)
+        const unique = (declared.get (name) === 1 || (node.type.getText () === 'Market[]' && javaVenueLeafOwnName (file, name))) && !referenced.has (name) && !literals.has (name)
             && java !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (java);
         const venueOnly = unique && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
             && printer.javaIsPrintedMethod (method);
@@ -21013,6 +21078,20 @@ function r93j1BaseCloneCall (printer, call) {
 }
 
 // 'native' | 'same' | undefined (= refuse)
+// a defaulted `Market`/`Dict` slot the printer declares the json box (its argument prints a Map conversion)
+function r84j1OptionalMapSlot (printer, call, at) {
+    if (typeof printer.javaOptionalParameterTypeOf !== 'function') {
+        return false;
+    }
+    try {
+        const param = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.()?.parameters?.[at];
+        const type = param === undefined || param.initializer === undefined ? undefined : printer.javaOptionalParameterTypeOf (param);
+        return String (type ?? '').replace (/java\.util\./g, '') === 'Map<String, Object>';
+    } catch (e) {
+        return false;
+    }
+}
+
 function r84j1BoxUse (printer, n) {
     let child = n;
     let parent = n.parent;
@@ -21068,7 +21147,7 @@ function r84j1BoxUse (printer, n) {
             } catch (e) {
                 return undefined;
             }
-            if (types[at] === 'java.util.Map<String, Object>') {
+            if (types[at] === 'java.util.Map<String, Object>' || r84j1OptionalMapSlot (printer, parent, at)) {
                 return 'native';
             }
         }
@@ -21080,6 +21159,11 @@ function r84j1BoxUse (printer, n) {
 // Java side of every such value is a TypedMap view (a java.util.Map) or null, so an element of a
 // `Trade[]` list holds exactly what an element of a `Dict[]` list holds
 function r90j1UnifiedStructureType (checker, type) {
+    // `Market` is `MarketInterface | undefined`: the nullish member is the Java null
+    if (type !== undefined && (type.flags & ts.TypeFlags.Union) !== 0 && Array.isArray (type.types)) {
+        const parts = type.types.filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+        return parts.length === 1 && parts.length < type.types.length && r90j1UnifiedStructureType (checker, parts[0]);
+    }
     if (type === undefined || (type.flags & ts.TypeFlags.Object) === 0 || checker.isArrayType (type) || checker.isTupleType (type)) {
         return false;
     }
