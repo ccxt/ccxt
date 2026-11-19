@@ -8676,6 +8676,59 @@ function rustTypedListReads(content: string): string {
 }
 //
 // unit slot 085
+// venue producers whose every return is a typed dict: [name, 'dict' (all returns `safe_balance`) | 'opt' (all
+// returns `parse_order`)]. The declaration returns that type; `.into_opt_dict()` / `.into_dict()` callers take it
+// as is and any other caller (dispatch arms, `Value` returns) re-boxes it exactly as the old return did.
+const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt']> = [
+    ['parse_balance_custom', 'dict'],
+    ['accept_rfq_quote', 'opt'],
+    ['create_rfq_order', 'opt'],
+];
+function rustTypedDictProducers (content: string): string {
+    const parseOrder = '<Self as crate::exchange::DerivedExchange>::parse_order(', boxOrder = '.map_or(Value::Null, Value::Dict)';
+    for (const [fn, kind] of RUST_TYPED_DICT_PRODUCERS) {
+        const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
+        const tail = '\n\n    Value::Null\n}';
+        let d: RegExpExecArray | null;
+        while ((d = decl.exec (content)) !== null) {
+            const open = d.index + d[0].length, end = content.indexOf (tail, open);
+            if (end < 0) throw new Error (fn + ': declaration without the Value::Null tail');
+            let body = content.slice (open, end);
+            const rets = body.match (/^ *return\b[^\n]*$/gm) ?? [];
+            if (kind === 'dict') {
+                if (rets.length === 0 || !rets.every ((r) => /^ *return Value::Dict\(self\.safe_balance\(.*\)\);$/.test (r))) throw new Error (fn + ': unproven return');
+                body = body.replace (/^( *return )Value::Dict\((self\.safe_balance\(.*\))\);$/gm, '$1$2;');
+            } else {
+                const local = body.match (/\n( *)let mut (\w+): Value = (<Self as crate::exchange::DerivedExchange>::parse_order\([^\n]*\))\.map_or\(Value::Null, Value::Dict\);\n\1if let Value::Dict\(__rda\) = &mut \2 \{ ([^\n]*) \}\n\1return \2;$/);
+                if (local && rets.length === 1) {
+                    body = body.replace (local[0], '\n' + local[1] + 'let mut ' + local[2] + ': Option<crate::value::Dict> = ' + local[3] + ';\n' + local[1] + 'if let Some(__rda) = &mut ' + local[2] + ' { ' + local[4] + ' }\n' + local[1] + 'return ' + local[2] + ';');
+                } else if (rets.length > 0 && rets.every ((r) => r.trim ().startsWith ('return ' + parseOrder) && r.endsWith (boxOrder + ';'))) {
+                    body = body.split (boxOrder + ';\n').join (';\n').replace (new RegExp ('\\.map_or\\(Value::Null, Value::Dict\\);$'), ';');
+                } else throw new Error (fn + ': unproven return');
+            }
+            const ty = kind === 'dict' ? 'crate::value::Dict' : 'Option<crate::value::Dict>';
+            content = content.slice (0, d.index) + d[0].replace (') -> Value {', ') -> ' + ty + ' {') + body + '\n\n    Default::default()\n}' + content.slice (end + tail.length);
+            decl.lastIndex = d.index + d[0].length;
+        }
+        const head = new RegExp ('(?<![\\w.])self\\.(?:parent\\.)*' + fn + '\\(', 'g'), starts: number[] = [];
+        let m: RegExpExecArray | null;
+        while ((m = head.exec (content)) !== null) starts.push (m.index);
+        for (const s of starts.reverse ()) {
+            let close = balancedCloseIndex (content, content.indexOf ('(', s) + 1);
+            if (close >= content.length) continue;
+            if (content.startsWith ('.await', close + 1)) close += '.await'.length;
+            const call = content.slice (s, close + 1), rest = content.slice (close + 1);
+            if (rest.startsWith ('.into_opt_dict()')) {
+                content = content.slice (0, s) + (kind === 'dict' ? 'Some(' + call + ')' : call) + rest.slice ('.into_opt_dict()'.length);
+            } else if (rest.startsWith ('.into_dict()')) {
+                content = content.slice (0, s) + call + (kind === 'dict' ? '' : '.unwrap_or_default()') + rest.slice ('.into_dict()'.length);
+            } else {
+                content = content.slice (0, s) + (kind === 'dict' ? 'Value::Dict(' + call + ')' : call + boxOrder) + rest;
+            }
+        }
+    }
+    return content;
+}
 //
 // unit slot 086
 //
@@ -9170,6 +9223,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     rustTypedListReads,
     //
     // pass slot 085
+    rustTypedDictProducers,
     //
     // pass slot 086
     //
