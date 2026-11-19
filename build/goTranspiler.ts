@@ -15090,6 +15090,7 @@ ${caseStatements.join('\n')}
         // ... and the same for the `any` LOCALS a pointer reaches (prediction files also use
         // `ccxt.IsEqual`); typed locals compare natively (goTypedNativeNilCompares).
         const qual = (isWs || isPrediction) ? 'ccxt.' : '';
+        content = goTypedDictNarrowers (content, qual);
         const comparePasses = [ goBoxedPointerNilCompares, goTypedNativeNilCompares, goProvenParamNativeNilCompares, goAnyLocalNativeNilCompares, goStringLiteralNativeCompares ];
         for (const pass of comparePasses) {
             content = pass (content, qual + 'IsEqual(');
@@ -16870,6 +16871,28 @@ function goNonNilStringPtr (fn: string, name: string, seen: string[] = []): bool
     return writes.length > 0 && writes.every ((w) => goNonNilStringCall (w.replace (/^.*? = /, '').replace (/\s*\/\/.*$/, '').trim (), nonNilDefault));
 }
 
+// `if (typeof r !== 'string' && !Array.isArray (r)) return r; return {};` printed verbatim: the map arm hands the
+// response back as map[string]any and every other value answers the empty map, so callers' locals read only
+// by SafeDict take map[string]any (a SafeDict first argument accepts any map the box held).
+export function goTypedDictNarrowers (content: string, qual: string): string {
+    const q = qual.replace (/\./g, '\\.');
+    const def = new RegExp ('(func \\(this \\*\\w+\\) (\\w+)\\((\\w+) any\\)) any \\{\\n\\tif \\(!' + q + 'IsString\\(\\3\\)\\) && !' + q + 'IsArray\\(\\3\\) \\{\\n\\t\\treturn \\3\\n\\t\\}\\n\\treturn map\\[string\\]any\\{\\}\\n\\}', 'g');
+    const names: string[] = [];
+    content = content.replace (def, ((_m: string, head: string, name: string, arg: string) => {
+        names.push (name);
+        return head + ' map[string]any {\n\tif m, ok := ' + arg + '.(map[string]any); ok {\n\t\treturn m\n\t}\n\treturn map[string]any{}\n}';
+    }) as any);
+    for (const name of names) {
+        content = content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => fn.replace (new RegExp ('\\n(\\t+)var (\\w+) any = (this\\.' + name + '\\(\\w+\\))\\n', 'g'), ((m: string, ind: string, local: string, call: string) => {
+            const code = fn.replace (/"(?:[^"\\\n]|\\.)*"/g, '""');
+            const mentions = code.match (new RegExp ('(?<![.\\w])' + local + '(?!\\w)', 'g')) ?? [];
+            const reads = fn.match (new RegExp ('this\\.SafeDict\\(' + local + ', "\\w+", ' + local + '\\)', 'g')) ?? [];
+            return (mentions.length === 1 + 2 * reads.length) ? '\n' + ind + 'var ' + local + ' map[string]any = ' + call + '\n' : m;
+        }) as any)) as any);
+    }
+    return content;
+}
+
 export function goTypedShapeHelpers (content: string, qual: string): string {
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => {
         const cache = new Map<string, string | undefined> ();
@@ -16918,6 +16941,12 @@ export function goTypedShapeHelpers (content: string, qual: string): string {
 }
 
 function goTypedShapeHelpersSelfTest (ok: SelfTestOk): void {
+    const narrower = 'func (this *X) InfoDict(response any) any {\n\tif (!ccxt.IsString(response)) && !ccxt.IsArray(response) {\n\t\treturn response\n\t}\n\treturn map[string]any{}\n}\n';
+    const user = (extra: string) => '\nfunc (this *X) F(r any) {\n\tq := map[string]any{"type": "d"}\n\tvar d any = this.InfoDict(r)\n\tvar w any = this.SafeDict(d, "order", d)\n' + extra + '}\n';
+    const nd = goTypedDictNarrowers ('\n' + narrower + user (''), 'ccxt.');
+    ok (nd.includes ('InfoDict(response any) map[string]any {\n\tif m, ok := response.(map[string]any); ok {') && nd.includes ('var d map[string]any = this.InfoDict(r)'), 'dict narrower: ' + nd);
+    ok (goTypedDictNarrowers ('\n' + narrower + user ('\tx := d\n'), 'ccxt.').includes ('var d any = this.InfoDict(r)'), 'other use keeps the box');
+    ok (goTypedDictNarrowers ('\n' + narrower.replace ('return response', 'return nil') + user (''), 'ccxt.').includes ('var d any = this.InfoDict(r)'), 'other body untouched');
     const f = (sig: string, body: string, qual = '') => goTypedShapeHelpers ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n', qual);
     ok (f ('body string', '\tif IsString(body) {\n\t}\n').includes ('if true {'), 'string param IsString');
     ok (f ('', '\tvar s []string = GetArgStringSlice(o, 0, nil)\n\tif !IsArray(s) {\n\t}\n').includes ('if (s == nil) {'), 'IsArray []string');

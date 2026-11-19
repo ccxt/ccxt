@@ -1998,6 +1998,8 @@ const VENUE_RETURN_KINDS = {
     'parseEvent': [ JAVA_ARRAY_TYPE_MAP () ],
     // hyperliquid `infoList (..): Dict[]` (one declaration per class): returns its own list literal or the IsArray-guarded arg
     'infoList': [ 'java.util.List<Object>' ],
+    // hyperliquid `infoDict (..): Dict` (one declaration per class): returns the arg when it is neither String nor List, else {}
+    'infoDict': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
