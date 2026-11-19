@@ -6974,6 +6974,10 @@ function lendDataHandlerMessage(content: string): string {
 // unit slot 026
 //
 // unit slot 027
+/** `implode_params` takes `impl Borrow<Value>` and only reads it: lend a bare local instead of cloning it. */
+function lendImplodeParams(content: string): string {
+    return content.replace(/\.implode_params\(((?:[^()\n]|\((?:[^()\n]|\([^()\n]*\))*\))*?), ([A-Za-z_][A-Za-z0-9_]*)\.clone\(\)\)/g, '.implode_params($1, &$2)');
+}
 //
 // unit slot 028
 //
@@ -7292,6 +7296,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 026
     //
     // pass slot 027
+    lendImplodeParams,
     //
     // pass slot 028
     //

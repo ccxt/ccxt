@@ -1192,9 +1192,10 @@ impl Exchange {
         )).collect::<Vec<_>>().join("&")
     }
 
-    pub fn implode_params(&self, path: Value, params: Value) -> String {
+    pub fn implode_params(&self, path: Value, params: impl std::borrow::Borrow<Value>) -> String {
+        let params: &Value = params.borrow();
         let path_str: String = match &path { Value::Str(s) => s.to_string(), Value::Null => return String::new(), other => return other.to_string() };
-        let m = match &params { Value::Dict(m) => m, _ => return path_str };
+        let m = match params { Value::Dict(m) => m, _ => return path_str };
         let mut out = path_str;
         for (k, v) in m.iter() {
             let needle = format!("{{{k}}}");
@@ -1861,7 +1862,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             "BadRequest",
             format!("no URL configured for api scope `{scope_lookup}`"),
         ))?;
-        let path_str = self.implode_params(Value::Str(path.to_string().into()), params.clone());
+        let path_str = self.implode_params(Value::Str(path.to_string().into()), &params);
         let consumed_keys = self.extract_path_params(path);
         let remaining_params = match params {
             Value::Dict(m) => {
