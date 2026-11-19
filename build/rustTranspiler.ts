@@ -6723,6 +6723,55 @@ function rustOnlyCloneMentions(stmt: string, name: string): boolean {
 // unit slot 012
 //
 // unit slot 013
+// The base exception matchers only read their arguments: `exact`/`broad` take `impl Borrow<Value>`, `string`
+// `impl ScalarArg` (only a string can match, as before) and `message` `impl ToErrorMessage`; callers lend.
+const RUST_THROW_MATCHED_BASE: Record<string, string> = {
+    exactly: '        if let (crate::value::ScalarRef::Str(__s), Some(__m)) = (crate::value::ScalarArg::scalar(&string), std::borrow::Borrow::<Value>::borrow(&exact).as_map()) {\n            if let Some(__e) = __m.get(__s) {',
+    broadly: '        if let (crate::value::ScalarRef::Str(__s), Some(__m)) = (crate::value::ScalarArg::scalar(&string), std::borrow::Borrow::<Value>::borrow(&broad).as_map()) {\n            if let Some(__e) = __m.iter().find(|(__k, _)| __s.contains(__k.as_str())).map(|(_, __e)| __e) {',
+};
+function lendThrowMatchedArgs(content: string): string {
+    const head = /^( *)fn throw_(exactly|broadly)_matched_exception\(&self, mut (exact|broad): Value, mut string: Value, mut message: Value\) \{\n/m;
+    for (let m = head.exec(content); m !== null; m = head.exec(content)) {
+        const close = balancedCloseIndex(content, m.index + m[0].length);
+        const body = `${m[1]}fn throw_${m[2]}_matched_exception(&self, ${m[3]}: impl std::borrow::Borrow<Value>, string: impl crate::value::ScalarArg, message: impl crate::exchange_errors::ToErrorMessage) {\n${RUST_THROW_MATCHED_BASE[m[2]]}\n                panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(__e), message));\n            }\n        }\n`;
+        content = content.slice(0, m.index) + body + content.slice(close);
+    }
+    const site = /\bself\.throw_(?:exactly|broadly)_matched_exception\(/g;
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(site)) {
+        const open = (m.index as number) + m[0].length;
+        const close = balancedCloseIndex(content, open);
+        const args = splitRustArgs(content.slice(open, close));
+        if (args.length !== 3) continue;
+        const fnAt = content.lastIndexOf('fn ', open);
+        const typeOf = (x: string): string => {
+            const d = [...content.slice(fnAt, open).matchAll(new RegExp(`(?<![\\w.])(?:let (?:mut )?)?${x}\\s*:\\s*([^=;,)]+?)\\s*[=;,)]`, 'g'))];
+            return d.length === 0 ? '' : d[d.length - 1][1].trim();
+        };
+        const out = args.map(a => a.trim());
+        out[0] = out[0].replace(/^self\.exceptions((?:\.as_map\(\)\.and_then\(\|__m\| __m\.get\("[^"\\]*"\)\)\.cloned\(\)\.unwrap_or\(Value::Null\))+)$/, (_w, chain: string) => 'self.exceptions' + chain.replace(/\.as_map\(\)\.and_then\(\|__m\| __m\.get\(("[^"\\]*")\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)/g, '.at($1)'))
+            .replace(/^self\.exceptions\.clone\(\)$/, '&self.exceptions');
+        let v = /^([A-Za-z_]\w*)(?:\.clone\(\))?\.map\(Value::from\)\.unwrap_or\(Value::Null\)$/.exec(out[1]);
+        if (v !== null && /^Option<(?:String|f64|i64)>$/.test(typeOf(v[1]))) out[1] = '&' + v[1];
+        else if ((v = /^([A-Za-z_]\w*)\.clone\(\)$/.exec(out[1])) !== null && /^(?:Value|String)$/.test(typeOf(v[1]))) out[1] = '&' + v[1];
+        if ((v = /^Value::from\(([A-Za-z_]\w*)\.clone\(\)\)$/.exec(out[2])) !== null && typeOf(v[1]) === 'String') out[2] = '&' + v[1];
+        else if ((v = /^Value::from\(([A-Za-z_]\w*)\.as_str\(\)\)$/.exec(out[2])) !== null && typeOf(v[1]) === 'String') out[2] = v[1] + '.as_str()';
+        else if ((v = /^([A-Za-z_]\w*)\.clone\(\)$/.exec(out[2])) !== null && /^(?:Value|String)$/.test(typeOf(v[1]))) out[2] = '&' + v[1];
+        // a lent local must not be moved by another argument of the same call
+        const lent = out.map(a => /^&([A-Za-z_]\w*)$/.exec(a)?.[1] ?? /^([A-Za-z_]\w*)\.as_str\(\)$/.exec(a)?.[1]);
+        for (let i = 1; i < 3; i++) {
+            const x = lent[i];
+            if (x === undefined || x === 'self') continue;
+            const moved = out.some((a, j) => j !== i && new RegExp(`(?<![\\w.&])${x}\\b(?!\\.clone\\(\\)|\\.as_str\\(\\))`).test(a) && lent[j] !== x);
+            if (moved) out[i] = args[i].trim();
+        }
+        const text = out.join(', ');
+        if (text !== args.map(a => a.trim()).join(', ')) edits.push([open, close, text]);
+    }
+    let res = '', last = 0;
+    for (const [a, b, s] of edits) { res += content.slice(last, a) + s; last = b; }
+    return res + content.slice(last);
+}
 //
 // unit slot 014
 //
@@ -7035,6 +7084,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 012
     //
     // pass slot 013
+    lendThrowMatchedArgs,
     //
     // pass slot 014
     //
