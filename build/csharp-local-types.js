@@ -3985,6 +3985,11 @@ function mathMinMaxOperandBox (csharp, node, context) {
 }
 
 function integerBoxCastType (csharp, initializer, context) {
+    // `this.sum (a, b) - <int literal>`: Int64 minus an int is Int64
+    const shifted = stripParens (initializer);
+    if ((shifted?.kind === ts.SyntaxKind.BinaryExpression) && (shifted.operatorToken.kind === ts.SyntaxKind.MinusToken) && minMaxIntLiteral (shifted.right)) {
+        return (integerBoxCastType (csharp, stripParens (shifted.left), context) === 'Int64') ? 'Int64' : undefined;
+    }
     if (initializer?.kind === ts.SyntaxKind.CallExpression) {
         const callee = initializer.expression;
         if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
@@ -18158,6 +18163,39 @@ function minMaxRequestFieldValue (call) {
     return (parent?.kind === ts.SyntaxKind.PropertyAssignment) && (parent.initializer === call);
 }
 
+// `const x = <call>` / `const x = c ? undefined : <call>` whose every read is a request field value
+// or a `this.sum` argument: both read Int32 and Int64 boxes alike (urlencode/json, Convert.ToDouble)
+function minMaxLocalReadsAreBoxNeutral (csharp, call) {
+    let site = call;
+    if ((site.parent?.kind === ts.SyntaxKind.ConditionalExpression) && (site.parent.condition !== site)) {
+        site = site.parent;
+    }
+    const declaration = site.parent;
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (declaration.initializer !== site)
+        || (declaration.name?.kind !== ts.SyntaxKind.Identifier) || !(declaration.parent?.flags & ts.NodeFlags.Const)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const name = declaration.name.text;
+    let ok = true;
+    let reads = 0;
+    const visit = (n) => {
+        if (!ok) return;
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.text === name) && (n !== declaration.name)) {
+            reads++;
+            const p = n.parent;
+            const sumArg = (p?.kind === ts.SyntaxKind.CallExpression) && p.arguments.includes (n)
+                && (p.expression?.kind === ts.SyntaxKind.PropertyAccessExpression) && (p.expression.expression.kind === ts.SyntaxKind.ThisKeyword)
+                && (p.expression.name.text === 'sum') && (p.arguments.length === 2);
+            if (!sumArg && !minMaxRequestFieldValue (n)) ok = false;
+        }
+        n.forEachChild (visit);
+    };
+    if (scope === undefined) return false;
+    scope.forEachChild (visit);
+    return ok && (reads > 0);
+}
+
 export function installCsharpGuardedMinMax (transpiler) {
     const csharp = transpiler?.csharpTranspiler;
     if (!csharp || typeof csharp.csharpNativeMathMinMax !== 'function' || csharp._guardedMinMaxPatched) {
@@ -18167,7 +18205,10 @@ export function installCsharpGuardedMinMax (transpiler) {
     csharp.csharpNativeMathMinMax = (node, name, parsedArg1, parsedArg2) => {
         const native = upstream (node, name, parsedArg1, parsedArg2);
         const args = node?.arguments;
-        if ((native !== undefined) || (args?.length !== 2) || !minMaxRequestFieldValue (node)) {
+        if ((native !== undefined) || (args?.length !== 2)) {
+            return native;
+        }
+        if (!minMaxRequestFieldValue (node) && !minMaxLocalReadsAreBoxNeutral (csharp, node)) {
             return native;
         }
         if (minMaxGuardedNullableOperand (csharp, node, args[0]) && minMaxIntLiteral (args[1])) {

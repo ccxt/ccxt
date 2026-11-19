@@ -1118,7 +1118,7 @@ public partial class coinbaseinternational : Exchange
             request["end_timestamp"] = now;
         } else
         {
-            object sinceResolved = mathMax((since - 1), 0);
+            object sinceResolved = Math.Max((since.Value - 1), 0);
             request["start_timestamp"] = sinceResolved;
             if ((limitResolved == null))
             {

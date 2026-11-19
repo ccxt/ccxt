@@ -16556,9 +16556,9 @@ public partial class binance : Exchange
         if ((since != null))
         {
             request["startTime"] = since;
-            object endTime = ((this.sum(since, (limitResolved * 86400000))) - 1); // required when startTime is further than 93 days in the past
+            Int64 endTime = ((Int64)((this.sum(since, (limitResolved * 86400000))) - 1)); // required when startTime is further than 93 days in the past
             Int64 now = this.milliseconds();
-            request["endTime"] = mathMin(endTime, now); // cannot have an endTime later than current time
+            request["endTime"] = Math.Min(endTime, now); // cannot have an endTime later than current time
         }
         List<object> response = await this.sapiGetMarginInterestRateHistory(this.extend(request, parameters));
         //
