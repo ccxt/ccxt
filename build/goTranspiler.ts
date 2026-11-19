@@ -7155,15 +7155,12 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'fetchPaginatedCallDynamic': [ 0 ], 'fetchPaginatedCallDeterministic': [ 0 ], 'fetchPaginatedCallCursor': [ 0 ],
     'fetchPaginatedCallIncremental': [ 0 ], 'fetchWebEndpoint': [ 0 ], 'checkRequiredMarginArgument': [ 0 ],
     'stockDataRequest': [ 0 ], 'handleStockParams': [ 0 ],
-<<<<<<< merged
     // required unified `symbol`; the public typed wrappers already take a Go string (fetchTrades/watchTrades stay
     // boxed: bullish safeDeterministicCall and paradex watchTrades hand over an optional symbol)
     'fetchLeverage': [ 0 ], 'fetchPosition': [ 0 ],
     'fetchMarginMode': [ 0 ], 'setMargin': [ 0 ],
-=======
     // required `string` params whose callers pass a Go string: bitfinex currency code, withdraw address
     'getCurrencyName': [ 0 ], 'withdraw': [ 0, 2 ],
->>>>>>> G06
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go
@@ -13790,11 +13787,7 @@ ${constStatements.join('\n')}
             // hand-written in go/v4 (exchange_safe.go *float64 SafeNumber*, exchange_market_type.go
             // Handle*AndParams pairs, MarketSymbols and MarketCodes, exchange_misc.go ImplodeHostname): drop the copies
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOptionAndParams2?', 'HandleOption(?:Bool|Integer)AndParams2?',
-<<<<<<< merged
-                'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'MarketSymbols', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
-=======
-                'HandleOptionStringAndParams2', 'HandleUntilOption', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
->>>>>>> G05
+                'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*
@@ -13935,11 +13928,7 @@ ${constStatements.join('\n')}
             // (and add the element-access assertions formatGoSource would have added)
             // padHexAddress / shortenSlug (: string, no venue override) answer a Go string on every return path
             const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ] };
-<<<<<<< merged
-            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file))))))))))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
-=======
-            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goSafeListTypedDefaultReads (goBaseNativePasses (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file)))))))))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
->>>>>>> G18
+            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goGofmtSplicedText (goGofmtNestedParens (goSafeListTypedDefaultReads (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file)))))))))))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -15616,15 +15605,7 @@ async function runMain () {
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
             goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ],
             [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
-<<<<<<< merged
-<<<<<<< merged
-            goTernaryAnyTypedCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
-=======
-            goTernaryAnyTypedCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ]
->>>>>>> G21
-=======
-            goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ]
->>>>>>> G24
+            goTernaryAnyTypedCheck, goTernaryAnyAssignCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ], [ 'go list typed literal: ', goListTypedOfLiteralSelfTest ], [ 'go hashmap row reads: ', goHashmapRowReadsSelfTest ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
@@ -16371,8 +16352,31 @@ function goSafeListSliceReads (content: string): string {
     return out + content.substring (cursor);
 }
 
-<<<<<<< merged
-<<<<<<< merged
+// `SafeListTypedDefault(x, k, d)` with the same proven `[]any` default is `this.SafeListSlice(x, k, d)`: both read
+// SafeValue(x, k, d), keep it when IsArray admits it, else d, and convert through listValueToTypedSlice
+function goSafeListTypedDefaultReads (content: string): string {
+    const call = /(?<![\w.])(?:ccxt\.)?SafeListTypedDefault\(/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = call.exec (content); m !== null; m = call.exec (content)) {
+        const open = m.index + m[0].length - 1;
+        const end = goMatchingCloseText (content, open, '()');
+        if (end < 0) {
+            continue;
+        }
+        const args = goSplitTopLevelCommas (content.substring (open + 1, end)).map ((a) => a.trim ());
+        const dflt = (args.length === 3) ? args[2] : '';
+        const proven = /^\[\]any\{.*\}$/s.test (dflt) && (goMatchingCloseText (dflt, 5, '{}') === dflt.length - 1)
+            || /^\w+$/.test (dflt) && goOnceDeclaredAs (goEnclosingFuncText (content, m.index), dflt, '[]any', '[]any{');
+        if (!proven || !/^func \(this \*?\w+\)/.test (goEnclosingFuncText (content, m.index).replace (/^\n/, ''))) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + 'this.SafeListSlice(';
+        cursor = open + 1;
+    }
+    return out + content.substring (cursor);
+}
+
 // `var m map[string]any = SafeMapTyped(c.(*ArrayCache).Hashmap, k)` (Hashmap is map[string]map[string]any) is
 // the native row read when k is a once-declared string (or *string, nil -> nil map); a missing or nil row is
 // the nil map SafeMapTyped answers. The cache assertion is evaluated exactly once in both forms.
@@ -16406,7 +16410,8 @@ function goHashmapRowReadsSelfTest (ok: SelfTestOk): void {
         f ('c any', '\tvar s string = \"a\"\n\tvar o map[string]any = ccxt.SafeMapTyped(c.(*ccxt.ArrayCacheByTimestamp).Hashmap, s)\n') ];
     keep.forEach ((b, i) => ok (goHashmapRowReads (b) === b, 'negative ' + i));
     ok (goHashmapRowReads (str) === str, 'idempotent');
-=======
+}
+
 // `ListTyped([]any{..})` of a balanced literal is that literal: ListTyped hands a non-nil []any back as is
 function goListTypedOfLiteral (content: string): string {
     const call = /\b(?:ccxt\.)?ListTyped\(\[\]any\{/g;
@@ -16422,45 +16427,18 @@ function goListTypedOfLiteral (content: string): string {
         out += content.substring (cursor, m.index) + content.substring (open + 1, end);
         cursor = end + 1;
         call.lastIndex = cursor;
-=======
-// `SafeListTypedDefault(x, k, d)` with the same proven `[]any` default is `this.SafeListSlice(x, k, d)`: both read
-// SafeValue(x, k, d), keep it when IsArray admits it, else d, and convert through listValueToTypedSlice
-function goSafeListTypedDefaultReads (content: string): string {
-    const call = /(?<![\w.])(?:ccxt\.)?SafeListTypedDefault\(/g;
-    let out = '';
-    let cursor = 0;
-    for (let m = call.exec (content); m !== null; m = call.exec (content)) {
-        const open = m.index + m[0].length - 1;
-        const end = goMatchingCloseText (content, open, '()');
-        if (end < 0) {
-            continue;
-        }
-        const args = goSplitTopLevelCommas (content.substring (open + 1, end)).map ((a) => a.trim ());
-        const dflt = (args.length === 3) ? args[2] : '';
-        const proven = /^\[\]any\{.*\}$/s.test (dflt) && (goMatchingCloseText (dflt, 5, '{}') === dflt.length - 1)
-            || /^\w+$/.test (dflt) && goOnceDeclaredAs (goEnclosingFuncText (content, m.index), dflt, '[]any', '[]any{');
-        if (!proven || !/^func \(this \*?\w+\)/.test (goEnclosingFuncText (content, m.index).replace (/^\n/, ''))) {
-            continue;
-        }
-        out += content.substring (cursor, m.index) + 'this.SafeListSlice(';
-        cursor = open + 1;
->>>>>>> G18
     }
     return out + content.substring (cursor);
 }
 
-<<<<<<< merged
 function goListTypedOfLiteralSelfTest (ok: SelfTestOk): void {
     const pos = goListTypedOfLiteral ('\treturn ListTyped([]any{q})\n\treturn ccxt.ListTyped([]any{f(a, b), "x"})\n');
     ok (pos === '\treturn []any{q}\n\treturn []any{f(a, b), "x"}\n', 'literal unwrapped: ' + pos);
     const keep = [ '\treturn ListTyped(result)\n', '\treturn ListTyped([]any{a}[0:1])\n', '\treturn SafeListTyped([]any{a}, 0)\n' ];
     keep.forEach ((b, i) => ok (goListTypedOfLiteral (b) === b, 'negative ' + i));
     ok (goListTypedOfLiteral (pos) === pos, 'idempotent');
->>>>>>> G21
 }
 
-=======
->>>>>>> G18
 // `x = MapTyped(this.SafeBalance(x))` of a once-declared map[string]any local is the bare call: the base
 // SafeBalance writes into its argument and returns it, and MapTyped of a map[string]any is that map
 function goSafeBalanceSelfRebind (content: string): string {

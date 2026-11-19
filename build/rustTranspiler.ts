@@ -10858,11 +10858,8 @@ impl std::ops::DerefMut for ${coreName} {
                 if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustTypedMarketIdsCodes(rustContent);
-<<<<<<< merged
                 rustContent = rustTypedListNarrowers(rustContent);
-=======
                 rustContent = rustTypedListProducer(rustContent, 'add_pagination_cursor_to_result');
->>>>>>> R08
                 rustContent = rustStrParamCopyDrop(rustContent);
                 rustContent = rustSelfFieldReadClones(rustContent);
                 rustContent = rustKeyDictReads(rustContent);

@@ -7336,7 +7336,6 @@ function csharpStringEncodeIdentity (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
-<<<<<<< merged
 // `this.encode(e)` on an expression whose static type is `string` (a literal, a `string`-returning
 // call, `.ToUpper()` of a proven string, a `+` concat of proven strings) is `e` itself
 function csharpStringEncodeCallArgs (line: string, lines: string[], provenName: (n: string) => boolean, stringFields: string[]): string {
@@ -7384,7 +7383,8 @@ function csharpStringEncodeCallArgs (line: string, lines: string[], provenName: 
         if (isString (arg)) line = line.substring (0, c.index) + arg.trim () + line.substring (close + 1);
     }
     return line;
-=======
+}
+
 // `slice(s, a, b)` (Exchange.TranspileHelpers.cs Slice) on a string declared `string`/`string?` (every
 // declaration in the member, or a string credential field) with int/Int64 local or literal bounds: the
 // helper's own body (null -> null, negative bounds count from the end, end clamped to the length)
@@ -7478,7 +7478,6 @@ function csharpLiteralApiDispatch (content: string, api: Map<string, string> | u
     });
     // the name local is dead once the call is direct (CS0219 under TreatWarningsAsErrors)
     return dropped.reduce ((text, decl) => text.replace (new RegExp ('\\n[ \\t]*' + decl.replace (/[?.]/g, '\\$&')), ''), out);
->>>>>>> C09
 }
 
 // ws caches Exchange.Options.cs declares with a typed row (`IDictionary<string, IDictionary<string, object>>`):
