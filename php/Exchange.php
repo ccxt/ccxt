@@ -147,7 +147,7 @@ class BaseExchange {
 
     public $options = array(); // exchange-specific options if any
     public $isSandboxModeEnabled = false;
-    public $sandbox = false; // read-only mirror of isSandboxModeEnabled, use set_sandbox_mode() to change it
+    public $sandbox = false; // for backward-compatibility
     public $testnet = false; // alias of sandbox
 
     public $skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
