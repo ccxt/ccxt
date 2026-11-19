@@ -9044,7 +9044,8 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     const cache = new Map<string, any> ();
     const declOf = (name: string) => {
         if (!cache.has (name)) {
-            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name) ?? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines));
+            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name) ?? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines)
+                ?? goPairMapSlotDeclaration (maskedFunc, name));
         }
         return cache.get (name);
     };
@@ -9220,6 +9221,9 @@ function goMapWriteLocalNeverNil (maskedFunc: string, decl: any, name: string, d
     const producer = GO_MAPWRITE_NON_NIL_INIT;
     if ((decl === undefined) || (decl.index === undefined)) {
         return false;
+    }
+    if (decl.pairSlot !== undefined) {
+        return goPairMapSlotNeverNil (maskedFunc, decl, depth);
     }
     const init = decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim ();
     let admitted = producer.test (init);
@@ -20514,8 +20518,8 @@ function goBlockScopedDeclFunc (lines: string[], masked: string[], start: number
         if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|IsEqual)\(/.test (m)) {
             continue;
         }
-        const declOf = (name: string) => resolve (name, k);
-        const typeAt = (name: string, at: number) => { const d = resolve (name, at); return (d === undefined) ? undefined : d.type; };
+        const declOf = (name: string) => resolve (name, k) ?? goPairMapSlotDeclaration (maskedFunc, name);
+        const typeAt = (name: string, at: number) => { const d = resolve (name, at) ?? goPairMapSlotDeclaration (maskedFunc, name); return (d === undefined) ? undefined : d.type; };
         if (goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
             continue;
         }
@@ -20741,6 +20745,97 @@ function goTupleSlotNeverNil (maskedFunc: string, init: string, declOf: (name: s
     return returns > 0;
 }
 goTupleSlotNeverNil.file = undefined as string[] | undefined;
+
+// slot i of the same-file `(map[string]any, map[string]any)` pair methods bound into `name`: either the one
+// `a, b := this.M(..)` of the function, or `var a, b map[string]any` directly followed by an if/else that binds both arms
+function goPairMapSlotDeclaration (maskedFunc: string, name: string): any {
+    const file: string[] | undefined = (goTupleSlotNeverNil as any).file;
+    const n = goAccessEscape (name);
+    if ((file === undefined) || !/^\w+$/.test (name)) {
+        return undefined;
+    }
+    const lines = maskedFunc.split ('\n');
+    const decls = lines.map ((l, i) => [ l, i ] as [string, number]).filter (([ l ]) => new RegExp ('\\bvar\\s+(?:\\w+,\\s*)?' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*:=|\\bfunc\\b[^\\n]*[(,]\\s*' + n + ' |&' + n + '\\b').test (l));
+    if ((decls.length !== 1) || (decls[0][1] === 0)) {
+        return undefined;
+    }
+    const [ line, at ] = decls[0];
+    const short = /^\s*(\w+), (\w+) := this\.(\w+)\(/.exec (line);
+    const both = /^(\s*)var (\w+), (\w+) map\[string\]any$/.exec (line);
+    const pairs: string[] = [];
+    let names: string[] = [];
+    if (short !== null) {
+        names = [ short[1], short[2] ];
+        pairs.push (short[3]);
+    } else if (both !== null) {
+        names = [ both[2], both[3] ];
+        const ind = both[1];
+        const arm = new RegExp ('^' + ind + '\\t' + both[2] + ', ' + both[3] + ' = this\\.(\\w+)\\(');
+        const a = arm.exec (lines[at + 2] ?? '');
+        const b = arm.exec (lines[at + 4] ?? '');
+        if (!(lines[at + 1] ?? '').startsWith (ind + 'if ') || (a === null) || (lines[at + 3] !== ind + '} else {') || (b === null) || (lines[at + 5] !== ind + '}')) {
+            return undefined;
+        }
+        pairs.push (a[1], b[1]);
+    } else {
+        return undefined;
+    }
+    const slot = names.indexOf (name);
+    // no later write of either name (a rebind or a multi-assign elsewhere)
+    const rest = lines.filter ((l, i) => (i !== at) && !((both !== null) && ((i === at + 2) || (i === at + 4))));
+    if ((slot < 0) || rest.some ((l) => goTextWritesName (l, n) && !new RegExp ('\\b' + n + '\\s*\\[').test (l))) {
+        return undefined;
+    }
+    const recv = /^func \(this \*(\w+)\) /.exec (lines[0]);
+    for (const m of pairs) {
+        const sigs = file.filter ((l) => new RegExp ('^func \\(this \\*\\w+\\) ' + m + '\\(').test (l));
+        if ((recv === null) || (sigs.length !== 1) || !sigs[0].startsWith ('func (this *' + recv[1] + ') ') || !sigs[0].endsWith (') (map[string]any, map[string]any) {')) {
+            return undefined;
+        }
+    }
+    return { 'type': 'map[string]any', 'index': lines.slice (0, at).join ('\n').length + 1, 'line': line, 'pairSlot': slot, 'pairs': pairs };
+}
+
+// every return of every bound pair method stores a never-nil map in the slot
+function goPairMapSlotNeverNil (maskedFunc: string, decl: any, depth: number): boolean {
+    const file: string[] | undefined = (goTupleSlotNeverNil as any).file;
+    if ((file === undefined) || (depth > 3)) {
+        return false;
+    }
+    for (const m of decl.pairs) {
+        const def = file.findIndex ((l) => new RegExp ('^func \\(this \\*\\w+\\) ' + m + '\\(').test (l));
+        let close = def + 1;
+        while ((close < file.length) && (file[close] !== '}')) {
+            close++;
+        }
+        const callee = file.slice (def, close + 1);
+        const calleeFunc = callee.join ('\n');
+        const calleeDeclOf = (name: string) => goAccessSingleDeclaration (calleeFunc, callee[0], name);
+        let returns = 0;
+        for (const line of callee.slice (1, -1)) {
+            if (/\bfunc\s*\(/.test (line)) {
+                return false;
+            }
+            const ret = /^\s*return\b\s*(.*)$/.exec (line);
+            if (ret === null) {
+                continue;
+            }
+            returns++;
+            const parts = goSplitTopLevelCommas (ret[1]);
+            const value = (parts.length === 2) ? parts[decl.pairSlot].trim () : '';
+            if (/^map\[string\]any\{\}$/.test (value)) {
+                continue;
+            }
+            if (!/^\w+$/.test (value) || !goMapWriteLocalNeverNil (calleeFunc, calleeDeclOf (value), value, calleeDeclOf, depth + 1)) {
+                return false;
+            }
+        }
+        if (returns === 0) {
+            return false;
+        }
+    }
+    return true;
+}
 
 function goSplitTopLevelCommas (text: string): string[] {
     const parts: string[] = [];
