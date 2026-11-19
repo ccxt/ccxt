@@ -10671,6 +10671,24 @@ function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: strin
     return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
 }
 
+// PreciseStruct.Decimals is a hand-written int (exchange_precise.go): a Sum of it and a ParseToInt int64, or a Math.max
+// of it and a nil-guarded *int64 SafeInteger local, is the int operator on the same values
+function goPreciseDecimalsWrites (content: string): string {
+    if (content.indexOf ('.Decimals = ') < 0) {
+        return content;
+    }
+    content = content.replace (/^(\t+)(\w+)\.Decimals = this\.Sum\(\2\.Decimals, (this\.ParseToInt\((?:[^()]|\([^()]*\))*\))\)$/gm, '$1$2.Decimals += int($3)');
+    // SafeInteger with an integer literal default is never nil
+    content = content.replace (/^(\t+)(\w+)\.Decimals = this\.Sum\(\2\.Decimals, (this\.SafeInteger\(\[\]any\{\w+\}, 0, 0\))\)$/gm, '$1$2.Decimals += int(*$3)');
+    return content.replace (/^(\t+)if (\w+) != nil \{\n\1\t(\w+)\.Decimals = mathMax\(\3\.Decimals, \2\)$/gm, (m, ind, p, r, offset) => {
+        const before = content.substring (0, offset);
+        const fn = before.lastIndexOf ('\nfunc ');
+        const decls = before.substring (fn).match (new RegExp ('\\b' + p + ' (?::=|\\*int64 =|=)', 'g')) ?? [];
+        const declared = new RegExp ('\\tvar ' + p + ' \\*int64 = this\\.SafeInteger\\(').test (before.substring (fn));
+        return ((decls.length === 1) && declared) ? ind + 'if ' + p + ' != nil {\n' + ind + '\t' + r + '.Decimals = max(' + r + '.Decimals, int(*' + p + '))' : m;
+    });
+}
+
 // HandleTriggerPricesAndParams returns Go (*string, *string, *string, map[string]any) (exchange_market_type.go): its
 // holder block (four GetValue reads, or index reads through SafeStringPtr/DerefScalar/MapTyped) binds the four results
 function goTriggerPricesBind (content: string): string {
@@ -10751,6 +10769,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goOrderBookSetterPass (content);  // last: the book local is typed, and a GetAsks call or the assertion proves it non-nil
     content = nativeGuardedListElementReads (content);  // last, on the settled guard literals
     content = goTriggerPricesBind (content);  // after the guarded reads settle into index reads
+    content = goPreciseDecimalsWrites (content);
     return goGofmtSplicedText (content);
 }
 

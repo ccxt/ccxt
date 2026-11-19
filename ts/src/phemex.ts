@@ -1319,7 +1319,7 @@ export default class phemex extends Exchange {
         }
         const stringN = this.numberToString (n);
         const precise = new Precise (stringN as string);
-        precise.decimals = this.sum (precise.decimals, scale * -1);
+        precise.decimals = this.sum (precise.decimals, this.parseToInt (scale * -1));
         precise.reduce ();
         const preciseString = precise.toString ();
         return this.parseToNumeric (preciseString);
@@ -1344,7 +1344,7 @@ export default class phemex extends Exchange {
             return undefined;
         }
         const precise = new Precise (en);
-        precise.decimals = this.sum (precise.decimals, scale);
+        precise.decimals = this.sum (precise.decimals, this.parseToInt (scale));
         precise.reduce ();
         return precise.toString ();
     }

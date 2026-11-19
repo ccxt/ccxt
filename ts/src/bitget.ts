@@ -2412,12 +2412,16 @@ export default class bitget extends Exchange {
             const priceEndStep = this.safeString (market, 'priceEndStep');
             const sizeMultiplier = this.safeString (market, 'sizeMultiplier');
             const precise = new Precise (priceEndStep as string);
-            precise.decimals = Math.max (precise.decimals, pricePlaces as number);
+            if (pricePlaces !== undefined) {
+                precise.decimals = Math.max (precise.decimals, pricePlaces);
+            }
             precise.reduce ();
             const priceString = precise.toString ();
             pricePrecision = this.parseNumber (priceString);
             const preciseAmount = new Precise (sizeMultiplier as string);
-            preciseAmount.decimals = Math.max (preciseAmount.decimals, volumePlaces as number);
+            if (volumePlaces !== undefined) {
+                preciseAmount.decimals = Math.max (preciseAmount.decimals, volumePlaces);
+            }
             preciseAmount.reduce ();
             const amountString = preciseAmount.toString ();
             amountPrecision = this.parseNumber (amountString);

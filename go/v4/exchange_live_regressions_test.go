@@ -136,7 +136,7 @@ func TestPreciseToStringMatchesTs(t *testing.T) {
 	}
 	for _, c := range cases {
 		pr := NewPrecise(c.n)
-		pr.Decimals = (&BaseExchange{}).Sum(pr.Decimals, c.dec)
+		pr.Decimals += int(c.dec)
 		if got := pr.ToString(); got != c.want {
 			t.Errorf("Precise(%s, +%d).ToString() = %q, want %q", c.n, c.dec, got, c.want)
 		}

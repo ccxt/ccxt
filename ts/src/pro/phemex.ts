@@ -56,7 +56,7 @@ export default class phemex extends phemexRest {
             return undefined;
         }
         const precise = new Precise (en);
-        precise.decimals = this.sum (precise.decimals, scale);
+        precise.decimals = this.sum (precise.decimals, this.safeInteger ([ scale ], 0, 0));
         precise.reduce ();
         return precise.toString ();
     }

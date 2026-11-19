@@ -2512,10 +2512,10 @@ func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
 	}
 	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
 	backoff := SafeValue(wsOptions, "backoff", map[string]interface{}{})
-	base := ParseInt(SafeInteger(backoff, "base", 1000))
-	factor := ParseInt(SafeInteger(backoff, "factor", 2))
-	maxDelay := ParseInt(SafeInteger(backoff, "max", 60000))
-	stableAfter := ParseInt(SafeInteger(backoff, "stableAfter", 30000))
+	base := *this.SafeInteger(backoff, "base", 1000)
+	factor := *this.SafeInteger(backoff, "factor", 2)
+	maxDelay := *this.SafeInteger(backoff, "max", 60000)
+	stableAfter := *this.SafeInteger(backoff, "stableAfter", 30000)
 	now := this.Milliseconds()
 	state, ok := this.wsBackoffState[url]
 	if !ok {
