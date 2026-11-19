@@ -7335,6 +7335,10 @@ function lendDataHandlerMessage(content: string): string {
 }
 //
 // unit slot 025
+// by-name dispatch (`call_dynamic`) takes `&[Value]`: an inline spawn lends its argument array
+function lendCallDynamicArgs(content: string): string {
+    return content.replace(/\bself\.call_dynamic\(("[a-z0-9_]+"), vec!\[/g, 'self.call_dynamic($1, &[');
+}
 //
 // unit slot 026
 //
@@ -9210,6 +9214,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendDataHandlerMessage,
     //
     // pass slot 025
+    lendCallDynamicArgs,
     //
     // pass slot 026
     //
@@ -13976,16 +13981,16 @@ export class RustTranspilerBuilder {
                         return ` __args.push(${nm[2]}.clone());`;
                     }).join('')
                   } __args }`
-                : `vec![${vecArgs.join(', ')}]`;
+                : `[${vecArgs.join(', ')}]`;
             // a typed unified method forwards the `__args` its printed body lowered and decodes the override's result
             const typed = /->\s*crate::Result</.test(m[0]);
             const preamble = typed
                 ? `\n        // async-virtual: try the derived exchange first\n` +
-                  `        if let Some(__v) = self.dispatch_to_derived("${name}", __args.clone()).await {\n` +
+                  `        if let Some(__v) = self.dispatch_to_derived("${name}", &__args).await {\n` +
                   `            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }\n` +
                   `        }`
                 : `\n        // async-virtual: try the derived exchange first\n` +
-                `        if let Some(__v) = self.dispatch_to_derived("${name}", ${vecBuild}).await {\n` +
+                `        if let Some(__v) = self.dispatch_to_derived("${name}", &${vecBuild}).await {\n` +
                 `            if !matches!(__v, crate::Value::Null) { return ${/->\s*Option<crate::types::Market>/.test(m[0]) ? 'crate::types::FromRaw::from_raw(__v)' : '__v'}; }\n` +
                 `        }\n`;
             if (typed) {
@@ -14153,14 +14158,14 @@ export class RustTranspilerBuilder {
         return `    /// Dispatch a snake_case method name to this core's inherent async
     /// methods, falling through to \`call_dynamic_base\` for base-only methods.
     /// The single required method — every override reaches the core statically.
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>;
 
     /// Route \`method(args)\` to the derived override by name, with a per-method
     /// re-entry guard (so a base method calling its own name falls through to
     /// the base body instead of looping). Replaces \`Exchange::dispatch_to_derived\`
     /// — no stored pointer; \`call_dynamic\` is a static trait call.
-    fn dispatch_to_derived<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn dispatch_to_derived<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = Option<crate::Value>> + Send + 'a>>
     {
         Box::pin(async move {
@@ -14228,7 +14233,7 @@ export class RustTranspilerBuilder {
         }
         arms.sort();
         return `    /// Prediction-base fall-through for a prediction Core's \`call_dynamic\`.
-    fn call_dynamic_prediction_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic_prediction_base<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -14269,7 +14274,7 @@ ${arms.join('\n')}
         }
         arms.sort();
         return `    /// Base-method fall-through for a core's \`call_dynamic\`.
-    fn call_dynamic_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic_base<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -14339,7 +14344,7 @@ ${arms.join('\n')}
     /// C#'s callInternal — lets the CLI call any method without
     /// hard-coding signatures. Accepts the canonical snake_case name.
     /// Returns Value::Null for unknown names.
-    pub async fn call_dynamic(&mut self, method: &str, args: Vec<crate::Value>) -> crate::Value {
+    pub async fn call_dynamic(&mut self, method: &str, args: &[crate::Value]) -> crate::Value {
         match method {
 ${arms.join('\n')}
 ${isBase
@@ -14383,7 +14388,7 @@ ${isBase
             ? `                // Prediction Core: fall through to prediction base methods (then Exchange base).\n                _ => self.call_dynamic_prediction_base(method, args).await,`
             : `                // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).\n                _ => self.call_dynamic_base(method, args).await,`;
         return `impl crate::exchange_generated::ExchangeBase for ${coreName} {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {

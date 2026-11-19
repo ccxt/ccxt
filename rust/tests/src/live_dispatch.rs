@@ -558,7 +558,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // `block_on` resolves it in a single poll without the reactor.
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
                 futures::executor::block_on(
-                    ExchangeBase::call_dynamic(core, "set_markets", vec![markets])
+                    ExchangeBase::call_dynamic(core, "set_markets", &[markets])
                 )
             }
             // Type-erased trampoline: cast the raw Core pointer back and call
@@ -567,7 +567,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + '_>>
             {
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
-                Box::pin(ExchangeBase::call_dynamic(core, method, args))
+                Box::pin(async move { ExchangeBase::call_dynamic(core, method, &args).await })
             }
             return Some(CoreEntry {
                 call:          call_tramp as DynCallFn,

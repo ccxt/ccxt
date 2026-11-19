@@ -1514,7 +1514,7 @@ mod tests {
         fn call_dynamic<'a>(
             &'a mut self,
             method: &'a str,
-            args: Vec<Value>,
+            args: &'a [Value],
         ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>> {
             Box::pin(async move {
                 match method {

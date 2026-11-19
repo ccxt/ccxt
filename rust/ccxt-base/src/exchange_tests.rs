@@ -171,7 +171,7 @@ mod dynamic_dispatch_tests {
         assert_eq!(snake, "fetch_ohlcv");
         b.exchange.internals.dynamic_dispatch_miss = None;
         let _ = futures::FutureExt::catch_unwind(
-            std::panic::AssertUnwindSafe(b.call_dynamic(&snake, vec![])),
+            std::panic::AssertUnwindSafe(b.call_dynamic(&snake, &[])),
         ).await;
         assert_eq!(
             b.exchange.internals.dynamic_dispatch_miss, None,
@@ -179,7 +179,7 @@ mod dynamic_dispatch_tests {
              re-entry would have silently returned an empty page",
         );
         // Negative control for the probe itself: a name with no arm DOES record.
-        let _ = b.call_dynamic("fetch_definitely_not_an_arm", vec![]).await;
+        let _ = b.call_dynamic("fetch_definitely_not_an_arm", &[]).await;
         assert_eq!(
             b.exchange.internals.dynamic_dispatch_miss.as_deref(),
             Some("fetch_definitely_not_an_arm"),
@@ -213,7 +213,7 @@ mod dynamic_dispatch_tests {
     #[tokio::test]
     async fn bare_call_dynamic_still_returns_null_for_optional_probes() {
         let mut b = crate::exchanges::binance::Binance::new(None);
-        let out = b.call_dynamic("fetch_no_such_thing_at_all", vec![]).await;
+        let out = b.call_dynamic("fetch_no_such_thing_at_all", &[]).await;
         assert_eq!(out, Value::Null);
         assert_eq!(
             b.exchange.internals.dynamic_dispatch_miss.as_deref(),
@@ -276,7 +276,7 @@ mod until_pair_dispatch_tests {
         let mut b = crate::exchanges::binance::Binance::new(None);
         let request = Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT" }));
         let params = Value::from_json(&serde_json::json!({ "until": 5, "x": 1 }));
-        let out = b.call_dynamic("handle_until_option", vec![Value::Str("endTime".into()), request, params]).await;
+        let out = b.call_dynamic("handle_until_option", &[Value::Str("endTime".into()), request, params]).await;
         assert_eq!(out, Value::from_json(&serde_json::json!([{ "symbol": "BTCUSDT", "endTime": 5 }, { "x": 1 }])));
     }
 }

@@ -1548,7 +1548,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 _ => "handle_message",
             };
             let _ = self
-                .dispatch_to_derived(method, vec![client.as_value(), message])
+                .dispatch_to_derived(method, &[client.as_value(), message])
                 .await;
         })
     }
@@ -1577,7 +1577,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                     if method == "load_order_book" {
                         self.ws_load_order_book(args).await;
                     } else {
-                        let _ = self.dispatch_to_derived(&method, args).await;
+                        let _ = self.dispatch_to_derived(&method, &args).await;
                     }
                 }
             }
@@ -1649,11 +1649,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             let cache = crate::get_value(&stored, &Value::Str("cache".into()));
             let snapshot = self
                 .dispatch_to_derived("fetch_rest_order_book_safe",
-                    vec![symbol.clone(), limit.clone(), params.clone()])
+                    &[symbol.clone(), limit.clone(), params.clone()])
                 .await
                 .unwrap_or(Value::Null);
             let index = self
-                .dispatch_to_derived("get_cache_index", vec![snapshot.clone(), cache.clone()])
+                .dispatch_to_derived("get_cache_index", &[snapshot.clone(), cache.clone()])
                 .await;
             let idx = match index { Some(Value::Int(n)) => n, _ => -1 };
             if idx >= 0 {
@@ -1662,7 +1662,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 let deltas: Vec<Value> = (idx..clen)
                     .map(|i| crate::get_value(&cache, &Value::Int(i)))
                     .collect();
-                self.dispatch_to_derived("handle_deltas", vec![stored.clone(), Value::List(deltas)]).await;
+                self.dispatch_to_derived("handle_deltas", &[stored.clone(), Value::List(deltas)]).await;
                 crate::set_value(&mut stored, &Value::Str("cache".into()), Value::List(Vec::new()));
                 crate::pro::ws_client::value_resolve(&client, stored.clone(), message_hash.as_str());
                 return;
@@ -1916,7 +1916,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let cost = if matches!(self.enableRateLimit, Value::Bool(true)) {
             self.call_dynamic(
                 "calculate_rate_limiter_cost",
-                vec![api, Value::Str(verb.clone().into()), Value::Str(path.clone().into()), params.clone(), config],
+                &[api, Value::Str(verb.clone().into()), Value::Str(path.clone().into()), params.clone(), config],
             ).await
         } else {
             Value::Null
@@ -1936,7 +1936,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let api = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         Ok(self.call_dynamic(
             "calculate_rate_limiter_cost",
-            vec![api, Value::Str(verb.into()), Value::Str(path.into()), params, config],
+            &[api, Value::Str(verb.into()), Value::Str(path.into()), params, config],
         ).await)
     } }
 
@@ -1979,7 +1979,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         );
         let mut currencies = Value::Null;
         if has_fetch_currencies {
-            if let Some(v) = self.dispatch_to_derived("fetch_currencies", Vec::new()).await {
+            if let Some(v) = self.dispatch_to_derived("fetch_currencies", &[]).await {
                 currencies = v;
             }
             // Exchange.ts loadMarketsHelper: fetchMarkets reads the just-fetched
@@ -1987,7 +1987,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             // Moved in and taken back out below: one object, as in JS.
             set_cached_currencies(&mut self.options, std::mem::take(&mut currencies));
         }
-        let fetched = self.dispatch_to_derived("fetch_markets", Vec::new()).await;
+        let fetched = self.dispatch_to_derived("fetch_markets", &[]).await;
         if let Some(c) = take_cached_currencies(&mut self.options) {
             currencies = c;
         }
@@ -2011,7 +2011,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Value::Bool(true),
         );
         if is_prediction {
-            let _ = self.dispatch_to_derived("set_markets", vec![fetched, currencies_arg]).await;
+            let _ = self.dispatch_to_derived("set_markets", &[fetched, currencies_arg]).await;
         } else {
             <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, fetched, &[currencies_arg]);
         }
@@ -2149,7 +2149,7 @@ pub trait CallDynamicChecked: crate::exchange_generated::ExchangeBase {
         // Clear first: a miss recorded by an unrelated earlier probe must not
         // be attributed to this call.
         self.internals.dynamic_dispatch_miss = None;
-        let out = self.call_dynamic(&snake, args).await;
+        let out = self.call_dynamic(&snake, &args).await;
         // Only OUR name counts — a nested optional probe inside the dispatched
         // method legitimately misses and must stay silent.
         if self.internals.dynamic_dispatch_miss.as_deref() == Some(snake.as_str()) {
@@ -2174,7 +2174,7 @@ pub trait TypedExchange: crate::exchange_generated::ExchangeBase + ExchangeRunti
     /// A unified method by snake_case name (any unified method or implicit endpoint),
     /// decoded into its typed return, e.g. `call::<Ticker>("fetch_ticker", args)`.
     fn call<R: crate::types::FromRaw + Send>(&mut self, method: &str, args: Vec<Value>) -> impl ::std::future::Future<Output = Result<R>> + Send { async move {
-        Ok(R::from_raw(crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, method, args)).await?))
+        Ok(R::from_raw(crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, method, &args)).await?))
     } }
 }
 
@@ -2208,7 +2208,7 @@ impl std::ops::DerefMut for BaseCore {
 impl DerivedExchange for BaseCore {}
 
 impl crate::exchange_generated::ExchangeBase for BaseCore {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>
     {
         Box::pin(async move { self.call_dynamic_base(method, args).await })
@@ -3115,7 +3115,7 @@ mod http_error_tests {
         }
     }
     impl crate::exchange_generated::ExchangeBase for EnvelopeCore {
-        fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
+        fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [Value])
             -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>
         {
             Box::pin(async move { self.call_dynamic_base(method, args).await })
@@ -3245,15 +3245,15 @@ mod option_tuple_dispatch_tests {
     async fn call_dynamic_reboxes_the_option_tuple() {
         let mut core = BaseCore::new(Exchange::new(None));
         let args = |p: Value, d: Value| vec![p, Value::Str("fetchX".into()), Value::Str("flag".into()), d];
-        let got = core.call_dynamic("handle_option_bool_and_params", args(params("flag", Value::Str("true".into())), Value::Bool(false))).await;
+        let got = core.call_dynamic("handle_option_bool_and_params", &args(params("flag", Value::Str("true".into())), Value::Bool(false))).await;
         assert_eq!(got, Value::from(vec![Value::Bool(true), Value::Map(Default::default())]));
-        let got = core.call_dynamic("handle_option_bool_and_params", args(Value::Map(Default::default()), Value::Null)).await;
+        let got = core.call_dynamic("handle_option_bool_and_params", &args(Value::Map(Default::default()), Value::Null)).await;
         assert_eq!(got, Value::from(vec![Value::Null, Value::Map(Default::default())]));
-        let got = core.call_dynamic("handle_option_integer_and_params", args(params("other", Value::Int(1)), Value::Int(7))).await;
+        let got = core.call_dynamic("handle_option_integer_and_params", &args(params("other", Value::Int(1)), Value::Int(7))).await;
         assert_eq!(got, Value::from(vec![Value::Int(7), params("other", Value::Int(1))]));
-        let got = core.call_dynamic("handle_option_and_params", args(params("flag", Value::Str("s".into())), Value::Null)).await;
+        let got = core.call_dynamic("handle_option_and_params", &args(params("flag", Value::Str("s".into())), Value::Null)).await;
         assert_eq!(got, Value::from(vec![Value::Str("s".into()), Value::Map(Default::default())]));
-        let got = core.call_dynamic("handle_option_string_and_params2", vec![params("b", Value::Str("v".into())), Value::Str("fetchX".into()),
+        let got = core.call_dynamic("handle_option_string_and_params2", &[params("b", Value::Str("v".into())), Value::Str("fetchX".into()),
             Value::Str("a".into()), Value::Str("b".into()), Value::Null]).await;
         assert_eq!(got, Value::from(vec![Value::Str("v".into()), Value::Map(Default::default())]));
     }
