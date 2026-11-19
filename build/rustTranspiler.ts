@@ -4839,7 +4839,7 @@ let rustListApiNames: Set<string> | undefined;
 function rustTypedListApiResults (content: string, own: Set<string>): string {
     if (rustListApiNames === undefined) {
         rustListApiNames = new Set ();
-        const body = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> Option<crate::value::List> \{\n\s*if let Value::Arr\(a\) = self\.call_method\(Value::Str\("([a-z0-9_]+)"\.into\(\)\), optional_args\)\.await \{ Some\(a\) \} else \{ None \}\n\s*\}/g;
+        const body = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> Option<crate::value::List> \{\n\s*self\.call_method_as\("([a-z0-9_]+)", optional_args\)\.await\n\s*\}/g;
         for (const d of [ 'exchanges', 'prediction' ].map ((x) => path.join (__dirname, '..', 'rust', 'ccxt-base', 'src', x))) {
             for (const f of fs.existsSync (d) ? fs.readdirSync (d).filter ((x) => x.endsWith ('_api.rs')) : []) {
                 for (const m of fs.readFileSync (path.join (d, f), 'utf8').matchAll (body)) if (m[1] === m[2]) rustListApiNames.add (m[1]);
