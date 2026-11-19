@@ -72,10 +72,10 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_all_bids_asks" => self.parse_ws_all_bids_asks(args.get(0).unwrap_or(&crate::Value::Null)),
-                "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_my_trade" => self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_timestamp" => self.parse_ws_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -149,10 +149,10 @@ impl Nado {
             "handle_unsubscription" => { self.handle_unsubscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_unsubscription_cache" => { self.handle_unsubscription_cache(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "parse_ws_all_bids_asks" => self.parse_ws_all_bids_asks(args.get(0).unwrap_or(&crate::Value::Null)),
-            "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_my_trade" => self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_timestamp" => self.parse_ws_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1524,7 +1524,7 @@ impl Nado {
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " ws execute requires params.id")));
         }
-        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &Value::Dict(paramsExtended)]).await.into_dict();
+        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &Value::Dict(paramsExtended)]).await;
         let mut response: crate::value::Dict = self.watch_execute_request(requestIdString.as_deref().unwrap_or_default(), &request).await.into_dict();
         //
         //     {
@@ -2075,7 +2075,7 @@ impl Nado {
 }
 
     pub fn parse_ws_timestamp(&self, mut message: Value, mut key: Value) -> Value {
-        let mut value: Option<String> = self.safe_string_opt(&message, key.clone(), &[]);
+        let mut value: Option<String> = self.safe_string_opt(&message, &key, &[]);
         if (value.is_none()) {
             return Value::Null;
         }
@@ -2347,7 +2347,7 @@ impl Nado {
         client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
 }
 
-    pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //     {
         //         "type": "position_change",
@@ -2380,7 +2380,7 @@ impl Nado {
                 entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteAmount), &absoluteAmount), &[]).as_f64();
             }
         }
-        return self.safe_position(Value::Map({
+        return self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
@@ -2409,7 +2409,7 @@ impl Nado {
     m
 }));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_position(&mut self, client: &Value, mut message: Value) {
@@ -2420,7 +2420,7 @@ impl Nado {
         if !(market).contract {
             return;
         }
-        let mut position: crate::value::Dict = self.parse_ws_position(message, Some(&market)).into_dict();
+        let mut position: crate::value::Dict = self.parse_ws_position(message, Some(&market));
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
@@ -2446,7 +2446,7 @@ impl Nado {
         client.resolve(Value::from(&positions), &(Value::Str(format!("{}{}", Value::Str("positions:".into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
 }
 
-    pub fn parse_ws_bid_ask(&self, mut bidask: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, mut bidask: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //     {
         //         "type": "best_bid_offer",
@@ -2461,7 +2461,7 @@ impl Nado {
         let mut marketId: Option<String> = self.safe_string_k_opt(&bidask, "product_id", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.parse_ws_timestamp(bidask.clone(), Value::Str("timestamp".into())).as_i64();
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2472,13 +2472,13 @@ impl Nado {
         m.insert("bidVolume".to_string(), self.parent.parse_x18(self.safe_string_k(&bidask, "bid_qty", &[])));
         m.insert("info".to_string(), bidask);
     m
-}), Some(&marketResolved)));
+}), Some(&marketResolved));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
-        let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(message, None).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(message, None);
         let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (symbol.is_none()) {
             return;

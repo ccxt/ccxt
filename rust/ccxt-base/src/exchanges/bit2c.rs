@@ -328,7 +328,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
             while { if !__for_first_330 { i += 1; } __for_first_330 = false; i < (codes.len() as i64) } {
             let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
+            let mut currency: crate::types::Currency = self.currency(code.as_deref());
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut uppercase: String = currencyId.to_uppercase();
             if (self.safe_string(&response, Value::from(uppercase.clone()), &[]) != Value::Null) {
@@ -1160,7 +1160,7 @@ impl Bit2c {
             }
             responseList = self.to_array_t(response);
         }
-        return self.parse_trades(&responseList, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&responseList, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1293,8 +1293,8 @@ impl Bit2c {
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
             response = self.call_method_o("private_post_order_add_order", &[&__ws_arg_6]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -1327,8 +1327,8 @@ impl Bit2c {
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_order_cancel_order", &[&__ws_arg_7]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -1373,7 +1373,7 @@ impl Bit2c {
         let mut orders: crate::value::Dict = self.safe_dict_t(&response, Value::from((market).id.as_deref()));
         let mut asks: crate::value::List = self.safe_list_k_t(&orders, "ask");
         let mut bids: crate::value::List = self.safe_list_k_t(&orders, "bid");
-        return self.parse_orders(self.array_concat(&asks, &bids), Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(self.array_concat(&asks, &bids), Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1411,8 +1411,8 @@ impl Bit2c {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_order_get_by_id", &[&__ws_arg_9]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -1502,7 +1502,7 @@ impl Bit2c {
         //     ]
         //
         let mut responseList: crate::value::List = self.to_array_t(&response);
-        return self.parse_trades(&responseList, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&responseList, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1550,7 +1550,7 @@ impl Bit2c {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         if self.is_fiat(code.as_str()).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchDepositAddress() does not support fiat currencies")));
         }

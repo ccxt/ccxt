@@ -657,7 +657,7 @@ impl crate::exchange_generated::ExchangeBase for Bittrade {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "cost_to_precision" => crate::Value::from(self.cost_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "cost_to_precision" => crate::Value::from(self.cost_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -1753,9 +1753,9 @@ impl Bittrade {
     Value::Null
 }
 
-    pub fn cost_to_precision(&self, mut symbol: Value, cost: impl Into<crate::Value>) -> Option<String> {
+    pub fn cost_to_precision(&self, symbol: Option<&str>, cost: impl Into<crate::Value>) -> Option<String> {
         let mut cost: Value = cost.into();
-        let mut precision: indexmap::IndexMap<String, Value> = self.safe_dict(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("precision".into()), &[Value::Map({
+        let mut precision: indexmap::IndexMap<String, Value> = self.safe_dict(crate::types::IntoRaw::into_raw(self.market(symbol.unwrap_or_default())), Value::Str("precision".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -2136,7 +2136,7 @@ impl Bittrade {
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_order_orders_id_matchresults", &[&__ws_arg_3]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, None, &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, None, &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2185,7 +2185,7 @@ impl Bittrade {
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_order_matchresults", &[&__ws_arg_4]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2501,7 +2501,7 @@ impl Bittrade {
             let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
             response = self.call_method_o("private_get_order_orders", &[&__ws_arg_10]).await;
         }
-        return self.parse_orders(self.safe_list_k(&response, "data", &[Value::from(vec![])]), market.as_ref(), &[Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_orders(self.safe_list_k(&response, "data", &[Value::from(vec![])]), market.as_ref(), &[Value::from(since), Value::from(limit)]));
 
     Value::Null
 }
@@ -2538,8 +2538,8 @@ impl Bittrade {
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_order_orders_id", &[&__ws_arg_11]).await;
         let mut order: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None);
+        None
         }).await?))
     }
 
@@ -2708,7 +2708,7 @@ impl Bittrade {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, market.as_ref(), &[Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[Value::from(since), Value::from(limit)]));
 
     Value::Null
 }
@@ -2821,7 +2821,7 @@ impl Bittrade {
             let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
             paramsOrder = self.omit_t(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
-                quoteAmount = self.amount_to_precision(symbol.clone(), cost);
+                quoteAmount = self.amount_to_precision(symbol.as_str(), cost);
             }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -2832,19 +2832,19 @@ impl Bittrade {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
-                    let mut priceString: Option<String> = self.number_to_string(price.clone());
-                    quoteAmount = self.amount_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString, &priceString));
+                    let mut amountString: Option<String> = self.number_to_string(&amount);
+                    let mut priceString: Option<String> = self.number_to_string(&price);
+                    quoteAmount = self.amount_to_precision(symbol.as_str(), crate::precise::Precise::stringMul(&amountString, &priceString));
                 }
             }  else {
-                quoteAmount = self.amount_to_precision(symbol.clone(), amount.clone());
+                quoteAmount = self.amount_to_precision(symbol.as_str(), amount.clone());
             }
             request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
         }
         if (type_var.as_str() == Some("limit")) || (type_var.as_str() == Some("ioc")) || (type_var.as_str() == Some("limit-maker")) || (type_var.as_str() == Some("stop-limit")) || (type_var.as_str() == Some("stop-limit-fok")) {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
         }
         let mut method: String = self.safe_string(self.options.get("createOrder").cloned().unwrap_or(Value::Null), Value::Str("method".into()), &[Value::Str("privatePostOrderOrdersPlace".into())]).as_str().unwrap_or("privatePostOrderOrdersPlace").to_string();
         let mut response: Option<crate::value::Dict> = None;
@@ -3119,7 +3119,7 @@ impl Bittrade {
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3169,7 +3169,7 @@ impl Bittrade {
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3245,7 +3245,7 @@ impl Bittrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), address);
@@ -3258,7 +3258,7 @@ impl Bittrade {
         }
         let mut network: Option<String> = self.safe_string_upper_k_opt(&paramsWithdrawTag, "network", &[]);
         if (network.is_some()) {
-            network = self.safe_string_opt(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]); // accepts aliases like ETH for ERC20
+            network = self.safe_string_opt(&self.networkAliases, Value::from(network.as_deref()), &[Value::from(network.as_deref())]); // accepts aliases like ETH for ERC20
         }
         network = self.safe_string_lower_opt(self.options.get("networks").cloned().unwrap_or(Value::Null), Value::from(network.as_deref()), &[Value::from(network.as_deref())]); // handle ETH>ERC20 alias
         if (network.is_some()) {

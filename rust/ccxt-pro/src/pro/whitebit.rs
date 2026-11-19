@@ -662,7 +662,7 @@ impl Whitebit {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut data: crate::value::List = self.safe_list_t(&params, Value::Int(1));
-        let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
+        let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]);
         {
                         let mut j: i64 = 0;
             let mut __for_first_715: bool = true;

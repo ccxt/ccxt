@@ -72,7 +72,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ws_tickers" => self.handle_ws_tickers(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
-                "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
@@ -143,7 +143,7 @@ impl Hyperliquid {
             "handle_ws_post" => { self.handle_ws_post(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_ws_tickers" => self.handle_ws_tickers(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
             "parse_ws_balance" => { self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); crate::Value::Null },
-            "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => crate::Value::from(self.request_id()),
@@ -303,7 +303,7 @@ impl Hyperliquid {
         let mut responseOjb: crate::value::Dict = self.safe_dict_k_t(&response, "response");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&responseOjb, "data");
         let mut statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
-        return self.parse_orders(&statuses, None, &[]);
+        return Value::Arr(self.parse_orders(&statuses, None, &[]));
         Value::Null
         }).await?))
     }
@@ -1109,7 +1109,7 @@ impl Hyperliquid {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("price".to_string(), self.safe_number(&mids, Value::from(name.as_deref()), &[]));
                     m
-                }), Some(&market)).into_dict();
+                }), Some(&market));
                 { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker)); }
             }
             }
@@ -1156,7 +1156,7 @@ impl Hyperliquid {
         let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut ctx: crate::value::Dict = self.safe_dict_k_t(&data, "ctx");
-        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&ctx, Some(&market)).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&ctx, Some(&market));
         { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(ticker), messageHash.as_str());
@@ -1165,11 +1165,11 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn parse_ws_ticker(&self, rawTicker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, rawTicker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut rawTicker: Value = rawTicker.into();
-        return Value::Dict(self.parse_ticker(rawTicker, market));
+        return self.parse_ticker(rawTicker, market);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {
@@ -1721,9 +1721,9 @@ impl Hyperliquid {
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[paramsValue]);
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
-        let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[&Value::Bool(false), &Value::from(&paramsMarketType)]).await.into_list();
-        let mut isUnifiedEnabled: bool = self.safe_bool_opt(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
-        let mut paramsValue2: crate::value::Dict = self.safe_dict_or(&unifiedResult, Value::Int(1), Value::Dict(paramsMarketType));
+        let unifiedResult = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[&Value::Bool(false), &Value::from(&paramsMarketType)]).await;
+        let mut isUnifiedEnabled: bool = unifiedResult.0.unwrap_or(false);
+        let mut paramsValue2: crate::value::Dict = unifiedResult.1;
         let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue2, "dex", &[]);
         let mut isSpot: bool = (((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none()));
         let mut topic: String = "clearinghouseState".to_string();
@@ -1785,9 +1785,9 @@ impl Hyperliquid {
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("unWatchBalance".into()), None, &[paramsValue]);
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
-        let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[&Value::Bool(false), &Value::from(&paramsMarketType)]).await.into_list();
-        let mut isUnifiedEnabled: bool = self.safe_bool_opt(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
-        let mut paramsValue2: crate::value::Dict = self.safe_dict_or(&unifiedResult, Value::Int(1), Value::Dict(paramsMarketType));
+        let unifiedResult = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[&Value::Bool(false), &Value::from(&paramsMarketType)]).await;
+        let mut isUnifiedEnabled: bool = unifiedResult.0.unwrap_or(false);
+        let mut paramsValue2: crate::value::Dict = unifiedResult.1;
         let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue2, "dex", &[]);
         let mut isSpot: bool = (((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none()));
         let mut topic: String = "clearinghouseState".to_string();
@@ -2076,7 +2076,7 @@ impl Hyperliquid {
             let mut __for_first_414: bool = true;
             while { if !__for_first_414 { i += 1; } __for_first_414 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }

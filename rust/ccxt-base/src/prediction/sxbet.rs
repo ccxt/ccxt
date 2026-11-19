@@ -272,7 +272,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "hex_to_int" => self.hex_to_int(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "load_sx_obv3_metadata" => self.load_sx_obv3_metadata().await,
                 "matches_event_query" => self.matches_event_query(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_event" => self.parse_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "parse_event" => Value::Dict(self.parse_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1016,7 +1016,7 @@ impl Sxbet {
             let mut __for_first_1505: bool = true;
             while { if !__for_first_1505 { i += 1; } __for_first_1505 = false; i < orderLength } {
             let mut fixtureId: Option<&str> = order.get(i as usize).and_then(Value::as_str);
-            let mut event: crate::value::Dict = self.parse_event(fixtureId.as_deref().unwrap_or_default(), grouped.get(fixtureId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut event: crate::value::Dict = self.parse_event(fixtureId.as_deref().unwrap_or_default(), grouped.get(fixtureId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             let mut evMarkets: crate::value::List = self.safe_list_k_t(&event, "markets");
             let mut evMarketsLength: i64 = evMarkets.len() as i64;
             {
@@ -1070,7 +1070,7 @@ impl Sxbet {
         if (rawMarketsLength == 0) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchEvent() could not find an active fixture ").into()), id)));
         }
-        let mut event: crate::value::Dict = self.parse_event(id.as_str().unwrap_or_default(), rawMarkets).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(id.as_str().unwrap_or_default(), rawMarkets);
         self.index_event_outcomes(Value::from(&event));
         self.set_events(Value::from(vec![Value::from(&event)]));
         return Value::Dict(event);
@@ -1136,7 +1136,7 @@ impl Sxbet {
  * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, fixtureId: &str, rawMarkets: impl Into<crate::Value>) -> Value {
+    pub fn parse_event(&self, fixtureId: &str, rawMarkets: impl Into<crate::Value>) -> crate::value::Dict {
         let mut rawMarkets: Value = rawMarkets.into();
         let mut marketsList: Vec<Value> = Vec::new();
         let mut anyActive: bool = false;
@@ -1188,7 +1188,7 @@ impl Sxbet {
         }  else {
             eventSlug = self.shorten_slug(Value::from(fixtureId)).as_str().map(str::to_owned);
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(fixtureId));
         m.insert("slug".to_string(), Value::from(fixtureId));
@@ -1213,7 +1213,7 @@ impl Sxbet {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1583,7 +1583,7 @@ impl Sxbet {
         let mut oddsLadderStepSize: Option<String> = self.number_to_string(self.safe_integer_k(&obv3, "oddsLadderStepSize", &[Value::Int(125)]));
         let mut roundedProbability: Option<String> = self.round_odds_to_ladder(probability.as_deref(), oddsLadderStepSize.as_deref().unwrap_or_default());
         let mut percentageOdds: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&roundedProbability, &Value::Str("100000000000000000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
-        let mut amountStr: Option<String> = self.number_to_string(amount.clone());
+        let mut amountStr: Option<String> = self.number_to_string(&amount);
         let mut totalBetSize: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr, &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         let mut saltNumber: Option<String> = self.safe_string_k_opt(&params, "salt", &[Value::from(self.number_to_string(Value::Int(self.milliseconds())))]);
         // the request body carries the salt in 32-byte-hex form; the signed struct carries the
@@ -2432,8 +2432,8 @@ impl Sxbet {
             let mut used: Option<String> = crate::precise::Precise::stringDivPrec(&self.safe_string_k(&row, "escrowedAmount", &[Value::Str("0".into())]), &usdcDecimals, &Value::Int(6)).as_str().map(str::to_owned);
             result.insert(code, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("free".to_string(), self.parse_number(free.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("used".to_string(), self.parse_number(used.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("free".to_string(), self.parse_number(&free, &[]));
+        m.insert("used".to_string(), self.parse_number(&used, &[]));
         m.insert("total".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&free, &used), &[]));
     m
 }));
@@ -2715,7 +2715,7 @@ impl Sxbet {
         m.insert("event".to_string(), Value::Null);
         m.insert("result".to_string(), resultLabel.map(Value::from).unwrap_or(Value::Null));
         m.insert("won".to_string(), won.map_or(Value::Null, Value::Bool));
-        m.insert("amount".to_string(), self.parse_number(stake.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("amount".to_string(), self.parse_number(&stake, &[]));
         m.insert("price".to_string(), Value::from(settlePrice));
         m.insert("cost".to_string(), self.parse_number(stake.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("payout".to_string(), self.parse_number(payout.map(Value::from).unwrap_or(Value::Null), &[]));

@@ -1641,7 +1641,7 @@ impl Coinone {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "transactions");
-        return self.parse_trades(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1695,8 +1695,8 @@ impl Coinone {
                 m.insert("target_currency".to_string(), Value::from((market).base_id.as_deref()));
                 m.insert("type".to_string(), Value::from(orderType));
                 m.insert("side".to_string(), Value::from(orderSide));
-                m.insert("price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price)));
-                m.insert("qty".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
+                m.insert("price".to_string(), Value::from(self.price_to_precision(symbol.as_str(), price)));
+                m.insert("qty".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -1742,8 +1742,8 @@ impl Coinone {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("v2_private_post_order_query_order", &[&__ws_arg_6]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -1819,7 +1819,7 @@ impl Coinone {
         //     }
         //
         let mut openOrders: crate::value::List = self.safe_list2_t(&response, Value::Str("open_orders".into()), Value::Str("limitOrders".into()));
-        return self.parse_orders(&openOrders, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&openOrders, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1882,7 +1882,7 @@ impl Coinone {
         //     }
         //
         let mut completeOrders: crate::value::List = self.safe_list_k_t(&response, "completeOrders");
-        return self.parse_trades(&completeOrders, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&completeOrders, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }

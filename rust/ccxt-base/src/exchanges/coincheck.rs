@@ -250,7 +250,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
             let mut __for_first_566: bool = true;
             while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (codes.len() as i64) } {
             let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
-            let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
+            let mut currency: crate::types::Currency = self.currency(code.as_deref());
             let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
             let mut free: Option<String> = self.safe_string_opt(&response, Value::from(currencyId.as_deref()), &[]);
             if (free.is_some()) {
@@ -1058,7 +1058,7 @@ impl Coincheck {
         }
         let mut response: crate::value::Dict = self.call_method_t("private_get_exchange_orders_opens", &[&params]).await;
         let mut rawOrders: crate::value::List = self.safe_list_k_t(&response, "orders");
-        let mut parsedOrders: Vec<Value> = self.parse_orders(&rawOrders, market.as_ref(), &[since, limit]).as_array().cloned().unwrap_or_default();
+        let mut parsedOrders: Vec<Value> = Value::Arr(self.parse_orders(&rawOrders, market.as_ref(), &[since, limit])).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1216,7 +1216,7 @@ impl Coincheck {
         //      }
         //
         let mut transactions: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&transactions, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&transactions, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1270,7 +1270,7 @@ impl Coincheck {
         //      }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1444,8 +1444,8 @@ impl Coincheck {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_exchange_orders_id", &[&__ws_arg_5]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -1482,7 +1482,7 @@ impl Coincheck {
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (limit != Value::Null) {
@@ -1552,7 +1552,7 @@ impl Coincheck {
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

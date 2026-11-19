@@ -68,7 +68,7 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
                 "handle_price_point_updates" => self.handle_price_point_updates(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscriptions" => self.handle_subscriptions(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trading_order" => self.parse_trading_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_many" => self.watch_many(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -108,7 +108,7 @@ impl Onetrading {
             "handle_ticker" => { self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trading" => { self.handle_trading(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_trading_order" => self.parse_trading_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "update_balance" => { self.update_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_many" => { crate::exchange_stubs::enqueue_spawn("watch_many", args.to_vec()); crate::Value::Null },
@@ -452,7 +452,7 @@ impl Onetrading {
             let mut ticker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument", &[]);
             let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
-            let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None).into_dict();
+            let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None);
             let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
             std::sync::Arc::make_mut(&mut parsedTicker).insert("timestamp".into(), Value::from(timestamp));
             std::sync::Arc::make_mut(&mut parsedTicker).insert("datetime".into(), self.iso8601(timestamp));
@@ -463,7 +463,7 @@ impl Onetrading {
         client.resolve(Value::Dict(self.tickers.clone()), "tickers");
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -476,7 +476,7 @@ impl Onetrading {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument", &[]);
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("timestamp".to_string(), Value::Null);
@@ -499,9 +499,9 @@ impl Onetrading {
         m.insert("quoteVolume".to_string(), self.safe_number_k(&ticker, "volume", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), market));
+}), market);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1571,7 +1571,7 @@ impl Onetrading {
 
     pub fn find_timeframe(&self, mut timeframe: Value, optional_args: &[Value]) -> Option<String> {
         let mut timeframes = get_arg(optional_args, 0, Value::Null);
-        let mut timeframesResolved: Value = (if (timeframes == Value::Null) { self.timeframes.clone() } else { timeframes });
+        let mut timeframesResolved: Value = (if (timeframes == Value::Null) { Value::from(&self.timeframes) } else { timeframes });
         if (timeframesResolved == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " findTimeframe() timeframes is required")));
         }

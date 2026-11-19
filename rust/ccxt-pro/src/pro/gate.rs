@@ -491,7 +491,7 @@ impl Gate {
         let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
         let mut rawOrders: Value = self.request_private(url.as_deref(), &request, Some(channel.as_str()), None).await;
-        return self.parse_orders(rawOrders, Some(&market), &[]);
+        return Value::Arr(self.parse_orders(rawOrders, Some(&market), &[]));
         Value::Null
         }).await?))
     }
@@ -543,7 +543,7 @@ impl Gate {
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
         let __ws_arg_0 = self.extend(request, &[&requestParams]);
         let mut rawOrders: Value = self.request_private(url.as_deref(), __ws_arg_0, channelOption.as_deref(), None).await;
-        return self.parse_orders(rawOrders, Some(&market), &[]);
+        return Value::Arr(self.parse_orders(rawOrders, Some(&market), &[]));
         Value::Null
         }).await?))
     }
@@ -637,7 +637,7 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut extendedRequest: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &params]).into_dict();
+        let mut extendedRequest: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &params]);
         let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_amend");
         let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
@@ -806,7 +806,7 @@ impl Gate {
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
         let __ws_arg_3 = self.extend(newRequest, &[&requestParams]);
         let mut rawOrders: Value = self.request_private(url.as_deref(), __ws_arg_3, Some(channel.as_str()), None).await;
-        let mut orders: crate::value::List = self.parse_orders(rawOrders, market.as_ref(), &[]).into_list();
+        let mut orders: crate::value::List = self.parse_orders(rawOrders, market.as_ref(), &[]);
         return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
@@ -1649,7 +1649,7 @@ impl Gate {
         }  else {
             result = std::sync::Arc::new(vec![rawResult]);
         }
-        let mut parsedTrades: crate::value::List = self.parse_trades(&result, None, &[]).into_list();
+        let mut parsedTrades: crate::value::List = self.parse_trades(&result, None, &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_331: bool = true;
@@ -1752,7 +1752,7 @@ impl Gate {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
         let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
-        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
         let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".candlesticks");
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", interval.as_deref().unwrap_or("null")).into()), ":").into()), symbolValue);
@@ -1983,7 +1983,7 @@ impl Gate {
             cachedTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             self.myTrades = cachedTrades.clone();
         }
-        let mut parsed: crate::value::List = self.parse_trades(Value::Arr(result), None, &[]).into_list();
+        let mut parsed: crate::value::List = self.parse_trades(Value::Arr(result), None, &[]);
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2333,7 +2333,7 @@ impl Gate {
             let mut __for_first_338: bool = true;
             while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (data.len() as i64) } {
             let mut rawPosition: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             let mut symbol: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
             // Control when position is closed no side is returned
@@ -2538,7 +2538,7 @@ impl Gate {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut parsedOrders: Vec<Value> = self.parse_orders(&orders, None, &[]).as_array().cloned().unwrap_or_default();
+        let mut parsedOrders: Vec<Value> = Value::Arr(self.parse_orders(&orders, None, &[])).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_340: bool = true;
@@ -2883,7 +2883,7 @@ impl Gate {
         let mut code: Option<String> = self.safe_string2_opt(&error, Value::Str("code".into()), Value::Str("label".into()), &[]);
         let mut id: Option<String> = self.safe_string_n_opt(&message, Value::from(vec![Value::Str("id".into()), Value::Str("requestId".into()), Value::Str("request_id".into())]), &[]);
         if (error != Value::Null) {
-            let mut messageHash: Option<String> = self.safe_string_opt(__ch.subscriptions.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut messageHash: Option<String> = self.safe_string_opt(__ch.subscriptions.clone(), &id, &[]);
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), json_stringify(&errs));
@@ -2956,7 +2956,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return;
         }
         if (matches!(channel.as_deref(), Some(__k) if methods.contains_key(__k))) {
-            let mut subscriptionHash: Option<String> = self.safe_string_opt(__ch.subscriptions.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut subscriptionHash: Option<String> = self.safe_string_opt(__ch.subscriptions.clone(), &id, &[]);
             let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), subscriptionHash.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut method: Option<String> = methods.get(channel.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
             self.dispatch_ws_handler(&method, &[client, message, subscription]);

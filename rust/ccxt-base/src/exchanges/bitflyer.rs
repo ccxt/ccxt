@@ -1258,7 +1258,7 @@ impl Bitflyer {
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_getexecutions(&[&__ws_arg_2]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1467,9 +1467,9 @@ impl Bitflyer {
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_getchildorders(&[&__ws_arg_6]).await.unwrap_or_default();
         if (symbol != Value::Null) {
-            return self.filter_by(self.parse_orders(&response, Some(&market), &[since.clone(), limit.clone()]), Value::Str("symbol".into()), symbol, &[]);
+            return self.filter_by(Value::Arr(self.parse_orders(&response, Some(&market), &[since.clone(), limit.clone()])), Value::Str("symbol".into()), symbol, &[]);
         }
-        return self.parse_orders(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1621,7 +1621,7 @@ impl Bitflyer {
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_getexecutions(&[&__ws_arg_9]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1696,7 +1696,7 @@ impl Bitflyer {
         if (code.as_str() != Some("JPY")) && (code.as_str() != Some("USD")) && (code.as_str() != Some("EUR")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " allows withdrawing JPY, USD, EUR only, ").into()), code).into()), " is not supported")));
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_code".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -1743,7 +1743,7 @@ impl Bitflyer {
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone()); // default 100
@@ -1788,7 +1788,7 @@ impl Bitflyer {
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone()); // default 100

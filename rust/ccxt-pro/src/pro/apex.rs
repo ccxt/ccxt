@@ -1270,7 +1270,7 @@ impl Apex {
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (lists.len() as i64) } {
             let mut rawPosition: crate::value::Dict = self.safe_dict_t(&lists, Value::Int(i));
-            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             let mut side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later

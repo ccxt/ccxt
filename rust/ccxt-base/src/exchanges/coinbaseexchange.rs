@@ -2169,7 +2169,7 @@ impl Coinbaseexchange {
         let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsPaginate, &["until"], &[]) } else { paramsPaginate });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_fills(&[&__ws_arg_9]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2212,7 +2212,7 @@ impl Coinbaseexchange {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_products_id_trades(&[&__ws_arg_10]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2435,8 +2435,8 @@ impl Coinbaseexchange {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.call_method_o("private_get_orders_client_client_oid", &[&__ws_arg_13]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -2479,7 +2479,7 @@ impl Coinbaseexchange {
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_fills(&[&__ws_arg_14]).await.unwrap_or_default();
-        return self.parse_trades(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2577,7 +2577,7 @@ impl Coinbaseexchange {
         let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsPaginate, &["until"], &[]) } else { paramsPaginate });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_orders(&[&__ws_arg_16]).await.unwrap_or_default();
-        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2663,7 +2663,7 @@ impl Coinbaseexchange {
         }
         let mut triggerPrice: Option<f64> = self.safe_number_n(&params, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("triggerPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
         }
         let mut timeInForce: Option<String> = self.safe_string2_opt(&params, Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         if (timeInForce.is_some()) {
@@ -2681,21 +2681,21 @@ impl Coinbaseexchange {
             paramsCost = self.omit_t(&paramsOmitted, &["cost", "funds"], &[]);
         }
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
-            request.insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
+            request.insert("size".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
         }  else if (type_var.as_str() == Some("market")) {
             if (costParam.is_some()) {
-                request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.clone(), costParam)));
+                request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.as_str(), costParam)));
             }  else if (price != Value::Null) {
-                request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.clone(), (match (&(amount), &(price)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
+                request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.as_str(), (match (&(amount), &(price)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
             }  else {
-                request.insert("size".into(), Value::from(self.amount_to_precision(symbol, amount)));
+                request.insert("size".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             }
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsCost]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[&__ws_arg_18]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -2843,7 +2843,7 @@ impl Coinbaseexchange {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2920,7 +2920,7 @@ impl Coinbaseexchange {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.load_accounts(&[]).await;
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into()));
         let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
         if (account.is_none()) {
@@ -2991,7 +2991,7 @@ impl Coinbaseexchange {
         let mut id: Option<String> = self.safe_string_k_opt(&params, "id", &[]); // account id
         if (id.is_none()) {
             if (code != Value::Null) {
-                currency = Some(self.currency(code.clone()));
+                currency = Some(self.currency(code.as_str()));
                 let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into()));
                 let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
                 if (account.is_none()) {
@@ -3210,7 +3210,7 @@ impl Coinbaseexchange {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut accounts: Value = self.safe_list_k(&self.options, "coinbaseAccounts", &[]);
         if (accounts == Value::Null) {
             accounts = self.call_method(Value::Str("private_get_coinbase_accounts".into()), &[]).await;

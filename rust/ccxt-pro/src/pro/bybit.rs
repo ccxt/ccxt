@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_un_subscribe" => self.handle_un_subscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -152,7 +152,7 @@ impl Bybit {
             "handle_un_subscribe" => self.handle_un_subscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_balance" => { self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); crate::Value::Null },
-            "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -462,9 +462,9 @@ impl Bybit {
         }
         isSpot = Some(type_var.as_deref() == Some("spot"));
         if isPrivate.as_bool() == Some(true) {
-            let mut unified: crate::value::List = self.parent.is_unified_enabled(&[]).await.into_list();
-            let mut isUnifiedMargin: bool = self.safe_bool_opt(&unified, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
-            let mut isUnifiedAccount: bool = self.safe_bool_opt(&unified, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
+            let unified = self.parent.is_unified_enabled(&[]).await;
+            let mut isUnifiedMargin: bool = unified.0.unwrap_or(false);
+            let mut isUnifiedAccount: bool = unified.1.unwrap_or(false);
             if (isUsdcSettled == Some(true)) && (!isUnifiedMargin) && (!isUnifiedAccount) {
                 url = accessibilityUrls.get("usdc").cloned().unwrap_or(Value::Null);
             }  else {
@@ -610,7 +610,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut orderRequest: crate::value::Dict = self.parent.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str(), side.as_str(), &[&amount, &price, &params]).into_dict();
+        let mut orderRequest: crate::value::Dict = self.parent.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str(), side.as_str(), &[&amount, &price, &params]);
         let mut url: Option<String> = self.implode_hostname(self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut requestId: String = format!("{}", self.request_id());
@@ -1106,13 +1106,13 @@ impl Bybit {
         }).await?))
     }
 
-    pub fn parse_ws_bid_ask(&self, mut orderbook: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, mut orderbook: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut timestamp: Option<i64> = self.safe_integer_k(&orderbook, "timestamp", &[]).as_i64();
         let mut bids: crate::value::List = self.sort_by_t(self.aggregate(orderbook.book_field("bids")), Value::Int(0), &[]);
         let mut asks: crate::value::List = self.sort_by_t(self.aggregate(orderbook.book_field("asks")), Value::Int(0), &[]);
         let mut bestBid: crate::value::List = self.safe_list_t(&bids, Value::Int(0));
         let mut bestAsk: crate::value::List = self.safe_list_t(&asks, Value::Int(0));
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1123,9 +1123,9 @@ impl Bybit {
         m.insert("bidVolume".to_string(), self.safe_number(&bestBid, Value::Int(1), &[]));
         m.insert("info".to_string(), orderbook);
     m
-}), market));
+}), market);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1205,7 +1205,7 @@ impl Bybit {
             let mut market: crate::types::Market = (match self.market((data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolString: String = (market).symbol.clone();
             let mut unfiedTimeframe: Option<String> = data.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
-            let mut timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, unfiedTimeframe.clone().map(Value::from).unwrap_or(Value::Null), &[unfiedTimeframe.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, &unfiedTimeframe, &[unfiedTimeframe.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", timeframeId.as_deref().unwrap_or("null")).into()), ".").into()), marketId).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe.as_deref().unwrap_or("null")).into()));
@@ -1264,7 +1264,7 @@ impl Bybit {
             let mut market: crate::types::Market = (match self.market((data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolString: String = (market).symbol.clone();
             let mut unfiedTimeframe: Option<String> = data.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
-            let mut timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, unfiedTimeframe.clone().map(Value::from).unwrap_or(Value::Null), &[unfiedTimeframe.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, &unfiedTimeframe, &[unfiedTimeframe.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", timeframeId.as_deref().unwrap_or("null")).into()), ".").into()), marketId).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe.as_deref().unwrap_or("null")).into()));
@@ -1649,7 +1649,7 @@ impl Bybit {
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_str());
         if (limit.as_deref() == Some("1")) {
-            let mut bidask: indexmap::IndexMap<String, Value> = self.parse_ws_bid_ask(Value::from(self.orderbooks.at(&symbol)), Some(&market)).as_map().cloned().unwrap_or_default();
+            let mut bidask: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ws_bid_ask(Value::from(self.orderbooks.at(&symbol)), Some(&market)));
             let mut newBidsAsks: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2425,7 +2425,7 @@ impl Bybit {
             let mut __for_first_205: bool = true;
             while { if !__for_first_205 { i += 1; } __for_first_205 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             let mut side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
@@ -2947,9 +2947,9 @@ impl Bybit {
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("watchBalance".into()), None, &[Value::from(&paramsMarketType)]);
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
-        let mut unified: crate::value::List = self.parent.is_unified_enabled(&[]).await.into_list();
-        let mut isUnifiedMargin: bool = self.safe_bool_opt(&unified, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
-        let mut isUnifiedAccount: bool = self.safe_bool_opt(&unified, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
+        let unified = self.parent.is_unified_enabled(&[]).await;
+        let mut isUnifiedMargin: bool = unified.0.unwrap_or(false);
+        let mut isUnifiedAccount: bool = unified.1.unwrap_or(false);
         let mut url: Option<String> = self.get_url_by_market_type(None, &[&Value::Bool(true), &Value::from(method), &Value::from(&paramsSubType)]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topicByMarket: indexmap::IndexMap<String, Value> = ({

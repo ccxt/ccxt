@@ -330,7 +330,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         let mut marketResolved: crate::types::Market = self.safe_market(None, market, &[]);
         let mut ms: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
@@ -355,7 +355,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
             notional = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&quantityString, &entryPriceString), &contractSizeString), &[]).as_f64();
         }
         let mut initialMargin: Option<String> = self.safe_string_k_opt(&position, "initial_margin", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
@@ -372,8 +372,8 @@ impl crate::exchange::DerivedExchange for Mudrex {
         m.insert("lastPrice".to_string(), self.safe_number_k(&position, "closed_price", &[]));
         m.insert("notional".to_string(), Value::from(notional));
         m.insert("leverage".to_string(), self.safe_integer_k(&position, "leverage", &[]));
-        m.insert("positionMargin".to_string(), self.parse_number(initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("collateral".to_string(), self.parse_number(initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(&initialMargin, &[]));
+        m.insert("collateral".to_string(), self.parse_number(&initialMargin, &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(&position, "maintenance_margin", &[]));
@@ -384,9 +384,9 @@ impl crate::exchange::DerivedExchange for Mudrex {
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("percentage".to_string(), Value::Null);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -533,7 +533,7 @@ impl crate::exchange_generated::ExchangeBase for Mudrex {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
@@ -1396,11 +1396,11 @@ impl Mudrex {
             });
             if (takeProfitPrice.is_some()) {
                 riskRequest.insert("is_takeprofit".into(), Value::Bool(true));
-                riskRequest.insert("takeprofit_price".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
+                riskRequest.insert("takeprofit_price".into(), Value::from(self.price_to_precision(symbol.as_str(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             if (stopLossPrice.is_some()) {
                 riskRequest.insert("is_stoploss".into(), Value::Bool(true));
-                riskRequest.insert("stoploss_price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
+                riskRequest.insert("stoploss_price".into(), Value::from(self.price_to_precision(symbol.as_str(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             let __ws_arg_10 = self.extend(Value::Map(riskRequest), &[&paramsOmitted]);
             let mut riskResponse: crate::value::Dict = self.call_method_t("private_post_futures_positions_position_id_riskorder", &[&__ws_arg_10]).await;
@@ -1416,8 +1416,8 @@ impl Mudrex {
                 m.insert("asset_id".to_string(), Value::from((market).id.as_deref()));
                 m.insert("is_symbol".to_string(), Value::Int(1));
                 m.insert("leverage".to_string(), Value::from(self.number_to_string(Value::from(lev))));
-                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
-                m.insert("order_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price)));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
+                m.insert("order_price".to_string(), Value::from(self.price_to_precision(symbol.as_str(), price)));
                 m.insert("order_type".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("LONG".into()) } else { Value::Str("SHORT".into()) }));
                 m.insert("trigger_type".to_string(), (if (type_var.as_str() == Some("market")) { Value::Str("MARKET".into()) } else { Value::Str("LIMIT".into()) }));
                 m.insert("reduce_only".to_string(), self.safe_bool_k(&params, "reduceOnly", &[Value::Bool(false)]));
@@ -1428,11 +1428,11 @@ impl Mudrex {
         let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k_o(&params, "stopLoss");
         if (takeProfit.is_some()) {
             request.insert("is_takeprofit".into(), Value::Bool(true));
-            request.insert("takeprofit_price".into(), Value::from(self.price_to_precision(symbol.clone(), self.safe_string_n(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))));
+            request.insert("takeprofit_price".into(), Value::from(self.price_to_precision(symbol.as_str(), self.safe_string_n(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))));
         }
         if (stopLoss.is_some()) {
             request.insert("is_stoploss".into(), Value::Bool(true));
-            request.insert("stoploss_price".into(), Value::from(self.price_to_precision(symbol, self.safe_string_n(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))));
+            request.insert("stoploss_price".into(), Value::from(self.price_to_precision(symbol.as_str(), self.safe_string_n(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))));
         }
         let mut orderParams: crate::value::Dict = self.omit_t(params, &["leverage", "reduceOnly", "takeProfit", "stopLoss"], &[]);
         let __ws_arg_11 = self.extend(&request, &[&orderParams]);
@@ -1495,16 +1495,16 @@ impl Mudrex {
             m
         });
         if (amount != Value::Null) {
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
         if (price != Value::Null) {
-            request.insert("order_price".into(), Value::from(self.price_to_precision(symbol, price)));
+            request.insert("order_price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_patch_futures_orders_order_id", &[&__ws_arg_12]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", Value::from(&response));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref());
+        None
         }).await?))
     }
 
@@ -1565,8 +1565,8 @@ impl Mudrex {
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_futures_orders_order_id", &[&__ws_arg_13]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", Value::from(&response));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref());
+        None
         }).await?))
     }
 
@@ -1607,8 +1607,8 @@ impl Mudrex {
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_futures_orders_order_id", &[&__ws_arg_14]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", Value::from(&response));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref());
+        None
         }).await?))
     }
 
@@ -1795,7 +1795,7 @@ impl Mudrex {
             let mut p: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut symRaw: Option<String> = self.safe_string_k_opt(&p, "symbol", &[]);
             let mut m: crate::types::Market = self.safe_market(symRaw.as_deref(), None, &[]);
-            let mut pos: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, &p, Some(&m)).into_dict();
+            let mut pos: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, &p, Some(&m)).unwrap_or_default();
             outPos.push(Value::Dict(pos));
         }
         }
@@ -1864,7 +1864,7 @@ impl Mudrex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let mut positions: crate::value::List = self.parse_positions(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]).into_list();
+        let mut positions: crate::value::List = self.parse_positions(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         return Value::Arr(self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
@@ -1924,7 +1924,7 @@ impl Mudrex {
         if (amount.is_some()) {
             let mut orderType: String = self.safe_string_upper_k(&params, "order_type", &[Value::Str("LIMIT".into())]).as_str().unwrap_or("LIMIT").to_string();
             request.insert("order_type".into(), Value::from(orderType.clone()));
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.map(Value::from).unwrap_or(Value::Null))));
             let mut lp: Option<String> = self.safe_string_k_opt(&params, "limit_price", &[]);
             if (orderType == "LIMIT") && (lp.is_some()) {
                 request.insert("limit_price".into(), lp.map(Value::from).unwrap_or(Value::Null));
@@ -1986,7 +1986,7 @@ impl Mudrex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("position_id".to_string(), positionId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("margin".to_string(), Value::from(self.cost_to_precision(symbol, amount)));
+                m.insert("margin".to_string(), Value::from(self.cost_to_precision(symbol.as_str(), amount)));
             m
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["position_id"], &[]);
@@ -2158,7 +2158,7 @@ impl Mudrex {
             }
         }
         }
-        return self.parse_trades(Value::from(rows), market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(Value::from(rows), market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2205,7 +2205,7 @@ impl Mudrex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("from_wallet_type".to_string(), Value::from(fw.as_deref()));
                 m.insert("to_wallet_type".to_string(), Value::from(tw.as_deref()));
-                m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
+                m.insert("amount".to_string(), Value::from(self.number_to_string(&amount)));
             m
         });
         let mut useInr: bool = false;

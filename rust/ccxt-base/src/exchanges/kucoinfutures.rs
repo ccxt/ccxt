@@ -179,8 +179,8 @@ impl Kucoinfutures {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut amountToPrecision: Option<String> = self.currency_to_precision(code, amount, &[]);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
+        let mut amountToPrecision: Option<String> = self.currency_to_precision(code.as_str(), amount, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_string_k(&currency, "id", &[]));
@@ -201,7 +201,7 @@ impl Kucoinfutures {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " transfer() only supports transfers between future/swap, spot and funding accounts")));
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let __ws_arg_2 = self.parse_transfer(Value::Dict(data), Some(&currency));
+        let __ws_arg_2 = Value::Dict(self.parse_transfer(Value::Dict(data), Some(&currency)));
         let __ws_arg_3 = self.parse_number(amountToPrecision.map(Value::from).unwrap_or(Value::Null), &[]);
         return self.extend(__ws_arg_2, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

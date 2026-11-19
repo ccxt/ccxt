@@ -500,24 +500,24 @@ impl Poloniex {
             let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
             paramsOmitted = self.omit_t(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
-                quoteAmount = self.cost_to_precision(symbol.clone(), cost);
+                quoteAmount = self.cost_to_precision(symbol.as_str(), cost);
             }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
                 }  else {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
-                    let mut priceString: Option<String> = self.number_to_string(price.clone());
+                    let mut amountString: Option<String> = self.number_to_string(&amount);
+                    let mut priceString: Option<String> = self.number_to_string(&price);
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
+                    quoteAmount = self.cost_to_precision(symbol.as_str(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
             }  else {
-                quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
+                quoteAmount = self.cost_to_precision(symbol.as_str(), amount.clone());
             }
             request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount)));
             if (price != Value::Null) {
-                request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             }
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -689,7 +689,7 @@ impl Poloniex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "timeframes");
-        let mut channel: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut channel: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[timeframe.clone()]);
         if (channel.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOHLCV cannot take a timeframe of ").into()), timeframe)));
         }
@@ -729,7 +729,7 @@ impl Poloniex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "timeframes");
-        let mut channel: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut channel: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[timeframe.clone()]);
         if (channel.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " unWatchOHLCV cannot take a timeframe of ").into()), timeframe)));
         }

@@ -381,7 +381,7 @@ impl Bullish {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut rawTrades: crate::value::List = self.safe_list_k_t(&data, "trades");
-        let mut trades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]).into_list();
+        let mut trades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]);
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut tradesArrayCache: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
@@ -1106,7 +1106,7 @@ impl Bullish {
                         let mut i: i64 = 0;
             let mut __for_first_186: bool = true;
             while { if !__for_first_186 { i += 1; } __for_first_186 = false; i < (rawPositions.len() as i64) } {
-            let mut position: crate::value::Dict = self.parse_position(rawPositions.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(rawPositions.get(i as usize).cloned().unwrap_or(Value::Null), None);
             positions.append(Value::from(&position));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::Dict(position));
         }

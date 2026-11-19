@@ -436,7 +436,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "order_book_message_hashes" => self.order_book_message_hashes(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "outcome_for_token" => crate::types::IntoRaw::into_raw(self.outcome_for_token(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "outcomes_by_market_id" => self.outcomes_by_market_id(args.get(0).and_then(crate::Value::as_text).as_deref()),
-                "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1214,7 +1214,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1466: bool = true;
             while { if !__for_first_1466 { i += 1; } __for_first_1466 = false; i < rawTopicsLength } {
-            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null));
             result.push(Value::from(&parsedEvent));
             let mut parsedMarkets: crate::value::List = self.safe_list_k_t(&parsedEvent, "markets");
             let mut parsedMarketsLength: i64 = parsedMarkets.len() as i64;
@@ -1462,7 +1462,7 @@ impl Predictfun {
  * @param {object} rawTopic the raw market topic object
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, mut rawTopic: Value) -> Value {
+    pub fn parse_event(&self, mut rawTopic: Value) -> crate::value::Dict {
         //
         //     {
         //         "createdAt": "2026-08-26T14:00:02.000Z",
@@ -1650,7 +1650,7 @@ impl Predictfun {
         if (status.is_some()) {
             resolved = Some((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1671,7 +1671,7 @@ impl Predictfun {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2841,7 +2841,7 @@ impl Predictfun {
         // value is read off the taker leg) and signing at the maximum price of 1 is rejected as
         // create_order_price_out_of_range (it wants 0 < price < 1)
         let mut amountString: Option<String> = self.number_to_string(amount);
-        let mut priceString: Option<String> = self.number_to_string(price.clone());
+        let mut priceString: Option<String> = self.number_to_string(&price);
         let mut priceToProvide: Option<String> = priceString.clone();
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
@@ -4410,10 +4410,10 @@ impl Predictfun {
  */
     pub fn outcomes_by_market_id(&self, marketId: Option<&str>) -> Value {
         let mut result: Vec<Value> = Vec::new();
-        if (marketId.is_none()) || (self.exchange.outcomes.clone() == Value::Null) {
+        if (marketId.is_none()) || (self.exchange.outcomes.is_none()) {
             return Value::from(result);
         }
-        let mut cached: Value = self.exchange.outcomes.clone();
+        let mut cached: Value = Value::from(&self.exchange.outcomes);
         let mut handles: Vec<Value> = object_keys(&cached).as_array().cloned().unwrap_or_default();
         let mut handlesLength: i64 = handles.len() as i64;
         {
@@ -4496,7 +4496,7 @@ impl Predictfun {
             let mut bid: crate::value::List = self.safe_list_t(&rawBids, Value::Int(i));
             let mut bidPrice: Option<String> = self.safe_string_opt(&bid, Value::Int(0), &[]);
             let mut bidSize: Option<f64> = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]).as_f64();
-            if let Value::Arr(__a) = &mut yesBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(bidPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), Value::from(bidSize)])); }
+            if let Value::Arr(__a) = &mut yesBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(&bidPrice, &[]), Value::from(bidSize)])); }
             // a bid for yes at p is an offer of no at 1 - p
             std::sync::Arc::make_mut(&mut noAsks).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice), &[]), Value::from(bidSize)]));
         }
@@ -4509,7 +4509,7 @@ impl Predictfun {
             let mut ask: crate::value::List = self.safe_list_t(&rawAsks, Value::Int(i));
             let mut askPrice: Option<String> = self.safe_string_opt(&ask, Value::Int(0), &[]);
             let mut askSize: Option<f64> = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]).as_f64();
-            if let Value::Arr(__a) = &mut yesAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(askPrice.clone().map(Value::from).unwrap_or(Value::Null), &[]), Value::from(askSize)])); }
+            if let Value::Arr(__a) = &mut yesAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![self.parse_number(&askPrice, &[]), Value::from(askSize)])); }
             std::sync::Arc::make_mut(&mut noBids).push(Value::from(vec![self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice), &[]), Value::from(askSize)]));
         }
         }

@@ -1099,7 +1099,7 @@ impl Mercado {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
             response = self.public_get_coin_trades(&[&__ws_arg_4]).await;
         }
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1169,8 +1169,8 @@ impl Mercado {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
-            request.insert("limit_price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price.clone())));
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision((Value::from((market).symbol.clone())).as_str(), price.clone())));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount.clone())));
             if (side.as_str() == Some("buy")) {
                 let __ws_arg_5 = self.extend(&request, &[&params]);
                 response = self.call_method_o("private_post_place_buy_order", &[&__ws_arg_5]).await;
@@ -1183,13 +1183,13 @@ impl Mercado {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")));
                 }
-                let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                let mut amountString: Option<String> = self.number_to_string(&amount);
                 let mut priceString: Option<String> = self.number_to_string(price);
-                request.insert("cost".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)))));
+                request.insert("cost".into(), Value::from(self.price_to_precision((Value::from((market).symbol.clone())).as_str(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)))));
                 let __ws_arg_7 = self.extend(&request, &[&params]);
                 response = self.call_method_o("private_post_place_market_buy_order", &[&__ws_arg_7]).await;
             }  else {
-                request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount)));
                 let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
                 response = self.call_method_o("private_post_place_market_sell_order", &[&__ws_arg_8]).await;
             }
@@ -1265,8 +1265,8 @@ impl Mercado {
         //
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut order: crate::value::Dict = self.safe_dict_k_t(&responseData, "order");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
+        None
         }).await?))
     }
 
@@ -1320,8 +1320,8 @@ impl Mercado {
         let mut response: crate::value::Dict = self.call_method_t("private_post_get_order", &[&__ws_arg_10]).await;
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut order: Option<crate::value::Dict> = self.safe_dict_k_o(&responseData, "order");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
+        None
         }).await?))
     }
 
@@ -1356,7 +1356,7 @@ impl Mercado {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -1505,7 +1505,7 @@ impl Mercado {
         let mut response: crate::value::Dict = self.call_method_t("private_post_list_orders", &[&__ws_arg_13]).await;
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut orders: crate::value::List = self.safe_list_k_t(&responseData, "orders");
-        return self.parse_orders(&orders, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1550,7 +1550,7 @@ impl Mercado {
         let mut response: crate::value::Dict = self.call_method_t("private_post_list_orders", &[&__ws_arg_14]).await;
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut orders: crate::value::List = self.safe_list_k_t(&responseData, "orders");
-        return self.parse_orders(&orders, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1595,7 +1595,7 @@ impl Mercado {
         let mut response: crate::value::Dict = self.call_method_t("private_post_list_orders", &[&__ws_arg_15]).await;
         let mut responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let mut ordersRaw: crate::value::List = self.safe_list_k_t(&responseData, "orders");
-        let mut orders: crate::value::List = self.parse_orders(&ordersRaw, Some(&market), &[since.clone(), limit.clone()]).into_list();
+        let mut orders: crate::value::List = self.parse_orders(&ordersRaw, Some(&market), &[since.clone(), limit.clone()]);
         let mut trades: crate::value::List = self.orders_to_trades(Value::Arr(orders)).into_list();
         return Value::Arr(self.filter_by_symbol_since_limit(&trades, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]));
         Value::Null

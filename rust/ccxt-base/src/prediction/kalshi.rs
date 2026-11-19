@@ -749,7 +749,7 @@ impl crate::exchange_generated::ExchangeBase for Kalshi {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_binary_market_to_outcomes" => self.parse_binary_market_to_outcomes(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_my_trade" => self.parse_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1638,7 +1638,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        return self.exchange.outcomes.clone();
+        return Value::from(&self.exchange.outcomes);
 
     Value::Null
 }
@@ -2273,7 +2273,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (periodMin.is_none()) {
             // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-            let mut tfKeys: crate::value::List = crate::value::List::new(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut tfKeys: crate::value::List = crate::value::List::new(self.timeframes.as_deref().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             let mut supported: String = tfKeys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ");
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() does not support the ").into()), timeframe).into()), " timeframe (supported: ").into()), supported).into()), ")")));
         }
@@ -3039,7 +3039,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if isNo {
             bookSide = (if (isBuy) { "ask".to_string() } else { "bid".to_string() });
         }
-        let mut yesPrice: Option<f64> = (if (isNo && (price != Value::Null)) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(price.clone()))), &[]).as_f64() } else { price.as_f64() });
+        let mut yesPrice: Option<f64> = (if (isNo && (price != Value::Null)) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(&price))), &[]).as_f64() } else { price.as_f64() });
         let mut isMarket: bool = type_var.as_str() == Some("market");
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
@@ -3068,7 +3068,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), ticker.map(Value::from).unwrap_or(Value::Null));
                 m.insert("side".to_string(), Value::from(bookSide));
-                m.insert("count".to_string(), Value::from(self.number_to_string(amount.clone())));
+                m.insert("count".to_string(), Value::from(self.number_to_string(&amount)));
                 m.insert("time_in_force".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("self_trade_prevention_type".to_string(), stp.map(Value::from).unwrap_or(Value::Null));
             m
@@ -3350,7 +3350,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut di: i64 = 0;
             let mut __for_first_1293: bool = true;
             while { if !__for_first_1293 { di += 1; } __for_first_1293 = false; di < rawEventsLength } {
-            let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(rawEvents.get(di as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
+            let mut parsedEvent: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_event(rawEvents.get(di as usize).cloned().unwrap_or(Value::Null)));
             result.push(Value::Map(parsedEvent.clone()));
             // register the parsed markets so populateOutcomes can index their outcomes
             let mut parsedMarkets: Value = parsedEvent.get("markets").cloned().unwrap_or(Value::Null);
@@ -3703,7 +3703,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker(id.as_str().unwrap_or_default(), &[&params]).await.into_dict();
-        let mut event: crate::value::Dict = self.parse_event(&fullEvent).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(&fullEvent);
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -3718,7 +3718,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} rawEvent the raw event object
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> Value {
+    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> crate::value::Dict {
         let mut rawEvent: Value = rawEvent.into();
         // {
         //         "available_on_brokers": true,
@@ -3858,7 +3858,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __ws_arg_23 = self.parse8601(self.safe_string_k(&rawEvent, "last_updated_date_iso", &[]));
         let __ws_arg_24 = self.safe_string_k(&rawEvent, "last_updated_date_iso", &[]);
         let __ws_arg_25 = self.safe_string_k(&rawEvent, "resolution_source", &[]);
-        return self.extend(Value::Map({
+        return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("slug".to_string(), ticker.map(Value::from).unwrap_or(Value::Null));
@@ -3883,7 +3883,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }), &[]);
 
-    Value::Null
+    Default::default()
 }
 
 /*

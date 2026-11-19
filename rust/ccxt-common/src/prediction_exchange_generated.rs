@@ -558,11 +558,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (outcomeSymbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " outcome() requires an outcomeSymbol argument")));
         }
-        if (self.pred().outcomes.clone() == Value::Null) || self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true) {
+        if (self.pred().outcomes.is_none()) || self.is_empty(&self.pred().outcomes).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")));
         }
-        if (matches!((&self.pred().outcomes, &outcomeSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(self.pred().outcomes.clone(), outcomeSymbol.clone(), &[]));
+        if (matches!((&self.pred().outcomes, &outcomeSymbol), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(&self.pred().outcomes, outcomeSymbol.clone(), &[]));
         }
         if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(self.pred().outcomes_by_id.clone(), outcomeSymbol.clone(), &[]));
@@ -577,7 +577,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (outcomeIdOrSymbol == Value::Null) {
             return Value::Bool(false);
         }
-        if (self.pred().outcomes.clone() != Value::Null) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (self.pred().outcomes.is_some()) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return Value::Bool(true);
         }
         if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -590,8 +590,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 
     fn safe_outcome(&self, mut outcomeIdOrSymbol: Value, market: Option<&crate::types::Market>) -> Option<crate::types::Market> {
         if (outcomeIdOrSymbol != Value::Null) {
-            if (self.pred().outcomes.clone() != Value::Null) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(self.pred().outcomes.clone(), outcomeIdOrSymbol.clone(), &[]));
+            if (self.pred().outcomes.is_some()) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(&self.pred().outcomes, outcomeIdOrSymbol.clone(), &[]));
             }
             if (self.pred().outcomes_by_id.clone() != Value::Null) && (matches!((&self.pred().outcomes_by_id, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_value(self.pred().outcomes_by_id.clone(), outcomeIdOrSymbol.clone(), &[]));
@@ -688,7 +688,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_200: bool = true;
             while { if !__for_first_200 { i += 1; } __for_first_200 = false; i < (replacementKeys.len() as i64) } {
             let mut replacementKey: Value = replacementKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut replacementValue: Option<String> = self.safe_string_opt(&replacements, replacementKey.clone(), &[]);
+            let mut replacementValue: Option<String> = self.safe_string_opt(&replacements, &replacementKey, &[]);
             if (replacementValue.is_some()) {
                 s = match (s.as_str(), replacementKey.as_str(), replacementValue.as_deref()) { (Some(__s), Some(__p), Some(__r)) => Value::Str(__s.replace(__p, __r).into()), _ => s.clone() }
             }
@@ -818,11 +818,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
         // for a full rebuild and by on-demand single-market fetches (kalshi fetchOutcome), so a
         // cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
-        if (self.pred().outcomes.clone() == Value::Null) {
-            self.pred_mut().outcomes = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
+        if (self.pred().outcomes.is_none()) {
+            self.pred_mut().outcomes = Some(Default::default());
         }
         if (self.pred().outcomes_by_id.clone() == Value::Null) {
             self.pred_mut().outcomes_by_id = Value::Map({
@@ -848,7 +845,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                let mut existing: Option<crate::value::Dict> = self.safe_dict_o(self.pred().outcomes.clone(), Value::from(ocSymbol.as_deref()));
+                let mut existing: Option<crate::value::Dict> = self.safe_dict_o(&self.pred().outcomes, Value::from(ocSymbol.as_deref()));
                 if (existing.is_some()) {
                     let mut existingId: Option<String> = self.safe_string_k_opt(&existing, "outcomeId", &[]);
                     if (existingId.is_some()) && (ocId != Value::Null) && ((existingId.as_deref() != ocId.as_str())) {
@@ -864,7 +861,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     }
                 }
                 add_element_to_object(&mut oc, &Value::Str("outcome".into()), Value::from(ocSymbol.as_deref()));
-                if let Value::Dict(__d) = &mut self.pred_mut().outcomes { std::sync::Arc::make_mut(__d).insert(ocSymbol.as_deref().unwrap_or("null").to_string(), oc.clone()); }
+                if let Some(__d) = &mut self.pred_mut().outcomes { std::sync::Arc::make_mut(__d).insert(ocSymbol.as_deref().unwrap_or("null").to_string(), oc.clone()); }
             }  else {
                 add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol.map(Value::from).unwrap_or(Value::Null));
             }
@@ -880,10 +877,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // outcome tokens under the outcomes key) so cached market data works offline. no-op on
         // a cold instance where markets are not loaded yet (avoids a null-access crash on the
         // eventId/slug-only fetchEvents path)
-        self.pred_mut().outcomes = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
+        self.pred_mut().outcomes = Some(Default::default());
         self.pred_mut().outcomes_by_id = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -954,7 +948,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             }
             let mut missingLength: i64 = missing.len() as i64;
-            let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
+            let mut wasWarm: bool = (self.pred().outcomes.is_some()) && !(self.is_empty(&self.pred().outcomes).as_bool() == Some(true));
             let mut loadAll: bool = self.safe_bool_k_opt(&self.options, "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
             if (missingLength > 0) && loadAll && !wasWarm && !(reload.as_bool() == Some(true)) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
@@ -976,14 +970,14 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if missingLength > 0 {
                 self.fetch_outcomes(missing).await;
             }
-            return self.pred().outcomes.clone();
+            return Value::from(&self.pred().outcomes);
         }
-        if !(reload.as_bool() == Some(true)) && (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true)) {
-            return self.pred().outcomes.clone();
+        if !(reload.as_bool() == Some(true)) && (self.pred().outcomes.is_some()) && !(self.is_empty(&self.pred().outcomes).as_bool() == Some(true)) {
+            return Value::from(&self.pred().outcomes);
         }
         if let Err(__e) = self.load_markets(reload.as_bool().unwrap_or_default(), params).await { panic!("{}", __e) }
         self.populate_outcomes();
-        return self.pred().outcomes.clone();
+        return Value::from(&self.pred().outcomes);
 
     Value::Null
 }) }
@@ -1011,7 +1005,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
         }
         }
-        return self.pred().outcomes.clone();
+        return Value::from(&self.pred().outcomes);
 
     Value::Null
 } }
@@ -1032,7 +1026,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
                 return self.safe_outcome(outcomeSymbol.clone(), None);
             }
-            let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
+            let mut wasWarm: bool = (self.pred().outcomes.is_some()) && !(self.is_empty(&self.pred().outcomes).as_bool() == Some(true));
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
             // but the outcome cache is cold, index them for free before hitting the network — this
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
@@ -2450,7 +2444,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn amount_to_prediction_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
         let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
-        return Value::from(self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amount));
+        return Value::from(self.amount_to_precision(marketSymbol.as_deref(), amount));
 
     Value::Null
 }
@@ -2458,7 +2452,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn price_to_prediction_precision(&self, mut outcome: Value, mut price: Value) -> Value {
         let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
-        return Value::from(self.price_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), price));
+        return Value::from(self.price_to_precision(marketSymbol.as_deref(), price));
 
     Value::Null
 }
@@ -2466,7 +2460,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     fn cost_to_prediction_precision(&self, mut outcome: Value, mut cost: Value) -> Value {
         let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
-        return Value::from(self.cost_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), cost));
+        return Value::from(self.cost_to_precision(marketSymbol.as_deref(), cost));
 
     Value::Null
 }

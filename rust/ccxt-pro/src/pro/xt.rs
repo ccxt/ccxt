@@ -1284,7 +1284,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut data: crate::value::Dict = message.key_dict("data");
-        let mut position: crate::value::Dict = self.parse_position(Value::Dict(data), None).into_dict();
+        let mut position: crate::value::Dict = self.parse_position(Value::Dict(data), None);
         cache.append(Value::from(&position));
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("position::contract".into())).as_array().cloned().unwrap_or_default();
         {

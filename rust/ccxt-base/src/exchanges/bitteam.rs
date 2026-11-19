@@ -688,13 +688,13 @@ impl crate::exchange::DerivedExchange for Bitteam {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minWithdraw.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("max".to_string(), self.parse_number(maxWithdraw.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("min".to_string(), self.parse_number(&minWithdraw, &[]));
+        m.insert("max".to_string(), self.parse_number(&maxWithdraw, &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minDeposit.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("min".to_string(), self.parse_number(&minDeposit, &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1774,7 +1774,7 @@ impl Bitteam {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut resolution: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut resolution: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pairName".to_string(), Value::from((market).id.as_deref()));
@@ -2013,7 +2013,7 @@ impl Bitteam {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut orders: crate::value::List = self.safe_list_k_t(&result, "orders");
-        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2092,8 +2092,8 @@ impl Bitteam {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, market.as_ref());
+        None
         }).await?))
     }
 
@@ -2248,14 +2248,14 @@ impl Bitteam {
                 m.insert("pairId".to_string(), self.safe_string_k(&market, "numericId", &[]));
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("side".to_string(), side);
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
         if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }  else {
-                request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
@@ -2284,8 +2284,8 @@ impl Bitteam {
         //     }
         //
         let mut order: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
+        None
         }).await?))
     }
 
@@ -2330,8 +2330,8 @@ impl Bitteam {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
+        None
         }).await?))
     }
 
@@ -2381,7 +2381,7 @@ impl Bitteam {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut orders: crate::value::List = std::sync::Arc::new(vec![Value::Dict(result)]);
-        return self.parse_orders(&orders, market.as_ref(), &[]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[]));
         Value::Null
         }).await?))
     }
@@ -2755,7 +2755,7 @@ impl Bitteam {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_trade_api_cmc_trades_pair(&[&__ws_arg_11]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2936,7 +2936,7 @@ impl Bitteam {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
-        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3003,7 +3003,7 @@ impl Bitteam {
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "numericId"));
         }
         if (limit != Value::Null) {

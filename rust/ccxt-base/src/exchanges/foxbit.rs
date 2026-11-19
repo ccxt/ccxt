@@ -541,7 +541,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
             fullPath = "/status".to_string();
             urlPath = Some("status".to_string());
         }
-        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), urlPath.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), &urlPath, &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
@@ -1662,7 +1662,7 @@ impl Foxbit {
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("v3_public_get_markets_market_trades_history", &[&__ws_arg_2]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1892,7 +1892,7 @@ impl Foxbit {
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("v3_private_get_orders", &[&__ws_arg_4]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, None, &[]);
+        return Value::Arr(self.parse_orders(&data, None, &[]));
 
     Value::Null
 }
@@ -1964,15 +1964,15 @@ impl Foxbit {
             request.insert("post_only".into(), Value::Bool(true));
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
         }
         if (typeValue == "INSTANT") {
-            request.insert("amount".into(), Value::from(self.price_to_precision(symbol.clone(), amount.clone())));
+            request.insert("amount".into(), Value::from(self.price_to_precision(symbol.as_str(), amount.clone())));
         }  else {
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
         if (typeValue == "LIMIT") || (typeValue == "STOP_LIMIT") {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
@@ -1981,8 +1981,8 @@ impl Foxbit {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["timeInForce", "postOnly", "triggerPrice", "clientOrderId"], &[]);
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("v3_private_post_orders", &[&__ws_arg_5]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -2050,16 +2050,16 @@ impl Foxbit {
                 std::sync::Arc::make_mut(&mut orderParams).shift_remove("postOnly");
             }
             if (triggerPrice.is_some()) {
-                request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), triggerPrice)));
+                request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.as_deref(), triggerPrice)));
                 std::sync::Arc::make_mut(&mut orderParams).shift_remove("triggerPrice");
             }
             if (type_var == "INSTANT") {
-                request.insert("amount".into(), Value::from(self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "amount", &[]))));
+                request.insert("amount".into(), Value::from(self.price_to_precision(symbol.as_deref(), self.safe_string_k(&order, "amount", &[]))));
             }  else {
-                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "amount", &[]))));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_deref(), self.safe_string_k(&order, "amount", &[]))));
             }
             if (type_var == "LIMIT") || (type_var == "STOP_LIMIT") {
-                request.insert("price".into(), Value::from(self.price_to_precision(symbol.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "price", &[]))));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_deref(), self.safe_string_k(&order, "price", &[]))));
             }
             ordersRequests.push(self.extend(Value::Map(request), &[&orderParams]));
         }
@@ -2087,7 +2087,7 @@ impl Foxbit {
         //     ]
         // }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, None, &[]);
+        return Value::Arr(self.parse_orders(&data, None, &[]));
         Value::Null
         }).await?))
     }
@@ -2135,8 +2135,8 @@ impl Foxbit {
         // }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut result: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
+        None
         }).await?))
     }
 
@@ -2216,8 +2216,8 @@ impl Foxbit {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("v3_private_get_orders_by_order_id_id", &[&__ws_arg_9]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -2294,7 +2294,7 @@ impl Foxbit {
         //     ]
         // }
         let mut list: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&list, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&list, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2361,7 +2361,7 @@ impl Foxbit {
         //     ]
         // }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2390,7 +2390,7 @@ impl Foxbit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2442,7 +2442,7 @@ impl Foxbit {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -2510,7 +2510,7 @@ impl Foxbit {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -2697,17 +2697,17 @@ impl Foxbit {
             m
         });
         if (typeValue == "LIMIT") || (typeValue == "MARKET") {
-            createRequest.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+            createRequest.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
             if (typeValue == "LIMIT") {
-                createRequest.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                createRequest.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
             }
         }
         if (typeValue == "STOP_MARKET") {
-            createRequest.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
-            createRequest.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+            createRequest.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
+            createRequest.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
         }
         if (typeValue == "INSTANT") {
-            createRequest.insert("amount".into(), Value::from(self.price_to_precision(symbol, amount)));
+            createRequest.insert("amount".into(), Value::from(self.price_to_precision(symbol.as_str(), amount)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2733,8 +2733,8 @@ impl Foxbit {
         //     }
         // }
         let mut created: crate::value::Dict = self.safe_dict_k_t(&response, "create");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &created, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &created, Some(&market));
+        None
         }).await?))
     }
 
@@ -2770,7 +2770,7 @@ impl Foxbit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2837,7 +2837,7 @@ impl Foxbit {
         if (since != Value::Null) {
             request.insert("start_time".into(), self.iso8601(since.clone()));
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         request.insert("symbol".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("v3_private_get_accounts_symbol_transactions", &[&__ws_arg_17]).await;

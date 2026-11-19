@@ -833,7 +833,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1502,7 +1502,7 @@ impl Limitless {
             while { if !__for_first_1312 { i += 1; } __for_first_1312 = false; i < (eventKeys.len() as i64) } {
             let mut eventKey: Option<&str> = eventKeys.get(i as usize).and_then(Value::as_str);
             let mut g: Value = eventGroups.get(eventKey.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            eventsDict.insert(eventKey.as_deref().unwrap_or("null").to_string(), self.parse_event(g));
+            eventsDict.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_event(g)));
         }
         }
         self.exchange.events = Value::Map(eventsDict);
@@ -1552,7 +1552,7 @@ impl Limitless {
                 m.insert("markets".to_string(), Value::Arr(rows));
             m
         })]);
-        let mut event: crate::value::Dict = self.parse_event(&wrapped).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(&wrapped);
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -1610,7 +1610,7 @@ impl Limitless {
     Value::Null
 }
 
-    pub fn parse_event(&self, event: impl Into<crate::Value>) -> Value {
+    pub fn parse_event(&self, event: impl Into<crate::Value>) -> crate::value::Dict {
         let mut event: Value = event.into();
         // {
         //    "groupId":"trump-out-as-president-before-2027-1768933068297",
@@ -1882,7 +1882,7 @@ impl Limitless {
         let __ws_arg_14 = self.safe_string_k(&event, "createdAt", &[]);
         let __ws_arg_15 = self.parse8601(self.safe_string_k(&event, "updatedAt", &[]));
         let __ws_arg_16 = self.safe_string_k(&event, "resolutionSource", &[]);
-        return self.extend(Value::Map({
+        return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(groupId.as_deref()));
         m.insert("slug".to_string(), Value::from(groupId.as_deref()));
@@ -1908,7 +1908,7 @@ impl Limitless {
     m
 }), &[]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2190,7 +2190,7 @@ impl Limitless {
         m.insert("askVolume".to_string(), self.parse_number(askSizeStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), self.parse_number(lastStr.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("close".to_string(), self.parse_number(&lastStr, &[]));
         m.insert("last".to_string(), self.parse_number(lastStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -3234,8 +3234,8 @@ if _try_result.is_err() {
         }  else {
             signRequest.insert("expiration".into(), Value::Str("0".into()));
         }
-        let mut amountString: Option<String> = self.number_to_string(amount.clone());
-        let mut priceString: Option<String> = self.number_to_string(price.clone());
+        let mut amountString: Option<String> = self.number_to_string(&amount);
+        let mut priceString: Option<String> = self.number_to_string(&price);
         let mut makerAmount: Option<String> = None;
         let mut takerAmount: Option<String> = None;
         let mut isMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
@@ -4191,7 +4191,7 @@ if _try_result.is_err() {
             let mut ev: crate::value::Dict = self.parse_event(self.safe_dict(&eventGroups, eventKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})])).into_dict();
+})]));
             result.push(Value::Dict(ev));
         }
         }

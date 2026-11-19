@@ -476,7 +476,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "load_api_credentials" => self.load_api_credentials().await,
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_event_to_markets" => self.parse_event_to_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_events" => self.parse_events(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1454,7 +1454,7 @@ impl Polymarket {
                 flatMarkets.push(ccxtMarkets.get(mi as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(&rawEvent).as_map().cloned().unwrap_or_default();
+            let mut parsedEvent: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_event(&rawEvent));
             let mut eventSlug: Option<String> = self.safe_string_k_opt(&rawEvent, "slug", &[]);
             if (eventSlug.is_some()) && (eventSlug.as_deref() != Some("")) {
                 let mut eventKey: Value = self.shorten_slug(eventSlug.map(Value::from).unwrap_or(Value::Null));
@@ -2163,7 +2163,7 @@ impl Polymarket {
             }
         }
         }
-        return self.exchange.outcomes.clone();
+        return Value::from(&self.exchange.outcomes);
 
     Value::Null
 }
@@ -2544,9 +2544,9 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if !(matches!((&self.timeframes, &timeframe), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(matches!((&self.timeframes, &timeframe), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
-            let mut supportedKeys: crate::value::List = crate::value::List::new(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut supportedKeys: crate::value::List = crate::value::List::new(self.timeframes.as_deref().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() unsupported timeframe ").into()), timeframe).into()), ", supported timeframes are ").into()), Value::Str(supportedKeys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome, &[]).await;
@@ -4157,7 +4157,7 @@ impl Polymarket {
                 add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
             }
             }
-            let mut parsedEvent: crate::value::Dict = self.parse_event(eventForParsing).into_dict();
+            let mut parsedEvent: crate::value::Dict = self.parse_event(eventForParsing);
             result.push(Value::Dict(parsedEvent));
         }
         }
@@ -4227,14 +4227,14 @@ impl Polymarket {
     m
 }).into_opt_dict();
         }
-        let mut event: crate::value::Dict = self.parse_event(&eventForParsing).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(&eventForParsing);
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> Value {
+    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> crate::value::Dict {
         let mut rawEvent: Value = rawEvent.into();
         // {
         //     "id": "73113",
@@ -4336,7 +4336,7 @@ impl Polymarket {
         let __ws_arg_26 = self.parse8601(updatedAt.clone().map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_27 = self.safe_string2(&rawEvent, Value::Str("resolutionSource".into()), Value::Str("resolution_source".into()), &[]);
         let __ws_arg_28 = self.safe_bool2(&rawEvent, Value::Str("closed".into()), Value::Str("resolved".into()), &[]);
-        return self.extend(Value::Map({
+        return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), __ws_arg_18);
         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
@@ -4360,7 +4360,7 @@ impl Polymarket {
     m
 }), &[]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -4380,7 +4380,7 @@ impl Polymarket {
             let mut __for_first_1455: bool = true;
             while { if !__for_first_1455 { i += 1; } __for_first_1455 = false; i < (rawEvents.len() as i64) } {
             let mut rawEvent: Value = rawEvents.get(i as usize).cloned().unwrap_or(Value::Null);
-            result.push(self.parse_event(rawEvent));
+            result.push(Value::Dict(self.parse_event(rawEvent)));
         }
         }
         return Value::from(result);

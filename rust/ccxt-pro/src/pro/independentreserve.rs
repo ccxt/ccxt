@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Independentreserve {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscriptions" => self.handle_subscriptions(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "value_to_checksum" => self.value_to_checksum(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "value_to_checksum" => crate::Value::from(self.value_to_checksum(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -87,7 +87,7 @@ impl Independentreserve {
             "handle_subscriptions" => self.handle_subscriptions(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_trades" => { self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-            "value_to_checksum" => self.value_to_checksum(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "value_to_checksum" => crate::Value::from(self.value_to_checksum(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
             "watch_trades" => { crate::exchange_stubs::enqueue_spawn("watch_trades", args.to_vec()); crate::Value::Null },
             _ => crate::Value::Null,
@@ -401,7 +401,7 @@ impl Independentreserve {
                 let mut __for_first_420: bool = true;
                 while { if !__for_first_420 { i += 1; } __for_first_420 = false; (i as f64) < ((10i64) as f64) } {
                 if i < bidsLength {
-                    payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(storedBids.level(&Value::Int(i)), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(storedBids.level(&Value::Int(i)), Value::Int(1), &[])));
+                    payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(storedBids.level(&Value::Int(i)), Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null)).into()), self.value_to_checksum(self.safe_number(storedBids.level(&Value::Int(i)), Value::Int(1), &[])).map(Value::from).unwrap_or(Value::Null));
                 }
             }
             }
@@ -410,7 +410,7 @@ impl Independentreserve {
                 let mut __for_first_421: bool = true;
                 while { if !__for_first_421 { i += 1; } __for_first_421 = false; (i as f64) < ((10i64) as f64) } {
                 if i < asksLength {
-                    payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(storedAsks.level(&Value::Int(i)), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(storedAsks.level(&Value::Int(i)), Value::Int(1), &[])));
+                    payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(storedAsks.level(&Value::Int(i)), Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null)).into()), self.value_to_checksum(self.safe_number(storedAsks.level(&Value::Int(i)), Value::Int(1), &[])).map(Value::from).unwrap_or(Value::Null));
                 }
             }
             }
@@ -429,18 +429,15 @@ impl Independentreserve {
         }
 }
 
-    pub fn value_to_checksum(&self, mut value: Value) -> Value {
+    pub fn value_to_checksum(&self, mut value: Value) -> Option<String> {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        let mut result: Value = self.decimal_to_precision(value, Value::Int(crate::runtime::ROUND), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]);
-        result = replace_str(&result, &Value::Str(".".into()), &Value::Str("".into()));
+        let mut padded: Option<String> = self.decimal_to_precision(value, Value::Int(crate::runtime::ROUND), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]).as_str().map(str::to_owned);
+        let mut digits: Option<String> = (if let Some(__s) = padded.as_deref() { Some(__s.replace(".", "")) } else { None });
         // remove leading zeros
-        result = self.parse_number(result, &[]);
-        result = Value::from(self.number_to_string(result));
+        let mut result: Option<String> = self.number_to_string(self.parse_number(digits.map(Value::from).unwrap_or(Value::Null), &[]));
         return result;
-
-    Value::Null
 }
 
     pub fn handle_delta(&self, mut bookside: crate::pro::order_book::Side, mut delta: Value) {

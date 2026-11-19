@@ -257,10 +257,10 @@ impl crate::exchange::DerivedExchange for Hollaex {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
-        if (self.currencies_by_id == Value::Null) {
+        if (self.currencies_by_id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " currencies not loaded")));
         }
-        let mut currenciesById: Value = self.currencies_by_id.clone();
+        let mut currenciesById: Value = Value::from(&self.currencies_by_id);
         let mut currencyIds: Vec<Value> = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1718,7 +1718,7 @@ impl Hollaex {
         //     }
         //
         let mut trades: crate::value::List = self.safe_list_t(&response, Value::from((market).id.as_deref()));
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2064,8 +2064,8 @@ impl Hollaex {
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order id ").into()), id)));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -2143,7 +2143,7 @@ impl Hollaex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2199,7 +2199,7 @@ impl Hollaex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
-                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -2209,10 +2209,10 @@ impl Hollaex {
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[&params]);
         if !isMarketOrder {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
+            request.insert("stop".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
         }
         if postOnly {
             request.insert("meta".into(), Value::Map({
@@ -2224,8 +2224,8 @@ impl Hollaex {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"], &[]);
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_order", &[&__ws_arg_10]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -2261,8 +2261,8 @@ impl Hollaex {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_order", &[&__ws_arg_11]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -2301,7 +2301,7 @@ impl Hollaex {
         request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_delete_order_all(&[&__ws_arg_12]).await.unwrap_or_default();
-        return self.parse_orders(&response, market.as_ref(), &[]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[]));
         Value::Null
         }).await?))
     }
@@ -2366,7 +2366,7 @@ impl Hollaex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2486,7 +2486,7 @@ impl Hollaex {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (limit != Value::Null) {
@@ -2551,7 +2551,7 @@ impl Hollaex {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code.is_some()) {
-            currency = Some(self.currency(Value::from(code)));
+            currency = Some(self.currency(code));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
@@ -2619,7 +2619,7 @@ impl Hollaex {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (limit != Value::Null) {
@@ -2692,7 +2692,7 @@ impl Hollaex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut addressWithTag: String = address.as_str().unwrap_or_default().to_string();
         if (tagWithdrawTag.is_some()) {
             addressWithTag = format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagWithdrawTag.as_deref().unwrap_or("null"));

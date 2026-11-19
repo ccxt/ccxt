@@ -1153,7 +1153,7 @@ impl Bitbank {
         let mut response: crate::value::Dict = self.call_method_t("public_get_pair_transactions", &[&__ws_arg_2]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut trades: crate::value::List = self.safe_list_k_t(&data, "transactions");
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1392,19 +1392,19 @@ impl Bitbank {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
                 m.insert("side".to_string(), side);
                 m.insert("type".to_string(), type_var.clone());
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_user_spot_order", &[&__ws_arg_4]).await;
         let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -1466,8 +1466,8 @@ impl Bitbank {
         //    }
         //
         let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
+        None
         }).await?))
     }
 
@@ -1528,8 +1528,8 @@ impl Bitbank {
         //    }
         //
         let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -1576,7 +1576,7 @@ impl Bitbank {
         let mut response: crate::value::Dict = self.call_method_t("private_get_user_spot_active_orders", &[&__ws_arg_7]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
-        return self.parse_orders(&orders, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1627,7 +1627,7 @@ impl Bitbank {
         let mut response: crate::value::Dict = self.call_method_t("private_get_user_spot_trade_history", &[&__ws_arg_8]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut trades: crate::value::List = self.safe_list_k_t(&data, "trades");
-        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1655,7 +1655,7 @@ impl Bitbank {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -1716,7 +1716,7 @@ impl Bitbank {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));

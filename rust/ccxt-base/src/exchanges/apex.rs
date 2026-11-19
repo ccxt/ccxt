@@ -380,7 +380,7 @@ impl crate::exchange::DerivedExchange for Apex {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         //
         // {
@@ -408,7 +408,7 @@ impl crate::exchange::DerivedExchange for Apex {
         if (Value::Int(self.precision_from_string(Value::from(customInitialMarginRate.clone()))).as_f64() != Some(0.0)) {
             leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &customInitialMarginRate, &Value::Int(4)));
         }
-        return self.safe_position(Value::Map({
+        return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
@@ -434,17 +434,17 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let mut transfer: Value = transfer.into();
         let mut currencyId: Option<String> = self.safe_string_k_opt(&transfer, "coin", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&transfer, "timestamp", &[]).as_i64();
         let mut fromAccount: Option<String> = self.safe_string_k_opt(&transfer, "fromAccount", &[]);
         let mut toAccount: Option<String> = self.safe_string_k_opt(&transfer, "toAccount", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string2(&transfer, Value::Str("transferId".into()), Value::Str("id".into()), &[]));
@@ -456,9 +456,9 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.safe_string_k(transfer, "status", &[]));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
         let mut currency: Value = currency.into();
@@ -770,10 +770,10 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -1764,7 +1764,7 @@ impl Apex {
         //  ]
         //
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&trades, Some(&market), &[since, Value::from(limitResolved)]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, Value::from(limitResolved)]));
         Value::Null
         }).await?))
     }
@@ -2060,16 +2060,16 @@ impl Apex {
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut orderSide: String = side.as_str().map(str::to_uppercase).unwrap_or_default();
-        let mut orderSize: Option<String> = self.amount_to_precision(symbol.clone(), amount);
+        let mut orderSize: Option<String> = self.amount_to_precision(symbol.as_str(), amount);
         let mut orderPrice: Option<String> = Some("0".to_string());
         if (price != Value::Null) {
-            orderPrice = self.price_to_precision(symbol.clone(), price.clone());
+            orderPrice = self.price_to_precision(symbol.as_str(), price.clone());
         }
         let mut fees: crate::value::Dict = self.safe_dict_k_t(&self.fees, "swap");
         let mut taker: String = self.safe_string_k(&fees, "taker", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let mut maker: String = self.safe_string_k(&fees, "maker", &[Value::Str("0.0002".into())]).as_str().unwrap_or("0.0002").to_string();
         let mut pricePrecision: Value = crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
-        let mut limitFee: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &taker), &Value::from(self.number_to_string(pricePrecision.clone()))), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(),
+        let mut limitFee: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &taker), &Value::from(self.number_to_string(&pricePrecision))), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(),
             self.paddingMode.clone()]).as_str().map(str::to_owned);
         let mut timeNow: i64 = self.milliseconds();
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(&params, "triggerPrice", &[]);
@@ -2119,7 +2119,7 @@ impl Apex {
             m
         });
         if (triggerPrice.is_some()) {
-            orderToSign.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
+            orderToSign.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
         let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds().map(Value::from).unwrap_or(Value::Null)), &[Value::Map(orderToSign)]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2140,14 +2140,14 @@ impl Apex {
             m
         });
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         request.insert("signature".into(), signature);
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted3]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_v3_order", &[&__ws_arg_6]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -2226,7 +2226,7 @@ impl Apex {
         let mut decimalsNum: Option<f64> = self.safe_number_k(&currency, "decimals", &[Value::Int(0)]).as_f64();
         let mut decimalsNumber: f64 = decimalsNum.unwrap_or(0.0);
         let mut mathPowResult: f64 = f64::powf(10.0, decimalsNumber);
-        let mut amountNum: Option<f64> = self.parse_number(amount.clone(), &[]).as_f64();
+        let mut amountNum: Option<f64> = self.parse_number(&amount, &[]).as_f64();
         let mut amountValue: f64 = amountNum.unwrap_or(0.0);
         let mut amountNumber: Option<i64> = self.parse_to_int(Value::Float((amountValue * mathPowResult)));
         let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
@@ -2266,8 +2266,8 @@ impl Apex {
             let mut response: crate::value::Dict = self.call_method_t("private_post_v3_contract_transfer_out", &[&__ws_arg_7]).await;
             let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let mut currentTime: i64 = self.milliseconds();
-            let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
-            let __ws_arg_8 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&self.currency(code.clone())));
+            let mut parsedAmount: Value = self.parse_number(&amount, &[]);
+            let __ws_arg_8 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&self.currency(code.as_str()))).map_or(Value::Null, Value::Dict);
             let __ws_arg_9 = self.iso8601(currentTime);
             return self.extend(__ws_arg_8, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2296,7 +2296,7 @@ impl Apex {
             let mut ts: Option<i64> = timestampSeconds; // java req
             let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
+                    m.insert("amount".to_string(), Value::from(self.number_to_string(&amount)));
                     m.insert("timestamp".to_string(), Value::from(ts));
                     m.insert("clientTransferId".to_string(), finalClientOrderId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("signature".to_string(), signature);
@@ -2316,7 +2316,7 @@ impl Apex {
             let mut response: crate::value::Dict = self.call_method_t("private_post_v3_transfer_out", &[&__ws_arg_10]).await;
             let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let mut currentTime: i64 = self.milliseconds();
-            let __ws_arg_11 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&self.currency(code)));
+            let __ws_arg_11 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&self.currency(code.as_str()))).map_or(Value::Null, Value::Dict);
             let __ws_arg_12 = self.iso8601(currentTime);
             let __ws_arg_13 = self.parse_number(amount, &[]);
             return self.extend(__ws_arg_11, &[Value::Map({
@@ -2460,8 +2460,8 @@ impl Apex {
             response = self.call_method_o("private_get_v3_order", &[&__ws_arg_18]).await;
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
+        None
         }).await?))
     }
 
@@ -2494,7 +2494,7 @@ impl Apex {
         }
         let mut response: crate::value::Dict = self.call_method_t("private_get_v3_open_orders", &[&params]).await;
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&orders, None, &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, None, &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2556,7 +2556,7 @@ impl Apex {
         let mut response: crate::value::Dict = self.call_method_t("private_get_v3_history_orders", &[&__ws_arg_19]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
-        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2605,7 +2605,7 @@ impl Apex {
         let mut response: crate::value::Dict = self.call_method_t("private_get_v3_order_fills", &[&__ws_arg_20]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
-        return self.parse_trades(&orders, None, &[since, limit]);
+        return Value::Arr(self.parse_trades(&orders, None, &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2665,7 +2665,7 @@ impl Apex {
         let mut response: crate::value::Dict = self.call_method_t("private_get_v3_fills", &[&__ws_arg_21]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
-        return self.parse_trades(&orders, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&orders, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2801,7 +2801,7 @@ impl Apex {
         let mut response: crate::value::Dict = self.call_method_t("private_get_v3_account", &[&params]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut positions: crate::value::List = self.safe_list_k_t(&data, "positions");
-        return self.parse_positions(&positions, &[symbols]);
+        return Value::Arr(self.parse_positions(&positions, &[symbols]));
         Value::Null
         }).await?))
     }

@@ -1104,7 +1104,7 @@ impl Zaif {
                 trades = Value::from(vec![]);
             }
         }
-        return self.parse_trades(trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1257,7 +1257,7 @@ impl Zaif {
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_active_orders", &[&__ws_arg_5]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
-        return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1307,7 +1307,7 @@ impl Zaif {
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_trade_history", &[&__ws_arg_6]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
-        return self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(self.add_key_in_array_items(Value::Dict(data), Value::Str("id".into())), market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1344,7 +1344,7 @@ impl Zaif {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         if (code.as_str() == Some("JPY")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " withdraw() does not allow ").into()), code).into()), " withdrawals")));
         }

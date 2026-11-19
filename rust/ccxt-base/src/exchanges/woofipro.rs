@@ -433,7 +433,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         //
         // {
@@ -473,7 +473,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let mut unrealisedPnl: Option<String> = self.safe_string_k_opt(&position, "unsettled_pnl", &[]);
         size = crate::precise::Precise::stringAbs(&size).as_str().map(str::to_owned);
         let mut notional: Option<String> = crate::precise::Precise::stringMul(&size, &markPrice).as_str().map(str::to_owned);
-        return self.safe_position(Value::Map({
+        return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
@@ -503,9 +503,9 @@ impl crate::exchange::DerivedExchange for Woofipro {
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate(&self, fundingRate: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut fundingRate: Value = fundingRate.into();
@@ -1030,7 +1030,7 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_token_and_fee_temp" => self.parse_token_and_fee_temp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2517,7 +2517,7 @@ impl Woofipro {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_trades(&rows, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&rows, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3427,19 +3427,19 @@ impl Woofipro {
             request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
         if (price != Value::Null) {
-            request.insert(priceKey, Value::from(self.price_to_precision(Value::from(symbol), price)));
+            request.insert(priceKey, Value::from(self.price_to_precision(symbol, price)));
         }
         if isMarket && !isConditional {
-            request.insert(orderQtyKey.clone(), Value::from(self.amount_to_precision(Value::from(symbol), amount.clone())));
+            request.insert(orderQtyKey.clone(), Value::from(self.amount_to_precision(symbol, amount.clone())));
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
-            request.insert(orderQtyKey, Value::from(self.amount_to_precision(Value::from(symbol), amount)));
+            request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol, amount)));
         }
         let mut clientOrderId: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         if (triggerPrice.is_some()) {
-            request.insert("trigger_price".into(), Value::from(self.price_to_precision(Value::from(symbol), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("algo_type".into(), Value::Str("STOP".into()));
         }  else if hasStopLoss || hasTakeProfit {
             request.insert("algo_type".into(), Value::Str("TP_SL".into()));
@@ -3451,7 +3451,7 @@ impl Woofipro {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), Value::from(closeSide.clone()));
                         m.insert("algo_type".to_string(), Value::Str("TP_SL".into()));
-                        m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(Value::from(symbol), stopLossPrice)));
+                        m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(symbol, stopLossPrice)));
                         m.insert("type".to_string(), Value::Str("LIMIT".into()));
                         m.insert("reduce_only".to_string(), Value::Bool(true));
                     m
@@ -3464,7 +3464,7 @@ impl Woofipro {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), Value::from(closeSide));
                         m.insert("algo_type".to_string(), Value::Str("TP_SL".into()));
-                        m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(Value::from(symbol), takeProfitPrice)));
+                        m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(symbol, takeProfitPrice)));
                         m.insert("type".to_string(), Value::Str("LIMIT".into()));
                         m.insert("reduce_only".to_string(), Value::Bool(true));
                     m
@@ -3625,7 +3625,7 @@ impl Woofipro {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_orders(&rows, None, &[]);
+        return Value::Arr(self.parse_orders(&rows, None, &[]));
         Value::Null
         }).await?))
     }
@@ -3675,17 +3675,17 @@ impl Woofipro {
         });
         let mut triggerPrice: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]);
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
         let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k_o(&params, "childOrders");
         let mut isConditional: bool = (triggerPrice.is_some()) || (paramsChildOrders.is_some());
         let mut orderQtyKey: String = (if isConditional { "quantity".to_string() } else { "order_quantity".to_string() });
         let mut priceKey: String = (if isConditional { "price".to_string() } else { "order_price".to_string() });
         if (price != Value::Null) {
-            request.insert(priceKey, Value::from(self.price_to_precision(symbol.clone(), price)));
+            request.insert(priceKey, Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         if (amount != Value::Null) {
-            request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol, amount)));
+            request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"], &[]);
         let mut response: Option<crate::value::Dict> = None;
@@ -3733,8 +3733,8 @@ impl Woofipro {
             m
         })]).as_map().cloned().unwrap_or_default();
         data.insert("timestamp".into(), self.safe_integer_k(&response, "timestamp", &[]));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Value::Map(data), Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Value::Map(data), Some(&market));
+        None
         }).await?))
     }
 
@@ -4050,8 +4050,8 @@ impl Woofipro {
     m
 }).into_opt_dict();
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &parsedOrders, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &parsedOrders, market.as_ref());
+        None
         }).await?))
     }
 
@@ -4164,7 +4164,7 @@ impl Woofipro {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_or(&response, "data", response.clone().map_or(Value::Null, Value::Dict));
         let mut orders: Option<crate::value::List> = self.safe_list_k_o(&data, "rows");
-        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -4318,7 +4318,7 @@ impl Woofipro {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut trades: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_trades(&trades, market.as_ref(), &[since, limit, params]);
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit, params]));
         Value::Null
         }).await?))
     }
@@ -4408,7 +4408,7 @@ impl Woofipro {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut trades: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_trades(&trades, market.as_ref(), &[since, limit, Value::Dict(paramsUntil)]);
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit, Value::Dict(paramsUntil)]));
         Value::Null
         }).await?))
     }
@@ -4471,7 +4471,7 @@ impl Woofipro {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code.is_some()) {
-            currency = Some(self.currency(Value::from(code)));
+            currency = Some(self.currency(code));
             request.insert("balance_token".into(), self.safe_string_k(&currency, "id", &[]));
         }
         if (since.is_some()) {
@@ -4557,7 +4557,7 @@ impl Woofipro {
         let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[&params]).await.into_list();
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         return self.parse_ledger(&rows, currency.as_ref(), &[since, limit, params]);
         Value::Null
@@ -4680,7 +4680,7 @@ impl Woofipro {
         let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[&__ws_arg_32]).await.into_list();
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         return self.parse_transactions(&rows, currency.as_ref(), &[since, limit, params]);
         Value::Null
@@ -4760,7 +4760,7 @@ impl Woofipro {
         if (codeUpper != "USDC") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " withdraw() only support USDC")));
         }
-        let mut currency: crate::types::Currency = self.currency(Value::from(codeUpper.clone()));
+        let mut currency: crate::types::Currency = self.currency(Some(codeUpper.as_str()));
         let mut verifyingContractAddress: Option<String> = self.safe_string_k_opt(&self.options, "verifyingContractAddress", &[]);
         let mut chainId: Option<String> = self.safe_string_k_opt(&params, "chainId", &[]);
         let mut currencyNetworks: crate::value::Dict = self.safe_dict_k_t(&currency, "networks");
@@ -5238,7 +5238,7 @@ impl Woofipro {
         // }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &data, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5307,7 +5307,7 @@ impl Woofipro {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut positions: crate::value::List = self.safe_list_k_t(&result, "rows");
-        return self.parse_positions(&positions, &[symbols]);
+        return Value::Arr(self.parse_positions(&positions, &[symbols]));
         Value::Null
         }).await?))
     }

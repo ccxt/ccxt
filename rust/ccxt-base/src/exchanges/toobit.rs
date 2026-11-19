@@ -397,14 +397,14 @@ impl crate::exchange::DerivedExchange for Toobit {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(&position, "side", &[]);
         let mut quantity: Option<String> = self.safe_string_k_opt(&position, "position", &[]);
         let mut leverage: Option<i64> = self.safe_integer_k(&position, "leverage", &[]).as_i64();
-        return self.safe_position(Value::Map({
+        return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
@@ -431,9 +431,9 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut contract: Value = contract.into();
@@ -533,9 +533,9 @@ impl crate::exchange::DerivedExchange for Toobit {
 
     Value::Null
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let mut transfer: Value = transfer.into();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer);
         m.insert("id".to_string(), Value::Null);
@@ -547,9 +547,9 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("toAccount".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
@@ -922,13 +922,13 @@ impl crate::exchange_generated::ExchangeBase for Toobit {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction_with_type" => self.parse_transaction_with_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -2451,7 +2451,7 @@ impl Toobit {
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.common_get_quote_v1_trades(&[&__ws_arg_1]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2987,8 +2987,8 @@ impl Toobit {
             let __ws_arg_12 = self.extend(request, &[&paramsRequest]);
             response = self.call_method_t("private_post_api_v1_futures_order", &[&__ws_arg_12]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -3013,7 +3013,7 @@ impl Toobit {
             m
         });
         if (price != Value::Null) {
-            request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let costparamsCostVariable = self.handle_param_string(params, Value::Str("cost".into()), &[]);
         let mut cost: Option<String> = costparamsCostVariable.0.as_str().map(str::to_owned);
@@ -3022,9 +3022,9 @@ impl Toobit {
             if (cost.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires params[\"cost\"] for market buy order")));
             }
-            request.insert("quantity".into(), Value::from(self.cost_to_precision(Value::from(symbol), cost.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("quantity".into(), Value::from(self.cost_to_precision(symbol, cost.map(Value::from).unwrap_or(Value::Null))));
         }  else {
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from(symbol), amount)));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let isPostOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == "market"), Value::Bool(false), &[Value::from(&paramsCost)]);
         let mut isPostOnly: bool = isPostOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
@@ -3055,7 +3055,7 @@ impl Toobit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(Value::from(symbol), amount)));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
             m
         });
         let reduceOnlyparamsReduceOnlyVariable = self.handle_param_bool(params, Value::Str("reduceOnly".into()), &[]);
@@ -3069,11 +3069,11 @@ impl Toobit {
             request.insert("side".into(), Value::from(side));
         }
         if (price != Value::Null) {
-            request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone())));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price.clone())));
         }
         if self.in_array(Value::from(type_var), Value::from(vec![Value::Str("limit".into()), Value::Str("LIMIT".into())])) {
             request.insert("type".into(), (if let Some(__s) = Some(type_var) { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-            request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }  else if (type_var == "market") {
             request.insert("type".into(), Value::Str("LIMIT".into())); // weird, but exchange works this way
             request.insert("priceType".into(), Value::Str("MARKET".into()));
@@ -3105,7 +3105,7 @@ impl Toobit {
             let mut limitPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
             if (limitPrice.is_some()) {
                 request.insert("slOrderType".into(), Value::Str("LIMIT".into()));
-                request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), limitPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol, limitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
             if (triggerPriceType.is_some()) {
@@ -3117,7 +3117,7 @@ impl Toobit {
             let mut limitPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
             if (limitPrice.is_some()) {
                 request.insert("tpOrderType".into(), Value::Str("LIMIT".into()));
-                request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), limitPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol, limitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
             if (triggerPriceType.is_some()) {
@@ -3226,8 +3226,8 @@ impl Toobit {
         if (status.as_deref() != Some("open")) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " order ").into()), id).into()), " can not be canceled, ").into()), json_stringify(&response))));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
+        None
         }).await?))
     }
 
@@ -3337,7 +3337,7 @@ impl Toobit {
             response = self.call_method_o("private_delete_api_v1_futures_cancel_order_by_ids", &[&__ws_arg_18]).await;
         }
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_orders(&result, market.as_ref(), &[]);
+        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[]));
         Value::Null
         }).await?))
     }
@@ -3388,8 +3388,8 @@ impl Toobit {
             let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
             response = self.call_method_t("private_get_api_v1_futures_order", &[&__ws_arg_20]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -3444,7 +3444,7 @@ impl Toobit {
             let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_api_v1_futures_open_orders(&[&__ws_arg_22]).await.unwrap_or_default();
         }
-        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3501,7 +3501,7 @@ impl Toobit {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrders() is not supported for ").into()), marketType.as_deref().unwrap_or("null")).into()), " markets")));
         }
-        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3572,7 +3572,7 @@ impl Toobit {
             }));
         }
         }
-        return self.parse_orders(Value::from(ordersList), market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(Value::from(ordersList), market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3634,7 +3634,7 @@ impl Toobit {
         }  else {
             response = self.private_get_api_v1_futures_user_trades(&[&Value::Dict(requestUntil)]).await.unwrap_or_default();
         }
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3668,21 +3668,21 @@ impl Toobit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut fromId: Option<String> = self.safe_string_opt(&accountsByType, fromAccount.clone(), &[fromAccount]);
         let mut toId: Option<String> = self.safe_string_opt(&accountsByType, toAccount.clone(), &[toAccount]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("quantity".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
+                m.insert("quantity".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
                 m.insert("fromAccountType".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("toAccountType".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_api_v1_sub_account_transfer", &[&__ws_arg_24]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3723,7 +3723,7 @@ impl Toobit {
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -3916,7 +3916,7 @@ impl Toobit {
             m
         });
         if (code.is_some()) {
-            currency = Some(self.currency(Value::from(code)));
+            currency = Some(self.currency(code));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since.is_some()) {
@@ -4025,7 +4025,7 @@ impl Toobit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4086,12 +4086,12 @@ impl Toobit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("address".to_string(), address);
-                m.insert("quantity".to_string(), Value::from(self.currency_to_precision(crate::value::KeyRead::key_read(&&currency, "code"), amount, &[])));
+                m.insert("quantity".to_string(), Value::from(self.currency_to_precision((crate::value::KeyRead::key_read(&&currency, "code")).as_str(), amount, &[])));
                 m.insert("chainType".to_string(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
                 m.insert("clientOrderId".to_string(), Value::Int(self.milliseconds()));
             m
@@ -4282,7 +4282,7 @@ impl Toobit {
         }
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_api_v1_futures_positions(&[&__ws_arg_37]).await.unwrap_or_default();
-        return self.parse_positions(&response, &[symbols]);
+        return Value::Arr(self.parse_positions(&response, &[symbols]));
         Value::Null
         }).await?))
     }

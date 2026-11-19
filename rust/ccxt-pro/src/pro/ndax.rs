@@ -477,13 +477,13 @@ impl Ndax {
                 m
             });
             CacheShelves::ensure(&mut self.ohlcvs, &symbol);
-            let mut keys: Vec<Value> = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<Value> = Value::Array(self.timeframes.as_deref().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_526: bool = true;
                 while { if !__for_first_526 { j += 1; } __for_first_526 = false; j < (keys.len() as i64) } {
                 let mut timeframe: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
+                let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
                 let mut duration: Option<i64> = (if let Some(__l) = (self.parse_to_int(interval.map(Value::from).unwrap_or(Value::Null))) { Some(__l * 1000) } else { None });
                 let mut timestamp: Option<i64> = self.safe_integer(&ohlcv, Value::Int(0), &[]).as_i64();
                 if (timestamp.is_none()) {

@@ -1218,7 +1218,7 @@ impl Cryptomus {
         if (data.is_some()) {
             dataList = data.unwrap_or_default();
         }
-        return self.parse_trades(&dataList, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&dataList, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1351,7 +1351,7 @@ impl Cryptomus {
         }
         let mut sideBuy: bool = side.as_str() == Some("buy");
         let mut amountToString: Option<String> = self.number_to_string(amount);
-        let mut priceToString: Option<String> = self.number_to_string(price.clone());
+        let mut priceToString: Option<String> = self.number_to_string(&price);
         let mut paramsCost: crate::value::Dict = self.omit_t(&paramsOmitted, Value::Str("cost".into()), &[]);
         let mut costParam: Option<String> = self.safe_string_k_opt(&paramsOmitted, "cost", &[]);
         let mut cost: Option<String> = costParam.clone();
@@ -1390,8 +1390,8 @@ impl Cryptomus {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a type parameter (limit or market)")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -1600,7 +1600,7 @@ impl Cryptomus {
         //         ]
         //     }
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_orders(&result, market.as_ref(), &[Value::Null, Value::Null]);
+        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[Value::Null, Value::Null]));
         Value::Null
         }).await?))
     }
@@ -1712,8 +1712,8 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
-        m.insert("maker".to_string(), self.parse_number(makerFee.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("taker".to_string(), self.parse_number(takerFee.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("maker".to_string(), self.parse_number(&makerFee, &[]));
+        m.insert("taker".to_string(), self.parse_number(&takerFee, &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), Value::Map(tiers.clone()));

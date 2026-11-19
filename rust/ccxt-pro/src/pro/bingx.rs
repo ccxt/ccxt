@@ -69,8 +69,8 @@ impl crate::exchange_generated::ExchangeBase for Bingx {
                 "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
                 "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
+                "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "un_watch" => self.un_watch(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
                     args.get(4).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(5).cloned().unwrap_or_default()).as_ref(), args.get(6).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[7.min(args.len())..]).await,
@@ -119,8 +119,8 @@ impl Bingx {
             "load_balance_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.to_vec()); crate::Value::Null },
             "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
+            "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
             "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]); crate::Value::Null },
@@ -364,7 +364,7 @@ impl Bingx {
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
-            url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType, &[]);
         }
         let mut messageHash: Option<String> = self.get_message_hash("ticker", &[&Value::from((market).symbol.clone())]);
         let mut uuid: String = self.uuid(&[]);
@@ -497,7 +497,7 @@ impl Bingx {
         // ticker even when the market id could not be resolved
         let mut inverseUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "inverse", &[]);
         let mut isInverse: Value = Value::Bool((inverseUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(inverseUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)));
-        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, Some(&market), &[isInverse]).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, Some(&market), &[isInverse]);
         { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         client.resolve(Value::from(&ticker), &self.get_message_hash("ticker", &[&symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         if ((match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("all@ticker")) {
@@ -505,7 +505,7 @@ impl Bingx {
         }
 }
 
-    pub fn parse_ws_ticker(&self, message: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_ticker(&self, message: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::value::Dict {
         let mut message: Value = message.into();
         let mut isInverse = get_arg(optional_args, 0, Value::Null);
         //
@@ -539,7 +539,7 @@ impl Bingx {
         // the Coin-M endpoint does not silently fall back to the contract count
         let mut inverse: bool = (isInverse.as_bool() == Some(true)) || ((isInverse == Value::Null) && (crate::value::KeyRead::key_read(&&marketResolved, "inverse").as_bool() == Some(true)));
         let mut baseVolumeKey: String = (if inverse { "m".to_string() } else { "v".to_string() });
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -562,9 +562,9 @@ impl Bingx {
         m.insert("quoteVolume".to_string(), self.safe_string_k(&message, "q", &[]));
         m.insert("info".to_string(), message);
     m
-}), Some(&marketResolved)));
+}), Some(&marketResolved));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn get_order_book_limit_by_market_type(&self, mut marketType: Value, optional_args: &[&Value]) -> Value {
@@ -638,7 +638,7 @@ impl Bingx {
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
-            url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType, &[]);
         }
         let mut messageHash: String = format!("{}{}", "trade::", symbolValue);
         let mut uuid: String = self.uuid(&[]);
@@ -810,7 +810,7 @@ impl Bingx {
         let mut messageHash: String = format!("{}{}", "trade::", symbol.as_deref().unwrap_or("null"));
         let mut trades: Value = Value::Null;
         if (matches!(&data, Value::Arr(_))) {
-            trades = self.parse_trades(data.clone(), Some(&market), &[]);
+            trades = Value::Arr(self.parse_trades(data.clone(), Some(&market), &[]));
         }  else {
             trades = Value::from(vec![Value::Dict(self.parse_trade(data, Some(&market)))]);
         }
@@ -868,7 +868,7 @@ impl Bingx {
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
-            url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType, &[]);
         }
         let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOrderBook");
         let mut depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
@@ -1185,19 +1185,19 @@ impl Bingx {
         let mut candles: Option<crate::value::List> = None;
         if isSwap {
             if ((market).inverse == Some(true)) {
-                candles = Value::from(vec![(match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+                candles = Some(std::sync::Arc::new(vec![(match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) })]).into_opt_list();
+}) })]));
             }  else {
                 candles = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_opt_list();
             }
         }  else {
             let mut data: crate::value::Dict = message.key_dict("data");
-            candles = Value::from(vec![self.safe_dict_k(&data, "K", &[Value::Map({
+            candles = Some(std::sync::Arc::new(vec![self.safe_dict_k(&data, "K", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})])]).into_opt_list();
+})])]));
         }
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -1277,14 +1277,14 @@ impl Bingx {
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
-            url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            url = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType, &[]);
         }
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOHLCV is not supported for ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets.")));
         }
         let mut options: crate::value::Dict = self.safe_dict_t(&self.options, marketType.clone().map(Value::from).unwrap_or(Value::Null));
         let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
-        let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[timeframe.clone()]);
         let mut messageHash: Option<String> = self.get_message_hash("ohlcv", &[&Value::from((market).symbol.clone()), &timeframe]);
         let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
         let mut uuid: String = self.uuid(&[]);
@@ -1347,7 +1347,7 @@ impl Bingx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from((market).market_type.clone()));
         let mut timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
-        let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[timeframe.clone()]);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
         let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
         let mut topic: String = "ohlcv".to_string();
@@ -1609,9 +1609,9 @@ impl Bingx {
             }
             // swap balance updates are pushed automatically over the listenKey connection,
             // so we must not send a subscription message (an empty one is rejected with 80014)
-            baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &subType, &[]);
         }  else {
-            baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &type_var, &[]);
             request = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(uuid.clone()));
@@ -1820,7 +1820,7 @@ impl Bingx {
     Value::Null
 }
 
-    pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //     {
         //         "s": "LINK-USDT",     // Symbol
@@ -1849,7 +1849,7 @@ impl Bingx {
         }
         let mut marginMode: Option<String> = self.safe_string_k_opt(&position, "mt", &[]);
         let mut collateral: Option<f64> = (if (marginMode.as_deref() == Some("isolated")) { self.safe_number_k(&position, "iw", &[]).as_f64() } else { None });
-        return self.safe_position(Value::Map({
+        return self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
@@ -1877,7 +1877,7 @@ impl Bingx {
     m
 }));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_positions(&mut self, client: &Value, mut message: Value) {
@@ -1919,7 +1919,7 @@ impl Bingx {
             let mut __for_first_93: bool = true;
             while { if !__for_first_93 { i += 1; } __for_first_93 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None);
             let mut symbol: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             if (symbol.is_none()) {
                 continue;

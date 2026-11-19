@@ -77,7 +77,7 @@ impl crate::exchange_generated::ExchangeBase for Cex {
                 "pair_to_symbol" => self.pair_to_symbol(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_ws_old_trade" => self.parse_ws_old_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -134,7 +134,7 @@ impl Cex {
             "pair_to_symbol" => self.pair_to_symbol(args.get(0).and_then(crate::Value::as_text).as_deref()),
             "parse_ws_old_trade" => self.parse_ws_old_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "request_id" => crate::Value::from(self.request_id()),
             "resolve_data" => { self.resolve_data(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
@@ -657,7 +657,7 @@ impl Cex {
         //     }
         //
         let mut data: crate::value::Dict = message.key_dict("data");
-        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, None).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, None);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
@@ -672,7 +672,7 @@ impl Cex {
         }
 }
 
-    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut ticker: Value = ticker.into();
         //
         //  public
@@ -713,7 +713,7 @@ impl Cex {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&ticker, "timestamp", &[]).as_i64();
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -736,9 +736,9 @@ impl Cex {
         m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), market));
+}), market);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1285,7 +1285,7 @@ impl Cex {
             return None;
         }
         let mut precise = Precise::new(amount);
-        { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), scale]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+        { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), self.safe_integer(Value::from(vec![scale]), Value::Int(0), &[Value::Int(0)])]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
         precise.reduce();
         return to_string_val(&precise).as_str().map(str::to_owned);
 }
@@ -1809,7 +1809,7 @@ impl Cex {
             m
         });
         let mut response: Value = self.watch(url.as_str(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
-        return self.parse_orders(response, Some(&market), &[since, limit, params]);
+        return Value::Arr(self.parse_orders(response, Some(&market), &[since, limit, params]));
         Value::Null
         }).await?))
     }
@@ -2044,7 +2044,7 @@ impl Cex {
         //    }
         //
         let mut canceledOrders: Option<crate::value::List> = self.safe_list_k_o(&response, "cancel-orders");
-        return self.parse_orders(&canceledOrders, None, &[Value::Null, Value::Null, params]);
+        return Value::Arr(self.parse_orders(&canceledOrders, None, &[Value::Null, Value::Null, params]));
         Value::Null
         }).await?))
     }

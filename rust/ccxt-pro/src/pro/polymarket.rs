@@ -525,7 +525,7 @@ impl Polymarket {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&newTicker, "symbol"))), newTicker.clone());
+            result.insert(crate::runtime::stringify_param(&(newTicker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), newTicker);
             return Value::Map(result);
         }
         return self.filter_by_array(&self.tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
@@ -620,7 +620,7 @@ impl Polymarket {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&ticker, "symbol"))), ticker.clone());
+            result.insert(crate::runtime::stringify_param(&(ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), ticker);
             return Value::Map(result);
         }
         return self.filter_by_array(&self.bidsasks, Value::Str("symbol".into()), &symbolsNormalized, &[]);
@@ -879,7 +879,7 @@ impl Polymarket {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsTimeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "wsTimeframes");
-        let mut interval: Option<String> = self.safe_string_opt(&wsTimeframes, timeframe.clone(), &[]);
+        let mut interval: Option<String> = self.safe_string_opt(&wsTimeframes, &timeframe, &[]);
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOHLCV() does not support the ").into()), timeframe).into()), " timeframe over the websocket")));
         }
@@ -926,7 +926,7 @@ impl Polymarket {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsTimeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "wsTimeframes");
-        let mut interval: Option<String> = self.safe_string_opt(&wsTimeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut interval: Option<String> = self.safe_string_opt(&wsTimeframes, &timeframe, &[timeframe.clone()]);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolResolved);
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "::").into()), interval.as_deref().unwrap_or("null"));
@@ -1514,7 +1514,7 @@ impl Polymarket {
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                 m
             })]);
-            let mut position: crate::value::Dict = self.parse_position(Value::Dict(extended), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::Dict(extended), None);
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }

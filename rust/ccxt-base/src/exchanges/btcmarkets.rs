@@ -1109,7 +1109,7 @@ impl Btcmarkets {
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code.is_some()) {
-            currency = Some(self.currency(Value::from(code)));
+            currency = Some(self.currency(code));
         }
         let mut response: Option<crate::value::List> = None;
         if (method == "privateGetTransfers") {
@@ -1542,7 +1542,7 @@ impl Btcmarkets {
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_markets_market_id_trades(&[&__ws_arg_7]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1583,7 +1583,7 @@ impl Btcmarkets {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
                 m.insert("side".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("Bid".into()) } else { Value::Str("Ask".into()) }));
             m
         });
@@ -1614,7 +1614,7 @@ impl Btcmarkets {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a price argument for a ").into()), type_var).into()), "order")));
             }  else {
-                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             }
         }
         if triggerPriceIsRequired {
@@ -1622,7 +1622,7 @@ impl Btcmarkets {
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a triggerPrice parameter for a ").into()), type_var).into()), "order")));
             }  else {
-                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
             }
         }
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
@@ -1636,8 +1636,8 @@ impl Btcmarkets {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsTriggerPrice, Value::Str("clientOrderId".into()), &[]);
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[&__ws_arg_8]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -1703,7 +1703,7 @@ impl Btcmarkets {
         let mut cancelOrders: crate::value::List = self.safe_list_k_t(&response, "cancelOrders");
         let mut unprocessedRequests: crate::value::List = self.safe_list_k_t(&response, "unprocessedRequests");
         let mut orders: crate::value::List = self.array_concat_t(&cancelOrders, &unprocessedRequests);
-        return self.parse_orders(&orders, None, &[]);
+        return Value::Arr(self.parse_orders(&orders, None, &[]));
         Value::Null
         }).await?))
     }
@@ -1740,8 +1740,8 @@ impl Btcmarkets {
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_orders_id", &[&__ws_arg_10]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -1769,14 +1769,14 @@ impl Btcmarkets {
         let mut cost: Option<String> = None;
         if (Value::from((market).quote.clone()).as_str() == Some("AUD")) {
             currency = Value::from((market).quote.clone()).as_str().map(str::to_owned);
-            cost = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::from(self.number_to_string(price))));
+            cost = self.cost_to_precision(symbol.as_str(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::from(self.number_to_string(price))));
         }  else {
             currency = Value::from((market).base.clone()).as_str().map(str::to_owned);
-            cost = self.amount_to_precision(symbol.clone(), amount);
+            cost = self.amount_to_precision(symbol.as_str(), amount);
         }
         let mut rate: Value = self.safe_value(&market, takerOrMaker.clone(), &[]);
-        let mut rateCost: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(rate.clone())), &cost).as_str().map(str::to_owned);
-        let mut feeCost: Option<String> = self.fee_to_precision(symbol, rateCost.map(Value::from).unwrap_or(Value::Null));
+        let mut rateCost: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&rate)), &cost).as_str().map(str::to_owned);
+        let mut feeCost: Option<String> = self.fee_to_precision(symbol.as_str(), rateCost.map(Value::from).unwrap_or(Value::Null));
         if (feeCost.is_none()) {
             feeCost = Some("0".to_string());
         }
@@ -1840,8 +1840,8 @@ impl Btcmarkets {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_orders_id", &[&__ws_arg_11]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -1890,7 +1890,7 @@ impl Btcmarkets {
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_orders(&[&__ws_arg_12]).await.unwrap_or_default();
-        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2004,7 +2004,7 @@ impl Btcmarkets {
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_trades(&[&__ws_arg_14]).await.unwrap_or_default();
-        return self.parse_trades(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2039,11 +2039,11 @@ impl Btcmarkets {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("assetName".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.clone(), amount, &[])));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
             m
         });
         if (code.as_str() != Some("AUD")) {

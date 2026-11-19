@@ -2130,7 +2130,7 @@ impl Coinsph {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[]);
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2225,7 +2225,7 @@ impl Coinsph {
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_openapi_quote_v1_trades(&[&__ws_arg_8]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2275,7 +2275,7 @@ impl Coinsph {
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_openapi_v1_my_trades(&[&__ws_arg_9]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2407,15 +2407,15 @@ impl Coinsph {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "limit", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
             if (orderType.as_deref() != Some("LIMIT_MAKER")) {
                 request.insert("timeInForce".into(), self.safe_string_k(&options, "timeInForce", &[Value::Str("GTC".into())]));
             }
         }  else if (orderType.as_deref() == Some("MARKET")) || (orderType.as_deref() == Some("STOP_LOSS")) || (orderType.as_deref() == Some("TAKE_PROFIT")) {
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "market", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
             if (orderSide.as_deref() == Some("SELL")) {
-                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
             }  else if (orderSide.as_deref() == Some("BUY")) {
                 let mut quoteAmount: Option<String> = None;
                 let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = self.handle_option_bool_and_params(&paramsType, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
@@ -2424,18 +2424,18 @@ impl Coinsph {
                 let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsRequiresPrice), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
                 paramsQuote = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), cost);
+                    quoteAmount = self.cost_to_precision(symbol.as_str(), cost);
                 }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                     }  else {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                        let mut amountString: Option<String> = self.number_to_string(&amount);
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
-                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
+                        quoteAmount = self.cost_to_precision(symbol.as_str(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), amount);
+                    quoteAmount = self.cost_to_precision(symbol.as_str(), amount);
                 }
                 request.insert("quoteOrderQty".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }
@@ -2445,7 +2445,7 @@ impl Coinsph {
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")));
             }
-            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         request.insert("newOrderRespType".into(), Value::from(newOrderRespType));
         let mut paramsRequest: crate::value::Dict = self.omit_t(paramsQuote, Value::Str("price".into()), &[Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("quantity".into()), Value::Str("quoteOrderQty".into())]);
@@ -2460,8 +2460,8 @@ impl Coinsph {
             let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
             response = self.call_method_t("private_post_openapi_v1_order", &[&__ws_arg_12]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -2503,8 +2503,8 @@ impl Coinsph {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "origClientOrderId"], &[]);
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_openapi_v1_order", &[&__ws_arg_13]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -2546,7 +2546,7 @@ impl Coinsph {
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_openapi_v1_open_orders(&[&__ws_arg_14]).await.unwrap_or_default();
-        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2596,7 +2596,7 @@ impl Coinsph {
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_openapi_v1_history_orders(&[&__ws_arg_15]).await.unwrap_or_default();
-        return self.parse_orders(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2639,8 +2639,8 @@ impl Coinsph {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "origClientOrderId"], &[]);
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_openapi_v1_order", &[&__ws_arg_16]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -2681,7 +2681,7 @@ impl Coinsph {
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_delete_openapi_v1_open_orders(&[&__ws_arg_17]).await.unwrap_or_default();
-        return self.parse_orders(&response, market.as_ref(), &[]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[]));
         Value::Null
         }).await?))
     }
@@ -2944,7 +2944,7 @@ impl Coinsph {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2998,7 +2998,7 @@ impl Coinsph {
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -3048,7 +3048,7 @@ impl Coinsph {
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -3109,7 +3109,7 @@ impl Coinsph {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));

@@ -341,7 +341,7 @@ impl Hollaex {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut data: crate::value::List = __pro_message.key_list("data");
-        let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
+        let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_384: bool = true;
@@ -695,7 +695,7 @@ impl Hollaex {
             }
             let mut second: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
             let mut freeOrTotal: String = (if (second.as_deref() == Some("available")) { "free".to_string() } else { "total".to_string() });
-            add_element_to_object(&mut account, &Value::from(freeOrTotal.as_str()), self.safe_string(&data, Value::from(key.as_deref()), &[]));
+            if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert(freeOrTotal.as_str().to_string(), self.safe_string(&data, Value::from(key.as_deref()), &[])); }
             if (code.is_some()) {
                 { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
             }

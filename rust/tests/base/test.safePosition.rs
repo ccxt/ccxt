@@ -34,7 +34,7 @@ pub fn testSafePosition() {
             m.insert("initialMargin".to_string(), Value::Int(100));
         m
     });
-    let mut res1: Value = exchange.safe_position(pos1);
+    let mut res1: Value = Value::Dict(exchange.safe_position(pos1.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res1, Value::Str("maintenanceMargin".into()), Value::Str("10".into())))));
     // CASE 2 - isolated linear short: derive liquidationPrice
     // entryMargin = 100, maintenanceMargin = 10, entryPrice = 1000, contracts = 2, contractSize = 0.5
@@ -51,7 +51,7 @@ pub fn testSafePosition() {
             m.insert("maintenanceMargin".to_string(), Value::Int(10));
         m
     });
-    let mut res2: Value = exchange.safe_position(pos2);
+    let mut res2: Value = Value::Dict(exchange.safe_position(pos2.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res2, Value::Str("liquidationPrice".into()), Value::Str("1090".into())))));
     // CASE 3 - isolated linear long: derive entryPrice
     let mut pos3: Value = Value::Map({
@@ -66,7 +66,7 @@ pub fn testSafePosition() {
             m.insert("maintenanceMargin".to_string(), Value::Int(10));
         m
     });
-    let mut res3: Value = exchange.safe_position(pos3);
+    let mut res3: Value = Value::Dict(exchange.safe_position(pos3.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res3, Value::Str("entryPrice".into()), Value::Str("1000".into())))));
     // CASE 4 - isolated linear long: derive contracts
     let mut pos4: Value = Value::Map({
@@ -81,7 +81,7 @@ pub fn testSafePosition() {
             m.insert("maintenanceMargin".to_string(), Value::Int(10));
         m
     });
-    let mut res4: Value = exchange.safe_position(pos4);
+    let mut res4: Value = Value::Dict(exchange.safe_position(pos4.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res4, Value::Str("contracts".into()), Value::Str("2".into())))));
     // CASE 5 - isolated linear long: derive contractSize
     let mut pos5: Value = Value::Map({
@@ -96,7 +96,7 @@ pub fn testSafePosition() {
             m.insert("maintenanceMargin".to_string(), Value::Int(10));
         m
     });
-    let mut res5: Value = exchange.safe_position(pos5);
+    let mut res5: Value = Value::Dict(exchange.safe_position(pos5.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res5, Value::Str("contractSize".into()), Value::Str("0.5".into())))));
     // CASE 6 - isolated linear long: derive collateral and initialMargin
     let mut pos6: Value = Value::Map({
@@ -110,7 +110,7 @@ pub fn testSafePosition() {
             m.insert("maintenanceMargin".to_string(), Value::Int(10));
         m
     });
-    let mut res6: Value = exchange.safe_position(pos6);
+    let mut res6: Value = Value::Dict(exchange.safe_position(pos6.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res6.clone(), Value::Str("initialMargin".into()), Value::Str("100".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res6, Value::Str("collateral".into()), Value::Str("100".into())))));
     // CASE 7 - isolated linear with unrealizedPnl included in collateral
@@ -127,7 +127,7 @@ pub fn testSafePosition() {
             m.insert("unrealizedPnl".to_string(), Value::Int(15));
         m
     });
-    let mut res7: Value = exchange.safe_position(pos7);
+    let mut res7: Value = Value::Dict(exchange.safe_position(pos7.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res7, Value::Str("maintenanceMargin".into()), Value::Str("10".into())))));
     // CASE 8 - cross margin position must not derive isolated maintenanceMargin
     let mut pos8: Value = Value::Map({
@@ -142,7 +142,7 @@ pub fn testSafePosition() {
             m.insert("initialMargin".to_string(), Value::Int(100));
         m
     });
-    let mut res8: Value = exchange.safe_position(pos8);
+    let mut res8: Value = Value::Dict(exchange.safe_position(pos8.into_dict()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&res8, Value::Str("maintenanceMargin".into()), &[]) == Value::Null))));
     // CASE 9 - cross margin linear position derives notional, unrealizedPnl, initialMarginPercentage, initialMargin, maintenanceMargin, marginRatio, percentage
     let mut pos9: Value = Value::Map({
@@ -158,7 +158,7 @@ pub fn testSafePosition() {
             m.insert("collateral".to_string(), Value::Int(210));
         m
     });
-    let mut res9: Value = exchange.safe_position(pos9);
+    let mut res9: Value = Value::Dict(exchange.safe_position(pos9.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res9.clone(), Value::Str("notional".into()), Value::Str("1050".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res9.clone(), Value::Str("unrealizedPnl".into()), Value::Str("50".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res9.clone(), Value::Str("initialMarginPercentage".into()), Value::Str("0.1".into())))));
@@ -178,7 +178,7 @@ pub fn testSafePosition() {
             m.insert("maintenanceMargin".to_string(), Value::Int(20));
         m
     });
-    let mut res10: Value = exchange.safe_position(pos10);
+    let mut res10: Value = Value::Dict(exchange.safe_position(pos10.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res10.clone(), Value::Str("markPrice".into()), Value::Str("1000".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res10.clone(), Value::Str("leverage".into()), Value::Str("20".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res10.clone(), Value::Str("initialMargin".into()), Value::Str("100".into())))));
@@ -199,7 +199,7 @@ pub fn testSafePosition() {
             m.insert("unrealizedPnl".to_string(), Value::Float(0.008));
         m
     });
-    let mut res11: Value = exchange.safe_position(pos11);
+    let mut res11: Value = Value::Dict(exchange.safe_position(pos11.into_dict()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&res11, Value::Str("initialMargin".into()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&res11, Value::Str("maintenanceMargin".into()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value(&res11, Value::Str("positionMargin".into()), &[]) == Value::Null))));
@@ -216,7 +216,7 @@ pub fn testSafePosition() {
             m.insert("unrealizedPnl".to_string(), Value::Int(2));
         m
     });
-    let mut res12: Value = exchange.safe_position(pos12);
+    let mut res12: Value = Value::Dict(exchange.safe_position(pos12.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res12.clone(), Value::Str("collateral".into()), Value::Str("12".into())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res12, Value::Str("maintenanceMargin".into()), Value::Str("0.5".into())))));
     // CASE 13 - isolated collateral given without margin: margin = collateral - unrealizedPnl
@@ -232,6 +232,6 @@ pub fn testSafePosition() {
             m.insert("unrealizedPnl".to_string(), Value::Int(-3));
         m
     });
-    let mut res13: Value = exchange.safe_position(pos13);
+    let mut res13: Value = Value::Dict(exchange.safe_position(pos13.into_dict()));
     assert!(ccxt::runtime::is_true(&(preciseEqualPositionStr(exchange.clone_self(), res13, Value::Str("positionMargin".into()), Value::Str("20".into())))));
 }

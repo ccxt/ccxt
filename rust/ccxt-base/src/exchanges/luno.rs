@@ -1600,8 +1600,8 @@ impl Luno {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_orders_id", &[&__ws_arg_4]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -1628,7 +1628,7 @@ impl Luno {
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_listorders", &[&__ws_arg_5]).await;
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "orders");
-        return self.parse_orders(&orders, market.as_ref(), &[Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[Value::from(since), Value::from(limit)]));
 
     Value::Null
 }
@@ -1858,7 +1858,7 @@ impl Luno {
         //      }
         //
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "trades");
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1996,7 +1996,7 @@ impl Luno {
         //      }
         //
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "trades");
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2090,15 +2090,15 @@ impl Luno {
             request.insert("type".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side.as_str() == Some("buy")) {
-                request.insert("counter_volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
+                request.insert("counter_volume".into(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount.clone())));
             }  else {
-                request.insert("base_volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
+                request.insert("base_volume".into(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount.clone())));
             }
             let __ws_arg_11 = self.extend(&request, &[&params]);
             response = self.call_method_o("private_post_marketorder", &[&__ws_arg_11]).await;
         }  else {
-            request.insert("volume".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
-            request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
+            request.insert("volume".into(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount)));
+            request.insert("price".into(), Value::from(self.price_to_precision((Value::from((market).symbol.clone())).as_str(), price)));
             request.insert("type".into(), (if (side.as_str() == Some("buy")) { Value::Str("BID".into()) } else { Value::Str("ASK".into()) }));
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
             response = self.call_method_o("private_post_postorder", &[&__ws_arg_12]).await;
@@ -2216,7 +2216,7 @@ impl Luno {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchLedger() requires a currency code argument if no account id specified in params")));
             }
-            currency = Some(self.currency(code.clone()));
+            currency = Some(self.currency(code.as_str()));
             let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("currency".into()));
             let mut account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, code.clone());
             if (account.is_none()) {
@@ -2319,7 +2319,7 @@ impl Luno {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2357,7 +2357,7 @@ impl Luno {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2397,7 +2397,7 @@ impl Luno {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));

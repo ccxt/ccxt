@@ -367,7 +367,7 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         //
         //     {
@@ -403,7 +403,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut notionalString: Option<String> = self.safe_string_k_opt(&position, "size_currency", &[]);
         let mut notionalStringAbs: Option<String> = crate::precise::Precise::stringAbs(&notionalString).as_str().map(str::to_owned);
         let mut maintenanceMarginString: Option<String> = self.safe_string_k_opt(&position, "maintenance_margin", &[]);
-        return self.safe_position(Value::Map({
+        return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
@@ -411,9 +411,9 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(&initialMarginString, &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&initialMarginString, &notionalStringAbs), &Value::Str("100".into())), &[]));
-        m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("maintenanceMargin".to_string(), self.parse_number(&maintenanceMarginString, &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalStringAbs), &Value::Str("100".into())), &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "average_price", &[]));
         m.insert("notional".to_string(), self.parse_number(notionalStringAbs.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -434,9 +434,9 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut contract: Value = contract.into();
@@ -486,7 +486,7 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     Value::Null
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let mut transfer: Value = transfer.into();
         //
         //     {
@@ -506,7 +506,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut account: Option<String> = self.safe_string_k_opt(&transfer, "other_side", &[]);
         let mut direction: Option<String> = self.safe_string_k_opt(&transfer, "direction", &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(&transfer, "currency", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(&transfer, "id", &[]));
@@ -518,9 +518,9 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
@@ -1084,11 +1084,11 @@ impl crate::exchange_generated::ExchangeBase for Deribit {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_volatility_history" => self.parse_volatility_history(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -2869,7 +2869,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2928,7 +2928,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3083,7 +3083,7 @@ impl Deribit {
         if (code.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")));
         }
-        let mut currency: crate::types::Currency = self.currency(code.map(Value::from).unwrap_or(Value::Null));
+        let mut currency: crate::types::Currency = self.currency(code.as_deref());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3329,7 +3329,7 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3356,7 +3356,7 @@ impl Deribit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut code: Option<String> = self.code_from_options(Some("fetchTradingFees"), &[&params]);
-        let mut currency: crate::types::Currency = self.currency(code.map(Value::from).unwrap_or(Value::Null));
+        let mut currency: crate::types::Currency = self.currency(code.as_deref());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3684,8 +3684,8 @@ impl Deribit {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, market.as_ref());
+        None
         }).await?))
     }
 
@@ -3727,7 +3727,7 @@ impl Deribit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -3756,7 +3756,7 @@ impl Deribit {
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[&params]);
         if isLimitOrder {
             request.insert("type".into(), Value::Str("limit".into()));
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }  else {
             request.insert("type".into(), Value::Str("market".into()));
         }
@@ -3766,7 +3766,7 @@ impl Deribit {
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
         }  else if isStopOrder {
             let mut triggerPrice: Option<String> = (if (stopLossPrice.is_some()) { stopLossPrice } else { takeProfitPrice });
-            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("trigger".into(), Value::from(trigger));
             if isStopLossOrder {
                 if isMarketOrder {
@@ -3873,8 +3873,8 @@ impl Deribit {
                 m.insert("trades".to_string(), __ws_arg_15);
             m
         })]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
+        None
         }).await?))
     }
 
@@ -3918,11 +3918,11 @@ impl Deribit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
         if (price != Value::Null) {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let mut trailingAmount: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
@@ -3943,8 +3943,8 @@ impl Deribit {
                 m.insert("trades".to_string(), __ws_arg_18);
             m
         })]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None);
+        None
         }).await?))
     }
 
@@ -3981,8 +3981,8 @@ impl Deribit {
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_cancel", &[&__ws_arg_19]).await;
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
+        None
         }).await?))
     }
 
@@ -4069,7 +4069,7 @@ impl Deribit {
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
             let mut code: Option<String> = self.code_from_options(Some("fetchOpenOrders"), &[&params]);
-            let mut currency: crate::types::Currency = self.currency(code.map(Value::from).unwrap_or(Value::Null));
+            let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_22 = self.extend(&request, &[&params]);
             response = self.call_method_o("private_get_get_open_orders_by_currency", &[&__ws_arg_22]).await;
@@ -4080,7 +4080,7 @@ impl Deribit {
             response = self.call_method_o("private_get_get_open_orders_by_instrument", &[&__ws_arg_23]).await;
         }
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_orders(&result, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -4126,7 +4126,7 @@ impl Deribit {
         }
         if (symbol == Value::Null) {
             let mut code: Option<String> = self.code_from_options(Some("fetchClosedOrders"), &[&params]);
-            let mut currency: crate::types::Currency = self.currency(code.map(Value::from).unwrap_or(Value::Null));
+            let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_24 = self.extend(&request, &[&params]);
             response = self.call_method_o("private_get_get_order_history_by_currency", &[&__ws_arg_24]).await;
@@ -4137,7 +4137,7 @@ impl Deribit {
             response = self.call_method_o("private_get_get_order_history_by_instrument", &[&__ws_arg_25]).await;
         }
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_orders(&result, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -4212,7 +4212,7 @@ impl Deribit {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_trades(&result, None, &[since, limit]);
+        return Value::Arr(self.parse_trades(&result, None, &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -4259,7 +4259,7 @@ impl Deribit {
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
             let mut code: Option<String> = self.code_from_options(Some("fetchMyTrades"), &[&params]);
-            let mut currency: crate::types::Currency = self.currency(code.map(Value::from).unwrap_or(Value::Null));
+            let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             if (since == Value::Null) {
                 let __ws_arg_27 = self.extend(&request, &[&params]);
@@ -4316,7 +4316,7 @@ impl Deribit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut trades: crate::value::List = self.safe_list_k_t(&result, "trades");
-        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -4351,7 +4351,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4419,7 +4419,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4531,7 +4531,7 @@ impl Deribit {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &result, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &result, None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4569,7 +4569,7 @@ impl Deribit {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, if (code.is_some()) { Value::Str("currency".into()) } else { Value::Null }, &[]);
         if (code.is_some()) {
-            let mut currency: crate::types::Currency = self.currency(code.map(Value::from).unwrap_or(Value::Null));
+            let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4604,7 +4604,7 @@ impl Deribit {
         //     }
         //
         let mut result: Option<crate::value::List> = self.safe_list_k_o(&response, "result");
-        return self.parse_positions(&result, &[symbols]);
+        return Value::Arr(self.parse_positions(&result, &[symbols]));
         Value::Null
         }).await?))
     }
@@ -4626,7 +4626,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(Value::from(code));
+        let mut currency: crate::types::Currency = self.currency(Some(code));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4710,7 +4710,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4791,7 +4791,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), amount);
@@ -4831,7 +4831,7 @@ impl Deribit {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &result, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &result, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4881,7 +4881,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -5470,7 +5470,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));

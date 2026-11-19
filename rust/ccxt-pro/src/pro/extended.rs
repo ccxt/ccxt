@@ -728,7 +728,7 @@ impl Extended {
             if (marketId.is_none()) {
                 continue;
             }
-            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             stored.append(Value::Dict(position));
         }
@@ -1164,7 +1164,7 @@ impl Extended {
             }
         }
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["candleType", "price"], &[]);
-        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbolValue).into()), ":").into()), timeframe).into()), ":").into()), candleType.as_deref().unwrap_or("null"));
         let __ws_arg_2 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();

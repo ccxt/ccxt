@@ -703,7 +703,7 @@ impl Htx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".kline.").into()), interval.as_deref().unwrap_or("null"));
         let mut topic: String = "ohlcv".to_string();
@@ -2276,7 +2276,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_395: bool = true;
             while { if !__for_first_395 { i += 1; } __for_first_395 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut position: Value = self.parse_position(Value::Dict(rawPosition), None);
+            let mut position: Value = Value::Dict(self.parse_position(Value::Dict(rawPosition), None));
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
             let mut marginMode: Value = self.safe_string_lower_k(&position, "marginMode", &[Value::from(defaultMarginMode.clone())]);
@@ -2378,7 +2378,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut currencyCode: Option<crate::types::Currency> = None;
             if (currency.is_some()) {
-                currencyCode = Some(self.currency(currency.map(Value::from).unwrap_or(Value::Null)));
+                currencyCode = Some(self.currency(currency.as_deref()));
             }
             marginMode = self.safe_string_k_opt(&paramsOmitted, "margin", &[Value::Str("cross".into())]);
             let mut prefix: String = "accounts".to_string();

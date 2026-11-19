@@ -278,7 +278,7 @@ impl Dydx {
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut parsedTrades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]).into_list();
+        let mut parsedTrades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_311: bool = true;

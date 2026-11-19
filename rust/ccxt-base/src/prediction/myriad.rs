@@ -360,7 +360,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "hex_to_decimal_string" => crate::Value::from(self.hex_to_decimal_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_amm_event_to_order" => self.parse_amm_event_to_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market_to_event" => self.parse_market_to_event(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_myriad_market" => self.parse_myriad_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -985,7 +985,7 @@ impl Myriad {
 }));
         if !id.as_str().unwrap_or("").contains(":") {
             let mut rawQuestion: crate::value::Dict = self.fetch_raw_question_by_id(id.as_str().unwrap_or_default(), &[&params]).await.into_dict();
-            let mut orderBookEvent: crate::value::Dict = self.parse_event(&rawQuestion).into_dict();
+            let mut orderBookEvent: crate::value::Dict = self.parse_event(&rawQuestion);
             self.index_event_outcomes(Value::from(&orderBookEvent));
             return Value::Dict(orderBookEvent);
         }
@@ -2233,9 +2233,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("timeInForce".to_string(), Value::Str("IOC".into()));
         m.insert("postOnly".to_string(), Value::Bool(false));
         m.insert("side".to_string(), self.safe_string_lower_k(trade, "action", &[]));
-        m.insert("price".to_string(), self.parse_number(priceStr.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("price".to_string(), self.parse_number(&priceStr, &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.parse_number(amountStr.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("amount".to_string(), self.parse_number(&amountStr, &[]));
         m.insert("filled".to_string(), self.parse_number(amountStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("remaining".to_string(), Value::Int(0));
         m.insert("cost".to_string(), self.parse_number(costStr.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -3775,7 +3775,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut row: crate::value::List = self.safe_list_t(&rawBids, Value::Int(i));
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(&row, Value::Int(0), &[]), &Value::Str("1000000000000000000".into()));
             let mut rowAmount: Value = crate::precise::Precise::stringDiv(&self.safe_string(&row, Value::Int(1), &[]), &Value::Str("1000000000000000000".into()));
-            bids.push(Value::from(vec![self.parse_number(rowPrice.clone(), &[]), self.parse_number(rowAmount.clone(), &[])]));
+            bids.push(Value::from(vec![self.parse_number(&rowPrice, &[]), self.parse_number(&rowAmount, &[])]));
         }
         }
         let mut asks: Vec<Value> = Vec::new();
@@ -4242,7 +4242,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_1379: bool = true;
             while { if !__for_first_1379 { i += 1; } __for_first_1379 = false; i < rawQuestionsLength } {
             let mut rawQuestion: crate::value::Dict = rawQuestions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut ev: crate::value::Dict = self.parse_event(&rawQuestion).into_dict();
+            let mut ev: crate::value::Dict = self.parse_event(&rawQuestion);
             let mut evMarkets: crate::value::List = self.safe_list_k_t(&ev, "markets");
             let mut evMarketsLength: i64 = evMarkets.len() as i64;
             let mut filteredMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -4313,7 +4313,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} rawEvent the raw myriad question object
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> Value {
+    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> crate::value::Dict {
         let mut rawEvent: Value = rawEvent.into();
         let mut questionSlug: Option<String> = self.safe_string_k_opt(&rawEvent, "slug", &[self.safe_string_k(&rawEvent, "id", &[])]);
         let mut rawMarkets: crate::value::List = self.safe_list_k_t(&rawEvent, "markets");
@@ -4344,7 +4344,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __ws_arg_44 = self.parse8601(Value::from(endDate.as_deref()));
         let __ws_arg_45 = self.parse8601(self.safe_string_k(&rawEvent, "updatedAt", &[]));
         let __ws_arg_46 = self.safe_string_k(&rawEvent, "resolutionSource", &[]);
-        return self.extend(rawEvent.clone(), &[Value::Map({
+        return self.extend_t(rawEvent.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), __ws_arg_30);
         m.insert("slug".to_string(), Value::from(questionSlug.as_deref()));
@@ -4370,7 +4370,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 })]);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn request_id(&mut self, url: Option<&str>) -> i64 {

@@ -737,7 +737,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         if !(matches!(apiName.as_deref(), Some(__k) if restUrls.contains_key(__k))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have a testnet/sandbox URL for ").into()), apiName.as_deref().unwrap_or("null")).into()), " endpoints")));
         }
-        let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &apiName, &[]);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
@@ -2115,7 +2115,7 @@ impl Tokocrypto {
             //
             let mut data: crate::value::Dict = self.safe_dict_k_t(&responseInner, "data");
             let mut list: crate::value::List = self.safe_list_k_t(&data, "list");
-            return self.parse_trades(&list, Some(&market), &[since.clone(), limit.clone()]);
+            return Value::Arr(self.parse_trades(&list, Some(&market), &[since.clone(), limit.clone()]));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default = 500, maximum = 1000
@@ -2173,7 +2173,7 @@ impl Tokocrypto {
         //     ]
         //
         let mut responseList: crate::value::List = self.to_array_t(&response);
-        return self.parse_trades(&responseList, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&responseList, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2704,8 +2704,8 @@ impl Tokocrypto {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
                     }  else {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
-                        let mut priceString: Option<String> = self.number_to_string(price.clone());
+                        let mut amountString: Option<String> = self.number_to_string(&amount);
+                        let mut priceString: Option<String> = self.number_to_string(&price);
                         quoteAmount = crate::precise::Precise::stringMul(&amountString, &priceString);
                     }
                 }  else {
@@ -2735,19 +2735,19 @@ impl Tokocrypto {
             quantityIsRequired = true;
         }
         if quantityIsRequired {
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
         if priceIsRequired {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a price argument for a ").into()), typeResolved).into()), " order")));
             }
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         if triggerPriceIsRequired {
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a triggerPrice extra param for a ").into()), typeResolved).into()), " order")));
             }  else {
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
             }
         }
         if timeInForceIsRequired {
@@ -2765,7 +2765,7 @@ impl Tokocrypto {
                     m.insert("FOK".to_string(), Value::Str("3".into()));
                 m
             });
-            let mut timeInForceCode: Option<String> = self.safe_string_opt(&timeInForceCodes, timeInForce.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut timeInForceCode: Option<String> = self.safe_string_opt(&timeInForceCodes, &timeInForce, &[]);
             if (timeInForceCode.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support the ").into()), timeInForce.as_deref().unwrap_or("null")).into()), " timeInForce, use GTC, IOC, FOK or the postOnly parameter")));
             }
@@ -2810,8 +2810,8 @@ impl Tokocrypto {
         //     }
         //
         let mut rawOrder: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rawOrder, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rawOrder, Some(&market));
+        None
         }).await?))
     }
 
@@ -2877,8 +2877,8 @@ impl Tokocrypto {
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut list: crate::value::List = self.safe_list_k_t(&data, "list");
         let mut rawOrder: crate::value::Dict = self.safe_dict_t(&list, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rawOrder, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rawOrder, None);
+        None
         }).await?))
     }
 
@@ -2961,7 +2961,7 @@ impl Tokocrypto {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "list");
-        return self.parse_orders(&orders, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3093,8 +3093,8 @@ impl Tokocrypto {
         //     }
         //
         let mut rawOrder: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rawOrder, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rawOrder, None);
+        None
         }).await?))
     }
 
@@ -3174,7 +3174,7 @@ impl Tokocrypto {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut trades: crate::value::List = self.safe_list_k_t(&data, "list");
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3202,7 +3202,7 @@ impl Tokocrypto {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3289,7 +3289,7 @@ impl Tokocrypto {
         });
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -3369,7 +3369,7 @@ impl Tokocrypto {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -3473,7 +3473,7 @@ impl Tokocrypto {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));

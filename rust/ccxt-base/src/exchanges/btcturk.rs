@@ -1170,7 +1170,7 @@ impl Btcturk {
         if (data.is_some()) {
             dataList = data.unwrap_or_default();
         }
-        return self.parse_trades(&dataList, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&dataList, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1371,11 +1371,11 @@ impl Btcturk {
                 m.insert("orderType".to_string(), side);
                 m.insert("orderMethod".to_string(), type_var.clone());
                 m.insert("pairSymbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
         if (type_var.as_str() != Some("market")) {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         if (matches!(&params, Value::Dict(__d) if __d.contains_key("clientOrderId"))) {
             request.insert("newClientOrderId".into(), params.as_map().and_then(|__m| __m.get("clientOrderId")).cloned().unwrap_or(Value::Null));
@@ -1385,8 +1385,8 @@ impl Btcturk {
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_order", &[&__ws_arg_3]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -1469,7 +1469,7 @@ impl Btcturk {
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut bids: crate::value::List = self.safe_list_k_t(&data, "bids");
         let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");
-        return self.parse_orders(self.array_concat(&bids, &asks), market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(self.array_concat(&bids, &asks), market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1537,7 +1537,7 @@ impl Btcturk {
         //   ]
         // }
         let mut data: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
-        return self.parse_orders(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1613,7 +1613,7 @@ impl Btcturk {
         if (data.is_some()) {
             dataList = data.unwrap_or_default();
         }
-        return self.parse_trades(&dataList, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&dataList, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }

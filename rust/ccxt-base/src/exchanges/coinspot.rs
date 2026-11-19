@@ -242,7 +242,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         if isVersionedApi {
             fullPath = format!("{}{}", Value::Str(format!("{}{}", "/", api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).into()), endpoint);
         }
-        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), accessType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), &accessType, &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
@@ -1366,7 +1366,7 @@ impl Coinspot {
         //     }
         //
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "orders");
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1454,7 +1454,7 @@ impl Coinspot {
         }
         }
         let mut trades: crate::value::List = self.array_concat_t(Value::Arr(buyTrades), Value::Arr(sellTrades));
-        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }

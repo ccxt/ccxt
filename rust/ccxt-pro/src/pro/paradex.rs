@@ -79,7 +79,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_sbe_position" => self.parse_sbe_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "request_id" => crate::Value::from(self.request_id()),
                 "resubscribe_order_book" => self.resubscribe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
@@ -172,7 +172,7 @@ impl Paradex {
             "parse_sbe_position" => self.parse_sbe_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "request_id" => crate::Value::from(self.request_id()),
             "resubscribe_order_book" => { crate::exchange_stubs::enqueue_spawn("resubscribe_order_book", args.to_vec()); crate::Value::Null },
@@ -620,7 +620,7 @@ if _try_result.is_err() {
     m
 }));
         let mut channel: Value = get_value(&channels, &index);
-        let mut symbol: Option<String> = self.safe_string_opt(symbols, index.clone(), &[]);
+        let mut symbol: Option<String> = self.safe_string_opt(symbols, &index, &[]);
         let mut hashes: Vec<Value> = vec![get_value(&subMessageHashes, &index)];
         let mut channelSymbols: Vec<Value> = Vec::new();
         if (symbol.is_some()) {
@@ -1106,11 +1106,11 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("contracts".to_string(), self.parse_number(contracts.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("contracts".to_string(), self.parse_number(&contracts, &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("price".to_string(), self.parse_number(price.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("price".to_string(), self.parse_number(&price, &[]));
         m.insert("side".to_string(), self.safe_string_lower_k(liquidation, "side", &[]));
-        m.insert("baseValue".to_string(), self.parse_number(contracts.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("baseValue".to_string(), self.parse_number(&contracts, &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&contracts, &price), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -2105,7 +2105,7 @@ if _try_result.is_err() {
         //
         let mut params: crate::value::Dict = message.key_dict("params");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
-        let mut bidAsk: crate::value::Dict = self.parse_ws_bid_ask(&data, None).into_dict();
+        let mut bidAsk: crate::value::Dict = self.parse_ws_bid_ask(&data, None);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&bidAsk, "symbol").as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&bidAsk)); }
         client.resolve(Value::from(&bidAsk), &(Value::Str(format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null")).into())));
@@ -2113,12 +2113,12 @@ if _try_result.is_err() {
         client.resolve(Value::Dict(bidAsk), "bidask");
 }
 
-    pub fn parse_ws_bid_ask(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut data: Value = data.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "market", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "last_updated_at", &[]).as_i64();
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2129,9 +2129,9 @@ if _try_result.is_err() {
         m.insert("bidVolume".to_string(), self.safe_string_k(&data, "bid_size", &[]));
         m.insert("info".to_string(), data);
     m
-}), Some(&marketResolved)));
+}), Some(&marketResolved));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2432,7 +2432,7 @@ if _try_result.is_err() {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut position: crate::value::Dict = self.parse_position(Value::Dict(data), None).into_dict();
+        let mut position: crate::value::Dict = self.parse_position(Value::Dict(data), None);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&position, "symbol").as_str().map(str::to_owned);
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         // one position per market, so a fill through zero flips its side: the cache keys by

@@ -1381,7 +1381,7 @@ impl Bitopro {
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_trades_pair", &[&__ws_arg_2]).await;
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1531,7 +1531,7 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut resolution: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut resolution: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
@@ -1740,21 +1740,21 @@ impl Bitopro {
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("action".to_string(), side);
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
                 m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
             m
         });
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (orderType == "LIMIT") {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
         }
         if (orderType == "STOP_LIMIT") {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             let mut triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a triggerPrice parameter for ").into()), orderType).into()), " orders")));
             }  else {
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             let mut condition: Option<String> = self.safe_string_k_opt(&params, "condition", &[]);
             if (condition.is_none()) {
@@ -1770,8 +1770,8 @@ impl Bitopro {
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_orders_pair", &[&__ws_arg_4]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -1812,8 +1812,8 @@ impl Bitopro {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_delete_orders_pair_id", &[&__ws_arg_5]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -1982,8 +1982,8 @@ impl Bitopro {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_orders_pair_order_id", &[&__ws_arg_9]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -2033,9 +2033,9 @@ impl Bitopro {
         let mut response: crate::value::Dict = self.call_method_t("private_get_orders_all_pair", &[&__ws_arg_10]).await;
         let mut orders: Option<crate::value::List> = self.safe_list_k_or_o(&response, "data", Value::from(vec![]));
         if (orders.is_none()) {
-            orders = Value::from(vec![]).into_opt_list();
+            orders = Some(std::sync::Arc::new(vec![]));
         }
-        return self.parse_orders(&orders, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2079,7 +2079,7 @@ impl Bitopro {
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_orders_open", &[&__ws_arg_11]).await;
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2158,7 +2158,7 @@ impl Bitopro {
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_orders_trades_pair", &[&__ws_arg_13]).await;
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&trades, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2357,7 +2357,7 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2373,7 +2373,7 @@ impl Bitopro {
         if hasNetwork {
             let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
             let mut requestedNetwork: Option<String> = self.safe_string_upper_k_opt(&paramsWithdrawTag, "network", &[]);
-            let mut networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string_opt(&networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]) });
+            let mut networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string_opt(&networks, self.safe_string(&self.networkAliases, requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]) });
             if (networkId.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " invalid network ").into()), requestedNetwork.as_deref().unwrap_or("null"))));
             }

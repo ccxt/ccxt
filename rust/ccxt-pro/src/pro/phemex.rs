@@ -202,7 +202,7 @@ impl Phemex {
             return None;
         }
         let mut precise = Precise::new(en);
-        { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), scale]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+        { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), self.safe_integer(Value::from(vec![scale]), Value::Int(0), &[Value::Int(0)])]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
         precise.reduce();
         return to_string_val(&precise).as_str().map(str::to_owned);
 }
@@ -270,7 +270,7 @@ impl Phemex {
         let mut percentage: Option<f64> = None;
         let mut average: Option<f64> = None;
         let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(&ticker, "open", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null));
-        let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut open: Option<f64> = self.parse_number(&openString, &[]).as_f64();
         if (openString.is_some()) && (lastString.is_some()) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]).as_f64();
@@ -335,7 +335,7 @@ impl Phemex {
         let mut percentage: Option<f64> = None;
         let mut average: Option<f64> = None;
         let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(&ticker, Value::Int(1), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null));
-        let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut open: Option<f64> = self.parse_number(&openString, &[]).as_f64();
         if (openString.is_some()) && (lastString.is_some()) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]).as_f64();
@@ -640,7 +640,7 @@ impl Phemex {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut trades: crate::value::List = self.safe_list2_t(message, Value::Str("trades".into()), Value::Str("trades_p".into()));
-        let mut parsed: crate::value::List = self.parse_trades(&trades, Some(&market), &[]).into_list();
+        let mut parsed: crate::value::List = self.parse_trades(&trades, Some(&market), &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_630: bool = true;

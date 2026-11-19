@@ -1495,7 +1495,7 @@ impl Derive {
         if (position == Value::Null) {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
             let mut timestamp: i64 = self.milliseconds();
-            position = self.safe_position(Value::Map({
+            position = Value::Dict(self.safe_position(std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from(symbol));
                     m.insert("side".to_string(), Value::from(side.clone()));
@@ -1503,7 +1503,7 @@ impl Derive {
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("info".to_string(), entry.clone());
                 m
-            }));
+            })));
         }
         add_element_to_object(&mut position, &Value::Str("contracts".into()), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
         add_element_to_object(&mut position, &Value::Str("side".into()), Value::from(side));

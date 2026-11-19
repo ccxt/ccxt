@@ -1823,7 +1823,7 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut periodUnit: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[]);
+        let mut periodUnit: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[]);
         if (periodUnit.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOHLCV() missing periodUnit")));
         }
@@ -1965,7 +1965,7 @@ impl Onetrading {
                 m.insert("instrument_code".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), Value::from(uppercaseType.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
         let mut priceIsRequired: bool = false;
@@ -1977,13 +1977,13 @@ impl Onetrading {
             if (uppercaseType == "MARKET") {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder() cannot place stop market orders, only stop limit")));
             }
-            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
             request.insert("type".into(), Value::Str("STOP".into()));
         }  else if (uppercaseType == "STOP") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() requires a triggerPrice param for ").into()), type_var).into()), " orders")));
         }
         if priceIsRequired {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let mut clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         if (clientOrderId.is_some()) {
@@ -1996,8 +1996,8 @@ impl Onetrading {
         request.insert("time_in_force".into(), Value::from(timeInForce));
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_account_orders", &[&__ws_arg_3]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -2048,8 +2048,8 @@ impl Onetrading {
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.call_method_o("private_delete_account_orders_client_client_id", &[&__ws_arg_5]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -2174,8 +2174,8 @@ impl Onetrading {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_account_orders_order_id", &[&__ws_arg_8]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
+        None
         }).await?))
     }
 
@@ -2309,7 +2309,7 @@ impl Onetrading {
         //     }
         //
         let mut orderHistory: crate::value::List = self.safe_list_k_t(&response, "order_history");
-        return self.parse_orders(&orderHistory, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orderHistory, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2424,7 +2424,7 @@ impl Onetrading {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        return self.parse_trades(&tradeHistory, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&tradeHistory, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2510,7 +2510,7 @@ impl Onetrading {
         //     }
         //
         let mut tradeHistory: crate::value::List = self.safe_list_k_t(&response, "trade_history");
-        return self.parse_trades(&tradeHistory, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&tradeHistory, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }

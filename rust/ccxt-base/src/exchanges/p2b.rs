@@ -1258,7 +1258,7 @@ impl P2b {
         //    }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_trades(&result, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&result, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1420,8 +1420,8 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
-                m.insert("price".to_string(), Value::from(self.price_to_precision(symbol, price)));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
+                m.insert("price".to_string(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -1449,8 +1449,8 @@ impl P2b {
         //    }
         //
         let mut result: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market));
+        None
         }).await?))
     }
 
@@ -1514,8 +1514,8 @@ impl P2b {
         //    }
         //
         let mut result: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, None);
+        None
         }).await?))
     }
 
@@ -1589,7 +1589,7 @@ impl P2b {
         //    }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_orders(&result, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&result, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1662,7 +1662,7 @@ impl P2b {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut records: crate::value::List = self.safe_list_k_t(&result, "records");
-        return self.parse_trades(&records, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&records, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1766,7 +1766,7 @@ impl P2b {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut deals: crate::value::List = self.safe_list_k_t(&result, "deals");
-        return self.parse_trades(&deals, Some(&market), &[Value::from(sinceResolved), limit]);
+        return Value::Arr(self.parse_trades(&deals, Some(&market), &[Value::from(sinceResolved), limit]));
         Value::Null
         }).await?))
     }
@@ -1882,7 +1882,7 @@ impl P2b {
             while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]).into_list();
+            let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]);
             orders = self.array_concat_t(Value::Arr(orders), &parsedOrders);
         }
         }

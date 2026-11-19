@@ -299,7 +299,7 @@ impl crate::exchange::DerivedExchange for Nado {
             let mut costString: Option<String> = self.safe_string_k_opt(&order, "quote_filled", &[]);
             cost = (if (costString.is_none()) { Value::Null } else { self.parse_x18(crate::precise::Precise::stringAbs(&costString)) });
             if (filled.is_some()) && (cost != Value::Null) {
-                average = crate::precise::Precise::stringDiv(&Value::from(self.number_to_string(cost.clone())), &Value::from(self.number_to_string(Value::from(filled)))).as_str().map(str::to_owned);
+                average = crate::precise::Precise::stringDiv(&Value::from(self.number_to_string(&cost)), &Value::from(self.number_to_string(Value::from(filled)))).as_str().map(str::to_owned);
             }
             if (amountString.is_some()) && (archiveFilled.is_some()) {
                 remaining = self.parse_x18(crate::precise::Precise::stringMax(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringAbs(&amountString), &crate::precise::Precise::stringAbs(&archiveFilled)), &Value::Str("0".into()))).as_f64();
@@ -463,7 +463,7 @@ impl crate::exchange::DerivedExchange for Nado {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         //
         //     {
@@ -512,7 +512,7 @@ impl crate::exchange::DerivedExchange for Nado {
                 notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36, &Value::Str("1000000000000000000000000000000000000".into())), &[]).as_f64();
             }
         }
-        return self.safe_position(Value::Map({
+        return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position);
         m.insert("id".to_string(), Value::Null);
@@ -539,9 +539,9 @@ impl crate::exchange::DerivedExchange for Nado {
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut contract: Value = contract.into();
@@ -836,8 +836,8 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                     &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "edit_order_request" => self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "edit_order_request" => Value::Dict(self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -873,7 +873,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1538,8 +1538,8 @@ impl Nado {
         m.insert("place_order".to_string(), Value::Dict(placeOrder));
     m
 }), &[&response]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_0, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_0, Some(&market));
+        None
         }).await?))
     }
 
@@ -1570,8 +1570,8 @@ impl Nado {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a price argument")));
         }
         let mut productId: Option<i64> = self.parse_to_int(Value::from((market).id.as_deref()));
-        let mut priceString: Option<String> = self.price_to_precision(Value::from(symbol), price);
-        let mut amountString: Option<String> = self.amount_to_precision(Value::from(symbol), amount);
+        let mut priceString: Option<String> = self.price_to_precision(Some(symbol), price);
+        let mut amountString: Option<String> = self.amount_to_precision(Some(symbol), amount);
         let mut priceX18: Option<String> = self.convert_to_x18(priceString.as_deref());
         let mut amountX18: Option<String> = self.convert_to_x18(amountString.as_deref());
         if (side == "sell") {
@@ -1736,7 +1736,7 @@ impl Nado {
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &params]).await.into_dict();
+        let mut request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &params]).await;
         let mut response: crate::value::Dict = self.call_method_t("gateway_private_post_execute", &[&Value::from(&request)]).await;
         //
         //     {
@@ -1758,8 +1758,8 @@ impl Nado {
         m.insert("place_order".to_string(), Value::Map(placeOrder));
     m
 }), &[&response]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_1, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, __ws_arg_1, Some(&market));
+        None
         }).await?))
     }
 
@@ -1777,7 +1777,7 @@ impl Nado {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_and_place execute
  */
-    pub async fn edit_order_request(&mut self, id: &str, symbol: &str, type_var: &str, side: &str, optional_args: &[&Value]) -> Value {
+    pub async fn edit_order_request(&mut self, id: &str, symbol: &str, type_var: &str, side: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1799,8 +1799,8 @@ impl Nado {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires a price argument")));
         }
         let mut productId: Option<i64> = self.parse_to_int(Value::from((market).id.as_deref()));
-        let mut priceString: Option<String> = self.price_to_precision(Value::from(symbol), price);
-        let mut amountString: Option<String> = self.amount_to_precision(Value::from(symbol), amount);
+        let mut priceString: Option<String> = self.price_to_precision(Some(symbol), price);
+        let mut amountString: Option<String> = self.amount_to_precision(Some(symbol), amount);
         let mut priceX18: Option<String> = self.convert_to_x18(priceString.as_deref());
         let mut amountX18: Option<String> = self.convert_to_x18(amountString.as_deref());
         if (side == "sell") {
@@ -1880,9 +1880,9 @@ impl Nado {
                 m.insert("cancel_and_place".to_string(), Value::Map(cancelAndPlace));
             m
         });
-        return self.extend(Value::Map(request), &[&paramsOmitted]);
+        return self.extend_t(Value::Map(request), &[&paramsOmitted]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2230,8 +2230,8 @@ impl Nado {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -2334,7 +2334,7 @@ impl Nado {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
-        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2425,11 +2425,11 @@ impl Nado {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "orders");
-        return self.parse_orders(&orders, Some(&market), &[since, limit, Value::Map({
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[since, limit, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".into()));
     m
-})]);
+})]));
         Value::Null
         }).await?))
     }
@@ -2538,7 +2538,7 @@ impl Nado {
             }
         }
         }
-        return self.parse_orders(Value::from(closedOrders), market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(Value::from(closedOrders), market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2712,7 +2712,7 @@ impl Nado {
             trades.push(self.extend(tx, &[&match_val]));
         }
         }
-        return self.parse_trades(Value::from(trades), market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(Value::from(trades), market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2849,7 +2849,7 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: Option<crate::types::Currency> = None;
         if (code.is_some()) {
-            currency = Some(self.currency(Value::from(code)));
+            currency = Some(self.currency(code));
         }
         let subaccountparamsSubaccountVariable = self.handle_option_string_and_params(params, Value::from(methodName), Value::Str("subaccount".into()), &[Value::Str("default".into())]);
         let mut subaccount: Option<String> = subaccountparamsSubaccountVariable.0.as_str().map(str::to_owned);
@@ -3052,7 +3052,7 @@ impl Nado {
                     m.insert("product".to_string(), product);
                 m
             }), &[&position]);
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, __ws_arg_13, None));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, __ws_arg_13, None).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -3897,7 +3897,7 @@ impl Nado {
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.archive_v2_public_get_trades(&[&__ws_arg_18]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }

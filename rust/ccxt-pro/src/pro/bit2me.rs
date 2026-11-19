@@ -1163,7 +1163,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("my-balance".to_string(), Value::Str("balance".into()));
                 m
             });
-            let mut messageHash: Option<String> = self.safe_string_opt(&hashes, name.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut messageHash: Option<String> = self.safe_string_opt(&hashes, &name, &[]);
             if (messageHash.is_some()) {
                 client.reject(exception.clone(), messageHash.as_deref());
                 if (name.as_deref() == Some("my-orders")) || (name.as_deref() == Some("my-trades")) {

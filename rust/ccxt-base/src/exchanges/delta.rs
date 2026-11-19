@@ -475,7 +475,7 @@ impl crate::exchange::DerivedExchange for Delta {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         //
         // fetchPosition
@@ -517,7 +517,7 @@ impl crate::exchange::DerivedExchange for Delta {
                 side = Some("short".to_string());
             }
         }
-        return self.safe_position(Value::Map({
+        return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
@@ -546,9 +546,9 @@ impl crate::exchange::DerivedExchange for Delta {
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut contract: Value = contract.into();
@@ -1432,9 +1432,9 @@ impl crate::exchange_generated::ExchangeBase for Delta {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_settlements" => self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_settlements" => Value::Arr(self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
@@ -3107,7 +3107,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_trades(&result, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&result, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3263,7 +3263,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &result, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3312,7 +3312,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_positions(&result, &[symbols]);
+        return Value::Arr(self.parse_positions(&result, &[symbols]));
         Value::Null
         }).await?))
     }
@@ -3366,13 +3366,13 @@ impl Delta {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), crate::value::KeyRead::key_read(&&market, "numericId"));
-                m.insert("size".to_string(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount)));
                 m.insert("side".to_string(), side);
                 m.insert("order_type".to_string(), Value::from(orderType));
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("limit_price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision((Value::from((market).symbol.clone())).as_str(), price)));
         }
         let mut clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "client_order_id"], &[]);
@@ -3423,8 +3423,8 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market));
+        None
         }).await?))
     }
 
@@ -3467,14 +3467,14 @@ impl Delta {
             m
         });
         if (amount != Value::Null) {
-            let mut sizeString: Option<String> = self.amount_to_precision(symbol.clone(), amount);
+            let mut sizeString: Option<String> = self.amount_to_precision(symbol.as_str(), amount);
             if (sizeString.is_none()) {
                 sizeString = Some("0".to_string());
             }
             request.insert("size".into(), Value::from(self.parse_to_int(sizeString.map(Value::from).unwrap_or(Value::Null))));
         }
         if (price != Value::Null) {
-            request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol, price)));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_put_orders", &[&__ws_arg_6]).await;
@@ -3496,8 +3496,8 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market));
+        None
         }).await?))
     }
 
@@ -3573,8 +3573,8 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, Some(&market));
+        None
         }).await?))
     }
 
@@ -3689,8 +3689,8 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &result, market.as_ref());
+        None
         }).await?))
     }
 
@@ -3806,7 +3806,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_orders(&result, market.as_ref(), &[since, Value::from(limit)]);
+        return Value::Arr(self.parse_orders(&result, market.as_ref(), &[since, Value::from(limit)]));
 
     Value::Null
 }
@@ -3899,7 +3899,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_trades(&result, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&result, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3935,7 +3935,7 @@ impl Delta {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("asset_id".into(), crate::value::KeyRead::key_read(&&currency, "numericId"));
         }
         if (limit != Value::Null) {
@@ -4007,7 +4007,7 @@ impl Delta {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4580,7 +4580,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k_t(&response, "result");
-        let mut settlements: crate::value::List = self.parse_settlements(&result, market.as_ref()).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(&result, market.as_ref());
         let mut sorted: crate::value::List = self.sort_by_t(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
         return Value::Arr(self.filter_by_symbol_since_limit(&sorted, (self.safe_string_k(&market, "symbol", &[])).as_str(), since, limit, &[]));
 
@@ -4656,7 +4656,7 @@ impl Delta {
     Value::Null
 }
 
-    pub fn parse_settlements(&self, settlements: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_settlements(&self, settlements: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::List {
         let mut settlements: Value = settlements.into();
         let __settlements_empty = Vec::new();
         let settlements = settlements.as_array().unwrap_or(&__settlements_empty);
@@ -4668,9 +4668,7 @@ impl Delta {
             result.push(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market));
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*
@@ -4795,7 +4793,7 @@ impl Delta {
         let mut position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]), None).into_dict();
+        })]), None).unwrap_or_default();
         return Value::from(vec![Value::Dict(position)]);
         Value::Null
         }).await?))

@@ -1699,7 +1699,7 @@ impl Bitso {
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_trades", &[&__ws_arg_5]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
-        return self.parse_trades(&payload, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&payload, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1855,7 +1855,7 @@ impl Bitso {
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsMarker]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_user_trades", &[&__ws_arg_7]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
-        return self.parse_trades(&payload, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&payload, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1897,11 +1897,11 @@ impl Bitso {
                 m.insert("book".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
                 m.insert("type".to_string(), type_var.clone());
-                m.insert("major".to_string(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
+                m.insert("major".to_string(), Value::from(self.amount_to_precision((Value::from((market).symbol.clone())).as_str(), amount)));
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
+            request.insert("price".into(), Value::from(self.price_to_precision((Value::from((market).symbol.clone())).as_str(), price)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_orders", &[&__ws_arg_8]).await;
@@ -2139,7 +2139,7 @@ impl Bitso {
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsMarker]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_open_orders", &[&__ws_arg_12]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
-        return self.parse_orders(&payload, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&payload, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2177,10 +2177,10 @@ impl Bitso {
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         let mut numOrders: i64 = payload.len() as i64;
         if (numOrders == 1) {
-            return <Self as crate::exchange::DerivedExchange>::parse_order(self, payload.get(0).cloned().unwrap_or(Value::Null), None).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_order(self, payload.get(0).cloned().unwrap_or(Value::Null), None);
         }
         panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, ": The order ").into()), id).into()), " not found.")));
-        Value::Null
+        None
         }).await?))
     }
 
@@ -2222,7 +2222,7 @@ impl Bitso {
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_order_trades_oid", &[&__ws_arg_13]).await;
         let mut payload: crate::value::List = self.safe_list_k_t(&response, "payload");
-        return self.parse_trades(&payload, Some(&market), &[]);
+        return Value::Arr(self.parse_trades(&payload, Some(&market), &[]));
         Value::Null
         }).await?))
     }
@@ -2311,7 +2311,7 @@ impl Bitso {
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         let mut response: crate::value::Dict = self.call_method_t("private_get_fundings", &[&params]).await;
         //
@@ -2365,7 +2365,7 @@ impl Bitso {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fund_currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2745,8 +2745,8 @@ impl Bitso {
                 m.insert("LTC".to_string(), Value::Str("Litecoin".into()));
             m
         });
-        let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut method: Option<String> = self.safe_string_opt(&methods, code.clone(), &[]);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
+        let mut method: Option<String> = self.safe_string_opt(&methods, &code, &[]);
         if (method.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " not valid withdraw coin: ").into()), code)));
         }

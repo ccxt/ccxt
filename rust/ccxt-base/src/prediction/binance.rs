@@ -354,7 +354,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -670,7 +670,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1217: bool = true;
             while { if !__for_first_1217 { i += 1; } __for_first_1217 = false; i < rawTopicsLength } {
-            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null));
             parsedEvents.push(Value::from(&parsedEvent));
             let mut eventMarkets: crate::value::List = self.safe_list_k_t(&parsedEvent, "markets");
             let mut eventMarketsLength: i64 = eventMarkets.len() as i64;
@@ -964,7 +964,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1223: bool = true;
             while { if !__for_first_1223 { i += 1; } __for_first_1223 = false; i < rawTopicsLength } {
-            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null));
             result.push(Value::from(&parsedEvent));
             let mut parsedMarkets: crate::value::List = self.safe_list_k_t(&parsedEvent, "markets");
             let mut parsedMarketsLength: i64 = parsedMarkets.len() as i64;
@@ -1115,7 +1115,7 @@ impl Binance {
  * @param {object} rawTopic the raw market topic object
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, mut rawTopic: Value) -> Value {
+    pub fn parse_event(&self, mut rawTopic: Value) -> crate::value::Dict {
         //
         //     {
         //         "marketTopicId": 4229564,
@@ -1173,7 +1173,7 @@ impl Binance {
         if (status.is_some()) {
             resolved = Some((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), topicId.map(Value::from).unwrap_or(Value::Null));
         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1196,7 +1196,7 @@ impl Binance {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1287,7 +1287,7 @@ impl Binance {
                     m.insert("outcome".to_string(), Value::from(outcomeHandle));
                     m.insert("market".to_string(), marketSymbol.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("label".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("price".to_string(), self.parse_number(price.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+                    m.insert("price".to_string(), self.parse_number(&price, &[]));
                     m.insert("active".to_string(), Value::Bool(active));
                     m.insert("winner".to_string(), winner.map_or(Value::Null, Value::Bool));
                     m.insert("settleFraction".to_string(), Value::from(settleFraction));
@@ -2012,14 +2012,14 @@ impl Binance {
         if (outcomes == Value::Null) {
             return Value::Arr(std::sync::Arc::new(self.parse_prediction_positions(Value::from(&data), &[]).into_iter().map(Value::Dict).collect()));
         }
-        let mut positions: Vec<Value> = self.parse_prediction_positions(Value::Arr(data), &[]).into_iter().map(Value::Dict).collect();
+        let mut positions: Vec<crate::value::Dict> = self.parse_prediction_positions(Value::Arr(data), &[]);
         let mut filtered: Vec<Value> = Vec::new();
         let mut positionsLength: i64 = positions.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1231: bool = true;
             while { if !__for_first_1231 { i += 1; } __for_first_1231 = false; i < positionsLength } {
-            let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or_default();
             let mut positionOutcome: Option<String> = self.safe_string_k_opt(&position, "outcome", &[]);
             if (positionOutcome.is_some()) && (matches!(positionOutcome.as_deref(), Some(__k) if requestedOutcomeSymbols.contains_key(__k))) {
                 filtered.push(Value::Dict(position));
@@ -2368,8 +2368,8 @@ impl Binance {
                 m.insert("slippageBps".to_string(), Value::from(slippageBps));
             m
         });
-        let mut amountStr: Option<String> = self.number_to_string(amount.clone());
-        let mut priceStr: Option<String> = self.number_to_string(price.clone());
+        let mut amountStr: Option<String> = self.number_to_string(&amount);
+        let mut priceStr: Option<String> = self.number_to_string(&price);
         let mut defaultTif: String = "FOK".to_string();
         if (typeUpper == "LIMIT") {
             if (price == Value::Null) {

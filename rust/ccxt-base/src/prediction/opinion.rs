@@ -323,7 +323,7 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
                 "opinion_order_raw_amounts" => self.opinion_order_raw_amounts(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_i64)),
                 "opinion_outcome_by_market_id_side" => self.opinion_outcome_by_market_id_side(args.get(0).and_then(crate::Value::as_i64), args.get(1).and_then(crate::Value::as_i64)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_opinion_market" => self.parse_opinion_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -686,7 +686,7 @@ impl Opinion {
                 fetchedRawRows.push(Value::from(&raw));
                 let mut marketType: Option<i64> = self.safe_integer_k(&raw, "marketType", &[]).as_i64();
                 if (marketType == Some(1)) {
-                    let mut event: crate::value::Dict = self.parse_event(&raw).into_dict();
+                    let mut event: crate::value::Dict = self.parse_event(&raw);
                     let mut childMarkets: crate::value::List = self.safe_list_k_t(&event, "markets");
                     let mut childMarketsLength: i64 = childMarkets.len() as i64;
                     {
@@ -956,7 +956,7 @@ impl Opinion {
             }
             let mut singleResult: crate::value::Dict = self.safe_dict_k_t(&singleResponse, "result");
             let mut singleData: crate::value::Dict = self.safe_dict_k_t(&singleResult, "data");
-            let mut single: crate::value::Dict = self.parse_event(&singleData).into_dict();
+            let mut single: crate::value::Dict = self.parse_event(&singleData);
             self.index_event_outcomes(Value::from(&single));
             return self.apply_event_fetch_params(Value::from(vec![Value::Dict(single)]), &[params.clone(), Value::from(&queries)]);
         }
@@ -1014,7 +1014,7 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1398: bool = true;
             while { if !__for_first_1398 { i += 1; } __for_first_1398 = false; i < rawEventsLength } {
-            let mut event: crate::value::Dict = self.parse_event(rawEvents.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut event: crate::value::Dict = self.parse_event(rawEvents.get(i as usize).cloned().unwrap_or(Value::Null));
             parsedEvents.push(Value::from(&event));
             // register the parsed markets so populateOutcomes can index their outcomes
             let mut eventMarkets: crate::value::List = self.safe_list_k_t(&event, "markets");
@@ -1074,7 +1074,7 @@ impl Opinion {
         }
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut data: crate::value::Dict = self.safe_dict_k_t(&result, "data");
-        let mut event: crate::value::Dict = self.parse_event(&data).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(&data);
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -1089,7 +1089,7 @@ impl Opinion {
  * @param {object} rawEvent the raw opinion categorical market object
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> Value {
+    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> crate::value::Dict {
         let mut rawEvent: Value = rawEvent.into();
         // {
         //     "chainId": "56",
@@ -1213,7 +1213,7 @@ impl Opinion {
         let __ws_arg_9 = self.iso8601(created);
         let __ws_arg_10 = self.iso8601(Value::from(end));
         let __ws_arg_11 = self.safe_string2(&rawEvent, Value::Str("coverUrl".into()), Value::Str("thumbnailUrl".into()), &[]);
-        return self.extend(Value::Map({
+        return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), eventId.map(Value::from).unwrap_or(Value::Null));
         m.insert("event".to_string(), eventHandle.map(Value::from).unwrap_or(Value::Null));
@@ -1235,7 +1235,7 @@ impl Opinion {
     m
 }), &[]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1509,9 +1509,9 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[]);
         if (interval.is_none()) {
-            let mut supportedKeys: crate::value::List = crate::value::List::new(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut supportedKeys: crate::value::List = crate::value::List::new(self.timeframes.as_deref().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() unsupported timeframe ").into()), timeframe).into()), ", supported timeframes are ").into()), Value::Str(supportedKeys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome, &[]).await;
@@ -1822,7 +1822,7 @@ impl Opinion {
         }
         let mut marketOrderPrice: Option<String> = Some("0".to_string());
         if isMarket && (sideStr == "SELL") {
-            marketOrderPrice = self.number_to_string(price.clone());
+            marketOrderPrice = self.number_to_string(&price);
         }
         let mut info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
         let mut topicId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();

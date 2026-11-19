@@ -319,7 +319,7 @@ impl Kraken {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " limit orders require a price argument")));
             }
-            orderParams.insert("limit_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), price))));
+            orderParams.insert("limit_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), price))));
         }
         let mut isMarket: bool = (type_var.as_str() == Some("market"));
         let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[params]);
@@ -334,7 +334,7 @@ impl Kraken {
         }
         let mut cost: Option<String> = self.safe_string_k_opt(&paramsPostOnly, "cost", &[]);
         if (cost.is_some()) {
-            orderParams.insert("order_qty".into(), self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)))));
+            orderParams.insert("order_qty".into(), self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.as_str(), cost.map(Value::from).unwrap_or(Value::Null)))));
         }
         let mut stopLoss: crate::value::Dict = self.safe_dict_k_t(&paramsPostOnly, "stopLoss");
         let mut takeProfit: crate::value::Dict = self.safe_dict_k_t(&paramsPostOnly, "takeProfit");
@@ -397,28 +397,28 @@ impl Kraken {
             if isPresetStopLoss || isPresetTakeProfit {
                 if isPresetStopLoss {
                     conditional.insert("order_type".into(), Value::Str("stop-loss".into()));
-                    conditional.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), presetStopLoss.map(Value::from).unwrap_or(Value::Null)))));
+                    conditional.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), presetStopLoss.map(Value::from).unwrap_or(Value::Null)))));
                 }  else if isPresetTakeProfit {
                     conditional.insert("order_type".into(), Value::Str("take-profit".into()));
-                    conditional.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), presetTakeProfit.map(Value::from).unwrap_or(Value::Null)))));
+                    conditional.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), presetTakeProfit.map(Value::from).unwrap_or(Value::Null)))));
                 }
                 if (presetStopLossLimit.is_some()) {
                     conditional.insert("order_type".into(), Value::Str("stop-loss-limit".into()));
-                    conditional.insert("limit_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), presetStopLossLimit.map(Value::from).unwrap_or(Value::Null)))));
+                    conditional.insert("limit_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), presetStopLossLimit.map(Value::from).unwrap_or(Value::Null)))));
                 }  else if (presetTakeProfitLimit.is_some()) {
                     conditional.insert("order_type".into(), Value::Str("take-profit-limit".into()));
-                    conditional.insert("limit_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), presetTakeProfitLimit.map(Value::from).unwrap_or(Value::Null)))));
+                    conditional.insert("limit_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), presetTakeProfitLimit.map(Value::from).unwrap_or(Value::Null)))));
                 }
             }  else if isStopLossPriceOrder || isTakeProfitPriceOrder {
                 if isStopLossPriceOrder {
-                    triggers.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null)))));
+                    triggers.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null)))));
                     if isLimitOrder {
                         orderParams.insert("order_type".into(), Value::Str("stop-loss-limit".into()));
                     }  else {
                         orderParams.insert("order_type".into(), Value::Str("stop-loss".into()));
                     }
                 }  else {
-                    triggers.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null)))));
+                    triggers.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null)))));
                     if isLimitOrder {
                         orderParams.insert("order_type".into(), Value::Str("take-profit-limit".into()));
                     }  else {
@@ -458,9 +458,9 @@ impl Kraken {
             }
             if isStopLossPriceOrder || isTakeProfitPriceOrder {
                 if isStopLossPriceOrder {
-                    orderParams.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)))));
+                    orderParams.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)))));
                 }  else {
-                    orderParams.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol, takeProfitPrice.map(Value::from).unwrap_or(Value::Null)))));
+                    orderParams.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)))));
                 }
             }  else if isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder {
                 orderParams.insert("trigger_price_type".into(), Value::from(priceType.clone()));
@@ -534,7 +534,7 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_type".to_string(), type_var.clone());
                 m.insert("side".to_string(), side);
-                m.insert("order_qty".to_string(), self.parse_to_numeric(Value::from(self.amount_to_precision(symbol.clone(), amount.clone()))));
+                m.insert("order_qty".to_string(), self.parse_to_numeric(Value::from(self.amount_to_precision(symbol.as_str(), amount.clone()))));
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
             m
@@ -628,7 +628,7 @@ impl Kraken {
         let mut orderParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
-                m.insert("order_qty".to_string(), self.parse_to_numeric(Value::from(self.amount_to_precision(symbol.clone(), amount.clone()))));
+                m.insert("order_qty".to_string(), self.parse_to_numeric(Value::from(self.amount_to_precision(symbol.as_str(), amount.clone()))));
                 m.insert("token".to_string(), token.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -922,7 +922,7 @@ impl Kraken {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut parsed: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
+        let mut parsed: crate::value::List = self.parse_trades(&data, Some(&market), &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_423: bool = true;
@@ -1397,7 +1397,7 @@ impl Kraken {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[timeframe.clone()]);
         let mut unsubMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[&interval.map(Value::from).unwrap_or(Value::Null), &Value::from(symbolValue.as_str())]).map(Value::from).unwrap_or(Value::Null));
         let mut unsubscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

@@ -83,7 +83,7 @@ impl crate::exchange_generated::ExchangeBase for Bitvavo {
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "un_watch_channels" => self.un_watch_channels(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -166,7 +166,7 @@ impl Bitvavo {
             "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_withdraw" => { self.handle_withdraw(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_withdraws" => { self.handle_withdraws(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
-            "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "request_id" => crate::Value::from(self.request_id()),
             "un_watch_channels" => { crate::exchange_stubs::enqueue_spawn("un_watch_channels", args.to_vec()); crate::Value::Null },
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -491,7 +491,7 @@ impl Bitvavo {
             let mut __for_first_150: bool = true;
             while { if !__for_first_150 { i += 1; } __for_first_150 = false; i < (tickers.len() as i64) } {
             let mut data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None).into_dict();
+            let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None);
             let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
             std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
@@ -502,12 +502,12 @@ impl Bitvavo {
         client.resolve(Value::Arr(result), event.as_str());
 }
 
-    pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "market", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "timestamp", &[]).as_i64();
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -518,9 +518,9 @@ impl Bitvavo {
         m.insert("bidVolume".to_string(), self.safe_number_k(&ticker, "bidSize", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved)));
+}), Some(&marketResolved));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1289,9 +1289,9 @@ impl Bitvavo {
         let mut nonce: Option<i64> = self.safe_integer_k(message, "nonce", &[]).as_i64();
         let mut currentNonce: Option<i64> = self.safe_integer_k(&orderbook, "nonce", &[]).as_i64();
         if (nonce.is_some()) && (currentNonce.is_some()) && ((nonce.is_some() && currentNonce.is_some() && nonce > currentNonce)) {
-            self.handle_deltas(crate::pro::order_book::Side::of(crate::value::get_value_k(&orderbook, "asks")), (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
-            self.handle_deltas(crate::pro::order_book::Side::of(crate::value::get_value_k(&orderbook, "bids")), (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::from(nonce));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
+            self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }));
+            orderbook.set_book_meta("nonce", Value::from(nonce));
         }
         return orderbook;
 
@@ -1757,7 +1757,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &params]).into_dict();
+        let mut request: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &params]);
         return self.watch_request("privateUpdateOrder", Value::Dict(request)).await;
         Value::Null
         }).await?))
@@ -1857,7 +1857,7 @@ impl Bitvavo {
         let mut response: Option<crate::value::List> = self.safe_list_k_o(&message, "response");
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
-        let mut orders: crate::value::List = self.parse_orders(&response, None, &[]).into_list();
+        let mut orders: crate::value::List = self.parse_orders(&response, None, &[]);
         // let messageHash = this.buildMessageHash (action, { 'market': marketId });
         // client.resolve (orders, messageHash);
         // messageHash = this.buildMessageHash (action, message);
@@ -2071,7 +2071,7 @@ impl Bitvavo {
         // const action = this.safeString (message, 'action');
         let mut response: Option<crate::value::List> = self.safe_list_k_o(&message, "response");
         // const marketId = this.safeString (firstRawTrade, 'market');
-        let mut trades: crate::value::List = self.parse_trades(&response, None, &[Value::Null, Value::Null]).into_list();
+        let mut trades: crate::value::List = self.parse_trades(&response, None, &[Value::Null, Value::Null]);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         client.resolve(Value::Arr(trades), messageHash.as_deref());

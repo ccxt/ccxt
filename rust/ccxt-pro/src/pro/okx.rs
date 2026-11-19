@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -164,7 +164,7 @@ impl Okx {
             "handle_unsubscription_order_book" => { self.handle_unsubscription_order_book(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "handle_unsubscription_ticker" => { self.handle_unsubscription_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_my_liquidation" => self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1322,7 +1322,7 @@ impl Okx {
         let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut data: crate::value::List = message.key_list("data");
         let mut ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
-        let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, Some(&market)).into_dict();
+        let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, Some(&market));
         let mut symbol: Option<String> = self.safe_string_k_opt(&parsedTicker, "symbol", &[]);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
@@ -1331,7 +1331,7 @@ impl Okx {
         client.resolve(Value::Dict(parsedTicker), messageHash.as_str());
 }
 
-    pub fn parse_ws_bid_ask(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "instId", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
@@ -1353,7 +1353,7 @@ impl Okx {
             bid = self.safe_string_opt(&firstBid, Value::Int(0), &[]);
             bidVolume = self.safe_string_opt(&firstBid, Value::Int(1), &[]);
         }
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1364,9 +1364,9 @@ impl Okx {
         m.insert("bidVolume".to_string(), bidVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), ticker);
     m
-}), Some(&marketResolved)));
+}), Some(&marketResolved));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2957,7 +2957,7 @@ impl Okx {
             let mut __for_first_556: bool = true;
             while { if !__for_first_556 { i += 1; } __for_first_556 = false; i < (data.len() as i64) } {
             let mut rawPosition: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut position: crate::value::Dict = self.parse_position(Value::from(&rawPosition), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_position(Value::from(&rawPosition), None);
             let mut contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[]).as_f64();
             if (contracts == Some(0.0)) && (self.safe_string_k(&rawPosition, "posSide", &[]).as_str() == Some("net")) {
                 std::sync::Arc::make_mut(&mut position).insert("side".into(), Value::Str("long".into()));
@@ -3135,7 +3135,7 @@ impl Okx {
             }
             let mut stored: Value = (if (channel.as_deref() == Some("orders-algo")) { self.triggerOrders.clone() } else { Value::from(&self.orders) });
             let mut marketIds: Vec<Value> = Vec::new();
-            let mut parsed: Vec<Value> = self.parse_orders(Value::Arr(orders), None, &[]).as_array().cloned().unwrap_or_default();
+            let mut parsed: Vec<Value> = Value::Arr(self.parse_orders(Value::Arr(orders), None, &[])).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_557: bool = true;
@@ -3221,7 +3221,7 @@ impl Okx {
         let mut arg: crate::value::Dict = message.key_dict("arg");
         let mut channel: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let mut rawOrders: crate::value::List = message.key_list("data");
-        let mut filteredOrders: Vec<Value> = Vec::new();
+        let mut filteredOrders: Vec<crate::value::Dict> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_559: bool = true;
@@ -3230,7 +3230,7 @@ impl Okx {
             let mut tradeId: String = self.safe_string_k(&rawOrder, "tradeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if ((tradeId.chars().count() as i64)) > 0 {
                 let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
-                filteredOrders.push(Value::Dict(order));
+                filteredOrders.push(order);
             }
         }
         }
@@ -3251,7 +3251,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_560: bool = true;
             while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (filteredOrders.len() as i64) } {
-            let mut rawTrade: crate::value::Dict = filteredOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rawTrade: crate::value::Dict = filteredOrders.get(i as usize).cloned().unwrap_or_default();
             let mut trade: crate::value::Dict = self.order_to_trade(Value::Dict(rawTrade), None).into_dict();
             myTrades.append(Value::from(&trade));
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
@@ -3383,7 +3383,7 @@ impl Okx {
                 m
             }), Value::Str("".into()));
         }
-        let mut orders: crate::value::List = self.parse_orders(args, None, &[Value::Null, Value::Null]).into_list();
+        let mut orders: crate::value::List = self.parse_orders(args, None, &[Value::Null, Value::Null]);
         let mut first: Option<crate::value::Dict> = self.safe_dict_or_o(&orders, Value::Int(0), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3431,7 +3431,7 @@ impl Okx {
         let opparamsOpVariable = self.handle_option_string_and_params(params, Value::Str("editOrderWs".into()), Value::Str("op".into()), &[Value::Str("amend-order".into())]);
         let mut op: Option<String> = opparamsOpVariable.0.as_str().map(str::to_owned);
         let mut paramsOp: crate::value::Dict = opparamsOpVariable.1;
-        let mut args: Value = self.parent.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &Value::from(&paramsOp)]);
+        let mut args: Value = Value::Dict(self.parent.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&amount, &price, &Value::from(&paramsOp)]));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
         if (instIdCode.is_some()) {
@@ -3661,7 +3661,7 @@ impl Okx {
                 m
             }), Value::Str("".into()));
         }
-        let mut orders: crate::value::List = self.parse_orders(args, None, &[Value::Null, Value::Null]).into_list();
+        let mut orders: crate::value::List = self.parse_orders(args, None, &[Value::Null, Value::Null]);
         client.resolve(Value::Arr(orders), messageHash.as_deref());
 }
 

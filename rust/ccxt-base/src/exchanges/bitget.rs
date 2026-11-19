@@ -818,17 +818,21 @@ impl crate::exchange::DerivedExchange for Bitget {
             contract = true;
             inverse = Some(base == settle);
             linear = Some(!(inverse == Some(true)));
-            let mut pricePlaces: Value = self.safe_integer_k(&market, "pricePlace", &[]);
-            let mut volumePlaces: Value = self.safe_integer_k(&market, "volumePlace", &[]);
+            let mut pricePlaces: Option<i64> = self.safe_integer_k(&market, "pricePlace", &[]).as_i64();
+            let mut volumePlaces: Option<i64> = self.safe_integer_k(&market, "volumePlace", &[]).as_i64();
             let mut priceEndStep: Option<String> = self.safe_string_k_opt(&market, "priceEndStep", &[]);
             let mut sizeMultiplier: Option<String> = self.safe_string_k_opt(&market, "sizeMultiplier", &[]);
             let mut precise = Precise::new(priceEndStep.map(Value::from).unwrap_or(Value::Null));
-            { let __sv_tmp = crate::runtime::Math::max(&get_value(&precise, &Value::Str("decimals".into())), &pricePlaces); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+            if (pricePlaces.is_some()) {
+                { let __sv_tmp = crate::runtime::Math::max(&get_value(&precise, &Value::Str("decimals".into())), &Value::from(pricePlaces)); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+            }
             precise.reduce();
             let mut priceString: Value = to_string_val(&precise);
             pricePrecision = self.parse_number(priceString, &[]);
             let mut preciseAmount = Precise::new(sizeMultiplier.map(Value::from).unwrap_or(Value::Null));
-            { let __sv_tmp = crate::runtime::Math::max(&get_value(&preciseAmount, &Value::Str("decimals".into())), &volumePlaces); crate::set_value(&mut preciseAmount, &Value::Str("decimals".into()), __sv_tmp); }
+            if (volumePlaces.is_some()) {
+                { let __sv_tmp = crate::runtime::Math::max(&get_value(&preciseAmount, &Value::Str("decimals".into())), &Value::from(volumePlaces)); crate::set_value(&mut preciseAmount, &Value::Str("decimals".into()), __sv_tmp); }
+            }
             preciseAmount.reduce();
             let mut amountString: Value = to_string_val(&preciseAmount);
             amountPrecision = self.parse_number(amountString, &[]);
@@ -937,7 +941,7 @@ impl crate::exchange::DerivedExchange for Bitget {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         //
         // fetchPosition
@@ -1142,7 +1146,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         let mut feeToClose: Option<String> = crate::precise::Precise::stringMul(&notional, &calcTakerFeeRate).as_str().map(str::to_owned);
         let mut maintenanceMargin: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&maintenanceMarginPercentage, &notional), &feeToClose).as_str().map(str::to_owned);
         let mut percentage: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnl, &initialMargin, &Value::Int(4)), &Value::Str("100".into())).as_str().map(str::to_owned);
-        return self.safe_position(Value::Map({
+        return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string2(&position, Value::Str("orderId".into()), Value::Str("positionId".into()), &[]));
@@ -1174,9 +1178,9 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut contract: Value = contract.into();
@@ -1365,7 +1369,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.safe_integer2(&item, Value::Str("cTime".into()), Value::Str("ts".into()), &[]).as_i64();
         let mut balanceString: Option<String> = self.safe_string_k_opt(&item, "balance", &[]);
-        let mut after: Option<f64> = self.parse_number(balanceString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut after: Option<f64> = self.parse_number(&balanceString, &[]).as_f64();
         let mut feeCostString: Option<String> = self.safe_string2_opt(&item, Value::Str("fees".into()), Value::Str("fee".into()), &[]);
         let mut feeCost: Option<f64> = None;
         if (feeCostString.is_some()) {
@@ -1409,7 +1413,7 @@ impl crate::exchange::DerivedExchange for Bitget {
 
     Value::Null
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let mut transfer: Value = transfer.into();
         //
         // transfer
@@ -1443,7 +1447,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         let mut fromAccount: Option<String> = self.safe_string_opt(&accountsById, fromAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountRaw.map(Value::from).unwrap_or(Value::Null)]);
         let mut toAccountRaw: Option<String> = self.safe_string_k_opt(&transfer, "toType", &[]);
         let mut toAccount: Option<String> = self.safe_string_opt(&accountsById, toAccountRaw.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountRaw.map(Value::from).unwrap_or(Value::Null)]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), self.safe_string_k(&transfer, "transferId", &[]));
@@ -1455,9 +1459,9 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transfer_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
@@ -1766,7 +1770,7 @@ impl crate::exchange::DerivedExchange for Bitget {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("cost".to_string(), self.parse_number(feeCostAbsString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+                    m.insert("cost".to_string(), self.parse_number(&feeCostAbsString, &[]));
                 m
             }));
             amountString = crate::precise::Precise::stringSub(&amountString, &feeCostAbsString).as_str().map(str::to_owned);
@@ -2413,12 +2417,12 @@ impl crate::exchange_generated::ExchangeBase for Bitget {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_uta_balance" => self.parse_uta_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_uta_market" => self.parse_uta_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy)),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
@@ -8663,7 +8667,7 @@ if _try_result.is_err() {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMarketLeverageTiers() requires a code argument")));
             }
             paramsMarginMode = self.omit_t(&paramsMarginMode, Value::Str("code".into()), &[]);
-            let mut currency: crate::types::Currency = self.currency(code.map(Value::from).unwrap_or(Value::Null));
+            let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.call_method_o("private_margin_get_v2_margin_crossed_tier_data", &[&__ws_arg_5]).await;
@@ -8808,7 +8812,7 @@ if _try_result.is_err() {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (limit != Value::Null) {
@@ -8955,14 +8959,14 @@ if _try_result.is_err() {
         let utaparamsUTAVariable = self.handle_uta_and_params(&paramsNetworkCode, Some("withdraw"), &[&Value::Bool(false)]).await;
         let mut uta: bool = utaparamsUTAVariable.0.as_bool() == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.1;
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut networkId: Option<String> = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("address".to_string(), address.clone());
                 m.insert("chain".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("size".to_string(), Value::from(self.currency_to_precision(code.clone(), amount.clone(), &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)])));
+                m.insert("size".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount.clone(), &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)])));
                 m.insert("transferType".to_string(), Value::Str("on_chain".into()));
             m
         });
@@ -9052,7 +9056,7 @@ if _try_result.is_err() {
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         let mut defaultWindow: i64 = 7776000000; // uta allows a window of 30 days at most, else 90 days
         if (uta) {
@@ -9230,7 +9234,7 @@ if _try_result.is_err() {
         let networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(&paramsUTA);
         let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.0.as_str().map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.1;
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -9691,7 +9695,7 @@ if _try_result.is_err() {
         let mut symbolsResolved: Option<crate::value::List> = symbols.clone().into_opt_list();
         if isStock && (symbols == Value::Null) {
             // for returning only tokenized stock symbols
-            symbolsResolved = Value::from(vec![]).into_opt_list();
+            symbolsResolved = Some(std::sync::Arc::new(vec![]));
             let mut allSymbols: crate::value::List = self.symbols.clone();
             {
                                 let mut i: i64 = 0;
@@ -10011,7 +10015,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -11029,8 +11033,8 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -11061,7 +11065,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("category".to_string(), productType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("qty".to_string(), Value::from(self.amount_to_precision(Value::from(symbol), amount)));
+                m.insert("qty".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
                 m.insert("side".to_string(), Value::from(side));
             m
         });
@@ -11083,9 +11087,9 @@ if _try_result.is_err() {
             if isStopLossTrigger {
                 let mut slType: String = self.safe_string_k(&paramsProductType, "slTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                 request.insert("slTriggerBy".into(), Value::from(slType));
-                request.insert("stopLoss".into(), Value::from(self.price_to_precision(Value::from(symbol), stopLossTriggerPrice)));
+                request.insert("stopLoss".into(), Value::from(self.price_to_precision(symbol, stopLossTriggerPrice)));
                 if (price != Value::Null) {
-                    request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone())));
+                    request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol, price.clone())));
                     request.insert("slOrderType".into(), self.safe_string_k(&paramsProductType, "slOrderType", &[Value::Str("limit".into())]));
                 }  else {
                     request.insert("slOrderType".into(), self.safe_string_k(&paramsProductType, "slOrderType", &[Value::Str("market".into())]));
@@ -11093,9 +11097,9 @@ if _try_result.is_err() {
             }  else if isTakeProfitTrigger {
                 let mut tpType: String = self.safe_string_k(&paramsProductType, "tpTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                 request.insert("tpTriggerBy".into(), Value::from(tpType));
-                request.insert("takeProfit".into(), Value::from(self.price_to_precision(Value::from(symbol), takeProfitTriggerPrice)));
+                request.insert("takeProfit".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice)));
                 if (price != Value::Null) {
-                    request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone())));
+                    request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol, price.clone())));
                     request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("limit".into())]));
                 }  else {
                     request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("market".into())]));
@@ -11106,9 +11110,9 @@ if _try_result.is_err() {
             if hasStopLoss {
                 let mut slTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 let mut slLimitPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
-                request.insert("stopLoss".into(), Value::from(self.price_to_precision(Value::from(symbol), slTriggerPrice)));
+                request.insert("stopLoss".into(), Value::from(self.price_to_precision(symbol, slTriggerPrice)));
                 if (slLimitPrice.is_some()) {
-                    request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), slLimitPrice)));
+                    request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol, slLimitPrice)));
                     request.insert("slOrderType".into(), self.safe_string_k(&paramsProductType, "slOrderType", &[Value::Str("limit".into())]));
                 }  else {
                     request.insert("slOrderType".into(), self.safe_string_k(&paramsProductType, "slOrderType", &[Value::Str("market".into())]));
@@ -11117,9 +11121,9 @@ if _try_result.is_err() {
             if hasTakeProfit {
                 let mut tpTriggerPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
                 let mut tpLimitPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
-                request.insert("takeProfit".into(), Value::from(self.price_to_precision(Value::from(symbol), tpTriggerPrice)));
+                request.insert("takeProfit".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice)));
                 if (tpLimitPrice.is_some()) {
-                    request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), tpLimitPrice)));
+                    request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol, tpLimitPrice)));
                     request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("limit".into())]));
                 }  else {
                     request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("market".into())]));
@@ -11127,7 +11131,7 @@ if _try_result.is_err() {
             }
             let mut isMarketOrder: bool = type_var.map(str::to_owned).as_deref() == Some("market");
             if !isMarketOrder {
-                request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price)));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             }
             request.insert("orderType".into(), Value::from(type_var));
             let mut exchangeSpecificTifParam: Option<String> = self.safe_string_k_opt(&paramsProductType, "timeInForce", &[]);
@@ -11235,7 +11239,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")));
         }
         if (type_var == Some("limit")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), Value::from(self.price_to_precision(symbol, price.clone()))); }
         }
         let mut triggerPriceType: String = self.safe_string2(&paramsMarketType, Value::Str("triggerPriceType".into()), Value::Str("triggerType".into()), &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
         let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsMarketType, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
@@ -11260,7 +11264,7 @@ if _try_result.is_err() {
         paramsMarketType = self.omit_t(&paramsMarketType, &["stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"], &[]);
         if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginCoin".into(), crate::value::KeyRead::key_read(&&market, "settleId")); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), Value::from(self.amount_to_precision(Value::from(symbol), amount.clone()))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), Value::from(self.amount_to_precision(symbol, amount.clone()))); }
             let mut productType: Option<String> = None;
             { let __destr_tmp = self.handle_product_type_and_params(Some(&market), &[Value::from(&paramsMarketType)]); productType = __destr_tmp.0.as_str().map(str::to_owned); paramsMarketType = __destr_tmp.1; }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null)); }
@@ -11278,33 +11282,33 @@ if _try_result.is_err() {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() bitget trailing orders must have a trailingTriggerPrice param")));
                 }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::Str("track_plan".into())); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("callbackRatio".into(), trailingPercent.map(Value::from).unwrap_or(Value::Null)); }
             }  else if isTriggerOrder {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::Str("normal_plan".into())); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), triggerPrice))); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice))); }
                 if (price != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone()))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(symbol, price.clone()))); }
                 }
                 if hasStopLoss {
                     let mut slTriggerPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), slTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerPrice".into(), Value::from(self.price_to_precision(symbol, slTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
                     let mut slPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossExecutePrice".into(), Value::from(self.price_to_precision(Value::from(symbol), slPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossExecutePrice".into(), Value::from(self.price_to_precision(symbol, slPrice.map(Value::from).unwrap_or(Value::Null)))); }
                     let mut slType: String = self.safe_string_k(&stopLoss, "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerType".into(), Value::from(slType)); }
                 }
                 if hasTakeProfit {
                     let mut tpTriggerPrice: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusTriggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), tpTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusTriggerPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
                     let mut tpPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusExecutePrice".into(), Value::from(self.price_to_precision(Value::from(symbol), tpPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusExecutePrice".into(), Value::from(self.price_to_precision(symbol, tpPrice.map(Value::from).unwrap_or(Value::Null)))); }
                     let mut tpType: String = self.safe_string_k(&takeProfit, "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusTriggerType".into(), Value::from(tpType)); }
                 }
             }  else if isStopLossOrTakeProfitTrigger {
                 if (price != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone()))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(symbol, price.clone()))); }
                     if (matches!(&request, Value::Dict(__d) if __d.contains_key("price"))) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).shift_remove("price"); }
                     }
@@ -11315,10 +11319,10 @@ if _try_result.is_err() {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("holdSide".into(), (if (side == Some("sell")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) })); }
                 }
                 if isStopLossTriggerOrder {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), stopLossTriggerPrice))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, stopLossTriggerPrice))); }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::Str("pos_loss".into())); }
                 }  else if isTakeProfitTriggerOrder {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), takeProfitTriggerPrice))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice))); }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::Str("pos_profit".into())); }
                 }
             }  else {
@@ -11327,12 +11331,12 @@ if _try_result.is_err() {
                     if (slTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")));
                     }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopLossPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), slTriggerPrice))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopLossPrice".into(), Value::from(self.price_to_precision(symbol, slTriggerPrice))); }
                     let mut slLimitPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
                     if (slLimitPrice.is_some()) {
                         // without the execute price the exchange fills the attached stop loss
                         // at the market price, see https://github.com/ccxt/ccxt/issues/23459
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopLossExecutePrice".into(), Value::from(self.price_to_precision(Value::from(symbol), slLimitPrice))); }
+                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopLossExecutePrice".into(), Value::from(self.price_to_precision(symbol, slLimitPrice))); }
                     }
                 }
                 if hasTakeProfit {
@@ -11340,10 +11344,10 @@ if _try_result.is_err() {
                     if (tpTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")));
                     }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopSurplusPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), tpTriggerPrice))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopSurplusPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice))); }
                     let mut tpLimitPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
                     if (tpLimitPrice.is_some()) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopSurplusExecutePrice".into(), Value::from(self.price_to_precision(Value::from(symbol), tpLimitPrice))); }
+                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopSurplusExecutePrice".into(), Value::from(self.price_to_precision(symbol, tpLimitPrice))); }
                     }
                 }
             }
@@ -11383,22 +11387,22 @@ if _try_result.is_err() {
                 let mut cost: Option<f64> = self.safe_number_k(&paramsMarketType, "cost", &[]).as_f64();
                 paramsMarketType = self.omit_t(&paramsMarketType, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    quantity = self.cost_to_precision(Value::from(symbol), cost);
+                    quantity = self.cost_to_precision(symbol, cost);
                 }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")));
                     }  else {
-                        let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                        let mut amountString: Option<String> = self.number_to_string(&amount);
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
-                        quantity = self.cost_to_precision(Value::from(symbol), quoteAmount.map(Value::from).unwrap_or(Value::Null));
+                        quantity = self.cost_to_precision(symbol, quoteAmount.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
-                    quantity = self.cost_to_precision(Value::from(symbol), amount.clone());
+                    quantity = self.cost_to_precision(symbol, amount.clone());
                 }
             }  else {
                 planType = Some("amount".to_string());
-                quantity = self.amount_to_precision(Value::from(symbol), amount);
+                quantity = self.amount_to_precision(symbol, amount);
             }
             if (clientOrderId.is_some()) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
@@ -11417,9 +11421,9 @@ if _try_result.is_err() {
                 if (triggerPrice.is_some()) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), planType.map(Value::from).unwrap_or(Value::Null)); }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerType".into(), Value::from(triggerPriceType)); }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), triggerPrice))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice))); }
                     if (price != Value::Null) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(Value::from(symbol), price))); }
+                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(symbol, price))); }
                     }
                 }
             }
@@ -11492,7 +11496,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, Some(&market), &[]);
+        return Value::Arr(self.parse_orders(&data, Some(&market), &[]));
 
     Value::Null
 }
@@ -11621,7 +11625,7 @@ if _try_result.is_err() {
         let mut failure: crate::value::List = self.safe_list_k_t(&data, "failureList");
         let mut orderInfo: crate::value::List = self.safe_list_k_t(&data, "successList");
         let mut both: crate::value::List = self.array_concat_t(&orderInfo, &failure);
-        return self.parse_orders(&both, Some(&market), &[]);
+        return Value::Arr(self.parse_orders(&both, Some(&market), &[]));
         Value::Null
         }).await?))
     }
@@ -11702,7 +11706,7 @@ if _try_result.is_err() {
         let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k_o(&params, "takeProfit");
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
-        let mut trailingTriggerPrice: Option<String> = self.safe_string_k_opt(&params, "trailingTriggerPrice", &[Value::from(self.number_to_string(price.clone()))]);
+        let mut trailingTriggerPrice: Option<String> = self.safe_string_k_opt(&params, "trailingTriggerPrice", &[Value::from(self.number_to_string(&price))]);
         let mut trailingPercent: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingPercent".into()), Value::Str("newCallbackRatio".into()), &[]);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         // const multipleTriggers = (isTriggerOrder && (isStopLossOrder || isTakeProfitOrder || isTrailingPercentOrder))
@@ -11722,15 +11726,15 @@ if _try_result.is_err() {
         { let __destr_tmp = self.handle_uta_and_params(&paramsOmitted, Some("editOrder"), &[&Value::Bool(false)]).await; uta = __destr_tmp.0.as_bool(); paramsOmitted = __destr_tmp.1; }
         if (uta == Some(true)) {
             if (amount != Value::Null) {
-                request.insert("qty".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+                request.insert("qty".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
             }
             if isStopLossOrder || isTakeProfitOrder {
                 if isStopLossOrder {
                     let mut slType: String = self.safe_string_k(&paramsOmitted, "slTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("slTriggerBy".into(), Value::from(slType));
-                    request.insert("stopLoss".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
+                    request.insert("stopLoss".into(), Value::from(self.price_to_precision(symbol.as_str(), stopLossPrice)));
                     if (price != Value::Null) {
-                        request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                        request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
                         request.insert("slOrderType".into(), self.safe_string_k(&paramsOmitted, "slOrderType", &[Value::Str("limit".into())]));
                     }  else {
                         request.insert("slOrderType".into(), self.safe_string_k(&paramsOmitted, "slOrderType", &[Value::Str("market".into())]));
@@ -11738,9 +11742,9 @@ if _try_result.is_err() {
                 }  else if isTakeProfitOrder {
                     let mut tpType: String = self.safe_string_k(&paramsOmitted, "tpTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("tpTriggerBy".into(), Value::from(tpType));
-                    request.insert("takeProfit".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice)));
+                    request.insert("takeProfit".into(), Value::from(self.price_to_precision(symbol.as_str(), takeProfitPrice)));
                     if (price != Value::Null) {
-                        request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                        request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
                         request.insert("tpOrderType".into(), self.safe_string_k(&paramsOmitted, "tpOrderType", &[Value::Str("limit".into())]));
                     }  else {
                         request.insert("tpOrderType".into(), self.safe_string_k(&paramsOmitted, "tpOrderType", &[Value::Str("market".into())]));
@@ -11751,7 +11755,7 @@ if _try_result.is_err() {
                 response = self.call_method_o("private_uta_post_v3_trade_modify_strategy_order", &[&__ws_arg_48]).await;
             }  else {
                 if (price != Value::Null) {
-                    request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                    request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
                 }
                 let __ws_arg_49 = self.extend(&request, &[&paramsOmitted]);
                 response = self.call_method_o("private_uta_post_v3_trade_modify_order", &[&__ws_arg_49]).await;
@@ -11764,27 +11768,27 @@ if _try_result.is_err() {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")));
                 }  else {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
-                    let mut priceString: Option<String> = self.number_to_string(price.clone());
+                    let mut amountString: Option<String> = self.number_to_string(&amount);
+                    let mut priceString: Option<String> = self.number_to_string(&price);
                     let mut finalCost: Option<String> = cost.clone();
                     if (cost.is_none()) {
                         finalCost = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     }
-                    request.insert("size".into(), Value::from(self.price_to_precision(symbol.clone(), finalCost.map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("size".into(), Value::from(self.price_to_precision(symbol.as_str(), finalCost.map(Value::from).unwrap_or(Value::Null))));
                 }
             }  else {
-                request.insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+                request.insert("size".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
             }
             request.insert("orderType".into(), type_var);
             if (triggerPrice.is_some()) {
-                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
                 // market plan orders carry no execute price, follow up to
                 // https://github.com/ccxt/ccxt/issues/25427
                 if (price != Value::Null) {
-                    request.insert("executePrice".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                    request.insert("executePrice".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
                 }
             }  else {
-                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
             }
             if (triggerPrice.is_some()) {
                 let __ws_arg_50 = self.extend(&request, &[&paramsOmitted]);
@@ -11802,10 +11806,10 @@ if _try_result.is_err() {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             if !isTakeProfitOrder && !isStopLossOrder {
                 if (amount != Value::Null) {
-                    request.insert("newSize".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+                    request.insert("newSize".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount.clone())));
                 }
                 if (price != Value::Null) && !isTrailingPercentOrder {
-                    request.insert("newPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                    request.insert("newPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
                 }
             }
             if isTrailingPercentOrder {
@@ -11813,39 +11817,39 @@ if _try_result.is_err() {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " editOrder() bitget trailing orders must be market orders")));
                 }
                 if (trailingTriggerPrice.is_some()) {
-                    request.insert("newTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("newTriggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
                 }
                 request.insert("newCallbackRatio".into(), trailingPercent.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_52 = self.extend(&request, &[&paramsOmitted]);
                 response = self.call_method_o("private_mix_post_v2_mix_order_modify_plan_order", &[&__ws_arg_52]).await;
             }  else if isTakeProfitOrder || isStopLossOrder {
                 request.insert("marginCoin".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
-                request.insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                request.insert("size".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
                 if (price != Value::Null) {
-                    request.insert("executePrice".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+                    request.insert("executePrice".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
                 }
                 if isStopLossOrder {
-                    request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
+                    request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), stopLossPrice)));
                 }  else if isTakeProfitOrder {
-                    request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice)));
+                    request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), takeProfitPrice)));
                 }
                 let __ws_arg_53 = self.extend(&request, &[&paramsOmitted]);
                 response = self.call_method_o("private_mix_post_v2_mix_order_modify_tpsl_order", &[&__ws_arg_53]).await;
             }  else if isTriggerOrder {
-                request.insert("newTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
+                request.insert("newTriggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
                 if hasStopLoss {
                     let mut slTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-                    request.insert("newStopLossTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), slTriggerPrice)));
+                    request.insert("newStopLossTriggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), slTriggerPrice)));
                     let mut slPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
-                    request.insert("newStopLossExecutePrice".into(), Value::from(self.price_to_precision(symbol.clone(), slPrice)));
+                    request.insert("newStopLossExecutePrice".into(), Value::from(self.price_to_precision(symbol.as_str(), slPrice)));
                     let mut slType: String = self.safe_string_k(&stopLoss, "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
                     request.insert("newStopLossTriggerType".into(), Value::from(slType));
                 }
                 if hasTakeProfit {
                     let mut tpTriggerPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-                    request.insert("newSurplusTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), tpTriggerPrice)));
+                    request.insert("newSurplusTriggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), tpTriggerPrice)));
                     let mut tpPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
-                    request.insert("newStopSurplusExecutePrice".into(), Value::from(self.price_to_precision(symbol.clone(), tpPrice)));
+                    request.insert("newStopSurplusExecutePrice".into(), Value::from(self.price_to_precision(symbol.as_str(), tpPrice)));
                     let mut tpType: String = self.safe_string_k(&takeProfit, "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
                     request.insert("newStopSurplusTriggerType".into(), Value::from(tpType));
                 }
@@ -11858,11 +11862,11 @@ if _try_result.is_err() {
                 request.insert("newClientOid".into(), newClientOrderId.map(Value::from).unwrap_or(Value::Null));
                 if hasStopLoss {
                     let mut slTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-                    request.insert("newPresetStopLossPrice".into(), Value::from(self.price_to_precision(symbol.clone(), slTriggerPrice)));
+                    request.insert("newPresetStopLossPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), slTriggerPrice)));
                 }
                 if hasTakeProfit {
                     let mut tpTriggerPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-                    request.insert("newPresetStopSurplusPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice)));
+                    request.insert("newPresetStopSurplusPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), tpTriggerPrice)));
                 }
                 let __ws_arg_55 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.call_method_o("private_mix_post_v2_mix_order_modify_order", &[&__ws_arg_55]).await;
@@ -11880,8 +11884,8 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -12096,8 +12100,8 @@ if _try_result.is_err() {
                 order = Value::Dict(data);
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, order, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, order, Some(&market));
+        None
         }).await?))
     }
 
@@ -12146,7 +12150,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, Some(&market), &[]);
+        return Value::Arr(self.parse_orders(&data, Some(&market), &[]));
 
     Value::Null
 }
@@ -12266,7 +12270,7 @@ if _try_result.is_err() {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "successList");
-        return self.parse_orders(&orders, Some(&market), &[]);
+        return Value::Arr(self.parse_orders(&orders, Some(&market), &[]));
         Value::Null
         }).await?))
     }
@@ -12387,7 +12391,7 @@ if _try_result.is_err() {
         }  else {
             responseList = resultList.map_or(Value::Null, Value::Arr);
         }
-        return self.parse_orders(responseList, None, &[]);
+        return Value::Arr(self.parse_orders(responseList, None, &[]));
         Value::Null
         }).await?))
     }
@@ -12574,7 +12578,7 @@ if _try_result.is_err() {
         let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
         if (data.is_some()) {
             if !(false) {
-                return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+                return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
             }
         }
         let mut dataList: crate::value::List = self.safe_list_k_t(&response, "data");
@@ -12583,8 +12587,8 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order id ").into()), id).into()), " in ").into()), json_stringify(&response))));
         }
         let mut first: crate::value::Dict = self.safe_dict_t(&dataList, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &first, Some(&market));
+        None
         }).await?))
     }
 
@@ -13012,17 +13016,17 @@ if _try_result.is_err() {
             }  else {
                 result = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
             }
-            return self.parse_orders(result, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]);
+            return Value::Arr(self.parse_orders(result, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]));
         }  else if (type_var.as_deref() == Some("spot")) {
             if (marginMode.is_some()) || (trigger == Some(true)) {
                 let mut resultList: crate::value::List = self.safe_list_k_t(&data, "orderList");
-                return self.parse_orders(&resultList, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]);
+                return Value::Arr(self.parse_orders(&resultList, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]));
             }
         }  else {
             let mut result: crate::value::List = self.safe_list_k_t(&data, "entrustedList");
-            return self.parse_orders(&result, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]);
+            return Value::Arr(self.parse_orders(&result, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]));
         }
-        return self.parse_orders(data, market.as_ref(), &[Value::from(sinceResolved), limit]);
+        return Value::Arr(self.parse_orders(data, market.as_ref(), &[Value::from(sinceResolved), limit]));
         Value::Null
         }).await?))
     }
@@ -13446,17 +13450,17 @@ if _try_result.is_err() {
         if (marketType.as_deref() == Some("spot")) {
             if (marginMode.is_some()) || (trigger == Some(true)) {
                 let mut orderList: Option<crate::value::List> = self.safe_list_k_o(&data, "orderList");
-                return self.parse_orders(&orderList, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]);
+                return Value::Arr(self.parse_orders(&orderList, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]));
             }
         }  else {
             let mut entrustedList: Option<crate::value::List> = self.safe_list_k_o(&data, "entrustedList");
-            return self.parse_orders(&entrustedList, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]);
+            return Value::Arr(self.parse_orders(&entrustedList, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]));
         }
         if matches!(&response, Value::Str(_)) {
             response = json_parse(&response);
         }
         let mut orders: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&orders, market.as_ref(), &[Value::from(sinceResolved), limit]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[Value::from(sinceResolved), limit]));
         Value::Null
         }).await?))
     }
@@ -13595,7 +13599,7 @@ if _try_result.is_err() {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orders: crate::value::List = self.safe_list_k_t(&data, "list");
-        return self.parse_orders(&orders, market.as_ref(), &[Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[Value::from(since), Value::from(limit)]));
 
     Value::Null
 }
@@ -13690,7 +13694,7 @@ if _try_result.is_err() {
             m
         }).into_dict();
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             std::sync::Arc::make_mut(&mut request).insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         { let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), &paramsOmitted, &[]); request = __until0; paramsOmitted = __until1; }
@@ -14226,15 +14230,15 @@ if _try_result.is_err() {
         let mut data: Value = self.safe_value_k(&response, "data", &[]);
         if (uta == Some(true)) {
             let mut fills: crate::value::List = self.safe_list_k_t(&data, "list");
-            return self.parse_trades(&fills, Some(&market), &[since.clone(), limit.clone()]);
+            return Value::Arr(self.parse_trades(&fills, Some(&market), &[since.clone(), limit.clone()]));
         }  else if ((market).swap || (market).future) {
             let mut fills: crate::value::List = self.safe_list_k_t(&data, "fillList");
-            return self.parse_trades(&fills, Some(&market), &[since.clone(), limit.clone()]);
+            return Value::Arr(self.parse_trades(&fills, Some(&market), &[since.clone(), limit.clone()]));
         }  else if (marginMode.is_some()) {
             let mut fills: crate::value::List = self.safe_list_k_t(&data, "fills");
-            return self.parse_trades(&fills, Some(&market), &[since.clone(), limit.clone()]);
+            return Value::Arr(self.parse_trades(&fills, Some(&market), &[since.clone(), limit.clone()]));
         }
-        return self.parse_trades(data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -14360,7 +14364,7 @@ if _try_result.is_err() {
             result = self.safe_list_k_or_o(&response, "data", Value::from(vec![]));
         }
         let mut first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &first, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -14574,7 +14578,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_387: bool = true;
             while { if !__for_first_387 { i += 1; } __for_first_387 = false; i < (position.len() as i64) } {
-            let mut parsedPosition: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, position.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).into_dict();
+            let mut parsedPosition: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, position.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).unwrap_or_default();
             result.push(Value::Dict(parsedPosition));
         }
         }
@@ -15111,7 +15115,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("marginCoin".to_string(), crate::value::KeyRead::key_read(&&market, "settleId"));
-                m.insert("amount".to_string(), Value::from(self.amount_to_precision(Value::from(symbol), amount.clone())));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(Some(symbol), amount.clone())));
                 m.insert("holdSide".to_string(), holdSide.map(Value::from).unwrap_or(Value::Null));
                 m.insert("productType".to_string(), productType.map(Value::from).unwrap_or(Value::Null));
             m
@@ -15555,7 +15559,7 @@ if _try_result.is_err() {
         paramsMarketType = self.omit_t(&paramsMarketType, Value::Str("fromAccount".into()), &[]);
         let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         type_var = self.safe_string_opt(&accountsByType, fromAccount.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -15634,7 +15638,7 @@ if _try_result.is_err() {
         let utaparamsUTAVariable = self.handle_uta_and_params(params, Some("transfer"), &[&Value::Bool(false)]).await;
         let mut uta: bool = utaparamsUTAVariable.0.as_bool() == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.1;
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut fromType: Option<String> = self.safe_string_opt(&accountsByType, fromAccount, &[]);
         let mut toType: Option<String> = self.safe_string_opt(&accountsByType, toAccount, &[]);
@@ -15677,7 +15681,7 @@ if _try_result.is_err() {
             m
         })]).as_map().cloned().unwrap_or_default();
         data.insert("ts".into(), self.safe_integer_k(&response, "requestTime", &[]));
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Value::Map(data), Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Value::Map(data), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -15777,11 +15781,11 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("borrowAmount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
+                m.insert("borrowAmount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
             m
         });
         let __ws_arg_135 = self.extend(Value::Map(request), &[params]);
@@ -15831,12 +15835,12 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("borrowAmount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
+                m.insert("borrowAmount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -15888,12 +15892,12 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("repayAmount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
+                m.insert("repayAmount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -15944,11 +15948,11 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("repayAmount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
+                m.insert("repayAmount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
             m
         });
         let __ws_arg_138 = self.extend(Value::Map(request), &[params]);
@@ -16334,7 +16338,7 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -16451,7 +16455,7 @@ if _try_result.is_err() {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code.clone()));
+            currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -16644,7 +16648,7 @@ if _try_result.is_err() {
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut orderInfo: crate::value::List = self.safe_list2_t(&data, Value::Str("successList".into()), Value::Str("list".into()));
-        return self.parse_positions(&orderInfo, &[Value::Null, Value::Dict(paramsUTA)]);
+        return Value::Arr(self.parse_positions(&orderInfo, &[Value::Null, Value::Dict(paramsUTA)]));
         Value::Null
         }).await?))
     }
@@ -16789,7 +16793,7 @@ if _try_result.is_err() {
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut responseList: crate::value::List = self.safe_list_k_t(&data, "list");
-        let mut positions: crate::value::List = self.parse_positions(&responseList, &[symbols, Value::Dict(paramsUTA)]).into_list();
+        let mut positions: crate::value::List = self.parse_positions(&responseList, &[symbols, Value::Dict(paramsUTA)]);
         return Value::Arr(self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
@@ -16849,9 +16853,9 @@ if _try_result.is_err() {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut fromCurrencyId: Option<String> = self.safe_string_k_opt(&data, "fromCoin", &[fromCode]);
-        let mut fromCurrency: crate::types::Currency = self.currency(fromCurrencyId.map(Value::from).unwrap_or(Value::Null));
+        let mut fromCurrency: crate::types::Currency = self.currency(fromCurrencyId.as_deref());
         let mut toCurrencyId: Option<String> = self.safe_string_k_opt(&data, "toCoin", &[toCode]);
-        let mut toCurrency: crate::types::Currency = self.currency(toCurrencyId.map(Value::from).unwrap_or(Value::Null));
+        let mut toCurrency: crate::types::Currency = self.currency(toCurrencyId.as_deref());
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &data, Some(&fromCurrency), Some(&toCurrency));
         Value::Null
         }).await?))
@@ -16924,7 +16928,7 @@ if _try_result.is_err() {
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut toCurrencyId: Option<String> = self.safe_string_k_opt(&data, "toCoin", &[toCode]);
-        let mut toCurrency: crate::types::Currency = self.currency(toCurrencyId.map(Value::from).unwrap_or(Value::Null));
+        let mut toCurrency: crate::types::Currency = self.currency(toCurrencyId.as_deref());
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &data, None, Some(&toCurrency));
         Value::Null
         }).await?))

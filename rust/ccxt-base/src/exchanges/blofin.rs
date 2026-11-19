@@ -197,8 +197,8 @@ impl crate::exchange::DerivedExchange for Blofin {
                     m.insert("type".to_string(), Value::Null);
                     m.insert("takerOrMaker".to_string(), Value::Null);
                     m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("price".to_string(), self.parse_number(price.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("amount".to_string(), self.parse_number(amount.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+                    m.insert("price".to_string(), self.parse_number(&price, &[]));
+                    m.insert("amount".to_string(), self.parse_number(&amount, &[]));
                     m.insert("cost".to_string(), Value::from(cost));
                     m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -433,7 +433,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("1".into()), &[]));
-        m.insert("max".to_string(), self.parse_number(maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("max".to_string(), self.parse_number(&maxLeverage, &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
@@ -534,7 +534,7 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     Value::Null
 }
-    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut position: Value = position.into();
         //
         // response similar for REST & WS
@@ -592,7 +592,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&pos).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k_opt(&position, "positionSide", &[]);
         let mut hedged: bool = side.as_deref() != Some("net");
-        let mut contracts: Option<f64> = self.parse_number(contractsAbs.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut contracts: Option<f64> = self.parse_number(&contractsAbs, &[]).as_f64();
         if (pos.is_some()) {
             if (side.as_deref() == Some("net")) {
                 if crate::precise::Precise::stringGt(&pos, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -613,7 +613,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         }  else if (notionalString.is_none()) {
             notionalString = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString).as_str().map(str::to_owned);
         }
-        let mut notional: Option<f64> = self.parse_number(notionalString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut notional: Option<f64> = self.parse_number(&notionalString, &[]).as_f64();
         let mut marginMode: Option<String> = self.safe_string_k_opt(&position, "marginMode", &[]);
         let mut initialMarginString: Option<String> = None;
         let mut entryPriceString: Option<String> = self.safe_string2_opt(&position, Value::Str("averagePrice".into()), Value::Str("openAveragePrice".into()), &[]);
@@ -635,7 +635,7 @@ impl crate::exchange::DerivedExchange for Blofin {
             }
         }
         let mut maintenanceMarginString: Option<String> = self.safe_string_k_opt(&position, "maintenanceMargin", &[]);
-        let mut maintenanceMargin: Option<f64> = self.parse_number(maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        let mut maintenanceMargin: Option<f64> = self.parse_number(&maintenanceMarginString, &[]).as_f64();
         let mut maintenanceMarginPercentageString: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalString).as_str().map(str::to_owned);
         if (initialMarginPercentageString.is_none()) {
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&initialMarginString, &notionalString, &Value::Int(4)).as_str().map(str::to_owned);
@@ -661,7 +661,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let mut percentage: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&percentageString, &Value::Str("100".into())), &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(&position, "updateTime", &[]).as_i64();
         let mut marginRatio: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4)), &[]).as_f64();
-        return self.safe_position(Value::Map({
+        return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
@@ -694,9 +694,9 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
-}));
+})));
 
-    Value::Null
+    None
 }
     fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut contract: Value = contract.into();
@@ -797,10 +797,10 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     Value::Null
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let mut transfer: Value = transfer.into();
         let mut id: Option<String> = self.safe_string_k_opt(&transfer, "transferId", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -812,9 +812,9 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("toAccount".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_currency(&self, chains: impl Into<crate::Value>) -> Value {
         let mut chains: Value = chains.into();
@@ -1299,12 +1299,12 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -2682,7 +2682,7 @@ impl Blofin {
             response = self.call_method_o("public_get_market_trades", &[&__ws_arg_3]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2991,7 +2991,7 @@ impl Blofin {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (accountType.is_some()) && (accountType.as_deref() != Some("swap")) {
-            let mut parsedAccountType: Option<String> = self.safe_string_opt(self.options.get("accountsByType").cloned().unwrap_or(Value::Null), accountType.clone().map(Value::from).unwrap_or(Value::Null), &[accountType.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut parsedAccountType: Option<String> = self.safe_string_opt(self.options.get("accountsByType").cloned().unwrap_or(Value::Null), &accountType, &[accountType.clone().map(Value::from).unwrap_or(Value::Null)]);
             request.insert("accountType".into(), parsedAccountType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_7 = self.extend(&request, &[&paramsAccountType]);
             response = self.call_method_o("private_get_asset_balances", &[&__ws_arg_7]).await;
@@ -3022,7 +3022,7 @@ impl Blofin {
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), Value::from(side));
                 m.insert("orderType".to_string(), Value::from(type_var));
-                m.insert("size".to_string(), Value::from(self.amount_to_precision(Value::from(symbol), amount)));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
                 m.insert("brokerId".to_string(), self.safe_string_k(&self.options, "brokerId", &[Value::Str("ec6dd3a7dd982d0b".into())]));
             m
         });
@@ -3048,7 +3048,7 @@ impl Blofin {
             if (triggerPriceAny.is_some()) {
                 key = "orderPrice".to_string();
             }
-            request.insert(key, Value::from(self.price_to_precision(Value::from(symbol), price)));
+            request.insert(key, Value::from(self.price_to_precision(symbol, price)));
         }
         let mut postOnly: bool = false;
         { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(type_var == Some("post_only")), &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }
@@ -3063,19 +3063,19 @@ impl Blofin {
         if hasStopLoss || hasTakeProfit {
             if hasStopLoss {
                 let mut slTriggerPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-                request.insert("slTriggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), slTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("slTriggerPrice".into(), Value::from(self.price_to_precision(symbol, slTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
                 let mut slOrderPrice: String = self.safe_string_k(&stopLoss, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
-                request.insert("slOrderPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), Value::from(slOrderPrice))));
+                request.insert("slOrderPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(slOrderPrice))));
             }
             if hasTakeProfit {
                 let mut tpTriggerPrice: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-                request.insert("tpTriggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), tpTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("tpTriggerPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
                 let mut tpPrice: String = self.safe_string_k(&takeProfit, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
-                request.insert("tpOrderPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), Value::from(tpPrice))));
+                request.insert("tpOrderPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(tpPrice))));
             }
         }  else if (triggerPriceAny.is_some()) {
             request.insert("orderType".into(), Value::Str("trigger".into()));
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), triggerPriceAny.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPriceAny.map(Value::from).unwrap_or(Value::Null))));
             if isMarketOrder {
                 request.insert("orderPrice".into(), Value::Str("-1".into()));
             }
@@ -3213,7 +3213,7 @@ impl Blofin {
             m
         });
         if (amount != Value::Null) {
-            request.insert("size".into(), Value::from(self.amount_to_precision(Value::from(symbol), amount)));
+            request.insert("size".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let mut marginMode: String = self.safe_string_k(&params, "marginMode", &[Value::Str("cross".into())]).as_str().unwrap_or("cross").to_string(); // cross or isolated
         if (marginMode != "cross") && (marginMode != "isolated") {
@@ -3222,7 +3222,7 @@ impl Blofin {
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[]);
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]);
         if (stopLossPrice.is_some()) {
-            request.insert("slTriggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null))));
+            request.insert("slTriggerPrice".into(), Value::from(self.price_to_precision(symbol, stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             if (type_var == "market") {
                 request.insert("slOrderPrice".into(), Value::Str("-1".into()));
             }  else {
@@ -3230,11 +3230,11 @@ impl Blofin {
                 if (slLimitPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")));
                 }
-                request.insert("slOrderPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), slLimitPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("slOrderPrice".into(), Value::from(self.price_to_precision(symbol, slLimitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
         }
         if (takeProfitPrice.is_some()) {
-            request.insert("tpTriggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null))));
+            request.insert("tpTriggerPrice".into(), Value::from(self.price_to_precision(symbol, takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             if (type_var == "market") {
                 request.insert("tpOrderPrice".into(), Value::Str("-1".into()));
             }  else {
@@ -3242,7 +3242,7 @@ impl Blofin {
                 if (tpLimitPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")));
                 }
-                request.insert("tpOrderPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), tpLimitPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("tpOrderPrice".into(), Value::from(self.price_to_precision(symbol, tpLimitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
         }
         request.insert("marginMode".into(), Value::from(marginMode));
@@ -3304,11 +3304,11 @@ impl Blofin {
             request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
             if (!isTrigger) && (!isTpsl) {
-                request.insert("orderId".into(), Value::from(self.number_to_string(id.clone())));
+                request.insert("orderId".into(), Value::from(self.number_to_string(&id)));
             }  else if isTpsl {
-                request.insert("tpslId".into(), Value::from(self.number_to_string(id.clone())));
+                request.insert("tpslId".into(), Value::from(self.number_to_string(&id)));
             }  else if isTrigger {
-                request.insert("algoId".into(), Value::from(self.number_to_string(id.clone())));
+                request.insert("algoId".into(), Value::from(self.number_to_string(&id)));
             }
         }
         let mut query: crate::value::Dict = self.omit_t(params.clone(), &["orderId", "clientOrderId", "stop", "trigger", "tpsl"], &[]);
@@ -3373,7 +3373,7 @@ impl Blofin {
         }
         let mut response: crate::value::Dict = self.call_method_t("private_post_trade_batch_orders", &[&Value::from(ordersRequests)]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, None, &[]);
+        return Value::Arr(self.parse_orders(&data, None, &[]));
         Value::Null
         }).await?))
     }
@@ -3437,8 +3437,8 @@ impl Blofin {
         if (data.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order ").into()), id)));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -3510,7 +3510,7 @@ impl Blofin {
             response = self.call_method_o("private_get_trade_orders_pending", &[&__ws_arg_16]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3605,7 +3605,7 @@ impl Blofin {
             response = self.call_method_o("private_get_trade_fills_history", &[&__ws_arg_18]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3651,7 +3651,7 @@ impl Blofin {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -3712,7 +3712,7 @@ impl Blofin {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -3736,7 +3736,7 @@ impl Blofin {
         let mut networkCode: Value = networkCode.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut aliasedCode: Option<String> = self.safe_string_opt(self.options.get("networkCodeAliases").cloned().unwrap_or(Value::Null), networkCode.clone(), &[networkCode]);
-        let mut unifiedCode: Option<String> = self.safe_string_opt(self.networkAliases.clone(), Value::from(aliasedCode.as_deref()), &[aliasedCode.map(Value::from).unwrap_or(Value::Null)]);
+        let mut unifiedCode: Option<String> = self.safe_string_opt(&self.networkAliases, Value::from(aliasedCode.as_deref()), &[aliasedCode.map(Value::from).unwrap_or(Value::Null)]);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency != Value::Null) {
@@ -3780,7 +3780,7 @@ impl Blofin {
             let mut tail: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut tailParts: crate::value::List = crate::value::List::new(tail.split(")").map(Value::from).collect());
             let mut suffix: Option<String> = self.safe_string_opt(&tailParts, Value::Int(0), &[]);
-            let mut suffixCode: Option<String> = self.safe_string_opt(self.options.get("networkCodesBySuffix").cloned().unwrap_or(Value::Null), suffix.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut suffixCode: Option<String> = self.safe_string_opt(self.options.get("networkCodesBySuffix").cloned().unwrap_or(Value::Null), &suffix, &[]);
             if (suffixCode.is_some()) {
                 return suffixCode;
             }
@@ -3881,7 +3881,7 @@ impl Blofin {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3991,7 +3991,7 @@ impl Blofin {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code.is_some()) {
-            currency = Some(self.currency(Value::from(code)));
+            currency = Some(self.currency(code));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
@@ -4045,7 +4045,7 @@ impl Blofin {
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code.is_some()) {
-            currency = Some(self.currency(Value::from(code)));
+            currency = Some(self.currency(code));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
@@ -4120,7 +4120,7 @@ impl Blofin {
         let mut query: crate::value::Dict = Default::default();
         { let __destr_tmp = self.handle_param_string(params, Value::Str("tag".into()), &[]); tagValue = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4219,7 +4219,7 @@ impl Blofin {
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let (__until0, __until1) = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsPaginate, &[]);
@@ -4394,7 +4394,7 @@ impl Blofin {
             response = self.call_method_o("private_post_trade_cancel_batch_orders", &[&Value::from(request)]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         let mut ordersData: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&ordersData, Some(&market), &[Value::Null, Value::Null, params]);
+        return Value::Arr(self.parse_orders(&ordersData, Some(&market), &[Value::Null, Value::Null, params]));
         Value::Null
         }).await?))
     }
@@ -4428,13 +4428,13 @@ impl Blofin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut fromId: Option<String> = self.safe_string_opt(self.options.get("accountsByType").cloned().unwrap_or(Value::Null), fromAccount.clone(), &[fromAccount]);
         let mut toId: Option<String> = self.safe_string_opt(self.options.get("accountsByType").cloned().unwrap_or(Value::Null), toAccount.clone(), &[toAccount]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
                 m.insert("fromAccount".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("toAccount".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
             m
@@ -4442,7 +4442,7 @@ impl Blofin {
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_asset_transfer", &[&__ws_arg_27]).await;
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4485,7 +4485,7 @@ impl Blofin {
         if (position.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchPosition() returned empty position")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &position, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_position(self, &position, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4517,7 +4517,7 @@ impl Blofin {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_account_positions", &[&params]).await;
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let mut result: crate::value::List = self.parse_positions(&data, &[]).into_list();
+        let mut result: crate::value::List = self.parse_positions(&data, &[]);
         return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4604,7 +4604,7 @@ impl Blofin {
         //    }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let mut positions: crate::value::List = self.parse_positions(&data, &[symbols, Value::Dict(paramsUntil)]).into_list();
+        let mut positions: crate::value::List = self.parse_positions(&data, &[symbols, Value::Dict(paramsUntil)]);
         return Value::Arr(self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]));
         Value::Null
         }).await?))
@@ -4910,7 +4910,7 @@ impl Blofin {
             response = self.call_method_o("private_get_trade_orders_history", &[&__ws_arg_35]).await;
         }
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }

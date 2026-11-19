@@ -1325,22 +1325,22 @@ impl Bitbns {
             let mut m = indexmap::IndexMap::new();
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "uppercaseId"));
-                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("rate".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+            request.insert("rate".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }  else {
             request.insert("market".into(), Value::from((market).quote_id.as_deref()));
         }
         if (triggerPrice.is_some()) {
-            request.insert("t_rate".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("t_rate".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         if (targetRate.is_some()) {
-            request.insert("target_rate".into(), Value::from(self.price_to_precision(symbol.clone(), targetRate.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("target_rate".into(), Value::from(self.price_to_precision(symbol.as_str(), targetRate.map(Value::from).unwrap_or(Value::Null))));
         }
         if (trailRate.is_some()) {
-            request.insert("trail_rate".into(), Value::from(self.price_to_precision(symbol, trailRate.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("trail_rate".into(), Value::from(self.price_to_precision(symbol.as_str(), trailRate.map(Value::from).unwrap_or(Value::Null))));
         }
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
@@ -1363,8 +1363,8 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { response.map_or(Value::Null, Value::Dict) });
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, parsed, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, parsed, Some(&market));
+        None
         }).await?))
     }
 
@@ -1418,8 +1418,8 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { response.map_or(Value::Null, Value::Dict) });
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, parsed, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, parsed, Some(&market));
+        None
         }).await?))
     }
 
@@ -1491,8 +1491,8 @@ impl Bitbns {
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &first, Some(&market));
+        None
         }).await?))
     }
 
@@ -1565,7 +1565,7 @@ impl Bitbns {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_orders(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1654,7 +1654,7 @@ impl Bitbns {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_trades(&data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1697,7 +1697,7 @@ impl Bitbns {
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.www_get_exchange_data_tradedetails(&[&__ws_arg_7]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -1731,7 +1731,7 @@ impl Bitbns {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -1798,7 +1798,7 @@ impl Bitbns {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -1865,7 +1865,7 @@ impl Bitbns {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));

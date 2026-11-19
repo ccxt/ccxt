@@ -585,7 +585,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     Value::Null
 }
-    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transfer(&self, transfer: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let mut transfer: Value = transfer.into();
         //
         //     fetchTransfers
@@ -611,7 +611,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
             toAccount = self.safe_string_opt(&accountSplit, Value::Int(1), &[]);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&transfer, "ctime", &[]).as_i64();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), Value::Null);
@@ -623,9 +623,9 @@ impl crate::exchange::DerivedExchange for Bitrue {
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Str("ok".into()));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
@@ -1154,7 +1154,7 @@ impl crate::exchange_generated::ExchangeBase for Bitrue {
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin" => crate::types::IntoRaw::into_raw(self.set_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -3012,7 +3012,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTrades only support spot markets")));
         }
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3130,7 +3130,7 @@ impl Bitrue {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires a price argument")));
             }
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price.clone())));
         }
         if (market).swap {
             let mut isMarket: bool = uppercaseType == "MARKET";
@@ -3159,15 +3159,15 @@ impl Bitrue {
                         " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] \
                         = false to supply the cost in the amount argument (the exchange-specific behaviour)")));
                 }  else {
-                    let mut amountString: Option<String> = self.number_to_string(amount.clone());
+                    let mut amountString: Option<String> = self.number_to_string(&amount);
                     let mut priceString: Option<String> = self.number_to_string(price);
                     let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     let mut requestAmount: Option<String> = quoteAmount;
                     if (cost.is_some()) {
                         requestAmount = cost;
                     }
-                    request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.clone(), requestAmount.clone().map(Value::from).unwrap_or(Value::Null))));
-                    request.insert("volume".into(), Value::from(self.cost_to_precision(symbol.clone(), requestAmount.map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.as_str(), requestAmount.clone().map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("volume".into(), Value::from(self.cost_to_precision(symbol.as_str(), requestAmount.map(Value::from).unwrap_or(Value::Null))));
                 }
             }  else {
                 request.insert("amount".into(), self.parse_to_numeric(amount.clone()));
@@ -3189,7 +3189,7 @@ impl Bitrue {
             data = self.safe_dict_k_t(&response, "data");
         }  else if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             let mut validOrderTypes: crate::value::List = self.safe_list_k_t(crate::value::KeyRead::key_read(&&market, "info"), "orderTypes");
             if !self.in_array(&uppercaseType, Value::Arr(validOrderTypes)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), type_var).into()), " is not a valid order type in market ").into()), symbol)));
@@ -3201,7 +3201,7 @@ impl Bitrue {
             let mut paramsNoClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, &["newClientOrderId", "clientOrderId"], &[]) } else { params }).into_dict();
             let mut triggerPrice: Option<f64> = self.safe_number2(Value::from(&paramsNoClientOrderId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
             if (triggerPrice.is_some()) {
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
             }
             let mut paramsSpot: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit_t(&paramsNoClientOrderId, &["triggerPrice", "stopPrice"], &[]) } else { paramsNoClientOrderId });
             let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsSpot]);
@@ -3210,8 +3210,8 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder only support spot & swap markets")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -3284,8 +3284,8 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrder only support spot & swap markets")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -3336,7 +3336,7 @@ impl Bitrue {
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.spot_v1_private_get_all_orders(&[&__ws_arg_21]).await.unwrap_or_default();
-        return self.parse_orders(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3397,7 +3397,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOpenOrders only support spot & swap markets")));
         }
-        return self.parse_orders(data, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_orders(data, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3471,8 +3471,8 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelOrder only support spot & swap markets")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
+        None
         }).await?))
     }
 
@@ -3521,7 +3521,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelAllOrders only support future markets")));
         }
-        return self.parse_orders(&data, Some(&market), &[]);
+        return Value::Arr(self.parse_orders(&data, Some(&market), &[]));
         Value::Null
         }).await?))
     }
@@ -3590,7 +3590,7 @@ impl Bitrue {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchMyTrades only support spot & swap markets")));
         }
-        return self.parse_trades(data, Some(&market), &[since, Value::from(limitResolved)]);
+        return Value::Arr(self.parse_trades(data, Some(&market), &[since, Value::from(limitResolved)]));
         Value::Null
         }).await?))
     }
@@ -3625,7 +3625,7 @@ impl Bitrue {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3712,7 +3712,7 @@ impl Bitrue {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3811,7 +3811,7 @@ impl Bitrue {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3921,7 +3921,7 @@ impl Bitrue {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
             request.insert("coinSymbol".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since != Value::Null) {
@@ -3988,14 +3988,14 @@ impl Bitrue {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut accountTypes: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut fromId: Option<String> = self.safe_string_opt(&accountTypes, fromAccount.clone(), &[fromAccount]);
         let mut toId: Option<String> = self.safe_string_opt(&accountTypes, toAccount.clone(), &[toAccount]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coinSymbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.as_str(), amount, &[])));
                 m.insert("transferType".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", fromId.as_deref().unwrap_or("null"), "_to_").into()), toId.as_deref().unwrap_or("null")).into()));
             m
         });
@@ -4009,7 +4009,7 @@ impl Bitrue {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

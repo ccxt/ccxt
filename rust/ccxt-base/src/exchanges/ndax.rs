@@ -2276,7 +2276,7 @@ impl Ndax {
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.public_get_get_last_trades(&[&__ws_arg_7]).await.unwrap_or_default();
-        return self.parse_trades(&response, Some(&market), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, Some(&market), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2352,7 +2352,7 @@ impl Ndax {
             while { if !__for_first_1002 { i += 1; } __for_first_1002 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "ProductId", &[]);
-            if (currencyId.is_some()) && (self.currencies_by_id != Value::Null) && (matches!((&self.currencies_by_id, currencyId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            if (currencyId.is_some()) && (self.currencies_by_id.is_some()) && (matches!((&self.currencies_by_id, currencyId.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("total".into(), self.safe_string_k(&balance, "Amount", &[]));
@@ -2492,7 +2492,7 @@ impl Ndax {
         //
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         return self.parse_ledger(&response, currency.as_ref(), &[since, limit]);
         Value::Null
@@ -2570,7 +2570,7 @@ impl Ndax {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"], &[]);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderSide: i64 = (if (side.as_str() == Some("buy")) { 0 } else { 1 });
-        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol.as_str(), amount);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("InstrumentId".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
@@ -2584,7 +2584,7 @@ impl Ndax {
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price != Value::Null) {
-            request.insert("LimitPrice".into(), self.parse_number(Value::from(self.price_to_precision(symbol, price)), &[]));
+            request.insert("LimitPrice".into(), self.parse_number(Value::from(self.price_to_precision(symbol.as_str(), price)), &[]));
         }
         if (clientOrderId.is_some()) {
             request.insert("ClientOrderId".into(), Value::from(clientOrderId));
@@ -2594,8 +2594,8 @@ impl Ndax {
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_send_order", &[&__ws_arg_11]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -2640,7 +2640,7 @@ impl Ndax {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["accountId", "AccountId", "clientOrderId", "ClientOrderId"], &[]);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderSide: i64 = (if (side.as_str() == Some("buy")) { 0 } else { 1 });
-        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol.as_str(), amount);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OrderIdToReplace".to_string(), Value::from(self.parse_to_int(id)));
@@ -2658,15 +2658,15 @@ impl Ndax {
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price != Value::Null) {
-            request.insert("LimitPrice".into(), self.parse_number(Value::from(self.price_to_precision(symbol, price)), &[]));
+            request.insert("LimitPrice".into(), self.parse_number(Value::from(self.price_to_precision(symbol.as_str(), price)), &[]));
         }
         if (clientOrderId.is_some()) {
             request.insert("ClientOrderId".into(), Value::from(clientOrderId));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_post_cancel_replace_order", &[&__ws_arg_12]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
+        None
         }).await?))
     }
 
@@ -2721,7 +2721,7 @@ impl Ndax {
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.private_get_get_trades_history(&[&__ws_arg_13]).await.unwrap_or_default();
-        return self.parse_trades(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2879,7 +2879,7 @@ impl Ndax {
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.private_get_get_open_orders(&[&__ws_arg_16]).await.unwrap_or_default();
-        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2935,7 +2935,7 @@ impl Ndax {
         }
         let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.private_get_get_orders_history(&[&__ws_arg_17]).await.unwrap_or_default();
-        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_orders(&response, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -2983,8 +2983,8 @@ impl Ndax {
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.call_method_t("private_get_get_order_status", &[&__ws_arg_18]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref()).map_or(Value::Null, Value::Dict);
-        Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
+        None
         }).await?))
     }
 
@@ -3086,7 +3086,7 @@ impl Ndax {
         //
         let mut grouped: crate::value::Dict = self.group_by(response, Value::Str("ChangeReason".into()), &[]).into_dict();
         let mut trades: crate::value::List = self.safe_list_k_t(&grouped, "Trade");
-        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[since, limit]));
         Value::Null
         }).await?))
     }
@@ -3118,7 +3118,7 @@ impl Ndax {
         let mut defaultAccountId: Option<i64> = self.safe_integer2(&self.options, Value::Str("accountId".into()), Value::Str("AccountId".into()), &[Value::from(self.parse_to_int(self.safe_string(self.safe_dict(self.accounts.clone(), Value::Int(0), &[]), Value::Str("id".into()), &[])))]).as_i64();
         let mut accountId: Option<i64> = self.safe_integer2(&params, Value::Str("accountId".into()), Value::Str("AccountId".into()), &[Value::from(defaultAccountId)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["accountId", "AccountId"], &[]);
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));
@@ -3199,7 +3199,7 @@ impl Ndax {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["accountId", "AccountId"], &[]);
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3279,7 +3279,7 @@ impl Ndax {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["accountId", "AccountId"], &[]);
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.currency(code));
+            currency = Some(self.currency(code.as_str()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3402,7 +3402,7 @@ impl Ndax {
         let mut defaultAccountId: Option<i64> = self.safe_integer2(&self.options, Value::Str("accountId".into()), Value::Str("AccountId".into()), &[Value::from(self.parse_to_int(self.safe_string(self.safe_dict(self.accounts.clone(), Value::Int(0), &[]), Value::Str("id".into()), &[])))]).as_i64();
         let mut accountId: Option<i64> = self.safe_integer2(&paramsWithdrawTag, Value::Str("accountId".into()), Value::Str("AccountId".into()), &[Value::from(defaultAccountId)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsWithdrawTag, &["accountId", "AccountId"], &[]);
-        let mut currency: crate::types::Currency = self.currency(code);
+        let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut withdrawTemplateTypesRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));

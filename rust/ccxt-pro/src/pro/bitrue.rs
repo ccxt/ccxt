@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Bitrue {
                 "parse_contract_bids_asks" => self.parse_contract_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "un_subscribe" => self.un_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -107,7 +107,7 @@ impl Bitrue {
             "parse_ws_balances" => { self.parse_ws_balances(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
             "un_subscribe" => { crate::exchange_stubs::enqueue_spawn("un_subscribe", args.to_vec()); crate::Value::Null },
@@ -1010,7 +1010,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchOHLCV is only supported for swap markets")));
         }
         let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "futuresTimeframes");
-        let mut interval: Option<String> = self.safe_string_opt(&futuresTimeframes, timeframe.clone(), &[]);
+        let mut interval: Option<String> = self.safe_string_opt(&futuresTimeframes, &timeframe, &[]);
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOHLCV does not support timeframe ").into()), timeframe)));
         }
@@ -1077,7 +1077,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " unWatchOHLCV is only supported for swap markets")));
         }
         let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "futuresTimeframes");
-        let mut interval: Option<String> = self.safe_string_opt(&futuresTimeframes, timeframe.clone(), &[]);
+        let mut interval: Option<String> = self.safe_string_opt(&futuresTimeframes, &timeframe, &[]);
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " unWatchOHLCV does not support timeframe ").into()), timeframe)));
         }
@@ -1253,13 +1253,13 @@ if _try_result.is_err() {
             return;
         }
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut parsed: crate::value::Dict = self.parse_ws_ticker(&tick, crate::Value::from(market.as_ref()), &[Value::from(timestamp)]).into_dict();
+        let mut parsed: crate::value::Dict = self.parse_ws_ticker(&tick, crate::Value::from(market.as_ref()), &[Value::from(timestamp)]);
         { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsed)); }
         let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(parsed), messageHash.as_str());
 }
 
-    pub fn parse_ws_ticker(&self, tick: impl Into<crate::Value>, market: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_ticker(&self, tick: impl Into<crate::Value>, market: impl Into<crate::Value>, optional_args: &[Value]) -> crate::value::Dict {
         let mut tick: Value = tick.into();
         let mut market: Value = market.into();
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
@@ -1271,7 +1271,7 @@ if _try_result.is_err() {
         let mut close: Option<f64> = self.safe_number_k(&tick, "close", &[]).as_f64();
         let mut rose: Option<f64> = self.safe_number_k(&tick, "rose", &[]).as_f64();
         let mut percentage: Option<f64> = (if (rose.is_none()) { None } else { (if let Some(__l) = rose { Some(__l * 100.0) } else { None }) });
-        return Value::Dict(self.safe_ticker(Value::Map({
+        return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), tick.clone());
         m.insert("symbol".to_string(), Value::from(symbol));
@@ -1294,9 +1294,9 @@ if _try_result.is_err() {
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()));
+}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
 
-    Value::Null
+    Default::default()
 }
 
     pub fn parse_ws_order_type(&self, typeId: Option<&str>) -> Option<String> {

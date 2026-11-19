@@ -1957,7 +1957,7 @@ impl Lighter {
             m
         });
         let mut rawMessage: Value = self.watch(url.as_deref(), &messageHash[..], Value::Map(message), &messageHash[..], Value::Map(subscription)).await;
-        return self.parse_orders(Value::from(vec![rawMessage]), None, &[]);
+        return Value::Arr(self.parse_orders(Value::from(vec![rawMessage]), None, &[]));
         Value::Null
         }).await?))
     }
