@@ -60,16 +60,16 @@ function helperTestInitSandboxProps () {
     //
     const exchange3 = new ccxt.Exchange (opts);
     helperTestSandboxState (exchange3, false);
-    exchange3.sandbox = true;
-    helperTestSandboxState (exchange3, false); // should stay false
+    exchange3.setSandboxMode (true);
+    helperTestSandboxState (exchange3, true);
     //
     // CASE B: when sandbox is enabled
     //
     opts['sandbox'] = true;
     const exchange4 = new ccxt.Exchange (opts);
     helperTestSandboxState (exchange4, true);
-    exchange4.sandbox = false;
-    helperTestSandboxState (exchange4, true); // should stay true
+    exchange4.setSandboxMode (false);
+    helperTestSandboxState (exchange4, false);
     //
     // same for `testnet`
     //
@@ -77,8 +77,8 @@ function helperTestInitSandboxProps () {
     opts['testnet'] = true;
     const exchange5 = new ccxt.Exchange (opts);
     helperTestSandboxState (exchange5, true);
-    exchange5.testnet = false;
-    helperTestSandboxState (exchange5, true); // should stay true
+    exchange5.setSandboxMode (false);
+    helperTestSandboxState (exchange5, false);
 }
 
 function helperTestInitSandboxOpts () {
