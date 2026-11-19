@@ -1354,7 +1354,7 @@ public partial class bitbank : Exchange
             };
             string? codeError = this.safeString(data, "code");
             string? message = this.safeString(errorMessages, codeError, "Error");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, message);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, message);
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;

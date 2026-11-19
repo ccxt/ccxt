@@ -4125,8 +4125,8 @@ public partial class blofin : Exchange
         string feedback = ((this.id + " ") + (body));
         if ((codeError != null) && codeError != "0")
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -4144,8 +4144,8 @@ public partial class blofin : Exchange
         string? insideCode = this.safeString(first, "code");
         if ((insideCode != null) && insideCode != "0")
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), insideCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), insideMsg, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, insideCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, insideMsg, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), insideMsg, feedback);
         }
         return null;

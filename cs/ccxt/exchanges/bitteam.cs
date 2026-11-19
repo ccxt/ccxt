@@ -2641,7 +2641,7 @@ public partial class bitteam : Exchange
             string? message = this.safeString(response, "message");
             string? responseCode = this.safeString(response, "code");
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

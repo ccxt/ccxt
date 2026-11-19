@@ -3758,7 +3758,7 @@ public partial class coinbase : Exchange
             string? errorMessage = this.safeString(errorResponse, "message");
             if ((errorResponse != null))
             {
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorTitle, errorMessage);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorTitle, errorMessage);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorTitle, errorMessage);
                 throw new ExchangeError (errorMessage) ;
             }
@@ -6118,7 +6118,7 @@ public partial class coinbase : Exchange
         if ((errorCode != null))
         {
             string? errorMessage = this.safeString2(response, "error_description", "error");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -6126,7 +6126,7 @@ public partial class coinbase : Exchange
         if ((errorResponse != null))
         {
             string? errorMessageInner = this.safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessageInner, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorMessageInner, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessageInner, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -6140,7 +6140,7 @@ public partial class coinbase : Exchange
                 string? errorMessage = this.safeString((errors != null && 0 < errors.Count ? errors[0] : null), "message");
                 if ((errorCode != null))
                 {
-                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                    this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                     this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
                     throw new ExchangeError (feedback) ;
                 }

@@ -161,7 +161,7 @@ public partial class bullish : ccxt.bullish
         {
             limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -447,7 +447,7 @@ public partial class bullish : ccxt.bullish
         {
             limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -580,7 +580,7 @@ public partial class bullish : ccxt.bullish
         {
             limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -882,7 +882,7 @@ public partial class bullish : ccxt.bullish
         {
             string? errorCode = this.safeString(data, "errorCode");
             string? errorCodeName = this.safeString(data, "errorCodeName");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCodeName, feedback);
             throw new ExchangeError (feedback) ;
         } catch(Exception e)

@@ -3763,7 +3763,7 @@ public partial class grvt : Exchange
     public virtual Dictionary<string, object> defaultSignature()
     {
         Int64? expirationSeconds = this.safeInteger(this.options, "expirationSeconds", 30);
-        object expiration = add((this.milliseconds() * 1000000), ((1000000 * expirationSeconds) * 1000));
+        object expiration = ((this.milliseconds() * 1000000) + ((1000000 * expirationSeconds) * 1000));
         return new Dictionary<string, object>() {
             { "signer", "" },
             { "r", "" },
@@ -3894,7 +3894,7 @@ public partial class grvt : Exchange
             if ((errorCode != null))
             {
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 throw new ExchangeError (feedback) ;
             } else
             {

@@ -2025,7 +2025,7 @@ public partial class weex : ccxt.weex
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters);
         if (this.newUpdates)
@@ -2247,7 +2247,7 @@ public partial class weex : ccxt.weex
             string feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), msg, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, msg, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception error)

@@ -433,7 +433,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -618,7 +618,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -984,7 +984,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -1073,7 +1073,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -1479,7 +1479,7 @@ public partial class deepcoin : ccxt.deepcoin
         string feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), messageText, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, messageText, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), messageText, feedback);
             throw new ExchangeError (feedback) ;
         } catch(Exception e)

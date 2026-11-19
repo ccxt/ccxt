@@ -281,12 +281,12 @@ public partial class hyperliquid : PredictionExchange
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    public virtual string? buildOutcomeParentSymbol(IDictionary<string, object> desc, object outcomeId, object name = null, IDictionary<string, object>? question = null)
+    public virtual string? buildOutcomeParentSymbol(IDictionary<string, object> desc, string outcomeId, object name = null, IDictionary<string, object>? question = null)
     {
         name ??= "";
         question ??= new Dictionary<string, object>();
@@ -399,17 +399,17 @@ public partial class hyperliquid : PredictionExchange
                 }
                 if (((outcomeSlug != null)) && (outcomeSlug != ""))
                 {
-                    return ((((questionSlug + "_") + outcomeSlug) + "_") + outcomeId.ToString());
+                    return ((string?)((object)(((((questionSlug + "_") + outcomeSlug) + "_") + outcomeId))));
                 }
-                return ((questionSlug + "_") + outcomeId.ToString());
+                return ((string?)((object)(((questionSlug + "_") + outcomeId))));
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (((name != null)) && (!(name is "")))
         {
-            return ((string?)((object)(((this.shortenSlug(name) + "_") + outcomeId.ToString()))));
+            return ((string?)((object)(((this.shortenSlug(name) + "_") + outcomeId))));
         }
-        return ("OUTCOME_" + outcomeId.ToString());
+        return ("OUTCOME_" + outcomeId);
     }
 
     /**
@@ -493,7 +493,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> outcomeInfo = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
             Int64? outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
             IDictionary<string, object> linkedQuestion = this.safeDict(outcomesToQuestions, ((object)outcomeId).ToString(), new Dictionary<string, object>() {});
-            Dictionary<string, object> market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
+            Dictionary<string, object> market = this.parseOutcomeMarket(outcomeInfo, ((object)outcomeId).ToString(), outcomeId, linkedQuestion);
             markets.Add(market);
             // Build outcomes dictionary from market outcomes
             List<object> marketOutcomes = this.safeList(market, "outcomes", new List<object>() {});
@@ -521,18 +521,19 @@ public partial class hyperliquid : PredictionExchange
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, object outcomeId, IDictionary<string, object>? question = null)
+    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, string outcomeKey, object outcomeId, IDictionary<string, object>? question = null)
     {
         question ??= new Dictionary<string, object>();
         string? description = this.safeString(outcomeInfo, "description", "");
         string? name = this.safeString(outcomeInfo, "name", "");
         List<object> sideSpecs = this.safeList(outcomeInfo, "sideSpecs", new List<object>() {});
         Dictionary<string, object> desc = this.parseOutcomeDescription(description);
-        string parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
+        string parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeKey, name, question);
         object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         object noEncoding = this.outcomeEncoding(outcomeId, 1);
         string yesOutcomeSymbol = (parentSymbol + ":YES");
@@ -609,12 +610,12 @@ public partial class hyperliquid : PredictionExchange
     } },
 }};
         Dictionary<string, object> marketRow = this.safeMarketStructure(new Dictionary<string, object>() {
-            { "id", outcomeId.ToString() },
+            { "id", outcomeKey },
             { "market", parentSymbol },
             { "base", getValue(parentSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0) },
             { "quote", quoteCurrency },
             { "settle", null },
-            { "baseId", outcomeId.ToString() },
+            { "baseId", outcomeKey },
             { "quoteId", quoteCurrency },
             { "settleId", null },
             { "type", "prediction" },
@@ -2617,7 +2618,7 @@ public partial class hyperliquid : PredictionExchange
         {
             string? message = this.safeString(response, "response", body);
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -2631,7 +2632,7 @@ public partial class hyperliquid : PredictionExchange
             if ((message != null))
             {
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
                 throw new ExchangeError (feedback) ;
             }

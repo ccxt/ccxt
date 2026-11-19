@@ -1619,7 +1619,7 @@ public partial class hyperliquid : Exchange
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         bool useTail = (since == null);
         Int64? originalSince = since;
-        object startTime = since;
+        Int64? startTime = since;
         if ((since == null))
         {
             if ((limit != null))
@@ -1627,7 +1627,7 @@ public partial class hyperliquid : Exchange
                 // optimization if limit is provided
                 Int64 timeframeInMilliseconds = (this.parseTimeframe(timeframeVar) * 1000L);
                 startTime = this.sum(until, ((timeframeInMilliseconds * limit) * -1));
-                if (isLessThan(startTime, 0))
+                if (((startTime == null || startTime < 0)))
                 {
                     startTime = 0;
                 }
@@ -5866,7 +5866,7 @@ public partial class hyperliquid : Exchange
         bool nonEmptyMessage = (((message != null)) && (message != ""));
         if (nonEmptyMessage)
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         }
         if (nonEmptyMessage)

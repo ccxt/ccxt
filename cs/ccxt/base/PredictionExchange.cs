@@ -435,7 +435,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> keys = new List<object>(((IDictionary<string,object>)this.events).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            object eventVar = getValue(this.events, keys[i]);
+            object eventVar = (this.events != null && keys[i] != null && this.events.ContainsKey((string)keys[i]) ? this.events[(string)keys[i]] : null);
             string? identity = this.safeString2(eventVar, "id", "event", keys[i]);
             if (!(((identity != null) && seen.ContainsKey(identity))))
             {
@@ -801,7 +801,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> marketKeys = new List<object>(this.markets.Keys);
         for (int i = 0; i < marketKeys.Count; i++)
         {
-            this.indexMarketOutcomes(getValue(this.markets, marketKeys[i]));
+            this.indexMarketOutcomes((this.markets != null && marketKeys[i] != null && this.markets.ContainsKey((string)marketKeys[i]) ? this.markets[(string)marketKeys[i]] : null));
         }
     }
 

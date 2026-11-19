@@ -4289,7 +4289,7 @@ public partial class cryptocom : Exchange
         if (errorCode != "0")
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;

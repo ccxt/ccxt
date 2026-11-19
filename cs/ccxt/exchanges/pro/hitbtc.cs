@@ -1786,7 +1786,7 @@ public partial class hitbtc : ccxt.hitbtc
                 string? errorMessage = this.safeString(error, "message");
                 string? description = this.safeString(error, "description");
                 string feedback = ((this.id + " ") + description);
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception e)

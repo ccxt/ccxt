@@ -3289,7 +3289,7 @@ public partial class kucoin : ccxt.kucoin
         if (((fetchPositionSnapshot == true)) && ((awaitPositionSnapshot == true)) && ((cache == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         string channel = "positionAll";
         Dictionary<string, object> paramsExtended = this.extend(paramsUta, new Dictionary<string, object>() {

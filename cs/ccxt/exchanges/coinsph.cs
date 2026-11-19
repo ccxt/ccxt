@@ -2644,7 +2644,7 @@ public partial class coinsph : Exchange
         {
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

@@ -2779,8 +2779,8 @@ public partial class upbit : Exchange
             string? message = this.safeString(error, "message");
             string? name = this.safeString(error, "name");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), name, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, name, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), name, feedback);
             throw new ExchangeError (feedback) ;

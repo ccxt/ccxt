@@ -12032,7 +12032,7 @@ public partial class bybit : Exchange
                 feedback = (feedback + "; You might also need to ensure the address is whitelisted");
             }
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

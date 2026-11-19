@@ -1445,7 +1445,7 @@ public partial class woofipro : ccxt.woofipro
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             }
             return false;
         } catch(Exception error)

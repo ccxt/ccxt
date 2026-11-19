@@ -970,7 +970,7 @@ public partial class extended : ccxt.extended
         }
         string feedback = ((this.id + " ") + this.json(message));
         string? errorCode = this.safeString(error, "code");
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         string? errorMessage = this.safeString(error, "message");
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         throw new ExchangeError (feedback) ;

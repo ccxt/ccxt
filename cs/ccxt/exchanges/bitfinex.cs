@@ -1346,7 +1346,7 @@ public partial class bitfinex : Exchange
         {
             string? message = this.safeString(response, 2, "");
             // same message as in v1
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.exceptionsExact, message, ((this.id + " ") + message));
             throw new ExchangeError (((this.id + " ") + message)) ;
         }
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(new Dictionary<string, object>() {             { "result", response },         }, currency));
@@ -3379,7 +3379,7 @@ public partial class bitfinex : Exchange
             string feedback = ((this.id + " ") + (response));
             string? message = this.safeString(response, 2, "");
             // same message as in v1
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -3595,7 +3595,7 @@ public partial class bitfinex : Exchange
             {
                 string? message = this.safeString2(response, "message", "error");
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
                 throw new ExchangeError ((string)((this.id + " ") + (body))) ;
             }
@@ -3614,8 +3614,8 @@ public partial class bitfinex : Exchange
             string? errorText = this.safeString(response, 2, "");
             string feedback = ((this.id + " ") + errorText);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorText, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorText, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorText, feedback);
             throw new ExchangeError ((((((this.id + " ") + errorText) + " (#") + errorCode) + ")")) ;
         }
         return response;

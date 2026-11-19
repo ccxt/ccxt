@@ -4241,7 +4241,7 @@ public partial class krakenfutures : Exchange
             return null;
         }
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         if ((code == 400))
         {

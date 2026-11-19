@@ -10346,7 +10346,7 @@ public partial class gate : Exchange
         if ((label != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), label, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, label, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

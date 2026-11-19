@@ -221,7 +221,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -256,7 +256,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -290,7 +290,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -322,7 +322,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -354,7 +354,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)orders.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -388,7 +388,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)orders.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
 
     /**

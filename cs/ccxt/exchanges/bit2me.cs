@@ -2062,10 +2062,10 @@ public partial class bit2me : Exchange
         {
             string? message = this.safeStringN(response, new List<object>() {"message", "description", "error"});
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), payloadCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, payloadCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

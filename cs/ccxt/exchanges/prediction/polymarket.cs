@@ -3289,7 +3289,7 @@ public partial class polymarket : PredictionExchange
         if ((errorMessage != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         }
         return null;
@@ -3995,7 +3995,7 @@ public partial class polymarket : PredictionExchange
         {
             limitResolved = ((Int64?)orders.getLimit(outcomeResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(this.toArray(orders), outcomeResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true));
     }
 
     /**
@@ -4028,7 +4028,7 @@ public partial class polymarket : PredictionExchange
         {
             limitResolved = ((Int64?)trades.getLimit(outcomeResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(this.toArray(trades), outcomeResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true));
     }
 
     public async virtual Task<object> subscribeUserChannel(string? messageHash, IDictionary<string, object> parameters = null)

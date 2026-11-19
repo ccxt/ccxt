@@ -2349,8 +2349,8 @@ public partial class gate : ccxt.gate
             string? messageHash = this.safeString(client.subscriptions, id);
             try
             {
-                this.throwExactlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("exact") ? this.exceptionsWs["exact"] : null), code, this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, this.json(errs));
+                this.throwExactlyMatchedException(this.exceptionsWsExact, code, this.json(message));
+                this.throwExactlyMatchedException(this.exceptionsExact, code, this.json(errs));
                 string? errorMessage = this.safeString(error, "message", this.safeString(errs, "message"));
                 this.throwBroadlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("broad") ? this.exceptionsWs["broad"] : null), errorMessage, this.json(message));
                 throw new ExchangeError (this.json(message)) ;

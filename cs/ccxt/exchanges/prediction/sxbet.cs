@@ -1153,7 +1153,7 @@ public partial class sxbet : PredictionExchange
         {
             string? reason = this.safeString(first, "reason", "FAILED");
             string feedback = ((this.id + " createOrder() rejected: ") + reason);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), reason, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, reason, feedback);
             throw new InvalidOrder (feedback) ;
         }
         // with waitForOutcome the venue reports the matching result inline:
@@ -3127,7 +3127,7 @@ public partial class sxbet : PredictionExchange
             messageString = message;
         }
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), messageString, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, messageString, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), messageString, feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error

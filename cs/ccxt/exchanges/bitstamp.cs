@@ -3638,7 +3638,7 @@ public partial class bitstamp : Exchange
             for (int i = 0; i < (errors?.Count ?? 0); i++)
             {
                 string? value = this.safeString(errors, i);
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), value, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, value, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), value, feedback);
             }
             throw new ExchangeError (feedback) ;

@@ -6802,8 +6802,8 @@ public partial class bitget : Exchange
         bool historicalEndpointNeeded = ((useHistoryEndpoint == true));
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        object calculatedStartTime = null;
-        object calculatedEndTime = null;
+        Int64? calculatedStartTime = null;
+        Int64? calculatedEndTime = null;
         if ((since != null))
         {
             calculatedStartTime = since;
@@ -6844,14 +6844,14 @@ public partial class bitget : Exchange
             Int64? historicalLimit = ((recentLimit > maxLimitForHistoryEndpoint)) ? maxLimitForHistoryEndpoint : recentLimit;
             limitResolved = historicalLimit;
             Int64? historicalDuration = (historicalLimit * duration);
-            calculatedStartTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(calculatedEndTime, historicalDuration);
+            calculatedStartTime = (calculatedEndTime - historicalDuration);
             request["startTime"] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
             if (!(this.safeBool(market, "spot", false) == true))
             {
                 Int64 maxDistanceForContracts = (90L * msInDay);
                 // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if ((!(calculatedEndTime == null)) && ((historicalDuration > maxDistanceForContracts)))
+                if (((calculatedEndTime != null)) && ((historicalDuration > maxDistanceForContracts)))
                 {
                     calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
                     request["endTime"] = calculatedEndTime;
@@ -14711,14 +14711,14 @@ public partial class bitget : Exchange
         bool nonEmptyMessage = (((message != null)) && (message != "") && (message != "success"));
         if (nonEmptyMessage)
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         }
         string? errorCode = this.safeString2(response, "code", "err_code");
         bool nonZeroErrorCode = ((errorCode != null)) && (errorCode != "00000");
         if (nonZeroErrorCode)
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         }
         if (nonZeroErrorCode || nonEmptyMessage)
         {

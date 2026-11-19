@@ -3616,7 +3616,7 @@ public partial class nado : Exchange
         if ((status == "failure") || ((errorCode != null)) || ((error != null)))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }

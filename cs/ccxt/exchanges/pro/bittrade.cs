@@ -722,7 +722,7 @@ public partial class bittrade : ccxt.bittrade
                 try
                 {
                     this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
-                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                    this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                     throw new ExchangeError (feedback) ;
                 } catch(Exception e)
                 {

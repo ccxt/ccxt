@@ -3652,7 +3652,7 @@ public partial class bitrue : Exchange
         string? message = this.safeString(errorResponse, "msg");
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.exceptionsExact, message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, ((this.id + " ") + message));
         }
         // checks against error codes
@@ -3673,7 +3673,7 @@ public partial class bitrue : Exchange
                 throw new DDoSProtection ((string)((this.id + " temporary banned: ") + (body))) ;
             }
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             throw new ExchangeError (feedback) ;
         }
         if (success != true)

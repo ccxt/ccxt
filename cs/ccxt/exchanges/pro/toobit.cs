@@ -1190,7 +1190,7 @@ public partial class toobit : ccxt.toobit
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(cache), symbolsNormalized, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
     public virtual void setPositionsCache(WebSocketClient client, string? type, IList<object>? symbols = null)

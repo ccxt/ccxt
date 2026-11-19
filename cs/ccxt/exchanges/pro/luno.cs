@@ -81,7 +81,7 @@ public partial class luno : ccxt.luno
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleTrades(WebSocketClient client, object message, object subscription)
     {
         //
         //     {
@@ -205,7 +205,7 @@ public partial class luno : ccxt.luno
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBook(WebSocketClient client, object message, object subscription)
     {
         //
         //     {
@@ -516,11 +516,8 @@ public partial class luno : ccxt.luno
             // frames still arriving until the client resubscribes
             return;
         }
-        List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
-        for (int j = 0; j < (handlers?.Count ?? 0); j++)
-        {
-            object handler = handlers[j];
-            DynamicInvoker.InvokeMethod(handler, new object[] { client, message, (subscriptions != null && 0 < subscriptions.Count ? subscriptions[0] : null)});
-        }
+        IDictionary<string, object> subscription = this.safeDict(subscriptions, 0, new Dictionary<string, object>() {});
+        this.handleOrderBook(client, message, subscription);
+        this.handleTrades(client, message, subscription);
     }
 }

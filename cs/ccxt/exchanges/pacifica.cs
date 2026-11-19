@@ -4189,9 +4189,9 @@ public partial class pacifica : Exchange
         if ((error == true) || nonEmptyMessage)
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorId, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorId, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback); // documented message prefixes are more specific than the http-status echo
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             Int64? statusCode = this.parseToInt(code);
             string codeAsString = ((object)code).ToString();
             if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))

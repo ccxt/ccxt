@@ -305,8 +305,8 @@ public partial class mudrex : Exchange
             IDictionary<string, object> first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
             string? text = this.safeString(first, "text", this.json(response));
             string? errCode = this.safeString(first, "code");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), text, ((this.id + " ") + text));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errCode, ((this.id + " ") + text));
+            this.throwExactlyMatchedException(this.exceptionsExact, text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException(this.exceptionsExact, errCode, ((this.id + " ") + text));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = text.ToLower();
@@ -380,7 +380,7 @@ public partial class mudrex : Exchange
         Int64? windowLength = (duration * requestLimit);
         Int64? defaultStart = (now - windowLength);
         Int64? startTime = this.parseToInt(((since != null)) ? (((double?)since / 1000)) : defaultStart);
-        Int64? windowEnd = this.parseToInt(add(startTime, (duration * requestLimit)));
+        Int64? windowEnd = this.parseToInt((startTime + (duration * requestLimit)));
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
         Int64? cappedEnd = ((windowEnd > now)) ? now : windowEnd;

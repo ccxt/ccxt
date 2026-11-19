@@ -2492,8 +2492,8 @@ public partial class gemini : Exchange
             string? reasonInner = this.safeString(response, "reason");
             string? message = this.safeString(response, "message");
             string feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), reasonInner, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, reasonInner, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

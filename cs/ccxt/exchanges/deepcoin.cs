@@ -876,7 +876,7 @@ public partial class deepcoin : Exchange
                 // we calculate until (after) for correct pagination
                 int duration = this.parseTimeframe(timeframeVar);
                 Int64? numberOfCandles = ((limit == null)) ? maxLimit : limit;
-                object endTime = this.parseToInt(add(since, (((duration * numberOfCandles)) * 1000)));
+                object endTime = this.parseToInt((since + (((duration * numberOfCandles)) * 1000)));
                 if ((until != null))
                 {
                     endTime = mathMin(endTime, until);
@@ -3657,9 +3657,9 @@ public partial class deepcoin : Exchange
         }
         if (((code != 200)) || (messageCode != "0") || ((sCode != null) && sCode != "0"))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), messageCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), sCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), msg, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, messageCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, sCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, msg, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
             throw new ExchangeError (feedback) ;
         } else

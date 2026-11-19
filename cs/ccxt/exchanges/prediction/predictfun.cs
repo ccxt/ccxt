@@ -1765,7 +1765,7 @@ public partial class predictfun : PredictionExchange
         // it carries rather than from the outcome the caller asked for
         IDictionary<string, object> partyOutcome = this.safeDict(party, "outcome", new Dictionary<string, object>() {});
         string? tokenId = this.safeString(partyOutcome, "onChainId");
-        object outcomeObj = this.outcomeForToken(tokenId, market);
+        IDictionary<string, object> outcomeObj = this.outcomeForToken(tokenId, market);
         string? role = this.safeString(party, "role");
         // a resting maker fills at its own price, so the party price is the execution price for
         // that leg. the taker's party price is only its limit: the settlement records what it
@@ -2367,7 +2367,7 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> rawOutcome = this.safeDict(position, "outcome", new Dictionary<string, object>() {});
         IDictionary<string, object> rawMarket = this.safeDict(position, "market", new Dictionary<string, object>() {});
         string? tokenId = this.safeString(rawOutcome, "onChainId");
-        object outcomeObj = this.outcomeForToken(tokenId, market);
+        IDictionary<string, object> outcomeObj = this.outcomeForToken(tokenId, market);
         // shares are collateral wei, the usd figures come back already scaled
         string? contracts = Precise.stringDiv(this.safeString(position, "amount"), "1000000000000000000");
         string? entryPrice = this.safeString(position, "averageBuyPriceUsd");
@@ -2758,7 +2758,7 @@ public partial class predictfun : PredictionExchange
         string? topLevelHash = this.safeString2(order, "hash", "orderHash");
         string? orderHash = this.safeString(data, "hash", topLevelHash);
         string? tokenId = this.safeString(data, "tokenId");
-        object outcomeObj = this.outcomeForToken(tokenId, market);
+        IDictionary<string, object> outcomeObj = this.outcomeForToken(tokenId, market);
         // the contract order carries the economics: a buy offers collateral for shares while a
         // sell offers shares for collateral, so which leg is the size depends on the side
         string? rawSide = this.safeString(data, "side");
@@ -2885,7 +2885,7 @@ public partial class predictfun : PredictionExchange
             this.options["jwtTokenExpiresAt"] = 0;
         }
         string? error = this.safeString(response, "error");
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
         if ((code == 400))
@@ -3620,7 +3620,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [market] the outcome the caller asked about
      * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
      */
-    public virtual object outcomeForToken(string? tokenId, object market = null)
+    public virtual IDictionary<string, object> outcomeForToken(string? tokenId, object market = null)
     {
         // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls

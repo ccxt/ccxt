@@ -2535,9 +2535,9 @@ public partial class bittrade : Exchange
                 string? codeError = this.safeString(response, "err-code");
                 string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
                 string? message = this.safeString(response, "err-msg");
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }

@@ -11210,10 +11210,10 @@ public partial class okx : Exchange
                 IDictionary<string, object> error = this.safeDict(data, i);
                 string? errorCode = this.safeString(error, "sCode");
                 string? message = this.safeString(error, "sMsg");
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             }
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

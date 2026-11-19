@@ -3045,7 +3045,7 @@ public partial class bitvavo : Exchange
         {
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

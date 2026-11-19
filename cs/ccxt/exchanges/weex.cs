@@ -3774,8 +3774,8 @@ public partial class weex : Exchange
             return;
         }
         string feedback = ((this.id + " ") + this.json(order));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessageValue, feedback);
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCodeValue, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorMessageValue, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCodeValue, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessageValue, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCodeValue, feedback);
         throw new InvalidOrder (feedback) ;
@@ -5114,8 +5114,8 @@ public partial class weex : Exchange
             }
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;

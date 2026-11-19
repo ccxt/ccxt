@@ -1431,7 +1431,7 @@ public partial class polymarket : Exchange
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
         List<object> row = new List<object>() {instrumentId, isBuy, priceString, quantity, tif, postOnly, reduceOnlyValue, clientOrderId};
-        object signable = this.compactSignable(row);
+        List<object> signable = this.compactSignable(row);
         Dictionary<string, object> entry = new Dictionary<string, object>() {
             { "iid", instrumentId },
             { "buy", isBuy },
@@ -1496,7 +1496,7 @@ public partial class polymarket : Exchange
             IDictionary<string, object> firstInfo = this.safeDict(first, "info", new Dictionary<string, object>() {});
             string? errorId = this.safeString(firstInfo, "error");
             string feedback = ((this.id + " createOrder() rejected: ") + this.json(firstInfo));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorId, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorId, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorId, feedback);
             throw new InvalidOrder (feedback) ;
         }
@@ -2847,9 +2847,9 @@ public partial class polymarket : Exchange
 
     public virtual string? signHash(object hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), slice(privateKey, -64, null), secp256k1, null);
-        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? sVal = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((((string)privateKey) == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        string? r = this.safeString(signature, "r", "");
+        string? sVal = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((sVal as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
@@ -3035,7 +3035,7 @@ public partial class polymarket : Exchange
      * @param {any[]} row the positional array to compact
      * @returns {any[]} the compacted array
      */
-    public virtual object compactSignable(IList<object> row)
+    public virtual List<object> compactSignable(IList<object> row)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (row?.Count ?? 0); i++)
@@ -3194,7 +3194,7 @@ public partial class polymarket : Exchange
         if ((status == "err") || ((error != null)))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             if ((code == 400))
             {

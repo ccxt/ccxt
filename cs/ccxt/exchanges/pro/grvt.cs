@@ -368,7 +368,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -780,7 +780,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -977,7 +977,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ((Int64?)orders.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -1084,8 +1084,8 @@ public partial class grvt : ccxt.grvt
             string body = this.json(response);
             string feedback = ((this.id + " ") + body);
             string? message = this.safeString(error, "message");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (((this.id + " ") + body)) ;
         }

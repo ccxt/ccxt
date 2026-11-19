@@ -233,8 +233,8 @@ public partial class bybit : ccxt.bybit
                 url = (accessibilityUrls != null && accessibilityUrls.ContainsKey("option") ? accessibilityUrls["option"] : null);
             }
         }
-        url = this.implodeHostname(url);
-        return ((string?)((object)(url)));
+        string? urlResolved = this.implodeHostname(url);
+        return ((string?)((object)(urlResolved)));
     }
 
     public virtual object cleanParams(object parameters)
@@ -1734,7 +1734,7 @@ public partial class bybit : ccxt.bybit
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((cache == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"position"}, parameters);
         if (this.newUpdates)
@@ -2795,7 +2795,7 @@ public partial class bybit : ccxt.bybit
             if ((code != null) && code != "0")
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
                 string? msg = this.safeString2(message, "retMsg", "ret_msg");
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;

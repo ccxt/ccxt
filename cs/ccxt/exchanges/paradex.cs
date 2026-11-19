@@ -1798,8 +1798,8 @@ public partial class paradex : Exchange
     public virtual string? signHash(string hash, string privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
-        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? r = this.safeString(signature, "r", "");
+        string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
@@ -4372,7 +4372,7 @@ public partial class paradex : Exchange
             }
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         }
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         throw new ExchangeError (feedback) ;
     }
 }

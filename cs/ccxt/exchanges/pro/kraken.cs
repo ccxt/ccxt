@@ -1216,7 +1216,7 @@ public partial class kraken : ccxt.kraken
             for (int i = 0; i < (keys?.Count ?? 0); i++)
             {
                 string? key = ((string)keys[i]);
-                object bookside = getValue(orderbook, key);
+                object bookside = (orderbook != null && key != null && orderbook.ContainsKey(key) ? orderbook[key] : null);
                 List<object> deltas = this.safeList(first, key, new List<object>() {});
                 int deltasLength = deltas.Count;
                 if (deltasLength > 0)

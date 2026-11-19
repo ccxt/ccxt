@@ -1694,7 +1694,7 @@ public partial class cex : ccxt.cex
             string? error = this.safeString(data, "error");
             string? eventVar = this.safeString(message, "e", "");
             string feedback = ((((this.id + " ") + eventVar) + " ") + error);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         } catch(Exception error)

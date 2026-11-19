@@ -2596,8 +2596,8 @@ public partial class limitless : PredictionExchange
     public virtual string? signHash(string hash, string privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
-        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? r = this.safeString(signature, "r", "");
+        string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         string rPadded = (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string sPadded = (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
@@ -3708,7 +3708,7 @@ public partial class limitless : PredictionExchange
         string? message = this.safeString(response, "message");
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
         }
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not

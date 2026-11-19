@@ -656,7 +656,7 @@ public partial class kalshi : PredictionExchange
         {
             string? errorCode = this.safeString(error, "code");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCode, feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —

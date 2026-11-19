@@ -564,7 +564,7 @@ public partial class hollaex : ccxt.hollaex
             if ((error != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("exact") ? this.exceptionsWs["exact"] : null), this.safeString(message, "error"), feedback);
+                this.throwExactlyMatchedException(this.exceptionsWsExact, this.safeString(message, "error"), feedback);
             }
         } catch(Exception e)
         {

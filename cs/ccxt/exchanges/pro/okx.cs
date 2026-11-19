@@ -2927,7 +2927,7 @@ public partial class okx : ccxt.okx
                 string feedback = ((this.id + " ") + this.json(message));
                 if (errorCode != "1")
                 {
-                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                    this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 }
                 string? messageString = this.safeString(message, "msg");
                 if ((messageString != null))
@@ -2942,7 +2942,7 @@ public partial class okx : ccxt.okx
                         errorCode = this.safeString(d, "sCode");
                         if ((errorCode != null))
                         {
-                            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                         }
                         messageString = this.safeString(d, "sMsg");
                         if ((messageString != null))

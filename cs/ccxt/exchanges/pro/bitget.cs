@@ -3148,7 +3148,7 @@ public partial class bitget : ccxt.bitget
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("exact") ? this.exceptionsWs["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsWsExact, code, feedback);
                 string? msg = this.safeString(message, "msg", "");
                 this.throwBroadlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("broad") ? this.exceptionsWs["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;

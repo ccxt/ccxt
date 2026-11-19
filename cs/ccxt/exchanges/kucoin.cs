@@ -2219,11 +2219,11 @@ public partial class kucoin : Exchange
         {
             symbolsData = this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {});
         }
-        object crossIndex = 0;
-        object isolatedIndex = 0;
-        object tickersIndex = 0;
-        object contractIndex = 0;
-        object nextIndex = 0;
+        Int64? crossIndex = 0;
+        Int64 isolatedIndex = 0;
+        Int64? tickersIndex = 0;
+        Int64? contractIndex = 0;
+        Int64 nextIndex = 0;
         if (fetchSpotMarkets)
         {
             nextIndex = 1;
@@ -2243,10 +2243,10 @@ public partial class kucoin : Exchange
         {
             contractIndex = nextIndex;
         }
-        IDictionary<string, object> crossData = requestMarginables ? this.safeDict(getValue(responses, crossIndex), "data", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
+        IDictionary<string, object> crossData = requestMarginables ? this.safeDict((responses != null && crossIndex != null && crossIndex < responses.Count ? responses[(int)crossIndex] : null), "data", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         List<object> crossItems = this.safeList(crossData, "items", new List<object>() {});
         Dictionary<string, object> crossById = this.indexBy(crossItems, "symbol");
-        object isolatedData = requestMarginables ? getValue(responses, isolatedIndex) : new Dictionary<string, object>() {};
+        object isolatedData = requestMarginables ? (responses != null && isolatedIndex < responses.Count ? responses[(int)isolatedIndex] : null) : new Dictionary<string, object>() {};
         List<object> isolatedItems = this.safeList(isolatedData, "data", new List<object>() {});
         Dictionary<string, object> isolatedById = this.indexBy(isolatedItems, "symbol");
         IDictionary<string, object> tickersResponse = fetchTickersFees == true ? this.safeDict(responses, tickersIndex, new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
@@ -13512,8 +13512,8 @@ public partial class kucoin : Exchange
         //
         string? errorCode = this.safeString(response, "code");
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), this.safeString2(response, "msg", "data", ""), feedback);
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, this.safeString2(response, "msg", "data", ""), feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
         if (errorCode != "200000" && errorCode != "200")
         {

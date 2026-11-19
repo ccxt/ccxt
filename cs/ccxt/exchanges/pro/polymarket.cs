@@ -962,7 +962,7 @@ public partial class polymarket : ccxt.polymarket
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         List<object> subscribeHashes = new List<object>() {"portfolio"};
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"portfolio"}, new List<object>() {"positions"}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);

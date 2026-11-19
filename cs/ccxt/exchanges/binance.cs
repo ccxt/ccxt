@@ -16186,7 +16186,7 @@ public partial class binance : Exchange
         if ((message != null))
         {
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), message, ((this.id + " ") + message));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.exceptionsExact, message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException(this.getExceptionsByUrl(url, "broad"), message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, ((this.id + " ") + message));
         }
@@ -16213,7 +16213,7 @@ public partial class binance : Exchange
                 throw new MarginModeAlreadySet (feedback) ;
             }
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), error, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             throw new ExchangeError (feedback) ;
         }
         if (success != true)
@@ -16231,7 +16231,7 @@ public partial class binance : Exchange
                 if ((errorCode != null))
                 {
                     this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), errorCode, ((this.id + " ") + (body)));
-                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, ((this.id + " ") + (body)));
+                    this.throwExactlyMatchedException(this.exceptionsExact, errorCode, ((this.id + " ") + (body)));
                 }
             }
         }

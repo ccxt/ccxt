@@ -2948,7 +2948,7 @@ public partial class paradex : ccxt.paradex
             string? errorCode = this.safeString(error, "code");
             if ((errorCode != null))
             {
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             }
             string? messageString = this.safeString(error, "message");
             if ((messageString != null))

@@ -1269,7 +1269,7 @@ public partial class btcturk : Exchange
         {
             feedback = ((this.id + " ") + message);
         }
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
         if ((errorCode != "0") && (errorCode != "SUCCESS"))
         {
             throw new ExchangeError (feedback) ;

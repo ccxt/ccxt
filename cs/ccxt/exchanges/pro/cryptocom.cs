@@ -1060,7 +1060,7 @@ public partial class cryptocom : ccxt.cryptocom
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, this.extend(request, parameters));
         if (this.newUpdates)
@@ -1511,7 +1511,7 @@ public partial class cryptocom : ccxt.cryptocom
             if (((errorCode != null) && errorCode != "") && errorCode != "0")
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 string? messageString = this.safeString(message, "message");
                 if ((messageString != null))
                 {

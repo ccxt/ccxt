@@ -1586,7 +1586,7 @@ public partial class lighter : ccxt.lighter
                 string? code = this.safeString(error, "code");
                 string? errorMessage = this.safeString(error, "message");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
                 throw new ExchangeError (feedback) ;
             }

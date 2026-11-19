@@ -1955,24 +1955,24 @@ public partial class backpack : Exchange
             limitResolved = windowLimit;
         }
         Int64 now = this.milliseconds();
-        object startTime = since;
-        object untilValue = until;
+        Int64? startTime = since;
+        Int64? untilValue = until;
         if ((startTime == null))
         {
             if ((untilValue == null))
             {
                 untilValue = now;
             }
-            startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilValue, ((windowLimit * duration)));
+            startTime = (untilValue - ((windowLimit * duration)));
         }
-        request["startTime"] = this.parseToInt(divide(startTime, 1000));
+        request["startTime"] = this.parseToInt(((double?)startTime / 1000));
         // set until value
         if ((untilValue == null))
         {
-            object windowEnd = this.sum(startTime, (windowLimit * duration));
-            untilValue = mathMin(now, windowEnd);
+            Int64 windowEnd = this.sum(startTime, (windowLimit * duration));
+            untilValue = Math.Min(now, windowEnd);
         }
-        request["endTime"] = this.parseToInt(divide(untilValue, 1000));
+        request["endTime"] = this.parseToInt(((double?)untilValue / 1000));
         string? price = this.safeString(paramsUntil, "price");
         IDictionary<string, object> paramsOmitted = ((price != null)) ? this.omit(paramsUntil, "price") : paramsUntil;
         if ((price != null))
@@ -4058,8 +4058,8 @@ public partial class backpack : Exchange
         if ((errorCode != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

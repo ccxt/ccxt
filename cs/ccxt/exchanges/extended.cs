@@ -3946,7 +3946,7 @@ public partial class extended : Exchange
             string? errorCode = this.safeString(error, "code");
             string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

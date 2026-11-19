@@ -1943,7 +1943,7 @@ public partial class derive : Exchange
         Int64? span = this.parseToInt((limitResolved * duration));
         Int64? windowStart = (untilSeconds - span);
         Int64? start = windowStart;
-        object end = untilSeconds;
+        Int64? end = untilSeconds;
         if ((since != null))
         {
             Int64? sinceSeconds = this.parseToInt(((double?)since / 1000));
@@ -4775,7 +4775,7 @@ public partial class derive : Exchange
             string? errorCode = this.safeString(error, "code");
             string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

@@ -165,7 +165,7 @@ public partial class bit2me : ccxt.bit2me
         {
             finalLimit = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, finalLimit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, finalLimit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -871,7 +871,7 @@ public partial class bit2me : ccxt.bit2me
         object exception = null;
         try
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             exception = new ExchangeError(feedback);
         } catch(Exception e)

@@ -4038,7 +4038,7 @@ public partial class htx : Exchange
             if ((priceType == null))
             {
                 int duration = this.parseTimeframe(timeframeVar);
-                object calcualtedEnd = null;
+                Int64? calcualtedEnd = null;
                 if ((since == null))
                 {
                     Int64 now = this.seconds();
@@ -9244,9 +9244,9 @@ public partial class htx : Exchange
                 string? codeError = this.safeString2(response, "err-code", "err_code");
                 string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
                 string? message = this.safeString2(response, "err-msg", "err_msg");
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }
@@ -9255,7 +9255,7 @@ public partial class htx : Exchange
             // {code: '1003', message: 'invalid signature'}
             string feedback = ((this.id + " ") + (body));
             string? codeError = this.safeString(response, "code");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
         }
         IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> errorsList = this.safeList(data, "errors");
@@ -9265,8 +9265,8 @@ public partial class htx : Exchange
             string? errcode = this.safeString(first, "err_code");
             string? errmessage = this.safeString(first, "err_msg");
             string feedBack = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errcode, feedBack);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errmessage, feedBack);
+            this.throwExactlyMatchedException(this.exceptionsExact, errcode, feedBack);
+            this.throwExactlyMatchedException(this.exceptionsExact, errmessage, feedBack);
         }
         return null;
     }
@@ -10714,12 +10714,12 @@ public partial class htx : Exchange
         if ((this.safeBool(market, "linear", false) == true))
         {
             List<object> dataLinear = this.safeList(response, "data", new List<object>() {});
-            List<object> settlementsLinear = this.parseSettlements(dataLinear, market);
+            List<Dictionary<string, object>> settlementsLinear = this.parseSettlements(dataLinear, market);
             return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
         }
         IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> settlementRecord = this.safeList(data, "settlement_record");
-        List<object> settlements = this.parseSettlements(settlementRecord, market);
+        List<Dictionary<string, object>> settlements = this.parseSettlements(settlementRecord, market);
         return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));
     }
 
@@ -10856,7 +10856,7 @@ public partial class htx : Exchange
         return result;
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
+    public virtual List<Dictionary<string, object>> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
     {
         //
         // coin-m swap, fetchSettlementHistory
@@ -10906,15 +10906,14 @@ public partial class htx : Exchange
         //         }
         //     ]
         //
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
             IDictionary<string, object> settlement = this.safeDict(settlements, i);
             List<object> list = this.safeList(settlement, "list");
             if ((this.safeBool(market, "linear", false) == true))
             {
-                Dictionary<string, object> parsedSettlement = this.parseSettlement(settlement, market);
-                result.Add(parsedSettlement);
+                result.Add(this.parseSettlement(settlement, market));
             } else if ((list != null))
             {
                 Int64? timestamp = this.safeInteger(settlement, "settlement_time");

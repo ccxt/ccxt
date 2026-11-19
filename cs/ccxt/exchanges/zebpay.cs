@@ -2316,8 +2316,8 @@ public partial class zebpay : Exchange
         string? message = this.safeString2(response, "msg", "statusDescription", "");
         string feedback = ((this.id + " ") + message);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         return null;
     }
 }

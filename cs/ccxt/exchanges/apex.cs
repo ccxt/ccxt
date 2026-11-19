@@ -2256,7 +2256,7 @@ public partial class apex : Exchange
             string? message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             string status = ((object)code).ToString();
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), status, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, status, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

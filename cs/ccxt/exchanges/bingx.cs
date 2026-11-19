@@ -6803,42 +6803,14 @@ public partial class bingx : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchMyLiquidations", market, paramsUntil);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        Dictionary<string, object> response = null;
-        List<object> liquidations = null;
+        IDictionary<string, object> response = null;
+        string key = "data";
         if ((subType == "inverse"))
         {
             response = await this.cswapV1PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
-            //
-            //     {
-            //         "code": 0,
-            //         "msg": "",
-            //         "timestamp": 1721280071678,
-            //         "data": [
-            //             {
-            //                 "orderId": "string",
-            //                 "symbol": "string",
-            //                 "type": "string",
-            //                 "side": "string",
-            //                 "positionSide": "string",
-            //                 "price": "string",
-            //                 "quantity": "float64",
-            //                 "stopPrice": "string",
-            //                 "workingType": "string",
-            //                 "status": "string",
-            //                 "time": "int64",
-            //                 "avgPrice": "string",
-            //                 "executedQty": "string",
-            //                 "profit": "string",
-            //                 "commission": "string",
-            //                 "updateTime": "string"
-            //             }
-            //         ]
-            //     }
-            //
-            liquidations = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            response = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
+            Dictionary<string, object> swapResponse = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6868,9 +6840,10 @@ public partial class bingx : Exchange
             //         }
             //     }
             //
-            IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            liquidations = this.safeList(data, "orders", new List<object>() {});
+            response = this.safeDict(swapResponse, "data", new Dictionary<string, object>() {});
+            key = "orders";
         }
+        List<object> liquidations = this.safeList(response, key, new List<object>() {});
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(liquidations, market, since, limit));
     }
 
@@ -7591,8 +7564,8 @@ public partial class bingx : Exchange
                 message = transferErrorMsg;
             }
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

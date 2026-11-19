@@ -2766,7 +2766,7 @@ public partial class htx : ccxt.htx
                 string? errorCode = this.safeString(message, "err-code");
                 try
                 {
-                    this.throwExactlyMatchedException((wsExceptions != null && wsExceptions.ContainsKey("exact") ? wsExceptions["exact"] : null), errorCode, this.json(message));
+                    this.throwExactlyMatchedException(this.exceptionsWsExact, errorCode, this.json(message));
                     throw new ExchangeError (this.json(message)) ;
                 } catch(Exception e)
                 {
@@ -2798,7 +2798,7 @@ public partial class htx : ccxt.htx
             string feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException((wsExceptions != null && wsExceptions.ContainsKey("exact") ? wsExceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsWsExact, code, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception e)
             {

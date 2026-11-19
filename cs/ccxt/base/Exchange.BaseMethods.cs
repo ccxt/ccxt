@@ -665,12 +665,12 @@ public partial class BaseExchange
         if ((this.proxyUrlCallback != null))
         {
             usedProxies.Add("proxyUrlCallback");
-            proxyUrl = callDynamically(this, "proxyUrlCallback", new object[] { url, method, headers, body });
+            proxyUrl = this.proxyUrlCallback(url, method, headers, body);
         }
         if ((this.proxy_url_callback != null))
         {
             usedProxies.Add("proxy_url_callback");
-            proxyUrl = callDynamically(this, "proxy_url_callback", new object[] { url, method, headers, body });
+            proxyUrl = this.proxy_url_callback(url, method, headers, body);
         }
         // backwards-compatibility
         if ((this.proxy != null))
@@ -750,7 +750,7 @@ public partial class BaseExchange
         if (issocksProxyCallbackDefined || issocks_proxy_callback_defined)
         {
             usedProxies.Add("socksProxyCallback");
-            socksProxy = issocksProxyCallbackDefined ? callDynamically(this, "socksProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "socks_proxy_callback", new object[] { url, method, headers, body });
+            socksProxy = issocksProxyCallbackDefined ? this.socksProxyCallback(url, method, headers, body) : this.socks_proxy_callback(url, method, headers, body);
         }
         // check
         int length = (usedProxies?.Count ?? 0);
@@ -2163,7 +2163,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey11 && marketsById.ContainsKey(inOpKey11)))
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey12 && marketsById.ContainsKey(inOpKey12)))
             {
                 IList<object> marketsByIdArray = ((IList<object>)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
                 marketsByIdArray.Add(value);
@@ -5561,15 +5561,15 @@ public partial class BaseExchange
         return this.handleOptionStringAndParams(parameters, methodName, "marginMode", defaultValue);
     }
 
-    public virtual void throwExactlyMatchedException(object exact, object str, object message)
+    public virtual void throwExactlyMatchedException(IDictionary<string, object> exact, object str, object message)
     {
         if ((str == null))
         {
             return;
         }
-        if (inOp(exact, str))
+        if ((exact != null && str is string inOpKey5 && exact.ContainsKey(inOpKey5)))
         {
-            throwDynamicException(getValue(exact, str), message);
+            throwDynamicException((exact != null && str != null && exact.ContainsKey((string)str) ? exact[(string)str] : null), message);
         }
     }
 
@@ -6038,10 +6038,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey5 && markets.ContainsKey(inOpKey5)))
+        if ((markets != null && symbol is string inOpKey6 && markets.ContainsKey(inOpKey6)))
         {
             return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey6 && marketsById.ContainsKey(inOpKey6))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey7 && marketsById.ContainsKey(inOpKey7))))
         {
             object marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6949,7 +6949,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = this.markets;
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey7 && markets.ContainsKey(inOpKey7)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey8 && marketsById.ContainsKey(inOpKey8)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey8 && markets.ContainsKey(inOpKey8)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey9 && marketsById.ContainsKey(inOpKey9)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -8140,7 +8140,7 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey10 && client.subscriptions.ContainsKey(inOpKey10))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
@@ -8148,7 +8148,7 @@ public partial class BaseExchange
         {
             if (subHashIsPrefix != true)
             {
-                if ((client.subscriptions != null && subHash is string inOpKey10 && client.subscriptions.ContainsKey(inOpKey10)))
+                if ((client.subscriptions != null && subHash is string inOpKey11 && client.subscriptions.ContainsKey(inOpKey11)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
                 }
@@ -8258,8 +8258,8 @@ public partial class BaseExchange
                 for (int i = 0; i < clients.Count; i++)
                 {
                     object client = clients[i];
-                    object futures = (client as WebSocketClient).futures;
-                    if (inOp(futures, "fetchPositionsSnapshot"))
+                    IDictionary<string, Future> futures = (client as WebSocketClient).futures;
+                    if ((futures != null && futures.ContainsKey("fetchPositionsSnapshot")))
                     {
                         ((IDictionary<string,object>)futures).Remove("fetchPositionsSnapshot");
                     }

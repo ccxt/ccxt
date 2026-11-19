@@ -1461,7 +1461,7 @@ public partial class bingx : ccxt.bingx
         if ((fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.positions == null))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future((type + ":fetchPositionsSnapshot")));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);
         if (this.newUpdates)
@@ -1659,7 +1659,7 @@ public partial class bingx : ccxt.bingx
             if ((code != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
             }
         } catch(Exception e)
         {

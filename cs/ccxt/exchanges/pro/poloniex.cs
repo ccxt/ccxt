@@ -1686,7 +1686,7 @@ public partial class poloniex : ccxt.poloniex
                 string? error = this.safeString(first, "message");
                 string? code = this.safeString(first, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception e)

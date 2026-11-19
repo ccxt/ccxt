@@ -3323,7 +3323,7 @@ public partial class binance : ccxt.binance
      */
     public async virtual Task ensureUserDataStreamWsSubscribeSignature(string? marketType = null)
     {
-        object marketTypeVar = marketType;
+        string? marketTypeVar = marketType;
         marketTypeVar ??= "spot";
         IDictionary<string, object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new Dictionary<string, object>() {});
@@ -3336,7 +3336,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         string? accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        if (isEqual(accountType, marketTypeVar))
+        if ((accountType == marketTypeVar))
         {
             return;
         }
@@ -3371,7 +3371,7 @@ public partial class binance : ccxt.binance
             client.resolve(marketTypeVar, messageHash);
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)marketTypeVar);
+            ((IDictionary<string,object>)client.subscriptions).Remove(marketTypeVar);
             client.reject(e, messageHash);
             throw e;
         }

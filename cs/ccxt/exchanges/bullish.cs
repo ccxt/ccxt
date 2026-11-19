@@ -1524,12 +1524,20 @@ public partial class bullish : Exchange
             {
                 if ((method is "fetchOHLCV"))
                 {
+                    if ((symbol == null))
+                    {
+                        throw new ArgumentsRequired ((this.id + " market() requires a symbol argument")) ;
+                    }
                     return ccxt.BaseExchange.FromOHLCVList(await this.FetchOHLCV(symbol,timeframe, since, limit, paramsOmitted));
                 } else if ((method is "fetchFundingRateHistory"))
                 {
                     return ccxt.BaseExchange.FromFundingRateHistoryList(await this.FetchFundingRateHistory(symbol, since, limit, paramsOmitted));
                 } else
                 {
+                    if ((symbol == null))
+                    {
+                        throw new ArgumentsRequired ((this.id + " market() requires a symbol argument")) ;
+                    }
                     return ccxt.BaseExchange.FromTradeList(await this.FetchTrades(symbol, since, limit, paramsOmitted));
                 }
             } catch(Exception e)
@@ -1589,7 +1597,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Int64? untilParam = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
-        object until = null;
+        Int64? until = null;
         if ((untilParam != null))
         {
             until = untilParam;
@@ -3513,9 +3521,9 @@ public partial class bullish : Exchange
                 message = type;
             }
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

@@ -4081,7 +4081,7 @@ public partial class btse : Exchange
             string? spotErrorCode = this.safeString(response, "code");
             string? spotMessage = this.safeString(response, "msg");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), spotErrorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, spotErrorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), spotMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -4090,7 +4090,7 @@ public partial class btse : Exchange
         {
             string? message = this.safeString(response, "message");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -4112,7 +4112,7 @@ public partial class btse : Exchange
         {
             string? legacyMessage = this.safeString(response, "message");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), legacyEnumCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, legacyEnumCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), legacyMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -4137,7 +4137,7 @@ public partial class btse : Exchange
                     rowMessage = this.safeString(embedded, "default_msg", rowMessage);
                 }
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), status, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, status, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), rowMessage, feedback);
             }
         }

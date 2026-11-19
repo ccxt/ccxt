@@ -2454,7 +2454,7 @@ public partial class opinion : PredictionExchange
         {
             string? errmsg = this.safeString(response, "errmsg", "");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), this.numberToString(errno), feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, this.numberToString(errno), feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errmsg, feedback);
             throw new ExchangeError (feedback) ;
         }

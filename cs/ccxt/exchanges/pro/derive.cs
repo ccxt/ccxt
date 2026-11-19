@@ -1196,7 +1196,7 @@ public partial class derive : ccxt.derive
             if ((errorCode != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 throw new ExchangeError (feedback) ;
             }
             return false;

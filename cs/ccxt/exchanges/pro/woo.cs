@@ -1513,7 +1513,7 @@ public partial class woo : ccxt.woo
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1771,7 +1771,7 @@ public partial class woo : ccxt.woo
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             }
             return ((bool?)((object)(false)));
         } catch(Exception error)
