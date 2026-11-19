@@ -3883,7 +3883,9 @@ function typedBaseDictFields(content: string): string {
             .replace(new RegExp('if let Value::Dict\\((\\w+)\\) = (&mut ' + r + '(?:\\.clone\\(\\))?|unsafe \\{ crate::runtime::coerce_value_to_mut\\(&' + r + '\\) \\}) \\{', 'g'), '{ let $1 = $2;')
             .replace(new RegExp('get_value_mut\\((&mut ' + r + '|unsafe \\{ crate::runtime::coerce_value_to_mut\\(&' + r + '\\) \\}), &Value::Str\\(' + k + '\\.into\\(\\)\\)\\)', 'g'), make + '$1).entry($2.to_string()).or_insert(Value::Null)')
             .replace(new RegExp('\\b(safe_\\w+|omit)\\(' + r + '\\.clone\\(\\)', 'g'), '$1(&self.' + f)
-            .replace(new RegExp('([^\\w:]|Value::Dict\\()' + r + '\\.clone\\(\\)', 'g'), (m0, pre, at, all) => pre === 'Value::Dict(' || all.slice(at - 4, at + 1) === '&mut ' ? m0 : pre + 'Value::Dict(self.' + f + '.clone())');
+            .replace(new RegExp('([^\\w:]|Value::Dict\\()' + r + '\\.clone\\(\\)', 'g'), (m0, pre, at, all) => pre === 'Value::Dict(' || all.slice(at - 4, at + 1) === '&mut ' ? m0 : pre + 'Value::Dict(self.' + f + '.clone())')
+            // A write left on a copy in a `&self` method reaches the field the way nested writes do.
+            .replace(new RegExp('&mut ' + r + '\\.clone\\(\\)', 'g'), 'unsafe { crate::runtime::coerce_value_to_mut(&self.' + f + ') }');
     }
     return content;
 }
