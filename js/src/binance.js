@@ -385,6 +385,7 @@ export default class binance extends Exchange {
                         'sub-account/universalTransfer': { 'cost': 0.1 },
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': { 'cost': 1 },
                         'sub-account/transaction-statistics': { 'cost': 0.40002 }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset': { 'cost': 0.1 },
                         'managed-subaccount/accountSnapshot': { 'cost': 240 },
@@ -588,6 +589,8 @@ export default class binance extends Exchange {
                         'margin/max-leverage': { 'cost': 300 }, // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn': { 'cost': 0.1 },
                         'sub-account/virtualSubAccount': { 'cost': 0.1 },
+                        'sub-account/subAccountApi': { 'cost': 20.001 },
+                        'sub-account/subAccountApiPermission': { 'cost': 20.001 },
                         'sub-account/margin/transfer': { 'cost': 4.0002 }, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': { 'cost': 0.1 },
                         'sub-account/futures/enable': { 'cost': 0.1 },
@@ -728,6 +731,7 @@ export default class binance extends Exchange {
                         'broker/subAccountApi/ipRestriction/ipList': { 'cost': 1 },
                         'algo/spot/order': { 'cost': 0.1 },
                         'algo/futures/order': { 'cost': 0.1 },
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction/ipList': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
@@ -747,6 +751,7 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'eth-staking/eth/stake': { 'cost': 15 }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'loan/flexible/borrow': { 'cost': 40.002 }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/repay': { 'cost': 40.002 }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
@@ -11397,7 +11402,7 @@ export default class binance extends Exchange {
         const request = {};
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const defaultType = this.safeString2(this.options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         const type = this.safeString(paramsPaginate, 'type', defaultType);

@@ -14,6 +14,7 @@ public class  Binancecoinm: binancecoinm { public Binancecoinm(object args = nul
 public class  Binanceus: binanceus { public Binanceus(object args = null) : base(args) { } }
 public class  Binanceusdm: binanceusdm { public Binanceusdm(object args = null) : base(args) { } }
 public class  Bingx: bingx { public Bingx(object args = null) : base(args) { } }
+public class  Bit2me: bit2me { public Bit2me(object args = null) : base(args) { } }
 public class  Bitfinex: bitfinex { public Bitfinex(object args = null) : base(args) { } }
 public class  Bitget: bitget { public Bitget(object args = null) : base(args) { } }
 public class  Bithumb: bithumb { public Bithumb(object args = null) : base(args) { } }

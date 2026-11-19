@@ -809,10 +809,14 @@ public class Whitebit extends WhitebitApi
             //          "takerFee": "0.1",         // Default taker fee ratio
             //          "minAmount": "0.001",      // Minimal amount of stock to trade
             //          "minTotal": "0.001",       // Minimal amount of money to trade
+            //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
             //          "tradesEnabled": true,     // Is trading enabled
             //          "isCollateral": true,      // Is margin trading enabled
             //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-            //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+            //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+            //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+            //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+            //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
             //        },
             //        {
             //          ...
@@ -849,7 +853,6 @@ public class Whitebit extends WhitebitApi
         Boolean swap = (java.util.Objects.equals(typeId, "futures")) || (java.util.Objects.equals(typeId, "tradfiFutures"));
         Boolean margin = Boolean.TRUE.equals(isCollateral) && !Boolean.TRUE.equals(swap);
         Boolean contract = false;
-        Double amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         Boolean linear = null;
         Boolean inverse = null;
         if (Boolean.TRUE.equals(swap))
@@ -897,8 +900,8 @@ public class Whitebit extends WhitebitApi
         mapLiteral1.put("strike", null);
         mapLiteral1.put("optionType", null);
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
-                put( "amount", amountPrecision );
-                put( "price", Whitebit.this.parseNumber(Whitebit.this.parsePrecision(Whitebit.this.safeString(market, "moneyPrec"))) );
+                put( "amount", Whitebit.this.safeNumber(market, "stepSize", (Object) null) );
+                put( "price", Whitebit.this.safeNumber(market, "tickSize", (Object) null) );
             }});
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
@@ -5104,7 +5107,7 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, maxLimit, true)).join();
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -5118,7 +5121,7 @@ public class Whitebit extends WhitebitApi
             {
                 request.put("startDate", Math.round(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until_timestamp", request, (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))

@@ -2662,10 +2662,11 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
-        if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
         priceType = self.safe_string(paramsPaginate, 'price')
         isMarkOrIndex = self.in_array(priceType, ['mark', 'index'])
+        if paginate:
+            maxEntriesPerRequest = 100 if (isMarkOrIndex) else 200
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest)
         paramsPrice = self.omit(paramsPaginate, 'price')
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         timezone = self.safe_string(options, 'timezone', 'UTC')
@@ -2700,7 +2701,9 @@ class okx(Exchange, ImplicitAPI):
             request['after'] = self.sum(since, durationInMilliseconds * limitResolved)
         until = self.safe_integer(paramsPrice, 'until')
         if until is not None:
-            request['after'] = until
+            afterSince = self.safe_integer(request, 'after')
+            if (afterSince is None) or (until < afterSince):
+                request['after'] = until
         paramsUntil = self.omit(paramsPrice, 'until') if (until is not None) else paramsPrice
         defaultType = self.safe_string(options, 'type', defaultType)  # Candles or HistoryCandles
         type = self.safe_string(paramsUntil, 'type', defaultType)
@@ -2751,6 +2754,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
@@ -2760,7 +2764,7 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 400)
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2769,7 +2773,11 @@ class okx(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetPublicFundingRateHistory(self.extend(request, paramsPaginate))
+        until = self.safe_integer(paramsPaginate, 'until')
+        if until is not None:
+            request['after'] = until
+        paramsUntil = self.omit(paramsPaginate, 'until') if (until is not None) else paramsPaginate
+        response = self.publicGetPublicFundingRateHistory(self.extend(request, paramsUntil))
         #
         #     {
         #         "code":"0",

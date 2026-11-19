@@ -24,7 +24,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
 
 use futures::{SinkExt, StreamExt};
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use tokio::sync::{mpsc, watch};
 use tokio_tungstenite::tungstenite::Message;
 
@@ -179,7 +179,7 @@ where
     }
 }
 
-static WS_CLIENTS_TX: Lazy<mpsc::UnboundedSender<ClientJob>> = Lazy::new(|| {
+static WS_CLIENTS_TX: LazyLock<mpsc::UnboundedSender<ClientJob>> = LazyLock::new(|| {
     let (tx, mut rx) = mpsc::unbounded_channel::<ClientJob>();
     std::thread::Builder::new()
         .name("ccxt-ws-clients".to_string())
@@ -734,7 +734,7 @@ fn tls_connector(validate_server_ssl: bool) -> Result<Option<tokio_tungstenite::
     if validate_server_ssl {
         return Ok(None);
     }
-    static INSECURE: Lazy<Result<Arc<rustls::ClientConfig>, String>> = Lazy::new(|| {
+    static INSECURE: LazyLock<Result<Arc<rustls::ClientConfig>, String>> = LazyLock::new(|| {
         let provider = Arc::new(rustls::crypto::ring::default_provider());
         let config = rustls::ClientConfig::builder_with_provider(provider.clone())
             .with_safe_default_protocol_versions()

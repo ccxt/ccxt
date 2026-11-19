@@ -2211,16 +2211,36 @@ public partial class gate : ccxt.gate
             this.liquidations = new ArrayCache(limit);
         }
         ccxt.pro.ArrayCache cache = this.liquidations;
+        Dictionary<string, object> liquidationsBySymbol = new Dictionary<string, object>() {};
         for (int i = 0; i < rawLiquidations.Count; i++)
         {
             object rawLiquidation = rawLiquidations[i];
             Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation);
             cache.append(liquidation);
+            newLiquidations.Add(liquidation);
             string? symbol = this.safeString(liquidation, "symbol");
-            List<object> symbolLiquidations = this.safeList(cache, symbol, new List<object>() {});
-            client.resolve(symbolLiquidations, ("myLiquidations::" + symbol));
+            if ((symbol != null))
+            {
+                List<object> symbolLiquidations = this.safeList(liquidationsBySymbol, symbol);
+                if ((symbolLiquidations == null))
+                {
+                    symbolLiquidations = new List<object>() {};
+                }
+                symbolLiquidations.Add(liquidation);
+                liquidationsBySymbol[(string)symbol] = symbolLiquidations;
+            }
         }
-        client.resolve(newLiquidations, "myLiquidations");
+        List<object> symbols = new List<object>(liquidationsBySymbol.Keys);
+        for (int i = 0; i < symbols.Count; i++)
+        {
+            string? symbol = ((string)symbols[i]);
+            client.resolve((symbol != null && liquidationsBySymbol.ContainsKey(symbol) ? liquidationsBySymbol[symbol] : null), ("myLiquidations::" + symbol));
+        }
+        int numNewLiquidations = (newLiquidations?.Count ?? 0);
+        if (numNewLiquidations > 0)
+        {
+            client.resolve(newLiquidations, "myLiquidations");
+        }
     }
 
     public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object>? market = null)
@@ -2254,7 +2274,8 @@ public partial class gate : ccxt.gate
         //    }
         //
         string? marketId = this.safeString(liquidation, "contract");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        // liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_", "contract");
         Int64? timestamp = this.safeInteger(liquidation, "time_ms");
         string? originalSize = this.safeString(liquidation, "size");
         string? left = this.safeString(liquidation, "left");
@@ -2269,7 +2290,7 @@ public partial class gate : ccxt.gate
             { "quoteValue", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        });
+        }, marketResolved);
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)

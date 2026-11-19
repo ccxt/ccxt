@@ -3999,7 +3999,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 1000)
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -4013,7 +4013,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
+	requestUntil, paramsUntil := this.HandleUntilOption("till", request, paramsPaginate)
 	if symbol != nil {
 		market = this.Market(symbol)
 		requestUntil["symbols"] = market["id"]

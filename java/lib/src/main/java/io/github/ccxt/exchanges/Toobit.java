@@ -1562,6 +1562,11 @@ public class Toobit extends ToobitApi
                 {
                     request.put("to", this.sum(since, ((((long) duration) * limit) * 1000L)));
                 }
+            } else if ((!java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(limit, null)))
+            {
+                // without an end time the exchange returns the latest candles, not the ones starting at since
+                Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                request.put("endTime", ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(Helpers.subtract(this.sum(since, (duration * limit)), 1), this.milliseconds()));
             }
             if (!java.util.Objects.equals(limit, null))
             {

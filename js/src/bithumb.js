@@ -365,6 +365,9 @@ export default class bithumb extends Exchange {
                 '30m': 30,
                 '1h': 60,
                 '4h': 240,
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
             },
             'options': {
                 'generation': 2, // either API generation 1 or 2
@@ -1305,6 +1308,8 @@ export default class bithumb extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1317,18 +1322,45 @@ export default class bithumb extends Exchange {
         let response = undefined;
         let data = [];
         if (generation === 2) {
+            const [paginate, paramsPaginate] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+            if (paginate) {
+                return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
+            }
+            const until = this.safeInteger(paramsGeneration, 'until');
+            const requestParams = this.omit(paramsGeneration, ['until', 'paginate']);
             request['market'] = this.getGen2MarketId(market);
+            // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            let count = 200;
             if (limit !== undefined) {
-                request['count'] = limit;
+                count = Math.min(limit, 200);
+            }
+            if ((limit !== undefined) || (since !== undefined) || (until !== undefined)) {
+                request['count'] = count;
+            }
+            // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            let to = undefined;
+            if (until !== undefined) {
+                to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
+            }
+            if (since !== undefined) {
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                const sinceEnd = this.sum(since, duration * count);
+                if ((to === undefined) || (sinceEnd < to)) {
+                    to = sinceEnd;
+                }
+            }
+            if (to !== undefined) {
+                request['to'] = this.ymdhms(this.sum(to, 32400000), ' ');
             }
             if (timeframe === '1d') {
-                response = await this.publicGetV1CandlesDays(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesDays(this.extend(request, requestParams));
             }
             else if (timeframe === '1w') {
-                response = await this.publicGetV1CandlesWeeks(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesWeeks(this.extend(request, requestParams));
             }
             else if (timeframe === '1M') {
-                response = await this.publicGetV1CandlesMonths(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMonths(this.extend(request, requestParams));
             }
             else {
                 const timeframeInteger = this.safeInteger(this.timeframes, timeframe);
@@ -1336,7 +1368,7 @@ export default class bithumb extends Exchange {
                     throw new BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe);
                 }
                 request['unit'] = timeframeInteger;
-                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, requestParams));
             }
             //
             //     [

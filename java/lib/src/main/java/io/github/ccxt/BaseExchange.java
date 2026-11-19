@@ -3099,11 +3099,7 @@ public class BaseExchange {
     }
 
     private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-        return sb.toString();
+        return java.util.HexFormat.of().formatHex(bytes);
     }
 
     // EIP-712 typed-data encoder. Returns the pre-digest bytes
@@ -3346,14 +3342,12 @@ public class BaseExchange {
     }
 
     private static byte[] keccak256(byte[] input) {
-        org.bouncycastle.jcajce.provider.digest.Keccak.Digest256 k = new org.bouncycastle.jcajce.provider.digest.Keccak.Digest256();
-        k.update(input, 0, input.length);
-        return k.digest();
+        return Crypto.keccakDigest(input);
     }
 
     public Object packb(Object data) {
         try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-             org.msgpack.core.MessagePacker packer = org.msgpack.core.MessagePack.newDefaultPacker(out)) {
+             java.io.DataOutputStream packer = new java.io.DataOutputStream(out)) {
             // Java Maps don't preserve insertion order, but msgpack signatures
             // (e.g. Hyperliquid) require a canonical field order. Match the Go
             // port's strategy (go/v4/exchange_eth.go): per-exchange schemas
@@ -3479,49 +3473,78 @@ public class BaseExchange {
         return null;
     }
 
+    // Write-only MessagePack encoder; byte-identical to msgpack-core's default MessagePacker.
     @SuppressWarnings("unchecked")
-    private static void packValue(org.msgpack.core.MessagePacker packer, Object value) throws java.io.IOException {
+    private static void packValue(java.io.DataOutputStream out, Object value) throws java.io.IOException {
         if (value == null) {
-            packer.packNil();
+            out.writeByte(0xc0);
         } else if (value instanceof Boolean) {
-            packer.packBoolean((Boolean) value);
-        } else if (value instanceof Byte) {
-            packer.packByte((Byte) value);
-        } else if (value instanceof Short) {
-            packer.packShort((Short) value);
-        } else if (value instanceof Integer) {
-            packer.packInt((Integer) value);
-        } else if (value instanceof Long) {
-            packer.packLong((Long) value);
+            out.writeByte((Boolean) value ? 0xc3 : 0xc2);
+        } else if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) {
+            packLong(out, ((Number) value).longValue());
         } else if (value instanceof java.math.BigInteger) {
-            packer.packBigInteger((java.math.BigInteger) value);
+            java.math.BigInteger big = (java.math.BigInteger) value;
+            if (big.bitLength() <= 63) {
+                packLong(out, big.longValue());
+            } else if (big.bitLength() == 64 && big.signum() == 1) {
+                out.writeByte(0xcf);
+                out.writeLong(big.longValue());
+            } else {
+                throw new IllegalArgumentException("MessagePack cannot serialize BigInteger larger than 2^64-1");
+            }
         } else if (value instanceof Float) {
-            packer.packFloat((Float) value);
+            out.writeByte(0xca);
+            out.writeFloat((Float) value);
         } else if (value instanceof Double) {
-            packer.packDouble((Double) value);
+            out.writeByte(0xcb);
+            out.writeDouble((Double) value);
         } else if (value instanceof String) {
-            packer.packString((String) value);
+            byte[] bytes = ((String) value).getBytes(StandardCharsets.UTF_8);
+            packHeader(out, bytes.length, 0xa0, 32, 0xd9, 0xda);
+            out.write(bytes);
         } else if (value instanceof byte[]) {
             byte[] bytes = (byte[]) value;
-            packer.packBinaryHeader(bytes.length);
-            packer.writePayload(bytes);
+            packHeader(out, bytes.length, -1, 0, 0xc4, 0xc5);
+            out.write(bytes);
         } else if (value instanceof Map) {
             Map<Object, Object> map = (Map<Object, Object>) value;
-            packer.packMapHeader(map.size());
+            packHeader(out, map.size(), 0x80, 16, -1, 0xde);
             for (Map.Entry<Object, Object> entry : map.entrySet()) {
-                packValue(packer, entry.getKey());
-                packValue(packer, entry.getValue());
+                packValue(out, entry.getKey());
+                packValue(out, entry.getValue());
             }
         } else if (value instanceof List) {
             List<Object> list = (List<Object>) value;
-            packer.packArrayHeader(list.size());
+            packHeader(out, list.size(), 0x90, 16, -1, 0xdc);
             for (Object item : list) {
-                packValue(packer, item);
+                packValue(out, item);
             }
         } else {
             // Best-effort fallback for unknown types
-            packer.packString(value.toString());
+            packValue(out, value.toString());
         }
+    }
+
+    private static void packLong(java.io.DataOutputStream out, long v) throws java.io.IOException {
+        if (v >= -32 && v < 128) { out.writeByte((int) v); }
+        else if (v >= 0) {
+            if (v < 256) { out.writeByte(0xcc); out.writeByte((int) v); }
+            else if (v < 65536) { out.writeByte(0xcd); out.writeShort((int) v); }
+            else if (v < 4294967296L) { out.writeByte(0xce); out.writeInt((int) v); }
+            else { out.writeByte(0xcf); out.writeLong(v); }
+        }
+        else if (v >= -128) { out.writeByte(0xd0); out.writeByte((int) v); }
+        else if (v >= -32768) { out.writeByte(0xd1); out.writeShort((int) v); }
+        else if (v >= Integer.MIN_VALUE) { out.writeByte(0xd2); out.writeInt((int) v); }
+        else { out.writeByte(0xd3); out.writeLong(v); }
+    }
+
+    // fix (code|n below fixLimit, fixCode < 0 = none), then 8-bit (code8 < 0 = none), 16-bit, 32-bit (code16 + 1).
+    private static void packHeader(java.io.DataOutputStream out, int n, int fixCode, int fixLimit, int code8, int code16) throws java.io.IOException {
+        if (fixCode >= 0 && n < fixLimit) { out.writeByte(fixCode | n); }
+        else if (code8 >= 0 && n < 256) { out.writeByte(code8); out.writeByte(n); }
+        else if (n < 65536) { out.writeByte(code16); out.writeShort(n); }
+        else { out.writeByte(code16 + 1); out.writeInt(n); }
     }
 
     public int binaryLength(Object binary) {
@@ -5733,7 +5756,7 @@ public Map<String, Object> describe()
         {
             MarketInterface market = this.parseMarket(Helpers.GetValue(markets, i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (!java.util.Objects.equals(market, null))
+            if (!java.util.Objects.equals(market, null) && !java.util.Objects.equals(this.safeString(market, "id"), null))
             {
                 ((List<Object>)result).add(market);
             }

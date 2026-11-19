@@ -3758,10 +3758,19 @@ class xt(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = self.safe_symbol(marketId, marketResolved, None, marketType)
         timestamp = self.safe_integer_2(order, 'time', 'createdTime')
-        quantity = self.safe_number(order, 'origQty')
-        amount = quantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(quantity), self.number_to_string(marketResolved['contractSize']))
-        filledQuantity = self.safe_number(order, 'executedQty')
-        filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(filledQuantity), self.number_to_string(marketResolved['contractSize']))
+        contractSize = self.safe_string(marketResolved, 'contractSize')
+        quantity = self.safe_string(order, 'origQty')
+        # on spot market buy orders executedQty is denominated in the quote
+        # currency, so the filled base amount is only correct in tradeBase
+        filledQuantity = self.safe_string_2(order, 'tradeBase', 'executedQty')
+        amount = quantity if (marketType == 'spot') else Precise.string_mul(quantity, contractSize)
+        filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(filledQuantity, contractSize)
+        # leavingQty follows executedQty and is quote-denominated on the same
+        # spot market buy shape, so it is only read when the order carries a
+        # base-denominated origQty - otherwise safeOrder derives it from filled
+        remaining = None
+        if quantity is not None:
+            remaining = self.safe_string(order, 'leavingQty')
         lastUpdatedTimestamp = self.safe_integer(order, 'updatedTime')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = None
@@ -3791,7 +3800,7 @@ class xt(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastUpdatedTimestamp,
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
-            'type': self.safe_string_lower_2(order, 'type', 'orderType'),
+            'type': self.parse_order_type(self.safe_string_lower_n(order, ['type', 'orderType', 'entrustType'])),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -3801,8 +3810,8 @@ class xt(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number(order, 'triggerProfitPrice'),
             'amount': amount,
             'filled': filled,
-            'remaining': self.safe_number(order, 'leavingQty'),
-            'cost': None,
+            'remaining': remaining,
+            'cost': self.safe_string(order, 'tradeQuote'),
             'average': self.safe_number(order, 'avgPrice'),
             'status': self.parse_order_status(self.safe_string(order, 'state')),
             'fee': {
@@ -3811,6 +3820,16 @@ class xt(Exchange, ImplicitAPI):
             },
             'trades': None,
         }, marketResolved)
+
+    def parse_order_type(self, type: Str) -> Str:
+        types = {
+            'stop': 'limit',
+            'stop_market': 'market',
+            'take_profit': 'limit',
+            'take_profit_market': 'market',
+            'trailing_stop_market': 'market',
+        }
+        return self.safe_string(types, type, type)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {

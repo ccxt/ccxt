@@ -4752,7 +4752,7 @@ public class Gate extends GateApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
             if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
@@ -10083,25 +10083,27 @@ public class Gate extends GateApi
             quoteValueString = Precise.stringMul(baseValueString, priceString);
         }
         // --- derive side ---
+        // gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        // is the side of the liquidation order: a long is closed by a sell, a short by a buy
         // 1) options payload has explicit 'side': 'long' | 'short'
         String optPos = this.safeStringLower(liquidation, "side");
         String side = null;
         if (java.util.Objects.equals(optPos, "long"))
         {
-            side = "buy";
+            side = "sell";
         } else if (java.util.Objects.equals(optPos, "short"))
         {
-            side = "sell";
+            side = "buy";
         } else
         {
             if (!java.util.Objects.equals(size, null))
             {
                 if (Precise.stringGt(size, "0"))
                 {
-                    side = "buy";
+                    side = "sell";
                 } else if (Precise.stringLt(size, "0"))
                 {
-                    side = "sell";
+                    side = "buy";
                 }
             }
         }

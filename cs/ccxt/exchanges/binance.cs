@@ -588,6 +588,9 @@ public partial class binance : Exchange
                         { "sub-account/transaction-statistics", new Dictionary<string, object>() {
                             { "cost", 0.40002 },
                         } },
+                        { "sub-account/subAccountApi", new Dictionary<string, object>() {
+                            { "cost", 20.001 },
+                        } },
                         { "sub-account/subAccountApi/ipRestriction", new Dictionary<string, object>() {
                             { "cost", 20.001 },
                         } },
@@ -1134,6 +1137,12 @@ public partial class binance : Exchange
                         { "sub-account/virtualSubAccount", new Dictionary<string, object>() {
                             { "cost", 0.1 },
                         } },
+                        { "sub-account/subAccountApi", new Dictionary<string, object>() {
+                            { "cost", 20.001 },
+                        } },
+                        { "sub-account/subAccountApiPermission", new Dictionary<string, object>() {
+                            { "cost", 20.001 },
+                        } },
                         { "sub-account/margin/transfer", new Dictionary<string, object>() {
                             { "cost", 4.0002 },
                         } },
@@ -1504,6 +1513,9 @@ public partial class binance : Exchange
                         { "algo/futures/order", new Dictionary<string, object>() {
                             { "cost", 0.1 },
                         } },
+                        { "sub-account/subAccountApi", new Dictionary<string, object>() {
+                            { "cost", 20.001 },
+                        } },
                         { "sub-account/subAccountApi/ipRestriction/ipList", new Dictionary<string, object>() {
                             { "cost", 20.001 },
                         } },
@@ -1548,6 +1560,9 @@ public partial class binance : Exchange
                     { "post", new Dictionary<string, object>() {
                         { "eth-staking/eth/stake", new Dictionary<string, object>() {
                             { "cost", 15 },
+                        } },
+                        { "sub-account/subAccountApi", new Dictionary<string, object>() {
+                            { "cost", 20.001 },
                         } },
                         { "sub-account/subAccountApi/ipRestriction", new Dictionary<string, object>() {
                             { "cost", 20.001 },
@@ -13478,7 +13493,7 @@ public partial class binance : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000));
         }
         string? defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "swap");
         string? type = this.safeString(paramsPaginate, "type", defaultType);

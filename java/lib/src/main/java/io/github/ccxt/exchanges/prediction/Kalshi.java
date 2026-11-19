@@ -800,7 +800,7 @@ public class Kalshi extends KalshiApi
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         String result = this.safeStringLower(raw, "result");
         Boolean resolved = (java.util.Objects.equals(status, "settled")) || ((!java.util.Objects.equals(result, null)) && (!java.util.Objects.equals(result, "")));
-        String endDate = this.safeString(raw, "expiration_time");
+        String endDate = this.safeString2(raw, "latest_expiration_time", "expiration_time");
         Double volume = this.safeNumber2(raw, "volume_fp", "volume", (Object) null);
         Double liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity", (Object) null);
         Double openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest", (Object) null);

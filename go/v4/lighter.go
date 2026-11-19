@@ -810,7 +810,12 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 		"api_key_index": this.ParseToInt(apiKeyIndex),
 		"account_index": this.ParseToInt(accountIndex),
 	}
-	var token any = this.LighterCreateAuthToken(this.SafeValue(cachedAuth, "signer"), request)
+	var signer any = this.SafeValue(cachedAuth, "signer")
+	if signer == nil {
+		this.CheckRequiredCredentials()
+		panic(AuthenticationError(this.Id + " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt"))
+	}
+	var token any = this.LighterCreateAuthToken(signer, request)
 	this.SetAuthEntry(accountIndex, apiKeyIndex, map[string]any{
 		"deadline": deadline,
 		"token":    token,
@@ -3643,11 +3648,11 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes260919 []any = r1.Value
-		if retRes260919 == nil {
+		var retRes261419 []any = r1.Value
+		if retRes261419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes260919)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes261419)}
 		}
 		return nil
 	}
@@ -3797,11 +3802,11 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes271219 []any = r1.Value
-		if retRes271219 == nil {
+		var retRes271719 []any = r1.Value
+		if retRes271719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes271219)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes271719)}
 		}
 		return nil
 	}
@@ -3905,11 +3910,11 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes277419 []any = r.Value
-		if retRes277419 == nil {
+		var retRes277919 []any = r.Value
+		if retRes277919 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277919)}
 		}
 		return nil
 	}
@@ -4257,11 +4262,11 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes300219 []any = r1.Value
-		if retRes300219 == nil {
+		var retRes300719 []any = r1.Value
+		if retRes300719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes300219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes300719)}
 		}
 		return nil
 	}
@@ -4479,11 +4484,11 @@ func (this *Lighter) setLeverageBody(ch chan AsyncResult[map[string]any], levera
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes316115 map[string]any = r.Value
-	if retRes316115 == nil {
+	var retRes316615 map[string]any = r.Value
+	if retRes316615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes316115}
+		ch <- AsyncResult[map[string]any]{Value: retRes316615}
 	}
 	return nil
 }
@@ -4526,11 +4531,11 @@ func (this *Lighter) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes318415 map[string]any = r.Value
-	if retRes318415 == nil {
+	var retRes318915 map[string]any = r.Value
+	if retRes318915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes318415}
+		ch <- AsyncResult[map[string]any]{Value: retRes318915}
 	}
 	return nil
 }

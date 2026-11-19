@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.92';
+$version = '4.5.93';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.92';
+    const VERSION = '4.5.93';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.92';
+    public static $ccxt_version = '4.5.93';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -371,6 +371,7 @@ class BaseExchange {
         'binanceusdm',
         'bingx',
         'bit2c',
+        'bit2me',
         'bitbank',
         'bitbns',
         'bitfinex',
@@ -750,32 +751,15 @@ class BaseExchange {
     }
 
     public static function uuid22($length = 22) {
-        return bin2hex(random_bytes(intval($length / 2)));
+        return static::uuid16($length);
     }
 
     public static function uuid() {
-        return sprintf(
-            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            // 32 bits for "time_low"
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-
-            // 16 bits for "time_mid"
-            mt_rand(0, 0xffff),
-
-            // 16 bits for "time_hi_and_version",
-            // four most significant bits holds version number 4
-            mt_rand(0, 0x0fff) | 0x4000,
-
-            // 16 bits, 8 bits for "clk_seq_hi_res", 8 bits for "clk_seq_low",
-            // two most significant bits holds zero and one for variant DCE1.1
-            mt_rand(0, 0x3fff) | 0x8000,
-
-            // 48 bits for "node"
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff)
-        );
+        // RFC 4122 version 4: set the version nibble to 4 and the variant bits to 10
+        $bytes = random_bytes(16);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
     }
 
     public static function parse_timeframe($timeframe) {
@@ -1448,18 +1432,12 @@ class BaseExchange {
 
 
     public function ensure_whitelisted_file(string $filePath) {
-        $tempDir = $this->get_temp_dir();
-        if (!str_ends_with($tempDir, DIRECTORY_SEPARATOR)) {
-            $tempDir .= DIRECTORY_SEPARATOR;
-        }
-        // resolve parent dir (which exists) + filename
-        $dir = realpath(dirname($filePath));
-        if ($dir === false) {
-            throw new \RuntimeException('dir path does not exist: ' . $filePath);
-        }
-        $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
-        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
-            return;
+        $sanitized = basename($filePath);
+        $exts = array('ccxtfile', 'pem', 'wasm');
+        foreach ($exts as $ext) {
+            if (str_ends_with($sanitized, '.' . $ext)) {
+                return;
+            }
         }
         throw new \RuntimeException('invalid file path: ' . $filePath);
     }
@@ -4256,7 +4234,7 @@ class BaseExchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->parse_market($markets[$i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if ($market !== null) {
+            if ($market !== null && $this->safe_string($market, 'id') !== null) {
                 $result[] = $market;
             }
         }

@@ -6312,6 +6312,7 @@ public class Mexc extends MexcApi
         mapLiteral8.put("collateral", this.parseNumber(collateralString));
         mapLiteral8.put("side", side);
         mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral8.put("realizedPnl", this.safeNumber(position, "realised", (Object) null));
         mapLiteral8.put("leverage", this.parseNumber(leverage));
         mapLiteral8.put("percentage", null);
         mapLiteral8.put("marginMode", marginType);

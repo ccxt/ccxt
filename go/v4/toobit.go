@@ -1622,6 +1622,10 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		} else {
 			request["to"] = this.Sum(since, (duration**limit)*1000)
 		}
+	} else if (since != nil) && (limit != nil) {
+		// without an end time the exchange returns the latest candles, not the ones starting at since
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
+		request["endTime"] = mathMin(Subtract(this.Sum(since, duration**limit), 1), this.Milliseconds())
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2075,11 +2079,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes165819 []any = r1.Value
-		if retRes165819 == nil {
+		var retRes166219 []any = r1.Value
+		if retRes166219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes165819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166219)}
 		}
 		return nil
 	}
@@ -3424,11 +3428,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277115 []any = TransactionsToList(r.Value)
-	if retRes277115 == nil {
+	var retRes277515 []any = TransactionsToList(r.Value)
+	if retRes277515 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277115)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277515)}
 	}
 	return nil
 }
@@ -3465,11 +3469,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278615 []any = TransactionsToList(r.Value)
-	if retRes278615 == nil {
+	var retRes279015 []any = TransactionsToList(r.Value)
+	if retRes279015 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278615)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279015)}
 	}
 	return nil
 }

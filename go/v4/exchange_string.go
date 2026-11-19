@@ -1,29 +1,37 @@
 package ccxt
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"strings"
 	"unicode"
-
-	u "github.com/google/uuid"
 )
+
+// newUuidV4 returns a random RFC 4122 version 4 UUID in 8-4-4-4-12 lowercase hex form.
+func newUuidV4() string {
+	var b [16]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		panic(err)
+	}
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+	h := hex.EncodeToString(b[:])
+	return h[0:8] + "-" + h[8:12] + "-" + h[12:16] + "-" + h[16:20] + "-" + h[20:32]
+}
 
 // BaseUID generates a new UUID and returns it as a string without dashes.
 func (this *BaseExchange) BaseUID() string {
-	return strings.ReplaceAll(u.New().String(), "-", "")
+	return strings.ReplaceAll(newUuidV4(), "-", "")
 }
 
 // uuid2 generates a new UUID and returns it as a string.
 func (this *BaseExchange) Uuid2() string {
-	return u.New().String()
+	return newUuidV4()
 }
-
-// func (this *BaseExchange) uuid22() string {
-// 	return ""
-// }
 
 // uuid is a wrapper for uuid2.
 func (this *BaseExchange) Uuid() string {
-	return this.Uuid2()
+	return newUuidV4()
 }
 
 // uuid16 returns the first 16 characters of a UUID without dashes.

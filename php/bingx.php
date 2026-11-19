@@ -635,6 +635,7 @@ class bingx extends Exchange {
                     '100490' => '\\ccxt\\BadSymbol', // spot trading pair is offline
                     '101481' => '\\ccxt\\DuplicateOrderId',
                     '109201' => '\\ccxt\\DuplicateOrderId',
+                    '104414' => '\\ccxt\\BadRequest', // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400' => '\\ccxt\\BadRequest', // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418' => '\\ccxt\\BadSymbol', // trading pair is offline and cannot be ordered through the api
                     '109421' => '\\ccxt\\OrderNotFound',
@@ -5264,6 +5265,19 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($paramsStandard, 'twap', false);
             $paramsOmitted = $this->omit($paramsStandard, 'twap');
+            if (!$isTwapOrder) {
+                if ($limit !== null) {
+                    $request['limit'] = min($limit, 1000);
+                }
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+                $until = $this->safe_integer($paramsOmitted, 'until');
+                if ($until !== null) {
+                    $request['endTime'] = $until;
+                    $paramsOmitted = $this->omit($paramsOmitted, 'until');
+                }
+            }
             if ($isTwapOrder) {
                 $request['pageIndex'] = 1;
                 $request['pageSize'] = ($limit === null) ? 100 : $limit;
@@ -7168,7 +7182,7 @@ class bingx extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommissionRate'),
             'taker' => $this->safe_number($fee, 'takerCommissionRate'),
-            'percentage' => false,
+            'percentage' => true,
             'tierBased' => false,
         );
     }

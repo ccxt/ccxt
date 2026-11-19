@@ -35,9 +35,9 @@ cargo add ccxt-prediction
 
 ```toml
 [dependencies]
-ccxt = "4.5.92"                 # REST exchanges (typed) — required
-ccxt-pro = "4.5.92"             # WebSocket (watch*) exchanges — only if you stream
-ccxt-prediction = "4.5.92"      # prediction markets — only if you trade them
+ccxt = "4.5.93"                 # REST exchanges (typed) — required
+ccxt-pro = "4.5.93"             # WebSocket (watch*) exchanges — only if you stream
+ccxt-prediction = "4.5.93"      # prediction markets — only if you trade them
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -895,7 +895,7 @@ The typed layer covers the unified API. Three ways down to the dynamic layer whe
 
 ```rust
 let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
-let info = ccxt::get_value(&ticker.raw, &ccxt::Value::Str("info".to_string()));
+let info = ccxt::get_value(&ticker.raw, &ccxt::Value::Str("info".into()));
 let count = ccxt::safe_string(&info, "count", None);
 ```
 
@@ -918,7 +918,7 @@ use ccxt::{TypedExchange, Value};
 
 let mut ex: Box<dyn TypedExchange> = Box::new(ccxt::Binance::new(None));
 let result: Value = ex
-    .call_raw("set_leverage", vec![Value::Int(5), Value::Str("BTC/USDT:USDT".to_string())])
+    .call_raw("set_leverage", vec![Value::Int(5), Value::Str("BTC/USDT:USDT".into())])
     .await?;
 ```
 
@@ -1191,7 +1191,7 @@ Err(e) if e.is("InvalidOrder")  => ...,
 let value = ticker.last * amount;
 
 // Correct — decide what a missing price means
-let Some(last) = ticker.last else { return Err(...) };
+let Some(last) = ticker.last else { return Err(ccxt::ExchangeError::new("BadResponse", "ticker has no last price")) };
 let value = last * amount;
 ```
 

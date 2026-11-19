@@ -1341,7 +1341,7 @@ func (this *BaseExchange) ParseMarkets(markets any) []any {
 
 		var market map[string]any = this.DerivedExchange.ParseMarket(GetValue(markets, i))
 		// parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-		if market != nil {
+		if (market != nil) && (this.SafeString(market, "id") != nil) {
 			result = append(result, market)
 		}
 	}

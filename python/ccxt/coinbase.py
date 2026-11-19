@@ -1374,8 +1374,8 @@ class coinbase(Exchange, ImplicitAPI):
                         'type': 'spot',
                         'spot': True,
                         'margin': False,
-                        'swap': True,
-                        'future': True,
+                        'swap': False,
+                        'future': False,
                         'option': False,
                         'active': None,
                         'contract': False,
@@ -1508,8 +1508,6 @@ class coinbase(Exchange, ImplicitAPI):
         fees = self.safe_dict(promises, 1, {})
         expiringFutures = self.safe_dict(contractPromises, 0, {})
         perpetualFutures = self.safe_dict(contractPromises, 1, {})
-        expiringFees = self.safe_dict(contractPromises, 0, {})
-        perpetualFees = self.safe_dict(contractPromises, 1, {})
         #
         #     {
         #         "total_volume": 0,
@@ -1530,8 +1528,6 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         feeTier = self.safe_dict(fees, 'fee_tier', {})
-        expiringFeeTier = self.safe_dict(expiringFees, 'fee_tier', {})  # fee tier null?
-        perpetualFeeTier = self.safe_dict(perpetualFees, 'fee_tier', {})  # fee tier null?
         data = self.safe_list(spot, 'products', [])
         result = []
         for i in range(0, len(data)):
@@ -1540,12 +1536,12 @@ class coinbase(Exchange, ImplicitAPI):
                 result.append(spotMarket)
         futureData = self.safe_list(expiringFutures, 'products', [])
         for i in range(0, len(futureData)):
-            futureMarket = self.parse_contract_market(futureData[i], expiringFeeTier)
+            futureMarket = self.parse_contract_market(futureData[i])
             if futureMarket is not None:
                 result.append(futureMarket)
         perpetualData = self.safe_list(perpetualFutures, 'products', [])
         for i in range(0, len(perpetualData)):
-            perpetualMarket = self.parse_contract_market(perpetualData[i], perpetualFeeTier)
+            perpetualMarket = self.parse_contract_market(perpetualData[i])
             if perpetualMarket is not None:
                 result.append(perpetualMarket)
         newMarkets = []
@@ -1658,7 +1654,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_contract_market(self, market: dict, feeTier: dict) -> Market:
+    def parse_contract_market(self, market: dict, feeTier: dict = None) -> Market:
         # expiring
         #
         #        {
@@ -1809,8 +1805,9 @@ class coinbase(Exchange, ImplicitAPI):
             symbol = symbol + ':' + quote + '-' + self.yymmdd(expireTimestamp)
         takerFeeRate = self.safe_number(feeTier, 'taker_fee_rate')
         makerFeeRate = self.safe_number(feeTier, 'maker_fee_rate')
-        taker = takerFeeRate if (takerFeeRate is not None and takerFeeRate is not None and takerFeeRate != 0) else self.parse_number('0.06')
-        maker = makerFeeRate if (makerFeeRate is not None and makerFeeRate is not None and makerFeeRate != 0) else self.parse_number('0.04')
+        # CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        taker = takerFeeRate if (takerFeeRate is not None and takerFeeRate is not None and takerFeeRate != 0) else self.parse_number('0.0002')
+        maker = makerFeeRate if (makerFeeRate is not None and makerFeeRate is not None and makerFeeRate != 0) else self.parse_number('0.0002')
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,

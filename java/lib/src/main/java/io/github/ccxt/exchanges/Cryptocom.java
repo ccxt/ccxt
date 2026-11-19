@@ -3901,7 +3901,7 @@ public class Cryptocom extends CryptocomApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
             if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))

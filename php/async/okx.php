@@ -2771,11 +2771,12 @@ class okx extends Exchange {
         }
         $market = $this->market($symbol);
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
-        if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 200));
-        }
         $priceType = $this->safe_string($paramsPaginate, 'price');
         $isMarkOrIndex = $this->in_array($priceType, array( 'mark', 'index' ));
+        if ($paginate) {
+            $maxEntriesPerRequest = ($isMarkOrIndex) ? 100 : 200;
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxEntriesPerRequest));
+        }
         $paramsPrice = $this->omit($paramsPaginate, 'price');
         $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
         $timezone = $this->safe_string($options, 'timezone', 'UTC');
@@ -2815,7 +2816,10 @@ class okx extends Exchange {
         }
         $until = $this->safe_integer($paramsPrice, 'until');
         if ($until !== null) {
-            $request['after'] = $until;
+            $afterSince = $this->safe_integer($request, 'after');
+            if (($afterSince === null) || ($until < $afterSince)) {
+                $request['after'] = $until;
+            }
         }
         $paramsUntil = ($until !== null) ? $this->omit($paramsPrice, 'until') : $paramsPrice;
         $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
@@ -2877,6 +2881,7 @@ class okx extends Exchange {
          * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding $rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
@@ -2888,7 +2893,7 @@ class okx extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, 100));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 400));
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2900,7 +2905,12 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->publicGetPublicFundingRateHistory($this->extend($request, $paramsPaginate)));
+        $until = $this->safe_integer($paramsPaginate, 'until');
+        if ($until !== null) {
+            $request['after'] = $until;
+        }
+        $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, 'until') : $paramsPaginate;
+        $response = Async\await($this->publicGetPublicFundingRateHistory($this->extend($request, $paramsUntil)));
         //
         //     {
         //         "code":"0",

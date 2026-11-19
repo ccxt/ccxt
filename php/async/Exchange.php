@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.92';
+$version = '4.5.93';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.92';
+    const VERSION = '4.5.93';
 
     public $browser;
     public $marketsLoading = null;
@@ -1494,7 +1494,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->parse_market($markets[$i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if ($market !== null) {
+            if ($market !== null && $this->safe_string($market, 'id') !== null) {
                 $result[] = $market;
             }
         }

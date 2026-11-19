@@ -26,6 +26,8 @@ pub mod binanceus_typed;
 pub mod binanceusdm_typed;
 #[cfg(feature = "bingx")]
 pub mod bingx_typed;
+#[cfg(feature = "bit2me")]
+pub mod bit2me_typed;
 #[cfg(feature = "bitfinex")]
 pub mod bitfinex_typed;
 #[cfg(feature = "bitget")]

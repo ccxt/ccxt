@@ -280,7 +280,7 @@ public class P2b extends P2bApi
                     put( "fetchMyTrades", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
-                        put( "daysBack", 100000 );
+                        put( "daysBack", 90 );
                         put( "untilDays", 1 );
                         put( "symbolRequired", true );
                     }} );
@@ -296,8 +296,8 @@ public class P2b extends P2bApi
                     put( "fetchClosedOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 100 );
-                        put( "daysBack", 100000 );
-                        put( "daysBackCanceled", (((double) 1) / ((double) 12)) );
+                        put( "daysBack", 90 );
+                        put( "daysBackCanceled", null );
                         put( "untilDays", 1 );
                         put( "trigger", false );
                         put( "trailing", false );

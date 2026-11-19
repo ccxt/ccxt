@@ -68,9 +68,14 @@ public partial class BaseExchange
             case "sha384":
                 signature = SignHMACSHA384(request, secretBytes);
                 break;
+            case "sha1":
+                signature = SignHMACSHA1(request, secretBytes);
+                break;
             case "md5":
                 signature = SignHMACMD5(request, secretBytes);
                 break;
+            default:
+                throw new ArgumentException("Unsupported HMAC algorithm: " + algorithm);
         }
 
         return digest == "hex" ? binaryToHex(signature) : Exchange.BinaryToBase64(signature);
@@ -279,6 +284,18 @@ public partial class BaseExchange
     public static byte[] SignHMACSHA512(byte[] data, byte[] secret)
     {
         using var encryptor = new HMACSHA512(secret);
+        var resultBytes = encryptor.ComputeHash(data);
+        return resultBytes;
+    }
+
+    public static byte[] SignHMACSHA1(string data, byte[] secret)
+    {
+        return SignHMACSHA1(Encoding.UTF8.GetBytes(data), secret);
+    }
+
+    public static byte[] SignHMACSHA1(byte[] data, byte[] secret)
+    {
+        using var encryptor = new HMACSHA1(secret);
         var resultBytes = encryptor.ComputeHash(data);
         return resultBytes;
     }
@@ -510,23 +527,21 @@ public partial class BaseExchange
         return crc;
     }
 
+    // https://gist.github.com/martin31821/6a4736521043233bf7cdc05aa785149d
+    private static readonly uint[] m_checksumTable = Enumerable.Range(0, 256).Select(i =>
+    {
+        var tableEntry = (uint)i;
+        for (var j = 0; j < 8; ++j)
+        {
+            tableEntry = ((tableEntry & 1) != 0)
+                ? (0xEDB88320 ^ (tableEntry >> 1))
+                : (tableEntry >> 1);
+        }
+        return tableEntry;
+    }).ToArray();
+
     public static Int64 CalculateCrc32(string data, bool signed, int? bound = null)
     {
-        // https://gist.github.com/martin31821/6a4736521043233bf7cdc05aa785149d
-        var s_generator = 0xEDB88320;
-        var m_checksumTable = Enumerable.Range(0, 256).Select(i =>
-        {
-            var tableEntry = (uint)i;
-            for (var j = 0; j < 8; ++j)
-            {
-                tableEntry = ((tableEntry & 1) != 0)
-                    ? (s_generator ^ (tableEntry >> 1))
-                    : (tableEntry >> 1);
-            }
-            return tableEntry;
-        }).ToArray();
-
-
         var arrayOfBytes = Encoding.ASCII.GetBytes(data);
         var result = ~arrayOfBytes.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
                       (m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8)));

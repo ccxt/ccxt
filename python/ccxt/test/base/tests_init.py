@@ -81,6 +81,7 @@ from ccxt.test.base.test_is_json_encoded_object import test_is_json_encoded_obje
 from ccxt.test.base.test_is_dictionary import test_is_dictionary  # noqa E402
 from ccxt.test.base.test_encode_decode import test_encode_decode  # noqa E402
 
+# import testParseMarkets from './test.parseMarkets.js';
 async def base_tests_init():
     await test_language_specific()
     test_after_constructor()
@@ -147,4 +148,5 @@ async def base_tests_init():
     test_io()
     test_is_json_encoded_object()
     test_encode_decode()
+    # testParseMarkets ();
     return True

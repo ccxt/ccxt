@@ -1912,6 +1912,7 @@ impl BingxCore {
         m.insert("100490".to_string(), Value::Str("BadSymbol".into()));
         m.insert("101481".to_string(), Value::Str("DuplicateOrderId".into()));
         m.insert("109201".to_string(), Value::Str("DuplicateOrderId".into()));
+        m.insert("104414".to_string(), Value::Str("BadRequest".into()));
         m.insert("109400".to_string(), Value::Str("BadRequest".into()));
         m.insert("109418".to_string(), Value::Str("BadSymbol".into()));
         m.insert("109421".to_string(), Value::Str("OrderNotFound".into()));
@@ -6692,6 +6693,19 @@ impl BingxCore {
         }  else {
             let mut isTwapOrder: bool = self.safe_bool_k_opt(paramsStandard.clone(), "twap", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: Value = self.omit(paramsStandard, Value::Str("twap".into()), &[]);
+            if !(isTwapOrder) {
+                if (limit != Value::Null) {
+                    request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+                }
+                if (since != Value::Null) {
+                    request.insert("startTime".into(), since.clone());
+                }
+                let mut until: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "until", &[]).as_i64();
+                if (until.is_some()) {
+                    request.insert("endTime".into(), Value::from(until));
+                    paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("until".into()), &[]);
+                }
+            }
             if isTwapOrder {
                 request.insert("pageIndex".into(), Value::Int(1));
                 request.insert("pageSize".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() }));
@@ -8580,7 +8594,7 @@ impl BingxCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerCommissionRate", &[]));
         m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommissionRate", &[]));
-        m.insert("percentage".to_string(), Value::Bool(false));
+        m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
 });
