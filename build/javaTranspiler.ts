@@ -7873,19 +7873,34 @@ function containerOpsUnparen (e: string): string {
     return e;
 }
 
-// A newMap literal that is the whole argument of a statement-level `((List<Object>)x).add(...)` becomes
-// statement-level puts instead of a `switch (0)` lambda blob. Unbraced control bodies keep the switch form.
+// A newMap literal whose statement evaluates nothing before it (only casts, first-argument call openers and
+// local/literal leading args; no field reads that the values could reorder) becomes statement-level puts on a fresh local instead of a `switch (0)` blob.
+function containerOpsHoistPrefix (): RegExp {
+    const pureArg = String.raw`(?:"(?:[^"\\]|\\.)*"|\d+L?|(?:\(String\))?[A-Za-z_]\w*), `;
+    return new RegExp (String.raw`^[ \t]*(?:return |[\w.]+(?:<[\w.?, <>]*>)? [A-Za-z_]\w* = |[A-Za-z_]\w* = )?`
+    + String.raw`(?:\((?:\(?[\w.]+(?:<[\w.?, <>]*>)?\)\s?)?|(?:this|[A-Za-z_]\w*|\(\([\w.]+(?:<[\w.?, <>]*>)?\)[A-Za-z_]\w*\))\.\w+\(|new [\w.]+(?:<[\w.?, <>]*>)?\(|`
+    + pureArg + ')*$');
+}
 function containerOpsHoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
     if (args.length === 0 || args.length % 2 !== 0 || args.some ((a, i) => i % 2 === 0 && !/^"(?:[^"\\]|\\.)*"$/.test (a))) return undefined;
     const prefix = t.slice (lineStart, at);
-    if (!/^[ \t]*\(\([A-Za-z.<>?, ]+\)[A-Za-z_]\w*\)\.add\($/.test (prefix) || t.slice (close + 1, close + 3) !== ');') return undefined;
+    if (!containerOpsHoistPrefix ().test (prefix) || /^\s*(?:if|for|while|switch|else|case|do|try|catch|synchronized)\b/.test (prefix)) return undefined;
     const before = t.slice (0, lineStart).trimEnd ();
     if (!/[;{}]$/.test (before) || /^\s*\/\//.test (before.slice (before.lastIndexOf ('\n') + 1))) return undefined;
     const n = fresh ();
     const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
     for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
-    lines.push (`${prefix}${n});`);
-    return { text: lines.join ('\n'), end: close + 3 };
+    lines.push (`${prefix}${n}`);
+    return { text: lines.join ('\n'), end: close + 1 };
+}
+
+function containerOpsNextNewMap (t: string, from: number): number {
+    for (let k = from; k < t.length; k++) {
+        const s = containerOpsSkipLiteral (t, k);
+        if (s !== -1) { k = s; continue; }
+        if (t.startsWith ('Helpers.newMap(', k) && !/[\w.]/.test (t[k - 1] ?? '')) return k;
+    }
+    return -1;
 }
 
 function containerOpsMember (member: string, fresh: () => string): string {
@@ -7903,6 +7918,19 @@ function containerOpsMember (member: string, fresh: () => string): string {
     };
     const asObject = (e: string) => (strLit (e) ? e : `((Object)(${e}))`);
     const rewrite = (helper: string, args: string[], statement: boolean, indent: string): string | undefined => {
+        // operand declared List/ArrayCache/String/Map in this member: the type's own op, null as the helper answers
+        const declared = ident (args[0] ?? '') ? declaredType (args[0]) : undefined;
+        const listLike = declared !== undefined && /^(?:(?:java\.util\.)?(?:List|ArrayList)<[\w.?<>, ]*>|(?:io\.github\.ccxt\.ws\.)?ArrayCache)$/.test (declared);
+        const mapLike = declared !== undefined && /^(?:java\.util\.)?(?:Map|HashMap)<String, Object>$/.test (declared);
+        if (helper === 'getArrayLength' && args.length === 1 && (listLike || declared === 'String')) {
+            return `(${args[0]} == null ? 0 : ${args[0]}.${listLike ? 'size' : 'length'}())`;
+        }
+        if (helper === 'objectKeys' && args.length === 1 && mapLike) {
+            return `(${args[0]} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${args[0]}.keySet()))`;
+        }
+        if (helper === 'inOp' && args.length === 2 && strLit (args[1]) && (mapLike || listLike)) {
+            return `(${args[0]} != null && ${args[0]}.${mapLike ? 'containsKey' : 'contains'}(${args[1]}))`;
+        }
         if (helper === 'getArrayLength' && args.length === 1) {
             const l = fresh (), s = fresh (), o = fresh ();
             return `(switch ((Object)(${args[0]})) { case null -> 0; case java.util.List<?> ${l} -> ${l}.size(); case String ${s} -> ${s}.length(); case Object ${o} -> ${o}.getClass().isArray() ? java.lang.reflect.Array.getLength(${o}) : 0; })`;
@@ -7944,6 +7972,22 @@ function containerOpsMember (member: string, fresh: () => string): string {
         if (member[k] === 'H' && !/[\w.]/.test (member[k - 1] ?? '')) { head.lastIndex = k; if (head.test (member)) starts.push (k); }
     }
     let out = member;
+    for (let from = 0; ;) {
+        const at = containerOpsNextNewMap (out, from);
+        if (at === -1) break;
+        const open = at + 'Helpers.newMap'.length, close = containerOpsClose (out, open);
+        const lineStart = out.lastIndexOf ('\n', at - 1) + 1;
+        const hoisted = close === -1 ? undefined : containerOpsHoistStatement (out, at, close, containerOpsSplitArgs (out.slice (open + 1, close)), lineStart, /^\s*/.exec (out.slice (lineStart))![0], fresh);
+        if (hoisted === undefined) { from = at + 1; continue; }
+        out = out.slice (0, lineStart) + hoisted.text + out.slice (hoisted.end);
+        from = lineStart;
+    }
+    starts.length = 0;
+    for (let k = 0; k < out.length; k++) {
+        const s = containerOpsSkipLiteral (out, k);
+        if (s !== -1) { k = s; continue; }
+        if (out[k] === 'H' && !/[\w.]/.test (out[k - 1] ?? '')) { head.lastIndex = k; if (head.test (out)) starts.push (k); }
+    }
     for (let i = starts.length - 1; i >= 0; i--) {
         const at = starts[i];
         const helper = /^Helpers\.(\w+)\(/.exec (out.slice (at))![1];
@@ -7954,8 +7998,6 @@ function containerOpsMember (member: string, fresh: () => string): string {
         const lineStart = out.lastIndexOf ('\n', at - 1) + 1;
         const indent = /^\s*/.exec (out.slice (lineStart))![0];
         const statement = out.slice (lineStart, at).trim () === '' && out[close + 1] === ';';
-        const hoisted = helper === 'newMap' ? containerOpsHoistStatement (out, at, close, args, lineStart, indent, fresh) : undefined;
-        if (hoisted !== undefined) { out = out.slice (0, lineStart) + hoisted.text + out.slice (hoisted.end); continue; }
         const text = rewrite (helper, args, statement, indent);
         if (text === undefined) continue;
         out = statement && helper === 'addElementToObject' ? out.slice (0, at) + text + out.slice (close + 2) : out.slice (0, at) + text + out.slice (close + 1);
@@ -7983,11 +8025,18 @@ function javaContainerOpsSelfTest (): string[] {
         [ 'keys', '        return Helpers.objectKeys(o);', 'synchronized (j39v1) { yield new java.util.ArrayList<Object>(j39v1.keySet()); }' ],
         [ 'inOp lit', '        return Helpers.inOp(o, "a");', 'j39v2.contains("a"); case java.util.Map<?, ?> j39v1 -> j39v1.containsKey("a")' ],
         [ 'inOp id', '        return Helpers.inOp(o, s);', '((Object)(s)) instanceof String && j39v1.containsKey(s)' ],
-        [ 'newMap', '        return this.f(Helpers.newMap("a", o));', 'switch (0) { default -> { java.util.HashMap<String, Object> j39v1 = new java.util.HashMap<String, Object>(); j39v1.put("a", o); yield j39v1; } }' ],
+        [ 'newMap', '        return this.f(Helpers.newMap("a", o));', 'j39v1.put("a", o);\n        return this.f(j39v1);' ],
+        [ 'newMap expr', '        return this.f(this.g(), Helpers.newMap("a", o));', 'switch (0) { default -> { java.util.HashMap<String, Object> j39v1 = new java.util.HashMap<String, Object>(); j39v1.put("a", o); yield j39v1; } }' ],
+        [ 'newMap field recv', '        this.options.put("x", Helpers.newMap("a", o));', 'switch (0) { default -> {' ],
+        [ 'newMap if', '        if (this.f(Helpers.newMap("a", o)) != null) return null;', 'if (this.f((switch (0) { default -> {' ],
+        [ 'typed length', '        return Helpers.getArrayLength(l);', '(l == null ? 0 : l.size())' ],
+        [ 'typed keys', '        return Helpers.objectKeys(p);', '(p == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(p.keySet()))' ],
+        [ 'typed inOp', '        return Helpers.inOp(p, "a");', '(p != null && p.containsKey("a"))' ],
+        [ 'typed string length', '        return Helpers.getArrayLength(s);', '(s == null ? 0 : s.length())' ],
         [ 'newMap add hoist', '        Object r = null;\n        ((List<Object>)r).add(Helpers.newMap(\"a\", o));\n        return r;', 'j39v1.put(\"a\", o);\n        ((List<Object>)r).add(j39v1);' ],
         [ 'newMap add unbraced', '        if (o != null)\n            ((List<Object>)l).add(Helpers.newMap(\"a\", o));\n        return l;', 'add((switch (0) { default -> {' ],
-        [ 'newMap add in call', '        ((List<Object>)l).add(this.f(Helpers.newMap(\"a\", o)));\n        return l;', 'add(this.f((switch (0) { default -> {' ],
-        [ 'nested', '        return Helpers.inOp(Helpers.newMap("a", Helpers.getArrayLength(o)), "a");', 'j39v4.put("a", (switch ((Object)(o))' ],
+        [ 'newMap add in call', '        ((List<Object>)l).add(this.f(Helpers.newMap(\"a\", o)));\n        return l;', 'j39v1.put(\"a\", o);\n        ((List<Object>)l).add(this.f(j39v1));' ],
+        [ 'nested', '        return Helpers.inOp(Helpers.newMap("a", Helpers.getArrayLength(o)), "a");', 'j39v1.put("a", (switch ((Object)(o))' ],
         // negatives: Object receiver put/get, impure inOp key, odd newMap, string-literal content, expression GetValue
         [ 'put Object', '        Helpers.addElementToObject(o, "a", 1);', undefined ],
         [ 'get Object', '        return Helpers.GetValue(o, "a");', undefined ],
