@@ -6864,6 +6864,27 @@ function dropLiteralClones(content: string): string {
 }
 //
 // unit slot 005
+// A ws handler's `__pro_message` view borrows `message` instead of cloning its Arc when nothing moves,
+// reassigns or mutably borrows `message` up to the view's last read (a loop, async block or closure
+// opened before that read, in a fn that moves `message`, keeps the Arc).
+function borrowProMessageView(content: string): string {
+    const head = /^([ \t]*)let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = \(if let Value::Dict\(__d\) = &(\w+) \{ __d\.clone\(\) \} else \{ std::sync::Arc::new\(indexmap::IndexMap::new\(\)\) \}\);\n[ \t]*let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;$/gm;
+    return content.replace(head, (whole: string, ind: string, name: string, at: number) => {
+        const lines = content.slice(at + whole.length + 1).split('\n');
+        let end = lines.findIndex((l) => /^ {0,4}\}\s*$/.test(l));
+        if (end < 0) return whole;
+        const code = lines.slice(0, end).filter((l) => !l.trim().startsWith('//'));
+        const move = new RegExp(String.raw`(?<![\w.&"])${name}\b(?!\.(?:clone|as_\w+|get)\(|["\w])|&mut ${name}\b|(?<![\w.])${name}\s*=(?!=)`);
+        let last = -1;
+        code.forEach((l, k) => { if (/\b__pro_message\b/.test(l)) last = k; });
+        if (code.slice(0, last + 1).some((l) => move.test(l))) return whole;
+        const loop = /^\s*(?:for |while |loop\b)|[;{]\s*(?:for |while |loop \{)/;
+        const capture = /\basync (?:move )?\{|\|[\w, :&]*\| ?\{/;
+        if (code.slice(0, last + 1).some((l) => loop.test(l) || capture.test(l)) && code.some((l) => move.test(l))) return whole;
+        return `${ind}let __pro_message_empty = indexmap::IndexMap::new();\n`
+            + `${ind}let __pro_message: &indexmap::IndexMap<String, Value> = ${name}.as_map().unwrap_or(&__pro_message_empty);`;
+    });
+}
 //
 // unit slot 006
 //
@@ -7664,6 +7685,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     dropLiteralClones,
     //
     // pass slot 005
+    borrowProMessageView,
     //
     // pass slot 006
     //
