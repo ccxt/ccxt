@@ -122,21 +122,20 @@ impl Market {
         m.created = crate::value::safe_integer(&v, "created", None);
         m.taker   = safe_number(&v, "taker", None);
         m.maker   = safe_number(&v, "maker", None);
-        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
-        let limits = sub(&v, "limits");
+        let limits = v.at("limits");
         m.limits = MarketLimits {
-            amount:   MinMax::from_value(&sub(&limits, "amount")),
-            price:    MinMax::from_value(&sub(&limits, "price")),
-            cost:     MinMax::from_value(&sub(&limits, "cost")),
-            leverage: MinMax::from_value(&sub(&limits, "leverage")),
+            amount:   MinMax::from_value(limits.at("amount")),
+            price:    MinMax::from_value(limits.at("price")),
+            cost:     MinMax::from_value(limits.at("cost")),
+            leverage: MinMax::from_value(limits.at("leverage")),
         };
-        let precision = sub(&v, "precision");
+        let precision = v.at("precision");
         m.precision = MarketPrecision {
-            amount: safe_number(&precision, "amount", None),
-            price:  safe_number(&precision, "price",  None),
-            cost:   safe_number(&precision, "cost",   None),
-            base:   safe_number(&precision, "base",   None),
-            quote:  safe_number(&precision, "quote",  None),
+            amount: safe_number(precision, "amount", None),
+            price:  safe_number(precision, "price",  None),
+            cost:   safe_number(precision, "cost",   None),
+            base:   safe_number(precision, "base",   None),
+            quote:  safe_number(precision, "quote",  None),
         };
         m.raw     = v;
         m
@@ -300,9 +299,9 @@ impl Order {
         o.stop_loss_price   = safe_number(&v, "stopLossPrice",   None);
         o.post_only       = safe_bool(&v, "postOnly",   None);
         o.reduce_only     = safe_bool(&v, "reduceOnly", None);
-        o.trades          = vec_from_value(&crate::get_value(&v, &Value::Str("trades".into())), Trade::from_value);
-        o.fee             = match crate::get_value(&v, &Value::Str("fee".into())) {
-            Value::Dict(m) => Some((*m).clone()),
+        o.trades          = vec_from_value(v.at("trades"), Trade::from_value);
+        o.fee             = match v.at("fee") {
+            Value::Dict(m) => Some((**m).clone()),
             _ => None,
         };
         o.raw = v;
@@ -337,13 +336,13 @@ impl OrderBook {
         // valid book entry and would corrupt best-bid/ask and depth math
         // downstream (review #7).
         let extract_side = |key: &str| -> Vec<[f64; 2]> {
-            let side = get_value(&v, &Value::Str(key.to_string().into()));
+            let side = v.at(key);
             // A resolved WS book keeps its sides as shared markers (entries in
             // the side store), not inline arrays — read those levels straight
             // from the store as `[price, amount]` pairs (no intermediate Value
             // clone). Without this the match below misses and the typed book
             // comes back empty. Falls through to plain-array parsing otherwise.
-            if let Some(pairs) = crate::value::side_price_amounts(&side) {
+            if let Some(pairs) = crate::value::side_price_amounts(side) {
                 return pairs;
             }
             match side {
@@ -403,7 +402,7 @@ impl OrderBookL3 {
         // Rows are `[price, amount, orderId]`. Rows whose price/amount are not
         // parseable numbers are dropped (same policy as `OrderBook`).
         let extract_side = |key: &str| -> Vec<OrderBookL3Entry> {
-            let side = get_value(&v, &Value::Str(key.to_string().into()));
+            let side = v.at(key);
             match side {
                 Value::Arr(rows) => rows.iter().filter_map(|row| {
                     let num = |cell: Option<&Value>| -> f64 {
@@ -463,7 +462,7 @@ impl Balances {
         // The top-level `free`/`used`/`total` keys are dicts of
         // `<currency-code> → number`. Walk them and collect.
         let extract = |key: &str| -> HashMap<String, f64> {
-            let m = get_value(&v, &Value::Str(key.to_string().into()));
+            let m = v.at(key);
             match m {
                 Value::Dict(d) => d.iter().filter_map(|(k, val)| {
                     let n = match val {
@@ -1503,15 +1502,14 @@ pub struct DepositWithdrawFeeNetwork {
 
 impl DepositWithdrawFee {
     pub fn from_value(v: Value) -> Self {
-        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
         let mut d = DepositWithdrawFee::default();
-        d.withdraw = DepositWithdrawFeeLeg::from_value(&sub(&v, "withdraw"));
-        d.deposit  = DepositWithdrawFeeLeg::from_value(&sub(&v, "deposit"));
-        if let Value::Dict(networks) = sub(&v, "networks") {
+        d.withdraw = DepositWithdrawFeeLeg::from_value(v.at("withdraw"));
+        d.deposit  = DepositWithdrawFeeLeg::from_value(v.at("deposit"));
+        if let Value::Dict(networks) = v.at("networks") {
             for (id, net) in networks.iter() {
                 d.networks.insert(id.clone(), DepositWithdrawFeeNetwork {
-                    withdraw: DepositWithdrawFeeLeg::from_value(&sub(net, "withdraw")),
-                    deposit:  DepositWithdrawFeeLeg::from_value(&sub(net, "deposit")),
+                    withdraw: DepositWithdrawFeeLeg::from_value(net.at("withdraw")),
+                    deposit:  DepositWithdrawFeeLeg::from_value(net.at("deposit")),
                 });
             }
         }
@@ -2100,13 +2098,13 @@ record_elem!(Ticker, Trade, Order, Position, Transaction, DepositAddress, Transf
 /// A keyed read on a typed `Tickers` result: the ticker's decoded row, as the boxed map read answered it.
 impl crate::value::KeyRead for &Tickers {
     fn key_read(&self, key: &str) -> Value { self.get(key).map(Value::from).unwrap_or_default() }
-    fn read(&self, key: &Value) -> Value { match key { Value::Str(k) => self.key_read(k), _ => Value::Null } }
+    fn read(&self, key: &Value) -> Value { key.as_str().map_or(Value::Null, |k| self.key_read(k)) }
 }
 
 /// A keyed read on a typed `OHLCVsBySymbol` result: the symbol's timeframe map boxed, as the boxed map read answered it.
 impl crate::value::KeyRead for &OHLCVsBySymbol {
     fn key_read(&self, key: &str) -> Value { self.get(key).cloned().map(IntoRaw::into_raw).unwrap_or_default() }
-    fn read(&self, key: &Value) -> Value { match key { Value::Str(k) => self.key_read(k), _ => Value::Null } }
+    fn read(&self, key: &Value) -> Value { key.as_str().map_or(Value::Null, |k| self.key_read(k)) }
 }
 
 #[cfg(test)]
@@ -2326,7 +2324,7 @@ impl<T: FromRaw> FromRaw for Vec<T> {
     fn from_raw(v: Value) -> Self {
         // a ws cache (ArrayCache*) resolves as its marker dict; its rows live in the cache store
         let v = crate::value::cache_entries_as_value(&v).unwrap_or(v);
-        match v { Value::Arr(rows) => rows.iter().map(|r| T::from_raw(r.clone())).collect(), _ => Vec::new() }
+        v.as_array().map(|rows| rows.iter().map(|r| T::from_raw(r.clone())).collect()).unwrap_or_default()
     }
 }
 impl<T: IntoRaw> IntoRaw for Vec<T> {
@@ -2334,7 +2332,7 @@ impl<T: IntoRaw> IntoRaw for Vec<T> {
 }
 impl<T: FromRaw> FromRaw for HashMap<String, T> {
     fn from_raw(v: Value) -> Self {
-        match v { Value::Dict(d) => d.iter().map(|(k, x)| (k.clone(), T::from_raw(x.clone()))).collect(), _ => HashMap::new() }
+        v.as_map().map(|d| d.iter().map(|(k, x)| (k.clone(), T::from_raw(x.clone()))).collect()).unwrap_or_default()
     }
 }
 impl<T: IntoRaw> IntoRaw for HashMap<String, T> {

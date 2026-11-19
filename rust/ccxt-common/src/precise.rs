@@ -514,15 +514,15 @@ pub trait PreciseArg {
 }
 impl PreciseArg for crate::Value {
     fn precise_null(&self) -> bool { matches!(self, crate::Value::Null) }
-    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Owned(crate::runtime::stringify_param(self)) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { match self.as_str() { Some(s) => s.into(), None => crate::runtime::stringify_param(self).into() } }
 }
 impl PreciseArg for Option<String> {
     fn precise_null(&self) -> bool { self.is_none() }
-    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_deref().unwrap_or("null")) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { self.as_deref().unwrap_or("null").into() }
 }
 impl PreciseArg for String {
     fn precise_null(&self) -> bool { false }
-    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_str()) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { self.as_str().into() }
 }
 impl<T: PreciseArg + ?Sized> PreciseArg for &T {
     fn precise_null(&self) -> bool { (**self).precise_null() }
@@ -530,7 +530,7 @@ impl<T: PreciseArg + ?Sized> PreciseArg for &T {
 }
 impl PreciseArg for str {
     fn precise_null(&self) -> bool { false }
-    fn precise_text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self) }
+    fn precise_text(&self) -> std::borrow::Cow<'_, str> { self.into() }
 }
 
 #[allow(non_snake_case)]

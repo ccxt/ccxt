@@ -59,10 +59,10 @@ fn build_book(kind: &str, snapshot: Value, depth: Value) -> Value {
         BOOK_COUNTED => (SIDE_COUNTED, true),
         _            => (SIDE_PLAIN,   true),
     };
-    let bids_deltas = crate::get_value(&snapshot, &Value::Str("bids".into()));
-    let asks_deltas = crate::get_value(&snapshot, &Value::Str("asks".into()));
-    let bids = new_side(side_kind, /*is_bid=*/ true,  max_depth, &bids_deltas);
-    let asks = new_side(side_kind, /*is_bid=*/ false, max_depth, &asks_deltas);
+    let bids_deltas = snapshot.at("bids");
+    let asks_deltas = snapshot.at("asks");
+    let bids = new_side(side_kind, /*is_bid=*/ true,  max_depth, bids_deltas);
+    let asks = new_side(side_kind, /*is_bid=*/ false, max_depth, asks_deltas);
 
     let timestamp = match crate::get_value(&snapshot, &Value::Str("timestamp".into())) {
         Value::Int(n)   => Some(n),

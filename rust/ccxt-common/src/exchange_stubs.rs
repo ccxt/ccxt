@@ -2351,10 +2351,13 @@ impl Exchange {
             let volume = value_as_f64(row.get(1));
             if volume > 0.0 {
                 let bits = price.to_bits();
-                let entry = buckets.entry(bits).or_insert_with(|| {
-                    order.push(bits);
-                    (price, 0.0)
-                });
+                let entry = match buckets.entry(bits) {
+                    indexmap::map::Entry::Occupied(o) => o.into_mut(),
+                    indexmap::map::Entry::Vacant(slot) => {
+                        order.push(bits);
+                        slot.insert((price, 0.0))
+                    }
+                };
                 entry.1 += volume;
             }
         }
@@ -3386,16 +3389,10 @@ impl Exchange {
             return Value::Null;
         }
         let tb = |key: &str| -> Option<f64> {
-            crate::get_value(&self.tokenBucket, &Value::Str(key.to_string().into())).as_f64()
+            self.tokenBucket.at(key).as_f64()
         };
         let rate_limit = self.rateLimit.as_f64().unwrap_or(0.0);
-        let refill_rate = tb("refillRate").unwrap_or_else(|| {
-            if rate_limit > 0.0 {
-                1.0 / rate_limit
-            } else {
-                f64::MAX
-            }
-        });
+        let refill_rate = tb("refillRate").unwrap_or(if rate_limit > 0.0 { 1.0 / rate_limit } else { f64::MAX });
         if !(refill_rate.is_finite() && refill_rate > 0.0) {
             return Value::Null; // effectively unlimited
         }
@@ -3466,41 +3463,38 @@ pub(crate) fn synthesize_currencies_from_markets(markets: &Value, precision_mode
     // dedupe by code, keeping the most-precise instance.
     let mut by_code: HashMap<String, HashMap<String, Value>> = HashMap::new();
     for market in market_list {
-        let market_precision = crate::get_value(market, &Value::Str("precision".into()));
+        let market_precision = market.at("precision");
         // base side
         for (id_key, code_key, prec_keys) in [
             ("baseId", "base", ["base", "amount"]),
             ("quoteId", "quote", ["quote", "price"]),
         ] {
-            let code = crate::get_value(market, &Value::Str(code_key.to_string().into()));
-            let code_s = match &code {
+            let code_s = match market.at(code_key) {
                 Value::Str(s) if !s.is_empty() => s.clone(),
                 _ => continue,
             };
-            let id = crate::get_value(market, &Value::Str(id_key.to_string().into()));
-            let id_v = match &id {
+            let id_v = match market.at(id_key) {
                 Value::Null => Value::Str(code_s.clone()),
                 other => other.clone(),
             };
-            let mut precision =
-                crate::get_value(&market_precision, &Value::Str(prec_keys[0].to_string().into()));
+            let mut precision = market_precision.at(prec_keys[0]);
             if matches!(precision, Value::Null) {
-                precision =
-                    crate::get_value(&market_precision, &Value::Str(prec_keys[1].to_string().into()));
+                precision = market_precision.at(prec_keys[1]);
             }
             if matches!(precision, Value::Null) {
-                precision = default_precision.clone();
+                precision = &default_precision;
             }
-            let entry = by_code.entry(code_s.to_string()).or_insert_with(|| {
-                let mut m = HashMap::new();
-                m.insert("id".to_string(), id_v.clone());
-                m.insert("numericId".to_string(), Value::Null);
-                m.insert("code".to_string(), Value::Str(code_s.clone()));
-                m.insert("precision".to_string(), precision.clone());
-                m
-            });
+            let entry = match by_code.entry(code_s.to_string()) {
+                indexmap::map::Entry::Occupied(o) => o.into_mut(),
+                indexmap::map::Entry::Vacant(slot) => slot.insert(HashMap::from([
+                    ("id".to_string(), id_v),
+                    ("numericId".to_string(), Value::Null),
+                    ("code".to_string(), Value::Str(code_s)),
+                    ("precision".to_string(), precision.clone()),
+                ])),
+            };
             let existing_precision = entry.get("precision").cloned().unwrap_or(Value::Null);
-            if more_precise(&precision, &existing_precision) {
+            if more_precise(precision, &existing_precision) {
                 entry.insert("precision".to_string(), precision.clone());
             }
         }
@@ -3711,7 +3705,7 @@ mod packb_tests {
 
     fn packb_bytes(v: Value) -> Vec<u8> {
         match Exchange::new(None).packb(v, &[]) {
-            Value::Arr(a) => a.iter().map(|b| match b { Value::Int(i) => *i as u8, _ => panic!("non-int byte") }).collect(),
+            Value::Arr(a) => a.iter().map(|b| b.as_i64().expect("non-int byte") as u8).collect(),
             other => panic!("packb returned {:?}", other),
         }
     }
