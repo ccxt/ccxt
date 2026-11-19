@@ -501,6 +501,7 @@ class Proof {
         const sources: string[] = [];
         let sawBind = false;
         let m: RegExpExecArray | null;
+        let bad = false;
         while ((m = bare.exec(body)) !== null) {
             sawBind = true;
             sources.push(m[1]);
@@ -8324,6 +8325,54 @@ function readTypedBookFields(content: string): string {
 }
 //
 // unit slot 098
+// A sync try body whose only exits are `return X;` and `panic!("{}", E);` over pure reads prints a labelled block.
+const RUST_SYNC_TRY_OPEN = 'let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {';
+const RUST_SYNC_TRY_TAIL = ' #[allow(unreachable_code)] { Value::Null }}));\n';
+const RUST_SYNC_TRY_PURE = new Set(['if', 'match', 'format', 'Some', 'Str', 'Int', 'Float', 'Bool', 'exchange_error', 'authentication_error',
+    'as_deref', 'as_str', 'as_bool', 'as_i64', 'get', 'is_some', 'is_none', 'is_empty', 'to_string', 'unwrap_or', 'map', 'from', 'into',
+    'clone', 'cloned', 'contains', 'safe_string_k']);
+function rustSyncTryBlocks(content: string): string {
+    let out = '';
+    let i = 0;
+    for (;;) {
+        const idx = content.indexOf(RUST_SYNC_TRY_OPEN, i);
+        if (idx < 0) return out + content.slice(i);
+        const bodyStart = idx + RUST_SYNC_TRY_OPEN.length;
+        const tail = content.indexOf(RUST_SYNC_TRY_TAIL, bodyStart);
+        const next = content.indexOf(RUST_SYNC_TRY_OPEN, bodyStart);
+        const lineEnd = tail < 0 ? -1 : content.indexOf('\n', tail + RUST_SYNC_TRY_TAIL.length);
+        if (tail < 0 || (next >= 0 && next < tail) || lineEnd < 0) { out += content.slice(i, bodyStart); i = bodyStart; continue; }
+        const body = content.slice(bodyStart, tail);
+        const masked = maskText(body);
+        const errLine = content.slice(tail + RUST_SYNC_TRY_TAIL.length, lineEnd);
+        const panics = masked.match(/panic!\(/g) || [];
+        const okPanics = masked.match(/panic!\(\s+, crate::exchange_errors::\w+\(/g) || [];
+        const names = (masked.match(/[A-Za-z_]\w*!?\s*\(/g) || []).map((n) => n.replace(/[!\s(]/g, ''));
+        const pure = names.every((n) => n === 'panic' || RUST_SYNC_TRY_PURE.has(n)) && !/\|[^|\s]|\|\|\s*\{|[?]|\w\[|\s[+\-*/%]=?\s|\bloop\b|\bwhile\b|\bfor\b|\bbreak\b|\bcontinue\b|'/.test(masked);
+        const errOk = errLine.split('CaughtError::from_panic(_try_err)').length === 2 || !errLine.includes('_try_err');
+        if (!pure || panics.length !== okPanics.length || !errOk) { out += content.slice(i, bodyStart); i = bodyStart; continue; }
+        // Rewrite each `panic!("{}", E);` and `return X;` at its masked position, right to left.
+        let nb = body;
+        const edits: Array<[number, number, string]> = [];
+        const pre = /panic!\(\s+, /g;
+        let bad = false;
+        let m: RegExpExecArray | null;
+        while ((m = pre.exec(masked)) !== null) {
+            const open = m.index + 'panic!'.length;
+            const close = closeBracket(masked, open);
+            if (close < 0 || masked[close] !== ';') { bad = true; break; }
+            edits.push([m.index, close + 1, `break '__try Err(${body.slice(m.index + m[0].length, close - 1)}.to_string());`]);
+        }
+        if (bad) { out += content.slice(i, bodyStart); i = bodyStart; continue; }
+        const rre = /\breturn\b([^;]*);/g;
+        while ((m = rre.exec(masked)) !== null) edits.push([m.index, m.index + m[0].length, `break '__try Ok(${body.slice(m.index + 6, m.index + m[0].length - 1).trim()});`]);
+        edits.sort((a, b) => b[0] - a[0]);
+        for (const [s, e, t] of edits) nb = nb.slice(0, s) + t + nb.slice(e);
+        out += content.slice(i, idx) + `let _try_result: Result<Value, String> = '__try: {${nb} #[allow(unreachable_code)] { Ok(Value::Null) }};\n`
+            + errLine.replace('CaughtError::from_panic(_try_err)', 'CaughtError::from_panic(Box::new(_try_err))');
+        i = lineEnd;
+    }
+}
 //
 // unit slot 099
 //
@@ -8599,6 +8648,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     readTypedBookFields,
     //
     // pass slot 098
+    rustSyncTryBlocks,
     //
     // pass slot 099
     //
