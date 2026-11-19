@@ -5971,6 +5971,7 @@ const RUST_LENT_OPTIONAL_ARGS_BASE = [
     'require_event_query',
     'is_post_only',
     'check_address',
+    'fetch_paginated_call_dynamic',
 ];
 // implicit-API wrappers (`*_api.rs`, `&[&Value]` forwarded to `call_method`) and the hand-written by-name dispatchers
 const RUST_LENT_DISPATCHERS = ['call_method', 'call_method_t', 'call_method_o', 'call_method_lt', 'call_method_lo'];
