@@ -1381,7 +1381,7 @@ function containerOpCrateIndex (files: Map<string, string>): Set<string> {
                         const before = m.slice (lineStart, at);
                         if (/\bfn\s+$/.test (before)) continue;
                         // The by-name dispatch arm: the name is never quoted in ts/src.
-                        if (/=>\s*(?:self\.|<Self as [A-Za-z_:]+>::)$/.test (before)) continue;
+                        if (/=>\s*(?:Value::Arr\()?(?:self\.|<Self as [A-Za-z_:]+>::)$/.test (before)) continue;
                         const ufcs = /::$/.test (before);
                         if (!ufcs && !/(?:^|[^A-Za-z0-9_.])self\.(?:parent\.)*$/.test (before)) { ok = false; break; }
                         const open = at + name.length;
@@ -6384,11 +6384,58 @@ function typeFilterSliceLists(content: string): string {
     return out + content.slice(last);
 }
 
+// parseTrades / parseOrders / parsePositions / parseSettlements (and the shared trades helper) return a list when every
+// return is a typed filter, `[]`, a built `result` vec, a list member of this set, or (positions) toArray's list.
+const RUST_PARSE_LIST_FNS = ['parse_trades', 'parse_trades_helper', 'parse_orders', 'parse_positions', 'parse_settlements'];
+function typeParseListReturns(content: string): string {
+    const typed = new Set<string>();
+    const failed = new Set<string>();
+    const decl = new RegExp(String.raw`(\n {4}(?:pub )?fn (${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g');
+    const self = String.raw`self(?:\.parent)?\.(?:${RUST_PARSE_LIST_FNS.join('|')})\(`;
+    content = content.replace(decl, (whole, sig, name, open, body: string) => {
+        const lines = body.split('\n').filter((l) => /^\s*return\b/.test(l));
+        const resultVec = /\n\s*let mut result: Vec<Value> = Vec::new\(\);/.test('\n' + body);
+        const ok = lines.length > 0 && lines.every((l) => /^\s*return Value::Arr\(self\.filter_by_\w+\(.*\)\);$/.test(l)
+            || /^\s*return Value::from\(vec!\[\]\);$/.test(l) || (resultVec && /^\s*return Value::from\(result\);$/.test(l))
+            || new RegExp(String.raw`^\s*return ${self}.*\);$`).test(l)
+            || (name === 'parse_positions' && /^\s*return self\.filter_by_array_positions\(.*\);$/.test(l)));
+        if (!ok) { failed.add(name); return whole; }
+        typed.add(name);
+        const b = body.replace(/^(\s*return )Value::Arr\((self\.filter_by_\w+\(.*\))\);$/gm, '$1$2;')
+            .replace(/^(\s*return )Value::from\(vec!\[\]\);$/gm, '$1Default::default();')
+            .replace(/^(\s*return )Value::from\(result\);$/gm, '$1std::sync::Arc::new(result);')
+            .replace(/^(\s*return self\.filter_by_array_positions\(.*\));$/gm, '$1.into_list();');
+        return `${sig}crate::value::List${open}${b}\n}`;
+    });
+    // the base set is declared in exchange_generated.rs; parse_settlements exists only where a venue declares it
+    const names = RUST_PARSE_LIST_FNS.filter((n) => !failed.has(n) && (typed.has(n) || n !== 'parse_settlements'));
+    if (names.length === 0) return content;
+    const head = new RegExp(String.raw`\bself(?:\.parent)?\.(?:${names.join('|')})\(`, 'g');
+    const typedBody = new RegExp(String.raw`\n {4}(?:pub )?fn (?:${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> crate::value::List \{`, 'g');
+    const spans: Array<[number, number]> = [];
+    for (const d of content.matchAll(typedBody)) spans.push([d.index!, balancedCloseIndex(content, d.index! + d[0].length)]);
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec(content)) !== null) {
+        const lineStart = content.lastIndexOf('\n', m.index) + 1;
+        if (/^\s*(?:\/\/|\*)/.test(content.slice(lineStart, m.index))) continue;
+        const close = balancedCloseIndex(content, m.index + m[0].length);
+        const call = content.slice(m.index, close + 1);
+        const conv = content.slice(close + 1).match(/^\.into_(opt_)?list\(\)/);
+        const inTyped = spans.some(([a, b]) => m!.index > a && m!.index < b) && /return $/.test(content.slice(m.index - 7, m.index));
+        let rep = inTyped ? call : `Value::Arr(${call})`;
+        if (conv !== null) rep = conv[1] ? `Some(${call})` : call;
+        out += content.slice(last, m.index) + rep;
+        last = close + 1 + (conv?.[0].length ?? 0);
+        head.lastIndex = last;
+    }
+    return out + content.slice(last);
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))))))));
+    content = splitLongRustLines(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -13028,7 +13075,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))))))));
+        fs.writeFileSync(outFile, splitLongRustLines(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
