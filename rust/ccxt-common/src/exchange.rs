@@ -1165,12 +1165,12 @@ impl Exchange {
         match &self.id { Value::Str(s) => s.to_string(), _ => String::new() }
     }
 
-    /// Whether sandbox/testnet endpoints was passed by user explicitly.
+    /// Whether sandbox/testnet directive was passed by user explicitly.
     pub fn is_sandbox_mode_enabled(&self) -> bool {
         matches!(self.isSandboxModeEnabled, Value::Bool(true))
     }
 
-    /// Whether sandbox/testnet endpoints was passed by user explicitly.
+    /// Whether sandbox/testnet directive was passed by user explicitly.
     pub fn sandbox(&self) -> bool {
         matches!(self.sandbox, Value::Bool(true))
     }
