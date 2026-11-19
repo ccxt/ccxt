@@ -5045,6 +5045,90 @@ function rustTypedSafeTrade (content: string): string {
     return content.replace (/self\.\u0000safe_trade\(/g, 'self.safe_trade(');
 }
 
+// `parseTrade` answers `safeTrade (..)`, a trade literal or a sub-parser that does: a venue override returns `Some(..)` through
+// the `DerivedExchange` slot, the base `Dict`, a `parseWsTrade` built the same way `Dict`. An unproven override return throws.
+function rustTypedParseTrade (content: string): string {
+    const Q = '\u0000';
+    // each `return e;` becomes `wrap(e')` with e' the Dict behind e, or null when one return is not proven
+    const typeReturns = (body: string, wrap: string, subs: Set<string>): string | null => {
+        let out = '', last = 0, r: RegExpExecArray | null;
+        const ret = /(?<=^ *)return (?=\S)/gm;
+        while ((r = ret.exec (body)) !== null) {
+            const p = r.index + r[0].length;
+            let expr: string, end: number;
+            const sub = /^self\.(\w+)\(/.exec (body.slice (p, p + 80));
+            if (body.startsWith ('Value::Dict(self.safe_trade(', p)) {
+                end = balancedCloseIndex (body, p + 'Value::Dict('.length);
+                expr = body.slice (p + 'Value::Dict('.length, end);
+            } else if (body.startsWith ('Value::Map(', p)) {
+                end = balancedCloseIndex (body, p + 'Value::Map('.length);
+                expr = 'std::sync::Arc::new(' + body.slice (p + 'Value::Map('.length, end) + ')';
+            } else if (sub && subs.has (sub[1])) {
+                end = balancedCloseIndex (body, p + sub[0].length);
+                expr = Q + body.slice (p, end + 1);
+            } else return null;
+            if (body[end + 1] !== ';') return null;
+            out += body.slice (last, p) + (wrap ? wrap + '(' + expr + ')' : expr);
+            last = ret.lastIndex = end + 1;
+        }
+        return last === 0 ? null : out + body.slice (last);
+    };
+    const tail = '\n\n    Value::Null\n}';
+    const retype = (sigAt: number, sigLen: number, wrap: string, subs: Set<string>, ty: string, dflt: string): boolean => {
+        const e = content.indexOf (tail, sigAt);
+        const body = e < 0 ? null : typeReturns (content.slice (sigAt + sigLen, e), wrap, subs);
+        if (body === null) return false;
+        content = content.slice (0, sigAt) + content.slice (sigAt, sigAt + sigLen).replace ('-> Value {', '-> ' + ty + ' {') + body + '\n\n    ' + dflt + '\n}' + content.slice (e + tail.length);
+        return true;
+    };
+    const subSig = (name: string) => new RegExp ('\\n    pub fn ' + name + '\\(&self, mut \\w+: Value, market: Option<&crate::types::Market>\\) -> Value \\{\\n');
+    const dictFns = new Set<string> ();
+    const derived = /\n    fn parse_trade\(&self, \w+: impl Into<crate::Value>, market: Option<&crate::types::Market>\) -> Value \{\n/.exec (content);
+    if (derived) {
+        if (!content.startsWith ('\nimpl crate::exchange::DerivedExchange for ', content.lastIndexOf ('\nimpl ', derived.index))) throw new Error ('rustTypedParseTrade: parse_trade outside DerivedExchange');
+        const e = content.indexOf (tail, derived.index);
+        for (const m of content.slice (derived.index, e).matchAll (/\breturn self\.(\w+)\(/g)) {
+            const s = subSig (m[1]).exec (content);
+            if (s && retype (s.index, s[0].length, '', new Set (), 'crate::value::Dict', 'Default::default()')) dictFns.add (m[1]);
+        }
+        const d = /\n    fn parse_trade\(&self, \w+: impl Into<crate::Value>, market: Option<&crate::types::Market>\) -> Value \{\n/.exec (content)!;
+        if (!retype (d.index, d[0].length, 'Some', dictFns, 'Option<crate::value::Dict>', 'None')) throw new Error ('rustTypedParseTrade: unproven parse_trade return');
+    }
+    const base = 'fn parse_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {\n';
+    const probe = '{ let __v = crate::exchange::DerivedExchange::parse_trade(self, trade, market); if !matches!(__v, crate::Value::Null) { return __v; } }';
+    const b = content.indexOf (base);
+    if (b >= 0) {
+        const e = content.indexOf (tail, b) + tail.length - 1;
+        const body = content.slice (b + base.length, e);
+        if (body.includes (probe) && body.split ('return').length === 2 && body.endsWith ('\n\n    Value::Null\n')) {
+            content = content.slice (0, b) + base.replace ('-> Value {', '-> crate::value::Dict {')
+                + body.replace (probe, 'if let Some(__v) = crate::exchange::DerivedExchange::parse_trade(self, trade, market) { return __v; }').replace (/Value::Null\n$/, 'Default::default()\n') + content.slice (e);
+        }
+    }
+    const ws = /\n    pub fn parse_ws_trade\(&self, \w+: impl Into<crate::Value>, market: Option<&crate::types::Market>\) -> Value \{\n/.exec (content);
+    if (ws && retype (ws.index, ws[0].length, '', new Set ([ 'parse_trade' ]), 'crate::value::Dict', 'Default::default()')) dictFns.add ('parse_ws_trade');
+    const call = new RegExp ('(?<![\\w.])(?:self(?:\\.parent)?\\.|<Self as crate::exchange_generated::ExchangeBase>::|<Self as crate::exchange::DerivedExchange>::|crate::exchange::DerivedExchange::)(' + [ 'parse_trade', ...dictFns ].join ('|') + ')\\(', 'g');
+    const starts: number[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = call.exec (content)) !== null) starts.push (m.index);
+    const copy = '.as_map().cloned().unwrap_or_default()';
+    for (const s of starts.reverse ()) {
+        const close = balancedCloseIndex (content, content.indexOf ('(', content.indexOf ('parse_', s)) + 1);
+        if (close >= content.length) continue;
+        const pre = content.slice (s, close + 1), after = content.slice (close + 1);
+        const line = content.slice (content.lastIndexOf ('\n', s), s);
+        if (line.endsWith (Q) || /if let Some\(__v\) = $/.test (line)) continue;
+        if (/^(<Self as )?crate::exchange::DerivedExchange/.test (pre)) {
+            if (after.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + '.unwrap_or_default()' + after.slice ('.into_dict()'.length);
+            else if (after.startsWith (copy)) content = content.slice (0, close + 1) + '.map(std::sync::Arc::unwrap_or_clone).unwrap_or_default()' + after.slice (copy.length);
+            else content = content.slice (0, close + 1) + '.map_or(Value::Null, Value::Dict)' + after;
+        } else if (after.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + after.slice ('.into_dict()'.length);
+        else if (after.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + pre + ')' + after.slice (copy.length);
+        else content = content.slice (0, s) + 'Value::Dict(' + pre + ')' + after;
+    }
+    return content.split (Q).join ('');
+}
+
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
 // returns `Dict` (`omit_t`: the same map, empty for a non-map, like `.into_dict()`); its arm and `Value` slot box it back.
 function rustTypedRouteAndParams (content: string): string {
@@ -11734,6 +11818,7 @@ impl std::ops::DerefMut for ${coreName} {
 
             rustContent = rustTypedParseOrderBook(rustContent);
             rustContent = rustTypedParseOrder(rustContent);
+            rustContent = rustTypedParseTrade(rustContent);
 
             // Phase 2 — lexical sanity check. A file with mismatched
             // delimiters would break the whole crate, so a failure here is
@@ -12532,6 +12617,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedSafeOrder(finalFile);
         finalFile = rustTypedParseOrder(finalFile);
         finalFile = rustTypedSafeTrade(finalFile);
+        finalFile = rustTypedParseTrade(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);

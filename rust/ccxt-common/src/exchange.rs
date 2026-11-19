@@ -224,7 +224,7 @@ pub trait DerivedExchange {
     fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { None::<&mut BaseCore> }
     // ── parsers (the dominant override surface) ──────────────────────────
     fn parse_ticker(&self, ticker: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_ticker(p, ticker, market)) }
-    fn parse_trade(&self, trade: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_trade(p, trade, market)) }
+    fn parse_trade(&self, trade: impl Into<Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_trade(p, trade, market)) }
     fn parse_order(&self, order: impl Into<Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_order(p, order, market)) }
     fn parse_market(&self, market: impl Into<Value>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_market(p, market)) }
     fn parse_ohlcv(&self, ohlcv: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_ohlcv(p, ohlcv, market)) }
