@@ -476,35 +476,35 @@ public class Independentreserve extends IndependentreserveApi
                         continue;
                     }
                     String id = ((baseId + "/") + quoteId);
-                    HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", id);
-                    j39v2.put("symbol", ((base + "/") + quote));
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", null);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", null);
-                    j39v2.put("type", "spot");
-                    j39v2.put("spot", true);
-                    j39v2.put("margin", false);
-                    j39v2.put("swap", false);
-                    j39v2.put("future", false);
-                    j39v2.put("option", false);
-                    j39v2.put("active", null);
-                    j39v2.put("contract", false);
-                    j39v2.put("linear", null);
-                    j39v2.put("inverse", null);
-                    j39v2.put("contractSize", null);
-                    j39v2.put("expiry", null);
-                    j39v2.put("expiryDatetime", null);
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                    HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("symbol", ((base + "/") + quote));
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("settle", null);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("margin", false);
+                    j39v1.put("swap", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("active", null);
+                    j39v1.put("contract", false);
+                    j39v1.put("linear", null);
+                    j39v1.put("inverse", null);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", null);
+                    j39v1.put("expiryDatetime", null);
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                             put( "amount", null );
                             put( "price", null );
                         }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -522,12 +522,12 @@ public class Independentreserve extends IndependentreserveApi
                                 put( "max", null );
                             }} );
                         }});
-                    j39v2.put("created", null);
-                    j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                            j39v1.put("primaryCurrencyCode", baseId);
-                            j39v1.put("secondaryCurrencyCode", quoteId);
-                            yield j39v1; } }));
-                    ((List<Object>)result).add(j39v2);
+                    j39v1.put("created", null);
+                    HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("primaryCurrencyCode", baseId);
+                    j39v2.put("secondaryCurrencyCode", quoteId);
+                    j39v1.put("info", j39v2);
+                    ((List<Object>)result).add(j39v1);
                 }
             }
             return result;

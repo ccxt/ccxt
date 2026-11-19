@@ -1240,9 +1240,9 @@ public class Bit2me extends Bit2meApi
         }
         Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLimitPrice", "cost", "clientOrderId")));
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, false, query);
-        postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-        query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyqueryVariable = this.handlePostOnly(isMarketOrder, false, query);
+        postOnly = postOnlyqueryVariable.first();
+        query = postOnlyqueryVariable.second();
         String timeInForce = this.safeStringUpper(query, "timeInForce");
         query = this.omit(query, "timeInForce");
         Map<String, Object> request = new HashMap<String, Object>();

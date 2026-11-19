@@ -1758,9 +1758,9 @@ public class Blofin extends BlofinApi
             request.put(key, this.priceToPrecision(symbol, price));
         }
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), query);
-        postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-        query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyqueryVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), query);
+        postOnly = postOnlyqueryVariable.first();
+        query = postOnlyqueryVariable.second();
         if (Boolean.TRUE.equals(postOnly))
         {
             request.put("type", "post_only");
@@ -3364,36 +3364,36 @@ public class Blofin extends BlofinApi
                 {
                     for (var i = 0; i < ((List<?>)tpslIds).size(); i++)
                     {
-                        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                        j39v4.put("tpslId", this.safeString(tpslIds, i));
-                        j39v4.put("instId", market.get("id"));
-                        ((List<Object>)request).add(j39v4);
+                        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                        j39v1.put("tpslId", this.safeString(tpslIds, i));
+                        j39v1.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v1);
                     }
                 }
                 for (var i = 0; i < ((List<?>)orderIds).size(); i++)
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
-                        HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                        j39v3.put("tpslId", this.safeString(orderIds, i));
-                        j39v3.put("instId", market.get("id"));
-                        ((List<Object>)request).add(j39v3);
-                    } else
-                    {
                         HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                        j39v2.put("orderId", this.safeString(orderIds, i));
+                        j39v2.put("tpslId", this.safeString(orderIds, i));
                         j39v2.put("instId", market.get("id"));
                         ((List<Object>)request).add(j39v2);
+                    } else
+                    {
+                        HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                        j39v3.put("orderId", this.safeString(orderIds, i));
+                        j39v3.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v3);
                     }
                 }
             } else
             {
                 for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
                 {
-                    HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("instId", market.get("id"));
-                    j39v1.put("clientOrderId", this.safeString(clientOrderIds, i));
-                    ((List<Object>)request).add(j39v1);
+                    HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                    j39v4.put("instId", market.get("id"));
+                    j39v4.put("clientOrderId", this.safeString(clientOrderIds, i));
+                    ((List<Object>)request).add(j39v4);
                 }
             }
             Map<String, Object> response = null;

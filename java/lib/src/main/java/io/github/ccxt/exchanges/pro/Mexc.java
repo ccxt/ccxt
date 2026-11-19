@@ -814,7 +814,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(timeframe, null))
             {
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                this.ohlcvs.get(symbol).put(timeframe, stored);
             }
         }
         stored.append(parsed);
@@ -2300,7 +2300,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 }
                 if (((Map<?, ?>)this.ohlcvs).containsKey(candlesSymbol))
                 {
-                    ((Map<String,Object>)this.ohlcvs).remove((String)candlesSymbol);
+                    this.ohlcvs.remove((String)candlesSymbol);
                 }
             } else if (((String)messageHash).indexOf("orderbook") >= 0)
             {

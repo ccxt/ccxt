@@ -838,29 +838,29 @@ public class Opinion extends OpinionApi
         {
             timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("outcome", this.safeString(marketAny, "outcome"));
-            j39v1.put("outcomeId", this.safeString2(marketAny, "outcomeId", "id"));
-            j39v1.put("label", this.safeString(marketAny, "label"));
-            j39v1.put("market", this.safeString2(marketAny, "market", "outcome"));
-            j39v1.put("timestamp", timestamp);
-            j39v1.put("datetime", this.iso8601(timestamp));
-            j39v1.put("high", null);
-            j39v1.put("low", null);
-            j39v1.put("bid", this.safeNumber(bestBid, "price", (Object) null));
-            j39v1.put("bidVolume", this.safeNumber(bestBid, "size", (Object) null));
-            j39v1.put("ask", this.safeNumber(bestAsk, "price", (Object) null));
-            j39v1.put("askVolume", this.safeNumber(bestAsk, "size", (Object) null));
-            j39v1.put("open", null);
-            j39v1.put("close", last);
-            j39v1.put("last", last);
-            j39v1.put("change", null);
-            j39v1.put("percentage", null);
-            j39v1.put("average", null);
-            j39v1.put("baseVolume", null);
-            j39v1.put("quoteVolume", null);
-            j39v1.put("info", ticker);
-            yield j39v1; } }), market));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("outcome", this.safeString(marketAny, "outcome"));
+        j39v1.put("outcomeId", this.safeString2(marketAny, "outcomeId", "id"));
+        j39v1.put("label", this.safeString(marketAny, "label"));
+        j39v1.put("market", this.safeString2(marketAny, "market", "outcome"));
+        j39v1.put("timestamp", timestamp);
+        j39v1.put("datetime", this.iso8601(timestamp));
+        j39v1.put("high", null);
+        j39v1.put("low", null);
+        j39v1.put("bid", this.safeNumber(bestBid, "price", (Object) null));
+        j39v1.put("bidVolume", this.safeNumber(bestBid, "size", (Object) null));
+        j39v1.put("ask", this.safeNumber(bestAsk, "price", (Object) null));
+        j39v1.put("askVolume", this.safeNumber(bestAsk, "size", (Object) null));
+        j39v1.put("open", null);
+        j39v1.put("close", last);
+        j39v1.put("last", last);
+        j39v1.put("change", null);
+        j39v1.put("percentage", null);
+        j39v1.put("average", null);
+        j39v1.put("baseVolume", null);
+        j39v1.put("quoteVolume", null);
+        j39v1.put("info", ticker);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v1, market));
     }
 
     /**

@@ -695,7 +695,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 {
                     Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                     stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                    Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                    this.ohlcvs.get(symbol).put(timeframe, stored);
                 }
                 stored.append(parsed);
                 String messageHash = ("candles::" + symbol);

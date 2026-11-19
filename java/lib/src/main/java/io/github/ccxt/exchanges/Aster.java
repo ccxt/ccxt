@@ -1742,42 +1742,45 @@ public class Aster extends AsterApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object request = new HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", Math.min(limit, 1000));
+                request.put("limit", Math.min(limit, 1000));
             }
             List<Object> response = null;
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
             Boolean untilDefined = (parameters.containsKey("until"));
             if (Boolean.TRUE.equals(sinceDefined))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
+            Map<String, Object> paramsUntil = parameters;
             if (Boolean.TRUE.equals(untilDefined))
             {
-                request = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+                Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+                request = requestparamsUntilVariable.first();
+                paramsUntil = requestparamsUntilVariable.second();
             }
             // use historical endpoint for targeted requests
             if (Boolean.TRUE.equals(sinceDefined))
             {
                 if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
-                    response = (this.fapiPublicGetV3AggTrades(this.extend(request, parameters))).join();
+                    response = (this.fapiPublicGetV3AggTrades(this.extend(request, paramsUntil))).join();
                 } else
                 {
-                    response = (this.sapiPublicGetV3AggTrades(this.extend(request, parameters))).join();
+                    response = (this.sapiPublicGetV3AggTrades(this.extend(request, paramsUntil))).join();
                 }
             } else
             {
                 if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
-                    response = (this.fapiPublicGetV3Trades(this.extend(request, parameters))).join();
+                    response = (this.fapiPublicGetV3Trades(this.extend(request, paramsUntil))).join();
                 } else
                 {
-                    response = (this.sapiPublicGetV3Trades(this.extend(request, parameters))).join();
+                    response = (this.sapiPublicGetV3Trades(this.extend(request, paramsUntil))).join();
                 }
             }
             return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});

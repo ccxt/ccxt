@@ -1542,7 +1542,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         if (java.util.Objects.equals(this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            this.ohlcvs.get(symbol).put(timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(kline, (Map<String, Object>) null);
@@ -1606,8 +1606,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
-                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("listenKey")), java.util.Objects.requireNonNullElse(type, "spot"), listenKey);
-                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("lastAuthenticatedTime")), java.util.Objects.requireNonNullElse(type, "spot"), time);
+                    Map<String, Object> listenKeys = this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
+                    listenKeys.put((String)java.util.Objects.requireNonNullElse(type, "spot"), listenKey);
+                    this.options.put("listenKey", listenKeys);
+                    Map<String, Object> lastAuthenticatedTimes = this.safeDict(this.options, "lastAuthenticatedTime", new HashMap<String, Object>() {{}});
+                    lastAuthenticatedTimes.put((String)java.util.Objects.requireNonNullElse(type, "spot"), time);
+                    this.options.put("lastAuthenticatedTime", lastAuthenticatedTimes);
                     HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
                     mapLiteral3.put("type", java.util.Objects.requireNonNullElse(type, "spot"));
                     Map<String, Object> keepAliveParams = this.extend(mapLiteral3, parameters);
@@ -1661,7 +1665,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                     client.reject(error, messageHash);
                 }
                 Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("listenKey")), type, null);
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("lastAuthenticatedTime")), type, 0);
+                Map<String, Object> lastAuthenticatedTimes = this.safeDict(this.options, "lastAuthenticatedTime", new HashMap<String, Object>() {{}});
+                lastAuthenticatedTimes.put(type, 0);
+                this.options.put("lastAuthenticatedTime", lastAuthenticatedTimes);
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request

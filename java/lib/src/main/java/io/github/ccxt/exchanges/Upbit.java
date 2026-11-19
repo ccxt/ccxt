@@ -2755,10 +2755,10 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
-            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("currency", currency.get("id"));
-                j39v2.put("net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
-                yield j39v2; } }), paramsNetworkCode))).join();
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("currency", currency.get("id"));
+            j39v2.put("net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
+            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(j39v2, paramsNetworkCode))).join();
             //
             //    {
             //        currency: 'XRP',

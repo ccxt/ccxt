@@ -2268,57 +2268,57 @@ public class Gate extends GateApi
                 Long buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
                 Long createdTs = ((((buyStart == null || buyStart != 0)))) ? buyStart : null;
                 Boolean active = (java.util.Objects.equals(tradeStatus, "tradable")) || (Boolean.TRUE.equals(margin) && ((marginStatus != null && marginStatus == 1)));
-                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                j39v3.put("id", id);
-                j39v3.put("symbol", ((base + "/") + quote));
-                j39v3.put("base", base);
-                j39v3.put("quote", quote);
-                j39v3.put("settle", null);
-                j39v3.put("baseId", baseId);
-                j39v3.put("quoteId", quoteId);
-                j39v3.put("settleId", null);
-                j39v3.put("type", "spot");
-                j39v3.put("spot", true);
-                j39v3.put("margin", margin);
-                j39v3.put("swap", false);
-                j39v3.put("future", false);
-                j39v3.put("option", false);
-                j39v3.put("active", active);
-                j39v3.put("contract", false);
-                j39v3.put("linear", null);
-                j39v3.put("inverse", null);
-                j39v3.put("taker", this.parseNumber(Precise.stringDiv(takerPercent, "100")));
-                j39v3.put("maker", this.parseNumber(Precise.stringDiv(makerPercent, "100")));
-                j39v3.put("contractSize", null);
-                j39v3.put("expiry", null);
-                j39v3.put("expiryDatetime", null);
-                j39v3.put("strike", null);
-                j39v3.put("optionType", null);
-                j39v3.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", margin);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", active);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("taker", this.parseNumber(Precise.stringDiv(takerPercent, "100")));
+                j39v1.put("maker", this.parseNumber(Precise.stringDiv(makerPercent, "100")));
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
                         put( "price", Gate.this.parseNumber(Gate.this.parsePrecision(Gate.this.safeString(market, "precision"))) );
                     }});
-                j39v3.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                        j39v2.put("leverage", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("leverage", new HashMap<String, Object>() {{
                             put( "min", Gate.this.parseNumber("1") );
                             put( "max", Gate.this.safeNumber(market, "leverage", 1) );
                         }});
-                        j39v2.put("amount", new HashMap<String, Object>() {{
+                j39v2.put("amount", new HashMap<String, Object>() {{
                             put( "min", Gate.this.safeNumber(spotMarket, "min_base_amount", amountPrecision) );
                             put( "max", null );
                         }});
-                        j39v2.put("price", new HashMap<String, Object>() {{
+                j39v2.put("price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }});
-                        j39v2.put("cost", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                            j39v1.put("min", this.safeNumber(market, "min_quote_amount", (Object) null));
-                            j39v1.put("max", ((Boolean.TRUE.equals(margin))) ? this.safeNumber(market, "max_quote_amount", (Object) null) : null);
-                            yield j39v1; } }));
-                        yield j39v2; } }));
-                j39v3.put("created", createdTs);
-                j39v3.put("info", market);
-                ((List<Object>)result).add(j39v3);
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("min", this.safeNumber(market, "min_quote_amount", (Object) null));
+                j39v3.put("max", ((Boolean.TRUE.equals(margin))) ? this.safeNumber(market, "max_quote_amount", (Object) null) : null);
+                j39v2.put("cost", j39v3);
+                j39v1.put("limits", j39v2);
+                j39v1.put("created", createdTs);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -5974,9 +5974,9 @@ public class Gate extends GateApi
         }
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
         String exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "tif", "time_in_force")));
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(exchangeSpecificTimeInForce, "poc"), parameters);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(exchangeSpecificTimeInForce, "poc"), parameters);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         String timeInForce = this.handleTimeInForce(paramsPostOnly);
         if (Boolean.TRUE.equals(postOnly))
         {
@@ -6748,18 +6748,18 @@ public class Gate extends GateApi
         String fee = this.safeString(order, "fee");
         if (!java.util.Objects.equals(fee, null))
         {
-            HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-            j39v6.put("currency", this.safeCurrencyCode(this.safeString(order, "fee_currency"), (Map<String, Object>) null));
-            j39v6.put("cost", fee);
-            ((List<Object>)fees).add(j39v6);
+            HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+            j39v5.put("currency", this.safeCurrencyCode(this.safeString(order, "fee_currency"), (Map<String, Object>) null));
+            j39v5.put("cost", fee);
+            ((List<Object>)fees).add(j39v5);
         }
         String rebate = this.safeString(order, "rebated_fee");
         if (!java.util.Objects.equals(rebate, null))
         {
-            HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-            j39v5.put("currency", this.safeCurrencyCode(this.safeString(order, "rebated_fee_currency"), (Map<String, Object>) null));
-            j39v5.put("cost", Precise.stringNeg(rebate));
-            ((List<Object>)fees).add(j39v5);
+            HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+            j39v6.put("currency", this.safeCurrencyCode(this.safeString(order, "rebated_fee_currency"), (Map<String, Object>) null));
+            j39v6.put("cost", Precise.stringNeg(rebate));
+            ((List<Object>)fees).add(j39v6);
         }
         Integer numFeeCurrencies = fees.size();
         Boolean multipleFeeCurrencies = (numFeeCurrencies != null && numFeeCurrencies > 1);
@@ -8554,8 +8554,9 @@ public class Gate extends GateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
+            String currencyId = this.safeString(currency, "id", "");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((String)currency.get("id")).toUpperCase() );
+                put( "currency", currencyId.toUpperCase() );
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
             Map<String, Object> market = this.market(symbol);
@@ -8594,8 +8595,9 @@ public class Gate extends GateApi
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = this.currency((String) (code));
+            String currencyId = this.safeString(currency, "id", "");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((String)currency.get("id")).toUpperCase() );
+                put( "currency", currencyId.toUpperCase() );
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
             Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "repayCrossMargin", "unifiedAccount", false);
@@ -8639,8 +8641,9 @@ public class Gate extends GateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
+            String currencyId = this.safeString(currency, "id", "");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((String)currency.get("id")).toUpperCase() );
+                put( "currency", currencyId.toUpperCase() );
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
             Map<String, Object> market = this.market(symbol);
@@ -8694,8 +8697,9 @@ public class Gate extends GateApi
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = this.currency((String) (code));
+            String currencyId = this.safeString(currency, "id", "");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((String)currency.get("id")).toUpperCase() );
+                put( "currency", currencyId.toUpperCase() );
                 put( "amount", Gate.this.currencyToPrecision((String) (code), amount, (String) null) );
             }};
             Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "borrowCrossMargin", "unifiedAccount", false);

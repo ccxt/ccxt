@@ -2158,9 +2158,9 @@ public class Bullish extends BullishApi
                 put( "tradingAccountId", tradingAccountId );
             }};
             Boolean isMarketOrder = ((java.util.Objects.equals(type, "market")) || java.util.Objects.equals(type, "MARKET"));
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "POST_ONLY"), parameters);
-            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "POST_ONLY"), parameters);
+            Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+            Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
             String orderType = type;
             if (Boolean.TRUE.equals(postOnly))
             {
@@ -2954,17 +2954,16 @@ public class Bullish extends BullishApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
             }};
-            Object response = null;
             String code = this.safeString(parameters, "code");
             if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> currency = this.currency(code);
                 request.put("symbol", currency.get("id"));
-                response = (this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters))).join();
-                return this.parseBalanceForSingleCurrency((Map<String, Object>) (response), code);
+                Map<String, Object> response = (this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters))).join();
+                return this.parseBalanceForSingleCurrency(response, code);
             } else
             {
-                response = (this.privateGetV1AccountsAsset(this.extend(request, parameters))).join();
+                List<Object> response = (this.privateGetV1AccountsAsset(this.extend(request, parameters))).join();
                 //
                 //     [
                 //         {

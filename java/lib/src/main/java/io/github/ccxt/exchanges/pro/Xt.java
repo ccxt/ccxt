@@ -1326,7 +1326,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                this.ohlcvs.get(symbol).put(timeframe, stored);
             }
             stored.append(parsed);
             String eventVar = this.safeString(message, "event");

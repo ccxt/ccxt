@@ -916,13 +916,12 @@ public class Bithumb extends BithumbApi
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
             Map<String, Object> data = null;
             Long timestamp = null;
             if ((generation != null && generation == 2))
             {
                 request.put("markets", this.getGen2MarketId(market));
-                response = (this.publicGetV1Orderbook(this.extend(request, paramsGeneration))).join();
+                List<Object> response = (this.publicGetV1Orderbook(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
                 //         {
@@ -970,7 +969,7 @@ public class Bithumb extends BithumbApi
                 {
                     request.put("count", limit); // default 30, max 30
                 }
-                response = (this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
+                Map<String, Object> response = (this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
                 //
                 //     {
                 //         "status":"0000",
@@ -1367,12 +1366,11 @@ public class Bithumb extends BithumbApi
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
             Map<String, Object> data = new HashMap<String, Object>() {{}};
             if ((generation != null && generation == 2))
             {
                 request.put("markets", this.getGen2MarketId(market));
-                response = (this.publicGetV1Ticker(this.extend(request, paramsGeneration))).join();
+                List<Object> response = (this.publicGetV1Ticker(this.extend(request, paramsGeneration))).join();
                 //
                 //     [
                 //         {
@@ -1410,7 +1408,7 @@ public class Bithumb extends BithumbApi
             {
                 request.put("baseId", market.get("baseId"));
                 request.put("quoteId", market.get("quoteId"));
-                response = (this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
+                Map<String, Object> response = (this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration))).join();
                 //
                 //     {
                 //         "status":"0000",
@@ -1982,9 +1980,9 @@ public class Bithumb extends BithumbApi
         String timeInForceRaw = this.safeString2(parameters, "timeInForce", "time_in_force");
         String timeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? "GTC" : timeInForceRaw;
         Map<String, Object> paramsTimeInForce = (((java.util.Objects.equals(timeInForceRaw, null)))) ? parameters : this.omit(parameters, "timeInForce");
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsTimeInForce);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsTimeInForce);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         Boolean isPostOnly = Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO"));
         Map<String, Object> paramsOrder = paramsPostOnly;
         if (Boolean.TRUE.equals(isPostOnly))

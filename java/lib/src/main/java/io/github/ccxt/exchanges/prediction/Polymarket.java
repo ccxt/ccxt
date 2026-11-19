@@ -1135,67 +1135,67 @@ public class Polymarket extends PolymarketApi
                 // inner class, which cannot capture a reassigned local
                 Boolean winner = winnerRaw;
                 Object settleFraction = settleFractionRaw;
-                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("outcome", outcomeHandle);
-                j39v2.put("outcomeId", clobTokenId);
-                j39v2.put("market", marketSymbol);
-                j39v2.put("label", outcomeLabel);
-                j39v2.put("price", outcomePrice);
-                j39v2.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
-                j39v2.put("winner", winner);
-                j39v2.put("settleFraction", settleFraction);
-                j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("outcome", outcomeHandle);
+                j39v1.put("outcomeId", clobTokenId);
+                j39v1.put("market", marketSymbol);
+                j39v1.put("label", outcomeLabel);
+                j39v1.put("price", outcomePrice);
+                j39v1.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
+                j39v1.put("winner", winner);
+                j39v1.put("settleFraction", settleFraction);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", tickSize );
                         put( "price", tickSize );
                     }});
-                j39v2.put("negRisk", negRisk);
-                j39v2.put("info", market);
-                ((List<Object>)outcomes).add(j39v2);
+                j39v1.put("negRisk", negRisk);
+                j39v1.put("info", market);
+                ((List<Object>)outcomes).add(j39v1);
             }
             String baseId = (((!java.util.Objects.equals(conditionId, null)))) ? conditionId : marketId;
             String marketType = ((((outcomeLabelsLength != null && outcomeLabelsLength > 2)))) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
             String marketResolvedOutcome = resolvedOutcome;
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", conditionId);
-            j39v1.put("market", marketSymbol);
-            j39v1.put("marketType", marketType);
-            j39v1.put("executionModel", "clob");
-            j39v1.put("collateral", "USDC");
-            j39v1.put("base", "USDC");
-            j39v1.put("quote", "USDC");
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", "USDC");
-            j39v1.put("settleId", null);
-            j39v1.put("type", "prediction");
-            j39v1.put("spot", false);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("prediction", true);
-            j39v1.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
-            j39v1.put("resolved", marketResolved);
-            j39v1.put("resolvedOutcome", marketResolvedOutcome);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
-            j39v1.put("expiryDatetime", endDate);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("taker", 0);
-            j39v1.put("maker", 0);
-            j39v1.put("percentage", true);
-            j39v1.put("tierBased", false);
-            j39v1.put("feeSide", "get");
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("id", conditionId);
+            j39v2.put("market", marketSymbol);
+            j39v2.put("marketType", marketType);
+            j39v2.put("executionModel", "clob");
+            j39v2.put("collateral", "USDC");
+            j39v2.put("base", "USDC");
+            j39v2.put("quote", "USDC");
+            j39v2.put("settle", null);
+            j39v2.put("baseId", baseId);
+            j39v2.put("quoteId", "USDC");
+            j39v2.put("settleId", null);
+            j39v2.put("type", "prediction");
+            j39v2.put("spot", false);
+            j39v2.put("margin", false);
+            j39v2.put("swap", false);
+            j39v2.put("future", false);
+            j39v2.put("option", false);
+            j39v2.put("prediction", true);
+            j39v2.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
+            j39v2.put("resolved", marketResolved);
+            j39v2.put("resolvedOutcome", marketResolvedOutcome);
+            j39v2.put("contract", false);
+            j39v2.put("linear", null);
+            j39v2.put("inverse", null);
+            j39v2.put("contractSize", null);
+            j39v2.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+            j39v2.put("expiryDatetime", endDate);
+            j39v2.put("strike", null);
+            j39v2.put("optionType", null);
+            j39v2.put("taker", 0);
+            j39v2.put("maker", 0);
+            j39v2.put("percentage", true);
+            j39v2.put("tierBased", false);
+            j39v2.put("feeSide", "get");
+            j39v2.put("precision", new HashMap<String, Object>() {{
                     put( "amount", tickSize );
                     put( "price", tickSize );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            j39v2.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", 1 );
                         put( "max", 1 );
@@ -1213,10 +1213,10 @@ public class Polymarket extends PolymarketApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("outcomes", outcomes);
-            j39v1.put("info", market);
-            j39v1.put("created", null);
-            ((List<Object>)result).add(j39v1);
+            j39v2.put("outcomes", outcomes);
+            j39v2.put("info", market);
+            j39v2.put("created", null);
+            ((List<Object>)result).add(j39v2);
         }
         return result;
     }
@@ -1613,31 +1613,31 @@ public class Polymarket extends PolymarketApi
         {
             quoteVolume = this.safeNumber2(market.get("info"), "volume24hr", "volume", (Object) null);
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-            j39v4.put("outcome", outcome);
-            j39v4.put("outcomeId", this.safeString(market, "outcomeId"));
-            j39v4.put("label", this.safeString(market, "label"));
-            j39v4.put("market", this.safeString(market, "market"));
-            j39v4.put("timestamp", timestamp);
-            j39v4.put("datetime", this.iso8601(timestamp));
-            j39v4.put("high", null);
-            j39v4.put("low", null);
-            j39v4.put("bid", this.safeNumber(bestBid, "price", (Object) null));
-            j39v4.put("bidVolume", this.safeNumber(bestBid, "size", (Object) null));
-            j39v4.put("ask", this.safeNumber(bestAsk, "price", (Object) null));
-            j39v4.put("askVolume", this.safeNumber(bestAsk, "size", (Object) null));
-            j39v4.put("vwap", null);
-            j39v4.put("open", null);
-            j39v4.put("close", last);
-            j39v4.put("last", last);
-            j39v4.put("previousClose", null);
-            j39v4.put("change", null);
-            j39v4.put("percentage", null);
-            j39v4.put("average", mid);
-            j39v4.put("baseVolume", null);
-            j39v4.put("quoteVolume", quoteVolume);
-            j39v4.put("info", ticker);
-            yield j39v4; } }), market));
+        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+        j39v4.put("outcome", outcome);
+        j39v4.put("outcomeId", this.safeString(market, "outcomeId"));
+        j39v4.put("label", this.safeString(market, "label"));
+        j39v4.put("market", this.safeString(market, "market"));
+        j39v4.put("timestamp", timestamp);
+        j39v4.put("datetime", this.iso8601(timestamp));
+        j39v4.put("high", null);
+        j39v4.put("low", null);
+        j39v4.put("bid", this.safeNumber(bestBid, "price", (Object) null));
+        j39v4.put("bidVolume", this.safeNumber(bestBid, "size", (Object) null));
+        j39v4.put("ask", this.safeNumber(bestAsk, "price", (Object) null));
+        j39v4.put("askVolume", this.safeNumber(bestAsk, "size", (Object) null));
+        j39v4.put("vwap", null);
+        j39v4.put("open", null);
+        j39v4.put("close", last);
+        j39v4.put("last", last);
+        j39v4.put("previousClose", null);
+        j39v4.put("change", null);
+        j39v4.put("percentage", null);
+        j39v4.put("average", mid);
+        j39v4.put("baseVolume", null);
+        j39v4.put("quoteVolume", quoteVolume);
+        j39v4.put("info", ticker);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v4, market));
     }
 
     /**

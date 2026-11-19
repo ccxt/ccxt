@@ -861,27 +861,27 @@ public class Kalshi extends KalshiApi
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
+            j39v1.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
+            j39v1.put("outcome", outcomeHandle);
+            j39v1.put("market", marketSymbol);
+            j39v1.put("label", label);
+            j39v1.put("active", active);
+            j39v1.put("winner", winner);
+            j39v1.put("settleFraction", settleFraction);
+            j39v1.put("precision", precision);
             HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-            j39v2.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-            j39v2.put("outcome", outcomeHandle);
-            j39v2.put("market", marketSymbol);
-            j39v2.put("label", label);
-            j39v2.put("active", active);
-            j39v2.put("winner", winner);
-            j39v2.put("settleFraction", settleFraction);
-            j39v2.put("precision", precision);
-            j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("ticker", ticker);
-                    j39v1.put("eventTicker", eventTicker);
-                    j39v1.put("seriesTicker", seriesTicker);
-                    j39v1.put("subtitle", subtitle);
-                    j39v1.put("outcomeLabel", label);
-                    j39v1.put("volume", volume);
-                    j39v1.put("liquidity", liquidity);
-                    j39v1.put("openInterest", openInt);
-                    yield j39v1; } }));
-            ((List<Object>)outcomes).add(j39v2);
+            j39v2.put("ticker", ticker);
+            j39v2.put("eventTicker", eventTicker);
+            j39v2.put("seriesTicker", seriesTicker);
+            j39v2.put("subtitle", subtitle);
+            j39v2.put("outcomeLabel", label);
+            j39v2.put("volume", volume);
+            j39v2.put("liquidity", liquidity);
+            j39v2.put("openInterest", openInt);
+            j39v1.put("info", j39v2);
+            ((List<Object>)outcomes).add(j39v1);
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
         String marketResolvedOutcome = resolvedOutcome;
@@ -1236,31 +1236,31 @@ public class Kalshi extends KalshiApi
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("outcome", outcome);
-            j39v3.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
-            j39v3.put("label", this.safeString(outcomeObj, "label"));
-            j39v3.put("market", this.safeString2(outcomeObj, "market", "outcome"));
-            j39v3.put("timestamp", timestamp);
-            j39v3.put("datetime", this.iso8601(timestamp));
-            j39v3.put("high", null);
-            j39v3.put("low", null);
-            j39v3.put("bid", bid);
-            j39v3.put("bidVolume", bidVolume);
-            j39v3.put("ask", ask);
-            j39v3.put("askVolume", askVolume);
-            j39v3.put("vwap", null);
-            j39v3.put("open", null);
-            j39v3.put("close", close);
-            j39v3.put("last", close);
-            j39v3.put("previousClose", null);
-            j39v3.put("change", null);
-            j39v3.put("percentage", null);
-            j39v3.put("average", average);
-            j39v3.put("baseVolume", this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume")), (Object) null));
-            j39v3.put("quoteVolume", null);
-            j39v3.put("info", raw);
-            yield j39v3; } }), market));
+        HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+        j39v3.put("outcome", outcome);
+        j39v3.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+        j39v3.put("label", this.safeString(outcomeObj, "label"));
+        j39v3.put("market", this.safeString2(outcomeObj, "market", "outcome"));
+        j39v3.put("timestamp", timestamp);
+        j39v3.put("datetime", this.iso8601(timestamp));
+        j39v3.put("high", null);
+        j39v3.put("low", null);
+        j39v3.put("bid", bid);
+        j39v3.put("bidVolume", bidVolume);
+        j39v3.put("ask", ask);
+        j39v3.put("askVolume", askVolume);
+        j39v3.put("vwap", null);
+        j39v3.put("open", null);
+        j39v3.put("close", close);
+        j39v3.put("last", close);
+        j39v3.put("previousClose", null);
+        j39v3.put("change", null);
+        j39v3.put("percentage", null);
+        j39v3.put("average", average);
+        j39v3.put("baseVolume", this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume")), (Object) null));
+        j39v3.put("quoteVolume", null);
+        j39v3.put("info", raw);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v3, market));
     }
 
     /**

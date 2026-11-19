@@ -1518,9 +1518,9 @@ public class Krakenfutures extends KrakenfuturesApi
         String symbolValue = this.safeString(market, "symbol");
         String typeValue = this.safeString(parameters, "orderType", type);
         String timeInForce = this.safeString(parameters, "timeInForce");
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(typeValue, "market"), java.util.Objects.equals(typeValue, "post"), parameters);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(typeValue, "market"), java.util.Objects.equals(typeValue, "post"), parameters);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(postOnly))
         {
             typeValue = "post";

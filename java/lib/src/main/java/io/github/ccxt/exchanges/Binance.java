@@ -13966,10 +13966,10 @@ public class Binance extends BinanceApi
                 // sometimes not all the codes are correctly returned...
                 if (balances.containsKey(code))
                 {
-                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, (switch (0) { default -> { HashMap<String, Object> j39v16 = new HashMap<String, Object>();
-                        j39v16.put("crossMargin", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
-                        j39v16.put("crossWalletBalance", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
-                        yield j39v16; } }))), market);
+                    HashMap<String, Object> j39v16 = new HashMap<String, Object>();
+                    j39v16.put("crossMargin", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
+                    j39v16.put("crossWalletBalance", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
+                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, j39v16)), market);
                     ((List<Object>)result).add(parsed);
                 }
             }
@@ -16906,7 +16906,7 @@ public class Binance extends BinanceApi
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
-                Object endTime = ((((Number) (this.sum(since, (limitResolved * 86400000L)))).longValue()) - 1L); // required when startTime is further than 93 days in the past
+                Object endTime = ((this.sum(since, (limitResolved * 86400000L))) - 1L); // required when startTime is further than 93 days in the past
                 Long now = this.milliseconds();
                 request.put("endTime", ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(endTime, now)); // cannot have an endTime later than current time
             }

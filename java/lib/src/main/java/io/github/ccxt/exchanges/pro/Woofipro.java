@@ -537,7 +537,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)))
             {
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                this.ohlcvs.get(symbol).put(timeframe, stored);
             }
         }
         stored.append(parsed);

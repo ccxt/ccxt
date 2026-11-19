@@ -988,7 +988,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         if (java.util.Objects.equals(this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            this.ohlcvs.get(symbol).put(timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
         for (var i = 0; i < data.size(); i++)

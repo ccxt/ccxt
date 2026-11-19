@@ -2915,9 +2915,9 @@ public class Mexc extends MexcApi
                 throw new BadRequest((((this.id + " createOrder() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
             }
         }
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "LIMIT_MAKER"), paramsWithoutClientOrderId);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "LIMIT_MAKER"), paramsWithoutClientOrderId);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(postOnly))
         {
             request.put("type", "LIMIT_MAKER");
@@ -3062,9 +3062,9 @@ public class Mexc extends MexcApi
             {
                 throw new InvalidOrder((this.id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
             }
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), Helpers.isEqual(type, 2), parameters);
-            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), Helpers.isEqual(type, 2), parameters);
+            Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+            Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
             Long orderType = 0L; // typed seed, every branch below assigns it
             if (Boolean.TRUE.equals(postOnly))
             {

@@ -615,7 +615,7 @@ public class Coinspot extends CoinspotApi
         Object balances = this.safeValue2(response, "balance", "balances");
         if ((balances instanceof List))
         {
-            List<Object> rows = this.toArray(balances);
+            List<Object> rows = (List<Object>) this.safeList2(response, "balance", "balances", new ArrayList<Object>(Arrays.asList()));
             Integer numRows = rows.size();
             for (var i = 0; (numRows != null && i < numRows); i++)
             {

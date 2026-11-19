@@ -2142,37 +2142,37 @@ public class Zebpay extends ZebpayApi
                 }
                 String status = this.safeString(market, "status");
                 String symbol = ((base + "/") + quote);
-                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", id);
-                    j39v2.put("symbol", ((symbol + ":") + quote));
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("spot", false);
-                    j39v2.put("margin", false);
-                    j39v2.put("swap", true);
-                    j39v2.put("future", false);
-                    j39v2.put("type", "swap");
-                    j39v2.put("option", false);
-                    j39v2.put("active", (java.util.Objects.equals(status, "Open")));
-                    j39v2.put("contract", true);
-                    j39v2.put("taker", this.safeNumber(market, "takerFee", (Object) null));
-                    j39v2.put("maker", this.safeNumber(market, "makerFee", (Object) null));
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", id);
+                j39v2.put("symbol", ((symbol + ":") + quote));
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("spot", false);
+                j39v2.put("margin", false);
+                j39v2.put("swap", true);
+                j39v2.put("future", false);
+                j39v2.put("type", "swap");
+                j39v2.put("option", false);
+                j39v2.put("active", (java.util.Objects.equals(status, "Open")));
+                j39v2.put("contract", true);
+                j39v2.put("taker", this.safeNumber(market, "takerFee", (Object) null));
+                j39v2.put("maker", this.safeNumber(market, "makerFee", (Object) null));
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Zebpay.this.safeNumber(market, "lotSz", (Object) null) );
                         put( "price", Zebpay.this.safeNumber(market, "tickSz", (Object) null) );
                     }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Zebpay.this.safeNumber(market, "minLeverage", (Object) null) );
                             put( "max", Zebpay.this.safeNumber(market, "maxLeverage", (Object) null) );
                         }} );
                     }});
-                    j39v2.put("info", market);
-                    yield j39v2; } })));
+                j39v2.put("info", market);
+                ((List<Object>)result).add(this.safeMarketStructure(j39v2));
             }
             return result;
         });

@@ -1049,14 +1049,14 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         if (java.util.Objects.equals(this.safeDict(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, null), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            this.ohlcvs.get(symbol).put(unifiedTimeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(unifiedTimeframe);
         Map<String, Object> ohlcv = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
-        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, stored);
+        this.ohlcvs.get(symbol).put(unifiedTimeframe, stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
         String messageHash = ((("chart.trades|" + symbol) + "|") + this.safeString(parts, 3, ""));
         client.resolve(resolveData, messageHash);

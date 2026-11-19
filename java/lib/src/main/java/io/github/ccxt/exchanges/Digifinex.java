@@ -2697,12 +2697,12 @@ public class Digifinex extends DigifinexApi
                     String orderId = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                     boolean isCanceled = this.inArray(orderId, data);
                     String status = ((isCanceled)) ? "canceled" : "failed";
-                    ((List<Object>)result).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                        j39v3.put("info", orderId);
-                        j39v3.put("id", orderId);
-                        j39v3.put("symbol", (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-                        j39v3.put("status", status);
-                        yield j39v3; } }), (Map<String, Object>) null));
+                    HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                    j39v3.put("info", orderId);
+                    j39v3.put("id", orderId);
+                    j39v3.put("symbol", (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
+                    j39v3.put("status", status);
+                    ((List<Object>)result).add(this.safeOrder(j39v3, (Map<String, Object>) null));
                 }
                 return result;
             }

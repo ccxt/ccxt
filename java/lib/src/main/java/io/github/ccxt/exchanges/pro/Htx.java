@@ -520,7 +520,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
             {
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                this.ohlcvs.get(symbol).put(timeframe, stored);
             }
         }
         Map<String, Object> tick = this.safeDict(message, "tick", null);
@@ -1881,8 +1881,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 paramsSubType = subTypeparamsSubTypeVariable.second();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Object paramsPositions = (((!java.util.Objects.equals(market, null)))) ? parameters : paramsSubType;
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", ((Map<String, Object>) (switch ((Object) (paramsPositions)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })), "cross");
+            Map<String, Object> paramsPositions = (((!java.util.Objects.equals(market, null)))) ? parameters : paramsSubType;
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Map<String, Object> paramsRequest = paramsMarginMode;

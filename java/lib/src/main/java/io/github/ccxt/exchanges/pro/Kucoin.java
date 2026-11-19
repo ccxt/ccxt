@@ -1260,7 +1260,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         Boolean isContractMarket = (((String)topic).indexOf("contractMarket") >= 0);
         Integer baseVolumeIndex = 5;
@@ -1307,7 +1307,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
         stored.append(parsed);

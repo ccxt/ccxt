@@ -777,36 +777,36 @@ public class Bigone extends BigoneApi
                 {
                     continue;
                 }
-                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", this.safeString(market, "name"));
-                    j39v2.put("uuid", this.safeString(market, "id"));
-                    j39v2.put("symbol", ((base + "/") + quote));
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", null);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", null);
-                    j39v2.put("type", "spot");
-                    j39v2.put("spot", true);
-                    j39v2.put("margin", false);
-                    j39v2.put("swap", false);
-                    j39v2.put("future", false);
-                    j39v2.put("option", false);
-                    j39v2.put("active", true);
-                    j39v2.put("contract", false);
-                    j39v2.put("linear", null);
-                    j39v2.put("inverse", null);
-                    j39v2.put("contractSize", null);
-                    j39v2.put("expiry", null);
-                    j39v2.put("expiryDatetime", null);
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", this.safeString(market, "name"));
+                j39v1.put("uuid", this.safeString(market, "id"));
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", true);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Bigone.this.parseNumber(Bigone.this.parsePrecision(Bigone.this.safeString(market, "base_scale"))) );
                         put( "price", Bigone.this.parseNumber(Bigone.this.parsePrecision(Bigone.this.safeString(market, "quote_scale"))) );
                     }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -824,9 +824,9 @@ public class Bigone extends BigoneApi
                             put( "max", Bigone.this.safeNumber(market, "max_quote_value", (Object) null) );
                         }} );
                     }});
-                    j39v2.put("created", null);
-                    j39v2.put("info", market);
-                    yield j39v2; } })));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(this.safeMarketStructure(j39v1));
             }
             List<Object> contractMarkets = this.toArray(contractResponse);
             for (var i = 0; i < contractMarkets.size(); i++)
@@ -844,35 +844,35 @@ public class Bigone extends BigoneApi
                 }
                 String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
                 Boolean inverse = (Boolean) this.safeBool(market, "isInverse", (Object) null);
-                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", marketId);
-                    j39v1.put("symbol", ((((base + "/") + quote) + ":") + settle));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", settle);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", settleId);
-                    j39v1.put("type", "swap");
-                    j39v1.put("spot", false);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", true);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", this.safeBool(market, "enable", (Object) null));
-                    j39v1.put("contract", true);
-                    j39v1.put("linear", (!java.util.Objects.equals(inverse, true)));
-                    j39v1.put("inverse", inverse);
-                    j39v1.put("contractSize", this.safeNumber(market, "multiplier", (Object) null));
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", marketId);
+                j39v2.put("symbol", ((((base + "/") + quote) + ":") + settle));
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("settle", settle);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("settleId", settleId);
+                j39v2.put("type", "swap");
+                j39v2.put("spot", false);
+                j39v2.put("margin", false);
+                j39v2.put("swap", true);
+                j39v2.put("future", false);
+                j39v2.put("option", false);
+                j39v2.put("active", this.safeBool(market, "enable", (Object) null));
+                j39v2.put("contract", true);
+                j39v2.put("linear", (!java.util.Objects.equals(inverse, true)));
+                j39v2.put("inverse", inverse);
+                j39v2.put("contractSize", this.safeNumber(market, "multiplier", (Object) null));
+                j39v2.put("expiry", null);
+                j39v2.put("expiryDatetime", null);
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Bigone.this.parseNumber(Bigone.this.parsePrecision(Bigone.this.safeString(market, "valuePrecision"))) );
                         put( "price", Bigone.this.parseNumber(Bigone.this.parsePrecision(Bigone.this.safeString(market, "pricePrecision"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -890,8 +890,8 @@ public class Bigone extends BigoneApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("info", market);
-                    yield j39v1; } })));
+                j39v2.put("info", market);
+                ((List<Object>)result).add(this.safeMarketStructure(j39v2));
             }
             return result;
         });
@@ -1820,10 +1820,10 @@ public class Bigone extends BigoneApi
             Boolean isLimit = java.util.Objects.equals(uppercaseType, "LIMIT");
             Boolean exchangeSpecificParam = (Boolean) this.safeBool(parameters, "post_only", false);
             Boolean postOnly = null;
-            Object query = null;
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), exchangeSpecificParam, parameters);
-            postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-            query = ((List<Object>) postOnlyqueryVariable).get(1);
+            Map<String, Object> query = null;
+            Pair<Boolean, Map<String, Object>> postOnlyqueryVariable = this.handlePostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), exchangeSpecificParam, parameters);
+            postOnly = postOnlyqueryVariable.first();
+            query = postOnlyqueryVariable.second();
             String triggerPrice = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("asset_pair_name", market.get("id"));
@@ -1850,7 +1850,7 @@ public class Bigone extends BigoneApi
                 if (Boolean.TRUE.equals(isBuy))
                 {
                     Boolean createMarketBuyOrderRequiresPrice = null;
-                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (query), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.first();
                     query = createMarketBuyOrderRequiresPricequeryVariable.second();
                     Double cost = this.safeNumber(query, "cost", (Object) null);

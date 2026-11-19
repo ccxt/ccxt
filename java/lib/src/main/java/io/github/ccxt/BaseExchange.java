@@ -9446,11 +9446,11 @@ public Map<String, Object> describe()
         {
             code = this.commonCurrencyCode(((String)currencyId).toUpperCase());
         }
-        return (Map<String, Object>) (this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v25 = new HashMap<String, Object>();
-            j39v25.put("id", currencyId);
-            j39v25.put("code", code);
-            j39v25.put("precision", null);
-            yield j39v25; } })));
+        HashMap<String, Object> j39v25 = new HashMap<String, Object>();
+        j39v25.put("id", currencyId);
+        j39v25.put("code", code);
+        j39v25.put("precision", null);
+        return (Map<String, Object>) (this.safeCurrencyStructure(j39v25));
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)

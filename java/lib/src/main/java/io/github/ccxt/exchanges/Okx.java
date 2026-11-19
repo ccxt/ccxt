@@ -2899,56 +2899,56 @@ public class Okx extends OkxApi
         Boolean baseEqualSettle = (java.util.Objects.equals(baseId, settleId));
         String status = this.safeString(market, "state");
         Long instIdCode = this.safeInteger(market, "instIdCode");
-        return new MarketInterface(this.extend(fees, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("id", id);
-            j39v3.put("instIdCode", instIdCode);
-            j39v3.put("symbol", symbol);
-            j39v3.put("base", base);
-            j39v3.put("quote", quote);
-            j39v3.put("settle", settle);
-            j39v3.put("baseId", baseId);
-            j39v3.put("quoteId", quoteId);
-            j39v3.put("settleId", settleId);
-            j39v3.put("type", type);
-            j39v3.put("spot", spot);
-            j39v3.put("margin", Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(leverageAboveOne));
-            j39v3.put("swap", swap);
-            j39v3.put("future", future);
-            j39v3.put("option", option);
-            j39v3.put("active", java.util.Objects.equals(status, "live"));
-            j39v3.put("contract", contract);
-            j39v3.put("linear", ((Boolean.TRUE.equals(contract))) ? quoteEqualSettle : null);
-            j39v3.put("inverse", ((Boolean.TRUE.equals(contract))) ? baseEqualSettle : null);
-            j39v3.put("contractSize", ((Boolean.TRUE.equals(contract))) ? this.safeNumber(market, "ctVal", (Object) null) : null);
-            j39v3.put("expiry", expiry);
-            j39v3.put("expiryDatetime", this.iso8601(expiry));
-            j39v3.put("strike", this.parseNumber(strikePrice));
-            j39v3.put("optionType", optionType);
-            j39v3.put("created", this.safeInteger2(market, "contTdSwTime", "listTime"));
-            j39v3.put("precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("id", id);
+        j39v1.put("instIdCode", instIdCode);
+        j39v1.put("symbol", symbol);
+        j39v1.put("base", base);
+        j39v1.put("quote", quote);
+        j39v1.put("settle", settle);
+        j39v1.put("baseId", baseId);
+        j39v1.put("quoteId", quoteId);
+        j39v1.put("settleId", settleId);
+        j39v1.put("type", type);
+        j39v1.put("spot", spot);
+        j39v1.put("margin", Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(leverageAboveOne));
+        j39v1.put("swap", swap);
+        j39v1.put("future", future);
+        j39v1.put("option", option);
+        j39v1.put("active", java.util.Objects.equals(status, "live"));
+        j39v1.put("contract", contract);
+        j39v1.put("linear", ((Boolean.TRUE.equals(contract))) ? quoteEqualSettle : null);
+        j39v1.put("inverse", ((Boolean.TRUE.equals(contract))) ? baseEqualSettle : null);
+        j39v1.put("contractSize", ((Boolean.TRUE.equals(contract))) ? this.safeNumber(market, "ctVal", (Object) null) : null);
+        j39v1.put("expiry", expiry);
+        j39v1.put("expiryDatetime", this.iso8601(expiry));
+        j39v1.put("strike", this.parseNumber(strikePrice));
+        j39v1.put("optionType", optionType);
+        j39v1.put("created", this.safeInteger2(market, "contTdSwTime", "listTime"));
+        j39v1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Okx.this.safeNumber(market, "lotSz", (Object) null) );
                 put( "price", Okx.this.safeNumber(market, "tickSz", (Object) null) );
             }});
-            j39v3.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("leverage", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("min", this.parseNumber("1"));
-                    j39v1.put("max", this.parseNumber(maxLeverage));
-                    yield j39v1; } }));
-                j39v2.put("amount", new HashMap<String, Object>() {{
+        HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+        HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+        j39v3.put("min", this.parseNumber("1"));
+        j39v3.put("max", this.parseNumber(maxLeverage));
+        j39v2.put("leverage", j39v3);
+        j39v2.put("amount", new HashMap<String, Object>() {{
                     put( "min", Okx.this.safeNumber(market, "minSz", (Object) null) );
                     put( "max", Okx.this.safeNumber(market, "maxLmtSz", (Object) null) );
                 }});
-                j39v2.put("price", new HashMap<String, Object>() {{
+        j39v2.put("price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }});
-                j39v2.put("cost", new HashMap<String, Object>() {{
+        j39v2.put("cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", ((Boolean.TRUE.equals(contract))) ? null : maxSpotCost );
                 }});
-                yield j39v2; } }));
-            j39v3.put("info", market);
-            yield j39v3; } })));
+        j39v1.put("limits", j39v2);
+        j39v1.put("info", market);
+        return new MarketInterface(this.extend(fees, j39v1));
     }
 
     public CompletableFuture<Object> fetchMarketsByType(String type, Map<String, Object> parameters)
@@ -4488,9 +4488,9 @@ public class Okx extends OkxApi
             request.put("tdMode", marginMode);
         }
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), paramsReduceOnly);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), paramsReduceOnly);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         Object orderParams = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice")));
         Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC")) || (java.util.Objects.equals(type, "ioc"));
         Boolean fok = (java.util.Objects.equals(timeInForce, "FOK")) || (java.util.Objects.equals(type, "fok"));
@@ -5323,44 +5323,44 @@ public class Okx extends OkxApi
                 {
                     for (var i = 0; i < (switch ((Object)(algoIds)) { case null -> 0; case List<?> j39v15 -> j39v15.size(); case String j39v16 -> j39v16.length(); case Object j39v17 -> j39v17.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v17) : 0; }); i++)
                     {
-                        HashMap<String, Object> j39v14 = new HashMap<String, Object>();
-                        j39v14.put("algoId", this.safeString(algoIds, i));
-                        j39v14.put("instId", market.get("id"));
-                        ((List<Object>)request).add(j39v14);
+                        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                        j39v4.put("algoId", this.safeString(algoIds, i));
+                        j39v4.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v4);
                     }
                 }
-                for (var i = 0; i < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
-                {
-                    if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
-                    {
-                        HashMap<String, Object> j39v10 = new HashMap<String, Object>();
-                        j39v10.put("algoId", this.safeString(orderIds, i));
-                        j39v10.put("instId", market.get("id"));
-                        ((List<Object>)request).add(j39v10);
-                    } else
-                    {
-                        HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-                        j39v9.put("ordId", this.safeString(orderIds, i));
-                        j39v9.put("instId", market.get("id"));
-                        ((List<Object>)request).add(j39v9);
-                    }
-                }
-            } else
-            {
-                for (var i = 0; i < (switch ((Object)(clientOrderIds)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v12 -> j39v12.size(); case String j39v13 -> j39v13.length(); case Object j39v14 -> j39v14.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v14) : 0; }); i++)
                 {
                     if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
                     {
                         HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                        j39v5.put("algoId", this.safeString(orderIds, i));
                         j39v5.put("instId", market.get("id"));
-                        j39v5.put("algoClOrdId", this.safeString(clientOrderIds, i));
                         ((List<Object>)request).add(j39v5);
                     } else
                     {
-                        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                        j39v4.put("instId", market.get("id"));
-                        j39v4.put("clOrdId", this.safeString(clientOrderIds, i));
-                        ((List<Object>)request).add(j39v4);
+                        HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+                        j39v6.put("ordId", this.safeString(orderIds, i));
+                        j39v6.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v6);
+                    }
+                }
+            } else
+            {
+                for (var i = 0; i < (switch ((Object)(clientOrderIds)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
+                {
+                    if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
+                    {
+                        HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+                        j39v7.put("instId", market.get("id"));
+                        j39v7.put("algoClOrdId", this.safeString(clientOrderIds, i));
+                        ((List<Object>)request).add(j39v7);
+                    } else
+                    {
+                        HashMap<String, Object> j39v8 = new HashMap<String, Object>();
+                        j39v8.put("instId", market.get("id"));
+                        j39v8.put("clOrdId", this.safeString(clientOrderIds, i));
+                        ((List<Object>)request).add(j39v8);
                     }
                 }
             }

@@ -1308,32 +1308,32 @@ public class Sxbet extends SxbetApi
         Integer cancelledLength = cancelled.size();
         for (var i = 0; (cancelledLength != null && i < cancelledLength); i++)
         {
-            ((List<Object>)result).add(this.safePredictionOrder((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("id", this.safeString((cancelled == null || i < 0 || i >= cancelled.size() ? null : cancelled.get(i)), "orderId"));
-                j39v4.put("status", "canceled");
-                j39v4.put("info", response);
-                yield j39v4; } }), (Object) null));
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("id", this.safeString((cancelled == null || i < 0 || i >= cancelled.size() ? null : cancelled.get(i)), "orderId"));
+            j39v2.put("status", "canceled");
+            j39v2.put("info", response);
+            ((List<Object>)result).add(this.safePredictionOrder(j39v2, (Object) null));
         }
         List<Object> notCancelled = this.safeList(data, "notCancelled", new ArrayList<Object>(Arrays.asList()));
         Integer notCancelledLength = notCancelled.size();
         for (var i = 0; (notCancelledLength != null && i < notCancelledLength); i++)
         {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
-            ((List<Object>)result).add(this.safePredictionOrder((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                j39v3.put("id", this.safeString((notCancelled == null || i < 0 || i >= notCancelled.size() ? null : notCancelled.get(i)), "orderId"));
-                j39v3.put("status", null);
-                j39v3.put("info", response);
-                yield j39v3; } }), (Object) null));
+            ((List<Object>)result).add(this.safePredictionOrder((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                j39v4.put("id", this.safeString((notCancelled == null || i < 0 || i >= notCancelled.size() ? null : notCancelled.get(i)), "orderId"));
+                j39v4.put("status", null);
+                j39v4.put("info", response);
+                yield j39v4; } }), (Object) null));
         }
         List<Object> unconfirmed = this.safeList(data, "unconfirmed", new ArrayList<Object>(Arrays.asList()));
         Integer unconfirmedLength = unconfirmed.size();
         for (var i = 0; (unconfirmedLength != null && i < unconfirmedLength); i++)
         {
-            ((List<Object>)result).add(this.safePredictionOrder((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("id", this.safeString((unconfirmed == null || i < 0 || i >= unconfirmed.size() ? null : unconfirmed.get(i)), "orderId"));
-                j39v2.put("status", null);
-                j39v2.put("info", response);
-                yield j39v2; } }), (Object) null));
+            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("id", this.safeString((unconfirmed == null || i < 0 || i >= unconfirmed.size() ? null : unconfirmed.get(i)), "orderId"));
+            j39v3.put("status", null);
+            j39v3.put("info", response);
+            ((List<Object>)result).add(this.safePredictionOrder(j39v3, (Object) null));
         }
         return result;
     }
@@ -2445,29 +2445,29 @@ public class Sxbet extends SxbetApi
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-            j39v6.put("outcome", this.safeString(outcomeObj, "outcome"));
-            j39v6.put("outcomeId", outcomeId);
-            j39v6.put("label", this.safeString(outcomeObj, "label"));
-            j39v6.put("market", this.safeString(outcomeObj, "market"));
-            j39v6.put("timestamp", timestamp);
-            j39v6.put("datetime", this.iso8601(timestamp));
-            j39v6.put("high", null);
-            j39v6.put("low", null);
-            j39v6.put("bid", bid);
-            j39v6.put("bidVolume", null);
-            j39v6.put("ask", ask);
-            j39v6.put("askVolume", null);
-            j39v6.put("open", null);
-            j39v6.put("close", bid);
-            j39v6.put("last", bid);
-            j39v6.put("change", null);
-            j39v6.put("percentage", null);
-            j39v6.put("average", average);
-            j39v6.put("baseVolume", null);
-            j39v6.put("quoteVolume", null);
-            j39v6.put("info", raw);
-            yield j39v6; } }), market));
+        HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+        j39v6.put("outcome", this.safeString(outcomeObj, "outcome"));
+        j39v6.put("outcomeId", outcomeId);
+        j39v6.put("label", this.safeString(outcomeObj, "label"));
+        j39v6.put("market", this.safeString(outcomeObj, "market"));
+        j39v6.put("timestamp", timestamp);
+        j39v6.put("datetime", this.iso8601(timestamp));
+        j39v6.put("high", null);
+        j39v6.put("low", null);
+        j39v6.put("bid", bid);
+        j39v6.put("bidVolume", null);
+        j39v6.put("ask", ask);
+        j39v6.put("askVolume", null);
+        j39v6.put("open", null);
+        j39v6.put("close", bid);
+        j39v6.put("last", bid);
+        j39v6.put("change", null);
+        j39v6.put("percentage", null);
+        j39v6.put("average", average);
+        j39v6.put("baseVolume", null);
+        j39v6.put("quoteVolume", null);
+        j39v6.put("info", raw);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v6, market));
     }
 
     /**

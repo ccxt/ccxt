@@ -819,11 +819,11 @@ public class Hyperliquid extends HyperliquidApi
             Object allMidsResponse = (this.publicPostInfo(this.extend(new HashMap<String, Object>() {{
                 put( "type", "allMids" );
             }}, parameters))).join();
-            Object allMids = this.infoDict(allMidsResponse);
+            Map<String, Object> allMids = this.infoDict(allMidsResponse);
             //
             // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
             //
-            Object mids = this.safeDict(allMids, "mids", allMids);
+            Map<String, Object> mids = (Map<String, Object>) this.safeDict(allMids, "mids", allMids);
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             Map<String, Object> outcomesMap = (((!java.util.Objects.equals(this.outcomes, null)))) ? this.outcomes : new HashMap<String, Object>() {{}};
             List<String> outcomeHandles = new ArrayList<String>(outcomesMap.keySet());
@@ -903,31 +903,31 @@ public class Hyperliquid extends HyperliquidApi
         }
         Map<String, Object> ctx = (Map<String, Object>) ((((!java.util.Objects.equals(parentMarket, null)))) ? this.safeDict(this.safeDict(parentMarket, "info", new HashMap<String, Object>() {{}}), "ctx", new HashMap<String, Object>() {{}}) : new HashMap<String, Object>() {{}});
         Double dayVolume = this.safeNumber(ctx, "dayNtlVlm", (Object) null);
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("outcome", outcome);
-            j39v1.put("outcomeId", this.safeString2(mkt, "outcomeId", "id"));
-            j39v1.put("label", this.safeString(mkt, "label"));
-            j39v1.put("market", this.safeString(mkt, "market"));
-            j39v1.put("timestamp", timestamp);
-            j39v1.put("datetime", this.iso8601(timestamp));
-            j39v1.put("high", null);
-            j39v1.put("low", null);
-            j39v1.put("bid", bid);
-            j39v1.put("bidVolume", bidVolume);
-            j39v1.put("ask", ask);
-            j39v1.put("askVolume", askVolume);
-            j39v1.put("vwap", null);
-            j39v1.put("open", null);
-            j39v1.put("close", mid);
-            j39v1.put("last", mid);
-            j39v1.put("previousClose", null);
-            j39v1.put("change", null);
-            j39v1.put("percentage", null);
-            j39v1.put("average", mid);
-            j39v1.put("baseVolume", null);
-            j39v1.put("quoteVolume", dayVolume);
-            j39v1.put("info", raw);
-            yield j39v1; } }), market));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("outcome", outcome);
+        j39v1.put("outcomeId", this.safeString2(mkt, "outcomeId", "id"));
+        j39v1.put("label", this.safeString(mkt, "label"));
+        j39v1.put("market", this.safeString(mkt, "market"));
+        j39v1.put("timestamp", timestamp);
+        j39v1.put("datetime", this.iso8601(timestamp));
+        j39v1.put("high", null);
+        j39v1.put("low", null);
+        j39v1.put("bid", bid);
+        j39v1.put("bidVolume", bidVolume);
+        j39v1.put("ask", ask);
+        j39v1.put("askVolume", askVolume);
+        j39v1.put("vwap", null);
+        j39v1.put("open", null);
+        j39v1.put("close", mid);
+        j39v1.put("last", mid);
+        j39v1.put("previousClose", null);
+        j39v1.put("change", null);
+        j39v1.put("percentage", null);
+        j39v1.put("average", mid);
+        j39v1.put("baseVolume", null);
+        j39v1.put("quoteVolume", dayVolume);
+        j39v1.put("info", raw);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v1, market));
     }
 
     /**
@@ -1654,20 +1654,20 @@ public class Hyperliquid extends HyperliquidApi
                 cancelAction.put("type", "cancelByCloid");
                 for (var i = 0; i < cloids.size(); i++)
                 {
-                    HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("asset", assetId);
-                    j39v3.put("cloid", (cloids == null || i < 0 || i >= cloids.size() ? null : cloids.get(i)));
-                    ((List<Object>)cancelReq).add(j39v3);
+                    HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("asset", assetId);
+                    j39v2.put("cloid", (cloids == null || i < 0 || i >= cloids.size() ? null : cloids.get(i)));
+                    ((List<Object>)cancelReq).add(j39v2);
                 }
             } else
             {
                 cancelAction.put("type", "cancel");
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
-                    HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("a", assetId);
-                    j39v2.put("o", this.parseToNumeric((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
-                    ((List<Object>)cancelReq).add(j39v2);
+                    HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                    j39v3.put("a", assetId);
+                    j39v3.put("o", this.parseToNumeric((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
+                    ((List<Object>)cancelReq).add(j39v3);
                 }
             }
             cancelAction.put("cancels", cancelReq);
@@ -1886,9 +1886,9 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("oid", ((Boolean.TRUE.equals(isCloid))) ? id : this.parseToNumeric(id));
             }
             Object orderStatusResponse = (this.publicPostInfo(this.extend(request, paramsValue))).join();
-            Object orderStatus = this.infoDict(orderStatusResponse);
-            Object orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
-            Map<String, Object> parsed = this.parsePredictionOrder((Map<String, Object>) (orderWrapper), (Map<String, Object>) null);
+            Map<String, Object> orderStatus = this.infoDict(orderStatusResponse);
+            Map<String, Object> orderWrapper = (Map<String, Object>) this.safeDict(orderStatus, "order", orderStatus);
+            Map<String, Object> parsed = this.parsePredictionOrder(orderWrapper, (Map<String, Object>) null);
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -2796,11 +2796,11 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object|object[]|string} response the info endpoint response
      * @returns {object} the response object, or an empty object for any other response
      */
-    public Object infoDict(Object response)
+    public Map<String, Object> infoDict(Object response)
     {
         if ((!(response instanceof String)) && !(response instanceof List))
         {
-            return response;
+            return (Map<String, Object>) (response);
         }
         return new HashMap<String, Object>() {{}};
     }

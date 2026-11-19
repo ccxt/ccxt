@@ -2258,9 +2258,9 @@ public class Predictfun extends PredictfunApi
             data.put("pricePerShare", this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES));
             data.put("strategy", strategy);
             Boolean postOnly = (Boolean) this.safeBool(paramsTaker, "isPostOnly", false);
-            List<Object> postOnlyOptionparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, postOnly, paramsTaker);
-            Boolean postOnlyOption = (Boolean) ((List<Object>) postOnlyOptionparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyOptionparamsPostOnlyVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyOptionparamsPostOnlyVariable = this.handlePostOnly(isMarket, postOnly, paramsTaker);
+            Boolean postOnlyOption = postOnlyOptionparamsPostOnlyVariable.first();
+            Map<String, Object> paramsPostOnly = postOnlyOptionparamsPostOnlyVariable.second();
             if (Boolean.TRUE.equals(postOnlyOption))
             {
                 data.put("isPostOnly", postOnlyOption);
@@ -2624,17 +2624,17 @@ public class Predictfun extends PredictfunApi
             Integer removedLength = removed.size();
             for (var i = 0; (removedLength != null && i < removedLength); i++)
             {
-                ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)));
-                    j39v3.put("status", "CANCELLED");
-                    yield j39v3; } })));
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)));
+                j39v2.put("status", "CANCELLED");
+                ((List<Object>)rows).add(this.extend(response, j39v2));
             }
             Integer noopLength = noop.size();
             for (var i = 0; (noopLength != null && i < noopLength); i++)
             {
                 // accepted, but nothing was resting to pull: the order had already filled, expired,
                 // was never booked, or had been removed before - so the status is left unknown
-                ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i))); yield j39v2; } })));
+                ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i))); yield j39v3; } })));
             }
             return this.parsePredictionOrders(rows, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -3806,12 +3806,12 @@ public class Predictfun extends PredictfunApi
         {
             return result;
         }
-        Object cached = this.outcomes;
-        List<String> handles = new ArrayList<String>(((Map<String, Object>)cached).keySet());
+        Map<String, Object> cached = this.outcomes;
+        List<String> handles = new ArrayList<String>(cached.keySet());
         Integer handlesLength = handles.size();
         for (var i = 0; (handlesLength != null && i < handlesLength); i++)
         {
-            Object outcomeObj = Helpers.GetValue(cached, (handles == null || i < 0 || i >= handles.size() ? null : handles.get(i)));
+            Object outcomeObj = (cached == null || (handles == null || i < 0 || i >= handles.size() ? null : handles.get(i)) == null ? null : cached.get((handles == null || i < 0 || i >= handles.size() ? null : handles.get(i))));
             Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.safeString(info, "marketId"), marketId))
             {

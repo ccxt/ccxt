@@ -3366,9 +3366,9 @@ public class Backpack extends BackpackApi
             request.put("clientId", clientOrderId);
             ((List<Object>)omitKeys).add("clientOrderId");
         }
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, this.omit(query, omitKeys));
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), false, this.omit(query, omitKeys));
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)paramsPostOnly).put("postOnly", true);

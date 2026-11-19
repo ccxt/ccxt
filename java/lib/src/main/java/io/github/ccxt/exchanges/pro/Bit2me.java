@@ -852,12 +852,12 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ids.size(); i++)
         {
-            ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("info", message);
-                j39v1.put("id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
-                j39v1.put("symbol", market.get("symbol"));
-                j39v1.put("status", "canceled");
-                yield j39v1; } }), market));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("info", message);
+            j39v1.put("id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
+            j39v1.put("symbol", market.get("symbol"));
+            j39v1.put("status", "canceled");
+            ((List<Object>)orders).add(this.safeOrder(j39v1, market));
         }
         this.settleRequest(client, (String) (("canceled-all-orders:" + marketId)), orders, (Object) null);
     }

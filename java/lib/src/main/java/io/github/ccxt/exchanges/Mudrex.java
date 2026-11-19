@@ -526,7 +526,7 @@ public class Mudrex extends MudrexApi
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             if ((data instanceof List))
             {
-                rows = this.toArray(data);
+                rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 rows = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));

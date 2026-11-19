@@ -1083,7 +1083,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                this.ohlcvs.get(symbol).put(timeframe, stored);
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
             List<Object> rawOhlcvs = this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));

@@ -3055,9 +3055,9 @@ public class Hashkey extends HashkeyApi
             request.put("price", this.priceToPrecision(symbol, price));
         }
         Boolean isMarketOrder = java.util.Objects.equals(typeValue, "MARKET");
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(typeValue, "LIMIT_MAKER"), paramsCost);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(typeValue, "LIMIT_MAKER"), paramsCost);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(postOnly) && (java.util.Objects.equals(typeValue, "LIMIT")))
         {
             request.put("type", "LIMIT_MAKER");
@@ -3122,9 +3122,9 @@ public class Hashkey extends HashkeyApi
         List<Object> timeInForceParamparamsTimeInForceVariable = (List<Object>) this.handleParamString(paramsReduceOnly, "timeInForce", (String) null);
         String timeInForceParam = (String) ((List<Object>) timeInForceParamparamsTimeInForceVariable).get(0);
         Map<String, Object> paramsTimeInForce = (Map<String, Object>) ((List<Object>) timeInForceParamparamsTimeInForceVariable).get(1);
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForceParam, "LIMIT_MAKER"), paramsTimeInForce);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForceParam, "LIMIT_MAKER"), paramsTimeInForce);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         String timeInForce = timeInForceParam;
         if (Boolean.TRUE.equals(postOnly))
         {

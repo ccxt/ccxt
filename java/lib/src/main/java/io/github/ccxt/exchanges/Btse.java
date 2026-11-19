@@ -2243,9 +2243,9 @@ public class Btse extends BtseApi
             Boolean isLimitOrder = (java.util.Objects.equals(typeValue, "LIMIT"));
             Boolean postOnly = false;
             // exchange-specific postOnly is the same as the unified one
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, query);
-            postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-            query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
+            Pair<Boolean, Map<String, Object>> postOnlyqueryVariable = this.handlePostOnly(isMarketOrder, postOnly, query);
+            postOnly = postOnlyqueryVariable.first();
+            query = postOnlyqueryVariable.second(); // this will remove PO from params.timeInForce if present
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", true);
@@ -2515,9 +2515,9 @@ public class Btse extends BtseApi
             Boolean isLimitOrder = (java.util.Objects.equals(typeValue, "LIMIT"));
             Boolean postOnly = false;
             // exchange-specific postOnly is the same as the unified one
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, query);
-            postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
-            query = (Map<String, Object>) ((List<Object>) postOnlyqueryVariable).get(1); // this will remove PO from params.timeInForce if present
+            Pair<Boolean, Map<String, Object>> postOnlyqueryVariable = this.handlePostOnly(isMarketOrder, postOnly, query);
+            postOnly = postOnlyqueryVariable.first();
+            query = postOnlyqueryVariable.second(); // this will remove PO from params.timeInForce if present
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", true);

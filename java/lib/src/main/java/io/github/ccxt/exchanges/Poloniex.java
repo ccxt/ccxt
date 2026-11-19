@@ -1638,7 +1638,7 @@ public class Poloniex extends PoloniexApi
             }};
             if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
-                Tickers tickers = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
+                Tickers tickers = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
                 Map<String, Object> contractTicker = this.safeDict(tickers, symbol, null);
                 return contractTicker;
             }
@@ -2472,9 +2472,9 @@ public class Poloniex extends PoloniexApi
                 put( "side", ((String)((String)side)).toUpperCase() );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
-            var requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, request, price, parameters);
-            var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
+            Pair<Map<String, Object>, Map<String, Object>> requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, request, price, parameters);
+            Map<String, Object> requestValue = requestValueparamsValueVariable.first();
+            Map<String, Object> paramsValue = requestValueparamsValueVariable.second();
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false))))
             {
@@ -2544,14 +2544,14 @@ public class Poloniex extends PoloniexApi
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 // the request body is a bare list, so there is no room for common params - extend each order with them instead
-                Object extendedParams = this.extend(orderParams, parameters);
-                Object request = new HashMap<String, Object>() {{
+                Map<String, Object> extendedParams = this.extend(orderParams, parameters);
+                Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", marketInner.get("id") );
                     put( "side", Poloniex.this.safeStringUpper(rawOrder, "side") );
                 }};
-                var requestextendedParamsVariable = this.orderRequest(symbol, type, side, amount, (Map<String, Object>) (request), price, ((Map<String, Object>) (switch ((Object) (extendedParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
-                request = ((List<Object>) requestextendedParamsVariable).get(0);
-                extendedParams = ((List<Object>) requestextendedParamsVariable).get(1);
+                Pair<Map<String, Object>, Map<String, Object>> requestextendedParamsVariable = this.orderRequest(symbol, type, side, amount, request, price, extendedParams);
+                request = requestextendedParamsVariable.first();
+                extendedParams = requestextendedParamsVariable.second();
                 Map<String, Object> merged = this.extend(request, extendedParams);
                 if (Boolean.TRUE.equals(isContract))
                 {
@@ -2607,7 +2607,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object orderRequest(String symbol, String type, String side, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
+    public Pair<Map<String, Object>, Map<String, Object>> orderRequest(String symbol, String type, String side, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
     {
         // build the request on a copy: the caller keeps its own dict and reads ours
         Map<String, Object> result = this.extend(new HashMap<String, Object>() {{}}, request);
@@ -2736,7 +2736,7 @@ public class Poloniex extends PoloniexApi
             queryOmitted = this.omit(queryOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
         }
         // remember the timestamp before issuing the request
-        return new ArrayList<Object>(Arrays.asList(result, queryOmitted));
+        return new Pair<>(result, queryOmitted);
     }
 
     /**
@@ -2771,9 +2771,9 @@ public class Poloniex extends PoloniexApi
                 put( "id", id );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", (Object) null);
-            var requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, request, price, parameters);
-            var requestValue = ((List<Object>) requestValueparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) requestValueparamsValueVariable).get(1);
+            Pair<Map<String, Object>, Map<String, Object>> requestValueparamsValueVariable = this.orderRequest((String) (symbol), (String) (type), (String) (side), amount, request, price, parameters);
+            Map<String, Object> requestValue = requestValueparamsValueVariable.first();
+            Map<String, Object> paramsValue = requestValueparamsValueVariable.second();
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(triggerPrice, null))
             {

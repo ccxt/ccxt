@@ -1765,7 +1765,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(message, market);
         stored.append(parsed);

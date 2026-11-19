@@ -354,7 +354,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                     stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                     Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
                 }
-                Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
+                Integer length = (stored == null ? 0 : stored.size());
                 Object previous = this.safeValue(stored, (((long) length) - 1L));
                 Long previousTimestamp = this.safeInteger(previous, 0);
                 if (((length != null && length > 0)) && (!java.util.Objects.equals(previousTimestamp, null)) && (java.util.Objects.equals(previousTimestamp, candleTimestamp)))

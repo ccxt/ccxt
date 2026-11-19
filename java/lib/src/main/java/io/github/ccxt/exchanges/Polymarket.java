@@ -544,19 +544,19 @@ public class Polymarket extends PolymarketApi
                     // indices map onto the other currency type
                     String category = this.safeString(instrument, "category");
                     String currencyType = (((java.util.Objects.equals(category, "crypto")))) ? "crypto" : "other";
-                    result.put((String)code, this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                        j39v2.put("id", baseId);
-                        j39v2.put("code", code);
-                        j39v2.put("name", baseId);
-                        j39v2.put("info", instrument);
-                        j39v2.put("active", true);
-                        j39v2.put("deposit", false);
-                        j39v2.put("withdraw", false);
-                        j39v2.put("fee", null);
-                        j39v2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(instrument, "quantity_decimals"))));
-                        j39v2.put("type", currencyType);
-                        j39v2.put("networks", new HashMap<String, Object>() {{}});
-                        yield j39v2; } })));
+                    HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", baseId);
+                    j39v1.put("code", code);
+                    j39v1.put("name", baseId);
+                    j39v1.put("info", instrument);
+                    j39v1.put("active", true);
+                    j39v1.put("deposit", false);
+                    j39v1.put("withdraw", false);
+                    j39v1.put("fee", null);
+                    j39v1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(instrument, "quantity_decimals"))));
+                    j39v1.put("type", currencyType);
+                    j39v1.put("networks", new HashMap<String, Object>() {{}});
+                    result.put((String)code, this.safeCurrencyStructure(j39v1));
                 }
             }
             // every instrument quotes using usd
@@ -582,19 +582,19 @@ public class Polymarket extends PolymarketApi
                     continue;
                 }
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                result.put((String)code, this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", currencyId);
-                    j39v1.put("code", code);
-                    j39v1.put("name", currencyId);
-                    j39v1.put("info", asset);
-                    j39v1.put("active", true);
-                    j39v1.put("deposit", true);
-                    j39v1.put("withdraw", true);
-                    j39v1.put("fee", this.safeNumber(asset, "withdrawal_fee", (Object) null));
-                    j39v1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(asset, "decimals"))));
-                    j39v1.put("type", "crypto");
-                    j39v1.put("networks", new HashMap<String, Object>() {{}});
-                    yield j39v1; } })));
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", currencyId);
+                j39v2.put("code", code);
+                j39v2.put("name", currencyId);
+                j39v2.put("info", asset);
+                j39v2.put("active", true);
+                j39v2.put("deposit", true);
+                j39v2.put("withdraw", true);
+                j39v2.put("fee", this.safeNumber(asset, "withdrawal_fee", (Object) null));
+                j39v2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(asset, "decimals"))));
+                j39v2.put("type", "crypto");
+                j39v2.put("networks", new HashMap<String, Object>() {{}});
+                result.put((String)code, this.safeCurrencyStructure(j39v2));
             }
             return result;
         });
@@ -1500,10 +1500,10 @@ public class Polymarket extends PolymarketApi
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Boolean isPostOnlyTimeInForce = (java.util.Objects.equals(timeInForce, "PO"));
         Boolean postOnly = false;
-        Object paramsOmitted = parameters;
-        List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
-        postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
-        paramsOmitted = ((List<Object>) postOnlyparamsOmittedVariable).get(1);
+        Map<String, Object> paramsOmitted = parameters;
+        Pair<Boolean, Map<String, Object>> postOnlyparamsOmittedVariable = this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, paramsOmitted);
+        postOnly = postOnlyparamsOmittedVariable.first();
+        paramsOmitted = postOnlyparamsOmittedVariable.second();
         if (Boolean.TRUE.equals(isMarketOrder))
         {
             if ((java.util.Objects.equals(timeInForce, "GTC")) || (java.util.Objects.equals(timeInForce, "PO")))

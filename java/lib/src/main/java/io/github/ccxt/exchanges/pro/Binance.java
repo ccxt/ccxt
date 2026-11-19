@@ -2345,7 +2345,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(unifiedTimeframe, null))
             {
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, stored);
+                this.ohlcvs.get(symbol).put(unifiedTimeframe, stored);
             }
         }
         stored.append(parsed);

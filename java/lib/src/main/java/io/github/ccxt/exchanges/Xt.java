@@ -3306,9 +3306,9 @@ public class Xt extends XtApi
             {
                 paramsWithoutCost = this.omit(paramsMarginMode, "cost");
             }
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), paramsWithoutCost);
-            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), paramsWithoutCost);
+            Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+            Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
             if (Boolean.TRUE.equals(postOnly))
             {
                 timeInForce = "GTX";
@@ -3351,9 +3351,9 @@ public class Xt extends XtApi
                 put( "origQty", Xt.this.amountToPrecision(symbol, amount) );
             }};
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), parameters);
-            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(timeInForce, "GTX"), parameters);
+            Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+            Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
             if (Boolean.TRUE.equals(postOnly))
             {
                 timeInForce = "GTX";

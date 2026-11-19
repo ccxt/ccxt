@@ -760,10 +760,12 @@ public class Hyperliquid extends HyperliquidApi
                         // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                         String safeCode = this.safeCurrencyCode(name, (Map<String, Object>) null);
                         String hip3Code = (((java.util.Objects.equals(safeCode, null)))) ? name : (safeCode == null ? null : ((String)safeCode).replaceFirst(":", "-"));
-                        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("hip3TokensByName")), name, new HashMap<String, Object>() {{
+                        Map<String, Object> hip3TokensByName = this.safeDict(this.options, "hip3TokensByName", new HashMap<String, Object>() {{}});
+                        hip3TokensByName.put((String)name, new HashMap<String, Object>() {{
         put( "quote", collateralTokenCode );
         put( "code", hip3Code );
     }});
+                        this.options.put("hip3TokensByName", hip3TokensByName);
                     }
                     ((List<Object>)result).add(data);
                 }

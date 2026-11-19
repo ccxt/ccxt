@@ -1421,11 +1421,11 @@ public class Bitopro extends BitoproApi
             List<Object> orderIds = this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < orderIds.size(); j++)
             {
-                ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("info", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
-                    j39v1.put("id", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
-                    j39v1.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null));
-                    yield j39v1; } }), (Map<String, Object>) null));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("info", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
+                j39v1.put("id", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
+                j39v1.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null));
+                ((List<Object>)orders).add(this.safeOrder(j39v1, (Map<String, Object>) null));
             }
         }
         return orders;

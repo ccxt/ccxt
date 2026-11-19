@@ -1094,38 +1094,38 @@ public class Delta extends DeltaApi
                     }
                 }
                 String state = this.safeString(market, "state");
-                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", id);
-                    j39v2.put("numericId", numericId);
-                    j39v2.put("symbol", symbol);
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", settle);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", settleId);
-                    j39v2.put("type", type);
-                    j39v2.put("spot", spot);
-                    j39v2.put("margin", false);
-                    j39v2.put("swap", swap);
-                    j39v2.put("future", future);
-                    j39v2.put("option", option);
-                    j39v2.put("active", (java.util.Objects.equals(state, "live")));
-                    j39v2.put("contract", !Boolean.TRUE.equals(spot));
-                    j39v2.put("linear", ((Boolean.TRUE.equals(spot))) ? null : linear);
-                    j39v2.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : !Boolean.TRUE.equals(linear));
-                    j39v2.put("taker", this.safeNumber(market, "taker_commission_rate", (Object) null));
-                    j39v2.put("maker", this.safeNumber(market, "maker_commission_rate", (Object) null));
-                    j39v2.put("contractSize", ((Boolean.TRUE.equals(spot))) ? null : contractSize);
-                    j39v2.put("expiry", expiry);
-                    j39v2.put("expiryDatetime", this.iso8601(expiry));
-                    j39v2.put("strike", this.parseNumber(strike));
-                    j39v2.put("optionType", optionType);
-                    j39v2.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                        j39v1.put("amount", amountPrecision);
-                        j39v1.put("price", this.safeNumber(market, "tick_size", (Object) null));
-                        yield j39v1; } }));
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("numericId", numericId);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", spot);
+                j39v1.put("margin", false);
+                j39v1.put("swap", swap);
+                j39v1.put("future", future);
+                j39v1.put("option", option);
+                j39v1.put("active", (java.util.Objects.equals(state, "live")));
+                j39v1.put("contract", !Boolean.TRUE.equals(spot));
+                j39v1.put("linear", ((Boolean.TRUE.equals(spot))) ? null : linear);
+                j39v1.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : !Boolean.TRUE.equals(linear));
+                j39v1.put("taker", this.safeNumber(market, "taker_commission_rate", (Object) null));
+                j39v1.put("maker", this.safeNumber(market, "maker_commission_rate", (Object) null));
+                j39v1.put("contractSize", ((Boolean.TRUE.equals(spot))) ? null : contractSize);
+                j39v1.put("expiry", expiry);
+                j39v1.put("expiryDatetime", this.iso8601(expiry));
+                j39v1.put("strike", this.parseNumber(strike));
+                j39v1.put("optionType", optionType);
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("amount", amountPrecision);
+                j39v2.put("price", this.safeNumber(market, "tick_size", (Object) null));
+                j39v1.put("precision", j39v2);
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1143,9 +1143,9 @@ public class Delta extends DeltaApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v2.put("created", this.parse8601(this.safeString(market, "launch_time")));
-                    j39v2.put("info", market);
-                    yield j39v2; } })));
+                j39v1.put("created", this.parse8601(this.safeString(market, "launch_time")));
+                j39v1.put("info", market);
+                ((List<Object>)result).add(this.safeMarketStructure(j39v1));
             }
             return result;
         });

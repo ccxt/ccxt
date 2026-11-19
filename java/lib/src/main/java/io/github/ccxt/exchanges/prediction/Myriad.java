@@ -2605,33 +2605,33 @@ public class Myriad extends MyriadApi
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("id", outcomeCompositeId);
-            j39v2.put("outcomeId", outcomeCompositeId);
-            j39v2.put("outcome", outcomeHandle);
-            j39v2.put("market", marketSymbol);
-            j39v2.put("label", outcomeLabel);
-            j39v2.put("active", active);
-            j39v2.put("winner", winner);
-            j39v2.put("settleFraction", settleFraction);
-            j39v2.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", outcomeCompositeId);
+            j39v1.put("outcomeId", outcomeCompositeId);
+            j39v1.put("outcome", outcomeHandle);
+            j39v1.put("market", marketSymbol);
+            j39v1.put("label", outcomeLabel);
+            j39v1.put("active", active);
+            j39v1.put("winner", winner);
+            j39v1.put("settleFraction", settleFraction);
+            j39v1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", 0.01 );
                     put( "price", 0.001 );
                 }});
-            j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("networkId", networkId);
-                    j39v1.put("marketId", marketId);
-                    j39v1.put("slug", slug);
-                    j39v1.put("outcomeId", outcomeId);
-                    j39v1.put("outcomeLabel", outcomeLabel);
-                    j39v1.put("outcomePrice", price);
-                    j39v1.put("volume24h", volume24h);
-                    j39v1.put("state", state);
-                    j39v1.put("tradingModel", this.safeString(raw, "tradingModel", "amm"));
-                    j39v1.put("tokenAddress", tokenAddress);
-                    j39v1.put("tokenDecimals", tokenDecimals);
-                    yield j39v1; } }));
-            ((List<Object>)outcomes).add(j39v2);
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("networkId", networkId);
+            j39v2.put("marketId", marketId);
+            j39v2.put("slug", slug);
+            j39v2.put("outcomeId", outcomeId);
+            j39v2.put("outcomeLabel", outcomeLabel);
+            j39v2.put("outcomePrice", price);
+            j39v2.put("volume24h", volume24h);
+            j39v2.put("state", state);
+            j39v2.put("tradingModel", this.safeString(raw, "tradingModel", "amm"));
+            j39v2.put("tokenAddress", tokenAddress);
+            j39v2.put("tokenDecimals", tokenDecimals);
+            j39v1.put("info", j39v2);
+            ((List<Object>)outcomes).add(j39v1);
         }
         String marketTradingModel = this.safeString(raw, "tradingModel", "amm");
         String marketExecutionModel = "clob";
@@ -2969,31 +2969,31 @@ public class Myriad extends MyriadApi
                 break;
             }
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("outcome", this.safeString(market, "outcome"));
-            j39v3.put("outcomeId", this.safeString(market, "id"));
-            j39v3.put("label", this.safeString(market, "label"));
-            j39v3.put("market", this.safeString(market, "market"));
-            j39v3.put("timestamp", null);
-            j39v3.put("datetime", null);
-            j39v3.put("high", null);
-            j39v3.put("low", null);
-            j39v3.put("bid", price);
-            j39v3.put("bidVolume", null);
-            j39v3.put("ask", price);
-            j39v3.put("askVolume", null);
-            j39v3.put("vwap", null);
-            j39v3.put("open", previousClose);
-            j39v3.put("close", price);
-            j39v3.put("last", price);
-            j39v3.put("previousClose", previousClose);
-            j39v3.put("change", change);
-            j39v3.put("percentage", percentage);
-            j39v3.put("average", price);
-            j39v3.put("baseVolume", this.safeNumber(raw, "volumeNotional24h", (Object) null));
-            j39v3.put("quoteVolume", this.safeNumber(raw, "volume24h", (Object) null));
-            j39v3.put("info", raw);
-            yield j39v3; } }), market));
+        HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+        j39v3.put("outcome", this.safeString(market, "outcome"));
+        j39v3.put("outcomeId", this.safeString(market, "id"));
+        j39v3.put("label", this.safeString(market, "label"));
+        j39v3.put("market", this.safeString(market, "market"));
+        j39v3.put("timestamp", null);
+        j39v3.put("datetime", null);
+        j39v3.put("high", null);
+        j39v3.put("low", null);
+        j39v3.put("bid", price);
+        j39v3.put("bidVolume", null);
+        j39v3.put("ask", price);
+        j39v3.put("askVolume", null);
+        j39v3.put("vwap", null);
+        j39v3.put("open", previousClose);
+        j39v3.put("close", price);
+        j39v3.put("last", price);
+        j39v3.put("previousClose", previousClose);
+        j39v3.put("change", change);
+        j39v3.put("percentage", percentage);
+        j39v3.put("average", price);
+        j39v3.put("baseVolume", this.safeNumber(raw, "volumeNotional24h", (Object) null));
+        j39v3.put("quoteVolume", this.safeNumber(raw, "volume24h", (Object) null));
+        j39v3.put("info", raw);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v3, market));
     }
 
     /**
@@ -3710,29 +3710,29 @@ public class Myriad extends MyriadApi
             ((List<Object>)marketsList).add(this.parseMyriadMarket(rawMarket, questionSlug));
         }
         String endDate = this.safeString(rawEvent, "expiresAt", this.safeString(rawEvent, "endDate"));
-        return (Map<String, Object>) (this.extend(rawEvent, (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-            j39v4.put("id", this.safeString(rawEvent, "id"));
-            j39v4.put("slug", questionSlug);
-            j39v4.put("event", (((!java.util.Objects.equals(questionSlug, null) && !java.util.Objects.equals(questionSlug, "")))) ? this.shortenSlug((String) (questionSlug)) : null);
-            j39v4.put("title", this.safeString(rawEvent, "title"));
-            j39v4.put("description", this.safeString(rawEvent, "description"));
-            j39v4.put("markets", marketsList);
-            j39v4.put("volume", this.safeNumber2(rawEvent, "volumeNotional24h", "volume24h", (Object) null));
-            j39v4.put("liquidity", this.safeNumber(rawEvent, "liquidity", (Object) null));
-            j39v4.put("url", this.safeString(rawEvent, "url"));
-            j39v4.put("image", this.safeString(rawEvent, "imageUrl", this.safeString(rawEvent, "image")));
-            j39v4.put("active", this.safeBool(rawEvent, "active", (Object) null));
-            j39v4.put("resolved", this.safeBool(rawEvent, "resolved", false));
-            j39v4.put("category", this.safeString(rawEvent, "category"));
-            j39v4.put("tags", this.safeList(rawEvent, "tags", null));
-            j39v4.put("created", this.parse8601(this.safeString(rawEvent, "createdAt")));
-            j39v4.put("createdDatetime", this.safeString(rawEvent, "createdAt"));
-            j39v4.put("end", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
-            j39v4.put("endDatetime", endDate);
-            j39v4.put("lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "updatedAt")));
-            j39v4.put("resolutionSource", this.safeString(rawEvent, "resolutionSource"));
-            j39v4.put("info", rawEvent);
-            yield j39v4; } })));
+        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+        j39v4.put("id", this.safeString(rawEvent, "id"));
+        j39v4.put("slug", questionSlug);
+        j39v4.put("event", (((!java.util.Objects.equals(questionSlug, null) && !java.util.Objects.equals(questionSlug, "")))) ? this.shortenSlug((String) (questionSlug)) : null);
+        j39v4.put("title", this.safeString(rawEvent, "title"));
+        j39v4.put("description", this.safeString(rawEvent, "description"));
+        j39v4.put("markets", marketsList);
+        j39v4.put("volume", this.safeNumber2(rawEvent, "volumeNotional24h", "volume24h", (Object) null));
+        j39v4.put("liquidity", this.safeNumber(rawEvent, "liquidity", (Object) null));
+        j39v4.put("url", this.safeString(rawEvent, "url"));
+        j39v4.put("image", this.safeString(rawEvent, "imageUrl", this.safeString(rawEvent, "image")));
+        j39v4.put("active", this.safeBool(rawEvent, "active", (Object) null));
+        j39v4.put("resolved", this.safeBool(rawEvent, "resolved", false));
+        j39v4.put("category", this.safeString(rawEvent, "category"));
+        j39v4.put("tags", this.safeList(rawEvent, "tags", null));
+        j39v4.put("created", this.parse8601(this.safeString(rawEvent, "createdAt")));
+        j39v4.put("createdDatetime", this.safeString(rawEvent, "createdAt"));
+        j39v4.put("end", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+        j39v4.put("endDatetime", endDate);
+        j39v4.put("lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "updatedAt")));
+        j39v4.put("resolutionSource", this.safeString(rawEvent, "resolutionSource"));
+        j39v4.put("info", rawEvent);
+        return (Map<String, Object>) (this.extend(rawEvent, j39v4));
     }
 
     public Long requestId(String url)

@@ -1295,15 +1295,15 @@ public class Lighter extends LighterApi
                     }
                 }
             }
-            Object order = null;
-            if ((totalOrderRequests != null && totalOrderRequests > 0))
+            if (((totalOrderRequests == null || totalOrderRequests < 1)))
             {
-                order = (orderRequests == null || 0 >= ((List<?>)orderRequests).size() ? null : ((List<?>)orderRequests).get(0));
+                throw new InvalidOrder((this.id + " createOrder() built no order request")) ;
             }
+            Object order = (orderRequests == null || 0 >= ((List<?>)orderRequests).size() ? null : ((List<?>)orderRequests).get(0));
             // the nonce could be updated
             if (java.util.Objects.equals(this.safeInteger(order, "nonce"), null))
             {
-                Helpers.addElementToObject(order, "nonce", (this.fetchNonce(accountIndex, apiKeyIndex, new HashMap<String, Object>() {{}})).join());
+                ((Map<String, Object>)order).put("nonce", (this.fetchNonce(accountIndex, apiKeyIndex, new HashMap<String, Object>() {{}})).join());
             }
             Object txType = null;
             Object txInfo = null;
@@ -1314,12 +1314,13 @@ public class Lighter extends LighterApi
                 txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             } else
             {
-                Map<String, Object> signingPayload = new HashMap<String, Object>();
-                signingPayload.put("grouping_type", groupingType);
-                signingPayload.put("orders", orderRequests);
-                signingPayload.put("nonce", this.safeInteger(order, "nonce"));
-                signingPayload.put("api_key_index", apiKeyIndex);
-                signingPayload.put("account_index", accountIndex);
+                Map<String, Object> signingPayload = new HashMap<String, Object>() {{
+                    put( "grouping_type", groupingType );
+                    put( "orders", orderRequests );
+                    put( "nonce", Lighter.this.safeInteger(order, "nonce") );
+                    put( "api_key_index", apiKeyIndex );
+                    put( "account_index", accountIndex );
+                }};
                 if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
                 {
                     signingPayload.put("integrator_account_index", this.safeInteger(order, "integrator_account_index"));

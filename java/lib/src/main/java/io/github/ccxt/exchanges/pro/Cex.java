@@ -1372,7 +1372,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown", stored);
+            this.ohlcvs.get(symbol).put("unknown", stored);
         }
         List<Object> sorted = this.sortBy(data, 0);
         for (var i = 0; i < sorted.size(); i++)

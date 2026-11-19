@@ -198,7 +198,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            this.ohlcvs.get(symbol).put(timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);

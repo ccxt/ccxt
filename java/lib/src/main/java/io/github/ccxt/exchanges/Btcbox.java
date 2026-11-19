@@ -310,33 +310,33 @@ public class Btcbox extends BtcboxApi
                 Double fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
                 Map<String, Object> details = this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
                 Map<String, Object> tradeDetails = this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
-                ((List<Object>)markets).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("uppercaseId", null);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", baseCurr);
-                    j39v1.put("baseId", id);
-                    j39v1.put("quote", quote);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settle", null);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("taker", fee);
-                    j39v1.put("maker", fee);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("uppercaseId", null);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", baseCurr);
+                j39v1.put("baseId", id);
+                j39v1.put("quote", quote);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settle", null);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("taker", fee);
+                j39v1.put("maker", fee);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "amount", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -354,14 +354,14 @@ public class Btcbox extends BtcboxApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(tradeDetails, "pricedecimal"))) );
                         put( "amount", null );
                     }});
-                    j39v1.put("active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"));
-                    j39v1.put("created", null);
-                    j39v1.put("info", res);
-                    yield j39v1; } })));
+                j39v1.put("active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"));
+                j39v1.put("created", null);
+                j39v1.put("info", res);
+                ((List<Object>)markets).add(this.safeMarketStructure(j39v1));
             }
             return markets;
         });

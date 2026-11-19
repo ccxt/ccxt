@@ -287,14 +287,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = null;
-            if (java.util.Objects.equals(symbol, null))
-            {
-                market = null;
-            } else
-            {
-                market = this.market(symbol);
-            }
+            Map<String, Object> market = this.market(symbol);
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
             String messageType = this.getTypeByMarket(market);
             String channel = (messageType + ".order_cancel_cp");
@@ -1510,7 +1503,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
                 {
-                    Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                    this.ohlcvs.get(symbol).put(timeframe, stored);
                 }
             }
             stored.append(parsed);
@@ -2826,19 +2819,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
         {
             String settleKey = ((Boolean.TRUE.equals((this.safeBool(market, "linear", false))))) ? "usdt" : "btc";
-            return (String) (this.safeString(Helpers.GetValue(this.urls.get("api"), Helpers.GetValue(market, "type")), settleKey, ""));
-        } else
-        {
-            return (String) (this.safeString(this.urls.get("api"), Helpers.GetValue(market, "type"), ""));
+            String contractUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), Helpers.GetValue(market, "type")), settleKey, "");
+            return contractUrl;
         }
+        String spotUrl = this.safeString(this.urls.get("api"), Helpers.GetValue(market, "type"), "");
+        return spotUrl;
     }
 
     public String getTypeByMarket(Map<String, Object> market)
     {
-        if (java.util.Objects.equals(market, null))
-        {
-            return null;
-        }
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             return "spot";

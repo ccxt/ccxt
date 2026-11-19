@@ -347,7 +347,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         Map<String, Object> tick = this.safeDict(message, "tick", null);
         List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);

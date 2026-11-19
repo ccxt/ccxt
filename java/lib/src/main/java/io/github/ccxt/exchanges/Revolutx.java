@@ -1363,13 +1363,13 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> orderData = (Map<String, Object>) ((((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
             String venueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", venueOrderId);
-                j39v1.put("symbol", market.get("id"));
-                j39v1.put("status", state);
-                j39v1.put("side", side);
-                j39v1.put("type", type);
-                yield j39v1; } })), market);
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", venueOrderId);
+            j39v1.put("symbol", market.get("id"));
+            j39v1.put("status", state);
+            j39v1.put("side", side);
+            j39v1.put("type", type);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, j39v1), market);
             return order;
         }).thenApply(Order::new);
 

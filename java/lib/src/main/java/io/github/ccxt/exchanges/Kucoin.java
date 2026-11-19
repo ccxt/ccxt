@@ -2536,57 +2536,57 @@ public class Kucoin extends KucoinApi
                     String quoteMaxSizeString = this.safeString(market, "quoteMaxSize");
                     limitPriceMax = this.parseNumber(Precise.stringDiv(quoteMaxSizeString, baseMinSizeString));
                 }
-                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                j39v5.put("id", id);
-                j39v5.put("symbol", symbol);
-                j39v5.put("base", base);
-                j39v5.put("quote", quote);
-                j39v5.put("settle", settle);
-                j39v5.put("baseId", baseId);
-                j39v5.put("quoteId", quoteId);
-                j39v5.put("settleId", settleId);
-                j39v5.put("type", type);
-                j39v5.put("spot", false);
-                j39v5.put("margin", false);
-                j39v5.put("swap", swap);
-                j39v5.put("future", future);
-                j39v5.put("option", false);
-                j39v5.put("active", (java.util.Objects.equals(status, "Open")));
-                j39v5.put("contract", true);
-                j39v5.put("linear", (!java.util.Objects.equals(inverse, true)));
-                j39v5.put("inverse", inverse);
-                j39v5.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
-                j39v5.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
-                j39v5.put("contractSize", this.parseNumber(Precise.stringAbs(multiplier)));
-                j39v5.put("expiry", expiry);
-                j39v5.put("expiryDatetime", this.iso8601(expiry));
-                j39v5.put("strike", null);
-                j39v5.put("optionType", null);
-                j39v5.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", id);
+                j39v2.put("symbol", symbol);
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("settle", settle);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("settleId", settleId);
+                j39v2.put("type", type);
+                j39v2.put("spot", false);
+                j39v2.put("margin", false);
+                j39v2.put("swap", swap);
+                j39v2.put("future", future);
+                j39v2.put("option", false);
+                j39v2.put("active", (java.util.Objects.equals(status, "Open")));
+                j39v2.put("contract", true);
+                j39v2.put("linear", (!java.util.Objects.equals(inverse, true)));
+                j39v2.put("inverse", inverse);
+                j39v2.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
+                j39v2.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
+                j39v2.put("contractSize", this.parseNumber(Precise.stringAbs(multiplier)));
+                j39v2.put("expiry", expiry);
+                j39v2.put("expiryDatetime", this.iso8601(expiry));
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", lotSize );
                         put( "price", tickSize );
                     }});
-                j39v5.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                        j39v4.put("leverage", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("leverage", new HashMap<String, Object>() {{
                             put( "min", Kucoin.this.parseNumber("1") );
                             put( "max", Kucoin.this.safeNumber(market, "maxLeverage", (Object) null) );
                         }});
-                        j39v4.put("amount", (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                            j39v3.put("min", limitAmountMin);
-                            j39v3.put("max", limitAmountMax);
-                            yield j39v3; } }));
-                        j39v4.put("price", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                            j39v2.put("min", tickSize);
-                            j39v2.put("max", limitPriceMax);
-                            yield j39v2; } }));
-                        j39v4.put("cost", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                j39v4.put("min", limitAmountMin);
+                j39v4.put("max", limitAmountMax);
+                j39v3.put("amount", j39v4);
+                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                j39v5.put("min", tickSize);
+                j39v5.put("max", limitPriceMax);
+                j39v3.put("price", j39v5);
+                j39v3.put("cost", new HashMap<String, Object>() {{
                             put( "min", Kucoin.this.safeNumber(market, "quoteMinSize", (Object) null) );
                             put( "max", Kucoin.this.safeNumber(market, "quoteMaxSize", (Object) null) );
                         }});
-                        yield j39v4; } }));
-                j39v5.put("created", this.safeInteger(market, "firstOpenDate"));
-                j39v5.put("info", market);
-                ((List<Object>)result).add(j39v5);
+                j39v2.put("limits", j39v3);
+                j39v2.put("created", this.safeInteger(market, "firstOpenDate"));
+                j39v2.put("info", market);
+                ((List<Object>)result).add(j39v2);
             }
             return result;
         });
@@ -5001,9 +5001,9 @@ public class Kucoin extends KucoinApi
             }
         }
         Boolean postOnly = null;
-        List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsOmitted);
-        postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
-        paramsOmitted = (Map<String, Object>) ((List<Object>) postOnlyparamsOmittedVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsOmittedVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsOmitted);
+        postOnly = postOnlyparamsOmittedVariable.first();
+        paramsOmitted = postOnlyparamsOmittedVariable.second();
         if (Boolean.TRUE.equals(postOnly))
         {
             request.put("postOnly", true);
@@ -5221,9 +5221,9 @@ public class Kucoin extends KucoinApi
             }
         }
         Boolean postOnly = null;
-        List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsOmitted);
-        postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
-        paramsOmitted = (Map<String, Object>) ((List<Object>) postOnlyparamsOmittedVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsOmittedVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsOmitted);
+        postOnly = postOnlyparamsOmittedVariable.first();
+        paramsOmitted = postOnlyparamsOmittedVariable.second();
         if (Boolean.TRUE.equals(postOnly))
         {
             request.put("postOnly", true);
@@ -5396,7 +5396,7 @@ public class Kucoin extends KucoinApi
             String sizeUnit = "BASECCY";
             if (java.util.Objects.equals(isContract, true))
             {
-                Pair<String, Map<String, Object>> sizeUnitparamsRequestVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRequest), "createOrder", "sizeUnit", "UNIT");
+                Pair<String, Map<String, Object>> sizeUnitparamsRequestVariable = this.handleOptionStringAndParams(paramsRequest, "createOrder", "sizeUnit", "UNIT");
                 sizeUnit = sizeUnitparamsRequestVariable.first();
                 paramsRequest = sizeUnitparamsRequestVariable.second();
             }
@@ -5408,11 +5408,11 @@ public class Kucoin extends KucoinApi
             request.put("price", this.priceToPrecision(symbol, price));
         }
         Boolean postOnly = null;
-        List<Object> postOnlyparamsRequestVariable = (List<Object>) this.handlePostOnly(isMarketOrder, false, paramsRequest);
-        postOnly = (Boolean) ((List<Object>) postOnlyparamsRequestVariable).get(0);
-        paramsRequest = (Map<String, Object>) ((List<Object>) postOnlyparamsRequestVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsRequestVariable = this.handlePostOnly(isMarketOrder, false, paramsRequest);
+        postOnly = postOnlyparamsRequestVariable.first();
+        paramsRequest = postOnlyparamsRequestVariable.second();
         String timeInForce = this.handleTimeInForce(paramsRequest);
-        Object paramsOmitted = (((!java.util.Objects.equals(timeInForce, null)))) ? this.omit(paramsRequest, "timeInForce") : paramsRequest;
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(timeInForce, null)))) ? this.omit(paramsRequest, "timeInForce") : paramsRequest;
         if ((!java.util.Objects.equals(timeInForce, null)))
         {
             request.put("timeInForce", timeInForce);
@@ -5441,7 +5441,7 @@ public class Kucoin extends KucoinApi
                 Object hedged = false;
                 List<Object> hedgedparamsOmittedVariable = (List<Object>) this.handleParamBool(paramsOmitted, "hedged", hedged);
                 hedged = ((List<Object>) hedgedparamsOmittedVariable).get(0);
-                paramsOmitted = ((List<Object>) hedgedparamsOmittedVariable).get(1);
+                paramsOmitted = (Map<String, Object>) ((List<Object>) hedgedparamsOmittedVariable).get(1);
                 if (java.util.Objects.equals(hedged, true))
                 {
                     String positionSide = "SHORT";
@@ -5458,7 +5458,7 @@ public class Kucoin extends KucoinApi
             }
         }
         // handling with conditional orders
-        this.checkTriggerPrices((Map<String, Object>) (paramsOmitted));
+        this.checkTriggerPrices(paramsOmitted);
         Double triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice", (Object) null);
         Double stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice", (Object) null);
         Double takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice", (Object) null);
@@ -6766,7 +6766,23 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
+                // paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+                Map<String, Object> paramsContract = this.extend(paramsPaginate, new HashMap<String, Object>() {{
+                    put( "paginate", false );
+                    put( "uta", false );
+                }});
+                if (java.util.Objects.equals(symbol, null))
+                {
+                    paramsContract = this.extend(paramsContract, new HashMap<String, Object>() {{
+                        put( "type", "contract" );
+                    }});
+                }
+                Map<String, Object> paginatedMethods = new HashMap<String, Object>() {{
+                    put( "active", "fetchOpenOrders" );
+                    put( "open", "fetchOpenOrders" );
+                }};
+                String paginatedMethod = this.safeString(paginatedMethods, status, "fetchClosedOrders");
+                return (this.fetchPaginatedCallDynamic(paginatedMethod, symbol, since, limit, paramsContract, (Long) null, true)).join();
             }
             Boolean trigger = (Boolean) this.safeBool2(paramsPaginate, "stop", "trigger", (Object) null);
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -11136,14 +11152,8 @@ public class Kucoin extends KucoinApi
             //     }
             //
             Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> assets = null;
-            if (java.util.Objects.equals(marginMode, "isolated"))
-            {
-                assets = (List<Object>) this.safeList(data, "assets", new ArrayList<Object>(Arrays.asList()));
-            } else
-            {
-                assets = (List<Object>) this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
-            }
+            String assetsKey = (((java.util.Objects.equals(marginMode, "isolated")))) ? "assets" : "accounts";
+            List<Object> assets = this.safeList(data, assetsKey, new ArrayList<Object>(Arrays.asList()));
             List<Object> interest = this.parseBorrowInterests(assets, market);
             List<Object> filteredByCurrency = this.filterByCurrencySinceLimit(interest, code, since, limit, false);
             return this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit, false);
@@ -13880,7 +13890,13 @@ public class Kucoin extends KucoinApi
 
     public void setDepositAddressesVersion(String version)
     {
-        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", version);
+        Map<String, Object> versions = this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}});
+        Map<String, Object> privateVersions = this.safeDict(versions, "private", new HashMap<String, Object>() {{}});
+        Map<String, Object> getVersions = this.safeDict(privateVersions, "GET", new HashMap<String, Object>() {{}});
+        getVersions.put("deposit-addresses", version);
+        privateVersions.put("GET", getVersions);
+        versions.put("private", privateVersions);
+        this.options.put("versions", versions);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)

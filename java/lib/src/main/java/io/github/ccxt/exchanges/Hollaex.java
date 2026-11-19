@@ -1170,8 +1170,8 @@ public class Hollaex extends HollaexApi
         {
             throw new ExchangeError((this.id + " currencies not loaded")) ;
         }
-        Object currenciesById = this.currencies_by_id;
-        List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)currenciesById).keySet());
+        Map<String, Object> currenciesById = this.currencies_by_id;
+        List<String> currencyIds = new ArrayList<String>(currenciesById.keySet());
         for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = this.safeString(currencyIds, i, "");
@@ -1851,14 +1851,11 @@ public class Hollaex extends HollaexApi
             //     }
             //
             List<Object> wallet = this.safeList(response, "wallet", new ArrayList<Object>(Arrays.asList()));
-            List<Object> addresses = null;
             if (java.util.Objects.equals(network, null))
             {
-                addresses = wallet;
-            } else
-            {
-                addresses = this.filterBy(wallet, "network", this.networkCodeToId(network, (String) null));
+                return this.parseDepositAddresses(wallet, codes, false, new HashMap<String, Object>() {{}});
             }
+            List<Object> addresses = this.filterBy(wallet, "network", this.networkCodeToId(network, (String) null));
             return this.parseDepositAddresses(addresses, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 

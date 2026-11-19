@@ -1348,31 +1348,31 @@ public class Limitless extends LimitlessApi
             askSizeStr = Precise.stringDiv(askSizeStr, "1000000");
         }
         Object outcomeSymbol = this.safeOutcomeSymbol((String) (null), market);
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("outcome", outcomeSymbol);
-            j39v1.put("outcomeId", this.safeString(market, "outcomeId"));
-            j39v1.put("label", this.safeString(market, "label"));
-            j39v1.put("market", this.safeString(market, "market"));
-            j39v1.put("timestamp", null);
-            j39v1.put("datetime", null);
-            j39v1.put("high", null);
-            j39v1.put("low", null);
-            j39v1.put("bid", this.parseNumber(bidStr));
-            j39v1.put("bidVolume", this.parseNumber(bidSizeStr));
-            j39v1.put("ask", this.parseNumber(askStr));
-            j39v1.put("askVolume", this.parseNumber(askSizeStr));
-            j39v1.put("vwap", null);
-            j39v1.put("open", null);
-            j39v1.put("close", this.parseNumber(lastStr));
-            j39v1.put("last", this.parseNumber(lastStr));
-            j39v1.put("previousClose", null);
-            j39v1.put("change", null);
-            j39v1.put("percentage", null);
-            j39v1.put("average", this.parseNumber(midStr));
-            j39v1.put("baseVolume", null);
-            j39v1.put("quoteVolume", this.parseNumber(volumeStr));
-            j39v1.put("info", ticker);
-            yield j39v1; } }), (Object) null));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("outcome", outcomeSymbol);
+        j39v1.put("outcomeId", this.safeString(market, "outcomeId"));
+        j39v1.put("label", this.safeString(market, "label"));
+        j39v1.put("market", this.safeString(market, "market"));
+        j39v1.put("timestamp", null);
+        j39v1.put("datetime", null);
+        j39v1.put("high", null);
+        j39v1.put("low", null);
+        j39v1.put("bid", this.parseNumber(bidStr));
+        j39v1.put("bidVolume", this.parseNumber(bidSizeStr));
+        j39v1.put("ask", this.parseNumber(askStr));
+        j39v1.put("askVolume", this.parseNumber(askSizeStr));
+        j39v1.put("vwap", null);
+        j39v1.put("open", null);
+        j39v1.put("close", this.parseNumber(lastStr));
+        j39v1.put("last", this.parseNumber(lastStr));
+        j39v1.put("previousClose", null);
+        j39v1.put("change", null);
+        j39v1.put("percentage", null);
+        j39v1.put("average", this.parseNumber(midStr));
+        j39v1.put("baseVolume", null);
+        j39v1.put("quoteVolume", this.parseNumber(volumeStr));
+        j39v1.put("info", ticker);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v1, (Object) null));
     }
 
     /**
@@ -2530,9 +2530,9 @@ public class Limitless extends LimitlessApi
             String takerAmount = null;
             Boolean isMarket = java.util.Objects.equals(type, "market");
             Boolean postOnly = false;
-            List<Object> postOnlyparamsValueVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsValue);
-            postOnly = (Boolean) ((List<Object>) postOnlyparamsValueVariable).get(0);
-            paramsValue = (Map<String, Object>) ((List<Object>) postOnlyparamsValueVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsValueVariable = this.handlePostOnly(isMarket, false, paramsValue);
+            postOnly = postOnlyparamsValueVariable.first();
+            paramsValue = postOnlyparamsValueVariable.second();
             String timeInForce = this.safeString(paramsValue, "timeInForce");
             paramsValue = this.omit(paramsValue, "timeInForce");
             if (java.util.Objects.equals(timeInForce, null))

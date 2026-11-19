@@ -2150,9 +2150,9 @@ public class Toobit extends ToobitApi
         {
             request.put("quantity", this.amountToPrecision(symbol, amount));
         }
-        List<Object> isPostOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsCost);
-        Boolean isPostOnly = (Boolean) ((List<Object>) isPostOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) isPostOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> isPostOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsCost);
+        Boolean isPostOnly = isPostOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = isPostOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(isPostOnly))
         {
             request.put("type", "LIMIT_MAKER");
@@ -2204,9 +2204,9 @@ public class Toobit extends ToobitApi
             request.put("type", "LIMIT"); // weird, but exchange works this way
             request.put("priceType", "MARKET");
         }
-        List<Object> isPostOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsReduceOnly);
-        Boolean isPostOnly = (Boolean) ((List<Object>) isPostOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) isPostOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> isPostOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsReduceOnly);
+        Boolean isPostOnly = isPostOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = isPostOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(isPostOnly))
         {
             request.put("timeInForce", "LIMIT_MAKER");

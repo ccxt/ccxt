@@ -3831,7 +3831,9 @@ public class Bitget extends BitgetApi
                     List<String> subTypes = new ArrayList<String>(Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
                     for (var j = 0; j < subTypes.size(); j++)
                     {
-                        ((List<Object>)promises).add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("productType", (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j))); yield j39v1; } }))));
+                        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                        j39v1.put("productType", (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j)));
+                        ((List<Object>)promises).add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, j39v1)));
                     }
                 } else if (java.util.Objects.equals(type, "spot"))
                 {
@@ -4187,7 +4189,9 @@ public class Bitget extends BitgetApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < subTypes.size(); i++)
             {
-                Map<String, Object> req = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("category", (subTypes == null || i < 0 || i >= subTypes.size() ? null : subTypes.get(i))); yield j39v2; } }));
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("category", (subTypes == null || i < 0 || i >= subTypes.size() ? null : subTypes.get(i)));
+                Map<String, Object> req = this.extend(parameters, j39v2);
                 ((List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(req));
             }
             List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
@@ -4557,11 +4561,11 @@ public class Bitget extends BitgetApi
             deposit = Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable);
             String withdrawMinScale = this.safeString(chain, "withdrawMinScale");
             String precision = this.parsePrecision(withdrawMinScale);
-            networks.put((String)network, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                j39v3.put("info", chain);
-                j39v3.put("id", networkId);
-                j39v3.put("network", network);
-                j39v3.put("limits", new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("info", chain);
+            j39v3.put("id", networkId);
+            j39v3.put("network", network);
+            j39v3.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Bitget.this.safeNumber(chain, "minWithdrawAmount", (Object) null) );
             put( "max", null );
@@ -4571,12 +4575,12 @@ public class Bitget extends BitgetApi
             put( "max", null );
         }} );
     }});
-                j39v3.put("active", null);
-                j39v3.put("withdraw", withdrawable);
-                j39v3.put("deposit", rechargeable);
-                j39v3.put("fee", this.safeNumber(chain, "withdrawFee", (Object) null));
-                j39v3.put("precision", this.parseNumber(precision));
-                yield j39v3; } }));
+            j39v3.put("active", null);
+            j39v3.put("withdraw", withdrawable);
+            j39v3.put("deposit", rechargeable);
+            j39v3.put("fee", this.safeNumber(chain, "withdrawFee", (Object) null));
+            j39v3.put("precision", this.parseNumber(precision));
+            networks.put((String)network, j39v3);
         }
         Boolean active = (java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true));
         boolean isFiat = this.inArray(code, fiatCurrencies);
@@ -8109,9 +8113,9 @@ public class Bitget extends BitgetApi
             request.put("orderType", type);
             String exchangeSpecificTifParam = this.safeString(paramsProductType, "timeInForce");
             Boolean postOnly = null;
-            List<Object> postOnlyparamsProductTypeVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), paramsProductType);
-            postOnly = (Boolean) ((List<Object>) postOnlyparamsProductTypeVariable).get(0);
-            paramsProductType = (Map<String, Object>) ((List<Object>) postOnlyparamsProductTypeVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsProductTypeVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), paramsProductType);
+            postOnly = postOnlyparamsProductTypeVariable.first();
+            paramsProductType = postOnlyparamsProductTypeVariable.second();
             String timeInForce = null;
             Pair<String, Map<String, Object>> timeInForceparamsProductTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsProductType), "createOrder", "timeInForce", (String) null);
             timeInForce = timeInForceparamsProductTypeVariable.first();
@@ -8241,9 +8245,9 @@ public class Bitget extends BitgetApi
         String clientOrderId = this.safeString2(paramsMarketType, "clientOid", "clientOrderId");
         String exchangeSpecificTifParam = this.safeString2(paramsMarketType, "force", "timeInForce");
         Boolean postOnly = null;
-        List<Object> postOnlyparamsMarketTypeVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), paramsMarketType);
-        postOnly = (Boolean) ((List<Object>) postOnlyparamsMarketTypeVariable).get(0);
-        paramsMarketType = (Map<String, Object>) ((List<Object>) postOnlyparamsMarketTypeVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsMarketTypeVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(exchangeSpecificTifParam, "post_only"), paramsMarketType);
+        postOnly = postOnlyparamsMarketTypeVariable.first();
+        paramsMarketType = postOnlyparamsMarketTypeVariable.second();
         String timeInForce = null;
         Pair<String, Map<String, Object>> timeInForceparamsMarketTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "createOrder", "timeInForce", (String) null);
         timeInForce = timeInForceparamsMarketTypeVariable.first();

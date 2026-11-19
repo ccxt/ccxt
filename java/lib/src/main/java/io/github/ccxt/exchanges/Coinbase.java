@@ -1733,35 +1733,35 @@ public class Coinbase extends CoinbaseApi
                         {
                             continue;
                         }
-                        ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                            j39v1.put("id", ((baseId + "-") + quoteId));
-                            j39v1.put("symbol", ((base + "/") + quote));
-                            j39v1.put("base", base);
-                            j39v1.put("quote", quote);
-                            j39v1.put("settle", null);
-                            j39v1.put("baseId", baseId);
-                            j39v1.put("quoteId", quoteId);
-                            j39v1.put("settleId", null);
-                            j39v1.put("type", "spot");
-                            j39v1.put("spot", true);
-                            j39v1.put("margin", false);
-                            j39v1.put("swap", false);
-                            j39v1.put("future", false);
-                            j39v1.put("option", false);
-                            j39v1.put("active", null);
-                            j39v1.put("contract", false);
-                            j39v1.put("linear", null);
-                            j39v1.put("inverse", null);
-                            j39v1.put("contractSize", null);
-                            j39v1.put("expiry", null);
-                            j39v1.put("expiryDatetime", null);
-                            j39v1.put("strike", null);
-                            j39v1.put("optionType", null);
-                            j39v1.put("precision", new HashMap<String, Object>() {{
+                        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                        j39v1.put("id", ((baseId + "-") + quoteId));
+                        j39v1.put("symbol", ((base + "/") + quote));
+                        j39v1.put("base", base);
+                        j39v1.put("quote", quote);
+                        j39v1.put("settle", null);
+                        j39v1.put("baseId", baseId);
+                        j39v1.put("quoteId", quoteId);
+                        j39v1.put("settleId", null);
+                        j39v1.put("type", "spot");
+                        j39v1.put("spot", true);
+                        j39v1.put("margin", false);
+                        j39v1.put("swap", false);
+                        j39v1.put("future", false);
+                        j39v1.put("option", false);
+                        j39v1.put("active", null);
+                        j39v1.put("contract", false);
+                        j39v1.put("linear", null);
+                        j39v1.put("inverse", null);
+                        j39v1.put("contractSize", null);
+                        j39v1.put("expiry", null);
+                        j39v1.put("expiryDatetime", null);
+                        j39v1.put("strike", null);
+                        j39v1.put("optionType", null);
+                        j39v1.put("precision", new HashMap<String, Object>() {{
                                 put( "amount", null );
                                 put( "price", null );
                             }});
-                            j39v1.put("limits", new HashMap<String, Object>() {{
+                        j39v1.put("limits", new HashMap<String, Object>() {{
                                 put( "leverage", new HashMap<String, Object>() {{
                                     put( "min", null );
                                     put( "max", null );
@@ -1779,8 +1779,8 @@ public class Coinbase extends CoinbaseApi
                                     put( "max", null );
                                 }} );
                             }});
-                            j39v1.put("info", quoteCurrency);
-                            yield j39v1; } })));
+                        j39v1.put("info", quoteCurrency);
+                        ((List<Object>)result).add(this.safeMarketStructure(j39v1));
                     }
                 }
             }

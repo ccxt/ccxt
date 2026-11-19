@@ -983,31 +983,31 @@ public class Binance extends BinanceApi
                 last = this.parseNumber(lastString);
             }
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("outcome", this.safeString(outcomeObj, "outcome"));
-            j39v1.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
-            j39v1.put("label", this.safeString(outcomeObj, "label"));
-            j39v1.put("market", this.safeString(outcomeObj, "market"));
-            j39v1.put("timestamp", null);
-            j39v1.put("datetime", null);
-            j39v1.put("high", null);
-            j39v1.put("low", null);
-            j39v1.put("bid", null);
-            j39v1.put("bidVolume", null);
-            j39v1.put("ask", null);
-            j39v1.put("askVolume", null);
-            j39v1.put("vwap", null);
-            j39v1.put("open", null);
-            j39v1.put("close", last);
-            j39v1.put("last", last);
-            j39v1.put("previousClose", null);
-            j39v1.put("change", null);
-            j39v1.put("percentage", null);
-            j39v1.put("average", null);
-            j39v1.put("baseVolume", null);
-            j39v1.put("quoteVolume", null);
-            j39v1.put("info", raw);
-            yield j39v1; } }), market));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("outcome", this.safeString(outcomeObj, "outcome"));
+        j39v1.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+        j39v1.put("label", this.safeString(outcomeObj, "label"));
+        j39v1.put("market", this.safeString(outcomeObj, "market"));
+        j39v1.put("timestamp", null);
+        j39v1.put("datetime", null);
+        j39v1.put("high", null);
+        j39v1.put("low", null);
+        j39v1.put("bid", null);
+        j39v1.put("bidVolume", null);
+        j39v1.put("ask", null);
+        j39v1.put("askVolume", null);
+        j39v1.put("vwap", null);
+        j39v1.put("open", null);
+        j39v1.put("close", last);
+        j39v1.put("last", last);
+        j39v1.put("previousClose", null);
+        j39v1.put("change", null);
+        j39v1.put("percentage", null);
+        j39v1.put("average", null);
+        j39v1.put("baseVolume", null);
+        j39v1.put("quoteVolume", null);
+        j39v1.put("info", raw);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v1, market));
     }
 
     /**
@@ -2048,11 +2048,11 @@ public class Binance extends BinanceApi
                 throw new ArgumentsRequired((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "accountType", "cost")));
-            Map<String, Object> quoteRequest = this.extend(commonRequest, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("tokenId", outcomeObj.get("id"));
-                j39v2.put("side", sideUpper);
-                j39v2.put("amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000"));
-                yield j39v2; } }));
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("tokenId", outcomeObj.get("id"));
+            j39v2.put("side", sideUpper);
+            j39v2.put("amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000"));
+            Map<String, Object> quoteRequest = this.extend(commonRequest, j39v2);
             Map<String, Object> quote = (this.fetchQuote(quoteRequest, paramsOmitted)).join();
             String quoteId = this.safeString(quote, "quoteId");
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();

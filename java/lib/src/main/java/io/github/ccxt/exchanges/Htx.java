@@ -2864,60 +2864,60 @@ public class Htx extends HtxApi
                         created = this.parse8601(createdDate);
                     }
                 }
-                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                j39v5.put("id", id);
-                j39v5.put("lowercaseId", lowercaseId);
-                j39v5.put("symbol", symbol);
-                j39v5.put("base", base);
-                j39v5.put("quote", quote);
-                j39v5.put("settle", settle);
-                j39v5.put("baseId", baseId);
-                j39v5.put("quoteId", quoteId);
-                j39v5.put("settleId", settleId);
-                j39v5.put("type", marketType);
-                j39v5.put("spot", spot);
-                j39v5.put("margin", (Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(hasLeverage)));
-                j39v5.put("swap", swap);
-                j39v5.put("future", future);
-                j39v5.put("option", false);
-                j39v5.put("active", active);
-                j39v5.put("contract", contract);
-                j39v5.put("linear", linear);
-                j39v5.put("inverse", inverse);
-                j39v5.put("taker", taker);
-                j39v5.put("maker", maker);
-                j39v5.put("contractSize", contractSize);
-                j39v5.put("expiry", expiry);
-                j39v5.put("expiryDatetime", this.iso8601(expiry));
-                j39v5.put("strike", null);
-                j39v5.put("optionType", null);
-                j39v5.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                        j39v4.put("amount", amountPrecision);
-                        j39v4.put("price", pricePrecision);
-                        j39v4.put("cost", costPrecision);
-                        yield j39v4; } }));
-                j39v5.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                        j39v3.put("leverage", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("lowercaseId", lowercaseId);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", marketType);
+                j39v1.put("spot", spot);
+                j39v1.put("margin", (Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(hasLeverage)));
+                j39v1.put("swap", swap);
+                j39v1.put("future", future);
+                j39v1.put("option", false);
+                j39v1.put("active", active);
+                j39v1.put("contract", contract);
+                j39v1.put("linear", linear);
+                j39v1.put("inverse", inverse);
+                j39v1.put("taker", taker);
+                j39v1.put("maker", maker);
+                j39v1.put("contractSize", contractSize);
+                j39v1.put("expiry", expiry);
+                j39v1.put("expiryDatetime", this.iso8601(expiry));
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("amount", amountPrecision);
+                j39v2.put("price", pricePrecision);
+                j39v2.put("cost", costPrecision);
+                j39v1.put("precision", j39v2);
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("leverage", new HashMap<String, Object>() {{
                             put( "min", Htx.this.parseNumber("1") );
                             put( "max", Htx.this.parseNumber(leverageRatio) );
                             put( "superMax", Htx.this.parseNumber(superLeverageRatio) );
                         }});
-                        j39v3.put("amount", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                            j39v2.put("min", minAmount);
-                            j39v2.put("max", maxAmount);
-                            yield j39v2; } }));
-                        j39v3.put("price", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                j39v4.put("min", minAmount);
+                j39v4.put("max", maxAmount);
+                j39v3.put("amount", j39v4);
+                j39v3.put("price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }});
-                        j39v3.put("cost", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                            j39v1.put("min", minCost);
-                            j39v1.put("max", null);
-                            yield j39v1; } }));
-                        yield j39v3; } }));
-                j39v5.put("created", created);
-                j39v5.put("info", market);
-                ((List<Object>)result).add(j39v5);
+                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                j39v5.put("min", minCost);
+                j39v5.put("max", null);
+                j39v3.put("cost", j39v5);
+                j39v1.put("limits", j39v3);
+                j39v1.put("created", created);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -4482,7 +4482,9 @@ public class Htx extends HtxApi
         }
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("networkChainIdsByNames")), code, new HashMap<String, Object>() {{}});
+            Map<String, Object> chainIdsByNames = this.safeDict(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
+            chainIdsByNames.put(code, new HashMap<String, Object>() {{}});
+            this.options.put("networkChainIdsByNames", chainIdsByNames);
         }
         List<Object> chains = this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -4493,7 +4495,11 @@ public class Htx extends HtxApi
             String title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(title, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("networkChainIdsByNames")), code), title, uniqueChainId);
+                Map<String, Object> chainIdsByNamesDict = this.safeDict(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
+                Map<String, Object> chainIdsByTitle = this.safeDict(chainIdsByNamesDict, code, new HashMap<String, Object>() {{}});
+                chainIdsByTitle.put(title, uniqueChainId);
+                chainIdsByNamesDict.put(code, chainIdsByTitle);
+                this.options.put("networkChainIdsByNames", chainIdsByNamesDict);
             }
             if (!java.util.Objects.equals(uniqueChainId, null))
             {
@@ -6530,9 +6536,9 @@ public class Htx extends HtxApi
                     throw new NotSupported((((this.id + " createOrder() does not support ") + typeStr) + " orders")) ;
                 }
             }
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(orderType, "market"), java.util.Objects.equals(orderType, "limit-maker"), paramsMarginMode);
-            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(orderType, "market"), java.util.Objects.equals(orderType, "limit-maker"), paramsMarginMode);
+            Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+            Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
             if (Boolean.TRUE.equals(postOnly))
             {
                 orderType = "limit-maker";
@@ -6657,9 +6663,9 @@ public class Htx extends HtxApi
             put( "contract_code", market.get("id") );
             put( "volume", Htx.this.amountToPrecision(symbol, amount) );
         }};
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         String orderType = ((Boolean.TRUE.equals(postOnly))) ? "post_only" : type;
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("createOrder", market, paramsPostOnly, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);

@@ -1763,7 +1763,7 @@ public class Bingx extends BingxApi
                 {
                     // the exchange aligns the window to endTime, so keep it within limit candles of since
                     Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                    endTime = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(until, this.sum(since, (duration * requestLimit)));
+                    endTime = Math.min(until, this.sum(since, (duration * requestLimit)));
                 }
                 request.put("endTime", endTime);
             } else if (Boolean.TRUE.equals((this.safeBool(market, "inverse", false))) && (!java.util.Objects.equals(since, null)))
@@ -3853,9 +3853,9 @@ public class Bingx extends BingxApi
             request.put(exchangeClientOrderId, clientOrderId);
         }
         String timeInForce = this.safeStringUpper(paramsMarketType, "timeInForce");
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "PostOnly"), paramsMarketType);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "PostOnly"), paramsMarketType);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PostOnly")))
         {
             request.put("timeInForce", "PostOnly");

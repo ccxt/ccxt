@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -153,9 +154,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             orderParams.put("limit_price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
         }
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, false, parameters);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarket, false, parameters);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(postOnly))
         {
             orderParams.put("post_only", true);

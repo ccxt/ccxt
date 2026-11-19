@@ -1333,7 +1333,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         stored.append(parsed);
         if (!java.util.Objects.equals(symbol, null) && !java.util.Objects.equals(timeframe, null))
         {
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         client.resolve(stored, channel);
     }

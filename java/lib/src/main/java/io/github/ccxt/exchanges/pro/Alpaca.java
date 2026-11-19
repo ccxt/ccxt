@@ -245,7 +245,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "1m", stored);
+            this.ohlcvs.get(symbol).put("1m", stored);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(message, (Map<String, Object>) null);
         stored.append(parsed);

@@ -732,55 +732,55 @@ public class Deepcoin extends DeepcoinApi
         String state = this.safeString(market, "state");
         Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
         Boolean isInverse = ((Boolean.TRUE.equals(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
-        return new MarketInterface(this.extend(fees, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("id", id);
-            j39v3.put("symbol", symbol);
-            j39v3.put("base", base);
-            j39v3.put("quote", quote);
-            j39v3.put("settle", settle);
-            j39v3.put("baseId", baseId);
-            j39v3.put("quoteId", quoteId);
-            j39v3.put("settleId", settleId);
-            j39v3.put("type", type);
-            j39v3.put("spot", spot);
-            j39v3.put("margin", isMargin);
-            j39v3.put("swap", swap);
-            j39v3.put("future", false);
-            j39v3.put("option", false);
-            j39v3.put("active", java.util.Objects.equals(state, "live"));
-            j39v3.put("contract", swap);
-            j39v3.put("linear", isLinear);
-            j39v3.put("inverse", isInverse);
-            j39v3.put("contractSize", ((Boolean.TRUE.equals(swap))) ? this.safeNumber(market, "ctVal", (Object) null) : null);
-            j39v3.put("expiry", null);
-            j39v3.put("expiryDatetime", null);
-            j39v3.put("strike", null);
-            j39v3.put("optionType", null);
-            j39v3.put("created", null);
-            j39v3.put("precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("id", id);
+        j39v1.put("symbol", symbol);
+        j39v1.put("base", base);
+        j39v1.put("quote", quote);
+        j39v1.put("settle", settle);
+        j39v1.put("baseId", baseId);
+        j39v1.put("quoteId", quoteId);
+        j39v1.put("settleId", settleId);
+        j39v1.put("type", type);
+        j39v1.put("spot", spot);
+        j39v1.put("margin", isMargin);
+        j39v1.put("swap", swap);
+        j39v1.put("future", false);
+        j39v1.put("option", false);
+        j39v1.put("active", java.util.Objects.equals(state, "live"));
+        j39v1.put("contract", swap);
+        j39v1.put("linear", isLinear);
+        j39v1.put("inverse", isInverse);
+        j39v1.put("contractSize", ((Boolean.TRUE.equals(swap))) ? this.safeNumber(market, "ctVal", (Object) null) : null);
+        j39v1.put("expiry", null);
+        j39v1.put("expiryDatetime", null);
+        j39v1.put("strike", null);
+        j39v1.put("optionType", null);
+        j39v1.put("created", null);
+        j39v1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Deepcoin.this.safeNumber(market, "lotSz", (Object) null) );
                 put( "price", Deepcoin.this.safeNumber(market, "tickSz", (Object) null) );
             }});
-            j39v3.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("leverage", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("min", this.parseNumber("1"));
-                    j39v1.put("max", this.parseNumber(maxLeverage));
-                    yield j39v1; } }));
-                j39v2.put("amount", new HashMap<String, Object>() {{
+        HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+        HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+        j39v3.put("min", this.parseNumber("1"));
+        j39v3.put("max", this.parseNumber(maxLeverage));
+        j39v2.put("leverage", j39v3);
+        j39v2.put("amount", new HashMap<String, Object>() {{
                     put( "min", Deepcoin.this.safeNumber(market, "minSz", (Object) null) );
                     put( "max", maxAmount );
                 }});
-                j39v2.put("price", new HashMap<String, Object>() {{
+        j39v2.put("price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }});
-                j39v2.put("cost", new HashMap<String, Object>() {{
+        j39v2.put("cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }});
-                yield j39v2; } }));
-            j39v3.put("info", market);
-            yield j39v3; } })));
+        j39v1.put("limits", j39v2);
+        j39v1.put("info", market);
+        return new MarketInterface(this.extend(fees, j39v1));
     }
 
     public Map<String, Object> setMarkets(Object markets, Object currencies)
@@ -2176,9 +2176,9 @@ public class Deepcoin extends DeepcoinApi
 
     public Pair<String, Map<String, Object>> handleTypePostOnlyAndTimeInForce(String type, Map<String, Object> parameters)
     {
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         String timeInForce = this.handleTimeInForce(paramsPostOnly);
         Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
         if (java.util.Objects.equals(timeInForce, "IOC"))

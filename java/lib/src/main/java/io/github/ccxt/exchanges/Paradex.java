@@ -2793,13 +2793,13 @@ public class Paradex extends ParadexApi
                 {
                     orderStatus = "rejected";
                 }
-                ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("info", result);
-                    j39v1.put("id", this.safeString(result, "id"));
-                    j39v1.put("clientOrderId", this.safeString(result, "client_id"));
-                    j39v1.put("status", orderStatus);
-                    j39v1.put("symbol", market.get("symbol"));
-                    yield j39v1; } }), market));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("info", result);
+                j39v1.put("id", this.safeString(result, "id"));
+                j39v1.put("clientOrderId", this.safeString(result, "client_id"));
+                j39v1.put("status", orderStatus);
+                j39v1.put("symbol", market.get("symbol"));
+                ((List<Object>)orders).add(this.safeOrder(j39v1, market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

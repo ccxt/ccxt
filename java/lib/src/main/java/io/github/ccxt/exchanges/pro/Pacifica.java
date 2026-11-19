@@ -104,7 +104,11 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 headers.put("PF-API-KEY", this.options.get("apiKey"));
             }
         }
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsSubOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        wsSubOptions.put("headers", headers);
+        wsOptions.put("options", wsSubOptions);
+        this.options.put("ws", wsOptions);
     }
 
     /**
@@ -394,13 +398,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 {
                     status = "canceled";
                 }
-                ((List<Object>)ordersToReturn).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", orderId);
-                    j39v1.put("clientOrderId", clientOrderId);
-                    j39v1.put("status", status);
-                    j39v1.put("info", response);
-                    j39v1.put("symbol", market.get("symbol"));
-                    yield j39v1; } }), (Map<String, Object>) null));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", orderId);
+                j39v1.put("clientOrderId", clientOrderId);
+                j39v1.put("status", status);
+                j39v1.put("info", response);
+                j39v1.put("symbol", market.get("symbol"));
+                ((List<Object>)ordersToReturn).add(this.safeOrder(j39v1, (Map<String, Object>) null));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1435,7 +1439,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, ohlcv);
+            this.ohlcvs.get(symbol).put(timeframe, ohlcv);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
         ohlcv.append(parsed);

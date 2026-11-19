@@ -2050,9 +2050,9 @@ public class Tokocrypto extends TokocryptoApi
             Boolean isMarketOrder = (java.util.Objects.equals(requestedType, "MARKET"));
             // GTX is the venue spelling of post only, on top of the two unified spellings
             Boolean isPostOnlyTimeInForce = (java.util.Objects.equals(requestedTimeInForce, "GTX"));
-            List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, parameters);
-            Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-            Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, parameters);
+            Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+            Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
             // only supported for spot/margin api
             String typeResolved = type;
             if (Boolean.TRUE.equals(postOnly))

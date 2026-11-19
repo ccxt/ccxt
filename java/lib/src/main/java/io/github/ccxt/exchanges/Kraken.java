@@ -843,53 +843,53 @@ public class Kraken extends KrakenApi
                 HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
                 mapLiteral2.put("min", this.parseNumber("1"));
                 mapLiteral2.put("max", this.safeNumber(leverageBuy, (((long) leverageBuyLength) - 1L), 1));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("wsId", this.safeString(market, "wsname"));
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("altname", this.safeString(market, "altname"));
+                j39v1.put("type", "spot");
+                j39v1.put("spot", spot);
+                j39v1.put("margin", ((leverageBuyLength != null && leverageBuyLength > 0)));
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", isActive);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("taker", taker);
+                j39v1.put("maker", maker);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", mapLiteral1);
                 HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("id", id);
-                j39v2.put("wsId", this.safeString(market, "wsname"));
-                j39v2.put("symbol", symbol);
-                j39v2.put("base", base);
-                j39v2.put("quote", quote);
-                j39v2.put("settle", null);
-                j39v2.put("baseId", baseId);
-                j39v2.put("quoteId", quoteId);
-                j39v2.put("settleId", null);
-                j39v2.put("altname", this.safeString(market, "altname"));
-                j39v2.put("type", "spot");
-                j39v2.put("spot", spot);
-                j39v2.put("margin", ((leverageBuyLength != null && leverageBuyLength > 0)));
-                j39v2.put("swap", false);
-                j39v2.put("future", false);
-                j39v2.put("option", false);
-                j39v2.put("active", isActive);
-                j39v2.put("contract", false);
-                j39v2.put("linear", null);
-                j39v2.put("inverse", null);
-                j39v2.put("taker", taker);
-                j39v2.put("maker", maker);
-                j39v2.put("contractSize", null);
-                j39v2.put("expiry", null);
-                j39v2.put("expiryDatetime", null);
-                j39v2.put("strike", null);
-                j39v2.put("optionType", null);
-                j39v2.put("precision", mapLiteral1);
-                j39v2.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                        j39v1.put("leverage", mapLiteral2);
-                        j39v1.put("amount", new HashMap<String, Object>() {{
+                j39v2.put("leverage", mapLiteral2);
+                j39v2.put("amount", new HashMap<String, Object>() {{
                             put( "min", Kraken.this.safeNumber(market, "ordermin", (Object) null) );
                             put( "max", null );
                         }});
-                        j39v1.put("price", new HashMap<String, Object>() {{
+                j39v2.put("price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }});
-                        j39v1.put("cost", new HashMap<String, Object>() {{
+                j39v2.put("cost", new HashMap<String, Object>() {{
                             put( "min", Kraken.this.safeNumber(market, "costmin", (Object) null) );
                             put( "max", null );
                         }});
-                        yield j39v1; } }));
-                j39v2.put("created", null);
-                j39v2.put("info", market);
-                ((List<Object>)result).add(j39v2);
+                j39v1.put("limits", j39v2);
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             this.options.put("marketsByAltname", this.indexBy(result, "altname"));
             return result;
@@ -2694,9 +2694,9 @@ public class Kraken extends KrakenApi
             request.put("timeinforce", timeInForce);
         }
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsOmitted2);
-        Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
-        Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
+        Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(isMarket, false, paramsOmitted2);
+        Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(postOnly))
         {
             String extendedPostFlags = "post";
@@ -2763,9 +2763,9 @@ public class Kraken extends KrakenApi
             }
             Boolean isMarket = (java.util.Objects.equals(type, "market"));
             Boolean postOnly = null;
-            List<Object> postOnlyparamsOmittedVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsOmitted);
-            postOnly = (Boolean) ((List<Object>) postOnlyparamsOmittedVariable).get(0);
-            paramsOmitted = (Map<String, Object>) ((List<Object>) postOnlyparamsOmittedVariable).get(1);
+            Pair<Boolean, Map<String, Object>> postOnlyparamsOmittedVariable = this.handlePostOnly(isMarket, false, paramsOmitted);
+            postOnly = postOnlyparamsOmittedVariable.first();
+            paramsOmitted = postOnlyparamsOmittedVariable.second();
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("post_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
