@@ -9602,7 +9602,10 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
         return;
     }
-    if (nilReceiverGuard && !(((keyOut !== undefined) && (valueOut !== undefined) && (lastLine === k)) && (fieldReceiver || notRebound (name)))) {
+    // a SafeDict*Map local rebound only to typed map reads: the guard tests the map the store sees
+    const typedRebinds = (typeAt (name, k) === 'map[string]any') && /^\s*var \w+ map\[string\]any = this\.SafeDict(?:2|N)?Map\(/.test (declOf (name)?.line ?? '')
+        && !goMapLocalRebound (maskedFunc, goAccessEscape (name));
+    if (nilReceiverGuard && !(((keyOut !== undefined) && (valueOut !== undefined) && (lastLine === k)) && (fieldReceiver || notRebound (name) || typedRebinds))) {
         return;
     }
     if (nilReceiverGuard) {
@@ -18345,6 +18348,14 @@ function goTypedAddElemRetypeCheck (ok: SelfTestOk): void {
     r = f ('\tvar a any = nil\n\ta = this.SafeDict(p, code)\n\tthis.Use(a)\n\tif a == nil {\n\t\tpanic(p)\n\t}\n\tAddElementToObject(a, "x", 1)\n');
     r += f ('\tvar b any = nil\n\tif p != nil {\n\t\tb = this.SafeDict(p, code)\n\t\tif b == nil {\n\t\t\treturn nil\n\t\t}\n\t}\n\tAddElementToObject(b, "x", 1)\n');
     ok (r.includes ('var a any = nil') && r.includes ('var b any = nil'), 'read before the guard or nested guard keeps the box: ' + r);
+    r = nativeTypedContainerAccess (f ('\tvar a any = this.SafeDict(p, code)\n\tif a == nil {\n\t\ta = this.Account()\n\t}\n\tAddElementToObject(a, "free", nil)\n'));
+    ok (r.includes ('var a map[string]any = this.SafeDictMap(p, code)') && r.includes ('if a != nil {\n\t\ta["free"] = nil'), 'nil-tested SafeDict receiver rebound to a fresh map is typed: ' + r);
+    r = f ('\tvar a any = this.SafeDict(p, code)\n\tif a == nil {\n\t\ta = this.SafeDictN(p, []any{code})\n\t}\n\tif ccxt.IsEqual(a, nil) {\n\t\treturn nil\n\t}\n\tAddElementToObject(a, "x", 1)\n');
+    ok (r.includes ('a = this.SafeDictNMap(p, []any{code})') && r.includes ('\tif a == nil {\n\t\treturn nil'), 're-read then leave: ' + r);
+    r = f ('\tvar a any = this.SafeDict(p, code)\n\tthis.Use(a)\n\tif a == nil {\n\t\ta = this.Account()\n\t}\n\tAddElementToObject(a, "x", 1)\n');
+    r += f ('\tvar b any = this.SafeDict(p, code)\n\tif b == nil {\n\t\tthis.Use(b)\n\t}\n\tAddElementToObject(b, "x", 1)\n');
+    r += f ('\tvar c any = this.SafeDict(p, code)\n\tif c == nil {\n\t\tc = this.Account()\n\t}\n\tc = p\n\tAddElementToObject(c, "x", 1)\n');
+    ok (r.includes ('var a any = ') && r.includes ('var b any = ') && r.includes ('var c any = '), 'a read before the guard, a nil read in it, or a foreign write keeps the box: ' + r);
     r = goNativeKeysAndRemove (f ('\tvar q any = this.Extend(p)\n\tq = this.Omit(q, "a")\n\tvar ks []string = ObjectKeys(q)\n\t_ = ks\n'));
     ok (r.includes ('var q map[string]any = this.Extend(p)') && r.includes ('q = this.OmitDict(q, "a")') && r.includes ('for objectKey := range q {') && !r.includes ('ObjectKeys'), 'ObjectKeys receiver is typed: ' + r);
     r = goNativeKeysAndRemove (f ('\tvar q any = this.SafeDict(p, code)\n\tvar ks []string = ObjectKeys(q)\n\t_ = ks\n'));
@@ -18354,7 +18365,108 @@ function goTypedAddElemRetypeCheck (ok: SelfTestOk): void {
 }
 
 function goTypedAddElemRetypeMapLocals (content: string): string {
-    return goRewriteEachFunc (content, /\b(?:AddElementToObject|ObjectKeys)\(/.test (content), goTypedAddElemRetypeFunc);
+    return goRewriteEachFunc (goRewriteEachFunc (content, /\b(?:AddElementToObject|ObjectKeys)\(/.test (content), goTypedAddElemRetypeFunc),
+        /\bAddElementToObject\(/.test (content), goTypedAddElemNilGuardedFunc);
+}
+
+// line closing the block opened at the end of line g (a bare `}` or a `} else {`), or -1
+function goTypedAddElemBlockEnd (masked: string[], g: number, end: number): number {
+    let depth = 1;
+    for (let j = g + 1; j < end; j++) {
+        if ((depth === 1) && /^\s*\} else \{$/.test (masked[j])) {
+            return j;
+        }
+        for (const c of masked[j]) {
+            depth += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
+        }
+        if (depth === 0) {
+            return (masked[j].trim () === '}') ? j : -1;
+        }
+    }
+    return -1;
+}
+
+// `var x any = this.SafeDict{,2,N}(m, k)` (no default) read only after `if x == nil { .. }` guards that rebind x to a fresh
+// map, leave the block, or keep every later read in the else arm: a nil map reads as absent exactly as the nil box did,
+// so x is typed map[string]any (SafeDict*Map) and its writes go native under the receiver nil guard
+function goTypedAddElemNilGuardedFunc (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const names = new Set ([ ...maskedFunc.matchAll (/(?<![\w.])(?:ccxt\.)?AddElementToObject\((\w+), /g) ].map ((m) => m[1]));
+    for (const name of names) {
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((decl === undefined) || (decl.type !== 'any') || (decl.index === undefined) || goMapLocalRebound (maskedFunc, name)) {
+            continue;
+        }
+        const d = start + maskedFunc.substring (0, decl.index).split ('\n').length - 1;
+        const sd = new RegExp ('^(\\s*var ' + name + ' )any = this\\.SafeDict(2|N)?\\((.*)\\)$').exec (lines[d]);
+        const arity = (sd === null) ? 0 : ((sd[2] === '2') ? 3 : 2);
+        if ((sd === null) || (goMapWriteGroupEnd (masked[d], masked[d].indexOf ('(')) !== masked[d].length)
+            || (goMapWriteTopLevelParts (sd[3], ',').length !== arity)) {
+            continue;
+        }
+        const mention = new RegExp ('(?<![\\w.])' + name + '(?!\\w)');
+        const nilTest = new RegExp ('^(\\s*if )(?:\\(' + name + ' == nil\\)|' + name + ' == nil|(?:ccxt\\.)?IsEqual\\(' + name + ', nil\\))( \\{)$');
+        const fresh = new RegExp ('^\\s*' + name + ' = (?:this\\.Account\\(\\)$|(?:ccxt\\.)?PositionToMap\\(|this\\.SafePosition\\()');
+        const reread = new RegExp ('^(\\s*' + name + ' = )this\\.SafeDict(2|N)?\\((.*)\\)$');
+        const edits: [number, string][] = [ [ d, sd[1] + 'map[string]any = this.SafeDict' + (sd[2] ?? '') + 'Map(' + sd[3] + ')' ] ];
+        let k = d + 1;
+        let proven = false; // x is non-nil from line k on, or never read again
+        while (!proven && (k < end)) {
+            const g = nilTest.exec (masked[k]);
+            if (g === null) {
+                break;
+            }
+            const close = goTypedAddElemBlockEnd (masked, k, end);
+            if (close < 0) {
+                break;
+            }
+            const body = masked.slice (k + 1, close);
+            const touched = body.map ((l, i) => (mention.test (l) ? i : -1)).filter ((i) => i >= 0);
+            let next = close + 1;
+            let state = '';
+            if ((touched.length > 0) && fresh.test (body[touched[0]]) && (lines[k + 1 + touched[0]].indexOf ('//') < 0)) {
+                state = 'fresh'; // the first mention rebinds x to a non-nil map
+            } else if ((touched.length === 1) && (touched[0] === body.length - 1) && reread.test (lines[close - 1])
+                && (goMapWriteGroupEnd (masked[close - 1], masked[close - 1].indexOf ('(')) === masked[close - 1].length)) {
+                const r = reread.exec (lines[close - 1]) as RegExpExecArray;
+                if (goMapWriteTopLevelParts (r[3], ',').length !== ((r[2] === '2') ? 3 : 2)) {
+                    break;
+                }
+                edits.push ([ close - 1, r[1] + 'this.SafeDict' + (r[2] ?? '') + 'Map(' + r[3] + ')' ]);
+                state = 'reread';
+            } else if ((touched.length === 0) && /^(?:continue|return\b.*|panic\(.*\))$/.test (body.filter ((l) => l.trim () !== '').pop ()?.trim () ?? '')) {
+                state = 'leave';
+            } else if ((touched.length === 0) && /^\s*\} else \{$/.test (masked[close])) {
+                const elseEnd = goTypedAddElemBlockEnd (masked, close, end);
+                if ((elseEnd < 0) || masked.slice (elseEnd + 1, end).some ((l) => mention.test (l))) {
+                    break;
+                }
+                state = 'else';
+                next = elseEnd + 1;
+            } else {
+                break;
+            }
+            if (/^\s*\} else \{$/.test (masked[close]) && (state !== 'else')) {
+                const elseEnd = goTypedAddElemBlockEnd (masked, close, end);
+                if ((state !== 'fresh') || (elseEnd < 0)) {
+                    break;
+                }
+                next = elseEnd + 1;
+            }
+            edits.push ([ k, g[1] + name + ' == nil' + g[2] ]);
+            proven = state !== 'reread';
+            k = next;
+        }
+        // every other write must be a fresh non-nil map
+        const writes = masked.slice (d + 1, end).map ((l, i) => [ l, i + d + 1 ] as [string, number]).filter (([ l ]) => new RegExp ('(?:^|[^\\w.])' + name + '\\s*=(?!=)').test (l));
+        if (!proven || writes.some (([ l, i ]) => !fresh.test (l) && !edits.some (([ e ]) => e === i))) {
+            continue;
+        }
+        for (const [ e, text ] of edits) {
+            lines[e] = text;
+            masked[e] = goTextMaskLiteralsAndComments (text);
+        }
+    }
 }
 
 // ===== GetValue(m, "lit") -> m["lit"] on multi-line market-row locals =====
