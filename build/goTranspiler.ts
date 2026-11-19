@@ -7132,6 +7132,7 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'watchOHLCVForSymbols': { 0: '[][]any' }, 'unWatchOHLCVForSymbols': { 0: '[][]any' },
     // base List params every ts/src caller hands a `[]any` local; ParseDepositAddresses' interface line matches
     'parseDepositAddresses': { 0: '[]any' }, 'parseBorrowInterests': { 0: '[]any' },
+    'parseLiquidations': { 0: '[]any' }, 'parseOpenInterests': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
@@ -12162,9 +12163,10 @@ function goTypedRecvLocals (content: string): string {
 }
 
 // `var x any = nil; if rN.Value != nil { x = <rN.Value | XsToList(rN.Value)> }` of a map/list receive: a nil map/slice
-// reads like the untyped nil through every use admitted here (Safe* readers, GetValue, GetArrayLength, native nil test),
+// reads like the untyped nil through every use admitted here (Safe* readers, GetValue, GetArrayLength, native nil test,
+// the `[]any` slot of ParseOpenInterests),
 // so x takes the receive's type and the guard goes.
-const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength))\($/;
+const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength)|this\.ParseOpenInterests)\($/;
 function goTypedNilFoldLocals (content: string): string {
     if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) {
         return content;

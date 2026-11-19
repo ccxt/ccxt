@@ -6,7 +6,7 @@ import Exchange from './abstract/bingx.js';
 import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
+import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
 import type { Bool, Liquidation, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -6601,7 +6601,7 @@ export default class bingx extends Exchange {
         }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, paramsUntil);
         let response: Dict;
-        let liquidations: NullableList = undefined;
+        let key = 'data';
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeForceOrders (this.extend (requestUntil, paramsSubType));
             //
@@ -6631,9 +6631,8 @@ export default class bingx extends Exchange {
             //         ]
             //     }
             //
-            liquidations = this.safeList (response, 'data', []);
         } else {
-            response = await this.swapV2PrivateGetTradeForceOrders (this.extend (requestUntil, paramsSubType));
+            const swapResponse = await this.swapV2PrivateGetTradeForceOrders (this.extend (requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6663,9 +6662,10 @@ export default class bingx extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeDict (response, 'data', {});
-            liquidations = this.safeList (data, 'orders', []);
+            response = this.safeDict (swapResponse, 'data', {});
+            key = 'orders';
         }
+        const liquidations = this.safeList (response, key, []);
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
