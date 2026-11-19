@@ -5975,6 +5975,10 @@ const RUST_LENT_OPTIONAL_ARGS_BASE = [
     'fetch_paginated_call_cursor',
     'fetch_paginated_call_incremental',
     'fetch_paginated_call_deterministic',
+    'parse_orders',
+    'parse_trades',
+    'parse_transactions',
+    'parse_ledger',
 ];
 // implicit-API wrappers (`*_api.rs`, `&[&Value]` forwarded to `call_method`) and the hand-written by-name dispatchers
 const RUST_LENT_DISPATCHERS = ['call_method', 'call_method_t', 'call_method_o', 'call_method_lt', 'call_method_lo'];
