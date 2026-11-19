@@ -6719,6 +6719,74 @@ function rustOnlyCloneMentions(stmt: string, name: string): boolean {
 }
 //
 // unit slot 002
+// `(if c { x.clone() } else { .. })` arm values: an arm runs at most once, so an owned local named nowhere after the
+// whole `if` expression (rest of the statement and fn) is moved; `if let Value::Dict(__d) = &x { __d.clone() }` then
+// matches `x` by value. Arms inside loops or closures keep their clone.
+function moveIfArmLocals(content: string): string {
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    const fnStarts = [...code.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const edits: [number, number, string][] = [];
+    let fi = -1;
+    for (const m of code.matchAll(/(?<=(?:\belse|\)|[\w\]]) )\{ ([A-Za-z_]\w*)\.clone\(\) \}/g)) {
+        const pos = m.index as number, armEnd = pos + m[0].length;
+        while (fi + 1 < fnStarts.length && fnStarts[fi + 1] <= pos) fi++;
+        if (fi < 0) continue;
+        const open = code.indexOf('{', fnStarts[fi]);
+        if (open < 0 || open > pos) continue;
+        const fnClose = balancedCloseIndex(code, open + 1);
+        // innermost unclosed `(if ` on this line before the arm
+        const lineStart = code.lastIndexOf('\n', pos) + 1;
+        let ifAt = -1, ifEnd = -1;
+        for (const h of code.slice(lineStart, pos).matchAll(/\(if /g)) {
+            const at = lineStart + (h.index as number), e = balancedCloseIndex(code, at + 1);
+            if (e > armEnd) { ifAt = at; ifEnd = e; }
+        }
+        if (ifAt < 0) continue;
+        let name = m[1], src = name, scrut: [number, number] | null = null;
+        if (name === '__d') {
+            const lt = /^\(if let Value::Dict\(__d\) = &([A-Za-z_]\w*) \{ __d\.clone\(\) \} else \{/.exec(code.slice(ifAt));
+            if (lt === null || ifAt + lt[0].length - ' else {'.length !== armEnd) continue;
+            src = lt[1];
+            scrut = [ifAt + '(if let Value::Dict(__d) = '.length, ifAt + '(if let Value::Dict(__d) = &'.length];
+        }
+        if (src === 'self') continue;
+        const word = new RegExp(`(?<![\\w.])${src}\\b`);
+        if (word.test(code.slice(ifEnd + 1, fnClose).replace(/"(?:\\.|[^"\\])*"/g, '""'))) continue;
+        const body = code.slice(open + 1, ifAt);
+        const decl = [...body.matchAll(new RegExp(`\\blet (?:mut )?${src}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
+        let owned: boolean;
+        if (decl !== undefined) owned = decl[1] === undefined ? decl[2] !== undefined : !/^&|\bimpl\b/.test(decl[1].trim());
+        else {
+            const p = new RegExp(`[(,]\\s*(?:mut )?${src}\\s*:\\s*([^,)]+)`).exec(code.slice(fnStarts[fi], open));
+            owned = p !== null && !/^&|\bimpl\b|^\[/.test(p[1].trim());
+        }
+        if (!owned) continue;
+        const after = decl === undefined ? body : body.slice((decl.index as number) + decl[0].length);
+        if (new RegExp(`\\bfor (?:mut )?${src}\\b|[(|,]\\s*(?:ref )?(?:mut )?${src}\\s*[)|,]`).test(after)) continue;
+        // a live borrow of the local held in an earlier binding
+        const lent = new RegExp(`&(?:mut )?${src}\\b|\\|`);
+        if ([...after.matchAll(/\blet (?:mut )?\w+(?:\s*:\s*([^=;]+?))?\s*=([^;]*);/g)].some(l => lent.test(l[2]) && (l[1] === undefined || /&/.test(l[1])))) continue;
+        const stack: number[] = [];
+        let inStr = false;
+        for (let j = 0; j < after.length; j++) {
+            const c = after[j];
+            if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+            if (c === '"') inStr = true; else if (c === '{') stack.push(j); else if (c === '}') stack.pop();
+        }
+        const heads = stack.map(o => after.slice(after.lastIndexOf('\n', o) + 1, o));
+        const stmt = after.slice(Math.max(after.lastIndexOf(';'), after.lastIndexOf('{'), after.lastIndexOf('}')) + 1);
+        if (word.test(stmt)) continue;
+        heads.push(stmt);
+        heads.push(code.slice(ifAt, pos));
+        if (heads.some(h => /\b(?:loop|while|for)\b|\|/.test(h.replace(/\|\|/g, '')))) continue;
+        if (scrut !== null) edits.push([scrut[0], scrut[1], '']);
+        edits.push([pos, armEnd, `{ ${name} }`]);
+    }
+    edits.sort((a, b) => a[0] - b[0]);
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 003
 //
@@ -7516,6 +7584,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 001
     //
     // pass slot 002
+    moveIfArmLocals,
     //
     // pass slot 003
     //
