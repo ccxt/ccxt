@@ -8621,6 +8621,35 @@ function rustTypedLiteralParsers (content: string): string {
 }
 //
 // unit slot 080
+// A venue's own parseWsOHLCV returns a List when every return is a `vec![..]` row or a List local; same-file callers
+// drop `.into_list()`, other callers re-box with `Value::Arr(..)`.
+function typeWsOhlcvReturns(content: string): string {
+    const decl = /(\n {4}pub fn parse_ws_ohlcv\(&self, [^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}/;
+    const d = content.match(decl);
+    if (d === null) return content;
+    const body = d[3];
+    const rets = body.split('\n').filter((l) => /^\s*return\b/.test(l));
+    const listLocal = (l: string) => { const v = /^\s*return Value::Arr\((\w+)\);$/.exec(l);
+        return v !== null && new RegExp(String.raw`\n\s*let mut ${v[1]}: crate::value::List = `).test('\n' + body); };
+    const tail = body.trimEnd().split('\n').pop() ?? '';
+    if (!/^ {8}return\b/.test(tail) || !rets.every((l) => /^\s*return Value::from\(vec!\[.*\]\);$/.test(l) || listLocal(l))) return content;
+    const b = body.replace(/^(\s*return )Value::from\((vec!\[.*\])\);$/gm, '$1std::sync::Arc::new($2);')
+        .replace(/^(\s*return )Value::Arr\((\w+)\);$/gm, '$1$2;');
+    content = content.replace(decl, () => `${d[1]}crate::value::List${d[2]}${b.trimEnd()}\n}`);
+    const head = /\bself\.parse_ws_ohlcv\(/g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec(content)) !== null) {
+        const lineStart = content.lastIndexOf('\n', m.index) + 1;
+        if (/^\s*(?:\/\/|\*)/.test(content.slice(lineStart, m.index))) continue;
+        const close = balancedCloseIndex(content, m.index + m[0].length);
+        const call = content.slice(m.index, close + 1);
+        const conv = content.slice(close + 1).match(/^\.into_list\(\)/);
+        out += content.slice(last, m.index) + (conv !== null ? call : `Value::Arr(${call})`);
+        last = close + 1 + (conv?.[0].length ?? 0);
+        head.lastIndex = last;
+    }
+    return out + content.slice(last);
+}
 //
 // unit slot 081
 //
@@ -9112,6 +9141,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     rustTypedLiteralParsers,
     //
     // pass slot 080
+    typeWsOhlcvReturns,
     //
     // pass slot 081
     //
