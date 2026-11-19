@@ -982,13 +982,13 @@ export default class lighter extends Exchange {
                 }
             }
         }
-        let order: NullableDict = undefined;
-        if (totalOrderRequests > 0) {
-            order = orderRequests[0];
+        if (totalOrderRequests < 1) {
+            throw new InvalidOrder (this.id + ' createOrder() built no order request');
         }
+        const order: Dict = orderRequests[0];
         // the nonce could be updated
         if (this.safeInteger (order, 'nonce') === undefined) {
-            (order as Dict)['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
+            order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
         }
         let txType: Str = undefined;
         let txInfo: Dict;

@@ -1222,15 +1222,12 @@ public partial class lighter : Exchange
                 }
             }
         }
-        object order = null;
-        if (totalOrderRequests > 0)
-        {
-            order = (orderRequests != null && 0 < orderRequests.Count ? orderRequests[0] : null);
-        }
+        // createOrderRequest always returns at least the primary order
+        Dictionary<string, object> order = ((Dictionary<string, object>)(orderRequests != null && 0 < orderRequests.Count ? orderRequests[0] : null));
         // the nonce could be updated
         if ((this.safeInteger(order, "nonce") == null))
         {
-            ((IDictionary<string,object>)order)["nonce"] = await this.FetchNonce(accountIndex, apiKeyIndex);
+            order["nonce"] = await this.FetchNonce(accountIndex, apiKeyIndex);
         }
         object txType = null;
         object txInfo = null;

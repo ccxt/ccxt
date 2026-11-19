@@ -94,28 +94,28 @@ public partial class BaseExchange
         return this.formatSignedLighterTx(signedTx);
     }
 
-    public List<object> lighterSignCreateOrder(object signer, object request)
+    public List<object> lighterSignCreateOrder(object signer, IDictionary<string, object> request)
     {
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignCreateOrder(
-            Convert.ToInt32(getValue(request, "market_index")),
-            Convert.ToInt64(getValue(request, "client_order_index")),
-            Convert.ToInt64(getValue(request, "base_amount")),
-            Convert.ToInt32(getValue(request, "avg_execution_price")),
-            Convert.ToInt32(getValue(request, "is_ask")),
-            Convert.ToInt32(getValue(request, "order_type")),
-            Convert.ToInt32(getValue(request, "time_in_force")),
-            Convert.ToInt32(getValue(request, "reduce_only")),
-            Convert.ToInt32(getValue(request, "trigger_price")),
-            Convert.ToInt64(getValue(request, "order_expiry")),
-            Convert.ToInt64(getValue(request, "integrator_account_index")),
-            Convert.ToInt32(getValue(request, "integrator_taker_fee")),
-            Convert.ToInt32(getValue(request, "integrator_maker_fee")),
+            Convert.ToInt32((request != null && request.ContainsKey("market_index") ? request["market_index"] : null)),
+            Convert.ToInt64((request != null && request.ContainsKey("client_order_index") ? request["client_order_index"] : null)),
+            Convert.ToInt64((request != null && request.ContainsKey("base_amount") ? request["base_amount"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("avg_execution_price") ? request["avg_execution_price"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("is_ask") ? request["is_ask"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("order_type") ? request["order_type"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("time_in_force") ? request["time_in_force"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("reduce_only") ? request["reduce_only"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("trigger_price") ? request["trigger_price"] : null)),
+            Convert.ToInt64((request != null && request.ContainsKey("order_expiry") ? request["order_expiry"] : null)),
+            Convert.ToInt64((request != null && request.ContainsKey("integrator_account_index") ? request["integrator_account_index"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("integrator_taker_fee") ? request["integrator_taker_fee"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("integrator_maker_fee") ? request["integrator_maker_fee"] : null)),
             Convert.ToByte(this.safeInteger(request, "self_trade_behavior_mode", 0)), // SelfTradeBehaviorExpireMaker
             Convert.ToByte(this.safeInteger(request, "self_trade_equality_mode", 0)), // SelfTradeEqualityAccountIndex
             0x1, // skip nonce
-            Convert.ToInt64(getValue(request, "nonce")),
-            Convert.ToInt32(getValue(request, "api_key_index")),
-            Convert.ToInt64(getValue(request, "account_index"))
+            Convert.ToInt64((request != null && request.ContainsKey("nonce") ? request["nonce"] : null)),
+            Convert.ToInt32((request != null && request.ContainsKey("api_key_index") ? request["api_key_index"] : null)),
+            Convert.ToInt64((request != null && request.ContainsKey("account_index") ? request["account_index"] : null))
         );
         return this.formatSignedLighterTx(signedTx);
     }
