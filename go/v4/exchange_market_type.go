@@ -202,7 +202,7 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
 		PanicOnError(market)
 		if sameTypeOnly && (marketType != nil) {
 			if derefScalar(market["type"]) != any(*marketType) {
-				panic(BadRequest(Add(Add(Add(Add(this.Id+" symbols must be of the same type, either ", marketType), " or "), market["type"]), ".")))
+				panic(BadRequest(Add(Add(this.Id+" symbols must be of the same type, either "+*marketType+" or ", market["type"]), ".")))
 			}
 		}
 		if sameSubTypeOnly && (isLinearSubType != nil) {
@@ -211,7 +211,7 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
 			}
 		}
 		if (typeVar != nil) && derefScalar(GetValue(market, "type")) != any(*typeVar) {
-			panic(BadRequest(Add(Add(this.Id+" symbols must be of the same type ", typeVar), ". If the type is incorrect you can change it in options or the params of the request")))
+			panic(BadRequest(this.Id + " symbols must be of the same type " + *typeVar + ". If the type is incorrect you can change it in options or the params of the request"))
 		}
 		marketType = this.SafeString(market, "type")
 		if GetValue(market, "spot") != true {

@@ -1443,11 +1443,11 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	msgHash := parseStarknetBigInt(a)
 	privateKey := parseStarknetBigInt(b)
 	if msgHash == nil || privateKey == nil {
-		panic(AuthenticationError(Add(this.Id, " extendedStarknetSign() invalid msgHash or privateKey")))
+		panic(AuthenticationError(this.Id+" extendedStarknetSign() invalid msgHash or privateKey"))
 	}
 	r, s, err := starknetSign(msgHash, privateKey)
 	if err != nil {
-		panic(AuthenticationError(Add(this.Id, Add(" extendedStarknetSign() failed: ", err.Error()))))
+		panic(AuthenticationError(this.Id+" extendedStarknetSign() failed: "+err.Error()))
 	}
 	return this.Json([]any{r.String(), s.String()})
 }
@@ -1459,13 +1459,13 @@ func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) string {
 func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) string {
 	values, ok := derefScalar(a).([]any)
 	if !ok {
-		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
+		panic(ExchangeError(this.Id+" extendedStarknetComputePoseidonHashOnElements() requires an array"))
 	}
 	felts := make([]*starkfelt.Felt, 0, len(values))
 	for _, value := range values {
 		bigValue := parseStarknetBigInt(value)
 		if bigValue == nil {
-			panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() invalid felt value")))
+			panic(ExchangeError(this.Id+" extendedStarknetComputePoseidonHashOnElements() invalid felt value"))
 		}
 		felts = append(felts, new(starkfelt.Felt).SetBigInt(bigValue))
 	}
@@ -2399,7 +2399,7 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResul
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		_ = outcomeSymbol
-		panic(NotSupported(Add(this.Id, " fetchOutcome() is not supported yet")))
+		panic(NotSupported(this.Id+" fetchOutcome() is not supported yet"))
 	}()
 	return ch
 }
@@ -2413,7 +2413,7 @@ func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncRes
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		_ = outcomeSymbols
-		panic(NotSupported(Add(this.Id, " fetchOutcomes() is not supported yet")))
+		panic(NotSupported(this.Id+" fetchOutcomes() is not supported yet"))
 	}()
 	return ch
 }
@@ -2423,7 +2423,7 @@ func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncRes
 func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 	_ = tx
 	_ = privateKey
-	panic(NotSupported(Add(this.Id, " signEvmTransaction() is not supported yet")))
+	panic(NotSupported(this.Id+" signEvmTransaction() is not supported yet"))
 }
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
@@ -2437,7 +2437,7 @@ func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResu
 		_ = queries
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
+		panic(NotSupported(this.Id+" fetchEvents() is not supported yet"))
 	}()
 	return ch
 }
