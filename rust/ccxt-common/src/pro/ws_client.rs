@@ -1058,21 +1058,26 @@ impl ClientHandle {
             (other, _) => crate::runtime::add_element_to_object(other, key, val),
         })
     }
-    /// `key in client.subscriptions`, read from the handle's snapshot.
-    pub fn has_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.subscriptions, key.into()) }
+    /// `client.subscriptions|futures` as the live registry serves it now (what `get_value(&client, ..)` reads),
+    /// so a key test after another writer touched the client sees that write; the snapshot without a url.
+    fn field(&self, k: &str) -> Option<Value> {
+        match &self.url { Value::Str(u) => Some(client_field_live(u, k)), _ => None }
+    }
+    /// `key in client.subscriptions`, read live.
+    pub fn has_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("subscriptions").as_ref().unwrap_or(&self.subscriptions), key.into()) }
     /// `client.subscriptions[key]` (Null when absent).
-    pub fn get_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(&self.subscriptions, key.into()) }
+    pub fn get_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(self.field("subscriptions").as_ref().unwrap_or(&self.subscriptions), key.into()) }
     /// `Object.keys(client.subscriptions)` (internal tags filtered).
     pub fn subscription_keys(&self) -> Vec<Value> {
-        crate::runtime::object_keys(&self.subscriptions).as_array().cloned().unwrap_or_default()
+        crate::runtime::object_keys(self.field("subscriptions").as_ref().unwrap_or(&self.subscriptions)).as_array().cloned().unwrap_or_default()
     }
     /// `key in client.futures`, read from the handle's snapshot.
-    pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.futures, key.into()) }
+    pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("futures").as_ref().unwrap_or(&self.futures), key.into()) }
     /// `client.futures[key]` (Null when absent).
-    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Flight { Flight::from(&handle_get(&self.futures, key.into())) }
+    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Flight { Flight::from(&handle_get(self.field("futures").as_ref().unwrap_or(&self.futures), key.into())) }
     /// `Object.keys(client.futures)`.
     pub fn future_keys(&self) -> Vec<Value> {
-        crate::runtime::object_keys(&self.futures).as_array().cloned().unwrap_or_default()
+        crate::runtime::object_keys(self.field("futures").as_ref().unwrap_or(&self.futures)).as_array().cloned().unwrap_or_default()
     }
     pub fn future(&self, hash: impl Into<Value>) -> Flight {
         self.value.future(hash)
