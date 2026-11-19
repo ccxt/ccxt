@@ -3174,14 +3174,16 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 				triggerOrderSide = "buy"
 			}
 			if hasTakeProfit {
-				var orderObj map[string]any = this.CreateOrderRequest(*symbol, takeProfitOrderType, SafeStringPtr(triggerOrderSide), amount, takeProfitOrderLimitPrice, this.Extend(orderParams, map[string]any{
+				triggerOrderSideStr := triggerOrderSide
+				var orderObj map[string]any = this.CreateOrderRequest(*symbol, takeProfitOrderType, &triggerOrderSideStr, amount, takeProfitOrderLimitPrice, this.Extend(orderParams, map[string]any{
 					"takeProfitPrice": takeProfitOrderTriggerPrice,
 					"reduceOnly":      true,
 				}))
 				orderReq = append(orderReq, orderObj)
 			}
 			if hasStopLoss {
-				var orderObj map[string]any = this.CreateOrderRequest(*symbol, stopLossOrderType, SafeStringPtr(triggerOrderSide), amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]any{
+				triggerOrderSideStr2 := triggerOrderSide
+				var orderObj map[string]any = this.CreateOrderRequest(*symbol, stopLossOrderType, &triggerOrderSideStr2, amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]any{
 					"stopLossPrice": stopLossOrderTriggerPrice,
 					"reduceOnly":    true,
 				}))

@@ -47,9 +47,11 @@ func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ..
 	// at first, check from market object
 	if market != nil {
 		if GetValue(market, "linear") == true {
-			subType = SafeStringPtr("linear")
+			linearType := "linear"
+			subType = &linearType
 		} else if GetValue(market, "inverse") == true {
-			subType = SafeStringPtr("inverse")
+			inverseType := "inverse"
+			subType = &inverseType
 		}
 	}
 	// if it was not defined in market object

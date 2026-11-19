@@ -6611,7 +6611,7 @@ function goPtrHoistIsString (v: string, func: string): boolean {
     }
     if (/^\w+$/.test (v)) {
         const decls = func.match (new RegExp ('(?:\\bvar ' + v + ' \\S|\\b' + v + ',? [^\\n]*:=|[(,] ?' + v + ' \\S)', 'g')) ?? [];
-        return (decls.length === 1) && new RegExp ('\\bvar ' + v + ' string = ').test (func);
+        return (decls.length === 1) && new RegExp ('\\bvar ' + v + ' string = |^func [^\\n]*[(,] ?' + v + ' string[,)]').test (func.replace (/^\n/, ''));
     }
     return false;
 }
@@ -6636,6 +6636,24 @@ function goSafeStringPtrHoist (content: string): string {
             used.add (name);
             lines[i] = m[1] + name + ' := ' + v + '\n' + m[1] + m[2] + '&' + name + rest;
         }
+        // a call argument `F(.., SafeStringPtr(v), ..)` on a plain statement line: copy v just before it
+        for (let i = 0; i < lines.length; i++) {
+            const lead = /^(\s*)(?:var \w+ [^=\n]+ = |\w+ = |\w+ := |return )?[\w.]+\(/.exec (lines[i]);
+            if ((lead === null) || lines[i].includes ('func(') || /^\s*return (?:ccxt\.)?SafeStringPtr\(/.test (lines[i])) { continue; }
+            const copies: string[] = [];
+            const line = lines[i];
+            lines[i] = line.replace (/(?<![\w.])(?:ccxt\.)?SafeStringPtr\(("(?:[^"\\]|\\.)*"|\w+)\)(?=[,)])/g, (whole: string, v: string) => {
+                if ((v[0] !== '"') && (line.split (new RegExp ('\\b' + v + '\\b')).length !== 2)) { return whole; }
+                if (!goPtrHoistIsString (v, func)) { return whole; }
+                const base = ((v[0] === '"') ? 'arg' : v) + 'Str';
+                let name = base;
+                for (let n = 2; used.has (name) || new RegExp ('\\b' + name + '\\b').test (func); n++) { name = base + n; }
+                used.add (name);
+                copies.push (lead[1] + name + ' := ' + v + '\n');
+                return '&' + name;
+            });
+            lines[i] = copies.join ('') + lines[i];
+        }
         return lines.join ('\n');
     }).join ('');
 }
@@ -6647,9 +6665,12 @@ function goSafeStringPtrHoistCheck (): string[] {
         [ '\tvar h *string = ccxt.SafeStringPtr("a:" + market["symbol"].(string)) // c\n', '\thStr := "a:" + market["symbol"].(string)\n\tvar h *string = &hStr // c\n' ],
         [ '\treturn SafeStringPtr(strings.ToLower(*b))\n', '\tretStr := strings.ToLower(*b)\n\treturn &retStr\n' ],
         [ '\tvar m string = "q"\n\treturn SafeStringPtr(m)\n', '\tvar m string = "q"\n\tretStr := m\n\treturn &retStr\n' ],
+        [ '\tvar m string = "q"\n\tm = "r"\n\tvar o any = this.G(a, SafeStringPtr(m), b)\n', '\tmStr := m\n\tvar o any = this.G(a, &mStr, b)\n' ],
+        [ '\tthis.G(SafeStringPtr("c"))\n', '\targStr := "c"\n\tthis.G(&argStr)\n' ],
     ];
     const keep = [ '\treturn SafeStringPtr(a)\n', '\treturn SafeStringPtr(Add(a, "x"))\n', '\treturn SafeStringPtr(this.ForceString(a))\n',
         '\treturn SafeStringPtr("x"), this.M()\n', '\tvar h *string = SafeStringPtr("x") + y\n', '\treturn SafeStringPtr(f("a") + g(a))\n',
+        '\tthis.G(SafeStringPtr(a))\n', '\tif this.G(SafeStringPtr("x")) {\n', '\tvar m string = "q"\n\tthis.G(SafeStringPtr(m), m)\n',
         '\tvar retStr any = nil\n\treturn SafeStringPtr("x")\n' ];
     const problems: string[] = [];
     for (const [ i, o ] of cases) { if (!f (i).includes (o)) { problems.push ('ptr hoist: ' + JSON.stringify (f (i))); } }

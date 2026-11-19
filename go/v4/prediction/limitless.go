@@ -3494,7 +3494,8 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 	if outcomeIndex != nil && *outcomeIndex == 0 {
 		label = "yes"
 	}
-	var outcome any = this.GetOutcomeBySlugAndLabel(slug, ccxt.SafeStringPtr(label), market)
+	labelStr := label
+	var outcome any = this.GetOutcomeBySlugAndLabel(slug, &labelStr, market)
 	var tradeOutcome *string = this.SafeString(outcome, "outcome")
 	return this.SafePredictionTrade(map[string]any{
 		"id":           id,

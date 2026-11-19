@@ -2854,7 +2854,8 @@ func (this *Kucoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 			}
 		}
 		if symbolResolved == nil {
-			var suffix string = this.GetOrdersMessageHashSuffix(ccxt.SafeStringPtr(topic))
+			topicStr := topic
+			var suffix string = this.GetOrdersMessageHashSuffix(&topicStr)
 			messageHash = messageHash + suffix
 		}
 		var request map[string]any = map[string]any{
