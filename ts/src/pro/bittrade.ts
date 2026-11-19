@@ -431,7 +431,7 @@ export default class bittrade extends bittradeRest {
         bookside.store (price, amount);
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook) {
         //
         //     {
         //         "ch": "market.btcusdt.mbp.150",

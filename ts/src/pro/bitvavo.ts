@@ -754,7 +754,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: WsOrderBook) {
         //
         //     {
         //         "event": "book",
