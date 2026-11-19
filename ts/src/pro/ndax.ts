@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import ndaxRest from '../ndax.js';
-import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -36,7 +36,7 @@ export default class ndax extends ndaxRest {
         });
     }
 
-    requestId (): number {
+    requestId (): int {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
@@ -204,8 +204,8 @@ export default class ndax extends ndaxRest {
             const market = this.market (symbol);
             const marketId = this.safeString (market, 'id', '');
             const messageHash = name + ':' + marketId;
-            const tradesArray = this.safeValue (this.trades, symbol);
-            client.resolve (tradesArray, messageHash);
+            const symbolTrades = this.safeValue (this.trades, symbol);
+            client.resolve (symbolTrades, messageHash);
         }
     }
 
@@ -306,7 +306,12 @@ export default class ndax extends ndaxRest {
                     this.safeFloat (ohlcv, 4),
                     this.safeFloat (ohlcv, 5),
                 ];
-                const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
+                if (stored === undefined) {
+                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                    stored = new ArrayCacheByTimestamp (limit);
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
                 const length: number = stored.length;
                 const previous = this.safeValue (stored, length - 1);
                 const previousTimestamp = this.safeInteger (previous, 0);
@@ -329,14 +334,14 @@ export default class ndax extends ndaxRest {
                             low = previousLow;
                         }
                     }
-                    stored[length - 1] = [
+                    stored.append ([
                         candleTimestamp,
                         this.safeFloat (previous, 1),
                         high,
                         low,
                         this.safeFloat (ohlcv, 4),
                         this.sum (this.safeFloat (ohlcv, 5), this.safeFloat (previous, 5)),
-                    ];
+                    ]);
                     if (marketId !== undefined) {
                         marketUpdates[timeframe] = true;
                     }
@@ -346,16 +351,11 @@ export default class ndax extends ndaxRest {
                             continue;
                         }
                     }
-                    stored.push (parsed);
-                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                    if (length >= limit) {
-                        stored.shift ();
-                    }
+                    stored.append (parsed);
                     if (marketId !== undefined) {
                         marketUpdates[timeframe] = true;
                     }
                 }
-                this.ohlcvs[symbol][timeframe] = stored;
             }
             if (marketId !== undefined) {
                 updates[marketId] = marketUpdates;
@@ -371,8 +371,8 @@ export default class ndax extends ndaxRest {
                 const messageHash = name + ':' + timeframe + ':' + marketId;
                 const market = this.safeMarket (marketId);
                 const symbol = this.safeString (market, 'symbol', '');
-                const stored = this.safeList (this.safeValue (this.ohlcvs, symbol), timeframe, []);
-                client.resolve (stored, messageHash);
+                const symbolOhlcv = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
+                client.resolve (symbolOhlcv, messageHash);
             }
         }
     }
@@ -563,7 +563,7 @@ export default class ndax extends ndaxRest {
         //
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const id = this.safeInteger (message, 'i');
-        const subscription = (id === undefined) ? undefined : this.safeDict (subscriptionsById, id);
+        const subscription = this.safeDict (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {

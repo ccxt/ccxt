@@ -1262,7 +1262,7 @@ class dydx extends Exchange {
         return $this->parse_positions($rows, $symbols);
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return $this->hash($message, 'keccak', 'hex');
     }
 
@@ -1301,7 +1301,7 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, mixed $account, mixed $authenticators, mixed $fee = null): string {
+    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, array $account, mixed $authenticators, mixed $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_dydx_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         $signatureR = $this->safe_string($signature, 'r', '');
@@ -2042,7 +2042,7 @@ class dydx extends Exchange {
         $account = Async\await($this->fetch_dydx_account());
         $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
         $payload = null;
-        $signingPayload = null;
+        $signingPayload = array();
         if ($fromAccount === 'main') {
             // deposit to subaccount
             if ($toSubaccountId === null) {

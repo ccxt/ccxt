@@ -410,8 +410,14 @@ class bithumb extends Exchange {
         if (($marketId !== null) && (mb_strpos($marketId, '-') !== false)) {
             return $marketId;
         }
-        $quoteId = $this->safe_string_2($market, 'quoteId', 'quote', '');
-        $baseId = $this->safe_string_2($market, 'baseId', 'base', '');
+        $quoteId = $this->safe_string($market, 'quoteId');
+        if ($quoteId === null) {
+            $quoteId = $this->safe_string($market, 'quote', '');
+        }
+        $baseId = $this->safe_string($market, 'baseId');
+        if ($baseId === null) {
+            $baseId = $this->safe_string($market, 'base', '');
+        }
         return $quoteId . '-' . $baseId;
     }
 
@@ -556,7 +562,6 @@ class bithumb extends Exchange {
             $results = $promises;
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
-                $quoteId = $quote;
                 $response = $this->safe_dict($results, $i);
                 $data = $this->safe_dict($response, 'data', array());
                 $extension = $this->safe_dict($quoteCurrencies, $quote, array());
@@ -585,7 +590,7 @@ class bithumb extends Exchange {
                         'quote' => $quote,
                         'settle' => null,
                         'baseId' => $currencyId,
-                        'quoteId' => $quoteId,
+                        'quoteId' => $quote,
                         'settleId' => null,
                         'type' => 'spot',
                         'spot' => true,
@@ -2023,9 +2028,8 @@ class bithumb extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
             }
-            $marketDefined = $market;
-            $base = $this->safe_string($marketDefined, 'base');
-            $quote = $this->safe_string($marketDefined, 'quote');
+            $base = $this->safe_string($market, 'base');
+            $quote = $this->safe_string($market, 'quote');
             if (($base === null) || ($quote === null)) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a market with defined base and quote');
             }
@@ -2579,9 +2583,8 @@ class bithumb extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
             }
-            $marketDefined = $market;
-            $base = $this->safe_string($marketDefined, 'base');
-            $quote = $this->safe_string($marketDefined, 'quote');
+            $base = $this->safe_string($market, 'base');
+            $quote = $this->safe_string($market, 'quote');
             if (($base === null) || ($quote === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a market with defined base and quote');
             }
@@ -3400,9 +3403,7 @@ class bithumb extends Exchange {
                 );
             }
         }
-        $headersResult = $requestHeaders;
-        $bodyResult = $requestBody;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {

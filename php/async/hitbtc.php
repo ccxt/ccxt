@@ -999,8 +999,7 @@ class hitbtc extends Exchange {
     public function parse_currency(array $currency): array {
         $currencyId = $this->safe_string($currency, '_coin_id');
         $code = $this->safe_currency_code($currencyId);
-        $entry = $currency;
-        $rawNetworks = $this->safe_list($entry, 'networks', array());
+        $rawNetworks = $this->safe_list($currency, 'networks', array());
         $networks = array();
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
@@ -1033,14 +1032,14 @@ class hitbtc extends Exchange {
             }
         }
         return $this->safe_currency_structure(array(
-            'info' => $entry,
+            'info' => $currency,
             'code' => $code,
             'id' => $currencyId,
-            'precision' => $this->safe_number($entry, 'precision_transfer'),
-            'name' => $this->safe_string($entry, 'full_name'),
-            'active' => !$this->safe_bool($entry, 'delisted', false),
-            'deposit' => $this->safe_bool($entry, 'payin_enabled'),
-            'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
+            'precision' => $this->safe_number($currency, 'precision_transfer'),
+            'name' => $this->safe_string($currency, 'full_name'),
+            'active' => !$this->safe_bool($currency, 'delisted', false),
+            'deposit' => $this->safe_bool($currency, 'payin_enabled'),
+            'withdraw' => $this->safe_bool($currency, 'payout_enabled'),
             'networks' => $networks,
             'fee' => null,
             'limits' => array(
@@ -3568,7 +3567,7 @@ class hitbtc extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "contract_type": "perpetual",

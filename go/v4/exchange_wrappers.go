@@ -2851,7 +2851,7 @@ func (this *Exchange) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 	var res string = ToString(r.Value)
 	return res, nil
 }
-func (this *Exchange) FetchUnifiedOrder(order any, options ...FetchUnifiedOrderOptions) (Order, error) {
+func (this *Exchange) FetchUnifiedOrder(order Order, options ...FetchUnifiedOrderOptions) (Order, error) {
 
 	opts := FetchUnifiedOrderOptionsStruct{}
 

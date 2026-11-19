@@ -1093,7 +1093,7 @@ class digifinex(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             rawTicker = self.extend({
                 'date': date,
-            }, self.safe_value(tickers, i))
+            }, self.safe_dict(tickers, i))
             ticker = self.parse_ticker(rawTicker)
             symbol = ticker['symbol']
             if symbol is not None:
@@ -1169,12 +1169,10 @@ class digifinex(Exchange, ImplicitAPI):
         #
         date = self.safe_integer(response, 'date')
         tickers = self.safe_list(response, 'ticker', [])
-        data = self.safe_dict(response, 'data', {})
         firstTicker = self.safe_dict(tickers, 0, {})
-        result = data
         if not self.safe_bool(market, 'swap', False):
-            result = self.extend({'date': date}, firstTicker)
-        return self.parse_ticker(result, market)
+            return self.parse_ticker(self.extend({'date': date}, firstTicker), market)
+        return self.parse_ticker(self.safe_dict(response, 'data', {}), market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1833,11 +1831,9 @@ class digifinex(Exchange, ImplicitAPI):
             quantity = None
             createMarketBuyOrderRequiresPrice, paramsRequiresPrice = self.handle_option_bool_and_params(paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', True)
             isMarketBuy = isMarketOrder and (side == 'buy')
-            keysToOmit = None
+            keysToOmit = ['postOnly']
             if isMarketBuy:
-                keysToOmit = ['cost', 'postOnly']
-            else:
-                keysToOmit = ['postOnly']
+                keysToOmit.append('cost')
             paramsRequest = self.omit(paramsRequiresPrice, keysToOmit)
             if isMarketBuy:
                 cost = self.safe_number(paramsRequiresPrice, 'cost')
@@ -3186,7 +3182,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "unrealized_pnl": "-0.049158102631998504"
         #     }
         #
-        rows = self.safe_list(response, 'positions')
+        rows = self.safe_list(response, 'positions', [])
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -3379,7 +3375,7 @@ class digifinex(Exchange, ImplicitAPI):
         """
         return self.fetch_funding_rate(symbol, params)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::limitless::LimitlessCore;
+use super::limitless::Limitless;
 use crate::exchange::ExchangeRuntime;
 
-impl LimitlessCore {
+impl Limitless {
     /// Auto-generated wrapper for the `limitlessPublicGetMarketsActive` implicit endpoint.
     pub async fn limitless_public_get_markets_active(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("limitless_public_get_markets_active".into()), optional_args).await

@@ -3,12 +3,12 @@
 
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/kraken.js';
-import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
+import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
+import type { IndexType, Dictionary, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -572,6 +572,7 @@ export default class kraken extends Exchange {
                     ':IInsufficient funds': InsufficientFunds,
                     ':Cancel pending': CancelPending,
                     ':Rate limit exceeded': RateLimitExceeded,
+                    'trading restricted for': RestrictedLocation, // {"error":["EAccount:Invalid permissions:EUR/JPY trading restricted for AE."]}
                 },
             },
         });
@@ -646,7 +647,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const markets = this.safeDict (assetsResponse, 'result', {});
+        const markets: Dictionary<Dict> = this.safeDict (assetsResponse, 'result', {});
         const cachedCurrencies = this.safeDict (this.options, 'cachedCurrencies', {});
         const keys = Object.keys (markets);
         const result: List = [];
@@ -1142,7 +1143,7 @@ export default class kraken extends Exchange {
             request['pair'] = marketIds.join (',');
         }
         const response = await this.publicGetTicker (this.extend (request, params));
-        const tickers = this.safeDict (response, 'result', {});
+        const tickers: Dictionary<Dict> = this.safeDict (response, 'result', {});
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1369,7 +1370,7 @@ export default class kraken extends Exchange {
         //                                                    "fee": "0.0050000000",
         //                                                "balance": "0.0000051000"           },
         const result = this.safeDict (response, 'result', {});
-        const ledger = this.safeDict (result, 'ledger', {});
+        const ledger: Dictionary<Dict> = this.safeDict (result, 'ledger', {});
         const keys = Object.keys (ledger);
         const items: List = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1386,7 +1387,7 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const idsValue: any = ids.join (',');
+        const idsValue: string = ids.join (',');
         const request = this.extend ({
             'id': idsValue,
         }, params);
@@ -1846,7 +1847,7 @@ export default class kraken extends Exchange {
     findMarketByAltnameOrId (id: any): MarketInterface {
         const marketsByAltname = this.safeDict (this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
-            return marketsByAltname[id];
+            return this.safeDict (marketsByAltname, id) as MarketInterface;
         } else {
             return this.safeMarket (id);
         }
@@ -1866,7 +1867,7 @@ export default class kraken extends Exchange {
 
     getDelistedMarketById (id: Str): any {
         if (id === undefined) {
-            return id;
+            return undefined;
         }
         let market = this.safeDict (this.options['delistedMarketsById'], id);
         if (market !== undefined) {
@@ -2572,7 +2573,7 @@ export default class kraken extends Exchange {
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join (','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
-        const result = this.safeDict (response, 'result', {});
+        const result: Dictionary<Dict> = this.safeDict (response, 'result', {});
         const orders: List = [];
         const orderIds = Object.keys (result);
         for (let i = 0; i < orderIds.length; i++) {
@@ -2882,7 +2883,7 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const open = this.safeDict (result, 'open', {});
+        const open: Dictionary<Dict> = this.safeDict (result, 'open', {});
         const orders: List = [];
         const orderIds = Object.keys (open);
         for (let i = 0; i < orderIds.length; i++) {
@@ -2971,7 +2972,7 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const closed = this.safeDict (result, 'closed', {});
+        const closed: Dictionary<Dict> = this.safeDict (result, 'closed', {});
         const orders: List = [];
         const orderIds = Object.keys (closed);
         for (let i = 0; i < orderIds.length; i++) {

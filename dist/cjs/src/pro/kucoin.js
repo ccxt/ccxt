@@ -2938,8 +2938,7 @@ class kucoin extends kucoin$1["default"] {
         if (this.positions === undefined) {
             return undefined;
         }
-        const cache = this.positions.hashmap;
-        const symbolCache = this.safeDict(cache, symbol, {});
+        const symbolCache = this.safeDict(this.positions.hashmap, symbol, {});
         const values = Object.values(symbolCache);
         return this.safeDict(values, 0);
     }
@@ -3109,7 +3108,10 @@ class kucoin extends kucoin$1["default"] {
             }
         }
         const position = this.extend(currentPosition, newPosition);
-        cache.append(position);
+        // the cache exists once watchPosition(s) set it up
+        if (cache !== undefined) {
+            cache.append(position);
+        }
         client.resolve(position, messageHash);
     }
     handleUtaPosition(client, message) {

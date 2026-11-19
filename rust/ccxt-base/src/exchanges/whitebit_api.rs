@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::whitebit::WhitebitCore;
+use super::whitebit::Whitebit;
 use crate::exchange::ExchangeRuntime;
 
-impl WhitebitCore {
+impl Whitebit {
     /// Auto-generated wrapper for the `webGetV1Healthcheck` implicit endpoint.
     pub async fn web_get_v1_healthcheck(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("web_get_v1_healthcheck".into()), optional_args).await

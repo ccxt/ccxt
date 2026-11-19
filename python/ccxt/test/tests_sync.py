@@ -214,7 +214,7 @@ class testMainClass:
             return True
         skip_message = None
         supported_by_exchange = (method_name in exchange.has) and (exchange.has[method_name] is not None) and (exchange.has[method_name] is not False)
-        if not is_load_markets and ((len(self.only_specific_tests) > 0) and (exchange.in_array(method_name, self.only_specific_tests) is not True)):
+        if not is_load_markets and ((len(self.only_specific_tests) > 0) and not exchange.in_array(method_name, self.only_specific_tests)):
             skip_message = '[INFO] IGNORED_TEST'
         elif not is_load_markets and not supported_by_exchange and not is_proxy_test and not is_feature_test and not is_constructor_test:
             skip_message = '[INFO] UNSUPPORTED_TEST'  # keep it aligned with the longest message
@@ -2143,7 +2143,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended(), self.test_bit2me()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended(), self.test_bit2me()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -3084,22 +3084,21 @@ class testMainClass:
             close(exchange)
         return True
 
-    # testHyperliquid () {
-    #     const exchange = this.initOfflineExchange ('hyperliquid');
-    #     const id = '1';
-    #     let request: NullableDict = undefined;
-    #     try {
-    #         exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-    #     } catch (e) {
-    #         request = jsonParse (exchange.last_request_body);
-    #     }
-    #     const brokerId = (request['action']['brokerCode']).toString ();
-    #     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-    #     if (!isSync ()) {
-    #         close (exchange);
-    #     }
-    #     return true;
-    # }
+    def test_hyperliquid(self):
+        exchange = self.init_offline_exchange('hyperliquid')
+        exchange.options['approvedBuilderFee'] = True
+        id = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6'.lower()
+        request = {}
+        try:
+            exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        broker_id = str((request['action']['builder']['b']))
+        assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
+        if not is_sync():
+            close(exchange)
+        return True
+
     def test_coinbaseinternational(self):
         exchange = self.init_offline_exchange('coinbaseinternational')
         # ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one

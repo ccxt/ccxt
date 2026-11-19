@@ -170,11 +170,11 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 				this.Ohlcvs[*symbol]["unknown"] = stored
 			}
 		}
-		var ohlcv any
+		var ohlcv ccxt.WsArrayCache
 		if symbol != nil {
-			ohlcv = this.Ohlcvs[*symbol]["unknown"]
+			ohlcv, _ = this.Ohlcvs[*symbol]["unknown"].(ccxt.WsArrayCache)
 		}
-		ohlcv.(ccxt.Appender).Append(parsed)
+		ohlcv.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 	}
 	return message
@@ -854,7 +854,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var id *string = this.SafeString(order, "id")
-	var clientOrderId any = this.OmitZero(this.SafeString(order, "client_order_id"))
+	var clientOrderId *string = this.OmitZero(this.SafeString(order, "client_order_id"))
 	var price *string = this.SafeString(order, "price")
 	var filled *string = this.SafeString(order, "deal_stock")
 	var cost *string = this.SafeString(order, "deal_money")
@@ -1001,7 +1001,7 @@ func (this *Whitebit) SetBalanceCache(client any, typeVar *string, subscriptionH
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 		return
 	}
-	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshot bool = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true) == true
 	if fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
@@ -1032,8 +1032,8 @@ func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	this.Balance = this.Extend(response, this.Balance)
 	// don't remove the future from the .futures cache
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve()
+		var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance, subscriptionHash)
 	}
 	return nil
@@ -1152,12 +1152,12 @@ func (this *Whitebit) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Whitebit) WatchMultipleSubscriptionAsync(messageHash string, method string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Whitebit) WatchMultipleSubscriptionAsync(messageHash string, method string, symbol *string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMultipleSubscriptionBody(ch, messageHash, method, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any], messageHash string, method string, symbol any, optionalArgs ...any) any {
+func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any], messageHash string, method string, symbol *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isNested bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -1319,8 +1319,8 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 		ch <- ccxt.AsyncResult[int]{Value: authorized}
 		return nil
 	}
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(subscribeHash)
-	if authenticated != nil {
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(subscribeHash) != nil
+	if authenticated {
 
 		// a previous flight already completed the handshake on the client
 		ch <- ccxt.AsyncResult[int]{Value: authorized}
@@ -1330,7 +1330,7 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 	// during the fetch or the authorize round-trip finds it and waits
 	// instead of re-leading, and so client.reject () below always has a
 	// waiter and can never park the error in client.rejections
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 	{
 		func(this *Whitebit) (ret_ any) {
@@ -1402,7 +1402,7 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 	// rethrows the failure to the leader and attaches the handler that
 	// keeps an alone-leader rejection from crashing the process
 
-	r3 := <-future.(*ccxt.Future).Await()
+	r3 := <-future.Await()
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
@@ -1414,8 +1414,8 @@ func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) any
 	//
 	//     { error: null, result: { status: "success" }, id: 1656084550 }
 	//
-	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-	future.(*ccxt.Future).Resolve(1)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	future.Resolve(1)
 	return message
 }
 func (this *Whitebit) HandleErrorMessage(client any, message map[string]any) any {
@@ -1501,8 +1501,14 @@ func (this *Whitebit) HandleMessage(client any, message map[string]any) {
 func (this *Whitebit) HandleSubscriptionStatus(client any, message map[string]any, id *int64) {
 	// not every method stores its subscription
 	// as an object so we can't do indeById here
-	var subs any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
-	var values []any = ccxt.ObjectValues(subs)
+	var subs map[string]any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
+	var values []any = nil
+	if subs != nil {
+		values = make([]any, 0, len(subs))
+		for _, objectValue := range subs {
+			values = append(values, objectValue)
+		}
+	}
 	for i := 0; i < len(values); i++ {
 		var subscription any = values[i]
 		if subscription != true {

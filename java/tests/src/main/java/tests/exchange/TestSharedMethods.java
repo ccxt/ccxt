@@ -108,7 +108,7 @@ public class TestSharedMethods extends BaseTest {
         {
             Assert(exchange.isDictionary(entry), ("entry is not a dict" + logText));
             List<Object> keys = Helpers.objectKeys(format);
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (Helpers.inOp(skippedProperties, key))
@@ -149,8 +149,8 @@ public class TestSharedMethods extends BaseTest {
         Object keyNameOrIndex = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "timestamp";
         Object allowNull = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : true;
         Object logText = logTemplate(exchange, (String) (method), entry);
-        Object skipValue = exchange.safeValue(skippedProperties, keyNameOrIndex);
-        if (!java.util.Objects.equals(skipValue, null))
+        boolean skipValue = (exchange.safeValue(skippedProperties, keyNameOrIndex)) != null;
+        if (skipValue)
         {
             return;  // skipped
         }
@@ -186,8 +186,8 @@ public class TestSharedMethods extends BaseTest {
         Object keyNameOrIndex = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "timestamp";
         Object allowNull = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : true;
         Object logText = logTemplate(exchange, (String) (method), entry);
-        Object skipValue = exchange.safeValue(skippedProperties, keyNameOrIndex);
-        if (!java.util.Objects.equals(skipValue, null))
+        boolean skipValue = (exchange.safeValue(skippedProperties, keyNameOrIndex)) != null;
+        if (skipValue)
         {
             return;
         }
@@ -492,7 +492,7 @@ public class TestSharedMethods extends BaseTest {
             {
                 return;
             }
-            for (var i = 0; i < ((List<?>)decimalNumbers).size(); i++)
+            for (var i = 0; i < decimalNumbers.size(); i++)
             {
                 String num = (String) Helpers.GetValue(decimalNumbers, i);
                 String numStr = num;
@@ -520,17 +520,17 @@ public class TestSharedMethods extends BaseTest {
         {
             usedMethod = "fetchOrderBook";
             Object orderbook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol, (Long) null, new HashMap<String, Object>() {{}}})).join();
-            Object bids = exchange.safeList(orderbook, "bids", (Object) null);
-            Object asks = exchange.safeList(orderbook, "asks", (Object) null);
-            Object bestBidArray = exchange.safeList(bids, 0, (Object) null);
-            Object bestAskArray = exchange.safeList(asks, 0, (Object) null);
+            Object bids = exchange.safeList(orderbook, "bids", null);
+            Object asks = exchange.safeList(orderbook, "asks", null);
+            Object bestBidArray = exchange.safeList(bids, 0, null);
+            Object bestAskArray = exchange.safeList(asks, 0, null);
             bestBid = exchange.safeNumber(bestBidArray, 0, (Object) null);
             bestAsk = exchange.safeNumber(bestAskArray, 0, (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBidsAsks"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBidsAsks"), false)))
         {
             usedMethod = "fetchBidsAsks";
             Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBidsAsks", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
-            Object ticker = exchange.safeDict(tickers, symbol, (Object) null);
+            Object ticker = exchange.safeDict(tickers, symbol, null);
             bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
             bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTicker"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTicker"), false)))
@@ -543,7 +543,7 @@ public class TestSharedMethods extends BaseTest {
         {
             usedMethod = "fetchTickers";
             Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
-            Object ticker = exchange.safeDict(tickers, symbol, (Object) null);
+            Object ticker = exchange.safeDict(tickers, symbol, null);
             bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
             bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         }
@@ -564,7 +564,7 @@ public class TestSharedMethods extends BaseTest {
         Object sinceTime = Helpers.subtract(exchange.milliseconds(), ((1000L * 60L) * 5L));
         // iterate
         List<String> methods_singular = new ArrayList<String>(Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
-        for (var i = 0; i < ((List<?>)methods_singular).size(); i++)
+        for (var i = 0; i < methods_singular.size(); i++)
         {
             String singularFetchName = (String) Helpers.GetValue(methods_singular, i);
             if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, singularFetchName), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, singularFetchName), false)))
@@ -583,7 +583,7 @@ public class TestSharedMethods extends BaseTest {
         if (java.util.Objects.equals(fetchedOrder, null))
         {
             List<String> methods_plural = new ArrayList<String>(Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
-            for (var i = 0; i < ((List<?>)methods_plural).size(); i++)
+            for (var i = 0; i < methods_plural.size(); i++)
             {
                 String pluralFetchName = (String) Helpers.GetValue(methods_plural, i);
                 if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, pluralFetchName), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, pluralFetchName), false)))

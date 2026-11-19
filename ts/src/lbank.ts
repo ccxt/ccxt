@@ -538,8 +538,8 @@ export default class lbank extends Exchange {
             this.fetchSwapMarkets (params),
         ];
         const resolvedMarkets = await Promise.all (marketsPromises);
-        const spotMarkets = this.safeValue (resolvedMarkets, 0);
-        const swapMarkets = this.safeValue (resolvedMarkets, 1);
+        const spotMarkets = this.safeList (resolvedMarkets, 0, []);
+        const swapMarkets = this.safeList (resolvedMarkets, 1, []);
         return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
@@ -1393,7 +1393,7 @@ export default class lbank extends Exchange {
         return this.safeBalance (result);
     }
 
-    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: NullableDict, market: Market = undefined): FundingRate {
         // {
         //     "symbol": "BTCUSDT",
         //     "highestPrice": "69495.5",

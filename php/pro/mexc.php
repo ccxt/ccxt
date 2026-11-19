@@ -651,8 +651,8 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'candles:' . $symbolValue . ':' . $timeframe;
         $ohlcv = null;
         if ($this->safe_bool($market, 'spot', false)) {
-            $channel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $timeframeId;
-            $ohlcv = Async\await($this->watch_spot_public($channel, $messageHash, $params));
+            $spotChannel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $timeframeId;
+            $ohlcv = Async\await($this->watch_spot_public($spotChannel, $messageHash, $params));
         } else {
             $channel = 'sub.kline';
             $requestParams = array(
@@ -734,14 +734,14 @@ class mexc extends \ccxt\async\mexc {
         //    }
         // }
         //
-        $symbol = null;
+        $market = null;
         $timeframe = null;
         if (is_array($message) && array_key_exists('publicSpotKline' ?? '', $message)) {
-            $symbol = $this->symbol($this->safe_string($message, 'symbol'));
+            $market = $this->safe_market($this->symbol($this->safe_string($message, 'symbol')));
             $data = $this->safe_dict($message, 'publicSpotKline', array());
             $timeframeId = $this->safe_string($data, 'interval');
             $timeframe = $this->find_timeframe($timeframeId, $this->options['timeframes']);
-            $parsed = $this->parse_ws_ohlcv($data, $this->safe_market($symbol));
+            $parsed = $this->parse_ws_ohlcv($data, $market);
         } else {
             $d = $this->safe_dict_2($message, 'd', 'data', array());
             $rawOhlcv = $this->safe_dict($d, 'k', $d);
@@ -750,18 +750,17 @@ class mexc extends \ccxt\async\mexc {
             $timeframe = $this->find_timeframe($timeframeId, $timeframes);
             $marketId = $this->safe_string_2($message, 's', 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
             $parsed = $this->parse_ws_ohlcv($rawOhlcv, $market);
         }
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'candles:' . $symbol . ':' . $timeframe;
-        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $this->ohlcvs[$symbol] = $symbolOhlcvs;
-        $stored = $this->safe_value($symbolOhlcvs, $timeframe);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
             if ($timeframe !== null) {
-                $symbolOhlcvs[$timeframe] = $stored;
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
         }
         $stored->append($parsed);
@@ -853,8 +852,8 @@ class mexc extends \ccxt\async\mexc {
         $orderbook = null;
         if ($this->safe_bool($market, 'spot', false)) {
             list($frequency, $paramsFrequency) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'frequency', '100ms');
-            $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $this->safe_string($market, 'id', '');
-            $orderbook = Async\await($this->watch_spot_public($channel, $messageHash, $paramsFrequency));
+            $spotChannel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $this->safe_string($market, 'id', '');
+            $orderbook = Async\await($this->watch_spot_public($spotChannel, $messageHash, $paramsFrequency));
         } else {
             $channel = 'sub.depth';
             $requestParams = array(
@@ -1076,8 +1075,8 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'trades:' . $symbolValue;
         $trades = null;
         if ($this->safe_bool($market, 'spot', false)) {
-            $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
-            $trades = Async\await($this->watch_spot_public($channel, $messageHash, $params));
+            $spotChannel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
+            $trades = Async\await($this->watch_spot_public($spotChannel, $messageHash, $params));
         } else {
             $channel = 'sub.deal';
             $requestParams = array(

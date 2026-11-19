@@ -800,9 +800,9 @@ export default class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             const decimalPart = this.safeString (priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros = this.parseToInt (0);
+            let leadingZeros = 0;
             while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
-                leadingZeros = this.parseToInt (leadingZeros + 1);
+                leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
@@ -1433,7 +1433,7 @@ export default class hyperliquid extends Exchange {
         return this.parseFundingRates (result, symbolsNormalized);
     }
 
-    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "maxLeverage": "50",
@@ -4156,11 +4156,7 @@ export default class hyperliquid extends Exchange {
         };
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams2 (params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if (vaultAddress !== undefined) {
-            if (vaultAddress.startsWith ('0x')) {
-                vaultAddress = vaultAddress.replace ('0x', '');
-            }
-        }
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
             'action': updateAction,
@@ -5350,12 +5346,11 @@ export default class hyperliquid extends Exchange {
         }
         const url = this.implodeHostname (apiUrl) + '/' + path;
         const isPost = (method === 'POST');
-        const postHeaders: Dict = {
-            'Content-Type': 'application/json',
-        };
         let requestHeaders: NullableDict = undefined;
         if (isPost) {
-            requestHeaders = postHeaders;
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            };
         }
         let requestBody: Str = undefined;
         if (isPost) {

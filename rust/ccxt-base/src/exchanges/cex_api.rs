@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::cex::CexCore;
+use super::cex::Cex;
 use crate::exchange::ExchangeRuntime;
 
-impl CexCore {
+impl Cex {
     /// Auto-generated wrapper for the `publicPostGetServerTime` implicit endpoint.
     pub async fn public_post_get_server_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_post_get_server_time".into()), optional_args).await

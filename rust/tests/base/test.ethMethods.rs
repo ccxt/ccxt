@@ -14,8 +14,8 @@ pub fn testEthMethods() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut privateKey: Value = Value::Str("0x27c9c557bd398e354b57ba58046b055035c47788926eb53fcdb394769ef80e1b".into());
-    let mut publicKey: Value = Value::Str("0x3096cD9827766E03f8b6DF58996399406DC270Af".into());
-    let mut generatedAddress: Value = exchange.eth_get_address_from_private_key(privateKey.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(((if let Some(__s) = generatedAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == (if let Some(__s) = publicKey.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str()))));
+    let mut privateKey: String = "0x27c9c557bd398e354b57ba58046b055035c47788926eb53fcdb394769ef80e1b".to_string();
+    let mut publicKey: String = "0x3096cD9827766E03f8b6DF58996399406DC270Af".to_string();
+    let mut generatedAddress: Option<String> = exchange.eth_get_address_from_private_key(Value::from(privateKey), &[]).as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(((generatedAddress.as_deref().map(str::to_lowercase)).as_deref() == Some((publicKey.to_lowercase()).as_str())))));
 }

@@ -765,11 +765,13 @@ class bitstamp(ccxt.async_support.bitstamp):
         if (topic == 'orders') and (self.orders is not None):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             freshOrdersCache = ArrayCacheBySymbolById(limit)
-            self.orders = self.prune_cached_by_symbols(freshOrdersCache, self.orders, symbols)
+            self.prune_cached_by_symbols(freshOrdersCache, self.orders, symbols)
+            self.orders = freshOrdersCache
         elif (topic == 'myTrades') and (self.myTrades is not None):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             freshTradesCache = ArrayCacheBySymbolById(limit)
-            self.myTrades = self.prune_cached_by_symbols(freshTradesCache, self.myTrades, symbols)
+            self.prune_cached_by_symbols(freshTradesCache, self.myTrades, symbols)
+            self.myTrades = freshTradesCache
         else:
             self.clean_cache(subscription)
         self.clean_unsubscription(client, subHash, unsubHash)

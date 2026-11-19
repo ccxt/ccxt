@@ -102,7 +102,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             },
         })
 
-    def request_id(self):
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId
@@ -111,8 +111,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.isNativeDeribitCredentials() is True:
             return 'wss://www.deribit.com/ws/api/v2'
         if isPrivate:
-            return self.urls['api']['wsPrivate']
-        return self.urls['api']['ws']
+            return self.safe_string(self.urls['api'], 'wsPrivate', '')
+        else:
+            return self.safe_string(self.urls['api'], 'ws', '')
 
     def ping(self, client: Client) -> dict | Str:
         refreshAt = self.safe_integer(self.options, 'wsAuthRefreshAt')
@@ -224,7 +225,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.clean_unsubscription(client, self.safe_string(channels, i, ''), self.safe_string(unWatchMessageHashes, i, ''))
         return True
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -248,7 +249,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         self.balance = self.deep_extend(self.balance, parsed)
         client.resolve(self.balance, 'balance')
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches trades associated with the user
 
@@ -276,7 +277,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         trades = await self.subscribe([channel], [channel], True, paramsInterval)
         return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limit, True)
 
-    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> object:
+    async def un_watch_my_trades(self, symbol: Str = None, params: dict = {}) -> object:
         """
         stops watching user trades
 
@@ -310,7 +311,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.myTrades.append(trades[i])
         client.resolve(self.myTrades, channel)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on orders made by the user
 
@@ -341,7 +342,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             limitResolved = orders.getLimit(symbolResolved, limit)
         return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on orders made by the user for multiple symbols
 
@@ -371,7 +372,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         ordersForSymbols = self.filter_by_array(orders, 'symbol', symbolsResolved, False)
         return self.filter_by_since_limit(ordersForSymbols, since, limitResolved, 'timestamp', True)
 
-    async def un_watch_orders(self, symbol: Str = None, params={}) -> object:
+    async def un_watch_orders(self, symbol: Str = None, params: dict = {}) -> object:
         """
         stops watching user orders
 
@@ -409,7 +410,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.orders.append(orders[i])
         client.resolve(self.orders, channel)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         watches all open positions
 
@@ -443,7 +444,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             return positions
         return self.filter_by_symbols_since_limit(self.positions, symbolsResolved, since, limit, True)
 
-    async def un_watch_positions(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_positions(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         stops watching open positions
 
@@ -491,7 +492,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.positions.append(position)
         client.resolve(self.positions, channel)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         watch the current funding rate
 
@@ -534,7 +535,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             result[symbol] = self.parse_funding_rate(ticker['info'], self.market(symbol))
         return result
 
-    async def un_watch_funding_rate(self, symbol: str, params={}) -> object:
+    async def un_watch_funding_rate(self, symbol: str, params: dict = {}) -> object:
         """
         stops watching the funding rate for a symbol
 
@@ -549,7 +550,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         paramsResolved = self.handleRouteAndParams('unWatchFundingRate', params)
         return await self.un_watch_ticker(symbol, paramsResolved)
 
-    async def un_watch_funding_rates(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         stops watching funding rates for multiple symbols
 
@@ -586,7 +587,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channel = 'ticker.' + self.safe_string(market, 'id', '') + '.' + interval
         return await self.subscribe([channel], [channel], isPrivate, paramsInterval)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> object:
+    async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
         """
         stops watching a ticker
 
@@ -634,7 +635,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbolsResolved)
 
-    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         stops watching tickers
 
@@ -719,7 +720,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         paramsResolved = self.handleRouteAndParams('unWatchMarkPrices', params)
         return await self.un_watch_tickers(symbols, paramsResolved)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -747,7 +748,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsResolved)
 
-    async def un_watch_bids_asks(self, symbols: Strings = None, params={}) -> object:
+    async def un_watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> object:
         """
         stops watching best bid & ask for symbols
 
@@ -824,7 +825,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbolResolved, timeframe]], since, limit, paramsResolved)
         return ohlcvs[symbolResolved][timeframe]
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
         watches historical candlestick data for multiple markets and timeframes
 
@@ -861,7 +862,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         filtered = self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
         stops watching OHLCV data for a symbol
 
@@ -877,7 +878,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         paramsResolved = self.handleRouteAndParams('unWatchOHLCV', params)
         return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], paramsResolved)
 
-    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params={}) -> object:
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], params: dict = {}) -> object:
         """
         stops watching OHLCV data for multiple symbols and timeframes
 
@@ -984,7 +985,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             limitResolved = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         stops watching trades for a symbol
 
@@ -999,7 +1000,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         paramsResolved = self.handleRouteAndParams('unWatchTrades', params)
         return await self.un_watch_trades_for_symbols([symbol], paramsResolved)
 
-    async def un_watch_trades_for_symbols(self, symbols: list[str], params={}) -> object:
+    async def un_watch_trades_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
         """
         stops watching trades for multiple symbols
 
@@ -1060,7 +1061,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         paramsResolved = self.handleRouteAndParams('watchOrderBook', params)
         return await self.watch_order_book_for_symbols([symbol], limit, paramsResolved)
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1095,7 +1096,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         orderbook = await self.subscribe(channels, channels, isPrivate, paramsChannel)
         return orderbook.limit()
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         stops watching an order book
 
@@ -1110,7 +1111,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         paramsResolved = self.handleRouteAndParams('unWatchOrderBook', params)
         return await self.un_watch_order_book_for_symbols([symbol], paramsResolved)
 
-    async def un_watch_order_book_for_symbols(self, symbols: list[str], params={}) -> object:
+    async def un_watch_order_book_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
         """
         stops watching order books for multiple symbols
 
@@ -1213,7 +1214,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     def handle_deltas(self, bookside: object, deltas: list[object]):
         deltasLength = len(deltas)
         for i in range(0, deltasLength):
-            self.handle_delta(bookside, self.safe_value(deltas, i))
+            self.handle_delta(bookside, self.safe_list(deltas, i))
 
     def handle_error_message(self, client: Client, message: object) -> Bool:
         error = self.safe_dict(message, 'error')
@@ -1384,7 +1385,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order over websocket
 
@@ -1451,7 +1452,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         order['trades'] = self.safe_list(result, 'trades', [])
         return self.parse_order(order, market)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit a trade order over websocket
 
@@ -1486,7 +1487,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         order['trades'] = self.safe_list(result, 'trades', [])
         return self.parse_order(order, market)
 
-    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order over websocket
 
@@ -1508,7 +1509,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         result = await self.request_ws('private/cancel', self.extend({'order_id': id}, paramsResolved), True)
         return self.parse_order(result, market)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> list[Order]:
+    async def cancel_all_orders_ws(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancels all open orders over websocket
 
@@ -1534,7 +1535,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         result = await self.request_ws(method, paramsRequest, True)
         return [self.safe_order({'info': result})]
 
-    async def fetch_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_order_ws(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches an order over websocket
 
@@ -1556,7 +1557,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         result = await self.request_ws('private/get_order_state', self.extend({'order_id': id}, paramsResolved), True)
         return self.parse_order(result, market)
 
-    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches open orders over websocket
 
@@ -1582,7 +1583,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         result = await self.request_ws('private/get_open_orders_by_instrument', self.extend(request, paramsResolved), True)
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches order history over websocket
 
@@ -1609,7 +1610,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         orders = self.safe_list(result, 'orders', result)
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_balance_ws(self, params={}) -> Balances:
+    async def fetch_balance_ws(self, params: dict = {}) -> Balances:
         """
         fetches the balance over websocket
 
@@ -1630,7 +1631,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             balance = self.deep_extend(balance, self.parseBalanceList(summaries[i]))
         return self.safe_balance(balance)
 
-    async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetches user trades over websocket
 
@@ -1658,7 +1659,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_positions_ws(self, symbols: Strings = None, params={}) -> list[Position]:
+    async def fetch_positions_ws(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetches open positions over websocket
 

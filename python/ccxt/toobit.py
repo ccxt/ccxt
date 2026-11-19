@@ -1560,7 +1560,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(contract, 'rate')
@@ -2292,7 +2292,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType = self.handle_market_type_and_params('fetchClosedOrders', market, paramsUntil)[0]
         response = []
         if marketType == 'spot':
-            raise NotSupported(self.id + ' fetchOrders() is not supported for ' + marketType + ' markets')
+            raise NotSupported(self.id + ' fetchClosedOrders() is not supported for ' + marketType + ' markets')
         else:
             response = self.privateGetApiV1FuturesHistoryOrders(requestUntil)
             #
@@ -2583,9 +2583,8 @@ class toobit(Exchange, ImplicitAPI):
         # }
         #
         result = {}
-        entry = response
-        marketResolved = self.safe_market(self.safe_string(entry, 'symbol'), market)
-        fee = self.parse_trading_fee(entry, marketResolved)
+        marketResolved = self.safe_market(self.safe_string(response, 'symbol'), market)
+        fee = self.parse_trading_fee(response, marketResolved)
         result[marketResolved['symbol']] = fee
         return result
 

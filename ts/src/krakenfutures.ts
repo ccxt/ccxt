@@ -2359,7 +2359,7 @@ export default class krakenfutures extends Exchange {
                     executions.push (item);
                 }
                 // Final order (after placement / editing / execution / canceling)
-                const orderTrigger = this.safeValue (item, 'orderTrigger');
+                const orderTrigger = this.safeDict (item, 'orderTrigger');
                 if (details === undefined) {
                     details = this.safeValue2 (item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
@@ -3094,7 +3094,7 @@ export default class krakenfutures extends Exchange {
         return this.indexBy (fundingRates, 'symbol');
     }
 
-    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "PF_ENJUSD",
@@ -3571,7 +3571,7 @@ export default class krakenfutures extends Exchange {
         //        "tags": [],
         //    }
         //
-        const marginLevels = this.safeList (info, 'marginLevels');
+        const marginLevels: Dict[] | undefined = this.safeList (info, 'marginLevels');
         const marketId = this.safeString (info, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const tiers: LeverageTier[] = [];
@@ -3587,7 +3587,7 @@ export default class krakenfutures extends Exchange {
                 'symbol': this.safeSymbol (marketId, marketResolved),
                 'currency': marketResolved['quote'],
                 'minNotional': minNotional,
-                'maxNotional': this.safeNumber2 (this.safeValue (marginLevels, this.sum (i, 1)), 'numNonContractUnits', 'contracts'),
+                'maxNotional': this.safeNumber2 (this.safeDict (marginLevels, this.sum (i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMargin)),
                 'info': tier,

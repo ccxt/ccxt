@@ -1278,10 +1278,12 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             priceString = v3Price
         if (priceString is not None) and (amountString is not None):
-            cost = Precise.string_mul(priceString, amountString)
+            baseCost = Precise.string_mul(priceString, amountString)
             contractSize = self.safe_string(marketResolved, 'contractSize')
             if contractSize is not None:
-                cost = Precise.string_mul(cost, contractSize)
+                cost = Precise.string_mul(baseCost, contractSize)
+            else:
+                cost = baseCost
         else:
             cost = costString
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -2357,14 +2359,14 @@ class coinbase(Exchange, ImplicitAPI):
         totalUsdBalance = self.safe_string(totalUsdBalanceData, 'value')
         futuresBuyingPower = self.safe_string(futuresBuyingPowerData, 'value')
         if (totalUsdBalance is not None) or (futuresBuyingPower is not None):
-            total = totalUsdBalance if (totalUsdBalance is not None) else futuresBuyingPower
-            free = futuresBuyingPower if (futuresBuyingPower is not None) else total
-            used = Precise.string_sub(total, free)
+            usdTotal = totalUsdBalance if (totalUsdBalance is not None) else futuresBuyingPower
+            usdFree = futuresBuyingPower if (futuresBuyingPower is not None) else usdTotal
+            usdUsed = Precise.string_sub(usdTotal, usdFree)
             balanceResult = {'info': response}
             balanceResult['USD'] = {
-                'free': free,
-                'used': used,
-                'total': total,
+                'free': usdFree,
+                'used': usdUsed,
+                'total': usdTotal,
             }
             return self.safe_balance(balanceResult)
         balances = self.safe_list_2(response, 'data', 'accounts', [])
@@ -2397,17 +2399,17 @@ class coinbase(Exchange, ImplicitAPI):
                 if available is not None and hold is not None:
                     currencyId = self.safe_string(available, 'currency')
                     code = self.safe_currency_code(currencyId)
-                    used = self.safe_string(hold, 'value')
-                    free = self.safe_string(available, 'value')
-                    total = Precise.string_add(used, free)
+                    v3Used = self.safe_string(hold, 'value')
+                    v3Free = self.safe_string(available, 'value')
+                    v3Total = Precise.string_add(v3Used, v3Free)
                     account = self.safe_dict(result, code)
                     if account is None:
-                        account = self.extend(self.account(), {'free': free, 'used': used, 'total': total})
+                        account = self.extend(self.account(), {'free': v3Free, 'used': v3Used, 'total': v3Total})
                     else:
                         account = self.extend(account, {
-                            'free': Precise.string_add(self.safe_string(account, 'free'), free),
-                            'used': Precise.string_add(self.safe_string(account, 'used'), used),
-                            'total': Precise.string_add(self.safe_string(account, 'total'), total),
+                            'free': Precise.string_add(self.safe_string(account, 'free'), v3Free),
+                            'used': Precise.string_add(self.safe_string(account, 'used'), v3Used),
+                            'total': Precise.string_add(self.safe_string(account, 'total'), v3Total),
                         })
                     if code is not None:
                         result[code] = account

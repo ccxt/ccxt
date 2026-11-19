@@ -1138,8 +1138,8 @@ class p2b extends Exchange {
         }
         $untilParam = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
-        $until = $this->parse_to_int(0);
-        $sinceResolved = $this->parse_to_int(0);
+        $until = 0;
+        $sinceResolved = 0;
         if ($untilParam !== null) {
             $until = $this->parse_to_int($untilParam);
             if ($since !== null) {
@@ -1148,7 +1148,7 @@ class p2b extends Exchange {
                 }
                 $sinceResolved = $this->parse_to_int($since);
             } else {
-                $sinceResolved = $this->parse_to_int($untilParam - 86400000);
+                $sinceResolved = $untilParam - 86400000;
             }
         } elseif ($since !== null) {
             $until = $this->parse_to_int($since + 86400000);
@@ -1156,7 +1156,7 @@ class p2b extends Exchange {
         } else {
             $now = $this->milliseconds();
             $until = $this->parse_to_int($now);
-            $sinceResolved = $this->parse_to_int($now - 86400000);
+            $sinceResolved = $now - 86400000;
         }
         $market = $this->market($symbol);
         $sinceSec = $this->parse_to_int($sinceResolved / 1000);
@@ -1226,8 +1226,8 @@ class p2b extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $until = $this->parse_to_int(0);
-        $sinceResolved = $this->parse_to_int(0);
+        $until = 0;
+        $sinceResolved = 0;
         if ($untilParam !== null) {
             $until = $this->parse_to_int($untilParam);
             if ($since !== null) {
@@ -1236,7 +1236,7 @@ class p2b extends Exchange {
                 }
                 $sinceResolved = $this->parse_to_int($since);
             } else {
-                $sinceResolved = $this->parse_to_int($untilParam - 86400000);
+                $sinceResolved = $untilParam - 86400000;
             }
         } elseif ($since !== null) {
             $until = $this->parse_to_int($since + 86400000);
@@ -1244,7 +1244,7 @@ class p2b extends Exchange {
         } else {
             $now = $this->milliseconds();
             $until = $this->parse_to_int($now);
-            $sinceResolved = $this->parse_to_int($now - 86400000);
+            $sinceResolved = $now - 86400000;
         }
         $sinceSec = $this->parse_to_int($sinceResolved / 1000);
         $untilSec = $this->parse_to_int($until / 1000);

@@ -1176,7 +1176,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'positions', [])
         return self.parse_positions(rows, symbols)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: object, privateKey: object) -> dict:
@@ -1210,7 +1210,7 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: object, authenticators: object, fee: object = None) -> str:
+    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: dict, authenticators: object, fee: object = None) -> str:
         encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         signatureR = self.safe_string(signature, 'r', '')
@@ -1850,7 +1850,7 @@ class dydx(Exchange, ImplicitAPI):
         account = await self.fetch_dydx_account()
         usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
         payload = None
-        signingPayload = None
+        signingPayload = {}
         if fromAccount == 'main':
             # deposit to subaccount
             if toSubaccountId is None:

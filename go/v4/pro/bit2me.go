@@ -1027,9 +1027,9 @@ func (this *Bit2me) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		// the token is valid for one minute, it is only used to open the session
 
 		r := <-this.PrivatePostV1SigninApikey(params)
@@ -1048,7 +1048,7 @@ func (this *Bit2me) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		this.Watch(url, messageHash, request, messageHash)
 	}
 
-	r1 := <-future.(*ccxt.Future).Await()
+	r1 := <-future.Await()
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1073,8 +1073,8 @@ func (this *Bit2me) HandleAuthenticate(client any, message map[string]any) {
 	var error *string = this.SafeString(message, "error")
 	if error == nil {
 		// the future is reusable, every later authenticate() call awaits the same resolved value
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(message)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(message)
 	} else {
 		exception := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(exception, messageHash)

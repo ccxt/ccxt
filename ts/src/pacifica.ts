@@ -1176,7 +1176,7 @@ export default class pacifica extends Exchange {
         return this.parseFundingRates (result, symbols);
     }
 
-    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: NullableDict, market: Market = undefined): FundingRate {
         //
         //      {
         //         "funding": "0.00010529",
@@ -2861,7 +2861,7 @@ export default class pacifica extends Exchange {
     override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         const operationType = 'update_leverage';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();

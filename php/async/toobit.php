@@ -1662,7 +1662,7 @@ class toobit extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $nextFundingRate = $this->safe_number($contract, 'rate');
@@ -2514,7 +2514,7 @@ class toobit extends Exchange {
         $marketType = $this->handle_market_type_and_params('fetchClosedOrders', $market, $paramsUntil)[0];
         $response = array();
         if ($marketType === 'spot') {
-            throw new NotSupported($this->id . ' fetchOrders() is not supported for ' . $marketType . ' markets');
+            throw new NotSupported($this->id . ' fetchClosedOrders() is not supported for ' . $marketType . ' markets');
         } else {
             $response = Async\await($this->privateGetApiV1FuturesHistoryOrders($requestUntil));
             //
@@ -2846,9 +2846,8 @@ class toobit extends Exchange {
         // }
         //
         $result = array();
-        $entry = $response;
-        $marketResolved = $this->safe_market($this->safe_string($entry, 'symbol'), $market);
-        $fee = $this->parse_trading_fee($entry, $marketResolved);
+        $marketResolved = $this->safe_market($this->safe_string($response, 'symbol'), $market);
+        $fee = $this->parse_trading_fee($response, $marketResolved);
         $result[$marketResolved['symbol']] = $fee;
         return $result;
     }

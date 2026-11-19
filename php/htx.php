@@ -2894,9 +2894,9 @@ class htx extends Exchange {
         //         "ts": 1781066959396
         //     }
         //
-        $trades = $this->safe_value($response, 'data');
-        if ((gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades)))) {
-            $trades = $this->safe_list($trades, 'trades');
+        $trades = $this->safe_list($response, 'data');
+        if ($trades === null) {
+            $trades = $this->safe_list($this->safe_dict($response, 'data'), 'trades', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -3900,8 +3900,10 @@ class htx extends Exchange {
         //         "ts": 1780967407144
         //     }
         //
-        $rawOrder = $this->safe_value($response, 'data');
-        $order = (gettype($rawOrder) === 'array' && array_keys($rawOrder) === array_keys(array_keys($rawOrder))) ? $this->safe_dict($rawOrder, 0) : $rawOrder;
+        $order = $this->safe_dict($response, 'data');
+        if ($order === null) {
+            $order = $this->safe_dict($this->safe_list($response, 'data', array()), 0, array());
+        }
         return $this->parse_order($order, $market);
     }
 
@@ -4155,8 +4157,10 @@ class htx extends Exchange {
                 }
             }
         }
-        $rawOrders = $this->safe_value($response, 'data');
-        $orders = (gettype($rawOrders) === 'array' && array_keys($rawOrders) === array_keys(array_keys($rawOrders))) ? $rawOrders : $this->safe_list($rawOrders, 'orders', array());
+        $orders = $this->safe_list($response, 'data');
+        if ($orders === null) {
+            $orders = $this->safe_list($this->safe_dict($response, 'data'), 'orders', array());
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -4700,8 +4704,10 @@ class htx extends Exchange {
         //         "ts": 1780739390596
         //     }
         //
-        $rawOrders = $this->safe_value($response, 'data');
-        $orders = (gettype($rawOrders) === 'array' && array_keys($rawOrders) === array_keys(array_keys($rawOrders))) ? $rawOrders : $this->safe_list($rawOrders, 'orders', array());
+        $orders = $this->safe_list($response, 'data');
+        if ($orders === null) {
+            $orders = $this->safe_list($this->safe_dict($response, 'data'), 'orders', array());
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -4998,7 +5004,7 @@ class htx extends Exchange {
             );
         }
         $average = $this->safe_string($order, 'trade_avg_price');
-        $trades = $this->safe_value($order, 'trades');
+        $trades = $this->safe_list($order, 'trades');
         $reduceOnly = null;
         if ($isLinearOrder) {
             $reduceOnly = $this->safe_bool($order, 'reduce_only');
@@ -5758,8 +5764,8 @@ class htx extends Exchange {
         if ($this->safe_bool($market, 'spot', false)) {
             $result = $this->safe_list($response, 'data', array());
         } else {
-            $data = $this->safe_value($response, 'data');
-            if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+            $data = $this->safe_list($response, 'data');
+            if ($data !== null) {
                 $result = $data;
             } else {
                 $batchData = $this->safe_dict($response, 'data', array());
@@ -7272,7 +7278,7 @@ class htx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         // inverse swap
         //
@@ -7524,7 +7530,7 @@ class htx extends Exchange {
         //        ]
         //    }
         //
-        $data = $this->safe_list($response, 'data');
+        $data = $this->safe_list($response, 'data', array());
         $interest = $this->parse_borrow_interests($data, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }

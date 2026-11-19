@@ -170,6 +170,10 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
         /**
          * unsubscribe from the ticker channel
          *
@@ -180,7 +184,7 @@ class bitget extends \ccxt\async\bitget {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} status of the unwatch request
          */
-        return $this->un_watch_channel($symbol, 'ticker', 'ticker', 'watchTicker', $params);
+        return Async\await($this->un_watch_channel($symbol, 'ticker', 'ticker', 'watchTicker', $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -716,8 +720,7 @@ class bitget extends \ccxt\async\bitget {
         $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $this->safe_string($market, 'symbol', '');
-        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $this->ohlcvs[$symbol] = $symbolOhlcvs;
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $channel = $this->safe_string_2($arg, 'channel', 'topic', '');
         $interval = $this->safe_string($arg, 'interval');
         $isUta = null;
@@ -732,11 +735,11 @@ class bitget extends \ccxt\async\bitget {
         if ($timeframe === null) {
             return;
         }
-        $stored = $this->safe_value($symbolOhlcvs, $timeframe);
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $symbolOhlcvs[$timeframe] = $stored;
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -799,6 +802,10 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -812,7 +819,7 @@ class bitget extends \ccxt\async\bitget {
          * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
@@ -1140,6 +1147,10 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1154,7 +1165,7 @@ class bitget extends \ccxt\async\bitget {
          * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1598,14 +1609,11 @@ class bitget extends \ccxt\async\bitget {
         //
         $arg = $this->safe_dict($message, 'arg', array());
         $instType = $this->safe_string($arg, 'instType', '');
-        if ($this->positions === null) {
-            $this->positions = array();
-        }
         $action = $this->safe_string($message, 'action');
-        if (!(is_array($this->positions) && array_key_exists($instType ?? '', $this->positions)) || ($action === 'snapshot')) {
-            $this->positions[$instType] = new ArrayCacheBySymbolBySide();
+        if (!(is_array($this->positionsByType) && array_key_exists($instType ?? '', $this->positionsByType)) || ($action === 'snapshot')) {
+            $this->positionsByType[$instType] = new ArrayCacheBySymbolBySide();
         }
-        $cache = $this->positions[$instType];
+        $cache = $this->positionsByType[$instType];
         $rawPositions = $this->safe_list($message, 'data', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
@@ -1701,7 +1709,7 @@ class bitget extends \ccxt\async\bitget {
         $percentage = Precise::string_mul($percentageDecimal, '100');
         $contractSize = null;
         if ($market !== null) {
-            $contractSize = $market['contractSize'];
+            $contractSize = $this->safe_number($market, 'contractSize');
         }
         return $this->safe_position(array(
             'info' => $position,

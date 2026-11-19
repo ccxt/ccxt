@@ -911,7 +911,7 @@ class modetrade extends Exchange {
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(?array $fundingRate, ?array $market = null): array {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -1845,7 +1845,7 @@ class modetrade extends Exchange {
         $hasStopLoss = $stopLoss !== null;
         $hasTakeProfit = $takeProfit !== null;
         $algoType = $this->safe_string($params, 'algoType');
-        $paramsChildOrders = $this->safe_value($params, 'childOrders');
+        $paramsChildOrders = $this->safe_list($params, 'childOrders');
         $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($paramsChildOrders !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
@@ -1970,7 +1970,7 @@ class modetrade extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $childOrders = $this->safe_value($params, 'childOrders');
+        $childOrders = $this->safe_list($params, 'childOrders');
         $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($childOrders !== null);
         if ($isConditional) {
             $response = Async\await($this->v1PrivatePostAlgoOrder($request));
@@ -2043,7 +2043,7 @@ class modetrade extends Exchange {
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
             $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
-            $childOrders = $this->safe_value($orderParams, 'childOrders');
+            $childOrders = $this->safe_list($orderParams, 'childOrders');
             $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($childOrders !== null);
             if ($isConditional) {
                 throw new NotSupported($this->id . ' createOrders() only support non-stop order');
@@ -2111,7 +2111,7 @@ class modetrade extends Exchange {
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $childOrders = $this->safe_value($params, 'childOrders');
+        $childOrders = $this->safe_list($params, 'childOrders');
         $isConditional = ($triggerPrice !== null) || ($childOrders !== null);
         $orderQtyKey = 'order_quantity';
         if ($isConditional) {
@@ -2816,7 +2816,8 @@ class modetrade extends Exchange {
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return array( $currency, $this->safe_list($data, 'rows', array()) );
+        $rows = $this->safe_list($data, 'rows', array());
+        return $rows;
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -2897,9 +2898,11 @@ class modetrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1);
+        $rows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
@@ -3035,9 +3038,11 @@ class modetrade extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $request = array();
-        $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
-        $currency = $this->safe_value($currencyRows, 0);
-        $rows = $this->safe_list($currencyRows, 1, array());
+        $rows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         //
         //     {
         //         "rows":[],
@@ -3071,7 +3076,7 @@ class modetrade extends Exchange {
         return $this->safe_number($this->safe_dict($response, 'data', array()), 'withdraw_nonce');
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
