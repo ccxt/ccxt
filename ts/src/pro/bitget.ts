@@ -1702,12 +1702,12 @@ export default class bitget extends bitgetRest {
         let market: Market = undefined;
         let marketId: Str = undefined;
         const [ isTrigger, paramsTrigger ] = this.isTriggerOrder (params);
-        let messageHash: Str = 'order';
+        let messageHash: string = 'order';
         if (isTrigger === true) {
             messageHash = 'triggerOrder';
         }
-        let subscriptionHash = 'order:trades';
-        let symbolResolved: Str = undefined;
+        let subscriptionHash: string = 'order:trades';
+        let symbolResolved: Str = symbol;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
@@ -2240,8 +2240,8 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        let messageHash = 'myTrades';
-        let symbolResolved: Str = undefined;
+        let messageHash: string = 'myTrades';
+        let symbolResolved: Str = symbol;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
