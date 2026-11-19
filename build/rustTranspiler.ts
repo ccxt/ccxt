@@ -525,13 +525,13 @@ class Proof {
             }
         }
         for (const src of sources) {
-            if (!this.srcTagFree(src, body, region, depth)) return false;
+            if (!this.srcTagFree(src, body, region, depth, name)) return false;
         }
         return true;
     }
 
     /** A value expression that can only be a fresh plain dict. */
-    srcTagFree (src: string, body: string, region: Region, depth = 0): boolean {
+    srcTagFree (src: string, body: string, region: Region, depth = 0, self = ''): boolean {
         // a typed map local's `.into_dict()` / `.into_opt_dict()` unboxes the same source (a non-map gives empty / None)
         const t = src.trim().replace(/;$/, '').replace(/\.into_(?:opt_)?dict\(\)$/, '');
         if (depth > 2) return false;
@@ -545,8 +545,13 @@ class Proof {
             const arg = firstArg(t);
             if (arg === undefined) return false;
             const head = arg.trim();
-            if (INSERT_CHAIN_IDENT.test(head)) return this.localTagFree(head, body, region, depth + 1);
+            if (INSERT_CHAIN_IDENT.test(head)) return head === self || this.localTagFree(head, body, region, depth + 1);
             return this.srcTagFree(head, body, region, depth + 1);
+        }
+        // an entry of a never-tagged base field (`balance`), defaulting to this local or a fresh literal
+        if (/^safe_dict$/.test(name) && /^self\.safe_dict\((?:&self\.balance|self\.balance\.clone\(\)), /.test(t)) {
+            const dflt = t.match(/, &\[(.*)\]\)$/);
+            return dflt !== null && (dflt[1] === '' || dflt[1] === 'std::mem::take(&mut ' + self + ')' || dflt[1] === self + '.clone()' || dflt[1].startsWith('Value::Map({'));
         }
         // only a dict read with no default (or a fresh-literal one): the receiver is a map or absent
         if (/^safe_dict\w*$/.test(name) && (!t.includes('&[') || /&\[(?:\]|Value::Map\(\{)/.test(t))) {
@@ -565,7 +570,7 @@ class Proof {
         if (read === null) return false;
         const root = read[1];
         const header = body.slice(0, body.indexOf('{'));
-        if (root === '__pro_message' || root === 'message') return /fn handle_\w+\(&mut self, client: &Value, mut message: Value\)/.test(header) && !/(^|[^.\w])message[ \t]*=(?!=)/m.test(body.replace(/^[ \t]*let message = message\.as_map\(\)\.unwrap_or\(&__message_empty\);$/m, '')) && !/&mut message\b/.test(body);
+        if (root === '__pro_message' || root === 'message') return /fn handle_\w+\(&mut self, (?:mut client: Value|client: &Value), mut message: Value\)/.test(header) && !/(^|[^.\w])message[ \t]*=(?!=)/m.test(body.replace(/^[ \t]*let message = message\.as_map\(\)\.unwrap_or\(&__message_empty\);$/m, '')) && !/&mut message\b/.test(body);
         // a root the function writes into could hold a cached (tagged) value
         if (!/^[a-z][A-Za-z0-9]*$/.test(root) || new RegExp('&mut ' + root + '\\b').test(body)) return false;
         const bind = new RegExp('(?:^|[^.\\w])' + root + '[ \\t]*(?::[^=\\n]*)?=(?!=)(.*)$', 'gm');
