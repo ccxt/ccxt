@@ -4454,6 +4454,35 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
+    // The filterBy*SinceLimit / filterByLimit family is emitted generic over the element type, as
+    // the hand-written sortBy<T> is, so a typed row list keeps its type; IList<object> callers bind T=object.
+    // A non-null input that is not a List<T> (an array snapshot) is copied for `return array;`, null stays null.
+    genericFilterFamily (content: string): string {
+        const names = [ 'filterByLimit', 'filterBySinceLimit', 'filterByValueSinceLimit', 'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit' ];
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public virtual IList<object> (\w+)\(IList<object> array, (.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig || !names.includes (sig[2])) {
+                continue;
+            }
+            const bounds = this.methodBodyBounds (lines, i, sig[1]);
+            if (bounds === undefined) {
+                continue;
+            }
+            lines[i] = `${sig[1]}public virtual List<T> ${sig[2]}<T>(IList<T> array, ${sig[3]})`;
+            for (let j = bounds[0] + 1; j < bounds[1]; j++) {
+                lines[j] = lines[j]
+                    .replace (/^(\s*)IList<object> (parsedArray|result) = /, '$1IList<T> $2 = ')
+                    .replace (/^(\s*)(return |result = )new List<object>\(\) \{\};$/, '$1$2new List<T>() {};')
+                    .replace (/^(\s*)object entry = parsedArray\[i\];$/, '$1T entry = parsedArray[i];')
+                    .replace (/^(\s*)return array;$/, '$1return (array == null) ? null : (array as List<T> ?? new List<T>(array));')
+                    .replace (/(\? array\[[^\]]*\]) : null\)/g, '$1 : default)');
+            }
+        }
+        return lines.join ('\n');
+    }
+
     // The C# type the nearest in-scope declaration of `name` at or before `at` gives it, or '' when
     // no declaration is in scope. Walks back line by line to the enclosing public method signature
     // (the shape typeCoreArgs rewrites) and rejects a declaration whose block has already closed
@@ -6141,7 +6170,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.baseTierPasses (this.retypeSafeCollectionHelpers (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false)))))))), 'BaseExchange') + "\n";
+            const file = fileHeader + this.genericFilterFamily (this.baseTierPasses (this.retypeSafeCollectionHelpers (this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false)))))))), 'BaseExchange')) + "\n";
             fs.writeFileSync (csharpExchangeBase, csharpTupleReturns (file, csharpExchangeBase));
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {

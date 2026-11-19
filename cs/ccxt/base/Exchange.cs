@@ -888,6 +888,26 @@ public partial class BaseExchange
         return byteArray[firstInt..secondInt2];
     }
 
+    // typed lists keep their element type; same ranges, throws and fresh copy as the object overload
+    public List<T> arraySlice<T>(IList<T> array, object first, object second = null)
+    {
+        var count = array.Count; // a null array throws NullReferenceException, as the object overload does
+        var firstInt = Convert.ToInt32(first);
+        T[] items = (array is ccxt.pro.ArrayCache && array is ccxt.pro.SlimConcurrentList<T> cache) ? cache.ToArray() : array.ToArray();
+        if (second == null)
+        {
+            if (firstInt < 0)
+            {
+                var index = items.Length + firstInt;
+                index = index < 0 ? 0 : index;
+                return items[index..].ToList();
+            }
+            return items[firstInt..].ToList();
+        }
+        var secondInt = Convert.ToInt32(second);
+        return items[firstInt..secondInt].ToList();
+    }
+
     public IList<object> arraySlice(object array, object first, object second = null)
     {
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
