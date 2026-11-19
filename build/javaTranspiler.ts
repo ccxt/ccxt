@@ -2690,6 +2690,8 @@ class NewTranspiler {
         content = nativeJavaParamCompare(content);
         content = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(content));
         content = nativeJavaSumLongLocals(content);
+        // a min over a sum local retyped Long just above
+        content = content.includes('Helpers.mathMin(') ? nativeJavaLongLimitLocals(content) : content;
         content = nativeJavaIntegralMultiplySubtract(content);
         content = nativeJavaNumberDivModNeg(content);
         // Object locals holding only Long boxes retype to Long, then the typed arithmetic/compare passes re-run

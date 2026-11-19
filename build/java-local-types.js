@@ -13668,6 +13668,8 @@ function longMultiplyKind (ctx, text, nonNull) {
     // BaseExchange declares `int parseTimeframe (Object)`
     if (/^this\.parseTimeframe\((?:[A-Za-z_]\w*|java\.util\.Objects\.requireNonNullElse\([A-Za-z_]\w*, "\w+"\))\)$/.test (e)) return 'int';
     if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
+    // Generic.sum maps null to 0 and never returns null: a checkcast Long result is a non-null long
+    if (/^\(Long\) this\.sum\(/.test (e) && longMultiplyArgSpans (longMultiplyMask (e), '(Long) this.sum'.length)?.close === e.length - 1) return 'long';
     if (/^[A-Za-z_]\w*$/.test (e)) {
         const t = ctx.declType (e);
         if (t === 'int') return 'int';
@@ -16180,7 +16182,7 @@ function nativeJavaMathMinPass (lines, from, to) {
                 value = [ w[0].length, mask.trimEnd ().length - 1 ];
                 target = w[2];
             } else {
-                const p = /^(\s*[^;="]*\.put\(|\s*put\( )"_*", /.exec (mask);
+                const p = /^(\s*[^;="]*\.put\(|\s*put\( )(?:"_*"|[A-Za-z_]\w*), /.exec (mask);
                 const spans = p === null ? undefined : longMultiplyArgSpans (mask, p[1].length - 1);
                 if (spans === undefined || spans.spans.length !== 2 || !/^\s*;?\s*$/.test (mask.slice (spans.close + 1))) { mathMinDebug ('position', '', line); continue; }
                 value = spans.spans[1];
