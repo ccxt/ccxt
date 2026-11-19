@@ -17668,7 +17668,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
     }
     // the pro-tier `handleX (client, message)` family is typed by its own rule (signature + message reads)
     const ownerFile = owner.getSourceFile ().fileName.replace (/\\/g, '/');
-    if (ownerFile.includes ('/pro/') && /^handle[A-Z]/.test (name) && !proHandlerListParameterIsCalledOnly (owner, mapped)) {
+    if (ownerFile.includes ('/pro/') && /^handle[A-Z]/.test (name) && !proHandlerListParameterIsCalledOnly (owner, mapped, csharp)) {
         return undefined;
     }
     // only a real ts/src file carries the corpus proof this rule needs: an in-memory program
@@ -17708,13 +17708,67 @@ function csharpParameterDecision (csharp, parameter, expected) {
 
 // a pro handler's array parameter goes through the call-site proof only when its file names the
 // method solely as a direct `this.name (` call (no method-group table entry, no quoted name)
-function proHandlerListParameterIsCalledOnly (owner, mapped) {
+function proHandlerListParameterIsCalledOnly (owner, mapped, csharp) {
     if (mapped.type !== 'IList<object>') {
         return false;
     }
     const name = owner.name.text;
     const text = owner.getSourceFile ().text ?? '';
-    return !new RegExp ('\\.' + name + '\\b(?!\\s*\\()|[\'"]' + name + '[\'"]').test (text);
+    if (new RegExp ('[\'"]' + name + '[\'"]').test (text)) {
+        return false;
+    }
+    if (!new RegExp ('\\.' + name + '\\b(?!\\s*\\()').test (text)) {
+        return true;
+    }
+    return (csharp !== undefined) && proHandlerTableEntriesPassLists (csharp, owner);
+}
+
+// every non-call `this.name` of the handler is a dispatch-table value whose enclosing method invokes
+// table entries only as `m.call (this, a0, p, ...)` with p at the handler's slot an unwritten
+// CORE_LIST_ARGS list parameter of that method
+function proHandlerTableEntriesPassLists (csharp, owner) {
+    const name = owner.name.text;
+    const slot = owner.parameters.findIndex ((parameter) => CSHARP_PARAMETER_ALIAS_TYPES[parameter.type?.getText?.()]?.type === 'IList<object>');
+    let proven = true;
+    let entries = 0;
+    const visit = (node) => {
+        if (!proven) {
+            return;
+        }
+        if (ts.isPropertyAccessExpression (node) && node.expression.kind === ts.SyntaxKind.ThisKeyword && node.name.text === name
+                && !(ts.isCallExpression (node.parent) && node.parent.expression === node)) {
+            const assignment = node.parent;
+            const method = ts.findAncestor (node, ts.isMethodDeclaration);
+            if (!ts.isPropertyAssignment (assignment) || assignment.initializer !== node || !ts.isObjectLiteralExpression (assignment.parent)
+                    || !ts.isVariableDeclaration (assignment.parent.parent) || method === undefined || !proHandlerTableCallsPassList (csharp, method, slot)) {
+                proven = false;
+                return;
+            }
+            entries++;
+        }
+        node.forEachChild (visit);
+    };
+    owner.getSourceFile ().forEachChild (visit);
+    return proven && entries > 0;
+}
+
+function proHandlerTableCallsPassList (csharp, method, slot) {
+    let calls = 0;
+    let proven = slot >= 0;
+    const visit = (node) => {
+        if (proven && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression) && node.expression.name.text === 'call') {
+            calls++;
+            const argument = node.arguments[slot + 1];
+            const parameter = method.parameters.find ((p) => ts.isIdentifier (p.name) && argument !== undefined && ts.isIdentifier (argument) && p.name.text === argument.text);
+            proven = node.arguments[0]?.kind === ts.SyntaxKind.ThisKeyword && parameter !== undefined && coreListParameterIsUnwritten (csharp, parameter)
+                && csharpIdentifierDeclaration (csharp, argument) === parameter;
+        }
+        if (proven) {
+            node.forEachChild (visit);
+        }
+    };
+    method.body?.forEachChild (visit);
+    return proven && calls > 0;
 }
 
 function coreListParameterIsUnwritten (csharp, parameter) {
