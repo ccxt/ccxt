@@ -6375,6 +6375,9 @@ const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ['handle_derive_wallet_address', 'string_'],
     ['handle_origin_and_single_address', 'string_'],
     ['handle_until_option_string', ''],
+    ['handle_public_address', ''],
+    ['get_inst_type', 'string_'],
+    ['handle_hf_and_params', 'bool_'],
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
@@ -8321,6 +8324,29 @@ function typeUntilOptionTupleReturn(content: string): string {
 }
 //
 // unit slot 072
+// a venue `[x, Dict]` tuple re-boxed only to read slot 1 through safe_dict*: slot 1 is always a Dict, so read `.1`
+function readVenueTupleDictSlot(content: string): string {
+    if (!RUST_TUPLE_VENUE_FNS.some(r => content.includes(r[0] + '('))) return content;
+    const names = RUST_TUPLE_VENUE_FNS.map(r => r[0]).join('|');
+    const re = new RegExp(String.raw`self\.(safe_dict_t|safe_dict_or|safe_dict_or_o|safe_dict)\(\{ let __t = ((?:self|exchange)(?:\.parent)?\.(?:${names})\()`, 'g');
+    let out = '', last = 0;
+    for (let m: RegExpExecArray | null; (m = re.exec(content)) !== null;) {
+        const callEnd = rustCloseParen(content, m.index + m[0].length);
+        const tail = callEnd < 0 ? null : /^; Value::from\(vec!\[[^\n]*?, Value::Dict\(__t\.1\)\]\) \}, Value::Int\(1\)/.exec(content.slice(callEnd, callEnd + 200));
+        if (tail === null) continue;
+        const end = rustCloseParen(content, callEnd + tail[0].length);
+        const arg = content.slice(callEnd + tail[0].length, end - 1);
+        // the default only applies to a missing / non-dict slot, which never happens; it must not have side effects
+        if (/\bself\.\w+\(|\.clone\(\)/.test(arg) && !/^, (?:&\[)?(?:Value::Map\(\{[\s\S]*\}\)|\w+)\]?$/.test(arg)) continue;
+        if (m[1] === 'safe_dict_t' && arg !== '' || m[1] !== 'safe_dict_t' && arg === '') continue;
+        const call = content.slice(m.index + m[0].length - m[2].length, callEnd);
+        const read = m[1] === 'safe_dict' ? `Value::Dict(${call}.1)` : m[1] === 'safe_dict_or_o' ? `Some(${call}.1)` : `${call}.1`;
+        out += content.slice(last, m.index) + read;
+        last = end;
+        re.lastIndex = end;
+    }
+    return out + content.slice(last);
+}
 //
 // unit slot 073
 //
@@ -8880,6 +8906,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typeUntilOptionTupleReturn,
     //
     // pass slot 072
+    readVenueTupleDictSlot,
     //
     // pass slot 073
     //
