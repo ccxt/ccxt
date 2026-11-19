@@ -9468,6 +9468,9 @@ const ROW_ARG_PARSERS = new Set ([
     'parseFundingRateHistory', 'parseGreeks', 'parseIncome', 'parseLiquidation', 'parseMarket', 'parseMyriadMarket',
     'parseOHLCV', 'parseOpenInterest', 'parseOrder', 'parseOrderBook', 'parsePosition', 'parseSwapMarket',
     'parseSxbetMarket', 'parseTicker', 'parseTrade', 'parseWSSwapOrder', 'parseWsMyLiquidation', 'parseWsOHLCV', 'parseWsOrder',
+    'parseTradingFee', 'parseWsAllBidsAsks', 'parseWsBalance', 'parseWsFundingRate', 'parseWsLiquidation', 'parseWsMyTrade',
+    'parseWsOldTrade', 'parseWsOptionsPosition', 'parseWsOrderTrade', 'parseWsOrderUpdate', 'parseWsPosition', 'parseWsRfqOrder',
+    'parseWsTicker', 'parseWsTrade', 'parseWsUpdatedTicker', 'parseWsUtaOrder', 'parseWsUtaPosition', 'parseWsUtaTicker', 'parseWsUtaTrade',
 ]);
 function dictRowSafeReadOnlyLocal (csharp, declaration) {
     const name = declaration?.name?.text;
@@ -9497,6 +9500,21 @@ function dictRowSafeReadOnlyLocal (csharp, declaration) {
         }
         // a value slot of an object literal (`'info': row`): stored as `object`, so the box is unchanged
         if (parent?.kind === ts.SyntaxKind.PropertyAssignment && parent.initializer === use && parent.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+            continue;
+        }
+        // literal-key write `row['k'] = v` / `'k' in row` on the proven row, or the row stored by `xs.push (row)`
+        // / `recv[k] = row` (an object slot): an indexer on the same reference, no cast at the store
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use && ts.isStringLiteralLike (parent.argumentExpression)
+                && parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            reads++;
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === use && parent.operatorToken.kind === ts.SyntaxKind.InKeyword && ts.isStringLiteralLike (parent.left)) {
+            reads++;
+            continue;
+        }
+        if ((parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments.length === 1 && parent.arguments[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression.name?.text === 'push')
+                || (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === use && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && parent.left?.kind === ts.SyntaxKind.ElementAccessExpression)) {
             continue;
         }
         if (parent?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)) {
