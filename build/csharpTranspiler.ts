@@ -2473,6 +2473,12 @@ function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: 
     if (value.startsWith ('new ' + targetType)) {
         return true
     }
+    // generic `List<T> sortBy<T>(IList<T> ...)` (Exchange.Generic.cs) binds over the object overload
+    const sorted = /^(?:this|base)\.sortBy\(([A-Za-z_]\w*), [^()]*\)$/.exec (value)
+    if ((sorted !== null) && (targetType === 'List<Dictionary<string, object>>')) {
+        const types = csharpRetMethodBindings (methodLines).get (sorted[1])
+        return (types !== undefined) && (types.length === 1) && (types[0] === targetType)
+    }
     const call = CSHARP_RET_CALL.exec (value) ?? CSHARP_RET_BARE_CALL.exec (value)
     if (call !== null) {
         const awaited = call[1] !== undefined
@@ -2504,6 +2510,7 @@ function csharpReturnIdentitySelfTest (): string[] {
     const text = wrap ([
         pad + pad + 'object boxed = null;',
         pad + pad + 'Dictionary<string, object> row = new Dictionary<string, object>() {};',
+        pad + pad + 'List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>() {};',
         pad + pad + 'IDictionary<string, object> iface = this.safeDict(parameters, "k");',
         pad + pad + 'foreach (var entry in new List<object>() {})',
         pad + pad + '{',
@@ -2525,6 +2532,9 @@ function csharpReturnIdentitySelfTest (): string[] {
         [ 'unindexed-call', 'this.unknownHelper(parameters)', dictionary, false ],
         [ 'typed-call', 'this.helper(parameters)', dictionary, true ],
         [ 'awaited-typed', 'await this.f(parameters)', dictionary, true ],
+        [ 'sortBy-typed-list', 'this.sortBy(rows, "timestamp")', dictList, true ],
+        [ 'sortBy-boxed-list', 'this.sortBy(boxed, "timestamp")', dictList, false ],
+        [ 'sortBy-dict-target', 'this.sortBy(rows, "timestamp")', dictionary, false ],
     ]
     const problems: string[] = []
     for (const [ name, expr, target, expected ] of cases) {
