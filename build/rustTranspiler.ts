@@ -6217,6 +6217,8 @@ const RUST_SCALAR_LENT_FNS: Array<[string, number, number?]> = [
     ['safe_dict_or_o', 1, 3],
     ['safe_list_or', 1, 3],
     ['safe_list_or_o', 1, 3],
+    ['amount_to_precision', 1, 2],
+    ['cost_to_precision', 1, 2],
 ];
 // Lend a local to the scalar helpers that take `impl ScalarArg`: `f(x.clone())` (x declared a scalar or
 // `Value` in this fn) and `f(x.clone().map(Value::from).unwrap_or(Value::Null))` (x declared
@@ -6874,6 +6876,13 @@ function lendStringReaderDefaultsOnce(content: string): string {
 // unit slot 019
 //
 // unit slot 020
+// The value slot of `amount|cost_to_precision` (base, venue and prediction bodies) takes `impl ScalarArg`,
+// so callers lend `&x` (RUST_SCALAR_LENT_FNS); the body boxes it once into the same `Value` as before.
+function lendPrecisionValueSlot(content: string): string {
+    const head = /(\n\s*(?:pub )?fn (?:amount|cost)_to_precision\(&self, (?:mut )?\w+: [^,()]+, )(\w+): impl Into<crate::Value>(\) -> Option<String> \{\n\s*let mut )(\w+)(: Value = )\w+\.into\(\);/g;
+    return content.replace(head, (all, pre, x, mid, y, ty) => y !== x ? all
+        : `${pre}${x}: impl crate::value::ScalarArg${mid}${x}${ty}crate::value::ScalarArg::scalar(&${x}).to_value();`);
+}
 //
 // unit slot 021
 //
@@ -7189,6 +7198,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 019
     //
     // pass slot 020
+    lendPrecisionValueSlot,
     //
     // pass slot 021
     //

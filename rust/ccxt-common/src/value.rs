@@ -614,6 +614,10 @@ impl std::ops::BitAnd for Value {
 /// or a typed local (`Option<String>`, `&str`, `f64`, ...). `None` reads as the `Value::Null` it would box to.
 pub enum ScalarRef<'a> { Null, Num(Value), Str(&'a str), Other(&'a Value) }
 pub trait ScalarArg { fn scalar(&self) -> ScalarRef<'_>; }
+impl ScalarRef<'_> {
+    /// The `Value` this scalar boxes to (a lent `Value` reads back as itself).
+    pub fn to_value(self) -> Value { match self { ScalarRef::Null => Value::Null, ScalarRef::Num(v) => v, ScalarRef::Str(s) => Value::from(s), ScalarRef::Other(v) => v.clone() } }
+}
 impl ScalarArg for Value {
     fn scalar(&self) -> ScalarRef<'_> {
         match self { Value::Null => ScalarRef::Null, Value::Int(n) => ScalarRef::Num(Value::Int(*n)), Value::Float(f) => ScalarRef::Num(Value::Float(*f)), Value::Str(s) => ScalarRef::Str(&**s), v => ScalarRef::Other(v) }
