@@ -7786,7 +7786,36 @@ function moveInsertedLocalsOnPath(content: string): string {
 }
 //
 // unit slot 046
-//
+// Move a map key local at its last use: `m.insert(k.clone(), ..)` / `.entry(k.clone())` where `k` is an owned
+// `let k: String` with no later mention in its declaring block and no loop/closure opened between declaration and site.
+function moveInsertKeysAtLastUse(content: string): string {
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length)).replace(/"(?:[^"\\\n]|\\.)*"/g, l => '"' + '_'.repeat(l.length - 2) + '"');
+    const fnStarts = [...code.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const edits: [number, number, string][] = [];
+    for (const m of code.matchAll(/\.(?:insert|entry)\(([A-Za-z_]\w*)\.clone\(\)(?=[,)])/g)) {
+        const name = m[1], end = (m.index as number) + m[0].length, pos = end - name.length - 8;
+        const fs = fnStarts.filter(f => f < pos).pop();
+        const decl = fs === undefined ? undefined : [...code.slice(fs, pos).matchAll(new RegExp(`\\blet (?:mut )?${name}\\s*:\\s*String\\s*=`, 'g'))].pop();
+        if (fs === undefined || decl === undefined) continue;
+        const stack: number[] = [];
+        let closed = false;
+        for (let j = fs + (decl.index as number); j < pos && !closed; j++) {
+            if (code[j] === '{') stack.push(j); else if (code[j] === '}') { if (stack.length) stack.pop(); else closed = true; }
+        }
+        if (closed) continue;
+        const stmt = code.slice(Math.max(code.lastIndexOf(';', pos), code.lastIndexOf('{', pos), code.lastIndexOf('}', pos)) + 1, pos);
+        const heads = stack.map(o => code.slice(code.lastIndexOf('\n', o) + 1, o)).concat([stmt]);
+        if (heads.some(h => /\b(?:loop|while|for)\b|\|/.test(h))) continue;
+        let k = end, dd = stack.length;
+        for (; k < code.length; k++) { if (code[k] === '{') dd++; else if (code[k] === '}') { if (dd === 0) break; dd--; } }
+        if (new RegExp(`(?<![\\w.])${name}\\b`).test(code.slice(end, k))) continue;
+        edits.push([pos, end, name]);
+    }
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
+
 // unit slot 047
 // A venue `since` / `limit` binding whose wrapper took `Option<i64>` and boxed it as `Value::from(V)` in the same
 // `__args` slot holds exactly that `Int` / `Null`: bind the captured `Option<i64>` and read it natively, boxing
@@ -8445,6 +8474,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     moveInsertedLocalsOnPath,
     //
     // pass slot 046
+    moveInsertKeysAtLastUse,
     //
     // pass slot 047
     typeOptionalIntArgs,
