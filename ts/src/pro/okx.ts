@@ -573,8 +573,8 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
-        return this.unWatchMarkPrices ([ symbol ], params);
+    override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchMarkPrices ([ symbol ], params);
     }
 
     /**
