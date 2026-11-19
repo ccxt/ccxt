@@ -556,6 +556,9 @@ class Proof {
         // an element of the base `parse_orders` list (fresh `extend(parse_order(..), params)` dicts), list never written
         const elem = t.match(/^([a-z][A-Za-z0-9]*)\.get\([a-z]\w* as usize\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/);
         if (elem !== null) return this.parsedOrdersList(elem[1], body);
+        // an element of the base `parse_positions` list, indexed by an integer local
+        const posElem = t.match(/^get_value\(&([a-z][A-Za-z0-9]*), &Value::Int\([a-z]\w*\)\)$/);
+        if (posElem !== null && parsedPositionsList(this, posElem[1], body)) return true;
         const callee = t.match(/^(?:self\.|<Self as crate::exchange::DerivedExchange>::)([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(/);
         if (callee === null) return /^(?:(?:__pro_message|message)\.get\(|get_value\(&|crate::value::KeyRead::read\(&&)/.test(t) && this.wireRead(t, body, region, depth + 1);
         const name = callee[1];
@@ -7963,6 +7966,16 @@ function lendAlgoLiterals(content: string): string {
 // unit slot 090
 //
 // unit slot 091
+/** `list` is bound once to `[Value::Arr(]self.parse_positions(..)` (base body, overridden neither here nor on the REST parent:
+ *  fresh `extend_t(parse_position(..), params)` dicts) and never written. */
+function parsedPositionsList (proof: Proof, list: string, body: string): boolean {
+    const binds = body.match(new RegExp('(^|[^.\\w])' + list + '[ \\t]*(?::[^=\\n]*)?=(?!=)', 'gm')) ?? [];
+    if (binds.length !== 1 || new RegExp('&mut ' + list + '\\b|\\b' + list + '\\.(?:push|insert|remove|clear|extend)\\(').test(body)) return false;
+    if (!new RegExp('^[ \\t]*let mut ' + list + ': Value = (?:Value::Arr\\()?self\\.parse_positions\\(&?[a-z]\\w*, &\\[\\]\\)\\)?;$', 'm').test(body)) return false;
+    const overrides = (text: string) => /\bfn parse_positions\s*\(/.test(text);
+    const parent = proof.parentFile();
+    return !overrides(proof.content) && (parent === undefined || (fs.existsSync(parent) && !overrides(fs.readFileSync(parent, 'utf8'))));
+}
 //
 // unit slot 092
 //
