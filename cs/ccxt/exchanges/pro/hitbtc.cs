@@ -129,14 +129,14 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string[]} [symbols] unified CCXT symbol(s)
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> subscribePublic(string? name, string? messageHashPrefix, object symbols = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> subscribePublic(string? name, string? messageHashPrefix, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         bool isBatch = name.IndexOf("batch", StringComparison.Ordinal) >= 0;
         bool resolvedPerSymbol = !isBatch || ((messageHashPrefix == "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         IDictionary<string, object> wsUrls = this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");

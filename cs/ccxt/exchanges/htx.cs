@@ -4231,7 +4231,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public async virtual Task<string> FetchAccountIdByType(object type, string? marginMode = null, object symbol = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<string> FetchAccountIdByType(string type, string? marginMode = null, object symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> accounts = await this.loadAccounts();
@@ -4240,8 +4240,8 @@ public partial class htx : Exchange
         {
             return accountId;
         }
-        object accountType = type;
-        if ((type is "spot"))
+        string accountType = type;
+        if ((type == "spot"))
         {
             if ((marginMode == "cross"))
             {
@@ -4262,13 +4262,13 @@ public partial class htx : Exchange
             IDictionary<string, object> info = this.safeDict(account, "info");
             string? subtype = this.safeString(info, "subtype");
             string? typeFromAccount = this.safeString(account, "type");
-            if ((accountType is "margin"))
+            if (accountType == "margin")
             {
                 if ((subtype == marketId))
                 {
                     return this.safeString(account, "id");
                 }
-            } else if (isEqual(accountType, typeFromAccount))
+            } else if ((accountType == typeFromAccount))
             {
                 return this.safeString(account, "id");
             }
@@ -6315,7 +6315,7 @@ public partial class htx : Exchange
         (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
-        string? accountId = await this.FetchAccountIdByType((market.ContainsKey("type") ? market["type"] : null), marginMode, symbol);
+        string? accountId = await this.FetchAccountIdByType(((string)(market.ContainsKey("type") ? market["type"] : null)), marginMode, symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account-id", accountId },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },

@@ -1009,7 +1009,7 @@ public partial class cex : ccxt.cex
             return null;
         }
         var precise = new Precise(amount);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger(new List<object>() {scale}, 0, 0));
         precise.reduce();
         return ((object)precise).ToString();
     }

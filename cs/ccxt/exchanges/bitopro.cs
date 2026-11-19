@@ -250,8 +250,8 @@ public partial class bitopro : Exchange
                     { "maker", this.parseNumber("0.001") },
                     { "taker", this.parseNumber("0.002") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.00194")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("550000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("1300000000"), this.parseNumber("0.0011")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.00097")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("550000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("1300000000"), this.parseNumber("0.0003")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {3000000.0, 0.00194}, new List<object> {5000000.0, 0.0015}, new List<object> {30000000.0, 0.0014}, new List<object> {300000000.0, 0.0013}, new List<object> {550000000.0, 0.0012}, new List<object> {1300000000.0, 0.0011}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.001}, new List<object> {3000000.0, 0.00097}, new List<object> {5000000.0, 0.0007}, new List<object> {30000000.0, 0.0006}, new List<object> {300000000.0, 0.0005}, new List<object> {550000000.0, 0.0004}, new List<object> {1300000000.0, 0.0003}} },
                     } },
                 } },
             } },

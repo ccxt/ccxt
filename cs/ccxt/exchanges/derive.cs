@@ -4019,14 +4019,14 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(result));
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         string? usedUsd = "0";
-        IList<object> subaccounts = this.toArray(response);
+        IList<object> subaccounts = response;
         for (int i = 0; i < (subaccounts?.Count ?? 0); i++)
         {
             IDictionary<string, object> subaccount = this.safeDict(subaccounts, i);

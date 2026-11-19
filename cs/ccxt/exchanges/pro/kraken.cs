@@ -1757,12 +1757,12 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, IList<object>? symbols = null, object subscriptionArgs = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // symbols are required
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         if ((symbolsNormalized == null))
         {
             return null;

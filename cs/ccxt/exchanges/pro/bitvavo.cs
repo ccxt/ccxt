@@ -91,14 +91,14 @@ public partial class bitvavo : ccxt.bitvavo
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchPublicMultiple(object methodName, object channelName, object symbols, object parameters = null)
+    public async virtual Task<object> watchPublicMultiple(object methodName, object channelName, IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {methodName};
         List<object> args = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -814,7 +814,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
     {
         //
         //     {
@@ -833,9 +833,9 @@ public partial class bitvavo : ccxt.bitvavo
         Int64? currentNonce = this.safeInteger(orderbook, "nonce");
         if (((nonce != null)) && ((currentNonce != null)) && ((nonce != null && (currentNonce == null || nonce > currentNonce))))
         {
-            this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "asks", new List<object>() {}));
-            this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "bids", new List<object>() {}));
-            ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
+            this.handleDeltas(orderbook?.asks, this.safeList(message, "asks", new List<object>() {}));
+            this.handleDeltas(orderbook?.bids, this.safeList(message, "bids", new List<object>() {}));
+            orderbook["nonce"] = nonce;
         }
         return orderbook;
     }

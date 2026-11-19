@@ -209,7 +209,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> unSubscribeMultiple(string topic, string? name, bool? isPrivate = null, IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribeMultiple(string topic, string? name, bool? isPrivate = null, IList<object>? symbols = null, IDictionary<string, object> parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();

@@ -789,8 +789,8 @@ public partial class xt : Exchange
                     { "maker", this.parseNumber("0.002") },
                     { "taker", this.parseNumber("0.002") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("150000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("300000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("600000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1200000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("6000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0002")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("150000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("300000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("600000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1200000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("6000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0002")}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {5000.0, 0.0018}, new List<object> {10000.0, 0.0016}, new List<object> {20000.0, 0.0014}, new List<object> {50000.0, 0.0012}, new List<object> {150000.0, 0.0010}, new List<object> {300000.0, 0.0008}, new List<object> {600000.0, 0.0007}, new List<object> {1200000.0, 0.0006}, new List<object> {2500000.0, 0.0005}, new List<object> {6000000.0, 0.0004}, new List<object> {15000000.0, 0.0003}, new List<object> {30000000.0, 0.0002}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {5000.0, 0.0018}, new List<object> {10000.0, 0.0016}, new List<object> {20000.0, 0.0014}, new List<object> {50000.0, 0.0012}, new List<object> {150000.0, 0.0010}, new List<object> {300000.0, 0.0008}, new List<object> {600000.0, 0.0007}, new List<object> {1200000.0, 0.0006}, new List<object> {2500000.0, 0.0005}, new List<object> {6000000.0, 0.0004}, new List<object> {15000000.0, 0.0003}, new List<object> {30000000.0, 0.0002}} },
                     } },
                 } },
                 { "contract", new Dictionary<string, object>() {
@@ -799,8 +799,8 @@ public partial class xt : Exchange
                     { "maker", this.parseNumber("0.0004") },
                     { "taker", this.parseNumber("0.0006") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.00038")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00036")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00034")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.00032")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.00028")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.00024")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00016")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.00012")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.00008")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.000588")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00057")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00054")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.00051")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.00048")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.00045")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.00045")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00036")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.00033")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0003")}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0004}, new List<object> {200000.0, 0.00038}, new List<object> {1000000.0, 0.00036}, new List<object> {5000000.0, 0.00034}, new List<object> {10000000.0, 0.00032}, new List<object> {15000000.0, 0.00028}, new List<object> {30000000.0, 0.00024}, new List<object> {50000000.0, 0.0002}, new List<object> {100000000.0, 0.00016}, new List<object> {300000000.0, 0.00012}, new List<object> {500000000.0, 0.00008}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.0006}, new List<object> {200000.0, 0.000588}, new List<object> {1000000.0, 0.00057}, new List<object> {5000000.0, 0.00054}, new List<object> {10000000.0, 0.00051}, new List<object> {15000000.0, 0.00048}, new List<object> {30000000.0, 0.00045}, new List<object> {50000000.0, 0.00045}, new List<object> {100000000.0, 0.00036}, new List<object> {300000000.0, 0.00033}, new List<object> {500000000.0, 0.0003}} },
                     } },
                 } },
             } },
@@ -3004,7 +3004,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(balances));
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         //
         // spot
@@ -3035,7 +3035,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString2(balance, "currency", "coin");

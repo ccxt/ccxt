@@ -261,8 +261,8 @@ public partial class onetrading : Exchange
                     { "taker", this.parseNumber("0.0015") },
                     { "maker", this.parseNumber("0.001") },
                     { "tiers", new List<object>() {new Dictionary<string, object>() {
-    { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("1000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.00075")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.00065")}} },
-    { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("1000"), this.parseNumber("0.00075")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0005")}} },
+    { "taker", new List<object>() {new List<object> {0.0, 0.0015}, new List<object> {100.0, 0.0013}, new List<object> {250.0, 0.0013}, new List<object> {1000.0, 0.001}, new List<object> {5000.0, 0.0009}, new List<object> {10000.0, 0.00075}, new List<object> {20000.0, 0.00065}} },
+    { "maker", new List<object>() {new List<object> {0.0, 0.001}, new List<object> {100.0, 0.001}, new List<object> {250.0, 0.0009}, new List<object> {1000.0, 0.00075}, new List<object> {5000.0, 0.0006}, new List<object> {10000.0, 0.0005}, new List<object> {20000.0, 0.0005}} },
 }} },
                 } },
             } },

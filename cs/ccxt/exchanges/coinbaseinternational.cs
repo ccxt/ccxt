@@ -515,8 +515,8 @@ public partial class coinbaseinternational : Exchange
                     { "tierBased", true },
                     { "percentage", true },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0.0025")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.004}, new List<object> {1000000.0, 0.004}, new List<object> {5000000.0, 0.0035}, new List<object> {10000000.0, 0.0035}, new List<object> {50000000.0, 0.003}, new List<object> {250000000.0, 0.0025}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {1000000.0, 0.0016}, new List<object> {5000000.0, 0.001}, new List<object> {10000000.0, 0.0008}, new List<object> {50000000.0, 0.0005}, new List<object> {250000000.0, 0.0}} },
                     } },
                 } },
             } },

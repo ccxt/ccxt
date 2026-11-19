@@ -584,7 +584,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
     }
 
-    public async virtual Task<ccxt.Tickers> WatchUtaTickers(IList<object> symbols = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<ccxt.Tickers> WatchUtaTickers(IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -865,14 +865,14 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiHelper(string methodName, string? channelName, bool? isFuturesChannel, object symbols = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string methodName, string? channelName, bool? isFuturesChannel, IList<object>? symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         int length = symbolsNormalized?.Count ?? 0;
         if (length > 100)
         {

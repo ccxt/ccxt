@@ -4027,12 +4027,18 @@ public partial class bitget : Exchange
             string? priceEndStep = this.safeString(market, "priceEndStep");
             string? sizeMultiplier = this.safeString(market, "sizeMultiplier");
             var precise = new Precise(priceEndStep);
-            precise.decimals = mathMax(precise.decimals, pricePlaces);
+            if ((pricePlaces != null))
+            {
+                precise.decimals = mathMax(precise.decimals, pricePlaces);
+            }
             precise.reduce();
             string priceString = ((object)precise).ToString();
             pricePrecision = this.parseNumber(priceString);
             var preciseAmount = new Precise(sizeMultiplier);
-            preciseAmount.decimals = mathMax(preciseAmount.decimals, volumePlaces);
+            if ((volumePlaces != null))
+            {
+                preciseAmount.decimals = mathMax(preciseAmount.decimals, volumePlaces);
+            }
             preciseAmount.reduce();
             string amountString = ((object)preciseAmount).ToString();
             amountPrecision = this.parseNumber(amountString);

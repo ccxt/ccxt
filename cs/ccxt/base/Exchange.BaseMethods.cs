@@ -854,7 +854,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual IList<object> filterByLimit(IList<object> array, object limit = null, object key = null, bool? fromStart = null)
+    public virtual List<T> filterByLimit<T>(IList<T> array, object limit = null, object key = null, bool? fromStart = null)
     {
         key ??= "timestamp";
         fromStart ??= false;
@@ -864,10 +864,10 @@ public partial class BaseExchange
             if (arrayLength > 0)
             {
                 bool ascending = true;
-                if ((inOp((array != null && 0 < array.Count ? array[0] : null), key)))
+                if ((inOp((array != null && 0 < array.Count ? array[0] : default), key)))
                 {
-                    double? first = this.safeFloat((array != null && 0 < array.Count ? array[0] : null), key);
-                    double? last = this.safeFloat((array != null && (arrayLength - 1) < array.Count ? array[(arrayLength - 1)] : null), key);
+                    double? first = this.safeFloat((array != null && 0 < array.Count ? array[0] : default), key);
+                    double? last = this.safeFloat((array != null && (arrayLength - 1) < array.Count ? array[(arrayLength - 1)] : default), key);
                     if ((first != null) && (last != null))
                     {
                         ascending = isGreaterThanOrEqual(last, first); // true if array is sorted in ascending order based on 'timestamp'
@@ -889,26 +889,26 @@ public partial class BaseExchange
                 return this.arraySlice(array, 0, limit);
             }
         }
-        return array;
+        return (array == null) ? null : (array as List<T> ?? new List<T>(array));
     }
 
-    public virtual IList<object> filterBySinceLimit(IList<object> array, object since = null, object limit = null, object key = null, bool? tail = null)
+    public virtual List<T> filterBySinceLimit<T>(IList<T> array, object since = null, object limit = null, object key = null, bool? tail = null)
     {
         key ??= "timestamp";
         tail ??= false;
         if ((array == null))
         {
-            return new List<object>() {};
+            return new List<T>() {};
         }
         bool sinceIsDefined = (since != null) && (since != null);
-        IList<object> parsedArray = array;
-        IList<object> result = parsedArray;
+        IList<T> parsedArray = array;
+        IList<T> result = parsedArray;
         if (sinceIsDefined)
         {
-            result = new List<object>() {};
+            result = new List<T>() {};
             for (int i = 0; i < (parsedArray?.Count ?? 0); i++)
             {
-                object entry = parsedArray[i];
+                T entry = parsedArray[i];
                 Int64? value = this.safeInteger(entry, key);
                 if (((value != null)) && ((value != 0)) && (isGreaterThanOrEqual(value, since)))
                 {
@@ -926,21 +926,21 @@ public partial class BaseExchange
         return this.filterByLimit(result, limit, key, shouldFilterFromStart);
     }
 
-    public virtual IList<object> filterByValueSinceLimit(IList<object> array, object field, object value = null, object since = null, object limit = null, object key = null, bool? tail = null)
+    public virtual List<T> filterByValueSinceLimit<T>(IList<T> array, object field, object value = null, object since = null, object limit = null, object key = null, bool? tail = null)
     {
         key ??= "timestamp";
         tail ??= false;
         bool valueIsDefined = this.valueIsDefined(value);
         bool sinceIsDefined = (since != null) && (since != null);
-        IList<object> parsedArray = array;
-        IList<object> result = parsedArray;
+        IList<T> parsedArray = array;
+        IList<T> result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined)
         {
-            result = new List<object>() {};
+            result = new List<T>() {};
             for (int i = 0; i < (parsedArray?.Count ?? 0); i++)
             {
-                object entry = parsedArray[i];
+                T entry = parsedArray[i];
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 bool entryFiledEqualValue = isEqual(this.safeValue(entry, field), value);
@@ -2163,7 +2163,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey12 && marketsById.ContainsKey(inOpKey12)))
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey14 && marketsById.ContainsKey(inOpKey14)))
             {
                 IList<object> marketsByIdArray = ((IList<object>)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
                 marketsByIdArray.Add(value);
@@ -3796,12 +3796,12 @@ public partial class BaseExchange
         return (networkCodeInParams, paramsOmitted);
     }
 
-    public virtual string? selectNetworkKeyFromNetworks(object currencyCode, object networkCode, object indexedNetworkEntries, bool? isIndexedByUnifiedNetworkCode = null)
+    public virtual string? selectNetworkKeyFromNetworks(object currencyCode, object networkCode, IDictionary<string, object> indexedNetworkEntries, bool? isIndexedByUnifiedNetworkCode = null)
     {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         isIndexedByUnifiedNetworkCode ??= false;
         object chosenNetworkId = null;
-        List<object> availableNetworkIds = new List<object>(((IDictionary<string,object>)indexedNetworkEntries).Keys);
+        List<object> availableNetworkIds = new List<object>(indexedNetworkEntries.Keys);
         int responseNetworksLength = availableNetworkIds.Count;
         if ((networkCode != null))
         {
@@ -3816,7 +3816,7 @@ public partial class BaseExchange
                 {
                     throw new NotSupported ((string)((((this.id + " - ") + (networkCode)) + " network was not found for ") + (currencyCode))) ;
                 }
-                if (inOp(indexedNetworkEntries, networkIdOrCode))
+                if ((indexedNetworkEntries != null && networkIdOrCode is string inOpKey3 && indexedNetworkEntries.ContainsKey(inOpKey3)))
                 {
                     chosenNetworkId = networkIdOrCode;
                 } else
@@ -3838,7 +3838,7 @@ public partial class BaseExchange
                 {
                     throw new ExchangeError ((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
                 }
-                if (inOp(indexedNetworkEntries, defaultNetworkId))
+                if ((indexedNetworkEntries != null && defaultNetworkId != null && indexedNetworkEntries.ContainsKey(defaultNetworkId)))
                 {
                     return defaultNetworkId;
                 }
@@ -5062,7 +5062,7 @@ public partial class BaseExchange
     {
         if ((marketId != null))
         {
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey3 && this.markets_by_id.ContainsKey(inOpKey3))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey4 && this.markets_by_id.ContainsKey(inOpKey4))))
             {
                 List<object> markets = this.safeList(this.markets_by_id, marketId, new List<object>() {});
                 int numMarkets = (markets?.Count ?? 0);
@@ -5279,7 +5279,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " getSupportedMapping() requires a key argument")) ;
         }
-        if ((key is string inOpKey4 && mapping.ContainsKey(inOpKey4)))
+        if ((key is string inOpKey5 && mapping.ContainsKey(inOpKey5)))
         {
             return ((string)((object)((mapping != null && key != null && mapping.ContainsKey((string)key) ? mapping[(string)key] : null))));
         } else
@@ -5567,7 +5567,7 @@ public partial class BaseExchange
         {
             return;
         }
-        if ((exact != null && str is string inOpKey5 && exact.ContainsKey(inOpKey5)))
+        if ((exact != null && str is string inOpKey6 && exact.ContainsKey(inOpKey6)))
         {
             throwDynamicException((exact != null && str != null && exact.ContainsKey((string)str) ? exact[(string)str] : null), message);
         }
@@ -6038,10 +6038,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey6 && markets.ContainsKey(inOpKey6)))
+        if ((markets != null && symbol is string inOpKey7 && markets.ContainsKey(inOpKey7)))
         {
             return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey7 && marketsById.ContainsKey(inOpKey7))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey8 && marketsById.ContainsKey(inOpKey8))))
         {
             object marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6328,13 +6328,13 @@ public partial class BaseExchange
         return ((string?)((object)((currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null))));
     }
 
-    public virtual IList<object> filterBySymbolSinceLimit(IList<object> array, object symbol = null, object since = null, object limit = null, bool? tail = null)
+    public virtual List<T> filterBySymbolSinceLimit<T>(IList<T> array, object symbol = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
         return this.filterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp", tail);
     }
 
-    public virtual IList<object> filterByCurrencySinceLimit(IList<object> array, string code = null, object since = null, object limit = null, bool? tail = null)
+    public virtual List<T> filterByCurrencySinceLimit<T>(IList<T> array, string code = null, object since = null, object limit = null, bool? tail = null)
     {
         tail ??= false;
         return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail);
@@ -6596,7 +6596,7 @@ public partial class BaseExchange
         return new List<object>() {triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted};
     }
 
-    public virtual List<object> handleTriggerDirectionAndParams(object parameters, object exchangeSpecificKey = null, bool? allowEmpty = null)
+    public virtual List<object> handleTriggerDirectionAndParams(IDictionary<string, object> parameters, object exchangeSpecificKey = null, bool? allowEmpty = null)
     {
         /**
         * @ignore
@@ -6605,7 +6605,7 @@ public partial class BaseExchange
         */
         allowEmpty ??= false;
         string? triggerDirection = this.safeString(parameters, "triggerDirection");
-        bool exchangeSpecificDefined = ((exchangeSpecificKey != null)) && (inOp(parameters, exchangeSpecificKey));
+        bool exchangeSpecificDefined = ((exchangeSpecificKey != null)) && ((parameters != null && exchangeSpecificKey is string inOpKey9 && parameters.ContainsKey(inOpKey9)));
         object paramsOmitted = ((triggerDirection != null)) ? this.omit(parameters, "triggerDirection") : parameters;
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
@@ -6949,7 +6949,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = this.markets;
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey8 && markets.ContainsKey(inOpKey8)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey9 && marketsById.ContainsKey(inOpKey9)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey10 && markets.ContainsKey(inOpKey10)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey11 && marketsById.ContainsKey(inOpKey11)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -8140,7 +8140,7 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey10 && client.subscriptions.ContainsKey(inOpKey10))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey12 && client.subscriptions.ContainsKey(inOpKey12))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
@@ -8148,7 +8148,7 @@ public partial class BaseExchange
         {
             if (subHashIsPrefix != true)
             {
-                if ((client.subscriptions != null && subHash is string inOpKey11 && client.subscriptions.ContainsKey(inOpKey11)))
+                if ((client.subscriptions != null && subHash is string inOpKey13 && client.subscriptions.ContainsKey(inOpKey13)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
                 }
