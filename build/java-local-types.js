@@ -28483,7 +28483,6 @@ export function nativeJavaLongBoxLocals (content, after = (x) => x) {
     return changed ? out.join ('\n') : content;
 }
 
-<<<<<<< merged
 // ===== base `orderbooks` field is Map<String, WsOrderBook> (BaseExchange.java) =====
 // delete / `in` bind on the typed field with no receiver cast; `this.orderbooks[s][lit] = v` with a
 // String s puts into the stored WsOrderBook (the helper's Map branch: put(lit, v), null value included).
@@ -28509,7 +28508,8 @@ export function installJavaTypedOrderbooksField (transpiler) {
         }
         return upstreamWrite (node, left, right);
     };
-=======
+}
+
 // ===== null-seeded structure locals: `let x = undefined` written only by parse*/safe* structure producers =====
 // Every Java declaration of these names returns a TypedMap (Ticker/Order/Trade/OrderBook implement
 // Map<String, Object>), so the local binds with no cast and its puts/reads take the declared-Map arms.
@@ -28583,5 +28583,4 @@ export function installJavaNullSeedStructureLocals (transpiler) {
         return r87j6Head (printer, declaration, identation, JAVA_STRUCTURE_TYPE) + printed.slice (marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? JAVA_STRUCTURE_TYPE : undefined));
->>>>>>> J08
 }

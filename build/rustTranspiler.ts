@@ -6537,7 +6537,6 @@ function typeFilterSliceLists(content: string): string {
     return out + content.slice(last);
 }
 
-<<<<<<< merged
 // parseTrades / parseOrders / parsePositions / parseSettlements (and the shared trades helper) return a list when every
 // return is a typed filter, `[]`, a built `result` vec, a list member of this set, or (positions) toArray's list.
 const RUST_PARSE_LIST_FNS = ['parse_trades', 'parse_trades_helper', 'parse_orders', 'parse_positions', 'parse_settlements'];
@@ -6583,7 +6582,8 @@ function typeParseListReturns(content: string): string {
         head.lastIndex = last;
     }
     return out + content.slice(last);
-=======
+}
+
 // A venue `Vec<Value>` local (or a parse_prediction_positions result) used only by `push(Value::Dict(x))`, `.len()`
 // and element reads holds proven maps: it becomes `Vec<Dict>`, a read is the map itself (missing index = empty map).
 function typeDictPushLists(content: string): string {
@@ -6606,22 +6606,13 @@ function typeDictPushLists(content: string): string {
         content = content.slice(0, at) + `let mut ${v}: Vec<crate::value::Dict> = ${init};` + typedRest + content.slice(at + d[0].length + rest.length);
     }
     return content;
->>>>>>> R06
 }
 
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-<<<<<<< merged
-<<<<<<< merged
-    content = splitLongRustLines(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
-=======
-    content = splitLongRustLines(typeDictPushLists(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
->>>>>>> R06
-=======
-    content = splitLongRustLines(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(lendScalarArgs(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))));
->>>>>>> R09
+    content = splitLongRustLines(typeDictPushLists(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(lendScalarArgs(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))))))))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -12432,11 +12423,8 @@ impl std::ops::DerefMut for ${coreName} {
             rustContent = rustTypedParseOrder(rustContent);
             rustContent = rustTypedParseTrade(rustContent);
             rustContent = rustTypedParseTicker(rustContent);
-<<<<<<< merged
             rustContent = rustTypedParsePositionFamilies(rustContent);
-=======
             rustContent = rustTypedRequestBuilders(rustContent);
->>>>>>> R05
 
             // Phase 2 — lexical sanity check. A file with mismatched
             // delimiters would break the whole crate, so a failure here is
@@ -13265,15 +13253,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-<<<<<<< merged
-<<<<<<< merged
-        fs.writeFileSync(outFile, splitLongRustLines(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
-=======
-        fs.writeFileSync(outFile, splitLongRustLines(typeDictPushLists(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
->>>>>>> R06
-=======
-        fs.writeFileSync(outFile, splitLongRustLines(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(lendScalarArgs(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))));
->>>>>>> R09
+        fs.writeFileSync(outFile, splitLongRustLines(typeDictPushLists(typeParseListReturns(typeFilterSliceLists(typePredictionPositionsList(typeHandleOptionTuples(mutSelfFieldStoreBacks(lendWsBaseClient(moveSelfReassignOperands(lendScalarArgs(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))))))))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
