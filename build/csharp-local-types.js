@@ -2002,6 +2002,9 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // already boxes — `await this.closePosition (...)` is the IDictionary the two safeDict
     // paths hand back, every other name an exact Dictionary<string, object>.
     'deriveApiKey': 'Dictionary<string, object>',
+    // createApiKey: typed core Dictionary<string, object> (pacifica / opinion / polymarket all print
+    // Task<Dictionary<string, object>>); its FromDict funnel is skipped as identity, so the await is bare
+    'createApiKey': 'Dictionary<string, object>',
     'prepareParadexDomain': 'Dictionary<string, object>',
     // async venue url/auth helpers above (CSHARP_ASYNC_CORE_RETURNS): the signature prints
     // Task<string?>, so the awaited value is the string (or null) every return path boxes

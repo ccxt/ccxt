@@ -3587,7 +3587,7 @@ public partial class polymarket : PredictionExchange
     public async virtual Task<Dictionary<string, object>> CreateOrDeriveApiKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object creds = null;
+        Dictionary<string, object> creds = null;
         try
         {
             creds = await this.deriveApiKey(parameters);
@@ -3599,7 +3599,7 @@ public partial class polymarket : PredictionExchange
         {
             throw new ExchangeError ((this.id + " createOrDeriveApiKey() returned no credentials")) ;
         }
-        return ccxt.BaseExchange.ToDict(creds);
+        return creds;
     }
 
     public virtual Dictionary<string, object> setApiCredentials(IDictionary<string, object> response)
