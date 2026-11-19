@@ -1126,12 +1126,12 @@ export default class interactivebrokers extends Exchange {
         };
         let index = 1;
         if (withPositions) {
-            balanceResponse['positions'] = this.safeDict (results, index);
+            balanceResponse['positions'] = this.safeList (results, index);
             index = index + 1;
         }
         if (withOpenOrders) {
             // the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
-            balanceResponse['orders'] = this.safeDict (results, index);
+            balanceResponse['orders'] = this.safeList (results, index);
         }
         return this.parseBalance (balanceResponse);
     }
