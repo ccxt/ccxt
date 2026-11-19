@@ -381,7 +381,7 @@ pub struct Exchange {
 
     // market data caches
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
-    pub markets:           Value,
+    pub markets:           Option<crate::value::Dict>,
     pub markets_by_id:     Option<crate::value::Dict>,
     /// Plain dict, never undefined (TS `createSafeDictionary`): reads and writes are the stdlib map ops.
     pub currencies:        crate::value::Dict,
@@ -498,7 +498,7 @@ pub const PLAIN_DICT_FIELDS: [&str; 1] = ["markets"];
 mod plain_dict_container_proof {
     use super::*;
 
-    fn slot<'a>(ex: &'a mut Exchange, name: &str) -> &'a mut Value {
+    fn slot<'a>(ex: &'a mut Exchange, name: &str) -> &'a mut Option<crate::value::Dict> {
         match name {
             "markets" => &mut ex.markets,
             other => panic!("not a plain-dict field: {other}"),
@@ -509,8 +509,7 @@ mod plain_dict_container_proof {
     fn fields_hold_a_dict_or_null() {
         let mut ex = Exchange::new(None);
         for name in PLAIN_DICT_FIELDS {
-            let v = slot(&mut ex, name).clone();
-            assert!(v.as_map().is_some() || v.is_null(), "{name} is neither a dict nor null");
+            assert!(slot(&mut ex, name).is_none(), "{name} starts undefined");
         }
     }
 
@@ -725,7 +724,7 @@ impl Exchange {
             wsSocksProxy:        Value::Null,
             ws_socks_proxy:      Value::Null,
 
-            markets:           Value::Null,
+            markets:           None,
             markets_by_id:     None,
             currencies:        crate::value::Dict::default(),
             currencies_by_id:  Value::Null,
@@ -917,7 +916,7 @@ impl Exchange {
         // already being loaded, so config-injected markets win.
         let described_markets = get("markets");
         if matches!(&described_markets, Value::Dict(m) if !m.is_empty())
-            && matches!(self.markets, Value::Null)
+            && self.markets.is_none()
         {
             self.set_markets_inline(described_markets);
         }
@@ -997,7 +996,7 @@ impl Exchange {
                 by_id.entry(i).or_default().push(m.clone());
             }
         }
-        self.markets       = if by_symbol.is_empty() { markets } else { Value::Map(by_symbol) };
+        self.markets       = if by_symbol.is_empty() { if let Value::Dict(m) = markets { Some(m) } else { None } } else { Some(Arc::new(by_symbol)) };
         self.markets_by_id = Some(Arc::new(
             by_id.into_iter().map(|(k, v)| (k, Value::Array(v))).collect()
         ));
@@ -1098,10 +1097,7 @@ impl Exchange {
 
     /// Every loaded market, typed. Empty until markets are loaded.
     pub fn markets(&self) -> Vec<crate::types::Market> {
-        match &self.markets {
-            Value::Dict(d) => d.values().cloned().map(crate::types::Market::from_value).collect(),
-            _ => Vec::new(),
-        }
+        self.markets.as_deref().map(|d| d.values().cloned().map(crate::types::Market::from_value).collect()).unwrap_or_default()
     }
 
     /// Markets by exchange id (one id can name several markets), typed and shared.
@@ -1971,8 +1967,8 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let _ = params.into();
         let markets = crate::runtime::call_typed(async move {
         let reload_b = reload;
-        if !reload_b && !self.markets.is_null() {
-            return self.markets.clone();
+        if !reload_b && self.markets.is_some() {
+            return Value::from(&self.markets);
         }
         let has_fetch_currencies = matches!(
             self.has.get("fetchCurrencies").cloned().unwrap_or(Value::Null),
@@ -1997,7 +1993,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             None => return Value::Null,
         };
         if matches!(fetched, Value::Null) {
-            return self.markets.clone();
+            return Value::from(&self.markets);
         }
         let preloaded_non_empty = !self.currencies.is_empty();
         let currencies_arg = if matches!(&currencies, Value::Dict(m) if !m.is_empty()) {
@@ -2020,8 +2016,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // crossSymbolName) too, so a WS handler that resolves a market from the
         // id2-based stream id (`safeMarket(data['s'])`) reaches the unified
         // symbol instead of a synthetic one.
-        let markets_snapshot = self.markets.clone();
-        if let Value::Dict(markets) = &markets_snapshot {
+        if let Some(markets) = self.markets.clone() {
             if let Some(by_id_arc) = &self.markets_by_id {
                 let mut by_id = (**by_id_arc).clone();
                 for market in markets.values() {
@@ -2037,7 +2032,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             }
         }
         let _ = (self.markets_by_id_typed(), self.currencies_by_id_typed());
-        self.markets.clone()
+        Value::from(&self.markets)
         }).await?;
         Ok(crate::types::FromRaw::from_raw(markets))
     } }

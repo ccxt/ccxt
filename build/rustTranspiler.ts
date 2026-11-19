@@ -4221,6 +4221,17 @@ function typedBaseDictFields(content: string): string {
         .replace(/if let Value::Dict\(__d\) = &mut self\.markets_by_id \{/g, 'if let Some(__d) = &mut self.markets_by_id {')
         .replace(/\b(safe_\w+)\(self\.markets_by_id\.clone\(\)/g, '$1(&self.markets_by_id')
         .replace(/([^\w:&])self\.markets_by_id\.clone\(\)/g, '$1Value::from(&self.markets_by_id)');
+    // `markets` is `Option<Dict>` too (undefined until setMarkets, then a dict); same map ops as `markets_by_id`.
+    content = content
+        .replace(/self\.markets = Value::Null;/g, 'self.markets = None;')
+        .replace(/let __t = ([^;]*); self\.markets = __t;/g, 'let __t = $1; self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None };')
+        .replace(/self\.markets = (get_value\(&\w+, &Value::Str\("markets"\.into\(\)\)\));/g, 'self.markets = if let Value::Dict(__m) = $1 { Some(__m) } else { None };')
+        .replace(/self\.markets (==|!=) Value::Null/g, (_m, op) => 'self.markets.' + (op === '==' ? 'is_none()' : 'is_some()'))
+        .replace(/(matches!\(\(&self\.markets, (?:[^()]|\((?:[^()]|\([^()]*\))*\))+?\), \()Value::Dict\(__d\)/g, '$1Some(__d)')
+        .replace(/self\.markets\.as_map\(\)/g, 'self.markets.as_deref()')
+        .replace(/if let Value::Dict\((\w+)\) = &mut self\.markets \{/g, 'if let Some($1) = &mut self.markets {')
+        .replace(/\b(safe_\w+)\(self\.markets\.clone\(\)/g, '$1(&self.markets')
+        .replace(/([^\w:&])self\.markets\.clone\(\)/g, '$1Value::from(&self.markets)');
     // `currencies` is a `Dict` from `createSafeDictionary` on (never undefined); `mapToSafeMap` is the identity in Rust.
     content = content
         .replace(/\{ let __t = self\.create_safe_dictionary\(&\[\]\); self\.currencies = __t; \}/g, 'self.currencies = crate::value::Dict::default();')

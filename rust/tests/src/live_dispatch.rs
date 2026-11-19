@@ -426,7 +426,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
             fn read_field(ptr: *mut (), key: &str) -> Option<Value> {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
                 Some(match key {
-                    "markets"          => core.markets.clone(),
+                    "markets"          => Value::from(&core.markets),
                     "markets_by_id"    => Value::from(&core.markets_by_id),
                     "currencies"       => Value::from(&core.currencies),
                     "currencies_by_id" => core.currencies_by_id.clone(),
@@ -529,7 +529,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     // Core keeps the synthesized-from-markets versions
                     // and downstream URL builders compute the wrong
                     // `currency.id` (e.g. bitmex `XBt` vs `XBT`).
-                    "markets"       => core.markets    = value,
+                    "markets"       => core.markets    = if let Value::Dict(m) = value { Some(m) } else { None },
                     "currencies"    => if let Value::Dict(m) = value { core.currencies = m },
                     _ => {},
                 }
@@ -543,8 +543,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
             }
             fn has_market(ptr: *mut (), symbol: &str) -> bool {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
-                let key = Value::Str(symbol.to_string().into());
-                ccxt::runtime::in_op(&core.markets, &key)
+                core.markets.as_ref().is_some_and(|m| m.contains_key(symbol))
                     || core.markets_by_id.as_ref().is_some_and(|m| m.contains_key(symbol))
             }
             fn set_markets(ptr: *mut (), markets: Value) -> Value {
