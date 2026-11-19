@@ -4127,7 +4127,7 @@ export default class woo extends Exchange {
             return await this.v3PrivatePutFuturesLeverage (this.extend (request, paramsMarginMode));
         } else {
             const marketType = this.safeString (market, 'type', '');
-            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + marketType + ' markets');
+            throw new NotSupported (this.id + ' setLeverage() is not supported for ' + marketType + ' markets');
         }
     }
 

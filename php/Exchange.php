@@ -2924,16 +2924,17 @@ class BaseExchange {
     }
 
     function array_slice($array, $first, $second = null) {
-        if (is_string($array)) {
-            // this is needed because we convert
-            // base64ToBinary to base64_decode in php
-            return substr($array, $first, $second);
-        }
+        // mirrors js Array.prototype.slice (start, end): the second argument is the end index (exclusive),
+        // whereas php array_slice/substr take a length as the third argument
+        $isString = is_string($array); // this is needed because we convert base64ToBinary to base64_decode in php
         if ($second === null) {
-            return array_slice($array, $first);
-        } else {
-            return array_slice($array, $first, $second);
+            return $isString ? substr($array, $first) : array_slice($array, $first);
         }
+        $size = $isString ? strlen($array) : count($array);
+        $start = ($first < 0) ? max($size + $first, 0) : min($first, $size);
+        $end = ($second < 0) ? max($size + $second, 0) : min($second, $size);
+        $length = max($end - $start, 0);
+        return $isString ? substr($array, $start, $length) : array_slice($array, $start, $length);
     }
 
     function get_property($obj, $property, $defaultValue = null) {
