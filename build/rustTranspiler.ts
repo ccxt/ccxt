@@ -7161,6 +7161,37 @@ function moveClientSettleOperands(content: string): string {
 // unit slot 037
 //
 // unit slot 038
+// `check_required_argument` only compares its argument (`== Null`, `in_array`): it takes `&Value` and every
+// caller lends; `x.clone()` of a `Value` prints `&x`, an `Option<String|&str>` clone boxes from the borrow.
+function lendRequiredArgument(content: string): string {
+    content = content.replace(/(fn check_required_argument\(&self, mut methodName: Value, )mut argument: Value(, [^\n]*\n(?:[^\n]*\n){0,12}?[^\n]*?)\(argument == Value::Null\)([^\n]*?)self\.in_array\(argument, /,
+        '$1argument: &Value$2(*argument == Value::Null)$3self.in_array(argument, ');
+    const site = /\bself\.check_required_argument\(/g;
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(site)) {
+        const open = (m.index as number) + m[0].length;
+        const a = splitRustArgs(content.slice(open, balancedCloseIndex(content, open)));
+        if (a.length !== 4) continue;
+        const at = open + a[0].length + 1, raw = a[1], arg = raw.trim();
+        const lead = raw.slice(0, raw.length - raw.trimStart().length);
+        let out = '&' + arg;
+        const v = /^([A-Za-z_]\w*)\.clone\(\)(\.map\(Value::from\)\.unwrap_or\(Value::Null\))?$/.exec(arg);
+        if (v !== null && v[1] !== 'self') {
+            if (v[2] === undefined) out = '&' + v[1];
+            else {
+                const fnAt = content.lastIndexOf('fn ', at);
+                const decls = [...content.slice(fnAt, at).matchAll(new RegExp(`(?<![\\w.])${v[1]}\\s*:\\s*([^=;,)]+?)\\s*[=;,)]`, 'g'))];
+                const ty = decls.length ? decls[decls.length - 1][1].trim() : '';
+                if (ty === 'Option<String>') out = `&Value::from(&${v[1]})`;
+                else if (/^Option<&(?:'\w+ )?str>$/.test(ty)) out = `&Value::from(${v[1]})`;
+            }
+        }
+        edits.push([at, at + raw.length, lead + out]);
+    }
+    let res = '', last = 0;
+    for (const [s, e, t] of edits) { res += content.slice(last, s) + t; last = e; }
+    return res + content.slice(last);
+}
 //
 // unit slot 039
 //
@@ -7484,6 +7515,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 037
     //
     // pass slot 038
+    lendRequiredArgument,
     //
     // pass slot 039
     //
