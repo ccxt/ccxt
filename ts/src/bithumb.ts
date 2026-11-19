@@ -768,12 +768,11 @@ export default class bithumb extends Exchange {
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'fetchOrderBook', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: any = undefined;
         let data: NullableDict = undefined;
         let timestamp: Int = undefined;
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1Orderbook (this.extend (request, paramsGeneration));
+            const response = await this.publicGetV1Orderbook (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -818,7 +817,7 @@ export default class bithumb extends Exchange {
             if (limit !== undefined) {
                 request['count'] = limit; // default 30, max 30
             }
-            response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, paramsGeneration));
+            const response = await this.publicGetPublicOrderbookBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1189,11 +1188,10 @@ export default class bithumb extends Exchange {
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'fetchTicker', 'generation', 2);
         const market = this.market (symbol);
         const request: Dict = {};
-        let response: any = undefined;
         let data: Dict = {};
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId (market);
-            response = await this.publicGetV1Ticker (this.extend (request, paramsGeneration));
+            const response = await this.publicGetV1Ticker (this.extend (request, paramsGeneration));
             //
             //     [
             //         {
@@ -1230,7 +1228,7 @@ export default class bithumb extends Exchange {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, paramsGeneration));
+            const response = await this.publicGetPublicTickerBaseIdQuoteId (this.extend (request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
