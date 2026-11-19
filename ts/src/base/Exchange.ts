@@ -8713,7 +8713,7 @@ export class BaseExchange {
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength: number = response.length;
                     if (this.verbose) {
-                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString (i + 1) + ' method ' + method + ' response length ' + responseLength.toString ();
+                        let backwardMessage: string = 'Dynamic pagination call ' + (i + 1).toString () + ' method ' + method + ' response length ' + responseLength.toString ();
                         if (paginationTimestamp !== undefined) {
                             backwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
                         }
@@ -8740,7 +8740,7 @@ export class BaseExchange {
                     const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength: number = response.length;
                     if (this.verbose) {
-                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString (i + 1) + ' method ' + method + ' response length ' + responseLength.toString ();
+                        let forwardMessage: string = 'Dynamic pagination call ' + (i + 1).toString () + ' method ' + method + ' response length ' + responseLength.toString ();
                         if (paginationTimestamp !== undefined) {
                             forwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
                         }
@@ -8982,8 +8982,7 @@ export class BaseExchange {
                 errors = 0;
                 const responseLength: number = response.length;
                 if (this.verbose) {
-                    const iteration = (i + 1);
-                    const incrementalMessage = 'Incremental pagination call ' + iteration.toString () + ' method ' + method + ' response length ' + responseLength.toString ();
+                    const incrementalMessage = 'Incremental pagination call ' + (i + 1).toString () + ' method ' + method + ' response length ' + responseLength.toString ();
                     this.log (incrementalMessage);
                 }
                 if (responseLength === 0) {
