@@ -1318,12 +1318,18 @@ class bullish extends bullish$1["default"] {
         while (errors$1 <= maxRetries) {
             try {
                 if (method === 'fetchOHLCV') {
+                    if (symbol === undefined) {
+                        throw new errors.ArgumentsRequired(this.id + ' market() requires a symbol argument');
+                    }
                     return await this.fetchOHLCV(symbol, timeframe, since, limit, paramsOmitted);
                 }
                 else if (method === 'fetchFundingRateHistory') {
                     return await this.fetchFundingRateHistory(symbol, since, limit, paramsOmitted);
                 }
                 else {
+                    if (symbol === undefined) {
+                        throw new errors.ArgumentsRequired(this.id + ' market() requires a symbol argument');
+                    }
                     return await this.fetchTrades(symbol, since, limit, paramsOmitted);
                 }
             }

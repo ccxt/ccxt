@@ -172659,8 +172659,8 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -225866,39 +225866,38 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchMyLiquidations', market, paramsUntil);
         let response;
-        let liquidations = undefined;
+        let key = 'data';
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
-            //
-            //     {
-            //         "code": 0,
-            //         "msg": "",
-            //         "timestamp": 1721280071678,
-            //         "data": [
-            //             {
-            //                 "orderId": "string",
-            //                 "symbol": "string",
-            //                 "type": "string",
-            //                 "side": "string",
-            //                 "positionSide": "string",
-            //                 "price": "string",
-            //                 "quantity": "float64",
-            //                 "stopPrice": "string",
-            //                 "workingType": "string",
-            //                 "status": "string",
-            //                 "time": "int64",
-            //                 "avgPrice": "string",
-            //                 "executedQty": "string",
-            //                 "profit": "string",
-            //                 "commission": "string",
-            //                 "updateTime": "string"
-            //             }
-            //         ]
-            //     }
-            //
-            liquidations = this.safeList(response, 'data', []);
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1721280071678,
+        //         "data": [
+        //             {
+        //                 "orderId": "string",
+        //                 "symbol": "string",
+        //                 "type": "string",
+        //                 "side": "string",
+        //                 "positionSide": "string",
+        //                 "price": "string",
+        //                 "quantity": "float64",
+        //                 "stopPrice": "string",
+        //                 "workingType": "string",
+        //                 "status": "string",
+        //                 "time": "int64",
+        //                 "avgPrice": "string",
+        //                 "executedQty": "string",
+        //                 "profit": "string",
+        //                 "commission": "string",
+        //                 "updateTime": "string"
+        //             }
+        //         ]
+        //     }
+        //
         } else {
-            response = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
+            const swapResponse = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -225928,9 +225927,10 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             //         }
             //     }
             //
-            const data = this.safeDict(response, 'data', {});
-            liquidations = this.safeList(data, 'orders', []);
+            response = this.safeDict(swapResponse, 'data', {});
+            key = 'orders';
         }
+        const liquidations = this.safeList(response, key, []);
         return this.parseLiquidations(liquidations, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {
@@ -289103,10 +289103,16 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
         while(errors <= maxRetries){
             try {
                 if (method === 'fetchOHLCV') {
+                    if (symbol === undefined) {
+                        throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' market() requires a symbol argument');
+                    }
                     return await this.fetchOHLCV(symbol, timeframe, since, limit, paramsOmitted);
                 } else if (method === 'fetchFundingRateHistory') {
                     return await this.fetchFundingRateHistory(symbol, since, limit, paramsOmitted);
                 } else {
+                    if (symbol === undefined) {
+                        throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' market() requires a symbol argument');
+                    }
                     return await this.fetchTrades(symbol, since, limit, paramsOmitted);
                 }
             } catch (e) {
@@ -399241,8 +399247,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             const settlement = this.safeDict(settlements, i);
             const list = this.safeList(settlement, 'list');
             if (this.safeBool(market, 'linear', false)) {
-                const parsedSettlement = this.parseSettlement(settlement, market);
-                result.push(parsedSettlement);
+                result.push(this.parseSettlement(settlement, market));
             } else if (list !== undefined) {
                 const timestamp = this.safeInteger(settlement, 'settlement_time');
                 const timestampDetails = {
@@ -435597,8 +435602,8 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -479997,8 +480002,8 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
     }
     signHash(hash, privateKey) {
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -496147,8 +496152,8 @@ class polymarket extends _abstract_polymarket_js__rspack_import_0/* ["default"] 
     }
     signHash(hash, privateKey) {
         const signature = (0,_base_functions_crypto_js__rspack_import_5/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const sVal = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const sVal = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + sVal.padStart(64, '0') + v;
     }
@@ -498728,7 +498733,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
@@ -498820,16 +498825,16 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
                     }
                 }
                 if (outcomeSlug !== undefined && outcomeSlug !== '') {
-                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId.toString();
+                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId;
                 }
-                return questionSlug + '_' + outcomeId.toString();
+                return questionSlug + '_' + outcomeId;
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if (name !== undefined && name !== '') {
-            return this.shortenSlug(name) + '_' + outcomeId.toString();
+            return this.shortenSlug(name) + '_' + outcomeId;
         }
-        return 'OUTCOME_' + outcomeId.toString();
+        return 'OUTCOME_' + outcomeId;
     }
     /**
      * @method
@@ -498902,7 +498907,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             const outcomeInfo = this.safeDict(outcomesList, i, {});
             const outcomeId = this.safeInteger(outcomeInfo, 'outcome', i);
             const linkedQuestion = this.safeDict(outcomesToQuestions, outcomeId.toString(), {});
-            const market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
+            const market = this.parseOutcomeMarket(outcomeInfo, outcomeId.toString(), outcomeId, linkedQuestion);
             markets.push(market);
             // Build outcomes dictionary from market outcomes
             const marketOutcomes = this.safeList(market, 'outcomes', []);
@@ -498926,15 +498931,16 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
-     */ parseOutcomeMarket(outcomeInfo, outcomeId, question = {}) {
+     */ parseOutcomeMarket(outcomeInfo, outcomeKey, outcomeId, question = {}) {
         const description = this.safeString(outcomeInfo, 'description', '');
         const name = this.safeString(outcomeInfo, 'name', '');
         const sideSpecs = this.safeList(outcomeInfo, 'sideSpecs', []);
         const desc = this.parseOutcomeDescription(description);
-        const parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
+        const parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeKey, name, question);
         const yesEncoding = this.outcomeEncoding(outcomeId, 0);
         const noEncoding = this.outcomeEncoding(outcomeId, 1);
         const yesOutcomeSymbol = parentSymbol + ':YES';
@@ -499011,12 +499017,12 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             }
         ];
         const marketRow = this.safeMarketStructure({
-            'id': outcomeId.toString(),
+            'id': outcomeKey,
             'market': parentSymbol,
             'base': parentSymbol.split('/')[0],
             'quote': quoteCurrency,
             'settle': undefined,
-            'baseId': outcomeId.toString(),
+            'baseId': outcomeKey,
             'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
@@ -506168,8 +506174,8 @@ class limitless extends _abstract_prediction_limitless_js__rspack_import_0/* ["d
     }
     signHash(hash, privateKey) {
         const signature = (0,_base_functions_js__rspack_import_4/* .ecdsa */.h1)(hash.slice(-64), privateKey.slice(-64), _noble_curves_secp256k1_js__rspack_import_5/* .secp256k1 */.bI, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         const rPadded = r.padStart(64, '0');
         const sPadded = s.padStart(64, '0');
@@ -553319,8 +553325,8 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 url = accessibilityUrls['option'];
             }
         }
-        url = this.implodeHostname(url);
-        return url;
+        const urlResolved = this.implodeHostname(url);
+        return urlResolved;
     }
     cleanParams(params) {
         const paramsOmitted = this.omit(params, [
@@ -592714,14 +592720,9 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
             // frames still arriving until the client resubscribes
             return;
         }
-        const handlers = [
-            this.handleOrderBook,
-            this.handleTrades
-        ];
-        for(let j = 0; j < handlers.length; j++){
-            const handler = handlers[j];
-            handler.call(this, client, message, subscriptions[0]);
-        }
+        const subscription = this.safeDict(subscriptions, 0, {});
+        this.handleOrderBook(client, message, subscription);
+        this.handleTrades(client, message, subscription);
     }
 }
 //  ---------------------------------------------------------------------------

@@ -71,12 +71,12 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    buildOutcomeParentSymbol(desc: Dict, outcomeId: number, name?: string, question?: Dict): string;
+    buildOutcomeParentSymbol(desc: Dict, outcomeId: string, name?: string, question?: Dict): string;
     /**
      * @method
      * @name hyperliquid#fetchMarkets
@@ -93,11 +93,12 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    parseOutcomeMarket(outcomeInfo: Dict, outcomeId: number, question?: Dict): Market;
+    parseOutcomeMarket(outcomeInfo: Dict, outcomeKey: string, outcomeId: number, question?: Dict): Market;
     /**
      * @ignore
      * @method

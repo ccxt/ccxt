@@ -2248,8 +2248,8 @@ export default class limitless extends Exchange {
     }
     signHash(hash, privateKey) {
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         const rPadded = r.padStart(64, '0');
         const sPadded = s.padStart(64, '0');

@@ -1319,12 +1319,18 @@ export default class bullish extends Exchange {
         while (errors <= maxRetries) {
             try {
                 if (method === 'fetchOHLCV') {
+                    if (symbol === undefined) {
+                        throw new ArgumentsRequired(this.id + ' market() requires a symbol argument');
+                    }
                     return await this.fetchOHLCV(symbol, timeframe, since, limit, paramsOmitted);
                 }
                 else if (method === 'fetchFundingRateHistory') {
                     return await this.fetchFundingRateHistory(symbol, since, limit, paramsOmitted);
                 }
                 else {
+                    if (symbol === undefined) {
+                        throw new ArgumentsRequired(this.id + ' market() requires a symbol argument');
+                    }
                     return await this.fetchTrades(symbol, since, limit, paramsOmitted);
                 }
             }

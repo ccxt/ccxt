@@ -9751,8 +9751,7 @@ class htx extends htx$1["default"] {
             const settlement = this.safeDict(settlements, i);
             const list = this.safeList(settlement, 'list');
             if (this.safeBool(market, 'linear', false)) {
-                const parsedSettlement = this.parseSettlement(settlement, market);
-                result.push(parsedSettlement);
+                result.push(this.parseSettlement(settlement, market));
             }
             else if (list !== undefined) {
                 const timestamp = this.safeInteger(settlement, 'settlement_time');

@@ -225,8 +225,8 @@ class bybit extends bybit$1["default"] {
                 url = accessibilityUrls['option'];
             }
         }
-        url = this.implodeHostname(url);
-        return url;
+        const urlResolved = this.implodeHostname(url);
+        return urlResolved;
     }
     cleanParams(params) {
         const paramsOmitted = this.omit(params, ['type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin']);

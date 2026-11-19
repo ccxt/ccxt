@@ -500,8 +500,8 @@ export default class polymarket extends Exchange {
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     hashMessage(message: any): string;
-    signHash(hash: string, privateKey: any): string;
-    signMessage(message: any, privateKey: any): string;
+    signHash(hash: string, privateKey: Str): string;
+    signMessage(message: any, privateKey: Str): string;
     /**
      * @method
      * @name polymarket#createProxyCredentials

@@ -6609,7 +6609,7 @@ class bingx extends bingx$1["default"] {
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchMyLiquidations', market, paramsUntil);
         let response;
-        let liquidations = undefined;
+        let key = 'data';
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
             //
@@ -6639,10 +6639,9 @@ class bingx extends bingx$1["default"] {
             //         ]
             //     }
             //
-            liquidations = this.safeList(response, 'data', []);
         }
         else {
-            response = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
+            const swapResponse = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6672,9 +6671,10 @@ class bingx extends bingx$1["default"] {
             //         }
             //     }
             //
-            const data = this.safeDict(response, 'data', {});
-            liquidations = this.safeList(data, 'orders', []);
+            response = this.safeDict(swapResponse, 'data', {});
+            key = 'orders';
         }
+        const liquidations = this.safeList(response, key, []);
         return this.parseLiquidations(liquidations, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {

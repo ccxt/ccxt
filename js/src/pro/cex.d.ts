@@ -116,7 +116,7 @@ export default class cex extends cexRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
-    pairToSymbol(pair: any): string;
+    pairToSymbol(pair: Str): string;
     handleOrderBookUpdate(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
