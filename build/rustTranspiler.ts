@@ -7288,6 +7288,26 @@ function singleCopySymbolListArgs(content: string): string {
 }
 //
 // unit slot 054
+// Base collection helpers whose rows argument takes `impl Rows` (exchange_stubs.rs, and the generated
+// getListFromObjectValues below): a `Value` / list / dict local is lent as `&x` for `x.clone()`.
+const RUST_ROWS_LENT_FNS = ['index_by', 'index_by_safe', 'group_by', 'sort_by', 'sort_by_t', 'array_slice', 'get_list_from_object_values', 'filter_by_array'];
+function lendCollectionRows(content: string): string {
+    content = content.replace(/fn get_list_from_object_values\(&self, mut objects: Value, (mut key: Value\) -> Value \{\n\s*let mut newArray: crate::value::List = self\.to_array_t\()objects\);/,
+        (_m, mid) => `fn get_list_from_object_values(&self, objects: impl Rows, ${mid}Rows::rows(objects));`);
+    const site = new RegExp(String.raw`\bself\.(?:parent\.)?(?:${RUST_ROWS_LENT_FNS.join('|')})\(([A-Za-z_]\w*)\.clone\(\)(?=,)`, 'g');
+    return content.replace(site, (m, x, off) => {
+        if (x === 'self') return m;
+        const open = off + m.indexOf('(') + 1;
+        const callEnd = balancedCloseIndex(content, open);
+        if (new RegExp(`(?<![\\w.])${x}\\b(?!\\.clone\\(\\))`).test(content.slice(off + m.length, callEnd))) return m;
+        const fnAt = content.lastIndexOf('fn ', off);
+        const decls = [...content.slice(fnAt, off).matchAll(new RegExp(`(?<![\\w.])${x}\\s*(?::\\s*([^=;,)]+?)\\s*[=;,)]| = __it\\.next\\(\\)\\.unwrap_or_default\\(\\);)`, 'g'))];
+        if (decls.length === 0) return m;
+        const ty = (decls[decls.length - 1][1] ?? 'Value').trim();
+        if (!/^(?:Value|crate::value::(?:List|Dict)|Option<crate::value::List>)$/.test(ty)) return m;
+        return m.replace(`${x}.clone()`, `&${x}`);
+    });
+}
 //
 // unit slot 055
 //
@@ -7614,6 +7634,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     singleCopySymbolListArgs,
     //
     // pass slot 054
+    lendCollectionRows,
     //
     // pass slot 055
     //

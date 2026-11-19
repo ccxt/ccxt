@@ -2150,12 +2150,12 @@ impl Exchange {
     pub fn array_concat_t(&self, a: impl Into<Value>, b: impl Into<Value>) -> crate::value::List {
         if let Value::Arr(l) = self.array_concat(a, b) { l } else { crate::value::List::default() }
     }
-    pub fn sort_by_t(&self, arr: Value, key: Value, optional_args: &[Value]) -> crate::value::List {
+    pub fn sort_by_t(&self, arr: impl crate::value::Rows, key: Value, optional_args: &[Value]) -> crate::value::List {
         if let Value::Arr(l) = self.sort_by(arr, key, optional_args) { l } else { crate::value::List::default() }
     }
 
-    pub fn array_slice(&self, v: Value, start: Value, optional_args: &[Value]) -> crate::value::List {
-        let Value::Arr(a) = v else {
+    pub fn array_slice(&self, v: impl crate::value::Rows, start: Value, optional_args: &[Value]) -> crate::value::List {
+        let Value::Arr(a) = crate::value::Rows::rows(v) else {
             return crate::value::List::default();
         };
         let len = a.len() as i64;
@@ -2208,7 +2208,7 @@ impl Exchange {
         }
     }
 
-    pub fn index_by(&self, arr: Value, key: Value) -> crate::value::Dict {
+    pub fn index_by(&self, arr: impl crate::value::Rows, key: Value) -> crate::value::Dict {
         let k = key_str(&key);
         let mut out: HashMap<String, Value> = HashMap::new();
         // TS `indexBy` accepts an array OR an object — for an object it
@@ -2216,7 +2216,7 @@ impl Exchange {
         // this: `indexBy(currency['networks'], 'id')` where `networks` is
         // a dict keyed by network code. Array-only would return {} and
         // collapse every parsed address to a null network.
-        let items: Vec<Value> = match arr {
+        let items: Vec<Value> = match crate::value::Rows::rows(arr) {
             Value::Arr(items) => Arc::try_unwrap(items).unwrap_or_else(|a| (*a).clone()),
             Value::Dict(m) => m.values().cloned().collect(),
             _ => return Arc::new(out),
@@ -2229,14 +2229,14 @@ impl Exchange {
         Arc::new(out)
     }
 
-    pub fn index_by_safe(&self, arr: Value, key: Value) -> Value {
+    pub fn index_by_safe(&self, arr: impl crate::value::Rows, key: Value) -> Value {
         Value::Dict(self.index_by(arr, key))
     }
 
-    pub fn group_by(&self, arr: Value, key: Value, _optional_args: &[Value]) -> Value {
+    pub fn group_by(&self, arr: impl crate::value::Rows, key: Value, _optional_args: &[Value]) -> Value {
         let k = key_str(&key);
         let mut out: HashMap<String, Vec<Value>> = HashMap::new();
-        if let Value::Arr(items) = arr {
+        if let Value::Arr(items) = crate::value::Rows::rows(arr) {
             for item in items.iter().cloned() {
                 if let Some(kv) = crate::value::safe_string(&item, &k, None) {
                     out.entry(kv).or_default().push(item);
@@ -2271,8 +2271,8 @@ impl Exchange {
 
     /// `sortBy(array, key, descending=false)` — stable sort of an array
     /// of objects by `obj[key]`. Mirrors `functions/generic.ts`.
-    pub fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value {
-        let mut items = match arr {
+    pub fn sort_by(&self, arr: impl crate::value::Rows, key: Value, optional_args: &[Value]) -> Value {
+        let mut items = match crate::value::Rows::rows(arr) {
             Value::Arr(a) => Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()),
             other => return other,
         };
