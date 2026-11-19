@@ -28207,6 +28207,27 @@ export function patchJavaRowAccumulatorLists (transpiler) {
         }
         return upstreamWrite (node, left, right);
     };
+    // `acc[r][c]` read: every row is a pushed literal of `width` slots and c < width, so only a null row
+    // (GetValue's null answer) needs a guard
+    const upstreamRead = printer.printElementAccessExpression.bind (printer);
+    printer.printElementAccessExpression = function (node, identation) {
+        const printed = upstreamRead (node, identation);
+        const row = unwrapParens (node?.expression);
+        try {
+            if (String (printed).startsWith ('Helpers.GetValue(') && row !== undefined && ts.isElementAccessExpression (row)) {
+                const declaration = rowAccumulatorOf (printer, row.expression);
+                const width = declaration !== undefined ? rowAccumulatorWidth (printer, declaration) : undefined;
+                const col = unwrapParens (node.argumentExpression);
+                if (width !== undefined && rowColumnBelow (printer, col, width) && ts.isIdentifier (col) && printer.printNode (col, 0) === col.text) {
+                    const r = printer.printNode (row, 0);
+                    return `(${r} == null ? null : ${r}.get(${col.text}))`;
+                }
+            }
+        } catch (e) {
+            return printed;
+        }
+        return printed;
+    };
     publishJavaDeclaredLocalTypes (printer, (declaration) => rowAccumulatorType (printer, declaration));
 }
 
