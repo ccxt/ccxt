@@ -10064,6 +10064,84 @@ function goGuardedReadSplitOfFoundHash (maskedLines: string[], fn: any, read: an
     return (found !== null) && (found[1].indexOf (split[3].slice (1, -1)) >= 0);
 }
 
+// `var x []any = ArrayTyped(this.M(..))` with M a method of the same receiver in this file whose every own
+// return is a one-line `return []any{..}` of more than `key` items: ArrayTyped hands that slice back as is
+function goGuardedReadProducerArity (maskedLines: string[], blocks: any[], fn: any, init: string | undefined, key: string): boolean {
+    const call = (init === undefined) ? null : /^[ \t]*var [A-Za-z_]\w* \[\]any = (?:ccxt\.)?ArrayTyped\(this\.([A-Z]\w*)\(.*\)\)[ \t]*$/.exec (init);
+    const receiver = /^func \(this \*([A-Za-z_]\w*)\) /.exec (maskedLines[fn.open]);
+    if ((call === null) || (receiver === null) || !/^\d+$/.test (key)) {
+        return false;
+    }
+    const head = 'func (this *' + receiver[1] + ') ' + call[1] + '(';
+    const defs = blocks.filter ((b: any) => (b.depth === 1) && maskedLines[b.open].startsWith (head));
+    if ((defs.length !== 1) || !/\) \[\]any \{$/.test (maskedLines[defs[0].open])) {
+        return false;
+    }
+    const method = defs[0];
+    let returns = 0;
+    for (let k = method.open + 1; k < method.close; k++) {
+        if (!/^[ \t]*return\b/.test (maskedLines[k])) {
+            continue;
+        }
+        // a return inside a nested func literal belongs to that literal
+        const owner = blocks.filter ((b: any) => (b.open < k) && (k <= b.close) && /\bfunc\b/.test (maskedLines[b.open]))
+            .sort ((a: any, b: any) => b.depth - a.depth)[0];
+        if (owner !== method) {
+            continue;
+        }
+        const row = /^[ \t]*return \[\]any\{(.*)\}[ \t]*$/.exec (maskedLines[k]);
+        if ((row === null) || (goGuardedReadSplitArgs (row[1]).filter ((item: string) => item !== '').length <= Number (key))) {
+            return false;
+        }
+        returns += 1;
+    }
+    return returns > 0;
+}
+
+// an earlier `if .. len(container) == 0 [|| ..] { .. return|panic(..) }` in a block that encloses the read (same func
+// literal) leaves len >= 1, so index 0 is in range; `!= 1` leaves len == 1. Only an exit as the arm's last statement counts.
+function goGuardedReadEarlyExit (maskedLines: string[], blocks: any[], depth: number[], fn: any, index: number, container: string, key: string): boolean {
+    if (key !== '0') {
+        return false;
+    }
+    const chain: any[] = [];
+    const enclosing = blocks.filter ((b: any) => (b.open < index - 1) && (index <= b.close)).sort ((a: any, b: any) => b.depth - a.depth);
+    for (const block of enclosing) {
+        if (/\bfunc\b/.test (maskedLines[block.open]) && (block !== fn)) {
+            if (GO_GUARDED_READ_ROOF.test (maskedLines[block.open]) && (block.close === index + 4)) {
+                continue;
+            }
+            return false;
+        }
+        chain.push (block);
+        if (block === fn) {
+            break;
+        }
+    }
+    for (const arm of blocks) {
+        const parent = chain.find ((b: any) => (arm.depth === b.depth + 1) && (arm.open > b.open));
+        const condition = /^[ \t]*if (.*) \{$/.exec (maskedLines[arm.open]);
+        // a `case` arm of a switch does not dominate a read in another case
+        if ((parent === undefined) || (condition === null) || (arm.close >= index) || (maskedLines[arm.close].trim () !== '}')
+            || /^[ \t]*(?:switch|select)\b/.test (maskedLines[parent.open])) {
+            continue;
+        }
+        let last = arm.close - 1;
+        while ((last > arm.open) && (maskedLines[last].trim () === '')) {
+            last -= 1;
+        }
+        if ((last <= arm.open) || (depth[last] !== arm.depth) || !/^[ \t]*(?:return\b|panic\()/.test (maskedLines[last])) {
+            continue;
+        }
+        const terms = [ 'len\\(' + goAccessEscape (container) + '\\)', ...goGuardedReadLenBounds (maskedLines, blocks, depth, fn, arm, container).map ((b: string) => goAccessEscape (b)) ];
+        const empty = new RegExp ('^(?:' + terms.join ('|') + ')(?:==0|<1|<=0|!=1)$');
+        if (goMapWriteTopLevelParts (condition[1], '||').some ((part: string) => (part.indexOf ('&&') < 0) && empty.test (goGuardedReadStripParens (part).replace (/[ \t]/g, '')))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // names bound to `len(container)` that still hold at the block, declared once and unwritten
 function goGuardedReadLenBounds (maskedLines: string[], blocks: any[], depth: number[], fn: any, block: any, container: string): string[] {
     const c = goAccessEscape (container);
@@ -10132,7 +10210,8 @@ function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: nu
             break;
         }
         const header = maskedLines[block.open];
-        const loop = /^[ \t]*for ([A-Za-z_]\w*) := 0; \1 < (.+); \1\+\+ \{$/.exec (header);
+        // any non-negative literal start keeps the counter in [0, len)
+        const loop = /^[ \t]*for ([A-Za-z_]\w*) := \d+; \1 < (.+); \1\+\+ \{$/.exec (header);
         if ((loop !== null) && (loop[1] === key)) {
             if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, block, loop[2].trim (), container, [ key ])) {
                 return false;
@@ -10208,7 +10287,9 @@ function nativeGuardedListElementReads (content: string): string {
         const isWrapped = (maskedLines[index + 1] === wrapped);
         const readText = (isWrapped && !read.json) ? (deref + '(' + container + '[' + key + '])') : (container + '[' + key + ']');
         if (goGuardedReadIsInRange (maskedLines, blocks, depth, fn, index, container, key) || goGuardedReadInitProvesIndex (read.init, key, read.header)
-            || goGuardedReadSplitOfFoundHash (maskedLines, fn, read, lines, key)) {
+            || goGuardedReadSplitOfFoundHash (maskedLines, fn, read, lines, key)
+            || goGuardedReadProducerArity (maskedLines, blocks, fn, read.init, key)
+            || goGuardedReadEarlyExit (maskedLines, blocks, depth, fn, index, container, key)) {
             // an earlier closure of the same expression may already have been merged into
             // the roof line, so splice into what was emitted, not the original text
             const roofText = out[out.length - 1];
@@ -10282,6 +10363,20 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     const sibling = g ('\tvar row []any = SafeListTyped(a, 0)\n\tvar n int = len(row)\n\tvar s string = ""\n\tif n > 1 {\n\t\ts = this.F(func() any {\n' + arm ('0', ') + this.F(func() any {') + arm ('1', ')') + '\t}\n');
     ok (sibling.indexOf ('func() any {') < 0 && sibling.indexOf ('s = this.F(row[0]) + this.F(row[1])') >= 0, 'sibling guard closures under a len() bound both go native: ' + sibling);
     ok (g ('\tvar row []any = SafeListTyped(a, 0)\n\tvar s string = ""\n\ts = this.F(func() any {\n' + arm ('0', ') + this.F(func() any {') + arm ('1', ')')).indexOf ('func() any {') >= 0, 'sibling guard closures without a bound keep the literals');
+    const counted = (start: string) => g ('\tvar rows []string = strings.Split(x, \"/\")\n\tvar n int = len(rows)\n\tfor i := ' + start + '; i < n; i++ {\n' + read ('i', 'rows', '') + '\t}\n');
+    ok (counted ('1').indexOf ('var m any = rows[i]') >= 0, 'a loop from a literal start over len() bounds the read');
+    ok (g ('\tvar rows []string = strings.Split(x, \"/\")\n\tfor i := k; i < len(rows); i++ {\n' + read ('i', 'rows', '') + '\t}\n').indexOf ('func() any {') >= 0, 'a variable start keeps the literal');
+    const produced = (ret: string, index: string) => nativeGuardedListElementReads ('func (this *X) P() []any {\n\tf := func() any {\n\t\treturn nil\n\t}\n\t_ = f\n' + ret + '}\nfunc (this *X) f(p any) any {\n\tvar pair []any = ArrayTyped(this.P(a, b))\n' + read (index, 'pair', 'DerefScalar(') + '\treturn nil\n}\n');
+    ok (produced ('\treturn []any{a, b}\n', '1').indexOf ('var m any = DerefScalar(pair[1])') >= 0, 'a same-receiver producer of fixed arity proves its indexes');
+    ok (produced ('\treturn []any{a, b}\n', '2').indexOf ('func() any {') >= 0, 'an index past the producer arity keeps the literal');
+    ok (produced ('\tif a {\n\t\treturn []any{a}\n\t}\n\treturn []any{a, b}\n', '1').indexOf ('func() any {') >= 0, 'the shortest return decides');
+    ok (produced ('\treturn this.Q()\n', '0').indexOf ('func() any {') >= 0, 'a non-literal return keeps the literal');
+    const exit = (cond: string, tail: string, index: string) => g (lists + '\tvar n int = len(markets)\n\tif ' + cond + ' {\n\t\t' + tail + '\n\t}\n' + read (index, 'markets', 'DerefScalar('));
+    ok (exit ('n == 0', 'return nil', '0').indexOf ('var m any = markets[0]') >= 0, 'an early return on an empty list proves index 0');
+    ok (exit ('p == nil || len(markets) == 0', 'panic(p)', '0').indexOf ('var m any = markets[0]') >= 0, 'an || arm of an exit guard counts');
+    ok (exit ('n == 0', 'return nil', '1').indexOf ('func() any {') >= 0, 'an empty-list exit does not prove index 1');
+    ok (exit ('n == 0', 'p = nil', '0').indexOf ('func() any {') >= 0, 'a guard without an exit proves nothing');
+    ok (exit ('n == 0 && p == nil', 'return nil', '0').indexOf ('func() any {') >= 0, 'a guard with && proves nothing');
     const once = g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n');
     ok (nativeGuardedListElementReads (once) === once, 'idempotent');
     const wired = formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n' + lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n\treturn nil\n}\n');
