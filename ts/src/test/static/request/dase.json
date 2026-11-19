@@ -1,0 +1,47 @@
+{
+  "exchange": "dase",
+  "skipKeys": [],
+  "outputType": "json",
+  "methods": {
+    "fetchOrderBook": [
+      {
+        "description": "public spot order book snapshot",
+        "method": "fetchOrderBook",
+        "url": "https://api.dase.com/v1/markets/BTC-EUR/snapshot",
+        "input": ["BTC/EUR"]
+      }
+    ],
+    "fetchClosedOrders": [
+      {
+        "description": "private closed orders",
+        "method": "fetchClosedOrders",
+        "url": "https://api.dase.com/v1/orders?status=closed&market=BTC-EUR",
+        "input": ["BTC/EUR"]
+      }
+    ],
+    "fetchTicker": [
+      {
+        "description": "public spot ticker",
+        "method": "fetchTicker",
+        "url": "https://api.dase.com/v1/markets/BTC-EUR/ticker",
+        "input": ["BTC/EUR"]
+      }
+    ],
+    "fetchTickers": [
+      {
+        "description": "public spot tickers",
+        "method": "fetchTickers",
+        "url": "https://api.dase.com/v1/markets/stats",
+        "input": []
+      }
+    ],
+    "fetchTrades": [
+      {
+        "description": "public spot trades",
+        "method": "fetchTrades",
+        "url": "https://api.dase.com/v1/markets/BTC-EUR/trades?limit=3",
+        "input": ["BTC/EUR", null, 3]
+      }
+    ]
+  }
+}
