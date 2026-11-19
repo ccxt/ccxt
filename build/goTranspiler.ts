@@ -6726,6 +6726,10 @@ function goTernaryAnyArmType (arm: string, fn: string): string | undefined {
     if (/^"(?:[^"\\]|\\.)*"$/.test (arm)) { return 'string'; }
     if ((arm === 'true') || (arm === 'false')) { return 'bool'; }
     if (arm === 'map[string]any{}') { return 'map[string]any'; }
+    // ParseToInt is the base method returning int64; `*p` / `*p * N` of an *int64 local is int64
+    if (/^\(?this\.ParseToInt\([^()]*(?:\([^()]*\)[^()]*)*\)\)?$/.test (arm)) { return 'int64'; }
+    const deref = /^\*(\w+)(?: [*+-] \d+)?$/.exec (arm);
+    if (deref && (goTernaryAnyArmType (deref[1], fn) === '*int64')) { return 'int64'; }
     const call = /^(?:this|exchange)\.(\w+)\((.*)\)$/.exec (arm);
     if (call && !/[()]/.test (call[2].replace (/"[^"]*"/g, ''))) {
         if (/^SafeString(?:Lower|Upper)?(?:2|N|LowerN|UpperN)?$/.test (call[1])) { return '*string'; }
@@ -6859,8 +6863,12 @@ function goTernaryIifeOperands (content: string): string {
                 let litType = head[2];
                 if (litType === 'any') {
                     const ta = goTernaryAnyArmType (a[1], func);
-                    if ((ta === undefined) || (ta !== goTernaryAnyArmType (b[1], func)) || [ 'nil', 'intlit', 'omitdict', 'any' ].includes (ta)) { skip.add (i); continue; }
-                    litType = ta;
+                    const tb = goTernaryAnyArmType (b[1], func);
+                    // an untyped int constant takes the other arm's int64
+                    const lit = [ ta, tb ].includes ('intlit') && [ ta, tb ].includes ('int64');
+                    if (lit) { a[1] = (ta === 'intlit') ? 'int64(' + a[1] + ')' : a[1]; b[1] = (tb === 'intlit') ? 'int64(' + b[1] + ')' : b[1]; }
+                    if (!lit && ((ta === undefined) || (ta !== tb) || [ 'nil', 'intlit', 'omitdict', 'any' ].includes (ta))) { skip.add (i); continue; }
+                    litType = lit ? 'int64' : ta;
                 }
                 // statement start: the latest line opening at the depth of the innermost enclosing block brace
                 const stacks = goIifeLineStacks (lines.slice (0, i + 1), mask);
@@ -7034,7 +7042,11 @@ function goTernaryIifeOperandsCheck (): string[] {
     const src = head + 'func f(s string, m map[string]any) {\n\tvar r map[string]any = map[string]any{\n\t\t"id": m["id"],\n\t\t"action": func() string {\n' + lit (',\n') + '\t}\n\tvar q map[string]any = map[string]any{\n\t\t"n": this.Nonce(),\n\t\t"action": func() string {\n' + lit (',\n') + '\t}\n}\n';
     const want = head + 'func f(s string, m map[string]any) {\n\tvar actionValue string\n\tif s == "buy" {\n\t\tactionValue = "bid"\n\t} else {\n\t\tactionValue = "ask"\n\t}\n\tvar r map[string]any = map[string]any{\n\t\t"id": m["id"],\n\t\t"action": actionValue,\n\t}\n\tvar q map[string]any = map[string]any{\n\t\t"n": this.Nonce(),\n\t\t"action": func() string {\n' + lit (',\n') + '\t}\n}\n';
     const out = goTernaryIifeOperands (src);
-    return (out === want) ? [] : [ 'ternary iife operands: ' + JSON.stringify (out) ];
+    const problems = (out === want) ? [] : [ 'ternary iife operands: ' + JSON.stringify (out) ];
+    const t = (a: string, b: string) => goTernaryIifeOperands (head + 'func (this *K) f(on bool, limit *int64, p any) {\n\tvar r map[string]any = map[string]any{\n\t\t"n": func() any {\n\t\t\tif on {\n\t\t\t\treturn ' + a + '\n\t\t\t}\n\t\t\treturn ' + b + '\n\t\t}(),\n\t}\n}\n');
+    if (!t ('this.ParseToInt(float64(5) / 1000)', '0').includes ('\tvar nValue int64\n\tif on {\n\t\tnValue = this.ParseToInt(float64(5) / 1000)\n\t} else {\n\t\tnValue = int64(0)\n\t}\n')) { problems.push ('ternary iife operands: int constant'); }
+    for (const [ a, b ] of [ [ '*limit', 'nil' ], [ 'p', '0' ], [ '1', '2' ] ]) { if (t (a, b).indexOf ('func() any') < 0) { problems.push ('ternary iife operands kept: ' + a + '/' + b); } }
+    return problems;
 }
 
 
