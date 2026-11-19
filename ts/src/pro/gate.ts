@@ -241,12 +241,7 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
-        if (symbol === undefined) {
-            market = undefined;
-        } else {
-            market = this.market (symbol);
-        }
+        const market = this.market (symbol);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_cancel_cp';
@@ -2351,10 +2346,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getTypeByMarket (market: Market): Str {
-        if (market === undefined) {
-            return undefined;
-        }
+    getTypeByMarket (market: Market): string {
         if (this.safeBool (market, 'spot', false)) {
             return 'spot';
         } else if (this.safeBool (market, 'option', false)) {

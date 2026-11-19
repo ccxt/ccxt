@@ -17006,11 +17006,11 @@ function goAddStringLocals (fn: string, masked: string, fileMasked: string): Set
     return out;
 }
 
-// once-declared `var x int64 = ...` locals and `for i := 0;` counters: BaseExchange.NumberToString of an
+// once-declared `var x int64 [= ...]` locals and `for i := 0;` counters: BaseExchange.NumberToString of an
 // integer is never nil (FormatInt/Itoa), so `this.NumberToString(x)` derefs as a string Add leaf
 function goAddIntLocals (masked: string, fileMasked: string): Set<string> {
     const out = new Set<string> ();
-    const cands = new Set<string> ([ ...masked.matchAll (/\bvar (\w+) int64 = /g), ...masked.matchAll (/\bfor (\w+) := 0; /g) ].map ((m) => m[1]));
+    const cands = new Set<string> ([ ...masked.matchAll (/\bvar (\w+) int64(?: = |\n)/g), ...masked.matchAll (/\bfor (\w+) := 0; /g) ].map ((m) => m[1]));
     for (const n of cands) {
         const decls = (masked.match (new RegExp ('\\bvar ' + n + '\\b|\\b' + n + '\\s*(,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^)]*\\b' + n + '\\b', 'g')) || []).length;
         const param = new RegExp ('[(,]\\s*' + n + ' ').test (masked.slice (0, masked.indexOf ('{')));
@@ -17099,7 +17099,7 @@ function goRetypeStringReturns (content: string, receiver: string, methods: { [n
 // when every return is a literal, a literal-default SafeString (derefed), a never-nil `*string` local (derefed),
 // a `string` local or a native string sum; any other return keeps the box
 function goRetypeNonNilStringMethods (content: string): string {
-    const GO_NON_NIL_STRING_METHODS = [ 'GetWsUrl' ];
+    const GO_NON_NIL_STRING_METHODS = [ 'GetWsUrl', 'GetTypeByMarket' ];
     if (!GO_NON_NIL_STRING_METHODS.some ((m) => content.indexOf (') ' + m + '(') >= 0)) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
     const overridden = goAddOverriddenMethods (fileMasked);
