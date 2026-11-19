@@ -6653,6 +6653,18 @@ const RUST_PARSE_LIST_FNS = [
     'parse_borrow_interests',
     'parse_margin_modifications',
     'parse_order_book_bid_ask',
+    'parse_ohlc_vs',
+    'parse_order_book_bids_asks',
+    'parse_order_book_bids_asks_l3',
+    'parse_cancel_orders',
+    'parse_account_positions',
+    'parse_contract_bids_asks',
+    'extract_type_from_delta',
+    'parse_event_to_markets',
+    'parse_portfolio_details',
+    'filter_transactions_by_kind',
+    'wallet_event_message_hashes',
+    'parse_sxbet_cancel_response',
 ];
 function typeParseListReturns(content: string): string {
     const typed = new Set<string>();
