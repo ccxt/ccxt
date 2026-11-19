@@ -4956,13 +4956,13 @@ class NewTranspiler {
                 line = b + 1;
                 continue;
             }
-            const { lists, nonNull } = this.csharpTypedListReceivers (maskedLines.slice (a, b + 1));
+            const { lists, nonNull, caches } = this.csharpTypedListReceivers (maskedLines.slice (a, b + 1));
             const temps = this.csharpTempHolderListTypes (maskedLines.slice (a, b + 1), returns);
             const end = starts[b] + lines[b].length;
             const region = content.substring (starts[a], end);
-            if ((lists.size > 0) || (temps.size > 0)) {
+            if ((lists.size > 0) || (temps.size > 0) || (caches.size > 0)) {
                 let rewritten = (lists.size > 0) ? this.csharpNativeListCalls (region, lists, nonNull) : region;
-                rewritten = this.csharpIdentityListCasts (rewritten, lists, temps);
+                rewritten = this.csharpIdentityListCasts (rewritten, lists, temps, caches);
                 if (rewritten !== region) {
                     pieces.push (content.substring (cursor, starts[a]));
                     pieces.push (rewritten);
@@ -5167,7 +5167,14 @@ class NewTranspiler {
                 break;
             }
         }
-        return { lists, nonNull };
+        // ws caches (ccxt.pro.ArrayCache*, all List<object> through BaseCache) declared once
+        const caches = new Set<string> ();
+        for (const [ name, types ] of declTypes) {
+            if ((types.size === 1) && /^ccxt\.pro\.ArrayCache\w*$/.test (types.values ().next ().value as string)) {
+                caches.add (name);
+            }
+        }
+        return { lists, nonNull, caches };
     }
 
     // non-null producers for a list receiver: `new …`, a Linq `.ToList()`, and the safe* helpers —
@@ -5254,14 +5261,14 @@ class NewTranspiler {
     // drop the identity `((IList<object>)x)` cast for a receiver the enclosing method declares
     // List<object>/IList<object> (csharpTypedListReceivers) or a destructuring holder whose `var` is
     // inferred from a list producer (csharpTempHolderListTypes). The emitted value never changes.
-    csharpIdentityListCasts (region: string, lists: Map<string, string>, temps: Map<string, string>): string {
+    csharpIdentityListCasts (region: string, lists: Map<string, string>, temps: Map<string, string>, caches: Set<string> = new Set ()): string {
         const names = new Map<string, string> (temps);
         for (const [ name, type ] of lists) {
             if (!names.has (name)) {
                 names.set (name, type);
             }
         }
-        if (names.size === 0) {
+        if ((names.size === 0) && (caches.size === 0)) {
             return region;
         }
         // a match that is the tail of a longer name stays
@@ -5270,7 +5277,7 @@ class NewTranspiler {
         // on a name this method declares only IList<object> the call is an identity of the same static type
         // a `return` widens too when the method itself is declared to return object / IList<object>
         const widensReturn = /^\s*(?:public|protected|private|internal)\b[^(]*?\b(?:object|IList<object>|Task<object>|Task<IList<object>>)\s+[A-Za-z_]\w*\s*\(/.test (region);
-        return this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !((lists.get (match[1]) === 'IList<object>') || ((lists.get (match[1]) === 'List<object>') && (this.csharpListWideningSlot (region.substring (Math.max (0, at - 120), at), lists) || (widensReturn && /\breturn\s+$/.test (region.substring (Math.max (0, at - 20), at))))))) ? undefined : match[1]);
+        return this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !((lists.get (match[1]) === 'IList<object>') || (((lists.get (match[1]) === 'List<object>') || caches.has (match[1])) && (this.csharpListWideningSlot (region.substring (Math.max (0, at - 120), at), lists) || (widensReturn && /\breturn\s+$/.test (region.substring (Math.max (0, at - 20), at))))))) ? undefined : match[1]);
     }
 
     // a slot that takes List<object> exactly as it takes IList<object>: an IList<object> declaration or
@@ -5285,7 +5292,7 @@ class NewTranspiler {
         if (assigned) {
             return lists.get (assigned[1]) === 'IList<object>';
         }
-        return /(?:\bthis\.(?:parseOHLCVs|parseLeverages|parseLiquidations|parseMarginModes|parseMarginModifications|parseOptionChain|parsePredictionOrders|arrayConcat)|\bccxt\.BaseExchange\.(?:ToTransactionList|ToDepositAddressList))\($/.test (before) || /\bthis\.arrayConcat\((?:this\.toArray\()?[A-Za-z_]\w*\)?,\s*$/.test (before);
+        return /(?:\bthis\.(?:parseOHLCVs|parseLeverages|parseLiquidations|parseMarginModes|parseMarginModifications|parseOptionChain|parsePredictionOrders|arrayConcat|filterBySinceLimit|filterBySymbolSinceLimit|filterBySymbolsSinceLimit|filterByOutcomeSinceLimit)|\bccxt\.BaseExchange\.(?:ToTransactionList|ToDepositAddressList))\($/.test (before) || /\bthis\.arrayConcat\((?:this\.toArray\()?[A-Za-z_]\w*\)?,\s*$/.test (before);
     }
 
     // `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
