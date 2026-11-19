@@ -4874,6 +4874,7 @@ fetches option data that is commonly found in an option chain
 [derive](/exchanges/derive.md#fetchoption)
 [gate](/exchanges/gate.md#fetchoption)
 [okx](/exchanges/okx.md#fetchoption)
+[paradex](/exchanges/paradex.md#fetchoption)
 
 ---
 
@@ -4896,6 +4897,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 [deribit](/exchanges/deribit.md#fetchoptionchain)
 [gate](/exchanges/gate.md#fetchoptionchain)
 [okx](/exchanges/okx.md#fetchoptionchain)
+[paradex](/exchanges/paradex.md#fetchoptionchain)
 
 ---
 
