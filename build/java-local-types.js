@@ -1717,7 +1717,7 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'slice':       { type: 'String', prefixes: [ 'Helpers.slice(' ], match: /^\w+(?:\.\w+)* == null \? null : \(\(String\)/, args: [ 1, 2 ], nonNull: false },
     'padEnd':      { type: 'String', prefixes: [ 'Helpers.padEnd(' ], args: [ 2 ], nonNull: true },
     'padStart':    { type: 'String', prefixes: [ 'Helpers.padStart(' ], args: [ 2 ], nonNull: true },
-    'indexOf':     { type: 'Integer', prefixes: [ 'Helpers.getIndexOf(', '((String)' ], args: [ 1, 2 ] },
+    'indexOf':     { type: 'Integer', prefixes: [ 'Helpers.getIndexOf(', '((String)' ], match: /^\(\w+ == null \|\| \w+ == null \|\| .* \? -1 : \w+\.indexOf\(/, args: [ 1, 2 ] },
     'includes':    { type: 'Boolean', match: /\.contains\(/, args: [ 1, 2 ] },
     'toString':    { type: 'String', prefixes: [ 'String.valueOf(' ], args: [ 0 ], nonNull: true },
 };
@@ -27860,8 +27860,8 @@ export function installJavaStringListIndexOf (transpiler) {
             if (typeof printed !== 'string' || !printed.startsWith ('Helpers.getIndexOf(') || node.arguments.length !== 1
                 || receiver === undefined || !ts.isIdentifier (receiver) || !printer.javaDeclaredStringType (receiver)
                 || arg === undefined || !ts.isElementAccessExpression (arg) || !ts.isIdentifier (arg.expression)
-                || !ts.isIdentifier (arg.argumentExpression) || ts.isVariableDeclaration (node.parent)) {
-                return printed; // a declaration keeps the helper: its Integer local type keys on that call
+                || !m17IndexShape (arg.argumentExpression)) {
+                return printed;
             }
             const listType = printer.javaDeclaredTypeOf (arg.expression);
             if (listType === undefined || !/^(java\.util\.)?(List|ArrayList)<String>$/.test (listType)) {
@@ -27869,8 +27869,8 @@ export function installJavaStringListIndexOf (transpiler) {
             }
             const r = printer.printNode (receiver, 0);
             const l = printer.printNode (arg.expression, 0);
-            const i = printer.printNode (arg.argumentExpression, 0);
-            if (![ r, l, i ].every ((t) => /^\w+$/.test (t)) || !printed.includes (`${l}.get(${i})`)) {
+            const i = m17PrintedIndex (printed, l);
+            if (![ r, l ].every ((t) => /^\w+$/.test (t)) || i === undefined) {
                 return printed;
             }
             return `(${r} == null || ${l} == null || ${i} < 0 || ${i} >= ${l}.size() || ${l}.get(${i}) == null ? -1 : ${r}.indexOf(${l}.get(${i})))`;
@@ -27878,6 +27878,30 @@ export function installJavaStringListIndexOf (transpiler) {
             return printed;
         }
     };
+}
+
+// the index is a counter or `counter +/- literal`: side-effect free, so the guard may repeat it
+function m17IndexShape (node) {
+    return ts.isIdentifier (node) || (ts.isBinaryExpression (node) && ts.isIdentifier (node.left) && ts.isNumericLiteral (node.right)
+        && (node.operatorToken.kind === ts.SyntaxKind.PlusToken || node.operatorToken.kind === ts.SyntaxKind.MinusToken));
+}
+
+// the printed index inside the guarded read `l.get(<index>)` (balanced parentheses), or undefined
+function m17PrintedIndex (printed, l) {
+    const at = printed.lastIndexOf (`${l}.get(`);
+    if (at < 0) {
+        return undefined;
+    }
+    let depth = 1;
+    const from = at + l.length + 5;
+    for (let k = from; k < printed.length; k++) {
+        depth += printed[k] === '(' ? 1 : (printed[k] === ')' ? -1 : 0);
+        if (depth === 0) {
+            const index = printed.slice (from, k);
+            return /^[\w\s().+-]+$/.test (index) ? index : undefined;
+        }
+    }
+    return undefined;
 }
 
 // ===== Map copies: `let x: Dict = m` where m and every later write print `Map<String, Object>` =====
