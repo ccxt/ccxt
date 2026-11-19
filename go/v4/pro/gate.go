@@ -208,7 +208,7 @@ func (this *Gate) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_place")
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 	params["textIsRequired"] = true
 	var request map[string]any = this.CreateOrderRequest(symbolValue, &typeVar, &side, amount, price, params)
 
@@ -263,7 +263,7 @@ func (this *Gate) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ord
 	// todo add swap support
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_batch_place")
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 
 	r1 := <-this.AuthenticateAsync(url, messageType)
 	if r1.Err != nil {
@@ -323,7 +323,7 @@ func (this *Gate) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_cancel_cp")
 	channelOption, paramsChannel := this.HandleOptionStringAndParams(params, "cancelAllOrdersWs", "channel", channel)
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 	var paramsOmitted map[string]any = this.OmitDict(paramsChannel, []any{"stop", "trigger"})
 	typeVar, query := this.HandleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted)
 	requestrequestParamsVariable := func() any {
@@ -400,7 +400,7 @@ func (this *Gate) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id str
 	requestParams := ccxt.GetValue(requestrequestParamsVariable, 1)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_cancel")
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 
 	r1 := <-this.AuthenticateAsync(url, messageType)
 	if r1.Err != nil {
@@ -458,7 +458,7 @@ func (this *Gate) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 	var extendedRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_amend")
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 
 	r1 := <-this.AuthenticateAsync(url, messageType)
 	if r1.Err != nil {
@@ -518,7 +518,7 @@ func (this *Gate) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 	request, requestParams := this.FetchOrderRequest(id, symbol, params)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_status")
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 
 	r1 := <-this.AuthenticateAsync(url, messageType)
 	if r1.Err != nil {
@@ -667,7 +667,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	var newRequest map[string]any = ccxt.MapTyped(this.Omit(request, []any{"settle"}))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_list")
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 
 	r1 := <-this.AuthenticateAsync(url, messageType)
 	if r1.Err != nil {
@@ -722,8 +722,8 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
-	var url any = this.GetUrlByMarket(market)
-	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
+	var url string = this.GetUrlByMarket(market)
+	var isEuUrl bool = (strings.Index(url, "gateeu") >= 0)
 	var isNonEuSpot bool = (market["spot"] == true) && !isEuUrl
 	var intervalDefault string = "100ms"
 	if isNonEuSpot {
@@ -769,7 +769,7 @@ func (this *Gate) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 		"limit":  limitResolved,
 	}
 
-	r1 := <-this.SubscribePublicAsync(url, messageHash, payload, channel, query, subscription)
+	r1 := <-this.SubscribePublicAsync(&url, messageHash, payload, channel, query, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -805,10 +805,10 @@ func (this *Gate) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
-	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
+	var isEuUrl bool = (strings.Index(url, "gateeu") >= 0)
 	var isNonEuSpot bool = (market["spot"] == true) && !isEuUrl
 	var intervalDefault string = "100ms"
 	if isNonEuSpot {
@@ -852,7 +852,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	var subMessageHash string = "orderbook" + ":" + symbolValue
 	var messageHash string = "unsubscribe:orderbook" + ":" + symbolValue
 
-	r1 := <-this.UnSubscribePublicMultipleAsync(url, "orderbook", []any{symbolValue}, []any{messageHash}, []any{subMessageHash}, payload, channel, paramsInterval)
+	r1 := <-this.UnSubscribePublicMultipleAsync(&url, "orderbook", []any{symbolValue}, []any{messageHash}, []any{subMessageHash}, payload, channel, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1270,7 +1270,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan ccxt.AsyncResult[
 	var messageType any = this.GetTypeByMarket(market)
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	channelName, paramsMethod := this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method", "")
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 	var channel any = ccxt.Add(ccxt.Add(messageType, "."), channelName)
 	if callerMethodNameOption == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " requires a callerMethodName argument"))
@@ -1286,7 +1286,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan ccxt.AsyncResult[
 		messageHashes = append(messageHashes, prefix+":"+symbol)
 	}
 
-	r1 := <-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, paramsMethod)
+	r1 := <-this.SubscribePublicMultipleAsync(&url, messageHashes, marketIds, channel, paramsMethod)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1434,9 +1434,9 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "trades:"+symbol)
 	}
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 
-	r1 := <-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, params)
+	r1 := <-this.SubscribePublicMultipleAsync(&url, messageHashes, marketIds, channel, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1494,9 +1494,9 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		subMessageHashes = append(subMessageHashes, "trades:"+symbol)
 		messageHashes = append(messageHashes, "unsubscribe:trades:"+symbol)
 	}
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 
-	r1 := <-this.UnSubscribePublicMultipleAsync(url, "trades", symbolsNormalized, messageHashes, subMessageHashes, marketIds, channel, params)
+	r1 := <-this.UnSubscribePublicMultipleAsync(&url, "trades", symbolsNormalized, messageHashes, subMessageHashes, marketIds, channel, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1618,10 +1618,10 @@ func (this *Gate) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var channel any = ccxt.Add(messageType, ".candlesticks")
 	messageHashStr := "candles:" + *interval + ":" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 	var payload []any = []any{interval, marketId}
 
-	r1 := <-this.SubscribePublicAsync(url, *messageHash, payload, channel, params)
+	r1 := <-this.SubscribePublicAsync(&url, *messageHash, payload, channel, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1674,7 +1674,7 @@ func (this *Gate) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 	var channel any = ccxt.Add(messageType, ".candlesticks")
 	var subMessageHash string = "candles:" + *interval + ":" + *symbolValue
 	var messageHash string = "unsubscribe:candles:" + *interval + ":" + *symbolValue
-	var url any = this.GetUrlByMarket(market)
+	var url string = this.GetUrlByMarket(market)
 	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"id":      requestId,
@@ -3184,7 +3184,7 @@ func (this *Gate) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Gate) GetUrlByMarket(market any) any {
+func (this *Gate) GetUrlByMarket(market any) string {
 	if *this.SafeBool(market, "contract", false) {
 		var settleKey string
 		if *this.SafeBool(market, "linear", false) {
@@ -3192,10 +3192,11 @@ func (this *Gate) GetUrlByMarket(market any) any {
 		} else {
 			settleKey = "btc"
 		}
-		return this.SafeString(ccxt.GetValue(this.Urls["api"], ccxt.GetValue(market, "type")), settleKey, "")
-	} else {
-		return this.SafeString(this.Urls["api"], ccxt.GetValue(market, "type"), "")
+		var contractUrl string = *this.SafeString(ccxt.GetValue(this.Urls["api"], ccxt.GetValue(market, "type")), settleKey, "")
+		return contractUrl
 	}
+	var spotUrl string = *this.SafeString(this.Urls["api"], ccxt.GetValue(market, "type"), "")
+	return spotUrl
 }
 func (this *Gate) GetTypeByMarket(market any) any {
 	if ccxt.IsEqual(market, nil) {
@@ -3253,12 +3254,12 @@ func (this *Gate) RequestId() int64 {
 	var reqid int64 = this.NextRequestId("reqid")
 	return reqid
 }
-func (this *Gate) SubscribePublicAsync(url any, messageHash string, payload []any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Gate) SubscribePublicAsync(url *string, messageHash string, payload []any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, url, messageHash, payload, channel, optionalArgs...)
 	return ch
 }
-func (this *Gate) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, messageHash string, payload []any, channel any, optionalArgs ...any) any {
+func (this *Gate) subscribePublicBody(ch chan ccxt.AsyncResult[any], url *string, messageHash string, payload []any, channel any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3290,12 +3291,12 @@ func (this *Gate) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, me
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Gate) SubscribePublicMultipleAsync(url any, messageHashes any, payload any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Gate) SubscribePublicMultipleAsync(url *string, messageHashes any, payload any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicMultipleBody(ch, url, messageHashes, payload, channel, optionalArgs...)
 	return ch
 }
-func (this *Gate) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, payload any, channel any, optionalArgs ...any) any {
+func (this *Gate) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[any], url *string, messageHashes any, payload any, channel any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3318,12 +3319,12 @@ func (this *Gate) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[any], url
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Gate) UnSubscribePublicMultipleAsync(url any, topic string, symbols any, messageHashes any, subMessageHashes any, payload any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Gate) UnSubscribePublicMultipleAsync(url *string, topic string, symbols any, messageHashes any, subMessageHashes any, payload any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribePublicMultipleBody(ch, url, topic, symbols, messageHashes, subMessageHashes, payload, channel, optionalArgs...)
 	return ch
 }
-func (this *Gate) unSubscribePublicMultipleBody(ch chan ccxt.AsyncResult[bool], url any, topic string, symbols any, messageHashes any, subMessageHashes any, payload any, channel any, optionalArgs ...any) any {
+func (this *Gate) unSubscribePublicMultipleBody(ch chan ccxt.AsyncResult[bool], url *string, topic string, symbols any, messageHashes any, subMessageHashes any, payload any, channel any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

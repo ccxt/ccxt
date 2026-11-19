@@ -2340,10 +2340,11 @@ export default class gate extends gateRest {
     getUrlByMarket (market: any): string {
         if (this.safeBool (market, 'contract', false)) {
             const settleKey = (this.safeBool (market, 'linear', false)) ? 'usdt' : 'btc';
-            return this.safeString (this.urls['api'][market['type']], settleKey, '');
-        } else {
-            return this.safeString (this.urls['api'], market['type'], '');
+            const contractUrl: string = this.safeString (this.urls['api'][market['type']], settleKey, '');
+            return contractUrl;
         }
+        const spotUrl: string = this.safeString (this.urls['api'], market['type'], '');
+        return spotUrl;
     }
 
     getTypeByMarket (market: Market): string {

@@ -9528,8 +9528,9 @@ func (this *Gate) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbo
 		}
 	}
 	var currency map[string]any = this.Currency(code)
+	var currencyId string = *this.SafeString(currency, "id", "")
 	var request map[string]any = map[string]any{
-		"currency": ToUpper(currency["id"]),
+		"currency": strings.ToUpper(currencyId),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 	var market map[string]any = this.Market(symbol)
@@ -9585,8 +9586,9 @@ func (this *Gate) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code str
 		panic(r1.Err)
 	}
 	var currency map[string]any = this.Currency(code)
+	var currencyId string = *this.SafeString(currency, "id", "")
 	var request map[string]any = map[string]any{
-		"currency": ToUpper(currency["id"]),
+		"currency": strings.ToUpper(currencyId),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 	isUnifiedAccount, paramsUnifiedAccount := this.HandleOptionBoolAndParams(params, "repayCrossMargin", "unifiedAccount", false)
@@ -9644,8 +9646,9 @@ func (this *Gate) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symb
 		}
 	}
 	var currency map[string]any = this.Currency(code)
+	var currencyId string = *this.SafeString(currency, "id", "")
 	var request map[string]any = map[string]any{
-		"currency": ToUpper(currency["id"]),
+		"currency": strings.ToUpper(currencyId),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 	var market map[string]any = this.Market(symbol)
@@ -9716,8 +9719,9 @@ func (this *Gate) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code st
 		panic(r1.Err)
 	}
 	var currency map[string]any = this.Currency(code)
+	var currencyId string = *this.SafeString(currency, "id", "")
 	var request map[string]any = map[string]any{
-		"currency": ToUpper(currency["id"]),
+		"currency": strings.ToUpper(currencyId),
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 	isUnifiedAccount, paramsUnifiedAccount := this.HandleOptionBoolAndParams(params, "borrowCrossMargin", "unifiedAccount", false)
@@ -10247,11 +10251,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInteres
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes739619 []any = r1.Value
-		if retRes739619 == nil {
+		var retRes740019 []any = r1.Value
+		if retRes740019 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes739619)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes740019)}
 		}
 		return nil
 	}
@@ -10678,11 +10682,11 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes771919 []any = r1.Value
-		if retRes771919 == nil {
+		var retRes772319 []any = r1.Value
+		if retRes772319 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes771919)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes772319)}
 		}
 		return nil
 	}
