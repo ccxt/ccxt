@@ -28483,6 +28483,7 @@ export function nativeJavaLongBoxLocals (content, after = (x) => x) {
     return changed ? out.join ('\n') : content;
 }
 
+<<<<<<< merged
 // ===== base `orderbooks` field is Map<String, WsOrderBook> (BaseExchange.java) =====
 // delete / `in` bind on the typed field with no receiver cast; `this.orderbooks[s][lit] = v` with a
 // String s puts into the stored WsOrderBook (the helper's Map branch: put(lit, v), null value included).
@@ -28508,4 +28509,79 @@ export function installJavaTypedOrderbooksField (transpiler) {
         }
         return upstreamWrite (node, left, right);
     };
+=======
+// ===== null-seeded structure locals: `let x = undefined` written only by parse*/safe* structure producers =====
+// Every Java declaration of these names returns a TypedMap (Ticker/Order/Trade/OrderBook implement
+// Map<String, Object>), so the local binds with no cast and its puts/reads take the declared-Map arms.
+const J13_STRUCTURE_PRODUCERS = new Set ([ 'parseTicker', 'parseWsTicker', 'safeTicker', 'parseOrder', 'parseWsOrder', 'safeOrder',
+    'parseTrade', 'parseWsTrade', 'safeTrade', 'parseOrderBook' ]);
+
+function j13StructureWrite (right) {
+    const value = unwrapParens (right);
+    return isThisCall (value) && J13_STRUCTURE_PRODUCERS.has (String (value.expression.name.text));
+}
+
+function j13NullSeedStructureLocal (printer, declaration) {
+    const init = unwrapParens (declaration.initializer);
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || !(init === undefined || (ts.isIdentifier (init) && init.text === 'undefined') || init.kind === ts.SyntaxKind.NullKeyword)) {
+        return false;
+    }
+    let writes = 0;
+    const own = printer.getChecker ().getSymbolAtLocation (declaration.name);
+    for (const n of identifierIndex (enclosingFunction (declaration)).get (String (declaration.name.text)) ?? []) {
+        const p = n.parent;
+        if (n !== declaration.name && p !== undefined && ts.isBinaryExpression (p) && p.left === n && p.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && printer.getChecker ().getSymbolAtLocation (n) === own) {
+            if (!j13StructureWrite (p.right)) {
+                return false;
+            }
+            writes++;
+        }
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return writes > 0 && isSafeToNarrow (printer, declaration, String (declaration.name.text), JAVA_STRUCTURE_TYPE, isProFile, {
+        writeOnly: true, ownBinding: true, noCastAssertions: true, writeOk: (right) => j13StructureWrite (right) });
+}
+
+// r87j6HeadIsObject declines a missing initializer; `let x;` prints `Object x = null` when no table answers
+function j13HeadIsObject (printer, declaration, upto) {
+    if (declaration.initializer !== undefined) {
+        return r87j6HeadIsObject (printer, declaration, upto);
+    }
+    const seen = printer._javaObservedDeclaredTypes?.get (declaration);
+    return r87j6PublishedBefore (printer, declaration, upto) === undefined && (seen === undefined || seen === 'Object');
+}
+
+export function installJavaNullSeedStructureLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaNullSeedStructureLocalsPatched) {
+        return;
+    }
+    printer._javaNullSeedStructureLocalsPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        let ok;
+        try {
+            ok = (typed.has (declaration) || j13HeadIsObject (printer, declaration, upto)) && j13NullSeedStructureLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok || !printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        typed.add (declaration);
+        return r87j6Head (printer, declaration, identation, JAVA_STRUCTURE_TYPE) + printed.slice (marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? JAVA_STRUCTURE_TYPE : undefined));
+>>>>>>> J08
 }
