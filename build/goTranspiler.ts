@@ -7162,6 +7162,7 @@ const GO_WRAPPER_SLICE_CONVERSIONS: { [tsType: string]: string } = {
 const GO_UNCALLED_STRING_PARAMS: { [method: string]: number[] } = {
     'bingx.getOrderBookLimitByMarketType': [ 0 ],
     'hitbtc.convertCurrencyNetwork': [ 2, 3 ],
+    'hyperliquid.resolveOutcomeInput': [ 0 ],
 };
 // base methods whose tuple slot 0 is the Go `*string` (TS declares `string`)
 const GO_STRING_POINTER_TUPLE_CALLS: string[] = [ 'handleMarketTypeAndParams' ];
