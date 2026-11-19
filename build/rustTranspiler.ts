@@ -5100,7 +5100,46 @@ function rustTypedParseTicker (content: string): string {
         else if (rest.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice (copy.length);
         else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
     }
-    return rustTypedParseFamily (content, 'ticker');
+    return rustTypedWsTickers (rustTypedParseFamily (content, 'ticker'));
+}
+
+// A venue `parseWsTicker` / `parseWsBidAsk` answers `safeTicker (..)` or `parseTicker (..)` (both `Dict`), so it returns
+// `Dict`; any other return throws. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
+function rustTypedWsTickers (content: string): string {
+    const sig = /\n    pub fn (parse_ws_ticker|parse_ws_bid_ask)\([^\n]*\) -> Value \{\n/g, tail = '\n\n    Value::Null\n}';
+    const typed = new Set<string> ();
+    let m: RegExpExecArray | null;
+    while ((m = sig.exec (content)) !== null) {
+        const open = m.index + m[0].length, end = content.indexOf (tail, open);
+        const body = content.slice (open, end);
+        const rets = body.match (/\breturn\b[^\n]*/g) ?? [];
+        if (end < 0 || rets.length === 0) throw new Error (m[1] + ': body without a return');
+        const bad = rets.find ((r) => !/^return Value::Dict\(self\.(safe_ticker|parse_ticker)\(/.test (r));
+        if (bad !== undefined) throw new Error (m[1] + ': unproven return ' + bad.slice (0, 80));
+        let out = '', last = 0, at: number;
+        while ((at = body.indexOf ('return Value::Dict(self.', last)) >= 0) {
+            const close = balancedCloseIndex (body, at + 'return Value::Dict('.length);
+            out += body.slice (last, at) + 'return ' + body.slice (at + 'return Value::Dict('.length, close);
+            last = close + 1;
+        }
+        const head = m[0].replace (') -> Value {', ') -> crate::value::Dict {');
+        content = content.slice (0, m.index) + head + out + body.slice (last) + '\n\n    Default::default()\n}' + content.slice (end + tail.length);
+        sig.lastIndex = m.index + head.length;
+        typed.add (m[1]);
+    }
+    if (typed.size === 0) return content;
+    const call = new RegExp ('(?<![\\w.])self\\.(' + [ ...typed ].join ('|') + ')\\(', 'g'), starts: number[] = [];
+    while ((m = call.exec (content)) !== null) starts.push (m.index);
+    const copy = '.as_map().cloned().unwrap_or_default()';
+    for (const s of starts.reverse ()) {
+        const close = balancedCloseIndex (content, content.indexOf ('(', s) + 1);
+        if (close >= content.length) continue;
+        const pre = content.slice (s, close + 1), rest = content.slice (close + 1);
+        if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+        else if (rest.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + pre + ')' + rest.slice (copy.length);
+        else content = content.slice (0, s) + 'Value::Dict(' + pre + ')' + rest;
+    }
+    return content;
 }
 
 // Every `safeTrade` caller passes an object literal (`Value::Map(..)`), so it takes and returns `Dict`; a venue
