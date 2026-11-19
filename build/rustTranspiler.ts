@@ -4844,7 +4844,7 @@ function rustTypedListApiResults (content: string, own: Set<string>): string {
             }
         }
     }
-    const names = rustListApiNames;
+    const names = rustVenueListApiNames (content, rustListApiNames);
     const head = /\bself(?:\.parent)?\.([a-z0-9_]+)\(/g;
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) {
@@ -8178,6 +8178,17 @@ function typedReturnOwner (content: string, at: number, typed: Set<string>): boo
 // unit slot 086
 //
 // unit slot 087
+// A name the venue's own `<venue>_api.rs` declares with a `Value` return keeps its direct wrapper call even when
+// another venue declares it List (prediction files read the `prediction` dir); every other name stays in `all`.
+function rustVenueListApiNames (content: string, all: Set<string>): Set<string> {
+    const venue = content.match (/\bpub struct ([A-Z][A-Za-z0-9]*) \{/)?.[1].toLowerCase ();
+    const dir = /\bcrate::prediction_exchange::PredictionExchange\b/.test (content) ? 'prediction' : 'exchanges';
+    const file = venue === undefined ? '' : path.join (__dirname, '..', 'rust', 'ccxt-base', 'src', dir, venue + '_api.rs');
+    if (venue === undefined || !fs.existsSync (file)) return all;
+    const own = /pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[&Value\]\) -> Value \{\n\s*self\.call_method\(Value::Str\("([a-z0-9_]+)"\.into\(\)\), optional_args\)\.await\n\s*\}/g;
+    const keep = new Set ([ ...fs.readFileSync (file, 'utf8').matchAll (own) ].filter ((m) => m[1] === m[2]).map ((m) => m[1]));
+    return new Set ([ ...all ].filter ((n) => !keep.has (n)));
+}
 //
 // unit slot 088
 // `hmac` / `hash` / `hash_binary` take the algorithm as `&str`: every call names it with a string literal.
