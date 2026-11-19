@@ -907,8 +907,17 @@ const CONTAINER_OP_IDENT_ARG = /^&([a-z_][A-Za-z0-9_]*)$/;
 const CONTAINER_OP_CLIENT_STATE = /^&get_value\(&(client), &Value::Str\("(subscriptions|futures)"\.(?:to_string|into)\(\)\)\)$/;
 // A side marker is the only `Value` whose length differs from `Value::len`.
 const CONTAINER_OP_SIDE_WORD = /asks|bids|[Ss]ide|[Bb]ook|entries|__sideKind/;
+// Implicit-API wrapper names read from the emitted `*_api.rs` files (set by the whole-crate pass only).
+let containerOpApiFns: Set<string> | undefined;
+// A generated API endpoint call returns the decoded response body: never a marker, whatever the path says.
+const CONTAINER_OP_ENDPOINT = /^self\.(?:[a-z0-9]+_)*(?:public|private)_(?:[a-z0-9]+_)*(?:get|post|put|delete|patch)_\w+\(&\[[^\]]*\]\)\.await$/;
+function containerOpIsEndpoint (raw: string): boolean {
+    if (CONTAINER_OP_ENDPOINT.test (raw)) return true;
+    const m = /^self\.([a-z0-9_]+)\(&\[[^\]]*\]\)\.await$/.exec (raw);
+    return m !== null && containerOpApiFns?.has (m[1]) === true;
+}
 // Sources that yield a plain JSON tree or a plain container.
-const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_(?:str|deref)\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit|(?:public|private)_\w+|(?:[a-z0-9]+_)+(?:public|private)_(?:[a-z0-9]+_)*(?:get|post|put|delete|patch)_\w+)\(|^get_arg\(|^split\(|^json_parse\(|^Value::(?:Map|List|Array|Str|from)\(|^Value::Null$/;
+const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_(?:str|deref)\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit|(?:public|private)_\w+|(?:[a-z0-9]+_)+(?:public|private)_(?:[a-z0-9]+_)*(?:get|post|put|delete|patch)_\w+)\(|^get_arg\(|^split\(|^json_parse\(|^Value::(?:Map|List|Array|Arr|Str|from)\(|^Value::Null$/;
 // Reads that cannot change the stored container shape.
 const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64',
     'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
@@ -1105,7 +1114,8 @@ class ContainerOpProver {
             writes++;
             if (write === undefined) {
                 // A JSON read has no pinned shape but never carries a marker.
-                lenSafe = lenSafe && CONTAINER_OP_JSON_SOURCE.test (raw) && !CONTAINER_OP_SIDE_WORD.test (raw);
+                lenSafe = lenSafe && (containerOpIsEndpoint (raw) || this.groupRead (raw, from + (m.index as number))
+                    || (CONTAINER_OP_JSON_SOURCE.test (raw) && !CONTAINER_OP_SIDE_WORD.test (raw)));
                 shapeUnknown = true;
                 continue;
             }
@@ -1124,6 +1134,9 @@ class ContainerOpProver {
         if (writes === 0) return undefined;
         for (const m of region.matchAll (new RegExp (`&mut ${name}\\b`, 'g'))) {
             const before = region.slice (Math.max (0, (m.index as number) - 96), m.index as number);
+            // A plain-key insert into one element (or the local itself, for a non-list) adds no marker.
+            const after = real.slice ((m.index as number) + m[0].length, (m.index as number) + m[0].length + 64);
+            if (/add_element_to_object\(get_value_mut\($/.test (before) && /^, &Value::Int\([a-z_][A-Za-z0-9_]*\)\), &Value::Str\("[a-z][A-Za-z0-9]*"\.into\(\)\), /.test (after)) continue;
             if (!CONTAINER_OP_SHAPE_WRITES.test (before)) return undefined;
         }
         for (const m of region.matchAll (new RegExp (`(?<![A-Za-z0-9_.])${name}\\.([A-Za-z_][A-Za-z0-9_]*)`, 'g'))) {
@@ -1140,9 +1153,10 @@ class ContainerOpProver {
     // parameter's slot. The by-name dispatch arm is reachable only through a quoted name no other ts file uses.
     private callersLenSafe (header: string, param: string): boolean {
         const fm = /fn ([a-z_][A-Za-z0-9_]*)\(&(?:mut )?self, ([^]*)\)/.exec (header);
-        if (fm === null || !containerOpFnIsPrivate (fm[1])) return false;
+        if (fm === null) return false;
         const slot = containerOpSplit (fm[2]).findIndex (p => new RegExp (`^\\s*(?:mut )?${param}\\s*:`).test (p));
-        if (slot < 0) return false;
+        if (slot >= 0 && containerOpCrateLenSafe?.has (`${fm[1]}#${slot}`)) return true;
+        if (!containerOpFnIsPrivate (fm[1]) || slot < 0) return false;
         let calls = 0;
         for (const m of this.masked.matchAll (new RegExp (`self\\.${fm[1]}\\(`, 'g'))) {
             const lineStart = this.masked.lastIndexOf ('\n', m.index as number) + 1;
@@ -1162,12 +1176,59 @@ class ContainerOpProver {
         return calls > 0;
     }
 
-    // A local declared once as a native `crate::value::List` (a plain Vec: no marker).
-    private nativeList (name: string, pos: number): boolean {
+    // A read from a never-mutated native dict built by `group_by` (a fresh map of plain lists).
+    private groupRead (raw: string, pos: number): boolean {
+        const g = /^crate::value::KeyRead::read\(&&([a-z_][A-Za-z0-9_]*), /.exec (raw);
+        if (g === null) return false;
+        const lo = this.region (pos);
+        const region = this.masked.slice (this.headers[lo], this.headers[lo + 1]);
+        const decls = region.match (new RegExp (`(?<![A-Za-z0-9_.])let (?:mut )?${g[1]}\\b`, 'g')) ?? [];
+        return decls.length === 1 && new RegExp (`let (?:mut )?${g[1]}: crate::value::Dict = self\\.group_by\\(`).test (region)
+            && !new RegExp (`(?<![A-Za-z0-9_.])${g[1]}\\s*=(?!=)|&mut ${g[1]}\\b|(?<![A-Za-z0-9_.])${g[1]}\\.(?:insert|remove|shift_remove|swap_remove|extend|clear|entry|get_mut|values_mut|iter_mut)\\(`).test (region);
+    }
+
+    // Header text (up to the body brace) of the fn enclosing `pos`.
+    header (pos: number): string {
+        const lo = this.region (pos);
+        const real = this.content.slice (this.headers[lo], this.headers[lo + 1]);
+        return real.slice (0, Math.max (0, real.indexOf ('{')));
+    }
+
+    // A local declared once as a native `crate::value::List` or `Option<List>` (a plain Vec or Null: no marker).
+    nativeList (name: string, pos: number): boolean {
         const lo = this.region (pos);
         const region = this.masked.slice (this.headers[lo], this.headers[lo + 1]);
         const decls = region.match (new RegExp (`(?<![A-Za-z0-9_.])let (?:mut )?${name}\\b\\s*:`, 'g')) ?? [];
-        return decls.length === 1 && new RegExp (`let (?:mut )?${name}: crate::value::List = `).test (region);
+        // The nearest declaration before `pos` (a shadowing `let` in an earlier block cannot reach it once
+        // that block closes, and a later one is not yet live) decides a native list.
+        const before = [ ...region.slice (0, pos - this.headers[lo]).matchAll (new RegExp (`(?<![A-Za-z0-9_.])let (?:mut )?${name}\\b\\s*:\\s*([^=]*?)\\s*=`, 'g')) ];
+        const last = before[before.length - 1];
+        if (last !== undefined && /^(?:crate::value::List|Option<crate::value::List>)$/.test (last[1])
+            && !/[{}]/.test (region.slice ((last.index as number) + last[0].length, pos - this.headers[lo]).replace (/\{[^{}\n]*\}/g, ''))) return true;
+        // `let (mut x, ..): (Option<crate::value::List>, ..) = ` binds a plain list (or None) in the first slot.
+        if (decls.length === 0 && new RegExp (`let \\((?:mut )?${name}, [^)]*\\): \\((?:crate::value::List|Option<crate::value::List>), `).test (region)
+            && !new RegExp (`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)|&mut ${name}\\b`).test (region)) return true;
+        if (decls.length !== 1) return false;
+        if (new RegExp (`let (?:mut )?${name}: (?:crate::value::List|Option<crate::value::List>) = `).test (region)) return true;
+        // A native dict whose every write is a decoded endpoint response or a dict read from a proven local.
+        const real = this.content.slice (this.headers[lo], this.headers[lo + 1]);
+        if (!new RegExp (`let (?:mut )?${name}: (?:Option<)?crate::value::Dict>? = `).test (region)) return false;
+        if (new RegExp (`&mut ${name}\\b|(?<![A-Za-z0-9_.])${name}\\.(?:insert|remove|shift_remove|swap_remove|extend|clear|entry|get_mut|as_mut)\\(`).test (region)) return false;
+        let writes = 0;
+        for (const w of region.matchAll (new RegExp (`(?<![A-Za-z0-9_.*])${name}\\s*(?::[^=]*)?=(?!=)`, 'g'))) {
+            const rhsStart = (w.index as number) + w[0].length;
+            const end = containerOpStmtEnd (real, rhsStart);
+            if (end < 0) return false;
+            const rhs = containerOpParens (real.slice (rhsStart, end));
+            if (rhs === 'None') continue;
+            const sub = /^self\.safe_dict(?:_k)?_[to]\(&([a-z_][A-Za-z0-9_]*), (?:"[A-Za-z0-9_]+"|Value::Int\([a-z_][A-Za-z0-9_]*\))\)$/.exec (rhs);
+            const cm = /^self\.call_method_[to]\("([a-z0-9_]+)", (&\[[^\]]*\])\)\.await$/.exec (rhs);
+            const ok = (cm !== null && containerOpIsEndpoint (`self.${cm[1]}(${cm[2]}).await`))
+                || (sub !== null && sub[1] !== name && (this.nativeList (sub[1], pos) || this.facts (sub[1], pos)?.lenSafe === true));
+            if (!ok) return false;
+            writes++;
+        }
+        return writes > 0;
     }
 
     // Shape and marker safety of one right-hand side.
@@ -1185,7 +1246,7 @@ class ContainerOpProver {
         if (containerOpIsCall (e, 'Value::Str')) return lit ('str');
         // Base readers with a fixed container result.
         const readers: Array<[RegExp, ContainerOpKind]> = [ [ /^self\.safe_dict(?:_k|2|_k2)?\(/, 'map' ], [ /^self\.safe_list(?:_k|2|_k2)?\(/, 'arr' ],
-            [ /^self\.(?:parse_ids|to_array|array_concat)\(/, 'arr' ], [ /^split\(/, 'arr' ] ];
+            [ /^self\.(?:parse_ids|to_array|array_concat)\(/, 'arr' ], [ /^split\(/, 'arr' ], [ /^self\.group_by\(/, 'map' ] ];
         for (const [ rx, kind ] of readers) {
             if (rx.test (e) && containerOpClose (e, e.indexOf ('(')) === e.length - 1) return lit (kind, !tagged);
         }
@@ -1232,6 +1293,119 @@ function containerOpFnIsPrivate (fn: string): boolean {
     return containerOpPrivateFns.has (fn);
 }
 
+// `fn#index` slots of `impl Into` params whose every call in the crate passes a length-safe value.
+let containerOpCrateLenSafe: Set<string> | undefined;
+
+/**
+ * Whole-crate caller index: a method name dispatches to any of its definitions, so a param slot is
+ * length-safe only when every call of the name in every file (self./parent./UFCS forms) passes a JSON
+ * read, a proven local, or the same slot's param of a same-named forwarder. Unknown call forms refuse.
+ */
+function containerOpCrateIndex (files: Map<string, string>): Set<string> {
+    const masks = new Map ([ ...files ].map (([ f, c ]) => [ f, containerOpMask (c) ]));
+    const slots = new Map<string, Set<number>> ();
+    const mixed = new Set<string> ();
+    for (const [ f, m ] of masks) {
+        const c = files.get (f) as string;
+        for (const h of m.matchAll (/\n[ \t]*(?:pub )?(?:async )?fn ([a-z_][a-z0-9_]*)\(&(?:mut )?self((?:, [^,)]+)*)\)/g)) {
+            const params = c.slice ((h.index as number) + h[0].length - h[2].length - 1, (h.index as number) + h[0].length - 1).split (', ').slice (1);
+            const into = new Set<number> ();
+            params.forEach ((p, i) => { if (/^(?:mut )?[a-z_][A-Za-z0-9_]*: impl Into<(?:crate::)?Value>$/.test (p)) into.add (i); });
+            const prev = slots.get (h[1]);
+            if (prev === undefined) slots.set (h[1], into);
+            else if ([ ...prev ].some (i => !into.has (i)) || into.size !== prev.size) mixed.add (h[1]);
+        }
+    }
+    const wanted = [ ...slots ].filter (([ n, s ]) => s.size > 0 && !mixed.has (n) && containerOpFnIsPrivateName (n));
+    let proven = new Set<string> ();
+    for (let round = 0; round < 6; round++) {
+        containerOpCrateLenSafe = proven;
+        const provers = new Map<string, ContainerOpProver> ();
+        const prover = (f: string) => provers.get (f) ?? provers.set (f, new ContainerOpProver (files.get (f) as string)).get (f) as ContainerOpProver;
+        const next = new Set<string> ();
+        for (const [ name, s ] of wanted) {
+            for (const slot of s) {
+                let ok = true;
+                for (const [ f, m ] of masks) {
+                    if (!ok) break;
+                    const c = files.get (f) as string;
+                    for (const call of m.matchAll (new RegExp (`(?<![A-Za-z0-9_])${name}\\(`, 'g'))) {
+                        const at = call.index as number;
+                        const lineStart = m.lastIndexOf ('\n', at) + 1;
+                        const before = m.slice (lineStart, at);
+                        if (/\bfn\s+$/.test (before)) continue;
+                        // The by-name dispatch arm: the name is never quoted in ts/src.
+                        if (/=>\s*(?:self\.|<Self as [A-Za-z_:]+>::)$/.test (before)) continue;
+                        const ufcs = /::$/.test (before);
+                        if (!ufcs && !/(?:^|[^A-Za-z0-9_.])self\.(?:parent\.)*$/.test (before)) { ok = false; break; }
+                        const open = at + name.length;
+                        const close = containerOpClose (c, open);
+                        if (close < 0) { ok = false; break; }
+                        const arg = containerOpParens (containerOpSplit (c.slice (open + 1, close))[slot + (ufcs ? 1 : 0)] ?? '');
+                        const ident = /^&?([a-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec (arg);
+                        const hdr = prover (f).header (at);
+                        if (ident !== null && new RegExp (`fn ${name}\\(&(?:mut )?self, `).test (hdr)
+                            && containerOpSplit (hdr.slice (hdr.indexOf ('(') + 1)).slice (1)[slot]?.trim ().startsWith (`${ident[1]}: impl Into<`)) continue;
+                        // `sort_by` returns its first operand or a plain list of its items; `group_by` a fresh map of lists.
+                        const sorted = /^self\.sort_by\(&?([a-z_][A-Za-z0-9_]*)(?:\.clone\(\))?, /.exec (arg);
+                        const id = ident?.[1] ?? sorted?.[1];
+                        ok = id !== undefined
+                            ? prover (f).nativeList (id, at) || prover (f).facts (id, at)?.lenSafe === true
+                            : /^self\.group_by\(/.test (arg) || (CONTAINER_OP_JSON_SOURCE.test (arg) && !CONTAINER_OP_SIDE_WORD.test (arg));
+                        if (!ok) break;
+                    }
+                }
+                if (ok) next.add (`${name}#${slot}`);
+            }
+        }
+        const done = next.size === proven.size;
+        proven = next;
+        if (done) break;
+    }
+    containerOpCrateLenSafe = undefined;
+    return proven;
+}
+
+// A snake-case method name that ts/src never quotes (no dispatch by name other than the generated arm).
+let containerOpQuoted: Set<string> | undefined;
+function containerOpFnIsPrivateName (fn: string): boolean {
+    if (containerOpQuoted === undefined) {
+        containerOpQuoted = new Set ();
+        const walk = (d: string) => {
+            if (!fs.existsSync (d)) return;
+            for (const e of fs.readdirSync (d, { withFileTypes: true })) {
+                const full = `${d}/${e.name}`;
+                if (e.isDirectory ()) walk (full);
+                else if (e.name.endsWith ('.ts')) for (const q of fs.readFileSync (full, 'utf8').matchAll (/['"`]([A-Za-z_][A-Za-z0-9_]*)['"`]/g)) containerOpQuoted.add (toSnakeCase (q[1]));
+            }
+        };
+        walk ('./ts/src');
+    }
+    return !containerOpQuoted.has (fn);
+}
+
+/** Rewrites the length sites of crate-proven `impl Into` params in every emitted file (rest, pro, base). */
+function nativeContainerOpsCrate (paths: string[]): Map<string, string> {
+    const files = new Map (paths.filter (p => fs.existsSync (p)).map (p => [ p, fs.readFileSync (p, 'utf8') ]));
+    containerOpApiFns = new Set ();
+    for (const p of paths) {
+        const api = p.replace (/\.rs$/, '_api.rs');
+        if (fs.existsSync (api)) for (const m of fs.readFileSync (api, 'utf8').matchAll (/pub async fn ([a-z0-9_]+)\(&mut self, optional_args: &\[Value\]\) -> Value \{\n\s*self\.call_method\(Value::Str\("\1"\.into\(\)\), optional_args\)\.await/g)) containerOpApiFns.add (m[1]);
+    }
+    const proven = containerOpCrateIndex (files);
+    const fns = new Set ([ ...proven ].map (k => k.split ('#')[0]));
+    const out = new Map<string, string> ();
+    if (fns.size === 0) { containerOpApiFns = undefined; return out; }
+    containerOpCrateLenSafe = proven;
+    for (const [ f, c ] of files) {
+        const n = nativeContainerOps (c, fns);
+        if (n !== c) out.set (f, n);
+    }
+    containerOpCrateLenSafe = undefined;
+    containerOpApiFns = undefined;
+    return out;
+}
+
 function containerOpKeyText (key: string): string | undefined {
     const lit = CONTAINER_OP_LITERAL_KEY.exec (key);
     if (lit !== null) return lit[1];
@@ -1240,7 +1414,7 @@ function containerOpKeyText (key: string): string | undefined {
     return undefined;
 }
 
-function nativeContainerOps (content: string): string {
+function nativeContainerOps (content: string, onlyFns?: Set<string>): string {
     if (!/\b(?:in_op|object_keys|object_values|get_array_length)\(&/.test (content)) return content;
     const prover = new ContainerOpProver (content);
     for (let round = 0; round < 6; round++) {
@@ -1251,6 +1425,7 @@ function nativeContainerOps (content: string): string {
             const name = m[1];
             if (/\bfn\s+$/.test (masked.slice (Math.max (0, start - 8), start))) continue;
             if (rewrites.some (r => start >= r.start && start < r.end)) continue;
+            if (onlyFns !== undefined && !onlyFns.has (/fn ([a-z_][A-Za-z0-9_]*)\(/.exec (prover.header (start))?.[1] ?? '')) continue;
             const open = start + name.length;
             const close = containerOpClose (content, open);
             if (close < 0) continue;
@@ -1351,6 +1526,17 @@ function nativeContainerOpsSelfTest (): string[] {
     containerOpPrivateFns = new Set ();
     if (nativeContainerOps (apiArg) !== apiArg) problems.push ('into prologue: shared fn kept');
     containerOpPrivateFns = undefined;
+    // Whole-crate index: a name shared by two files is proven only when every call in every file passes a JSON read.
+    const def = `\n    pub fn shared_parse(&self, r: impl Into<crate::Value>) -> Value {\n        let mut r: Value = r.into();\n        let n: Value = get_array_length(&r);\n    }\n`;
+    const call = (arg: string) => `    pub async fn f(&mut self) -> Value {\n        let mut a: Value = ${arg};\n        return self.shared_parse(&a);\n    }\n`;
+    containerOpQuoted = new Set ();
+    const good = containerOpCrateIndex (new Map ([ [ 'a', def + call ('self.public_get_x(&[q]).await') ], [ 'b', def + call ('Value::Null') ] ]));
+    if (!good.has ('shared_parse#0')) problems.push ('crate index: proven slot missed');
+    const bad = containerOpCrateIndex (new Map ([ [ 'a', def + call ('self.public_get_x(&[q]).await') ], [ 'b', def + call ('self.something(q)') ] ]));
+    if (bad.size !== 0) problems.push ('crate index: unproven caller accepted');
+    const foreign = containerOpCrateIndex (new Map ([ [ 'a', def + call ('Value::Null') + '    fn g(&self) { other.shared_parse(x); }\n' ] ]));
+    if (foreign.size !== 0) problems.push ('crate index: foreign receiver accepted');
+    containerOpQuoted = undefined;
     // A side marker keeps the helper: the store holds its entries, not the dict.
     const side = fn ('        let mut storedAsks: Value = self.safe_value_k(book.clone(), "asks", &[]);\n        let n: Value = get_array_length(&storedAsks);');
     if (nativeContainerOps (side) !== side) problems.push ('side marker: helper not kept');
@@ -13240,6 +13426,14 @@ impl std::ops::DerefMut for ${coreName} {
         await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, true);
         this.writeRustRegistries();
         this.borrowWsHandlerParams();
+        this.nativeContainerOpsCrate();
+    }
+
+    /** Length sites of `impl Into` params proven by every caller in the crate (rest, pro and base files). */
+    nativeContainerOpsCrate() {
+        const paths = [ BASE_METHODS_FILE, `${RUST_CORE}/exchange.rs` ];
+        for (const d of [ EXCHANGES_FOLDER, EXCHANGES_WS_FOLDER ]) if (fs.existsSync(d)) for (const f of fs.readdirSync(d)) if (f.endsWith('.rs') && f !== 'mod.rs' && !f.endsWith('_api.rs')) paths.push(`${d}/${f}`);
+        for (const [f, src] of nativeContainerOpsCrate(paths)) fs.writeFileSync(f, src);
     }
 
     /** Whole-crate pass over the emitted pro files; reads the other crates only to find foreign callers. */
