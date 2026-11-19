@@ -8664,6 +8664,16 @@ function typedObjectValuesListBody(content: string): string {
 // unit slot 083
 //
 // unit slot 084
+// `(match x.get(k) { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list()` reads
+// the list arm directly; `if (matches!(&x, Value::Arr(_))) { y = x.into_list();` binds the list in the guard (same Arc moved).
+function rustTypedListReads(content: string): string {
+    content = content.replace(
+        /\(match ([\w.]+\.get\("\w+"\)) \{ Some\(__v\) if matches!\(__v, Value::Arr\(_\)\) => __v\.clone\(\), _ => Value::from\(vec!\[\]\) \}\)\.into_list\(\)/g,
+        '(match $1 { Some(Value::Arr(__a)) => __a.clone(), _ => Default::default() })');
+    return content.replace(
+        /\bif \(matches!\(&(\w+), Value::Arr\(_\)\)\) \{(\n[ \t]*)(\w+) = \1\.into_list\(\);/g,
+        'if let Value::Arr(__a) = $1 {$2$3 = __a;');
+}
 //
 // unit slot 085
 //
@@ -9157,6 +9167,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 083
     //
     // pass slot 084
+    rustTypedListReads,
     //
     // pass slot 085
     //
