@@ -1626,7 +1626,7 @@ class Transpiler {
         return phpBody
     }
 
-    transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
+    transpileJavaScriptToPHP ({ js, variables, arrayVariables }: any, async = false) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -1664,6 +1664,12 @@ class Transpiler {
         }
 
         allVariables = allVariables.map ((error:any) => this.regexAll (error, this.getCommonRegexes ()))
+
+        // `.length` on a name declared as an array (`x: T[]` param or local) is count(), never strlen()
+        const arrayNames = (arrayVariables || []).concat ([ ... js.matchAll (/(?:let|const|var)\s+(\w+)\s*:\s*[\w<>]+\[\]\s*=/g) ].map ((m: any) => m[1]))
+        for (const name of arrayNames) {
+            js = js.replace (new RegExp ('(?<![\\w$.])' + name + '\\.length\\b', 'g'), 'count(' + name + ')')
+        }
 
         // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
         // some exchange/base methods use a parameter named like a php language construct
@@ -2353,6 +2359,7 @@ class Transpiler {
 
             // get names of all method arguments for later substitutions
             let variables = argsArray.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
+            const arrayVariables = argsArray.filter (arg => /^[\w?]+\s*:\s*[\w<>]+\[\]\s*(=|$)/.test (arg)).map (arg => arg.split (':')[0].trim ().replace (/\?$/, ''))
 
             let phpArgs = ''
             let syncPhpSignature = ''
@@ -2554,7 +2561,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, arrayVariables, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature
