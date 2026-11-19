@@ -2590,9 +2590,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
         if (outcomesLength == 0) {
-            return self.parse_prediction_positions(Value::from(&positions), &[]);
+            return Value::Arr(std::sync::Arc::new(self.parse_prediction_positions(Value::from(&positions), &[]).into_iter().map(Value::Dict).collect()));
         }
-        let mut parsed: Vec<Value> = self.parse_prediction_positions(Value::Arr(positions), &[]).as_array().cloned().unwrap_or_default();
+        let mut parsed: Vec<crate::value::Dict> = self.parse_prediction_positions(Value::Arr(positions), &[]);
         let mut wantedTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2617,7 +2617,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1283: bool = true;
             while { if !__for_first_1283 { i += 1; } __for_first_1283 = false; i < (parsed.len() as i64) } {
-            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or_default();
             let mut positionInfo: crate::value::Dict = self.safe_dict_k_t(&position, "info");
             let mut positionTicker: Option<String> = self.safe_string_k_opt(&positionInfo, "ticker", &[]);
             if (positionTicker.is_some()) && (matches!(positionTicker.as_deref(), Some(__k) if wantedTickers.contains_key(__k))) {

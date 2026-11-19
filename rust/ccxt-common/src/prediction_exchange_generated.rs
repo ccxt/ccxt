@@ -2409,7 +2409,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra fields to merge into every parsed position
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-    fn parse_prediction_positions(&self, mut positions: Value, optional_args: &[Value]) -> Value {
+    fn parse_prediction_positions(&self, mut positions: Value, optional_args: &[Value]) -> Vec<crate::value::Dict> {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2419,19 +2419,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // venue-specific outcome filtering stays in the exchange (position identity differs
         // per venue: kalshi positions are market-level, polymarket ones are per token)
         let mut rows: crate::value::List = self.to_array_t(positions);
-        let mut results: Vec<Value> = Vec::new();
+        let mut results: Vec<crate::value::Dict> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_216: bool = true;
             while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), None);
             let mut position: crate::value::Dict = self.extend_t(parsed, &[&params]);
-            results.push(Value::Dict(position));
+            results.push(position);
         }
         }
-        return Value::from(results);
-
-    Value::Null
+        return results;
 }
 
     fn filter_by_outcome_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
@@ -2726,7 +2724,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "parse_prediction_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_orders" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_orders(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_prediction_position" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_prediction_positions" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_positions(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_prediction_positions" => Value::Arr(std::sync::Arc::new(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_positions(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).into_iter().map(Value::Dict).collect())),
             "parse_prediction_ticker" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_ticker(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_trade" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_prediction_trades" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trades(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),

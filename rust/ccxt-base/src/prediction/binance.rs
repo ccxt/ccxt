@@ -2010,9 +2010,9 @@ impl Binance {
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "positions");
         if (outcomes == Value::Null) {
-            return self.parse_prediction_positions(Value::from(&data), &[]);
+            return Value::Arr(std::sync::Arc::new(self.parse_prediction_positions(Value::from(&data), &[]).into_iter().map(Value::Dict).collect()));
         }
-        let mut positions: Vec<Value> = self.parse_prediction_positions(Value::Arr(data), &[]).as_array().cloned().unwrap_or_default();
+        let mut positions: Vec<Value> = self.parse_prediction_positions(Value::Arr(data), &[]).into_iter().map(Value::Dict).collect();
         let mut filtered: Vec<Value> = Vec::new();
         let mut positionsLength: i64 = positions.len() as i64;
         {
@@ -2069,7 +2069,7 @@ impl Binance {
         //
         //
         let mut positions: crate::value::List = self.safe_list_k_t(&response, "positions");
-        let mut parsedPositions: crate::value::List = self.parse_prediction_positions(Value::Arr(positions), &[]).into_list();
+        let mut parsedPositions: crate::value::List = std::sync::Arc::new(self.parse_prediction_positions(Value::Arr(positions), &[]).into_iter().map(Value::Dict).collect());
         let mut filteredPositions: Value = self.filter_by_outcome_since_limit(Value::Arr(parsedPositions), &[outcome, Value::Null, Value::Null]);
         return self.safe_dict(&filteredPositions, Value::Int(0), &[]);
         Value::Null

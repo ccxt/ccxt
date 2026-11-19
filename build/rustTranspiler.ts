@@ -5515,11 +5515,53 @@ function typeHandleOptionTuples(content: string): string {
             (_r, v, d, b) => `return (${v}${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam ?? ''][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`)}\n}`);
 }
 
+// parsePredictionPositions has one declaration whose only list is `results`, fed by `push(Value::Dict(..))`:
+// it returns `Vec<Dict>`, so a caller's element read is the dict itself (a missing index reads the empty one);
+// `Value` callers box each map as `Value::Dict` (an Arc move, no map copy).
+function typePredictionPositionsList(content: string): string {
+    const PP = 'parse_prediction_positions';
+    const sig = /(\n {4}fn parse_prediction_positions\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}/;
+    const m = sig.exec(content);
+    if (m !== null) {
+        const body = m[3];
+        const writes = body.match(/\bresults\b[^;\n]*/g) ?? [];
+        const ok = writes.length === 3 && body.includes('let mut results: Vec<Value> = Vec::new();')
+            && /\bresults\.push\(Value::Dict\(\w+\)\);/.test(body) && body.includes('return Value::from(results);')
+            && (body.match(/\breturn\b/g) ?? []).length === 1;
+        if (!ok) return content;
+        const typed = body.replace('let mut results: Vec<Value> = Vec::new();', 'let mut results: Vec<crate::value::Dict> = Vec::new();')
+            .replace(/\bresults\.push\(Value::Dict\((\w+)\)\);/, 'results.push($1);').replace('return Value::from(results);', 'return results;');
+        content = content.replace(m[0], `${m[1]}Vec<crate::value::Dict>${m[2]}${typed}\n}`);
+        content = content.replace(/("parse_prediction_positions" => )(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_positions\(self, [^\n]*?\]\)),\n/, '$1Value::Arr(std::sync::Arc::new($2.into_iter().map(Value::Dict).collect())),\n');
+        return content;
+    }
+    if (!content.includes(`self.${PP}(`) || content.includes(`fn ${PP}(`)) return content;
+    content = content.replace(/return (self\.parse_prediction_positions\([^;\n]*\));/g, 'return Value::Arr(std::sync::Arc::new($1.into_iter().map(Value::Dict).collect()));');
+    content = content.replace(/(= )(self\.parse_prediction_positions\([^;\n]*\))\.into_list\(\);/g, '$1std::sync::Arc::new($2.into_iter().map(Value::Dict).collect());');
+    for (const d of [...content.matchAll(/let mut (\w+): Vec<Value> = (self\.parse_prediction_positions\([^;\n]*\))\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\);/g)]) {
+        const v = d[1]; const at = content.indexOf(d[0]);
+        const end = content.slice(at).search(/\n {4}(?:pub )?(?:async )?fn |\n\}\n/);
+        const rest = content.slice(at + d[0].length, end < 0 ? content.length : at + end);
+        const uses = rest.match(new RegExp(`\\b${v}\\b[^;\\n]{0,60}`, 'g')) ?? [];
+        const read = `${v}.get(i as usize).cloned().unwrap_or(Value::Null).into_dict()`;
+        if (!uses.every((u) => u.startsWith(`${v}.len() as i64`) || u.startsWith(read.slice(0, 60)))) continue;
+        if (!rest.includes(read)) continue;
+        const typedRest = rest.split(read).join(`${v}.get(i as usize).cloned().unwrap_or_default()`);
+        content = content.slice(0, at) + `let mut ${v}: Vec<crate::value::Dict> = ${d[2]};` + typedRest + content.slice(at + d[0].length + rest.length);
+    }
+    // a list the element proof could not type keeps `Vec<Value>`, built from the maps by move
+    return content.replace(/(= self\.parse_prediction_positions\([^;\n]*\))\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\);/g, '$1.into_iter().map(Value::Dict).collect();');
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
+<<<<<<< merged
     content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
+=======
+    content = splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
+>>>>>>> R08
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -12121,7 +12163,11 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
+<<<<<<< merged
         fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
+=======
+        fs.writeFileSync(outFile, splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
+>>>>>>> R08
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 

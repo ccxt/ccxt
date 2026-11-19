@@ -3084,9 +3084,9 @@ impl Predictfun {
         //
         let mut rows: crate::value::List = self.safe_list_k_t(&response, "data");
         if (outcomesLength == 0) {
-            return self.parse_prediction_positions(Value::from(&rows), &[]);
+            return Value::Arr(std::sync::Arc::new(self.parse_prediction_positions(Value::from(&rows), &[]).into_iter().map(Value::Dict).collect()));
         }
-        let mut parsed: Vec<Value> = self.parse_prediction_positions(Value::Arr(rows), &[]).as_array().cloned().unwrap_or_default();
+        let mut parsed: Vec<crate::value::Dict> = self.parse_prediction_positions(Value::Arr(rows), &[]);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         let mut wanted: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3108,7 +3108,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1478: bool = true;
             while { if !__for_first_1478 { i += 1; } __for_first_1478 = false; i < parsedLength } {
-            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or_default();
             let mut outcomeId: Option<String> = self.safe_string_k_opt(&position, "outcomeId", &[]);
             if (outcomeId.is_some()) && (matches!(outcomeId.as_deref(), Some(__k) if wanted.contains_key(__k))) {
                 result.push(Value::Dict(position));

@@ -3100,9 +3100,9 @@ impl Polymarket {
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
         if (outcomesLength == 0) {
-            return self.parse_prediction_positions(Value::from(&positions), &[]);
+            return Value::Arr(std::sync::Arc::new(self.parse_prediction_positions(Value::from(&positions), &[]).into_iter().map(Value::Dict).collect()));
         }
-        let mut parsed: Vec<Value> = self.parse_prediction_positions(Value::Arr(positions), &[]).as_array().cloned().unwrap_or_default();
+        let mut parsed: Vec<crate::value::Dict> = self.parse_prediction_positions(Value::Arr(positions), &[]);
         let mut wantedIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3123,7 +3123,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1442: bool = true;
             while { if !__for_first_1442 { i += 1; } __for_first_1442 = false; i < (parsed.len() as i64) } {
-            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or_default();
             let mut info: crate::value::Dict = self.safe_dict_k_t(&position, "info");
             let mut assetId: Option<String> = self.safe_string_k_opt(&info, "asset", &[]);
             if (assetId.is_some()) && (matches!(assetId.as_deref(), Some(__k) if wantedIds.contains_key(__k))) {
