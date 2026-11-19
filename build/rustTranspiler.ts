@@ -7725,6 +7725,65 @@ function moveOptionRowsAfterLastRead(content: string): string {
 }
 //
 // unit slot 045
+// `m.insert("k".into(), x.clone()[.map(Value::from).unwrap_or(Value::Null)]);` as a statement: drop the clone when x
+// is a Copy scalar, or move x when no later code on any path from here names it (walking out through
+// if/else arms and plain blocks; an arm ending in `return` / `panic!` ends the path). Loops and closures refused.
+function moveInsertedLocalsOnPath(content: string): string {
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    const site = /^([ \t]*\w+\.insert\("[^"\\\n]*"\.into\(\), )([A-Za-z_]\w*)\.clone\(\)((?:\.map\(Value::from\)\.unwrap_or\(Value::Null\))?\);)$/gm;
+    const opener = (at: number): number => {
+        let depth = 0, inStr = false;
+        for (let j = at - 1; j >= 0; j--) {
+            const c = code[j];
+            if (c === '"' && code[j - 1] !== '\\') { inStr = !inStr; continue; }
+            if (inStr) continue;
+            if (c === ')' || c === ']' || c === '}') depth++;
+            else if (c === '(' || c === '[' || c === '{') { if (depth === 0) return j; depth--; }
+        }
+        return -1;
+    };
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(site)) {
+        const name = m[2], at = (m.index as number) + m[1].length, end = (m.index as number) + m[0].length;
+        if (name === 'self') continue;
+        const fnAt = content.lastIndexOf('fn ', at);
+        if (fnAt < 0) continue;
+        const sig = content.slice(fnAt, content.indexOf('{', fnAt));
+        const decl = [...code.slice(fnAt, at).matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\(|__it\\.next\\(\\))?`, 'g'))].pop();
+        if (decl !== undefined && decl[1] === undefined && decl[2] === undefined) continue;
+        const param = decl === undefined ? new RegExp(`[(,]\\s*(?:mut )?${name}\\s*:\\s*([^,)]+)`).exec(sig) : null;
+        if (decl === undefined && param === null) continue;
+        const ty = (decl !== undefined ? decl[1] ?? '' : (param as RegExpExecArray)[1]).trim();
+        if (/^(?:Option<(?:i64|f64|bool)>|i64|f64|bool)$/.test(ty)) { edits.push([at, at + name.length + 8, name]); continue; }
+        if (/^&|\bimpl\b|^\[/.test(ty)) continue;
+        const declAt = decl !== undefined ? fnAt + (decl.index as number) : fnAt;
+        const word = new RegExp(`(?<![\\w.])${name}\\b`);
+        let pos = end, ok = false;
+        for (;;) {
+            const o = opener(pos);
+            if (o < 0 || code[o] !== '{') break;
+            const head = code.slice(code.lastIndexOf('\n', o) + 1, o);
+            const close = balancedCloseIndex(code, o + 1);
+            if (word.test(code.slice(pos, close))) break;
+            // a block opened after the declaration that repeats (loop) or captures (closure) refuses the move
+            if (o > declAt && /\b(?:loop|while|for)\b|\|/.test(head)) break;
+            const lines = code.slice(o + 1, close).split('\n').map(l => l.trim()).filter(l => l !== '');
+            if (/^(?:return\b|panic!\()/.test(lines[lines.length - 1] ?? '')) { ok = true; break; }
+            // the end of the fn body or of the block declaring x ends its life
+            if (o <= declAt || /^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/.test(head) || /call_typed\(async move $/.test(head)) { ok = true; break; }
+            if (/\b(?:if|else)\b/.test(head)) {
+                let k = close + 1;
+                for (let e = /^\s*else\s*(?:if\b[^{]*)?\{/.exec(code.slice(k)); e !== null; e = /^\s*else\s*(?:if\b[^{]*)?\{/.exec(code.slice(k))) k = balancedCloseIndex(code, k + e[0].length) + 1;
+                pos = k;
+            } else if (head.trim() === '') pos = close + 1;
+            else break;
+        }
+        if (ok) edits.push([at, at + name.length + 8, name]);
+    }
+    let out = '', last = 0;
+    for (const [a, b, s] of edits) { out += content.slice(last, a) + s; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 046
 //
@@ -8383,6 +8442,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     moveOptionRowsAfterLastRead,
     //
     // pass slot 045
+    moveInsertedLocalsOnPath,
     //
     // pass slot 046
     //
