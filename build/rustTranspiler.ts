@@ -6245,7 +6245,7 @@ const RUST_FILTER_LIST_FNS = 'filter_by_limit|filter_by_since_limit|filter_by_va
 function typeFilterSliceLists(content: string): string {
     content = content.replace(new RegExp(String.raw`(\n {4}fn (${RUST_FILTER_LIST_FNS})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (_m, sig, _n, open, body) =>
         `${sig}crate::value::List${open}${body.replace(/\breturn Value::from\(vec!\[\]\);/g, 'return Default::default();').replace(/\breturn array;/g, 'return array.into_list();')}\n}`);
-    const head = new RegExp(String.raw`\bself(?:\.parent)?\.(?:${RUST_FILTER_LIST_FNS})\(`, 'g');
+    const head = new RegExp(String.raw`\b(?:self(?:\.parent)?|exchange)\.(?:${RUST_FILTER_LIST_FNS})\(`, 'g');
     const typedBody = new RegExp(String.raw`\n {4}fn (?:${RUST_FILTER_LIST_FNS})\([^\n]*\) -> crate::value::List \{`, 'g');
     const spans: Array<[number, number]> = [];
     for (const d of content.matchAll(typedBody)) spans.push([d.index!, balancedCloseIndex(content, d.index! + d[0].length)]);

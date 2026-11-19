@@ -1391,8 +1391,10 @@ export default class paradex extends Exchange {
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
         const data: Dict[] = this.safeList (response, 'results', []);
         // only a perpetual funds, the other rows are dropped before they are parsed
-        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries (data, 'swap') : data;
-        return this.parseFundingRates (rows, symbolsNormalized);
+        if (request['market'] === 'ALL') {
+            return this.parseFundingRates (this.filterLoadedSummaries (data, 'swap'), symbolsNormalized);
+        }
+        return this.parseFundingRates (data, symbolsNormalized);
     }
 
     /**
