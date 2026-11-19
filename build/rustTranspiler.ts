@@ -9250,7 +9250,8 @@ export class RustTranspilerBuilder {
     }
 
     stripMutSelfFieldClones(content: string): string {
-        const fnRe = /\bpub\s+(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*&mut self\b/g;
+        // trait-body base methods (`fn clean_cache(&mut self, ..)`) carry no `pub`: their field deletes must land too
+        const fnRe = /\b(?:pub\s+)?(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*&mut self\b/g;
         let out = '';
         let last = 0;
         let m: RegExpExecArray | null;
@@ -9271,6 +9272,12 @@ export class RustTranspilerBuilder {
                 // subsequent functions (silently — that's how kucoin's
                 // fetch_deposit_addresses_by_network kept its broken
                 // `&mut self.options.clone()`).
+                // Doc blocks go first: a `{@link https://..}` would read as a `//` comment and lose its `}`.
+                if (!inStr && c === '/' && content[j + 1] === '*') {
+                    const end = content.indexOf('*/', j + 2);
+                    j = end < 0 ? content.length : end + 2;
+                    continue;
+                }
                 if (!inStr && c === '/' && content[j + 1] === '/') {
                     const nl = content.indexOf('\n', j);
                     j = nl < 0 ? content.length : nl + 1;
@@ -9282,7 +9289,11 @@ export class RustTranspilerBuilder {
             }
             if (depth !== 0) break;
             const body = content.slice(braceIdx, j + 1)
-                .replace(/&mut self\.([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)/g, '&mut self.$1');
+                .replace(/&mut self\.([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)/g, '&mut self.$1')
+                // `this.balance = this.safeBalance (this.balance)`: the result overwrites the field, so it moves in (Value or Dict field;
+                // safe_balance has no panic path, so nothing observes the emptied field)
+                .replace(/\{ let __t = self\.safe_balance\((Value::Dict\()?self\.([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)(\)?)\); self\.([a-zA-Z_][a-zA-Z0-9_]*) = ([^;{}]*\b__t\b[^;{}]*); \}/g,
+                    (m0: string, pre: string, f: string, post: string, g: string, back: string) => (f === g && !pre === !post) ? `{ let __f = std::mem::take(&mut self.${f}); let __t = self.safe_balance(${pre ?? ''}__f${post ?? ''}); self.${f} = ${back}; }` : m0);
             out += content.slice(last, braceIdx) + body;
             last = j + 1;
             fnRe.lastIndex = last;
