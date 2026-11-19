@@ -12185,7 +12185,9 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goTypedRecvLocals (content) : content;  // after every pass keyed on `x := rN.Value`
     content = path.endsWith ('.go') ? goTypedNilFoldLocals (content) : content;
     content = path.endsWith ('.go') ? goTypedEndpointNilLocals (content) : content;
+    content = path.endsWith ('.go') ? goTypedEndpointRawLocals (content) : content;
     content = path.endsWith ('.go') ? goLateNativeInOp (content) : content;  // receivers typed by the three passes above
+    content = path.endsWith ('.go') ? goNativeKeysAndRemove (content) : content;  // ObjectKeys of the late-typed map locals
     content = path.endsWith ('.go') ? goTypedLenNative (content) : content;  // list locals typed only by the late passes
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
@@ -12331,7 +12333,7 @@ function goTypedEndpointNilLocals (content: string): string {
             const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
             const nilTest = /^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before);
             const handOff = guarded && (u.index > guardAt) && /^[,)]/.test (after) && (reader !== null || /, $/.test (before));
-            safe = nilTest || handOff || ((reader !== null) && GO_NIL_FOLD_READERS.test (reader[1]) && /^[,)]/.test (after));
+            safe = nilTest || handOff || ((reader !== null) && (GO_NIL_FOLD_READERS.test (reader[1]) || GO_ENDPOINT_KEY_READERS.test (reader[1])) && /^[,)]/.test (after));
         }
         if (!safe || new RegExp ('&' + name + '\\b|' + name + '\\s*[-+*/]=').test (fn)) {
             continue;
@@ -12340,6 +12342,51 @@ function goTypedEndpointNilLocals (content: string): string {
         for (const w of writes) {
             const at = fs0 + w.index + w[0].length - 3;
             edits.push ({ 'start': at, 'end': at + 3, 'text': 'Value' });
+        }
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+// InOp / ObjectKeys / GetValue answer false / nil / nil for a nil map exactly as for a non-map box
+const GO_ENDPOINT_KEY_READERS = /^(?:ccxt\.)?(?:InOp|ObjectKeys|GetValue)\($/;
+// `x := rN.Raw` of a map[string]any endpoint read only by first-argument readers (with >= 1 InOp/ObjectKeys/GetValue) and
+// nil tests: x is `var x map[string]any = rN.Value` (MapTyped of the same Raw: a map passes through, else nil)
+function goTypedEndpointRawLocals (content: string): string {
+    if (!/\n\t+\w+ := r\d*\.Raw\n/.test (content)) {
+        return content;
+    }
+    const masked = goChanMask (content);
+    const re = /\n(\t+)(\w+) := (r\d*)\.Raw(?=\n)/g;
+    const edits: Edit[] = [];
+    for (let m = re.exec (masked); m !== null; m = re.exec (masked)) {
+        const [ ind, name, r ] = [ m[1], m[2], m[3] ];
+        const [ fs0, fe0 ] = goChan3Func (masked, m.index + 1);
+        const fn = masked.substring (fs0, fe0);
+        const recv = goChan3EnclosingReceiver (masked, m.index + 1);
+        const binds = fn.match (new RegExp ('\\n\\t+' + r + ' := <-this\\.(\\w+)\\(', 'g')) || [];
+        const rWrites = fn.match (new RegExp ('(?<![\\w.])' + r + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || [];
+        const s = ((recv === undefined) || (binds.length !== 1) || (rWrites.length !== 1)) ? undefined : goChan3ReceiverStubs ().get (recv + '.' + /<-this\.(\w+)\($/.exec (binds[0])[1]);
+        const decls = fn.match (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^=\\n]*)?:?=(?!=)|\\bvar ' + name + '\\b|,\\s*' + name + '\\s*:?=(?!=)|&' + name + '\\b', 'g')) || [];
+        if ((s !== 'E:map[string]any') || (decls.length !== 1)) {
+            continue;
+        }
+        const declAt = m.index + 1 - fs0;
+        const use = new RegExp ('(?<![\\w.&])' + name + '\\b', 'g');
+        let [ safe, keyed ] = [ true, false ];
+        for (let u = use.exec (fn); safe && (u !== null); u = use.exec (fn)) {
+            if (u.index === declAt + ind.length) {
+                continue;
+            }
+            const before = fn.substring (Math.max (0, u.index - 60), u.index);
+            const after = fn.substring (u.index + name.length, u.index + name.length + 8);
+            const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
+            const key = (reader !== null) && GO_ENDPOINT_KEY_READERS.test (reader[1]) && /^[,)]/.test (after);
+            keyed = keyed || key;
+            safe = key || (/^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before)) || ((reader !== null) && GO_NIL_FOLD_READERS.test (reader[1]) && /^[,)]/.test (after));
+        }
+        if (safe && keyed) {
+            const start = m.index + 1 + ind.length;
+            edits.push ({ start, 'end': start + name.length + 4 + r.length + 4, 'text': 'var ' + name + ' map[string]any = ' + r + '.Value' });
         }
     }
     return edits.length ? goChan3Splice (content, edits) : content;
@@ -12359,6 +12406,13 @@ function goTypedEndpointNilLocalsCheck (ok: SelfTestOk): void {
     ok (out.includes ('\tvar b any = nil\n') && out.includes ('\t\tb = r1.Raw\n'), 'mixed stubs kept: ' + out);
     ok (out.includes ('\tvar c any = nil\n'), 'unguarded hand-off kept: ' + out);
     ok (out.includes ('\tvar d []any = nil\n') && out.includes ('\t\td = r.Value\n'), 'reader-only list local typed: ' + out);
+    goChan3SetReceiverStubsForTest (stubs);
+    const one = (x: string, tail: string) => 'func (this *Zz) g' + x + '(p any) any {\n' + recv ('r', 'PubGetM').replace (/\t\t/g, '\t') + '\t' + x + ' := r.Raw\n' + tail + '}\n';
+    const raw = goTypedEndpointRawLocals ('package ccxt\n\n' + one ('e', '\tif InOp(e, \"k\") {\n\t\treturn this.SafeString(e, \"k\")\n\t}\n\treturn nil\n') + one ('g', '\tif InOp(g, \"k\") {\n\t\treturn this.Json(g)\n\t}\n\treturn nil\n') + one ('h', '\treturn this.SafeString(h, \"k\")\n'));
+    const keys = goTypedEndpointNilLocals ('package ccxt\n\n' + fn ('q', 'PubGetM', 'PubGetM', '\tvar ks []string = ObjectKeys(q)\n\treturn ks\n'));
+    goChan3SetReceiverStubsForTest (saved);
+    ok (raw.includes ('\tvar e map[string]any = r.Value\n') && raw.includes ('\tg := r.Raw\n') && raw.includes ('\th := r.Raw\n'), 'raw map endpoint local typed only with a keyed read and no hand-off: ' + raw);
+    ok (keys.includes ('\tvar q map[string]any = nil\n'), 'ObjectKeys-read map endpoint local typed: ' + keys);
 }
 
 function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
