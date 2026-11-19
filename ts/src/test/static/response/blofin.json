@@ -1256,6 +1256,94 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "trigger order keeps its triggerPrice",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "instId": "LTC-USDT",
+                            "algoId": "10031080612",
+                            "clientOrderId": "",
+                            "size": "0.01",
+                            "orderType": "trigger",
+                            "side": "buy",
+                            "positionSide": "net",
+                            "positionId": "",
+                            "marginMode": "cross",
+                            "state": "live",
+                            "leverage": "3",
+                            "reduceOnly": "false",
+                            "createTime": "1795088136414",
+                            "triggerPrice": "200.000000000000000000",
+                            "triggerPriceType": "last",
+                            "orderPrice": "-1",
+                            "brokerId": "ec6dd3a7dd982d0b",
+                            "attachAlgoOrders": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instId": "LTC-USDT",
+                            "algoId": "10031080612",
+                            "clientOrderId": "",
+                            "size": "0.01",
+                            "orderType": "trigger",
+                            "side": "buy",
+                            "positionSide": "net",
+                            "positionId": "",
+                            "marginMode": "cross",
+                            "state": "live",
+                            "leverage": "3",
+                            "reduceOnly": "false",
+                            "createTime": "1795088136414",
+                            "triggerPrice": "200.000000000000000000",
+                            "triggerPriceType": "last",
+                            "orderPrice": "-1",
+                            "brokerId": "ec6dd3a7dd982d0b",
+                            "attachAlgoOrders": null
+                        },
+                        "id": "10031080612",
+                        "clientOrderId": null,
+                        "timestamp": 1795088136414,
+                        "datetime": "2026-11-19T11:35:36.414Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "LTC/USDT:USDT",
+                        "type": "trigger",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": -1,
+                        "triggerPrice": 200,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": 0.01,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "reduceOnly": false,
+                        "fees": [],
+                        "stopPrice": 200
+                    }
+                ]
+            },
+            {
                 "description": "open orders",
                 "method": "fetchOpenOrders",
                 "input": [

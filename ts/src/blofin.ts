@@ -1581,6 +1581,7 @@ export default class blofin extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,
