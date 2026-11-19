@@ -332,8 +332,8 @@ impl Ndax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_523: bool = true;
-            while { if !__for_first_523 { i += 1; } __for_first_523 = false; i < (payload.len() as i64) } {
+            let mut __for_first_524: bool = true;
+            while { if !__for_first_524 { i += 1; } __for_first_524 = false; i < (payload.len() as i64) } {
             let mut trade: crate::value::Dict = self.parse_trade(payload.get(i as usize).cloned().unwrap_or(Value::Null), None);
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             let mut tradesArray: Option<crate::pro::cache::Cache> = (if (symbol.is_none()) { None } else { self.trades.lookup(&symbol) });
@@ -353,8 +353,8 @@ impl Ndax {
         let mut symbols: Vec<Value> = Value::Array(updates.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_524: bool = true;
-            while { if !__for_first_524 { i += 1; } __for_first_524 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_525: bool = true;
+            while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -466,8 +466,8 @@ impl Ndax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_526: bool = true;
-            while { if !__for_first_526 { i += 1; } __for_first_526 = false; i < (payload.len() as i64) } {
+            let mut __for_first_527: bool = true;
+            while { if !__for_first_527 { i += 1; } __for_first_527 = false; i < (payload.len() as i64) } {
             let mut ohlcv: crate::value::List = self.safe_list_t(&payload, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_opt(&ohlcv, Value::Int(8), &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -480,8 +480,8 @@ impl Ndax {
             let mut keys: Vec<Value> = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_525: bool = true;
-                while { if !__for_first_525 { j += 1; } __for_first_525 = false; j < (keys.len() as i64) } {
+                let mut __for_first_526: bool = true;
+                while { if !__for_first_526 { j += 1; } __for_first_526 = false; j < (keys.len() as i64) } {
                 let mut timeframe: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
                 let mut duration: Option<i64> = (if let Some(__l) = (self.parse_to_int(interval.map(Value::from).unwrap_or(Value::Null))) { Some(__l * 1000) } else { None });
@@ -546,14 +546,14 @@ impl Ndax {
         let mut marketIds: Vec<Value> = Value::Array(updates.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_528: bool = true;
-            while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_529: bool = true;
+            while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut timeframes: Vec<Value> = object_keys(&updates.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_527: bool = true;
-                while { if !__for_first_527 { j += 1; } __for_first_527 = false; j < (timeframes.len() as i64) } {
+                let mut __for_first_528: bool = true;
+                while { if !__for_first_528 { j += 1; } __for_first_528 = false; j < (timeframes.len() as i64) } {
                 let mut timeframe: Option<String> = timeframes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), timeframe.as_deref().unwrap_or("null")).into()), ":").into()), marketId.as_deref().unwrap_or("null"));
                 let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -679,8 +679,8 @@ impl Ndax {
         let mut nonce: Option<i64> = self.safe_integer(&firstBidAsk, Value::Int(0), &[]).as_i64();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_529: bool = true;
-            while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (payload.len() as i64) } {
+            let mut __for_first_530: bool = true;
+            while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (payload.len() as i64) } {
             let mut bidask: crate::value::List = self.safe_list_t(&payload, Value::Int(i));
             if (timestamp.is_none()) {
                 timestamp = self.safe_integer(&bidask, Value::Int(2), &[]).as_i64();

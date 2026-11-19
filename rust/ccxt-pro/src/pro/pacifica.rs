@@ -561,8 +561,8 @@ impl Pacifica {
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (results.len() as i64) } {
+            let mut __for_first_580: bool = true;
+            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (results.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
             let mut error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
             let mut success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
@@ -1209,8 +1209,8 @@ impl Pacifica {
         let mut data: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_579: bool = true;
-            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (data.len() as i64) } {
+            let mut __for_first_581: bool = true;
+            while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (data.len() as i64) } {
             let mut info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -1276,8 +1276,8 @@ impl Pacifica {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_580: bool = true;
-            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (data.len() as i64) } {
+            let mut __for_first_582: bool = true;
+            while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (data.len() as i64) } {
             let mut rawTrade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
@@ -1290,8 +1290,8 @@ impl Pacifica {
         let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_581: bool = true;
-            while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (keys.len() as i64) } {
+            let mut __for_first_583: bool = true;
+            while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (keys.len() as i64) } {
             let mut currentMessageHash: String = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())]));
             client.resolve(Value::from(&trades), currentMessageHash.as_str());
         }
@@ -1453,8 +1453,8 @@ impl Pacifica {
         let mut trades: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (entry.len() as i64) } {
+            let mut __for_first_584: bool = true;
+            while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (entry.len() as i64) } {
             let mut data: crate::value::Dict = self.safe_dict_t(&entry, Value::Int(i));
             let mut trade: crate::value::Dict = self.parse_ws_trade(&data, None);
             trades.append(Value::Dict(trade));
@@ -1899,8 +1899,8 @@ impl Pacifica {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_583: bool = true;
-            while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (data.len() as i64) } {
+            let mut __for_first_585: bool = true;
+            while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (data.len() as i64) } {
             let mut rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
             stored.append(Value::from(&order));
@@ -1913,8 +1913,8 @@ impl Pacifica {
         let mut keys: Vec<Value> = Value::Array(marketSymbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_584: bool = true;
-            while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (keys.len() as i64) } {
+            let mut __for_first_586: bool = true;
+            while { if !__for_first_586 { i += 1; } __for_first_586 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&stored), innerMessageHash.as_str());
@@ -1986,8 +1986,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbols: Vec<Value> = Value::Array(self.tickers.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_585: bool = true;
-            while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (symbols.len() as i64) } {
             if let (__d, Value::Str(__k)) = (&mut self.tickers, &symbols.get(i as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
         }
@@ -2127,8 +2127,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut keys: Vec<Value> = Value::Array(methods.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_586: bool = true;
-            while { if !__for_first_586 { i += 1; } __for_first_586 = false; i < (keys.len() as i64) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { i += 1; } __for_first_588 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if ((if let (Some(__h), Some(__n)) = (Some(topic.as_str()), (keys.get(i as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 let mut method: Option<String> = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);

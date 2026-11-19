@@ -405,8 +405,8 @@ impl Gemini {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_347: bool = true;
-                while { if !__for_first_347 { i += 1; } __for_first_347 = false; i < (trades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_348: bool = true;
+                while { if !__for_first_348 { i += 1; } __for_first_348 = false; i < (trades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut trade: crate::value::Dict = self.parse_ws_trade(self.safe_value(&trades, Value::Int(i), &[]), Some(&market));
                 stored.append(Value::Dict(trade));
             }
@@ -425,8 +425,8 @@ impl Gemini {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_348: bool = true;
-            while { if !__for_first_348 { i += 1; } __for_first_348 = false; i < (trades.len() as i64) } {
+            let mut __for_first_349: bool = true;
+            while { if !__for_first_349 { i += 1; } __for_first_349 = false; i < (trades.len() as i64) } {
             let mut rawTrade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
             let mut marketId: String = self.safe_string_k(&rawTrade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
             let mut market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
@@ -446,8 +446,8 @@ impl Gemini {
         let mut symbols: Vec<Value> = Value::Array(storesForSymbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_349: bool = true;
-            while { if !__for_first_349 { i += 1; } __for_first_349 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_350: bool = true;
+            while { if !__for_first_350 { i += 1; } __for_first_350 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<&str> = symbols.get(i as usize).and_then(Value::as_str);
             let mut symbolStore: Value = storesForSymbols.get(symbol.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
@@ -565,8 +565,8 @@ impl Gemini {
         let mut changesLength: i64 = changes.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_350: bool = true;
-            while { if !__for_first_350 { i += 1; } __for_first_350 = false; i < changesLength } {
+            let mut __for_first_351: bool = true;
+            while { if !__for_first_351 { i += 1; } __for_first_351 = false; i < changesLength } {
             let mut parsed: Value = self.parse_ohlcv(self.safe_value(&changes, Value::Int((((changesLength - i)) - 1)), &[]), Some(&market));
             stored.append(parsed);
         }
@@ -651,8 +651,8 @@ impl Gemini {
             let mut asksSnapshot: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_351: bool = true;
-                while { if !__for_first_351 { i += 1; } __for_first_351 = false; i < (changes.len() as i64) } {
+                let mut __for_first_352: bool = true;
+                while { if !__for_first_352 { i += 1; } __for_first_352 = false; i < (changes.len() as i64) } {
                 let mut delta: crate::value::List = changes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
                 let mut bidAsk: Value = Value::from(vec![self.safe_number(&delta, Value::Int(1), &[]), self.safe_number(&delta, Value::Int(2), &[])]);
                 if (self.safe_string(&delta, Value::Int(0), &[]).as_str() == Some("buy")) {
@@ -674,8 +674,8 @@ impl Gemini {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_352: bool = true;
-            while { if !__for_first_352 { i += 1; } __for_first_352 = false; i < (changes.len() as i64) } {
+            let mut __for_first_353: bool = true;
+            while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (changes.len() as i64) } {
             let mut delta: crate::value::List = changes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut price: Option<f64> = self.safe_number(&delta, Value::Int(1), &[]).as_f64();
             let mut size: Option<f64> = self.safe_number(&delta, Value::Int(2), &[]).as_f64();
@@ -801,8 +801,8 @@ impl Gemini {
         let mut messageHash: String = format!("{}{}", "bidsasks:", symbol);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_353: bool = true;
-            while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (rawBidAskChanges.len() as i64) } {
+            let mut __for_first_354: bool = true;
+            while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (rawBidAskChanges.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&rawBidAskChanges, Value::Int(i));
             let mut rawSide: Option<String> = self.safe_string_k_opt(&entry, "side", &[]);
             let mut price: Option<f64> = self.safe_number_k(&entry, "price", &[]).as_f64();
@@ -853,8 +853,8 @@ impl Gemini {
         let mut marketIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_354: bool = true;
-            while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_355: bool = true;
+            while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: String = self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(itemHashName), ":").into()), symbol);
             messageHashes.push(Value::from(messageHash));
@@ -911,8 +911,8 @@ impl Gemini {
         let mut asks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_355: bool = true;
-            while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (rawOrderBookChanges.len() as i64) } {
+            let mut __for_first_356: bool = true;
+            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (rawOrderBookChanges.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&rawOrderBookChanges, Value::Int(i));
             let mut price: Option<f64> = self.safe_number_k(&entry, "price", &[]).as_f64();
             let mut size: Option<f64> = self.safe_number_k(&entry, "remaining", &[]).as_f64();
@@ -1082,8 +1082,8 @@ impl Gemini {
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_356: bool = true;
-            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (message.len() as i64) } {
+            let mut __for_first_357: bool = true;
+            while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (message.len() as i64) } {
             let mut order: crate::value::Dict = self.parse_ws_order(self.safe_value(&message, Value::Int(i), &[]), None);
             orders.append(Value::Dict(order));
         }
@@ -1264,8 +1264,8 @@ impl Gemini {
             let mut eventsLength: i64 = events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_357: bool = true;
-                while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_358: bool = true;
+                while { if !__for_first_358 { i += 1; } __for_first_358 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
                 let mut eventType: Option<String> = self.safe_string_k_opt(&event, "type", &[]);
                 let mut side: Option<String> = self.safe_string_k_opt(&event, "side", &[]);

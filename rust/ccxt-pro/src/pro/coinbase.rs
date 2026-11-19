@@ -336,8 +336,8 @@ impl Coinbase {
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_227: bool = true;
-            while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_228: bool = true;
+            while { if !__for_first_228 { i += 1; } __for_first_228 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
@@ -394,8 +394,8 @@ impl Coinbase {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_228: bool = true;
-            while { if !__for_first_228 { i += 1; } __for_first_228 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_229: bool = true;
+            while { if !__for_first_229 { i += 1; } __for_first_229 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
@@ -700,14 +700,14 @@ impl Coinbase {
         let mut newTickers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_230: bool = true;
-            while { if !__for_first_230 { i += 1; } __for_first_230 = false; i < (events.len() as i64) } {
+            let mut __for_first_231: bool = true;
+            while { if !__for_first_231 { i += 1; } __for_first_231 = false; i < (events.len() as i64) } {
             let mut tickersObj: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let mut tickers: crate::value::List = self.safe_list_k_t(&tickersObj, "tickers");
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_229: bool = true;
-                while { if !__for_first_229 { j += 1; } __for_first_229 = false; j < (tickers.len() as i64) } {
+                let mut __for_first_230: bool = true;
+                while { if !__for_first_230 { j += 1; } __for_first_230 = false; j < (tickers.len() as i64) } {
                 let mut ticker: crate::value::Dict = tickers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut wsMarketId: Option<String> = self.safe_string_k_opt(&ticker, "product_id", &[]);
                 if (wsMarketId.is_none()) {
@@ -854,14 +854,14 @@ impl Coinbase {
         let mut timeframe: String = "5m".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_232: bool = true;
-            while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (events.len() as i64) } {
+            let mut __for_first_233: bool = true;
+            while { if !__for_first_233 { i += 1; } __for_first_233 = false; i < (events.len() as i64) } {
             let mut event: crate::value::Dict = events.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut candles: crate::value::List = self.safe_list_k_t(&event, "candles");
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_231: bool = true;
-                while { if !__for_first_231 { j += 1; } __for_first_231 = false; j < (candles.len() as i64) } {
+                let mut __for_first_232: bool = true;
+                while { if !__for_first_232 { j += 1; } __for_first_232 = false; j < (candles.len() as i64) } {
                 let mut candle: crate::value::Dict = candles.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut marketId: Option<String> = self.safe_string_k_opt(&candle, "product_id", &[]);
                 let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -1228,8 +1228,8 @@ impl Coinbase {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_234: bool = true;
-            while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_235: bool = true;
+            while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut currentEvent: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let mut currentTrades: Option<crate::value::List> = self.safe_list_k_o(&currentEvent, "trades");
             if (currentTrades.is_none()) {
@@ -1239,8 +1239,8 @@ impl Coinbase {
             let mut tradesLength: i64 = currentTrades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_233: bool = true;
-                while { if !__for_first_233 { j += 1; } __for_first_233 = false; j < tradesLength } {
+                let mut __for_first_234: bool = true;
+                while { if !__for_first_234 { j += 1; } __for_first_234 = false; j < tradesLength } {
                 let mut item: crate::value::Dict = currentTrades.as_deref().map(Vec::as_slice).unwrap_or_default().get(((tradesLength - j) - 1) as usize).cloned().unwrap_or(Value::Null).into_dict();
                 tradesArray.append(Value::Dict(self.parse_trade(Value::Dict(item), None)));
             }
@@ -1293,8 +1293,8 @@ impl Coinbase {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_236: bool = true;
-            while { if !__for_first_236 { i += 1; } __for_first_236 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_237: bool = true;
+            while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let mut responseOrders: Option<crate::value::List> = self.safe_list_k_o(&event, "orders");
             if (responseOrders.is_none()) {
@@ -1302,8 +1302,8 @@ impl Coinbase {
             }
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_235: bool = true;
-                while { if !__for_first_235 { j += 1; } __for_first_235 = false; j < (responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_236: bool = true;
+                while { if !__for_first_236 { j += 1; } __for_first_236 = false; j < (responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut responseOrder: crate::value::Dict = responseOrders.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut parsed: crate::value::Dict = self.parse_ws_order(&responseOrder, None);
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
@@ -1320,8 +1320,8 @@ impl Coinbase {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_237: bool = true;
-            while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_238: bool = true;
+            while { if !__for_first_238 { i += 1; } __for_first_238 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", "user::", symbol.as_deref().unwrap_or("null"));
@@ -1394,8 +1394,8 @@ impl Coinbase {
         let mut updates: Value = updates.into();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_238: bool = true;
-            while { if !__for_first_238 { i += 1; } __for_first_238 = false; i < (updates.len() as i64) } {
+            let mut __for_first_239: bool = true;
+            while { if !__for_first_239 { i += 1; } __for_first_239 = false; i < (updates.len() as i64) } {
             let mut trade: crate::value::Dict = self.safe_dict_t(&updates, Value::Int(i));
             let mut sideId: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
             let mut side: Option<String> = self.safe_string_opt(self.options.get("sides").cloned().unwrap_or(Value::Null), sideId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1446,8 +1446,8 @@ impl Coinbase {
         let mut datetime: Option<String> = self.safe_string_k_opt(message, "timestamp", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_239: bool = true;
-            while { if !__for_first_239 { i += 1; } __for_first_239 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_240: bool = true;
+            while { if !__for_first_240 { i += 1; } __for_first_240 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let mut updates: crate::value::List = self.safe_list_k_t(&event, "updates");
             let mut marketId: Option<String> = self.safe_string_k_opt(&event, "product_id", &[]);
@@ -1527,8 +1527,8 @@ impl Coinbase {
             let mut subMessageHashes: crate::value::List = self.safe_list_k_t(&unSubObject, "subMessageHashes");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_240: bool = true;
-                while { if !__for_first_240 { i += 1; } __for_first_240 = false; i < (messageHashes.len() as i64) } {
+                let mut __for_first_241: bool = true;
+                while { if !__for_first_241 { i += 1; } __for_first_241 = false; i < (messageHashes.len() as i64) } {
                 let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut subHash: Option<String> = subMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 self.clean_unsubscription(&client, subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);

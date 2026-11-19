@@ -253,8 +253,8 @@ impl Deribit {
         let mut channels: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_292: bool = true;
-            while { if !__for_first_292 { i += 1; } __for_first_292 = false; i < (currencies.len() as i64) } {
+            let mut __for_first_293: bool = true;
+            while { if !__for_first_293 { i += 1; } __for_first_293 = false; i < (currencies.len() as i64) } {
             let mut currencyCode: String = self.safe_string(&currencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             channels.push(Value::Str(format!("{}{}", "user.portfolio.", currencyCode).into()));
         }
@@ -427,8 +427,8 @@ impl Deribit {
         let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_293: bool = true;
-            while { if !__for_first_293 { i += 1; } __for_first_293 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_294: bool = true;
+            while { if !__for_first_294 { i += 1; } __for_first_294 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval).into()));
         }
@@ -533,8 +533,8 @@ impl Deribit {
         let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_294: bool = true;
-            while { if !__for_first_294 { i += 1; } __for_first_294 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_295: bool = true;
+            while { if !__for_first_295 { i += 1; } __for_first_295 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
         }
@@ -731,8 +731,8 @@ impl Deribit {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_295: bool = true;
-            while { if !__for_first_295 { i += 1; } __for_first_295 = false; i < (trades.len() as i64) } {
+            let mut __for_first_296: bool = true;
+            while { if !__for_first_296 { i += 1; } __for_first_296 = false; i < (trades.len() as i64) } {
             let mut trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsed: crate::value::Dict = self.parse_trade(Value::Dict(trade), Some(&market));
             stored.append(Value::Dict(parsed));
@@ -847,8 +847,8 @@ impl Deribit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_296: bool = true;
-            while { if !__for_first_296 { i += 1; } __for_first_296 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_297: bool = true;
+            while { if !__for_first_297 { i += 1; } __for_first_297 = false; i < (parsed.len() as i64) } {
             let mut trade: Option<crate::value::Dict> = crate::value::KeyRead::read(&&parsed, &Value::Int(i)).into_opt_dict();
             cachedTrades.append(trade.clone().map_or(Value::Null, Value::Dict));
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
@@ -1026,8 +1026,8 @@ impl Deribit {
         let mut cleanedBids: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_297: bool = true;
-            while { if !__for_first_297 { i += 1; } __for_first_297 = false; i < (bids.len() as i64) } {
+            let mut __for_first_298: bool = true;
+            while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (bids.len() as i64) } {
             let mut bid: crate::value::List = self.safe_list_t(&bids, Value::Int(i));
             std::sync::Arc::make_mut(&mut cleanedBids).push(Value::from(vec![bid.get(1).cloned().unwrap_or(Value::Null), bid.get(2).cloned().unwrap_or(Value::Null)]));
         }
@@ -1035,8 +1035,8 @@ impl Deribit {
         let mut cleanedAsks: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_298: bool = true;
-            while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (asks.len() as i64) } {
+            let mut __for_first_299: bool = true;
+            while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (asks.len() as i64) } {
             let mut ask: crate::value::List = self.safe_list_t(&asks, Value::Int(i));
             std::sync::Arc::make_mut(&mut cleanedAsks).push(Value::from(vec![ask.get(1).cloned().unwrap_or(Value::Null), ask.get(2).cloned().unwrap_or(Value::Null)]));
         }
@@ -1064,8 +1064,8 @@ impl Deribit {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_299: bool = true;
-            while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_300: bool = true;
+            while { if !__for_first_300 { i += 1; } __for_first_300 = false; i < (deltas.len() as i64) } {
             self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1186,8 +1186,8 @@ impl Deribit {
         let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_300: bool = true;
-            while { if !__for_first_300 { i += 1; } __for_first_300 = false; i < (orders.len() as i64) } {
+            let mut __for_first_301: bool = true;
+            while { if !__for_first_301 { i += 1; } __for_first_301 = false; i < (orders.len() as i64) } {
             cachedOrders.append(orders.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1346,8 +1346,8 @@ impl Deribit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_301: bool = true;
-            while { if !__for_first_301 { i += 1; } __for_first_301 = false; (i as f64) < Value::Int(symbolsArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_302: bool = true;
+            while { if !__for_first_302 { i += 1; } __for_first_302 = false; (i as f64) < Value::Int(symbolsArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if (symbolsArray == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchMultipleWrapper() symbolsArray is required")));
             }

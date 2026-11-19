@@ -462,8 +462,8 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut balances: crate::value::List = self.safe_list_k_t(response, "holding");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1174: bool = true;
-            while { if !__for_first_1174 { i += 1; } __for_first_1174 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1178: bool = true;
+            while { if !__for_first_1178 { i += 1; } __for_first_1178 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]).as_str(), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -802,8 +802,8 @@ impl crate::exchange::DerivedExchange for Woo {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1172: bool = true;
-            while { if !__for_first_1172 { j += 1; } __for_first_1172 = false; j < (keys.len() as i64) } {
+            let mut __for_first_1176: bool = true;
+            while { if !__for_first_1176 { j += 1; } __for_first_1176 = false; j < (keys.len() as i64) } {
             let mut networkId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
             let mut tokenEntry: crate::value::Dict = self.safe_dict_t(&tokensByNetworkId, Value::from(networkId.as_deref()));
             let mut networkEntry: crate::value::Dict = self.safe_dict_t(&chainsByNetworkId, Value::from(networkId.as_deref()));
@@ -1113,8 +1113,8 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut details: crate::value::List = self.safe_list_k_t(&leverage, "details");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1176: bool = true;
-            while { if !__for_first_1176 { i += 1; } __for_first_1176 = false; i < (details.len() as i64) } {
+            let mut __for_first_1180: bool = true;
+            while { if !__for_first_1180 { i += 1; } __for_first_1180 = false; i < (details.len() as i64) } {
             let mut position: crate::value::Dict = self.safe_dict_t(&details, Value::Int(i));
             let mut positionLeverage: Option<i64> = self.safe_integer_k(&position, "leverage", &[]).as_i64();
             let mut side: Option<String> = self.safe_string_k_opt(&position, "positionSide", &[]);
@@ -3010,8 +3010,8 @@ impl Woo {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1170: bool = true;
-            while { if !__for_first_1170 { i += 1; } __for_first_1170 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1174: bool = true;
+            while { if !__for_first_1174 { i += 1; } __for_first_1174 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3137,8 +3137,8 @@ impl Woo {
         let mut currencyIds: Vec<Value> = Value::Array(tokensById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1171: bool = true;
-            while { if !__for_first_1171 { i += 1; } __for_first_1171 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1175: bool = true;
+            while { if !__for_first_1175 { i += 1; } __for_first_1175 = false; i < (currencyIds.len() as i64) } {
             let mut id: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut customCurrency: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -4298,8 +4298,8 @@ impl Woo {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1173: bool = true;
-            while { if !__for_first_1173 { i += 1; } __for_first_1173 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1177: bool = true;
+            while { if !__for_first_1177 { i += 1; } __for_first_1177 = false; i < (rows.len() as i64) } {
             let mut row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&row, "symbol", &[]);
             if (marketId.is_none()) {
@@ -5651,8 +5651,8 @@ impl Woo {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1175: bool = true;
-            while { if !__for_first_1175 { i += 1; } __for_first_1175 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1179: bool = true;
+            while { if !__for_first_1179 { i += 1; } __for_first_1179 = false; i < (rows.len() as i64) } {
             let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "fundingRateTimestamp", &[]).as_i64();
@@ -5810,7 +5810,7 @@ impl Woo {
             return self.v3_private_put_futures_leverage(&[&__ws_arg_40]).await;
         }  else {
             let mut marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchLeverage() is not supported for ").into()), marketType).into()), " markets")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " setLeverage() is not supported for ").into()), marketType).into()), " markets")));
         }
         Value::Null
         }).await?))
@@ -6330,8 +6330,8 @@ impl Woo {
         let mut data: crate::value::List = self.safe_list_k_t(&response, "rows");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1177: bool = true;
-            while { if !__for_first_1177 { i += 1; } __for_first_1177 = false; i < (data.len() as i64) } {
+            let mut __for_first_1181: bool = true;
+            while { if !__for_first_1181 { i += 1; } __for_first_1181 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&entry, "token", &[]);
             let mut code: Option<String> = self.safe_currency_code(id.as_deref(), None);
@@ -6464,8 +6464,8 @@ impl Woo {
         let mut networkKeys: Vec<Value> = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1178: bool = true;
-            while { if !__for_first_1178 { i += 1; } __for_first_1178 = false; i < (networkKeys.len() as i64) } {
+            let mut __for_first_1182: bool = true;
+            while { if !__for_first_1182 { i += 1; } __for_first_1182 = false; i < (networkKeys.len() as i64) } {
             let mut network: Option<String> = networkKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (network.as_deref() == Some("ERC20")) {
                 return network;

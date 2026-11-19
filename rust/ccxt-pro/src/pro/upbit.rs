@@ -190,8 +190,8 @@ impl Upbit {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_682: bool = true;
-            while { if !__for_first_682 { i += 1; } __for_first_682 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_684: bool = true;
+            while { if !__for_first_684 { i += 1; } __for_first_684 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut marketId: String = self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut symbol: String = self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), symbol).into());
@@ -214,8 +214,8 @@ impl Upbit {
         let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_683: bool = true;
-            while { if !__for_first_683 { i += 1; } __for_first_683 = false; i < (channelKeys.len() as i64) } {
+            let mut __for_first_685: bool = true;
+            while { if !__for_first_685 { i += 1; } __for_first_685 = false; i < (channelKeys.len() as i64) } {
             let mut key: Option<&str> = channelKeys.get(i as usize).and_then(Value::as_str);
             finalMessage.push((if let (Some(__m), Some(__k)) = (subscriptions.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
         }
@@ -506,8 +506,8 @@ impl Upbit {
         let mut asksSnapshot: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_684: bool = true;
-            while { if !__for_first_684 { i += 1; } __for_first_684 = false; i < (data.len() as i64) } {
+            let mut __for_first_686: bool = true;
+            while { if !__for_first_686 { i += 1; } __for_first_686 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
             let mut bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
@@ -671,8 +671,8 @@ impl Upbit {
         let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_685: bool = true;
-            while { if !__for_first_685 { i += 1; } __for_first_685 = false; i < (channelKeys.len() as i64) } {
+            let mut __for_first_687: bool = true;
+            while { if !__for_first_687 { i += 1; } __for_first_687 = false; i < (channelKeys.len() as i64) } {
             message.push(get_value(&subscriptions, &channelKeys.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -1062,8 +1062,8 @@ impl Upbit {
         { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_686: bool = true;
-            while { if !__for_first_686 { i += 1; } __for_first_686 = false; i < (data.len() as i64) } {
+            let mut __for_first_688: bool = true;
+            while { if !__for_first_688 { i += 1; } __for_first_688 = false; i < (data.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);

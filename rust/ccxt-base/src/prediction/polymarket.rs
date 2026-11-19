@@ -294,8 +294,8 @@ impl crate::exchange::DerivedExchange for Polymarket {
             let mut queryKeys: crate::value::List = object_keys(&query).into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1452: bool = true;
-                while { if !__for_first_1452 { i += 1; } __for_first_1452 = false; i < (queryKeys.len() as i64) } {
+                let mut __for_first_1456: bool = true;
+                while { if !__for_first_1456 { i += 1; } __for_first_1456 = false; i < (queryKeys.len() as i64) } {
                 if (matches!(&get_value(&query, &queryKeys.get(i as usize).cloned().unwrap_or(Value::Null)), Value::Arr(_))) {
                     hasArrayParam = true;
                 }
@@ -1443,14 +1443,14 @@ impl Polymarket {
         });
         {
                         let mut rei: i64 = 0;
-            let mut __for_first_1408: bool = true;
-            while { if !__for_first_1408 { rei += 1; } __for_first_1408 = false; rei < (rawEvents.len() as i64) } {
+            let mut __for_first_1412: bool = true;
+            while { if !__for_first_1412 { rei += 1; } __for_first_1412 = false; rei < (rawEvents.len() as i64) } {
             let mut rawEvent: crate::value::Dict = rawEvents.get(rei as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::from(&rawEvent)).as_array().cloned().unwrap_or_default();
             {
                                 let mut mi: i64 = 0;
-                let mut __for_first_1407: bool = true;
-                while { if !__for_first_1407 { mi += 1; } __for_first_1407 = false; mi < (ccxtMarkets.len() as i64) } {
+                let mut __for_first_1411: bool = true;
+                while { if !__for_first_1411 { mi += 1; } __for_first_1411 = false; mi < (ccxtMarkets.len() as i64) } {
                 flatMarkets.push(ccxtMarkets.get(mi as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -1515,8 +1515,8 @@ impl Polymarket {
         let mut rawEvents: Vec<Value> = Vec::new();
         {
                         let mut qi: i64 = 0;
-            let mut __for_first_1415: bool = true;
-            while { if !__for_first_1415 { qi += 1; } __for_first_1415 = false; qi < (queries.len() as i64) } {
+            let mut __for_first_1419: bool = true;
+            while { if !__for_first_1419 { qi += 1; } __for_first_1419 = false; qi < (queries.len() as i64) } {
             let mut q: Value = queries.get(qi as usize).cloned().unwrap_or(Value::Null);
             let mut baseRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1559,16 +1559,16 @@ impl Polymarket {
             let mut remainingPages: Vec<Value> = Vec::new();
             {
                                 let mut p: i64 = 2;
-                let mut __for_first_1409: bool = true;
-                while { if !__for_first_1409 { p += 1; } __for_first_1409 = false; (p as f64) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1413: bool = true;
+                while { if !__for_first_1413 { p += 1; } __for_first_1413 = false; (p as f64) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
                 remainingPages.push(Value::Int(p));
             }
             }
             let mut restPromises: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut pi: i64 = 0;
-                let mut __for_first_1410: bool = true;
-                while { if !__for_first_1410 { pi += 1; } __for_first_1410 = false; pi < (remainingPages.len() as i64) } {
+                let mut __for_first_1414: bool = true;
+                while { if !__for_first_1414 { pi += 1; } __for_first_1414 = false; pi < (remainingPages.len() as i64) } {
                 let mut pageRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("page".to_string(), remainingPages.get(pi as usize).cloned().unwrap_or(Value::Null));
@@ -1583,20 +1583,20 @@ impl Polymarket {
             let mut allEvents: Vec<Value> = Vec::new();
             {
                                 let mut fi: i64 = 0;
-                let mut __for_first_1411: bool = true;
-                while { if !__for_first_1411 { fi += 1; } __for_first_1411 = false; fi < (firstEvents.len() as i64) } {
+                let mut __for_first_1415: bool = true;
+                while { if !__for_first_1415 { fi += 1; } __for_first_1415 = false; fi < (firstEvents.len() as i64) } {
                 allEvents.push(firstEvents.get(fi as usize).cloned().unwrap_or(Value::Null));
             }
             }
             {
                                 let mut ri: i64 = 0;
-                let mut __for_first_1413: bool = true;
-                while { if !__for_first_1413 { ri += 1; } __for_first_1413 = false; ri < (restResponses.len() as i64) } {
+                let mut __for_first_1417: bool = true;
+                while { if !__for_first_1417 { ri += 1; } __for_first_1417 = false; ri < (restResponses.len() as i64) } {
                 let mut pageEvents: crate::value::List = self.safe_list_k_t(restResponses.get(ri as usize).cloned().unwrap_or(Value::Null), "events");
                 {
                                         let mut ei: i64 = 0;
-                    let mut __for_first_1412: bool = true;
-                    while { if !__for_first_1412 { ei += 1; } __for_first_1412 = false; ei < (pageEvents.len() as i64) } {
+                    let mut __for_first_1416: bool = true;
+                    while { if !__for_first_1416 { ei += 1; } __for_first_1416 = false; ei < (pageEvents.len() as i64) } {
                     allEvents.push(pageEvents.get(ei as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
@@ -1604,8 +1604,8 @@ impl Polymarket {
             }
             {
                                 let mut ei: i64 = 0;
-                let mut __for_first_1414: bool = true;
-                while { if !__for_first_1414 { ei += 1; } __for_first_1414 = false; ei < (allEvents.len() as i64) } {
+                let mut __for_first_1418: bool = true;
+                while { if !__for_first_1418 { ei += 1; } __for_first_1418 = false; ei < (allEvents.len() as i64) } {
                 let mut rawEvent: crate::value::Dict = allEvents.get(ei as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut eventId: Option<String> = self.safe_string_k_opt(&rawEvent, "id", &[]);
                 if ((eventId.is_some()) && (eventId.as_deref() != Some(""))) && !(matches!(eventId.as_deref(), Some(__k) if seen.contains_key(__k))) {
@@ -1637,8 +1637,8 @@ impl Polymarket {
         let mut pendingSep: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1416: bool = true;
-            while { if !__for_first_1416 { i += 1; } __for_first_1416 = false; i < (chars.len() as i64) } {
+            let mut __for_first_1420: bool = true;
+            while { if !__for_first_1420 { i += 1; } __for_first_1420 = false; i < (chars.len() as i64) } {
             let mut ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), ch.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 if pendingSep && (slug != "") {
@@ -1713,8 +1713,8 @@ impl Polymarket {
             let mut unioned: Vec<Value> = Vec::new();
             {
                                 let mut ti: i64 = 0;
-                let mut __for_first_1418: bool = true;
-                while { if !__for_first_1418 { ti += 1; } __for_first_1418 = false; ti < requestedTagsLength } {
+                let mut __for_first_1422: bool = true;
+                while { if !__for_first_1422 { ti += 1; } __for_first_1422 = false; ti < requestedTagsLength } {
                 let mut singleTagParams: crate::value::Dict = self.extend_t(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1723,8 +1723,8 @@ impl Polymarket {
                 let mut tagEvents: crate::value::List = Box::pin(self.fetch_raw_events_list(&[&Value::Dict(singleTagParams)])).await.into_list();
                 {
                                         let mut ei: i64 = 0;
-                    let mut __for_first_1417: bool = true;
-                    while { if !__for_first_1417 { ei += 1; } __for_first_1417 = false; ei < (tagEvents.len() as i64) } {
+                    let mut __for_first_1421: bool = true;
+                    while { if !__for_first_1421 { ei += 1; } __for_first_1421 = false; ei < (tagEvents.len() as i64) } {
                     let mut rawEvent: crate::value::Dict = crate::value::KeyRead::read(&&tagEvents, &Value::Int(ei)).into_dict();
                     let mut eventId: Option<String> = self.safe_string_k_opt(&rawEvent, "id", &[]);
                     if (eventId.is_some()) && !(matches!(eventId.as_deref(), Some(__k) if seen.contains_key(__k))) {
@@ -1764,8 +1764,8 @@ impl Polymarket {
         let mut allRawEvents: Vec<Value> = Vec::new();
         {
                         let mut fi: i64 = 0;
-            let mut __for_first_1419: bool = true;
-            while { if !__for_first_1419 { fi += 1; } __for_first_1419 = false; fi < firstPageLength } {
+            let mut __for_first_1423: bool = true;
+            while { if !__for_first_1423 { fi += 1; } __for_first_1423 = false; fi < firstPageLength } {
             allRawEvents.push(firstPage.get(fi as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1773,16 +1773,16 @@ impl Polymarket {
             let mut offsets: Vec<Value> = Vec::new();
             {
                                 let mut p: i64 = 1;
-                let mut __for_first_1420: bool = true;
-                while { if !__for_first_1420 { p += 1; } __for_first_1420 = false; matches!(maxPages, Some(__b) if __b > (p as f64)) } {
+                let mut __for_first_1424: bool = true;
+                while { if !__for_first_1424 { p += 1; } __for_first_1424 = false; matches!(maxPages, Some(__b) if __b > (p as f64)) } {
                 offsets.push(Value::Int((p * pageSize)));
             }
             }
             let mut restPromises: Vec<Value> = Vec::new();
             {
                                 let mut oi: i64 = 0;
-                let mut __for_first_1421: bool = true;
-                while { if !__for_first_1421 { oi += 1; } __for_first_1421 = false; oi < (offsets.len() as i64) } {
+                let mut __for_first_1425: bool = true;
+                while { if !__for_first_1425 { oi += 1; } __for_first_1425 = false; oi < (offsets.len() as i64) } {
                 let mut pageRequest: crate::value::Dict = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("offset".to_string(), offsets.get(oi as usize).cloned().unwrap_or(Value::Null));
@@ -1795,14 +1795,14 @@ impl Polymarket {
             let mut restPages: crate::value::List = promise_all(&Value::from(restPromises)).await.into_list();
             {
                                 let mut ri: i64 = 0;
-                let mut __for_first_1423: bool = true;
-                while { if !__for_first_1423 { ri += 1; } __for_first_1423 = false; ri < (restPages.len() as i64) } {
+                let mut __for_first_1427: bool = true;
+                while { if !__for_first_1427 { ri += 1; } __for_first_1427 = false; ri < (restPages.len() as i64) } {
                 let mut page: crate::value::List = self.safe_list_t(&restPages, Value::Int(ri));
                 let mut pageLength: i64 = page.len() as i64;
                 {
                                         let mut pi: i64 = 0;
-                    let mut __for_first_1422: bool = true;
-                    while { if !__for_first_1422 { pi += 1; } __for_first_1422 = false; pi < pageLength } {
+                    let mut __for_first_1426: bool = true;
+                    while { if !__for_first_1426 { pi += 1; } __for_first_1426 = false; pi < pageLength } {
                     allRawEvents.push(page.get(pi as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
@@ -1827,8 +1827,8 @@ impl Polymarket {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut mi: i64 = 0;
-            let mut __for_first_1425: bool = true;
-            while { if !__for_first_1425 { mi += 1; } __for_first_1425 = false; mi < (rawMarkets.len() as i64) } {
+            let mut __for_first_1429: bool = true;
+            while { if !__for_first_1429 { mi += 1; } __for_first_1429 = false; mi < (rawMarkets.len() as i64) } {
             let mut market: crate::value::Dict = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut conditionId: Option<String> = self.safe_string_k_opt(&market, "conditionId", &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
@@ -1884,8 +1884,8 @@ impl Polymarket {
             let mut outcomes: Vec<Value> = Vec::new();
             {
                                 let mut oi: i64 = 0;
-                let mut __for_first_1424: bool = true;
-                while { if !__for_first_1424 { oi += 1; } __for_first_1424 = false; oi < (outcomeLabels.len() as i64) } {
+                let mut __for_first_1428: bool = true;
+                while { if !__for_first_1428 { oi += 1; } __for_first_1428 = false; oi < (outcomeLabels.len() as i64) } {
                 let mut outcomeLabel: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
                 let mut clobTokenId: Value = clobTokenIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
                 let mut outcomePrice: Option<f64> = self.safe_number(&outcomePrices, Value::Int(oi), &[]).as_f64();
@@ -2059,8 +2059,8 @@ impl Polymarket {
                 let mut ccxtMarketsLength: i64 = ccxtMarkets.len() as i64;
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_1426: bool = true;
-                    while { if !__for_first_1426 { i += 1; } __for_first_1426 = false; i < ccxtMarketsLength } {
+                    let mut __for_first_1430: bool = true;
+                    while { if !__for_first_1430 { i += 1; } __for_first_1430 = false; i < ccxtMarketsLength } {
                     let mut mkt: Value = ccxtMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
                     if (mkt == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOutcome() could not resolve mkt")));
@@ -2092,8 +2092,8 @@ impl Polymarket {
         let mut tokenIds: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1427: bool = true;
-            while { if !__for_first_1427 { i += 1; } __for_first_1427 = false; i < (outcomeSymbols.len() as i64) } {
+            let mut __for_first_1431: bool = true;
+            while { if !__for_first_1431 { i += 1; } __for_first_1431 = false; i < (outcomeSymbols.len() as i64) } {
             let mut outcomeSymbol: Option<&str> = outcomeSymbols.get(i as usize).and_then(Value::as_str);
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
@@ -2120,8 +2120,8 @@ impl Polymarket {
                 let mut chunk: Vec<Value> = Vec::new();
                 {
                                         let mut i: i64 = startIndex;
-                    let mut __for_first_1428: bool = true;
-                    while { if !__for_first_1428 { i += 1; } __for_first_1428 = false; i < endIndex } {
+                    let mut __for_first_1432: bool = true;
+                    while { if !__for_first_1432 { i += 1; } __for_first_1432 = false; i < endIndex } {
                     chunk.push(get_value(&tokenIds, &Value::Int(i)));
                 }
                 }
@@ -2141,8 +2141,8 @@ impl Polymarket {
                 })).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_1429: bool = true;
-                    while { if !__for_first_1429 { i += 1; } __for_first_1429 = false; i < (ccxtMarkets.len() as i64) } {
+                    let mut __for_first_1433: bool = true;
+                    while { if !__for_first_1433 { i += 1; } __for_first_1433 = false; i < (ccxtMarkets.len() as i64) } {
                     let mut mkt: Value = ccxtMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
                     if (mkt == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOutcomes() could not resolve mkt")));
@@ -2156,8 +2156,8 @@ impl Polymarket {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1430: bool = true;
-            while { if !__for_first_1430 { i += 1; } __for_first_1430 = false; i < (outcomeSymbols.len() as i64) } {
+            let mut __for_first_1434: bool = true;
+            while { if !__for_first_1434 { i += 1; } __for_first_1434 = false; i < (outcomeSymbols.len() as i64) } {
             if !(self.has_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                 self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
             }
@@ -2251,8 +2251,8 @@ impl Polymarket {
         let mut targets: Vec<Value> = Vec::new();
         {
                         let mut oi: i64 = 0;
-            let mut __for_first_1431: bool = true;
-            while { if !__for_first_1431 { oi += 1; } __for_first_1431 = false; oi < (outcomes.len() as i64) } {
+            let mut __for_first_1435: bool = true;
+            while { if !__for_first_1435 { oi += 1; } __for_first_1435 = false; oi < (outcomes.len() as i64) } {
             targets.push(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -2263,8 +2263,8 @@ impl Polymarket {
         let mut tokenIds: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1432: bool = true;
-            while { if !__for_first_1432 { i += 1; } __for_first_1432 = false; i < (targets.len() as i64) } {
+            let mut __for_first_1436: bool = true;
+            while { if !__for_first_1436 { i += 1; } __for_first_1436 = false; i < (targets.len() as i64) } {
             let mut outcomeObj: Option<crate::types::Market> = self.outcome(targets.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
             if (tokenId.is_some()) && !(matches!(tokenId.as_deref(), Some(__k) if outcomesByTokenId.contains_key(__k))) {
@@ -2288,8 +2288,8 @@ impl Polymarket {
             let mut bookParams: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = startIndex;
-                let mut __for_first_1433: bool = true;
-                while { if !__for_first_1433 { i += 1; } __for_first_1433 = false; i < endIndex } {
+                let mut __for_first_1437: bool = true;
+                while { if !__for_first_1437 { i += 1; } __for_first_1437 = false; i < endIndex } {
                 bookParams.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("token_id".to_string(), get_value(&tokenIds, &Value::Int(i)));
@@ -2313,8 +2313,8 @@ impl Polymarket {
             let mut lastTradesLength: i64 = lastTrades.len() as i64;
             {
                                 let mut li: i64 = 0;
-                let mut __for_first_1434: bool = true;
-                while { if !__for_first_1434 { li += 1; } __for_first_1434 = false; li < lastTradesLength } {
+                let mut __for_first_1438: bool = true;
+                while { if !__for_first_1438 { li += 1; } __for_first_1438 = false; li < lastTradesLength } {
                 let mut lastTradeEntry: crate::value::Dict = lastTrades.get(li as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut lastTradeTokenId: Option<String> = self.safe_string_k_opt(&lastTradeEntry, "token_id", &[]);
                 if (lastTradeTokenId.is_some()) {
@@ -2325,8 +2325,8 @@ impl Polymarket {
             let mut booksLength: i64 = books.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1435: bool = true;
-                while { if !__for_first_1435 { i += 1; } __for_first_1435 = false; i < booksLength } {
+                let mut __for_first_1439: bool = true;
+                while { if !__for_first_1439 { i += 1; } __for_first_1439 = false; i < booksLength } {
                 let mut book: crate::value::Dict = books.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut tokenId: Option<String> = self.safe_string_k_opt(&book, "asset_id", &[]);
                 if (tokenId.is_none()) || !(matches!(tokenId.as_deref(), Some(__k) if outcomesByTokenId.contains_key(__k))) {
@@ -2604,8 +2604,8 @@ impl Polymarket {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1436: bool = true;
-            while { if !__for_first_1436 { i += 1; } __for_first_1436 = false; i < (history.len() as i64) } {
+            let mut __for_first_1440: bool = true;
+            while { if !__for_first_1440 { i += 1; } __for_first_1440 = false; i < (history.len() as i64) } {
             let mut item: crate::value::Dict = self.safe_dict_t(&history, Value::Int(i));
             let mut t: Option<i64> = self.safe_integer_k(&item, "t", &[]).as_i64();
             let mut price: Option<f64> = self.safe_number_k(&item, "p", &[]).as_f64();
@@ -2640,8 +2640,8 @@ impl Polymarket {
         let mut unsortedCandles: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1437: bool = true;
-            while { if !__for_first_1437 { i += 1; } __for_first_1437 = false; i < (bucketKeys.len() as i64) } {
+            let mut __for_first_1441: bool = true;
+            while { if !__for_first_1441 { i += 1; } __for_first_1441 = false; i < (bucketKeys.len() as i64) } {
             unsortedCandles.push(buckets.as_map().and_then(|__m| bucketKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
         }
         }
@@ -2890,8 +2890,8 @@ impl Polymarket {
         let mut filteredTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1438: bool = true;
-            while { if !__for_first_1438 { i += 1; } __for_first_1438 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_1442: bool = true;
+            while { if !__for_first_1442 { i += 1; } __for_first_1442 = false; i < (rawTrades.len() as i64) } {
             let mut trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut tradeAsset: Option<String> = self.safe_string_k_opt(&trade, "asset", &[]);
             if (tradeAsset.as_deref() == Some(tokenId.as_str())) {
@@ -2978,16 +2978,16 @@ impl Polymarket {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1440: bool = true;
-            while { if !__for_first_1440 { i += 1; } __for_first_1440 = false; i < (trades.len() as i64) } {
+            let mut __for_first_1444: bool = true;
+            while { if !__for_first_1444 { i += 1; } __for_first_1444 = false; i < (trades.len() as i64) } {
             let mut trade: Option<&crate::types::Trade> = trades.get(i as usize);
             let mut info: crate::value::Dict = self.safe_dict_k_t(&trade, "info");
             let mut belongs: bool = (self.safe_string_k(&trade, "order", &[]).as_str() == id.as_str()) || (self.safe_string_k(&info, "taker_order_id", &[]).as_str() == id.as_str());
             let mut makerOrders: crate::value::List = self.safe_list_k_t(&info, "maker_orders");
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1439: bool = true;
-                while { if !__for_first_1439 { j += 1; } __for_first_1439 = false; j < (makerOrders.len() as i64) } {
+                let mut __for_first_1443: bool = true;
+                while { if !__for_first_1443 { j += 1; } __for_first_1443 = false; j < (makerOrders.len() as i64) } {
                 let mut makerOrder: crate::value::Dict = self.safe_dict_t(&makerOrders, Value::Int(j));
                 if (self.safe_string_k(&makerOrder, "order_id", &[]).as_str() == id.as_str()) {
                     belongs = true;
@@ -3112,8 +3112,8 @@ impl Polymarket {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1441: bool = true;
-            while { if !__for_first_1441 { i += 1; } __for_first_1441 = false; i < (outcomes.len() as i64) } {
+            let mut __for_first_1445: bool = true;
+            while { if !__for_first_1445 { i += 1; } __for_first_1445 = false; i < (outcomes.len() as i64) } {
             let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             wantedIds.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&outcomeObj, "outcomeId"))), Value::Bool(true));
         }
@@ -3121,8 +3121,8 @@ impl Polymarket {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1442: bool = true;
-            while { if !__for_first_1442 { i += 1; } __for_first_1442 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_1446: bool = true;
+            while { if !__for_first_1446 { i += 1; } __for_first_1446 = false; i < (parsed.len() as i64) } {
             let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or_default();
             let mut info: crate::value::Dict = self.safe_dict_k_t(&position, "info");
             let mut assetId: Option<String> = self.safe_string_k_opt(&info, "asset", &[]);
@@ -3368,8 +3368,8 @@ impl Polymarket {
         let mut orderOutcomes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1443: bool = true;
-            while { if !__for_first_1443 { i += 1; } __for_first_1443 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1447: bool = true;
+            while { if !__for_first_1447 { i += 1; } __for_first_1447 = false; i < (orders.len() as i64) } {
             let mut o: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut __oc: Option<String> = self.safe_string_k_opt(&o, "outcome", &[]);
             if (__oc.is_some()) {
@@ -3383,8 +3383,8 @@ impl Polymarket {
         let mut requests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1444: bool = true;
-            while { if !__for_first_1444 { i += 1; } __for_first_1444 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1448: bool = true;
+            while { if !__for_first_1448 { i += 1; } __for_first_1448 = false; i < (orders.len() as i64) } {
             let mut o: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut orderParams: crate::value::Dict = self.safe_dict_k_t(&o, "params");
             if (self.safe_string_k(&orderParams, "salt", &[]) == Value::Null) {
@@ -3417,8 +3417,8 @@ impl Polymarket {
         if (response.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1445: bool = true;
-                while { if !__for_first_1445 { i += 1; } __for_first_1445 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_1449: bool = true;
+                while { if !__for_first_1449 { i += 1; } __for_first_1449 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 // request echo first so the response's real orderID/status win on overlap
                 let mut rawItem: Value = response.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut enriched: crate::value::Dict = self.extend_t(requests.get(i as usize).cloned().unwrap_or(Value::Null), &[&rawItem]);
@@ -3972,8 +3972,8 @@ impl Polymarket {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1446: bool = true;
-            while { if !__for_first_1446 { i += 1; } __for_first_1446 = false; i < (canceled.len() as i64) } {
+            let mut __for_first_1450: bool = true;
+            while { if !__for_first_1450 { i += 1; } __for_first_1450 = false; i < (canceled.len() as i64) } {
             orders.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(&canceled, Value::Int(i), &[]));
@@ -4029,8 +4029,8 @@ impl Polymarket {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1447: bool = true;
-            while { if !__for_first_1447 { i += 1; } __for_first_1447 = false; i < (canceled.len() as i64) } {
+            let mut __for_first_1451: bool = true;
+            while { if !__for_first_1451 { i += 1; } __for_first_1451 = false; i < (canceled.len() as i64) } {
             orders.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(&canceled, Value::Int(i), &[]));
@@ -4117,8 +4117,8 @@ impl Polymarket {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut rei: i64 = 0;
-            let mut __for_first_1449: bool = true;
-            while { if !__for_first_1449 { rei += 1; } __for_first_1449 = false; rei < (rawEvents.len() as i64) } {
+            let mut __for_first_1453: bool = true;
+            while { if !__for_first_1453 { rei += 1; } __for_first_1453 = false; rei < (rawEvents.len() as i64) } {
             let mut rawEvent: Value = rawEvents.get(rei as usize).cloned().unwrap_or(Value::Null);
             let mut eventForParsing: Value = rawEvent.clone();
             let mut ccxtMarkets: Value = self.parse_event_to_markets(eventForParsing.clone());
@@ -4148,8 +4148,8 @@ impl Polymarket {
             }
             {
                                 let mut mi: i64 = 0;
-                let mut __for_first_1448: bool = true;
-                while { if !__for_first_1448 { mi += 1; } __for_first_1448 = false; mi < (ccxtMarkets.len() as i64) } {
+                let mut __for_first_1452: bool = true;
+                while { if !__for_first_1452 { mi += 1; } __for_first_1452 = false; mi < (ccxtMarkets.len() as i64) } {
                 let mut m: Value = ccxtMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null);
                 if (m == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing m")));
@@ -4317,8 +4317,8 @@ impl Polymarket {
         let mut parsedTags: Vec<Value> = Vec::new();
         {
                         let mut ti: i64 = 0;
-            let mut __for_first_1450: bool = true;
-            while { if !__for_first_1450 { ti += 1; } __for_first_1450 = false; ti < rawTagsLength } {
+            let mut __for_first_1454: bool = true;
+            while { if !__for_first_1454 { ti += 1; } __for_first_1454 = false; ti < rawTagsLength } {
             let mut tagLabel: Option<String> = self.safe_string2_opt(rawTags.get(ti as usize).cloned().unwrap_or(Value::Null), Value::Str("label".into()), Value::Str("slug".into()), &[]);
             if (tagLabel.is_some()) {
                 parsedTags.push(tagLabel.map(Value::from).unwrap_or(Value::Null));
@@ -4377,8 +4377,8 @@ impl Polymarket {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1451: bool = true;
-            while { if !__for_first_1451 { i += 1; } __for_first_1451 = false; i < (rawEvents.len() as i64) } {
+            let mut __for_first_1455: bool = true;
+            while { if !__for_first_1455 { i += 1; } __for_first_1455 = false; i < (rawEvents.len() as i64) } {
             let mut rawEvent: Value = rawEvents.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.parse_event(rawEvent));
         }
@@ -4417,8 +4417,8 @@ impl Polymarket {
         let mut result: String = "".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1453: bool = true;
-            while { if !__for_first_1453 { i += 1; } __for_first_1453 = false; i < (addrChars.len() as i64) } {
+            let mut __for_first_1457: bool = true;
+            while { if !__for_first_1457 { i += 1; } __for_first_1457 = false; i < (addrChars.len() as i64) } {
             let mut ch: Option<String> = addrChars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut hashCh: Option<String> = hashChars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if ((if let (Some(__h), Some(__n)) = (Some(upperNibbles.as_str()), hashCh.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
@@ -4650,8 +4650,8 @@ if _try_result.is_err() {
         let message = message.as_array().unwrap_or(&__message_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1454: bool = true;
-            while { if !__for_first_1454 { i += 1; } __for_first_1454 = false; i < (message.len() as i64) } {
+            let mut __for_first_1458: bool = true;
+            while { if !__for_first_1458 { i += 1; } __for_first_1458 = false; i < (message.len() as i64) } {
             let mut event: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             if (event == Value::Null) || (event == Value::Null) || (!matches!(&event, Value::Dict(_))) {
                 continue;
@@ -4700,8 +4700,8 @@ if _try_result.is_err() {
         let mut bids: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1455: bool = true;
-            while { if !__for_first_1455 { i += 1; } __for_first_1455 = false; i < (rawBids.len() as i64) } {
+            let mut __for_first_1459: bool = true;
+            while { if !__for_first_1459 { i += 1; } __for_first_1459 = false; i < (rawBids.len() as i64) } {
             let mut b: crate::value::Dict = self.safe_dict_t(&rawBids, Value::Int(i));
             bids.push(Value::from(vec![self.safe_number_k(&b, "price", &[]), self.safe_number_k(&b, "size", &[])]));
         }
@@ -4709,8 +4709,8 @@ if _try_result.is_err() {
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1456: bool = true;
-            while { if !__for_first_1456 { j += 1; } __for_first_1456 = false; j < (rawAsks.len() as i64) } {
+            let mut __for_first_1460: bool = true;
+            while { if !__for_first_1460 { j += 1; } __for_first_1460 = false; j < (rawAsks.len() as i64) } {
             let mut a: crate::value::Dict = self.safe_dict_t(&rawAsks, Value::Int(j));
             asks.push(Value::from(vec![self.safe_number_k(&a, "price", &[]), self.safe_number_k(&a, "size", &[])]));
         }
@@ -4742,8 +4742,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1457: bool = true;
-            while { if !__for_first_1457 { i += 1; } __for_first_1457 = false; i < (changes.len() as i64) } {
+            let mut __for_first_1461: bool = true;
+            while { if !__for_first_1461 { i += 1; } __for_first_1461 = false; i < (changes.len() as i64) } {
             let mut change: crate::value::Dict = self.safe_dict_t(&changes, Value::Int(i));
             let mut tokenId: Option<String> = self.safe_string_k_opt(&change, "asset_id", &[]);
             let mut outcome: Option<String> = self.token_id_to_symbol(tokenId.as_deref());
@@ -4766,8 +4766,8 @@ if _try_result.is_err() {
         let mut updatedSymbols: Vec<Value> = Value::Array(updated.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut k: i64 = 0;
-            let mut __for_first_1458: bool = true;
-            while { if !__for_first_1458 { k += 1; } __for_first_1458 = false; k < (updatedSymbols.len() as i64) } {
+            let mut __for_first_1462: bool = true;
+            while { if !__for_first_1462 { k += 1; } __for_first_1462 = false; k < (updatedSymbols.len() as i64) } {
             let mut outcome: Option<String> = updatedSymbols.get(k as usize).and_then(Value::as_str).map(str::to_owned);
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
             client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", "orderbook::", outcome.as_deref().unwrap_or("null")).into())));

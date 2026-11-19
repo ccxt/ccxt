@@ -683,8 +683,8 @@ impl crate::exchange::DerivedExchange for Xt {
         let mut amountPrecision: Option<f64> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1191: bool = true;
-            while { if !__for_first_1191 { i += 1; } __for_first_1191 = false; i < (filters.len() as i64) } {
+            let mut __for_first_1195: bool = true;
+            while { if !__for_first_1195 { i += 1; } __for_first_1195 = false; i < (filters.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&filters, Value::Int(i));
             let mut filter: Option<String> = self.safe_string_k_opt(&entry, "filter", &[]);
             if (filter.as_deref() == Some("QUANTITY")) {
@@ -1242,8 +1242,8 @@ impl crate::exchange::DerivedExchange for Xt {
         let mut brackets: crate::value::List = self.safe_list_k_t(&info, "leverageBrackets");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1196: bool = true;
-            while { if !__for_first_1196 { i += 1; } __for_first_1196 = false; i < (brackets.len() as i64) } {
+            let mut __for_first_1200: bool = true;
+            while { if !__for_first_1200 { i += 1; } __for_first_1200 = false; i < (brackets.len() as i64) } {
             let mut tier: Option<crate::value::Dict> = self.safe_dict_o(&brackets, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
             let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("_".into()), Value::Str("contract".into())]);
@@ -3427,8 +3427,8 @@ impl Xt {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1189: bool = true;
-            while { if !__for_first_1189 { i += 1; } __for_first_1189 = false; i < (currenciesData.len() as i64) } {
+            let mut __for_first_1193: bool = true;
+            while { if !__for_first_1193 { i += 1; } __for_first_1193 = false; i < (currenciesData.len() as i64) } {
             let mut entry: crate::value::Dict = currenciesData.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -3440,8 +3440,8 @@ impl Xt {
             });
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1188: bool = true;
-                while { if !__for_first_1188 { j += 1; } __for_first_1188 = false; j < (rawNetworks.len() as i64) } {
+                let mut __for_first_1192: bool = true;
+                while { if !__for_first_1192 { j += 1; } __for_first_1192 = false; j < (rawNetworks.len() as i64) } {
                 let mut rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "chain", &[]);
                 let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
@@ -3712,8 +3712,8 @@ impl Xt {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1190: bool = true;
-            while { if !__for_first_1190 { i += 1; } __for_first_1190 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1194: bool = true;
+            while { if !__for_first_1194 { i += 1; } __for_first_1194 = false; i < (markets.len() as i64) } {
             let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, self.safe_value(&markets, Value::Int(i), &[]));
             if (parsed != Value::Null) {
                 result.push(parsed);
@@ -4168,8 +4168,8 @@ impl Xt {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1192: bool = true;
-            while { if !__for_first_1192 { i += 1; } __for_first_1192 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1196: bool = true;
+            while { if !__for_first_1196 { i += 1; } __for_first_1196 = false; i < (tickers.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, tickers.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
             let mut symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {
@@ -4282,8 +4282,8 @@ impl Xt {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1193: bool = true;
-            while { if !__for_first_1193 { i += 1; } __for_first_1193 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1197: bool = true;
+            while { if !__for_first_1197 { i += 1; } __for_first_1197 = false; i < (tickers.len() as i64) } {
             let mut rawTicker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
@@ -4668,8 +4668,8 @@ impl Xt {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1194: bool = true;
-            while { if !__for_first_1194 { i += 1; } __for_first_1194 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1198: bool = true;
+            while { if !__for_first_1198 { i += 1; } __for_first_1198 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string2_opt(&balance, Value::Str("currency".into()), Value::Str("coin".into()), &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -6551,6 +6551,7 @@ impl Xt {
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
     pub async fn withdraw(&mut self, code: &str, amount: f64, address: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transaction> {
@@ -6871,8 +6872,8 @@ impl Xt {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1195: bool = true;
-            while { if !__for_first_1195 { i += 1; } __for_first_1195 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1199: bool = true;
+            while { if !__for_first_1199 { i += 1; } __for_first_1199 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("_".into()), Value::Str("contract".into())]);
@@ -7047,8 +7048,8 @@ impl Xt {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1197: bool = true;
-            while { if !__for_first_1197 { i += 1; } __for_first_1197 = false; i < (items.len() as i64) } {
+            let mut __for_first_1201: bool = true;
+            while { if !__for_first_1201 { i += 1; } __for_first_1201 = false; i < (items.len() as i64) } {
             let mut entry: crate::value::Dict = items.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut symbolInner: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
@@ -7077,7 +7078,6 @@ impl Xt {
  * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_interval(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::FundingRate> {
@@ -7323,8 +7323,8 @@ impl Xt {
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1198: bool = true;
-            while { if !__for_first_1198 { i += 1; } __for_first_1198 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1202: bool = true;
+            while { if !__for_first_1202 { i += 1; } __for_first_1202 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut matchesSubType: Value = (if (isInverse) { (market).inverse.map(Value::Bool).unwrap_or_default() } else { (market).linear.map(Value::Bool).unwrap_or_default() });
@@ -7434,8 +7434,8 @@ impl Xt {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1199: bool = true;
-            while { if !__for_first_1199 { i += 1; } __for_first_1199 = false; i < (items.len() as i64) } {
+            let mut __for_first_1203: bool = true;
+            while { if !__for_first_1203 { i += 1; } __for_first_1203 = false; i < (items.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&items, Value::Int(i));
             result.push(self.parse_funding_history(&entry, Some(&market)));
         }
@@ -7492,8 +7492,8 @@ impl Xt {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1200: bool = true;
-            while { if !__for_first_1200 { i += 1; } __for_first_1200 = false; i < (breakList.len() as i64) } {
+            let mut __for_first_1204: bool = true;
+            while { if !__for_first_1204 { i += 1; } __for_first_1204 = false; i < (breakList.len() as i64) } {
             let mut breakEntry: crate::value::Dict = breakList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
@@ -7625,8 +7625,8 @@ impl Xt {
         let mut breakBySymbolSide: crate::value::Dict = self.index_position_break_list(self.safe_list_k(breakResponse, "result", &[Value::from(vec![])])).into_dict();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1201: bool = true;
-            while { if !__for_first_1201 { i += 1; } __for_first_1201 = false; i < (positions.len() as i64) } {
+            let mut __for_first_1205: bool = true;
+            while { if !__for_first_1205 { i += 1; } __for_first_1205 = false; i < (positions.len() as i64) } {
             let mut entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
@@ -7727,8 +7727,8 @@ impl Xt {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1202: bool = true;
-            while { if !__for_first_1202 { i += 1; } __for_first_1202 = false; i < (positions.len() as i64) } {
+            let mut __for_first_1206: bool = true;
+            while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (positions.len() as i64) } {
             let mut entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
