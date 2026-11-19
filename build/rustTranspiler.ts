@@ -543,6 +543,12 @@ class Proof {
         // a parser on the REST parent (another file) returns a fresh plain dict
         const parent = t.match(/^crate::exchange::DerivedExchange::([a-z_]+)\(&self\.parent,/);
         if (parent !== null) return PARSERS.has(parent[1]);
+        // a method of the REST parent struct, proven on the parent's generated file
+        const onParent = t.match(/^self\.parent\.([a-z_]+)\(/);
+        if (onParent !== null) return this.otherFile(this.parentFile())?.calleePlain(onParent[1], { start: -1, end: -1 }) ?? false;
+        // an element of the base `parse_orders` list (fresh `extend(parse_order(..), params)` dicts), list never written
+        const elem = t.match(/^([a-z][A-Za-z0-9]*)\.get\([a-z]\w* as usize\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/);
+        if (elem !== null) return this.parsedOrdersList(elem[1], body);
         const callee = t.match(/^(?:self\.|<Self as crate::exchange::DerivedExchange>::)([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(/);
         if (callee === null) return /^(?:(?:__pro_message|message)\.get\(|get_value\(&|crate::value::KeyRead::read\(&&)/.test(t) && this.wireRead(t, body, region, depth + 1);
         const name = callee[1];
@@ -630,7 +636,8 @@ class Proof {
             const body = this.content.slice(r.start, r.end);
             const header = body.slice(0, body.indexOf('\n') < 0 ? body.length : body.indexOf('\n'));
             if (!new RegExp('fn ' + name + '\\s*\\(').test(header) || body.includes('"__')) continue;
-            const rets = [...body.matchAll(/^[ \t]*return ([^\n]*);$/gm)].map(m => m[1]);
+            // a multi-line `return self.m(..` is judged by its callee
+            const rets = [...body.matchAll(/^[ \t]*return ([^\n]*);$|^[ \t]*return (self\.[a-z_]+\()[^\n]*[^;\n]$/gm)].map(m => m[1] ?? m[2] + ')');
             const plainVal = (v: string): boolean => {
                 const id = v.match(/^(?:Value::(?:Dict|Map)\(|Value::from\(&)([A-Za-z_]\w*)\)$/);
                 return id !== null ? this.localTagFree(id[1], body, r) : this.srcTagFree(v, body, r, 1);
@@ -646,8 +653,41 @@ class Proof {
             break;
         }
         if (!slot0 && !verdict) verdict = this.calleePlainLocal(name);
+        // a prediction venue inherits the method from the generated prediction base
+        if (!slot0 && !verdict && this.content.includes('impl crate::prediction_exchange_generated::PredictionBase for ') && !this.regions.some(r => new RegExp('fn ' + name + '\\s*\\(').test(this.content.slice(r.start, r.start + 300)))) {
+            verdict = this.otherFile(PREDICTION_BASE_FILE)?.calleePlain(name, { start: -1, end: -1 }) ?? false;
+        }
         this.calls.set(key, verdict);
         return verdict;
+    }
+
+    /** The generated REST parent file of a ws venue (`pub parent: crate::exchanges::<id>::<Id>`). */
+    parentFile (): string | undefined {
+        const m = this.content.match(/^[ \t]*pub parent: crate::exchanges::([a-z0-9_]+)::[A-Za-z0-9_]+,$/m);
+        return m === null ? undefined : './rust/ccxt-base/src/exchanges/' + m[1] + '.rs';
+    }
+
+    /** A proof over another generated file (already written this run), or undefined when absent. */
+    otherFile (file: string | undefined): Proof | undefined {
+        if (file === undefined || !fs.existsSync(file)) return undefined;
+        const text = fs.readFileSync(file, 'utf8');
+        return new Proof(text, fnRegions(text));
+    }
+
+    /** `list` is bound once to the inherited base `parse_orders` result with no params (overridden neither here nor on the REST parent), never written. */
+    parsedOrdersList (list: string, body: string): boolean {
+        const binds = body.match(new RegExp('(^|[^.\\w])' + list + '[ \\t]*(?::[^=\\n]*)?=(?!=)', 'gm')) ?? [];
+        if (binds.length !== 1 || new RegExp('&mut ' + list + '\\b|\\b' + list + '\\.(?:push|insert|remove|clear|extend)\\(').test(body)) return false;
+        if (!new RegExp('^[ \\t]*let mut ' + list + ': Vec<Value> = self\\.parse_orders\\(&?[a-z]\\w*, None, &\\[\\]\\)\\.as_array\\(\\)\\.cloned\\(\\)\\.unwrap_or_default\\(\\);$', 'm').test(body)) return false;
+        const overrides = (text: string | undefined) => text === undefined || /\bfn parse_orders\s*\(/.test(text);
+        const parent = this.parentFile();
+        return !overrides(this.content) && (parent === undefined || (fs.existsSync(parent) && !overrides(fs.readFileSync(parent, 'utf8'))));
+    }
+
+    /** Straight-line body: a local's bindings after `at` cannot reach the site. */
+    localTagFreeBefore (name: string, body: string, region: Region, at: number): boolean {
+        if (/\bwhile |\bloop \{|\bfor [A-Za-z_(]/.test(body.replace(/"(?:[^"\\]|\\.)*"/g, '""'))) return false;
+        return this.localTagFreeUncached(name, body.slice(0, at), region, 0);
     }
 
     calleePlainLocal (name: string): boolean {
@@ -807,7 +847,7 @@ function nativeInserts (content: string): string {
                 if ((content.slice(ls, at) + listWrite + content.slice(after, le).replace(/^;/, '')).length <= 400) edits.push({ start: at, end: after, text: listWrite });
                 continue;
             }
-            if (!proof.localTagFree(local[1], body, region)) continue;
+            if (!proof.localTagFree(local[1], body, region) && !proof.localTagFreeBefore(local[1], body, region, at - region.start)) continue;
             const typed = typedMapInsert(local[1], body, chain.length, args[1], args[2].trim());
             if (typed === null) continue;
             if (typed !== undefined) {
@@ -858,7 +898,13 @@ function nativeInserts (content: string): string {
         let suffix = content.slice(after, lineEnd);
         if (suffix.startsWith(';')) suffix = suffix.slice(1);
         const merged = content.slice(lineStart, at) + native + suffix;
-        if (before.length <= 400 && merged.length > 400) continue;
+        if (before.length <= 400 && merged.length > 400) {
+            const ind = content.slice(lineStart, at);
+            const split = native.replace(/^(if let Value::Dict\(__rda\) = [^{]*\{) (.*) \}$/, '$1\n' + ind + '    $2\n' + ind + '}');
+            if (keys.length > 0 || readsReceiver || !/^\s*$/.test(ind) || split === native || split.split('\n').some(l => l.length > 400) || suffix.trim() !== '') continue;
+            edits.push({ start: at, end: after, text: split });
+            continue;
+        }
         edits.push({ start: at, end: after, text: native });
     }
     if (edits.length === 0) return content;
