@@ -5793,7 +5793,7 @@ public Map<String, Object> describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v20 -> (List<String>) hx4J40v20; case Object hx4J40v20 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v20.getClass().getName()); })), parameters)).join();
+            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v19 -> (List<String>) hx4J40v19; case Object hx4J40v19 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v19.getClass().getName()); })), parameters)).join();
         }).thenApply(FundingRates::new);
 
     }
@@ -10823,7 +10823,7 @@ public Map<String, Object> describe()
             ((List<Object>)result).add(borrowRate);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v9 -> hx4J40v9; case Number hx4J40v9 -> Long.valueOf(hx4J40v9.longValue()); case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v9.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v8 -> hx4J40v8; case Number hx4J40v8 -> Long.valueOf(hx4J40v8.longValue()); case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v8.getClass().getName()); })), false);
+        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v8 -> hx4J40v8; case Number hx4J40v8 -> Long.valueOf(hx4J40v8.longValue()); case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v8.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v7 -> hx4J40v7; case Number hx4J40v7 -> Long.valueOf(hx4J40v7.longValue()); case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v7.getClass().getName()); })), false);
     }
 
     public Object parseIsolatedBorrowRates(Object info)
@@ -11741,7 +11741,7 @@ public Map<String, Object> describe()
             Long maxEntriesPerRequestValue = (Long) this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
             Long step = (time * this.parseToInt(maxEntriesPerRequestValue));
             Long until = (Long) this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
-            Object currentSince = ((current - ((maxCallsLimit * step))) - 1L);
+            Long currentSince = ((current - ((maxCallsLimit * step))) - 1L);
             if (!java.util.Objects.equals(since, null))
             {
                 if (!java.util.Objects.equals(until, null))
@@ -11753,11 +11753,11 @@ public Map<String, Object> describe()
                     currentSince = since;
                 } else
                 {
-                    currentSince = (currentSince == null || since == null ? null : (((Number) currentSince).doubleValue() > ((Number) since).doubleValue() ? (Object) (currentSince) : (Object) (since)));
+                    currentSince = (currentSince == null ? null : Math.max(currentSince, since));
                 }
             } else
             {
-                currentSince = (currentSince == null ? null : (((Number) currentSince).doubleValue() > ((double) 1241440531000L) ? (Object) (currentSince) : (Object) (1241440531000L))); // avoid timestamps older than 2009
+                currentSince = (currentSince == null ? null : Math.max(currentSince, 1241440531000L)); // avoid timestamps older than 2009
             }
             if (!java.util.Objects.equals(until, null))
             {
@@ -11773,17 +11773,17 @@ public Map<String, Object> describe()
             }
             for (var i = 0; (maxCallsLimit != null && i < maxCallsLimit); i++)
             {
-                if ((!java.util.Objects.equals(until, null)) && (((currentSince == null && until == null) || currentSince != null && (until == null || ((Number) currentSince).doubleValue() >= until))))
+                if ((!java.util.Objects.equals(until, null)) && ((until == null || (currentSince != null && currentSince >= until))))
                 {
                     break;
                 }
-                if (((currentSince == null && current == null) || currentSince != null && (current == null || ((Number) currentSince).doubleValue() >= current)))
+                if ((current == null || (currentSince != null && currentSince >= current)))
                 {
                     break;
                 }
-                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, ((Long) (switch ((Object) (currentSince)) { case null -> (Long) null; case Long hx4J40v5 -> hx4J40v5; case Number hx4J40v5 -> Long.valueOf(hx4J40v5.longValue()); case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v5.getClass().getName()); })), maxEntriesPerRequestValue, timeframe, paramsOmitted));
+                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
                 // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
-                currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
+                currentSince = ((this.sum(currentSince, step)) - 1L);
             }
             List<Object> results = (((List<?>)(tasks)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());

@@ -5552,7 +5552,8 @@ function orderedCompareStripParens (text: string): string {
 function orderedCompareDeclaredType (member: string, name: string, fields: Set<string>): { kind: string, boxed: boolean } | undefined {
     if (fields.has (name)) return undefined;
     const esc = name.replace (/\$/g, '\\$');
-    const decl = new RegExp ('(?:^|[\\s(,])([\\w.$]+(?:<[\\w.<>, ?]*>)?(?:\\[\\])?)\\s+' + esc + '\\s*(=|;|,|\\)|:)', 'gm');
+    // type and name on one line: a comment line ending in a word is not the type of the next line's write
+    const decl = new RegExp ('(?:^|[\\s(,])([\\w.$]+(?:<[\\w.<>, ?]*>)?(?:\\[\\])?)[ \\t]+' + esc + '\\s*(=|;|,|\\)|:)', 'gm');
     const found: string[] = [];
     let m;
     while ((m = decl.exec (member)) !== null) {
