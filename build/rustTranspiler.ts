@@ -8945,6 +8945,146 @@ function nativeLocalStrKeyRemove (content: string): string {
     }
     return at === 0 ? content : out + content.slice (at);
 }
+// networkIdToCode / networkCodeToId take `Option<&str>` (network, currency) on the base and the htx override;
+// callers lend `x.as_deref()` instead of boxing a clone, the bodies read the two slots as they are.
+const RUST_NETWORK_FNS = [ 'network_id_to_code', 'network_code_to_id' ];
+function rustNetworkCloseParen (s: string, open: number): number {
+    let depth = 0;
+    for (let i = open; i < s.length; i++) {
+        const c = s[i];
+        if (c === '"') {
+            for (i++; i < s.length && s[i] !== '"'; i++) if (s[i] === '\\') i++;
+        } else if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') { if (--depth === 0) return i; }
+    }
+    return -1;
+}
+function rustNetworkSplitArgs (s: string): string[] {
+    const out: string[] = [];
+    let depth = 0, from = 0;
+    for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (c === '"') { for (i++; i < s.length && s[i] !== '"'; i++) if (s[i] === '\\') i++; }
+        else if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        else if (c === ',' && depth === 0) { out.push(s.slice(from, i).trim()); from = i + 1; }
+    }
+    if (s.slice(from).trim() !== '') out.push(s.slice(from).trim());
+    return out;
+}
+function rustNetworkDeclType (content: string, at: number, name: string): string | undefined {
+    const rx = new RegExp(String.raw`(?<![\w.])(?:let\s+)?(?:mut\s+)?` + name + String.raw`(?:: ([^=,;{)]+?))?\s*[=,)]`, 'g');
+    const fns = [ ...content.slice(0, at).matchAll(/(?<![\w.])fn \w+\s*(?:<[^>]*>)?\(/g) ];
+    const from = fns.length > 0 ? fns[fns.length - 1].index as number : 0;
+    let last: string | undefined;
+    for (const m of content.slice(from, at).matchAll(rx)) {
+        if (m[1] !== undefined) last = m[1].trim();
+        else if (/^let\s/.test(m[0])) last = /^\s*__it\.next\(\)\.unwrap_or_default\(\);/.test(content.slice((m.index as number) + from + m[0].length)) ? 'Value' : undefined;
+    }
+    return last;
+}
+/** One `Value` argument printed as an `Option<&str>` slot; the fallback keeps the old box and converts once. */
+function rustNetworkLend (content: string, at: number, e: string): string {
+    if (e === '') return 'None';
+    let m = /^(\w+)(?:\.clone\(\))?\.map\(Value::from\)\.unwrap_or\(Value::Null\)$/.exec(e)
+        ?? /^Value::from\((\w+)\.as_deref\(\)\)$/.exec(e) ?? /^Value::from\((\w+)(?:\.clone\(\))?\)$/.exec(e) ?? /^(\w+)(?:\.clone\(\))?$/.exec(e);
+    if (m !== null) {
+        const t = rustNetworkDeclType(content, at, m[1]);
+        if (t === 'Option<String>' || t === 'Option<&str>') return m[1] + '.as_deref()';
+        if (t === 'String') return 'Some(' + m[1] + '.as_str())';
+        if (t === '&str') return 'Some(' + m[1] + ')';
+        if (t === 'Value' && /^\w+(?:\.clone\(\))?$/.test(e)) return m[1] + '.as_text().as_deref()';
+    }
+    if ((m = /^(\w+\.as_deref\(\)\.map\(str::to_(?:upper|lower)case\))\.map\(Value::from\)\.unwrap_or\(Value::Null\)$/.exec(e)) !== null) return m[1] + '.as_deref()';
+    if ((m = /^(self\.(?:safe_currency_code|safe_string\w*_opt)\(.*)\.map\(Value::from\)\.unwrap_or\(Value::Null\)$/.exec(e)) !== null
+        && rustNetworkCloseParen(m[1], m[1].indexOf('(')) === m[1].length - 1) return m[1] + '.as_deref()';
+    if ((m = /^Value::Str\("([^"\\]*)"\.into\(\)\)$/.exec(e)) !== null) return 'Some("' + m[1] + '")';
+    if (/^self\.safe_string(?:_upper)?_k\(/.test(e) && rustNetworkCloseParen(e, e.indexOf('(')) === e.length - 1) return e + '.as_str()';
+    return 'Value::from(' + e + ').as_text().as_deref()';
+}
+function rustNetworkBody (body: string, params: string[], valueReturn: boolean): string {
+    for (const p of params) {
+        body = body
+            .replace(new RegExp(String.raw`\(${p} == Value::Null\)`, 'g'), `${p}.is_none()`)
+            .replace(new RegExp(String.raw`\(${p} != Value::Null\)`, 'g'), `${p}.is_some()`)
+            .replace(new RegExp(String.raw`matches!\(&${p}, Value::Str\(__k\) if (\w+)\.contains_key\(__k\.as_ref\(\)\)\)`, 'g'), `matches!(${p}, Some(__k) if $1.contains_key(__k))`)
+            .replace(new RegExp(String.raw`(?<![\w.])${p}\.clone\(\)`, 'g'), `Value::from(${p})`)
+            .replace(new RegExp(String.raw`(?<!matches!\()(?<=[\[{(&] ?|, )${p}(?=[,\])]| \})`, 'g'), `Value::from(${p})`);
+        if (valueReturn) body = body.replace(new RegExp(String.raw`return ${p};`, 'g'), `return Value::from(${p});`);
+    }
+    return body.replace(/Value::from\(Value::from\((\w+)\)\)/g, 'Value::from($1)').replace(/&Value::from\(Value::from/g, '&Value::from');
+}
+function typedNetworkCodeArgs (content: string): string {
+    if (!/network_(?:id_to_code|code_to_id)\(/.test(content)) return content;
+    // declarations (base trait method, htx inherent override)
+    content = content.replace(/(\n\s*(?:pub )?fn network_id_to_code)\(&self, optional_args: &\[Value\]\) -> Option<String> \{\n\s*let mut networkId = get_arg\(optional_args, 0, Value::Null\);\n\s*let mut currencyCode = get_arg\(optional_args, 1, Value::Null\);\n([\s\S]*?\n\}\n)/g,
+        (_m, head, body) => `${head}(&self, networkId: Option<&str>, currencyCode: Option<&str>) -> Option<String> {\n${body}`);
+    content = content.replace(/(\n\s*(?:pub )?fn network_code_to_id)\(&self, mut networkCode: Value, optional_args: &\[Value\]\) -> Value \{\n\s*let mut currencyCode = get_arg\(optional_args, 0, Value::Null\);\n([\s\S]*?\n\}\n)/g,
+        (_m, head, body) => `${head}(&self, networkCode: Option<&str>, currencyCode: Option<&str>) -> Value {\n${body}`);
+    // by-name dispatch arms
+    content = content
+        .replace(/self\.network_code_to_id\(args\.get\(0\)\.cloned\(\)\.unwrap_or\(crate::Value::Null\), &args\[1\.min\(args\.len\(\)\)\.\.\]\)/g,
+            'self.network_code_to_id(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref())')
+        .replace(/self\.network_id_to_code\(&args\[\.\.\]\)/g,
+            'self.network_id_to_code(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref())');
+    // callers: `f(&[a, b])` / `f(code, &[currency])`, the super_* shims included
+    const call = /(?<=[.:_])network_(id_to_code|code_to_id)\(/g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = call.exec(content)) !== null) {
+        const open = m.index + m[0].length - 1;
+        const close = rustNetworkCloseParen(content, open);
+        if (close < 0) continue;
+        const args = rustNetworkSplitArgs(content.slice(open + 1, close));
+        let lent: string[] | undefined;
+        const list = (s: string | undefined) => (s !== undefined && s.startsWith('&[') && s.endsWith(']')) ? rustNetworkSplitArgs(s.slice(2, -1)) : undefined;
+        if (m[1] === 'id_to_code' && args.length === 1) {
+            const xs = list(args[0]);
+            if (xs !== undefined && xs.length <= 2) lent = [ rustNetworkLend(content, m.index, xs[0] ?? ''), rustNetworkLend(content, m.index, xs[1] ?? '') ];
+        } else if (m[1] === 'code_to_id' && args.length === 2) {
+            const xs = list(args[1]);
+            if (xs !== undefined && xs.length <= 1) lent = [ rustNetworkLend(content, m.index, args[0]), rustNetworkLend(content, m.index, xs[0] ?? '') ];
+        }
+        if (lent === undefined) continue;
+        out += content.slice(last, open + 1) + lent.join(', ') + ')';
+        last = close + 1;
+        call.lastIndex = close + 1;
+    }
+    content = out + content.slice(last);
+    // bodies: the two slots are read as `Option<&str>`
+    return content.replace(/(\n\s*(?:pub )?fn network_(id_to_code|code_to_id)\(&self, (\w+): Option<&str>, currencyCode: Option<&str>\) -> [^{]*\{\n)([\s\S]*?\n\}\n)/g,
+        (_m, head, which, first, body) => head + rustNetworkBody(body, [ first, 'currencyCode' ], which === 'code_to_id'));
+}
+// The WS handler dispatcher takes `&[&Value]`: call sites lend their locals and the arms copy only where a handler owns.
+function lendWsDispatchArgs(content: string): string {
+    const sig = 'pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {';
+    const start = content.indexOf(sig);
+    if (start < 0) return content;
+    const end = content.indexOf('\n    }\n}', start);
+    if (end < 0) return content;
+    const callRe = /self\.dispatch_ws_handler\((&\w+), &\[(.*)\]\);$/gm;
+    const lent: Array<[number, number, string]> = [];
+    for (const m of content.matchAll(callRe)) {
+        const parts = splitTopLevel(m[2], ',');
+        if (parts.some(a => /\bself\b/.test(a))) return content;
+        const args = parts.map(a => { const t = a.trim(); const c = /^([a-zA-Z_]\w*)\.clone\(\)$/.exec(t); return '&' + (c ? c[1] : t); });
+        lent.push([m.index!, m[0].length, `self.dispatch_ws_handler(${m[1]}, &[${args.join(', ')}]);`]);
+    }
+    const body = content.slice(start, end)
+        .replace(sig, sig.replace('args: &[crate::Value]', 'args: &[&crate::Value]'))
+        .replace(/args\.get\((\d+)\)\./g, 'args.get($1).copied().')
+        .replace(/args\.to_vec\(\)/g, 'args.iter().copied().cloned().collect::<Vec<_>>()')
+        .replace(/&args\[([^\]]*)\](?![.\w])/g, '&args[$1].iter().copied().cloned().collect::<Vec<_>>()')
+        .replace(/&args\[([^\]]*)\]\.iter\(\)\.collect::<Vec<_>>\(\)/g, '&args[$1]');
+    if (/\bargs\b(?!\.get\(\d+\)\.copied\(\)|\.iter\(\)\.copied\(\)|\.len\(\)|\[|: &\[&)/.test(body)) return content;
+    if (lent.length !== content.split('self.dispatch_ws_handler(').length - 1) return content;
+    let out = content.slice(0, start) + body + content.slice(end);
+    const shift = body.length - (end - start);
+    for (const [at, len, text] of lent.reverse()) {
+        const pos = at > start ? at + shift : at;
+        out = out.slice(0, pos) + text + out.slice(pos + len);
+    }
+    return out;
+}
 // Small helper calls whose operand type is fixed by the line that declares it: print the std operation.
 // Each pattern matches only its declaration-proven shape; anything else keeps the helper.
 function nativeSmallHelperCalls (content: string): string {
@@ -9223,6 +9363,8 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     nativeMarketKeyStringReads,
     lendAlgoLiterals,
     nativeLocalStrKeyRemove,
+    typedNetworkCodeArgs,
+    lendWsDispatchArgs,
     nativeSmallHelperCalls,
     readTypedBookFields,
     rustSyncTryBlocks,

@@ -2064,11 +2064,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_set_markets(&mut self, markets: Value, currencies: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, markets, &[currencies])
     }
-    fn super_network_id_to_code(&self, optional_args: &[Value]) -> Option<String> {
-        <Self as crate::exchange_generated::ExchangeBase>::network_id_to_code(self, optional_args)
+    fn super_network_id_to_code(&self, network_id: Option<&str>, currency_code: Option<&str>) -> Option<String> {
+        <Self as crate::exchange_generated::ExchangeBase>::network_id_to_code(self, network_id, currency_code)
     }
-    fn super_network_code_to_id(&self, network_code: Value, optional_args: &[Value]) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::network_code_to_id(self, network_code, optional_args)
+    fn super_network_code_to_id(&self, network_code: Option<&str>, currency_code: Option<&str>) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::network_code_to_id(self, network_code, currency_code)
     }
     fn super_fetch_deposit_address(&mut self, code: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let typed = <Self as crate::exchange_generated::ExchangeBase>::fetch_deposit_address(self, code.as_str().unwrap_or_default(), params).await;

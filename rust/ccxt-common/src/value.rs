@@ -408,29 +408,28 @@ impl Value {
 
     /// `exchange.networkCodeToId(code, currency)` on a snapshot `Value` —
     /// delegates to the transpiled `Exchange::network_code_to_id`.
-    pub fn network_code_to_id(&self, code: Value, args: &[Value]) -> Value {
+    pub fn network_code_to_id(&self, code: Option<&str>, currency: Option<&str>) -> Value {
         #[cfg(feature = "engine")]
         {
-            let currency = args.first().cloned().unwrap_or(Value::Null);
-            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_code_to_id(code, &[currency]);
+            return crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_code_to_id(code, currency);
         }
         #[cfg(not(feature = "engine"))]
         {
-            let _ = args;
-            code
+            let _ = currency;
+            Value::from(code)
         }
     }
 
     /// `exchange.networkIdToCode(networkId, currency)` on a snapshot `Value`
     /// — delegates to the transpiled `Exchange::network_id_to_code`.
-    pub fn network_id_to_code(&self, args: &[Value]) -> Value {
+    pub fn network_id_to_code(&self, id: Option<&str>, currency: Option<&str>) -> Value {
         #[cfg(feature = "engine")]
         {
-            return Value::from(crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(args));
+            return Value::from(crate::exchange::BaseCore::new(self.snapshot_as_exchange()).network_id_to_code(id, currency));
         }
         #[cfg(not(feature = "engine"))]
         {
-            let _ = args;
+            let _ = (id, currency);
             Value::Null
         }
     }
