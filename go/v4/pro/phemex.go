@@ -1968,7 +1968,7 @@ func (this *Phemex) HandleMessage(client any, message map[string]any) {
 		var method any = client.(ccxt.ClientInterface).SubscriptionSafe(id)
 		client.(ccxt.ClientInterface).SubscriptionDel(id)
 		if method != true {
-			ccxt.CallDynamically(method, client, message)
+			this.HandleAuthenticate(client, message)
 			return
 		}
 	}

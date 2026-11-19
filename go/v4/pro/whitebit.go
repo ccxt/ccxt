@@ -1522,7 +1522,7 @@ func (this *Whitebit) HandleSubscriptionStatus(client any, message map[string]an
 			if (subId != nil) && (subId == id || (subId != nil && id != nil && *subId == *id)) {
 				var method any = this.SafeValue(subscription, "method")
 				if method != nil {
-					ccxt.CallDynamically(method, client, message)
+					this.HandleAuthenticate(client, message)
 					return
 				}
 			}

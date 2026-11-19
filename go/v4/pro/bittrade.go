@@ -444,7 +444,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		"symbol":      symbolValue,
 		"limit":       limitValue,
 		"params":      params,
-		"method":      this.HandleOrderBookSubscription,
+		"method":      "handleOrderBookSubscription",
 	}
 
 	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)
@@ -554,7 +554,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 				"symbol":      symbol,
 				"limit":       limit,
 				"params":      params,
-				"method":      this.HandleOrderBookSnapshot,
+				"method":      "handleOrderBookSnapshot",
 			}
 
 			r := <-this.Watch(url, strconv.FormatInt(requestId, 10), request, strconv.FormatInt(requestId, 10), snapshotSubscription)
@@ -695,9 +695,13 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message map[string]an
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
 	if subscription != nil {
-		var method any = this.SafeValue(subscription, "method")
-		if method != nil {
-			return ccxt.CallDynamically(method, client, message, subscription)
+		var method *string = this.SafeString(subscription, "method")
+		if method != nil && *method == "handleOrderBookSnapshot" {
+			this.HandleOrderBookSnapshot(client, message, subscription)
+			return nil
+		} else if method != nil && *method == "handleOrderBookSubscription" {
+			this.HandleOrderBookSubscription(client, message, subscription)
+			return nil
 		}
 		// clean up
 		if client.(ccxt.ClientInterface).SubscriptionHas(id) {
