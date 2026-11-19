@@ -6329,6 +6329,8 @@ function splitLongRustLines(content: string, max = 400): string {
 const RUST_TUPLE_FN_CORE = String.raw`(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params|handle_stock_params|is_unified_enabled|get_bybit_type`;
 // venue request/option helpers answering a `[slot 0, Dict]` pair: [name, slot-0 family key of RUST_OPTION_TUPLE_SLOT0]
 const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
+    ['handle_api_key_index', 'integer_'],
+    ['handle_account_index', 'integer_'],
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
@@ -6366,7 +6368,7 @@ function typeOptionTupleLocals(src: string): string {
     const tup = new RegExp(String.raw`\n( *)let mut (\w+): Value = \{ let __t = ((?:self|exchange)\.(${RUST_TUPLE_FN_NAME})\()`, 'g');
     for (let m: RegExpExecArray | null; (m = tup.exec(out)) !== null;) {
         const callEnd = rustCloseParen(out, m.index + m[0].length);
-        const tail = /^;\s*Value::from\(vec!\[[^\n]*?\]\) \};/.exec(out.slice(callEnd, callEnd + 200));
+        const tail = /^(\.await)?;\s*Value::from\(vec!\[[^\n]*?\]\) \};/.exec(out.slice(callEnd, callEnd + 200));
         if (callEnd < 0 || tail === null || /^is_unified_enabled$/.test(m[4]) && /\bpub struct Bybit\b/.test(out)) continue;
         const n = m[2], fam = rustTupleFam(m[4], out), from = callEnd + tail[0].length;
         const rest = rustFnRest(out, from);
@@ -6377,7 +6379,7 @@ function typeOptionTupleLocals(src: string): string {
         const firstMove = body.search(new RegExp(`\\b${n}\\.[01]\\b`));
         if (reads.length === 0 || new Set(moved).size !== moved.length || new RegExp(`\\b${n}\\b`).test(body.replace(new RegExp(`\\b${n}\\.[01]\\b`, 'g'), ''))
             || (moved.length > 0 && /\b(?:for|while|loop)\b/.test(body.slice(0, firstMove)))) continue;
-        const head = `\n${m[1]}let ${n} = ${out.slice(m.index + m[0].length - m[3].length, callEnd)};`;
+        const head = `\n${m[1]}let ${n} = ${out.slice(m.index + m[0].length - m[3].length, callEnd)}${tail[1] ?? ''};`;
         out = out.slice(0, m.index) + head + body + out.slice(from + rest.length);
         tup.lastIndex = m.index + head.length;
     }
