@@ -544,7 +544,7 @@ fn with_base<F, R>(f: F) -> R where F: FnOnce(&mut BaseCore) -> R {
 
 pub trait ExchangeOps {
     fn safe_value(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_string(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_string(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_bool(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
     fn safe_dict(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
     fn safe_list(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
@@ -600,7 +600,7 @@ pub trait ExchangeOps {
 
 impl ExchangeOps for Value {
     fn safe_value(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_value(obj, key, o)) }
-    fn safe_string(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string(obj, key, o)) }
+    fn safe_string(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.safe_string(obj, key, o)) }
     fn safe_bool(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_bool(d, key, o)) }
     fn safe_dict(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_dict(d, key, o)) }
     fn safe_list(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_list(d, key, o)) }

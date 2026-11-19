@@ -971,8 +971,8 @@ impl Exchange {
         arg_default(optional_args)
     }
 
-    pub fn safe_string(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
-        let v = self.safe_value(obj, key, &[]);
+    pub fn safe_string(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[Value]) -> Value {
+        let v = self.safe_value(obj, scalar_key(&key), &[]);
         match v {
             Value::Str(_) => v,
             Value::Int(n) => Value::Str(n.to_string().into()),
