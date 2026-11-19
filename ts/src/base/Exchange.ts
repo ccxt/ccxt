@@ -4137,7 +4137,7 @@ export class BaseExchange {
             this.setSandboxMode (true);
         }
         // compatibility for sandbox/testnet options in userConfig
-        if (this.safeBool2 (userConfig, 'sandbox', 'testnet', false)) {
+        if (this.safeBool (userConfig, 'sandbox', false) || this.safeBool (userConfig, 'testnet', false)) {
             this.setSandboxMode (true);
         }
     }
