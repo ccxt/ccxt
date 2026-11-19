@@ -537,6 +537,7 @@ class Proof {
         const t = src.trim().replace(/;$/, '').replace(/\.into_(?:opt_)?dict\(\)$/, '');
         if (depth > 2) return false;
         if (t.startsWith('Value::Map(')) return true;
+        if (/^std::sync::Arc::new\(\{\s*let mut m = indexmap::IndexMap::new\(\);/.test(t)) return true;
         if (t.startsWith('Value::Null')) return true;
         // a typed builder boxed into a `Value` local proves like the unboxed call
         if (t.startsWith('Value::Dict(self.') && closeParenAt(t, 'Value::Dict'.length) === t.length) return this.srcTagFree(t.slice('Value::Dict('.length, -1), body, region, depth, self);
