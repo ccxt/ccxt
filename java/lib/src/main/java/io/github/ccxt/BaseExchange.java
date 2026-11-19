@@ -524,7 +524,8 @@ public class BaseExchange {
     public Object myLiquidations = null;
     public Map<String, Object> trades = new ConcurrentHashMap<>();
     public Map<String, Object> orderbooks = new ConcurrentHashMap<>();
-    public Map<String, Object> ohlcvs = new ConcurrentHashMap<>();
+    // symbol -> timeframe row; every row is a plain HashMap (rows keep null values like JS)
+    public Map<String, Map<String, Object>> ohlcvs = new ConcurrentHashMap<>();
     public Object clients = new java.util.concurrent.ConcurrentHashMap<String, Client>();
 
     // regular maps / misc
@@ -1621,7 +1622,7 @@ public class BaseExchange {
         return new HashMap<>();
     }
 
-    public HashMap<String, Object> createSafeDictionary(boolean isWs) {
+    public <V> HashMap<String, V> createSafeDictionary(boolean isWs) {
         return new HashMap<>();
     }
 
