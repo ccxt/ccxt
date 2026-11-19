@@ -8082,7 +8082,7 @@ function singleCopySymbolListArgs(content: string): string {
 // getListFromObjectValues below): a `Value` / list / dict local is lent as `&x` for `x.clone()`.
 const RUST_ROWS_LENT_FNS = ['index_by', 'index_by_safe', 'group_by', 'sort_by', 'sort_by_t', 'array_slice', 'get_list_from_object_values', 'filter_by_array'];
 function lendCollectionRows(content: string): string {
-    content = content.replace(/fn get_list_from_object_values\(&self, mut objects: Value, (mut key: Value\) -> Value \{\n\s*let mut newArray: crate::value::List = self\.to_array_t\()objects\);/,
+    content = content.replace(/fn get_list_from_object_values\(&self, mut objects: Value, (mut key: Value\) -> (?:Value|crate::value::List) \{\n\s*let mut newArray: crate::value::List = self\.to_array_t\()objects\);/,
         (_m, mid) => `fn get_list_from_object_values(&self, objects: impl Rows, ${mid}Rows::rows(objects));`);
     const site = new RegExp(String.raw`\bself\.(?:parent\.)?(?:${RUST_ROWS_LENT_FNS.join('|')})\(([A-Za-z_]\w*)\.clone\(\)(?=,)`, 'g');
     return content.replace(site, (m, x, off) => {
