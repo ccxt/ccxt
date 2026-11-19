@@ -8079,6 +8079,35 @@ function lendCredentialFieldReads(content: string): string {
 }
 //
 // unit slot 063
+// `Value::from((market).f.clone())` over a `String` field of `Market`: `.as_str()` lends the field,
+// `.as_str().map(str::to_owned)` copies it once, and a top-level `format!` argument prints it directly.
+function lendMarketStringMembers(content: string): string {
+    const box = String.raw`Value::from\(\(market\)\.(symbol|market_type|base|quote)\.clone\(\)\)`;
+    let out = content.replace(new RegExp(String.raw`(?:\(${box}\)|${box})\.as_str\(\)(\.map\(str::to_owned\))?`, 'g'),
+        (_s, f1: string | undefined, f2: string | undefined, own: string | undefined) =>
+            own ? `Some((market).${f1 ?? f2}.clone())` : `Some((market).${f1 ?? f2}.as_str())`);
+    const one = new RegExp(String.raw`^\s*${box}\s*$`);
+    const edits: [number, number, string][] = [];
+    for (const m of out.matchAll(/\bformat!\("/g)) {
+        const open = (m.index as number) + 'format!('.length;
+        const close = balancedCloseIndex(out, open);
+        let at = open;
+        const args = splitRustArgs(out.slice(open, close));
+        if (!/^\s*"(?:[^"{\\]|\{\})*"\s*$/.test(args[0])) continue;
+        for (const a of args) {
+            const v = one.exec(a);
+            if (v !== null) {
+                const lead = a.length - a.trimStart().length;
+                edits.push([at + lead, at + a.trimEnd().length, `(market).${v[1]}`]);
+            }
+            at += a.length + 1;
+        }
+    }
+    edits.sort((x, y) => x[0] - y[0]);
+    let res = '', last = 0;
+    for (const [a, b, s] of edits) { if (a < last) continue; res += out.slice(last, a) + s; last = b; }
+    return res + out.slice(last);
+}
 //
 // unit slot 064
 //
@@ -8629,6 +8658,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendCredentialFieldReads,
     //
     // pass slot 063
+    lendMarketStringMembers,
     //
     // pass slot 064
     //
