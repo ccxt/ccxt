@@ -542,6 +542,11 @@ class Proof {
         if (/^\(\{\s*let mut m = indexmap::IndexMap::new\(\);[\s\S]*\n\s*m\s*\}\)$/.test(t)) return true;
         const destr = t.match(/^(__destr_tmp\w*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\);/);
         if (destr !== null) return this.destrSlot0Plain(destr[1], body.indexOf(src), body);
+        // an entry of the never-tagged `balance` field (account dicts), or absent
+        if (/^\(if let (?:Some\(__k\) = [a-z]\w*\.as_deref\(\) \{ self\.balance\.get|\(Some\(__m\), Some\(__k\)\) = \(self\.balance\.as_map\(\), [a-z]\w*\.as_deref\(\)\) \{ __m\.get)\(__k\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)$/.test(t)) return true;
+        // the base `safe_order` / `safe_trade` (not overridden here) copy a plain source into a fresh dict
+        const safeCopy = t.replace(/^Value::Dict\((.*)\)$/, '$1').match(/^self\.(safe_order|safe_trade)\(([a-z]\w*)\.clone\(\), None\)$/);
+        if (safeCopy !== null) return !new RegExp('\\bfn ' + safeCopy[1] + '\\s*\\(').test(this.content) && this.wireRead(safeCopy[2], body, region, depth + 1);
         // a parser on the REST parent (another file) returns a fresh plain dict
         const parent = t.match(/^crate::exchange::DerivedExchange::([a-z_]+)\(&self\.parent,/);
         if (parent !== null) return PARSERS.has(parent[1]);
@@ -570,9 +575,20 @@ class Proof {
         // only a dict read with no default (or a fresh-literal one): the receiver is a map or absent
         if (/^safe_dict\w*$/.test(name) && (!t.includes('&[') || /&\[(?:\]|Value::Map\(\{)/.test(t))) {
             const arg = firstArg(t);
+            if (arg !== undefined && arg.trim().startsWith('Value::Map({')) return this.literalMapPlain(arg.trim(), body, region, depth + 1);
             return arg !== undefined && this.wireRead(arg.trim().replace(/^&+/, ''), body, region, depth + 1);
         }
         return this.calleePlain(name, region);
+    }
+
+    /** A fresh `Value::Map({ m.insert("k".to_string(), V); .. })` literal whose every value is a proven tag-free dict. */
+    literalMapPlain (lit: string, body: string, region: Region, depth: number): boolean {
+        const lines = lit.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if (lines[0] !== 'Value::Map({' || lines[1] !== 'let mut m = indexmap::IndexMap::new();' || lines[lines.length - 2] !== 'm' || lines[lines.length - 1] !== '})') return false;
+        return lines.slice(2, -2).every(l => {
+            const ins = l.match(/^m\.insert\("[A-Za-z0-9_]+"\.to_string\(\), Value::(?:Dict|Map)\(([a-z]\w*)\)\);$/);
+            return ins !== null && this.localTagFree(ins[1], body, region, depth);
+        });
     }
 
     /** A read off a parsed wire payload (an API response or a ws handler's `message`): JSON parse never makes a `__` tag. */
@@ -718,12 +734,15 @@ function insertChainCallArgs (text: string, name: string): string[] | undefined 
     return splitArgs(text.slice(name.length + 1, after - 1));
 }
 
-function keyConv (arg: string, intermediate: boolean): string | undefined {
+function keyConv (arg: string, intermediate: boolean, body?: string): string | undefined {
     const lit = arg.trim().match(LITERAL_KEY);
     if (lit !== null) return lit[1] + '.to_string()';
     if (intermediate) return undefined;
     const place = arg.trim().match(PLACE_KEY);
     if (place !== null) return 'crate::runtime::stringify_param(&' + place[1] + ')';
+    // a `String` local boxed as a `Value::Str` key is that string
+    const str = arg.trim().match(/^&Value::from\(([a-z]\w*)\.as_str\(\)\)$/);
+    if (str !== null && body !== undefined && new RegExp('^[ \\t]*let mut ' + str[1] + ': String = ', 'm').test(body)) return str[1] + '.as_str().to_string()';
     return undefined;
 }
 
@@ -872,7 +891,7 @@ function nativeInserts (content: string): string {
             keys.push(conv);
         }
         if (!ok) continue;
-        const last = keyConv(args[1], false);
+        const last = keyConv(args[1], false, body);
         if (last === undefined) continue;
         const value = args[2].trim();
         // A write holds a `&mut`/`&self` borrow of the receiver: evaluate a
