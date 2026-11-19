@@ -9200,13 +9200,14 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
         const pairParams = goTypedMaplistTupleMap (maskedFunc, name) && !(/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc) || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc));
         const typed = (typeAt (name, k) === 'map[string]any');
         const readOnly = typed && goInOpReadReceiver (maskedFunc, declOf (name), name, declOf);
-        if (!pairParams && !readOnly && !(typed && goInOpTypedProducerReceiver (maskedFunc, declOf (name), name))) {
+        const alias = (pairParams || readOnly) ? undefined : goInOpAliasReceiver (maskedFunc, name);
+        if (!pairParams && !readOnly && (alias === undefined) && !(typed && goInOpTypedProducerReceiver (maskedFunc, declOf (name), name))) {
             continue;
         }
         if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
             continue;
         }
-        found.push ({ at, 'length': call[0].length, name, key, 'ifOnly': !pairParams && !readOnly });
+        found.push ({ at, 'length': call[0].length, 'name': alias ?? name, key, 'ifOnly': !pairParams && !readOnly && (alias === undefined) });
     }
     const single = (cond !== null) && (calls.length === 1) && !/\bok\b/.test (maskedFunc);
     if ((found.length === 0) || (!single && found.some ((f) => f.ifOnly))) {
@@ -9225,6 +9226,17 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
     }
     lines[k] = line;
     return true;
+}
+
+// `x := s` aliasing the params slot of a handle*AndParams pair is that map: x bound once, never written, nothing spawned
+function goInOpAliasReceiver (maskedFunc: string, name: string): string | undefined {
+    const n = goAccessEscape (name);
+    const binds = [ ...maskedFunc.matchAll (new RegExp ('^\\t+' + n + ' := (\\w+)$', 'gm')) ];
+    if ((binds.length !== 1) || /\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc) || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc)
+        || new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.&*])' + n + '\\s*(?:,[^=\\n]*)?(?::=|=(?!=))|,\\s*' + n + '\\s*(?:,[^=\\n]*)?:?=(?!=)|\\bvar ' + n + '\\b', 'gm').exec (maskedFunc.replace (binds[0][0], '')) !== null) {
+        return undefined;
+    }
+    return goTypedMaplistTupleMap (maskedFunc, binds[0][1]) ? name : undefined;
 }
 
 // InOp on map locals that goTypedRecvLocals / goTypedNilFoldLocals / goTypedEndpointNilLocals typed after the container pass ran
@@ -12358,6 +12370,9 @@ function goLateNativeInOpCheck (ok: SelfTestOk): void {
     const f = (body: string) => goLateNativeInOp ('func (this *X) f(k any) any {\n\tvar m map[string]any = nil\n\tr1 := <-this.GAsync()\n\tm = r1.Value\n' + body + '\treturn nil\n}\n');
     ok (f ('\tif InOp(m, "a") {\n\t}\n').includes ('if _, ok := m["a"]; ok {'), 'late inop: typed receive map, literal key');
     ok (f ('\tif InOp(m, k) {\n\t}\n').includes ('InOp(m, k)'), 'late inop: any key keeps the helper');
+    const a = (body: string) => goLateNativeInOp ('func (this *X) f(p any) any {\n\tt0, t1 := this.HandleParamString(p, "tag")\n\tq := t1\n' + body + '\treturn t0\n}\n');
+    ok (a ('\tif InOp(q, "key") {\n\t}\n').includes ('if _, ok := q["key"]; ok {'), 'late inop: alias of a params slot');
+    ok (a ('\tq = nil\n\tif InOp(q, "key") {\n\t}\n').includes ('InOp(q, "key")'), 'late inop: rewritten alias keeps the helper');
 }
 
 function goTypedRecvLocalsCheck (ok: SelfTestOk): void {
