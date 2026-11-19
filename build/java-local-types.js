@@ -1975,8 +1975,8 @@ const VENUE_RETURN_KINDS = {
     // string read / replace / string literal (pro binance) or a safeList read / own string[] accumulator
     'getStockWsUrl': [ 'String' ], 'getAccountTypeFromSubscriptions': [ 'String' ],
     'getSettlementCurrencies': [ 'java.util.List<Object>' ], 'findMessageHashes': [ 'java.util.List<Object>' ],
-    // base `buildOHLCVC (..): OHLCVC[]` returns its own `ohlcvs` accumulator (no override)
-    'buildOHLCVC': [ 'java.util.List<Object>' ],
+    // base `buildOHLCVC (..): OHLCVC[]` returns its own `ohlcvs` accumulator of 7-element rows (no override)
+    'buildOHLCVC': [ 'java.util.List<java.util.List<Object>>' ],
     // ral-87j5 R4b, one declaration each in ts/src: derive hashOrderMessage (returns this.hash (.., 'hex'), a hex
     // String), hyperliquid findOutcomeInMarket (`: Dict`, returns safeDict (.., {}) reads). selectNetworkKeyFromNetworks
     // and normalizeTagKey prove String too, but 5 of their 6 result locals only feed Object slots: left out
@@ -2038,6 +2038,8 @@ function venueAnnotationJavaType (printer, node) {
         java = 'String';
     } else if ((type.flags & ts.TypeFlags.NumberLike) !== 0) {
         java = 'Long';
+    } else if (kinds.includes ('java.util.List<java.util.List<Object>>') && checker.isArrayType (type) && checker.isTupleType (checker.getTypeArguments (type)[0])) {
+        java = 'java.util.List<java.util.List<Object>>';
     } else if (checker.isArrayType (type) || checker.isTupleType (type)) {
         java = 'java.util.List<Object>';
     } else if (isParseStructureReturnType (printer, type)) {
@@ -27858,4 +27860,155 @@ export function installJavaSourceExchangeReads (transpiler) {
         }
         return printed;
     };
+}
+
+// ===== fixed-width row accumulators =====
+// `const xs: T[] = []` with T a fixed tuple of N slots, used only by push of N-element literals, reads,
+// `.length`, `return xs` and `xs[r][c] = v` with c a literal (or const literal local) below N: every row
+// is a List of N, so the helper's List branch is `set(c, v)` and the local prints List<List<Object>>.
+const JAVA_ROW_LIST_TYPE = 'java.util.List<java.util.List<Object>>';
+
+function rowAccumulatorWidth (printer, declaration) {
+    if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || declaration.type === undefined
+        || (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) === 0) {
+        return undefined;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isArrayLiteralExpression (init) || init.elements.length !== 0) {
+        return undefined;
+    }
+    const checker = printer.getChecker ();
+    const type = checker.getTypeAtLocation (declaration.type);
+    const row = checker.isArrayType (type) ? checker.getTypeArguments (type)[0] : undefined;
+    if (row === undefined || !checker.isTupleType (row)) {
+        return undefined;
+    }
+    const width = printer.tupleRequiredElementCount (row);
+    return width > 0 && width === checker.getTypeArguments (row).length ? width : undefined;
+}
+
+function rowColumnBelow (printer, node, width) {
+    let key = unwrapParens (node);
+    if (key !== undefined && ts.isIdentifier (key)) {
+        const d = printer.getChecker ().getSymbolAtLocation (key)?.valueDeclaration?.resolve ();
+        if (d === undefined || !ts.isVariableDeclaration (d) || (ts.getCombinedNodeFlags (d) & ts.NodeFlags.Const) === 0) {
+            return false;
+        }
+        key = unwrapParens (d.initializer);
+    }
+    return key !== undefined && ts.isNumericLiteral (key) && /^\d+$/.test (key.text) && Number (key.text) < width;
+}
+
+function rowAccumulatorUseOk (printer, use, width) {
+    const parent = use.parent;
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === use) {
+        if (parent.name.text === 'length') {
+            return true;
+        }
+        const call = parent.parent;
+        return parent.name.text === 'push' && ts.isCallExpression (call) && call.expression === parent && call.arguments.length === 1
+            && ts.isArrayLiteralExpression (call.arguments[0]) && call.arguments[0].elements.length === width
+            && call.arguments[0].elements.every ((e) => !ts.isSpreadElement (e));
+    }
+    if (ts.isReturnStatement (parent)) {
+        return true;
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === use) {
+        const outer = parent.parent;
+        if (ts.isBinaryExpression (outer) && outer.left === parent && printer.isAssignmentOperator (outer.operatorToken.kind)) {
+            return false; // a row replacement
+        }
+        if (ts.isElementAccessExpression (outer) && outer.expression === parent) {
+            const write = outer.parent;
+            if (ts.isBinaryExpression (write) && write.left === outer && printer.isAssignmentOperator (write.operatorToken.kind)) {
+                return write.operatorToken.kind === ts.SyntaxKind.EqualsToken && rowColumnBelow (printer, outer.argumentExpression, width);
+            }
+        }
+        return !ts.isDeleteExpression (outer);
+    }
+    // a read-only base accessor takes the list as an Object argument
+    return ts.isCallExpression (parent) && parent.arguments[0] === use && isThisCall (parent)
+        && [ 'safeList', 'safeValue' ].includes (parent.expression.name.text)
+        && resolvesToMethodNamed (printer, parent, parent.expression.name.text);
+}
+
+const rowAccumulatorDecisions = new WeakMap ();
+function rowAccumulatorType (printer, declaration) {
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
+        return undefined;
+    }
+    if (!rowAccumulatorDecisions.has (declaration)) {
+        let ok = false;
+        try {
+            const width = rowAccumulatorWidth (printer, declaration);
+            const scope = enclosingFunction (declaration);
+            if (width !== undefined && scope !== undefined) {
+                const checker = printer.getChecker ();
+                const symbol = checker.getSymbolAtLocation (declaration.name);
+                ok = true;
+                const visit = (n) => {
+                    if (!ok) {
+                        return;
+                    }
+                    if (ts.isIdentifier (n) && n !== declaration.name && n.text === declaration.name.text && checker.getSymbolAtLocation (n) === symbol) {
+                        ok = enclosingFunction (n) === scope && rowAccumulatorUseOk (printer, n, width);
+                        return;
+                    }
+                    n.forEachChild (visit);
+                };
+                scope.body?.forEachChild (visit);
+            }
+        } catch (e) {
+            ok = false;
+        }
+        rowAccumulatorDecisions.set (declaration, ok);
+    }
+    return rowAccumulatorDecisions.get (declaration) ? JAVA_ROW_LIST_TYPE : undefined;
+}
+
+function rowAccumulatorOf (printer, node) {
+    const n = unwrapParens (node);
+    if (n === undefined || !ts.isIdentifier (n) || printer.printNode (n, 0) !== n.text) {
+        return undefined;
+    }
+    const d = printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve ();
+    return rowAccumulatorType (printer, d) !== undefined ? d : undefined;
+}
+
+export function patchJavaRowAccumulatorLists (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printJavaElementWrite !== 'function' || printer._javaRowAccumulatorListsPatched) {
+        return;
+    }
+    printer._javaRowAccumulatorListsPatched = true;
+    const upstreamDecl = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDecl (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (node.declarations?.length !== 1 || rowAccumulatorType (printer, declaration) === undefined) {
+            return printed;
+        }
+        return `${printer.getIden (identation)}${JAVA_ROW_LIST_TYPE} ${declaration.name.text} = new java.util.ArrayList<java.util.List<Object>>()`;
+    };
+    const upstreamPush = printer.printArrayPushCall.bind (printer);
+    printer.printArrayPushCall = function (node, identation, name = undefined, parsedArg = undefined) {
+        return rowAccumulatorOf (printer, node?.expression?.expression) !== undefined
+            ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
+    };
+    const upstreamWrite = printer.printJavaElementWrite.bind (printer);
+    printer.printJavaElementWrite = function (node, left, right) {
+        const row = ts.isElementAccessExpression (left) ? unwrapParens (left.expression) : undefined;
+        if (row !== undefined && ts.isElementAccessExpression (row) && rowAccumulatorOf (printer, row.expression) !== undefined) {
+            // the row index must print a declared Long or an int counter; an out-of-range row throws either way
+            const index = unwrapParens (row.argumentExpression);
+            const indexText = index !== undefined && ts.isIdentifier (index) && printer.printNode (index, 0) === index.text
+                ? (printer.javaDeclaredTypeOf (index) === 'Long' ? `${index.text}.intValue()` : (printer.isJavaPrimitiveForCounter?.(index) ? index.text : undefined))
+                : undefined;
+            if (indexText !== undefined) {
+                return `${row.expression.text}.get(${indexText}).set(${printer.printNode (left.argumentExpression, 0)}, ${printer.printNode (right, 0)})`;
+            }
+        }
+        return upstreamWrite (node, left, right);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => rowAccumulatorType (printer, declaration));
 }

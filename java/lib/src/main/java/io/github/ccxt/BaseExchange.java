@@ -7797,7 +7797,7 @@ public Map<String, Object> describe()
 
     public Object convertTradingViewToOHLCV(Object ohlcvs, Object timestamp, Object open, Object high, Object low, Object close, Object volume, Boolean ms)
     {
-        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        List<List<Object>> result = new ArrayList<List<Object>>();
         List<Object> timestamps = this.safeList(ohlcvs, java.util.Objects.requireNonNullElse(timestamp, "t"), new ArrayList<Object>(Arrays.asList()));
         List<Object> opens = this.safeList(ohlcvs, java.util.Objects.requireNonNullElse(open, "o"), new ArrayList<Object>(Arrays.asList()));
         List<Object> highs = this.safeList(ohlcvs, java.util.Objects.requireNonNullElse(high, "h"), new ArrayList<Object>(Arrays.asList()));
@@ -7806,7 +7806,7 @@ public Map<String, Object> describe()
         List<Object> volumes = this.safeList(ohlcvs, java.util.Objects.requireNonNullElse(volume, "v"), new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < (timestamps == null ? 0 : ((List<?>)timestamps).size()); i++)
         {
-            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((java.util.Objects.requireNonNullElse(ms, false))) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i))));
+            result.add(new ArrayList<Object>(Arrays.asList(((java.util.Objects.requireNonNullElse(ms, false))) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i))));
         }
         return result;
     }
@@ -9299,12 +9299,12 @@ public Map<String, Object> describe()
 
     }
 
-    public List<Object> buildOHLCVC(Object trades, String timeframe, Long since, Long limit)
+    public List<List<Object>> buildOHLCVC(Object trades, String timeframe, Long since, Long limit)
     {
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
         Long ms = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-        List<Object> ohlcvs = new ArrayList<Object>(Arrays.asList());
+        List<List<Object>> ohlcvs = new ArrayList<List<Object>>();
         Integer i_timestamp = 0;
         // const open = 1;
         Integer i_high = 2;
@@ -9361,18 +9361,18 @@ public Map<String, Object> describe()
             if (Boolean.TRUE.equals(isNewCandle))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
-                ((List<Object>)ohlcvs).add(new ArrayList<Object>(Arrays.asList(openingTime, price, price, price, price, trade.get("amount"), 1)));
+                ohlcvs.add(new ArrayList<Object>(Arrays.asList(openingTime, price, price, price, price, trade.get("amount"), 1)));
             } else
             {
                 // still processing the same timeframe -> update opening trade
                 List<Object> prevCandle = this.safeList(ohlcvs, candle, null);
                 Object prevHigh = this.safeValue(prevCandle, i_high);
                 Object prevLow = this.safeValue(prevCandle, i_low);
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_high, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevHigh, null)))) ? price : prevHigh, price));
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_low, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevLow, null)))) ? price : prevLow, price));
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_close, price);
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_volume, this.sum(this.safeValue(prevCandle, i_volume), trade.get("amount")));
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_count, this.sum(this.safeValue(prevCandle, i_count), 1));
+                ohlcvs.get(candle.intValue()).set(i_high, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevHigh, null)))) ? price : prevHigh, price));
+                ohlcvs.get(candle.intValue()).set(i_low, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevLow, null)))) ? price : prevLow, price));
+                ohlcvs.get(candle.intValue()).set(i_close, price);
+                ohlcvs.get(candle.intValue()).set(i_volume, this.sum(this.safeValue(prevCandle, i_volume), trade.get("amount")));
+                ohlcvs.get(candle.intValue()).set(i_count, this.sum(this.safeValue(prevCandle, i_count), 1));
             }
         }
         return ohlcvs;
