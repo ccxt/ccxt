@@ -1074,10 +1074,11 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS, {
     'handlePaginationParams': 'Dictionary<string, object>', // bullish only: both returns are this.extend / paramsExtended
 });
 
-// subscribeRequest: declared only in pro/paradex and its single return is a dict literal,
+// subscribeRequest / unsubscribeRequest: declared only in pro/paradex, each single return a dict literal,
 // so the by-declaration proof retypes it and its object request callers.
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'subscribeRequest': 'Dictionary<string, object>',
+    'unsubscribeRequest': 'Dictionary<string, object>',
 });
 
 // the mapped collection type for a method declaration, or undefined to leave the printer's

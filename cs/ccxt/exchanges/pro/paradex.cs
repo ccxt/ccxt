@@ -129,7 +129,7 @@ public partial class paradex : ccxt.paradex
      * @param {string} channel the channel to unsubscribe from
      * @returns {object} the unsubscribe request
      */
-    public virtual object unsubscribeRequest(object channel)
+    public virtual Dictionary<string, object> unsubscribeRequest(object channel)
     {
         return new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -151,11 +151,11 @@ public partial class paradex : ccxt.paradex
      * @param {string} [subscribeHash] the subscription the request opens, the request id when undefined
      * @returns {object} the reply
      */
-    public async virtual Task<object> sendRequest(object url, object request, object subscribeHash = null)
+    public async virtual Task<object> sendRequest(object url, IDictionary<string, object> request, object subscribeHash = null)
     {
         string requestHash = ("request:" + this.safeString(request, "id"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {requestHash} },
         };
         object hash = ((subscribeHash == null)) ? requestHash : subscribeHash;
@@ -236,12 +236,12 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the request
      * @returns {boolean} true once the reply is in
      */
-    public async virtual Task<object> sendUnsubscribe(object url, object unsubHash, object request, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> sendUnsubscribe(object url, object unsubHash, IDictionary<string, object> request, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         // an error reply rejects the unwatch only, the watchers keep their subscription
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> unsubscription = this.extend(subscription, new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {unsubHash} },
         });
         // a lost acknowledgement is timed out, so that neither the unwatch nor a watch waiting on it can hang
@@ -352,7 +352,7 @@ public partial class paradex : ccxt.paradex
             { "subMessageHashes", hashes },
             { "symbols", channelSymbols },
         };
-        object request = this.unsubscribeRequest(channel);
+        Dictionary<string, object> request = this.unsubscribeRequest(channel);
         return await this.sendUnsubscribe(url, ("unsubscribe:" + channel), request, subscription, parameters);
     }
 
@@ -893,7 +893,7 @@ public partial class paradex : ccxt.paradex
             {
                 // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
                 // arrives once the reply is in
-                object unsubscribe = this.unsubscribeRequest(snapshotChannel);
+                Dictionary<string, object> unsubscribe = this.unsubscribeRequest(snapshotChannel);
                 ((IDictionary<string,object>)client.subscriptions).Remove(snapshotChannel);
                 await this.sendRequest(url, unsubscribe);
             }
@@ -1125,7 +1125,7 @@ public partial class paradex : ccxt.paradex
         // a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
         // keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
         // the whole connection
-        Dictionary<string, object> unsubscribe = ((Dictionary<string, object>)this.unsubscribeRequest(channel));
+        Dictionary<string, object> unsubscribe = this.unsubscribeRequest(channel);
         Dictionary<string, object> subscribe = this.subscribeRequest(channel);
         string unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id"));
         ((IDictionary<string,object>)client.subscriptions)[unsubscribeHash] = new Dictionary<string, object>() {
@@ -1212,7 +1212,7 @@ public partial class paradex : ccxt.paradex
                         ((IDictionary<string,object>)client.subscriptions).Remove((string)subscribeHashes[i]);
                     }
                 }
-                object unsubscribe = this.unsubscribeRequest(channel);
+                Dictionary<string, object> unsubscribe = this.unsubscribeRequest(channel);
                 await this.sendRequest(url, unsubscribe);
             }
             Dictionary<string, object> request = this.subscribeRequest(channel);
@@ -1322,7 +1322,7 @@ public partial class paradex : ccxt.paradex
                 { "prefix", true },
                 { "symbols", tickerSymbols },
             };
-            object unsubscribe = this.unsubscribeRequest(channel);
+            Dictionary<string, object> unsubscribe = this.unsubscribeRequest(channel);
             return await this.sendUnsubscribe(url, ("unsubscribe:" + channel), unsubscribe, channelSubscription, parameters);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
