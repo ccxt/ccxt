@@ -70,14 +70,14 @@ func TupleSlice[T any](value T, params map[string]any) []any {
 
 // HandleUntilOption is handleUntilOption with its [Dict, Dict] tuple spelled as two Go
 // results: request (with the until key when given) and params without until/till.
-func (this *BaseExchange) HandleUntilOption(key any, request any, params any, optionalArgs ...any) (map[string]any, map[string]any) {
+func (this *BaseExchange) HandleUntilOption(key string, request map[string]any, params any, optionalArgs ...any) (map[string]any, map[string]any) {
 	multiplier := GetArg(optionalArgs, 0, 1)
 	until := this.SafeInteger2(params, "until", "till")
 	if until == nil {
-		return MapTyped(request), MapTyped(params)
+		return request, MapTyped(params)
 	}
-	AddElementToObject(request, key, this.ParseToInt(Multiply(until, multiplier)))
-	return MapTyped(request), MapTyped(this.Omit(params, []any{"until", "till"}))
+	request[key] = this.ParseToInt(Multiply(until, multiplier))
+	return request, MapTyped(this.Omit(params, []any{"until", "till"}))
 }
 
 // HandleOptionAndParams is ts/src/base/Exchange.ts handleOptionAndParams with its [any, Dict]

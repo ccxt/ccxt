@@ -11559,6 +11559,9 @@ const GO_MAP_RETURNING_METHODS = [ 'Market', 'MarketOrNull', 'Currency', 'SafeCu
     'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
     'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
     'CreateOrderRequest', // only the 8 callers wrapping it: every one sits on a venue whose builder is a map
+    // bitvavo's request builders print map[string]any (pacifica's `any` twins are never wrapped)
+    'EditOrderRequest', 'CancelOrderRequest', 'FetchOrdersRequest', 'FetchMyTradesRequest', 'WithdrawRequest',
+    'FetchWithdrawalsRequest', 'FetchOHLCVRequest', 'FetchDepositsRequest',
     // the ws parsers are `any` on the printer and retyped to map[string]any by the family below
     'ParseWsTrade', 'ParseWsTicker', 'ParseWsOrder',
     'MergeBalanceAccount' ];
