@@ -2056,13 +2056,17 @@ mod from_value_tests {
 }
 
 /// Decodes a transpiled body's `Value` result into a typed unified return.
-pub trait FromRaw { fn from_raw(v: Value) -> Self; }
+/// `S` is the body's result: a `Value`, or a typed parser's `Option<Dict>` (`None` decodes as `Null` did).
+pub trait FromRaw<S = Value> { fn from_raw(v: S) -> Self; }
 /// Lowers a typed unified return back to the `Value` the transpiled bodies and dispatch carry.
 pub trait IntoRaw { fn into_raw(self) -> Value; }
 
 macro_rules! raw_struct {
     ($($t:ident),*) => { $(
         impl FromRaw for $t { fn from_raw(v: Value) -> Self { $t::from_value(v) } }
+        impl FromRaw<Option<crate::value::Dict>> for $t {
+            fn from_raw(v: Option<crate::value::Dict>) -> Self { $t::from_value(v.map_or(Value::Null, Value::Dict)) }
+        }
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
         /// A record read out of a typed result, handed to a `Value` slot: its decoded row (a shared handle, no re-encode).
         impl From<&$t> for Value { fn from(x: &$t) -> Value { Value::clone(&x.raw) } }
@@ -2340,5 +2344,30 @@ impl<T: IntoRaw> IntoRaw for HashMap<String, T> {
 impl<T: IntoRaw> IntoRaw for crate::Result<T> {
     fn into_raw(self) -> Value {
         match self { Ok(t) => t.into_raw(), Err(e) => panic!("{}", e) }
+    }
+}
+
+#[cfg(test)]
+mod typed_body_from_raw_tests {
+    use super::{FromRaw, IntoRaw, Order};
+    use crate::value::Dict;
+    use crate::Value;
+
+    // a typed parser's `Option<Dict>` decodes exactly as its boxed `map_or(Value::Null, Value::Dict)` did
+    #[test]
+    fn option_dict_decodes_as_the_boxed_result() {
+        let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str("o1".into()));
+        m.insert("amount".to_string(), Value::Float(2.5));
+        let d: Dict = std::sync::Arc::new(m);
+        let typed: Order = FromRaw::from_raw(Some(std::sync::Arc::clone(&d)));
+        let raw = Value::Dict(std::sync::Arc::clone(&d));
+        let boxed: Order = FromRaw::from_raw(Value::Dict(d));
+        assert_eq!(typed.id, boxed.id);
+        assert_eq!(typed.amount, Some(2.5));
+        assert_eq!(typed.into_raw(), raw);
+        let none: Order = FromRaw::from_raw(None::<Dict>);
+        let null: Order = FromRaw::from_raw(Value::Null);
+        assert_eq!((none.id, none.symbol, none.raw), (null.id, null.symbol, null.raw));
     }
 }

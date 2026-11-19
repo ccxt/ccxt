@@ -5102,8 +5102,26 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
     return content;
 }
 
+// A typed order body whose every return is the venue `parseOrder` slot yields that `Option<Dict>`; `FromRaw` decodes it.
+function rustTypedOrderBodies (content: string): string {
+    const sig = /\n    pub async fn (?:fetch|create|edit|cancel)_order\(.*-> crate::Result<crate::types::Order> \{\n/g;
+    const head = 'Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {\n', tail = '\n        Value::Null\n        }).await?))';
+    const ret = /^( *return <Self as crate::exchange::DerivedExchange>::parse_order\(.*)\.map_or\(Value::Null, Value::Dict\);$/gm;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = sig.exec (content)) !== null) {
+        const a = content.indexOf (head, m.index + m[0].length), e = a < 0 ? -1 : content.indexOf (tail, a);
+        if (a < 0 || e < 0 || content.slice (m.index + m[0].length, a).split ('\n').length > 8) continue;
+        const body = content.slice (a + head.length, e);
+        const rets = (body.match (/\breturn\b/g) ?? []).length;
+        if (rets === 0 || rets !== (body.match (ret) ?? []).length || /async move|\|[^|\n]*\|\s*\{/.test (body)) continue;
+        out += content.slice (last, a + head.length) + body.replace (ret, '$1;') + '\n        None\n        }).await?))';
+        last = e + tail.length;
+    }
+    return out + content.slice (last);
+}
+
 function rustTypedParseOrder (content: string): string {
-    return rustTypedParseFamily (content, 'order');
+    return rustTypedOrderBodies (rustTypedParseFamily (content, 'order'));
 }
 
 // `safeTicker` ends in `this.extend (ticker, {..})`, a map on every input, so it returns `Dict` (`extend_t`) and
