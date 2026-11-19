@@ -6961,6 +6961,71 @@ function borrowLocalDictKeyLists(content: string): string {
 }
 //
 // unit slot 009
+// Lend a typed map local instead of boxing a deep copy: `Value::Map(x.clone())` as the head of
+// `extend[_t]` / `safe_balance` (`impl ExtendHead`: `&IndexMap` copies, as the clone did), the container of a
+// `safe_*` reader (`impl KeyRead`: reads the borrowed map) or the sole merge operand `&[Value::Map(x.clone())]`
+// (`&[&IndexMap; 1]` merges the same map). x must be declared `IndexMap` in this fn and named once in the call.
+const RUST_LENT_MAP_HEAD_FNS = /\bself\.(extend_t|extend|safe_balance|safe_(?:string|dict|list|value|integer|float|number|bool|timestamp)[a-z0-9_]*)\(/g;
+// `return ..Value::Map(x.clone())..;` with x an owned `IndexMap` local named once in the statement: the return
+// ends the fn, so x is moved. Refused inside a closure or a non-move async block (x would be captured).
+function moveMapLocalsAtReturn(content: string): string {
+    const fnStarts = [...content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    return content.replace(/^([ \t]*return )([^;\n]*);$/gm, (line, lead: string, expr: string, pos: number) => {
+        return lead + expr.replace(/Value::Map\(([A-Za-z_]\w*)\.clone\(\)\)/g, (site: string, name: string) => {
+            if ((expr.match(new RegExp(`(?<![\\w.])${name}\\b`, 'g')) ?? []).length !== 1 || /(?<!\|)\|(?!\|)/.test(expr)) return site;
+            let lo = -1;
+            for (const s of fnStarts) if (s <= pos) lo = s; else break;
+            if (lo < 0) return site;
+            const body = content.slice(lo, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, '');
+            const lets = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(?::\\s*([^=;]+?))?\\s*=`, 'g'))];
+            if (lets.length !== 1 || lets[0][1] !== 'indexmap::IndexMap<String, Value>') return site;
+            const after = body.slice((lets[0].index as number) + lets[0][0].length);
+            const stack: number[] = [];
+            let inStr = false;
+            for (let j = 0; j < after.length; j++) {
+                const c = after[j];
+                if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+                if (c === '"') inStr = true; else if (c === '{') stack.push(j); else if (c === '}') stack.pop();
+            }
+            if (stack.some(o => /(?<!\|)\|(?!\|)|\basync \{|\basync$/.test(after.slice(after.lastIndexOf('\n', o) + 1, o).trimEnd()))) return site;
+            return `Value::Map(${name})`;
+        }) + ';';
+    });
+}
+function lendLocalMapBoxes(content: string): string {
+    const fnStarts = [...content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const declOf = (name: string, pos: number): string | undefined => {
+        let lo = 0;
+        for (const s of fnStarts) if (s <= pos) lo = s; else break;
+        const span = content.slice(lo, pos);
+        const lets = [...span.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(?::\\s*([^=;]+?))?\\s*=`, 'g'))];
+        if (lets.length > 0) return lets[lets.length - 1][1] === 'indexmap::IndexMap<String, Value>' ? `&${name}` : undefined;
+        const head = span.slice(0, span.indexOf('{'));
+        return new RegExp(`[(,]\\s*${name}: &mut indexmap::IndexMap<String, Value>[,)]`).test(head) ? `&*${name}` : undefined;
+    };
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(RUST_LENT_MAP_HEAD_FNS)) {
+        const open = (m.index as number) + m[0].length, close = balancedCloseIndex(content, open);
+        const call = content.slice(open, close), args = splitRustArgs(call);
+        const isMerge = /extend/.test(m[1]);
+        const tries: [number, RegExp][] = [[0, /^(\s*)Value::Map\(([A-Za-z_]\w*)\.clone\(\)\)(\s*)$/]];
+        if (isMerge && args.length === 2) tries.push([1, /^(\s*)&\[Value::Map\(([A-Za-z_]\w*)\.clone\(\)\)\](\s*)$/]);
+        let at = open;
+        for (let k = 0; k < args.length; k++) {
+            const t = tries.find(([i]) => i === k);
+            const v = t === undefined ? null : t[1].exec(args[k]);
+            if (v !== null && (call.match(new RegExp(`(?<![\\w.])${v[2]}\\b`, 'g')) ?? []).length === 1) {
+                const lent = declOf(v[2], m.index as number);
+                if (lent !== undefined) edits.push([at, at + args[k].length, `${v[1]}${k === 0 ? lent : `&[${lent}]`}${v[3]}`]);
+            }
+            at += args[k].length + 1;
+        }
+    }
+    edits.sort((a, b) => a[0] - b[0]);
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { if (a < last) continue; out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 010
 //
@@ -7765,6 +7830,8 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     borrowLocalDictKeyLists,
     //
     // pass slot 009
+    moveMapLocalsAtReturn,
+    lendLocalMapBoxes,
     //
     // pass slot 010
     //
