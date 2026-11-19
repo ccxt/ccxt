@@ -6818,6 +6818,56 @@ function lendReaderDefaults(content: string): string {
 }
 //
 // unit slot 017
+// `safe_string_opt` / `safe_string_k_opt` / `safe_string2_opt` take their default as `&[&dyn ScalarArg]`: every
+// default element is lent (a proven scalar local `x`, its clone or its `Value` box lends `&x`), and so is a
+// `safe_string_opt` key boxed or cloned from a scalar local.
+const RUST_LENT_STR_DEFAULT_FNS = ['safe_string_opt', 'safe_string_k_opt', 'safe_string2_opt'];
+function lendStringReaderDefaults(content: string): string {
+    // a nested reader inside a default is lent on the next round (its outer call is skipped once lent)
+    for (let round = 0; round < 4; round++) {
+        const next = lendStringReaderDefaultsOnce(content);
+        if (next === content) break;
+        content = next;
+    }
+    return content;
+}
+function lendStringReaderDefaultsOnce(content: string): string {
+    const scalar = /^(?:Value|f64|i64|String|&(?:'\w+ )?str|Option<(?:String|&(?:'\w+ )?str|f64|i64)>)$/;
+    const typeOf = (name: string, at: number): string => {
+        const fnAt = content.lastIndexOf('fn ', at);
+        const decls = [...content.slice(fnAt, at).matchAll(new RegExp(`(?<![\\w.])${name}\\s*(?::\\s*([^=;,)]+?)\\s*[=;,)]| = __it\\.next\\(\\)\\.unwrap_or_default\\(\\);)`, 'g'))];
+        return decls.length === 0 ? '' : (decls[decls.length - 1][1] ?? 'Value').trim();
+    };
+    // `x`, `x.clone()`, `Value::from(x[.clone()])`, `x[.clone()].map(Value::from).unwrap_or(Value::Null)` of a scalar local
+    const lend = (e: string, at: number, key: boolean): string | undefined => {
+        const m = /^(?:([A-Za-z_]\w*)(?:\.clone\(\))?|Value::from\(([A-Za-z_]\w*)(?:\.clone\(\))?\)|([A-Za-z_]\w*)(?:\.clone\(\))?\.map\(Value::from\)\.unwrap_or\(Value::Null\))$/.exec(e);
+        const name = m === null ? undefined : (m[1] ?? m[2] ?? m[3]);
+        if (name !== undefined && name !== 'self' && name !== 'None' && scalar.test(typeOf(name, at))) return '&' + name;
+        return key ? undefined : '&' + e;
+    };
+    const re = new RegExp(String.raw`\b(${RUST_LENT_STR_DEFAULT_FNS.join('|')})\(`, 'g');
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(re)) {
+        const open = (m.index as number) + m[0].length, close = balancedCloseIndex(content, open);
+        const args = splitRustArgs(content.slice(open, close));
+        const tail = args[args.length - 1].trim();
+        if (args.length !== (m[1] === 'safe_string2_opt' ? 4 : 3) || !tail.startsWith('&[') || tail === '&[]' || balancedCloseIndex(tail, 2) !== tail.length - 1) continue;
+        const elems = splitRustArgs(tail.slice(2, -1)).map(e => e.trim());
+        if (elems.some(e => e.startsWith('&'))) continue;
+        const lentTail = '&[' + elems.map(e => lend(e, open, false) as string).join(', ') + ']';
+        
+        if (m[1] === 'safe_string_opt') {
+            const start = open + args[0].length + 1, k = args[1].trim(), lentKey = lend(k, open, true);
+            if (lentKey !== undefined) edits.push([start + args[1].indexOf(k), start + args[1].indexOf(k) + k.length, lentKey]);
+        }
+        const at = content.lastIndexOf(tail, close);
+        if (at >= open) edits.push([at, at + tail.length, lentTail]);
+    }
+    edits.sort((a, b) => a[0] - b[0]);
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { if (a < last) continue; out += content.slice(last, a) + t; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 018
 //
@@ -7132,6 +7182,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendReaderDefaults,
     //
     // pass slot 017
+    lendStringReaderDefaults,
     //
     // pass slot 018
     //

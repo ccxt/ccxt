@@ -554,6 +554,12 @@ fn cased_or_default(found: Option<String>, upper: bool, optional_args: &[Value])
     }
 }
 
+/// The lent default of the `safe_string*_opt` readers: only a string default is answered (as `arg_default`'s
+/// `Value::Str` arm did); a number, null or missing default is `None`.
+fn lent_str_default(opt: &[&dyn crate::value::ScalarArg]) -> Option<String> {
+    match opt.first().map(|d| d.scalar()) { Some(ScalarRef::Str(d)) => Some(d.to_owned()), _ => None }
+}
+
 /// A lent scalar key as the `Value` key `safe_value` reads (`safe_value` reads every key by its text).
 fn scalar_key(key: &impl crate::value::ScalarArg) -> Value {
     match key.scalar() { ScalarRef::Null => Value::Null, ScalarRef::Num(v) => v, ScalarRef::Str(s) => Value::Str(s.to_owned().into()), ScalarRef::Other(v) => Value::Str(key_str(v).into()) }
@@ -727,29 +733,23 @@ impl Exchange {
     /// `safe_string_k` without the box: same lookup, empty-string and default
     /// rules, `None` where the boxed helper yields `Value::Null`.
     #[inline]
-    pub fn safe_string_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[&dyn crate::value::ScalarArg]) -> Option<String> {
         match self.safe_value_k(obj, key, &[]) {
             Value::Str(s) => Some(s.to_string()),
             Value::Int(n) => Some(n.to_string()),
             Value::Float(f) => Some(f.to_string()),
-            _ => match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            },
+            _ => lent_str_default(optional_args),
         }
     }
 
     /// `safe_string` without the box (Value key): same lookup and default rules.
     #[inline]
-    pub fn safe_string_opt(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_opt(&self, obj: impl crate::value::KeyRead, key: impl crate::value::ScalarArg, optional_args: &[&dyn crate::value::ScalarArg]) -> Option<String> {
         match self.safe_value(obj, scalar_key(&key), &[]) {
             Value::Str(s) => Some(s.to_string()),
             Value::Int(n) => Some(n.to_string()),
             Value::Float(f) => Some(f.to_string()),
-            _ => match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            },
+            _ => lent_str_default(optional_args),
         }
     }
 
@@ -831,13 +831,10 @@ impl Exchange {
     /// `safe_string2` without the box: first key whose `safe_string` is non-null, then the
     /// default; `None` where the boxed helper yields `Value::Null`.
     #[inline]
-    pub fn safe_string2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[&dyn crate::value::ScalarArg]) -> Option<String> {
         self.safe_string_opt(&obj, k1, &[])
             .or_else(|| self.safe_string_opt(obj, k2, &[]))
-            .or_else(|| match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            })
+            .or_else(|| lent_str_default(optional_args))
     }
 
     /// `safe_string_n` without the box: first key whose `safe_string` is non-null, then the

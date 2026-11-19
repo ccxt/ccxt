@@ -576,7 +576,7 @@ pub trait ExchangeOps {
     fn safe_string_n(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Value;
     /// `Option<String>` twins of `safe_string` / `safe_string_n` (the base `_opt` readers: same lookup and
     /// default rules, `None` where the boxed reader yields `Null`).
-    fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Option<String>;
+    fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[&dyn ccxt::value::ScalarArg]) -> Option<String>;
     fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Option<String>;
     fn omit(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value;
     fn omit_zero(&self, s: Value) -> Option<String>;
@@ -656,7 +656,7 @@ impl ExchangeOps for Value {
     fn safe_number(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_number(d, key, o)) }
     fn safe_integer(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
     fn safe_string_n(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
-    fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_opt(obj, key, o)) }
+    fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[&dyn ccxt::value::ScalarArg]) -> Option<String> { with_base(|e| e.safe_string_opt(obj, key, o)) }
     fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_n_opt(d, keys, o)) }
     fn omit(&self, obj: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.omit(obj, keys, o)) }
     fn omit_zero(&self, s: Value)                -> Option<String> { with_base(|e| e.omit_zero(s)) }
