@@ -1193,7 +1193,7 @@ const JAVA_CORE_DELIMITER = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCR
 // BaseExchange methods kept hand-written above the delimiter of BaseExchange.java (typed Pair returns)
 export const JAVA_HAND_WRITTEN_PAIR_METHODS = [
     'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
-    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption',
+    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption', 'handlePostOnly',
 ];
 const javaCoreHandHeads = new Map ();
 const javaCoreProgramState = new WeakMap ();
@@ -15004,6 +15004,7 @@ const PAIR_ELEMENT_TYPES = {
     'handleMarketTypeAndParams': [ 'String', PAIR_MAP ],
     'handleSubTypeAndParams': [ 'Object', PAIR_MAP ],
     'handleUntilOption': [ PAIR_MAP, PAIR_MAP ],
+    'handlePostOnly': [ 'Boolean', PAIR_MAP ],
 };
 const PAIR_ACCESSORS = [ 'first', 'second' ];
 // venue-only [Str, Dict] producers with no override: every `return [a, b]` must still prove its elements
@@ -15011,6 +15012,7 @@ const PAIR_VENUE_TYPES = {
     'handleTypePostOnlyAndTimeInForce': { file: /[\\/]ts[\\/]src[\\/]deepcoin\.ts$/, types: [ 'String', PAIR_MAP ] },
     'getInstType': { file: /[\\/]ts[\\/]src[\\/]pro[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
     'handleProductTypeAndParams': { file: /[\\/]ts[\\/]src[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
+    'orderRequest': { file: /[\\/]ts[\\/]src[\\/]poloniex\.ts$/, types: [ PAIR_MAP, PAIR_MAP ] },
 };
 
 function pairJavaType (types) {
@@ -19903,7 +19905,9 @@ function r77j2IdentifierType (printer, identifier) {
         return undefined;
     }
     try {
-        if (printer.printNode (identifier, 0) !== identifier.text) {
+        // a bare read; `params` prints under its renamed Java spelling `parameters`
+        const printed = printer.printNode (identifier, 0);
+        if (printed !== identifier.text && !(identifier.text === 'params' && printed === 'parameters')) {
             return undefined;
         }
         const param = r77j2ParameterType (printer, identifier);

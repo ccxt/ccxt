@@ -261,7 +261,7 @@ const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.
 // hand-written above the delimiter of BaseExchange.java with typed Pair returns
 const JAVA_HAND_WRITTEN_PAIR_METHODS = [
     'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
-    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption',
+    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption', 'handlePostOnly',
 ];
 // Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
 // methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the

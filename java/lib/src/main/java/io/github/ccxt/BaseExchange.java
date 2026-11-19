@@ -4383,6 +4383,26 @@ public class BaseExchange {
         return new Pair<>(request, parameters);
     }
 
+    // element 1 is the caller's params, or a fresh omit of them when postOnly is set
+    public Pair<Boolean, java.util.Map<String, Object>> handlePostOnly(Object isMarketOrder, Object exchangeSpecificPostOnlyOption, java.util.Map<String, Object> parameters) {
+        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
+        boolean fok = java.util.Objects.equals(timeInForce, "FOK");
+        boolean po = java.util.Objects.equals(timeInForce, "PO");
+        boolean postOnly = Boolean.TRUE.equals(this.safeBool(parameters, "postOnly", false)) || po || Boolean.TRUE.equals(exchangeSpecificPostOnlyOption);
+        if (!postOnly) {
+            return new Pair<>(false, parameters);
+        }
+        if (ioc || fok) {
+            throw new InvalidOrder(((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce));
+        }
+        if (Boolean.TRUE.equals(isMarketOrder)) {
+            throw new InvalidOrder((this.id + " market orders cannot be postOnly"));
+        }
+        List<Object> keysToOmit = po ? new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly")) : new ArrayList<Object>(Arrays.asList("postOnly"));
+        return new Pair<>(true, this.omit(parameters, keysToOmit));
+    }
+
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
@@ -10993,45 +11013,6 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object handlePostOnly(Object isMarketOrder, Object exchangeSpecificPostOnlyOption, Map<String, Object> parameters)
-    {
-        /**
-         * @ignore
-         * @method
-         * @param {string} type Order type
-         * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
-         * @param {object} [params] exchange specific params
-         * @returns {Array}
-         */
-        String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
-        Boolean fok = java.util.Objects.equals(timeInForce, "FOK");
-        Boolean po = java.util.Objects.equals(timeInForce, "PO");
-        Boolean postOnly = Boolean.TRUE.equals(this.safeBool(parameters, "postOnly", false)) || Boolean.TRUE.equals(po) || Boolean.TRUE.equals(exchangeSpecificPostOnlyOption);
-        if (Boolean.TRUE.equals(postOnly))
-        {
-            if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
-            {
-                throw new InvalidOrder(((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if (Boolean.TRUE.equals(isMarketOrder))
-            {
-                throw new InvalidOrder((this.id + " market orders cannot be postOnly")) ;
-            } else
-            {
-                List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList());
-                if (Boolean.TRUE.equals(po))
-                {
-                    keysToOmit = new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly"));
-                } else
-                {
-                    keysToOmit = new ArrayList<Object>(Arrays.asList("postOnly"));
-                }
-                Object paramsOmitted = this.omit(parameters, keysToOmit);
-                return new ArrayList<Object>(Arrays.asList(true, paramsOmitted));
-            }
-        }
-        return new ArrayList<Object>(Arrays.asList(false, parameters));
-    }
 
     public CompletableFuture<LastPrices> fetchLastPrices(List<String> symbols, Map<String, Object> parameters)
     {
