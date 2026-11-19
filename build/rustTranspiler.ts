@@ -968,7 +968,7 @@ const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\
 const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64',
     'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
 // `&mut x` sinks that keep the shape (dict insert / list push / dict delete).
-const CONTAINER_OP_SHAPE_WRITES = /(?:(?<![A-Za-z0-9_:.])(?:add_element_to_object|set_value|append_to_array|remove)\(|(?:^|[^A-Za-z0-9_:.])if let (?:Value::(?:Dict|Arr)\(__[a-z]+\)|\(Value::(?:Dict|Arr)\(__[a-z]+\), ?(?:&mut )?[a-z_][A-Za-z0-9_]*\)) = )$/;
+const CONTAINER_OP_SHAPE_WRITES = /(?:(?<![A-Za-z0-9_:.])(?:add_element_to_object|set_value|append_to_array|append_to_object_array|remove)\(|crate::runtime::append_to_object_array\(|(?:^|[^A-Za-z0-9_:.])if let (?:Value::(?:Dict|Arr)\(__[a-z]+\)|\(Value::(?:Dict|Arr)\(__[a-z]+\), ?(?:&mut )?[a-z_][A-Za-z0-9_]*\)) = )$/;
 
 // Blank out string literals and comments, preserving every offset.
 function containerOpMask (content: string): string {
@@ -1452,6 +1452,33 @@ function nativeContainerOpsCrate (paths: string[]): Map<string, string> {
     return out;
 }
 
+// `let mut ks: Vec<Value> = object_keys(&d)...` whose list is only measured and read as `&str` borrows d's keys:
+// legal only while d is never written, moved or rebound after the declaration in the same fn.
+function containerOpBorrowedKeys (content: string, start: number, close: number, dict: string): Array<{ start: number, end: number, text: string }> | undefined {
+    const tail = '.as_array().cloned().unwrap_or_default();';
+    if (!content.startsWith (tail, close + 1)) return undefined;
+    const lineStart = content.lastIndexOf ('\n', start) + 1;
+    const decl = /^(\s*let mut ([a-z_][A-Za-z0-9_]*)): Vec<Value> = $/.exec (content.slice (lineStart, start));
+    if (decl === null) return undefined;
+    const ks = decl[2];
+    const next = /\n[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g;
+    next.lastIndex = close;
+    const from = close + 1 + tail.length;
+    const m = next.exec (content);
+    const to = m === null ? content.length : m.index;
+    const rest = content.slice (from, to);
+    // The key list is only measured or read as `&str`; the dict is only shared-borrowed afterwards.
+    const read = new RegExp (`\\b${ks}\\.get\\(([a-z_][A-Za-z0-9_]*) as usize\\)\\.and_then\\(Value::as_str\\)`, 'g');
+    if (new RegExp (`\\b${ks}\\b`).test (rest.replace (read, '').replace (new RegExp (`\\b${ks}\\.len\\(\\)`, 'g'), ''))) return undefined;
+    if (new RegExp (`\\b${dict}\\b`).test (rest.replace (new RegExp (`&${dict}\\b(?![.\\w]|\\s*=)`, 'g'), ''))) return undefined;
+    const out = [ { start: lineStart, end: from, text: `${decl[1]}: Vec<&str> = ${dict}.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();` } ];
+    for (const r of rest.matchAll (read)) {
+        const at = from + (r.index as number);
+        out.push ({ start: at, end: at + r[0].length, text: `${ks}.get(${r[1]} as usize).copied()` });
+    }
+    return out;
+}
+
 function containerOpKeyText (key: string): string | undefined {
     const lit = CONTAINER_OP_LITERAL_KEY.exec (key);
     if (lit !== null) return lit[1];
@@ -1509,7 +1536,11 @@ function nativeContainerOps (content: string, onlyFns?: Set<string>): string {
                         ? `matches!(&${expr}, Value::Dict(__d) if __d.contains_key(${key}))`
                         : `matches!((&${expr}, &${key}), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))`;
                 }
-            } else if ((name === 'object_keys' || name === 'object_values') && args.length === 1
+            } else if (name === 'object_keys' && args.length === 1 && kind === 'map' && untagged && recv !== null) {
+                const borrowed = containerOpBorrowedKeys (content, start, close, recv[1]);
+                if (borrowed !== undefined) { rewrites.push (...borrowed); continue; }
+            }
+            if ((name === 'object_keys' || name === 'object_values') && args.length === 1
                 && kind === 'map' && untagged) {
                 const body = name === 'object_keys'
                     ? '__m.keys().map(|__k| Value::Str(__k.clone().into())).collect()'
@@ -1520,6 +1551,7 @@ function nativeContainerOps (content: string, onlyFns?: Set<string>): string {
             rewrites.push ({ start, end: close + 1, text });
         }
         if (rewrites.length === 0) break;
+        rewrites.sort ((x, y) => x.start - y.start);
         let out = '';
         let at = 0;
         for (const r of rewrites) {
@@ -1583,6 +1615,12 @@ function nativeContainerOpsSelfTest (): string[] {
     const foreign = containerOpCrateIndex (new Map ([ [ 'a', def + call ('Value::Null') + '    fn g(&self) { other.shared_parse(x); }\n' ] ]));
     if (foreign.size !== 0) problems.push ('crate index: foreign receiver accepted');
     containerOpQuoted = undefined;
+    // A dict local filled by list appends: its key loop borrows the keys, no per-key clone.
+    const grouped = fn ('        let mut g: Value = Value::Map({\n            let mut m = indexmap::IndexMap::new();\n            m\n        });\n        crate::runtime::append_to_object_array(&mut g, &k, v.clone());\n        let mut ks: Vec<Value> = object_keys(&g).as_array().cloned().unwrap_or_default();\n        while i < (ks.len() as i64) { let mut a: Option<&str> = ks.get(i as usize).and_then(Value::as_str); f(&g, a); }');
+    check ('borrowed keys', grouped, grouped.replace ('let mut ks: Vec<Value> = object_keys(&g).as_array().cloned().unwrap_or_default();', 'let mut ks: Vec<&str> = g.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();').replace ('ks.get(i as usize).and_then(Value::as_str)', 'ks.get(i as usize).copied()'));
+    // A later write to the dict keeps the owned key list.
+    const written = grouped.replace ('f(&g, a);', 'f(&g, a); crate::runtime::append_to_object_array(&mut g, &k, v.clone());');
+    if (nativeContainerOps (written).includes ('Vec<&str>')) problems.push ('borrowed keys: written dict accepted');
     // A side marker keeps the helper: the store holds its entries, not the dict.
     const side = fn ('        let mut storedAsks: Value = self.safe_value_k(book.clone(), "asks", &[]);\n        let n: Value = get_array_length(&storedAsks);');
     if (nativeContainerOps (side) !== side) problems.push ('side marker: helper not kept');
