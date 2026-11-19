@@ -518,7 +518,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             }
             var error = new InvalidNonce(((((((this.id + " watchOrderBook() received an out-of-sequence update for ") + symbolValue) + ", expected ") + String.valueOf(expectedSequence)) + " but got ") + String.valueOf(messageSequence)));
             client.reset(error);
-            ((Map<String,Object>)this.clients).remove((String)client.url);
+            this.clients.remove((String)client.url);
             return false;
         }
         return true;

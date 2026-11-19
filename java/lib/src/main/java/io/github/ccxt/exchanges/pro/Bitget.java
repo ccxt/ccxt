@@ -1236,7 +1236,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Long calculatedChecksum = this.crc32(payload, true);
                 if (!java.util.Objects.equals(calculatedChecksum, responseChecksum))
                 {
-                    this.spawn(() -> { try { this.handleCheckSumError(client, (String) (symbol), messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                    this.spawnWithResult("handleCheckSumError", client, (String) (symbol), messageHash, (String) (this.orderbookChecksumMessage(this.safeString(market, "symbol", ""))));
                     return;
                 }
             }
@@ -1274,13 +1274,13 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }
 
-    public CompletableFuture<Object> handleCheckSumError(Client client, String symbol, String messageHash)
+    public CompletableFuture<Object> handleCheckSumError(Client client, String symbol, String messageHash, String checksumMessage)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             (this.unWatchOrderBook(symbol, new HashMap<String, Object>() {{}})).join();
-            var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
+            var error = new ChecksumError(((this.id + " ") + checksumMessage));
             client.reject(error, messageHash);
             return null;
         });
@@ -2997,23 +2997,23 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     Map<String, Object> entry = this.safeDict(coins, j, null);
                     String currencyId = this.safeString(entry, "coin");
                     String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                    Map<String, Object> account = this.account();
+                    Map<String, Object> coinAccount = this.account();
                     if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                     {
-                        account = (Map<String, Object>) this.safeDict(this.balance, code, account);
+                        coinAccount = (Map<String, Object>) this.safeDict(this.balance, code, coinAccount);
                     }
                     String borrow = this.safeString(entry, "borrow");
                     String debts = this.safeString(entry, "debts");
                     if ((!java.util.Objects.equals(borrow, null)) || (!java.util.Objects.equals(debts, null)))
                     {
-                        Helpers.addElementToObject(account, "debt", Precise.stringAdd(borrow, debts));
+                        Helpers.addElementToObject(coinAccount, "debt", Precise.stringAdd(borrow, debts));
                     }
-                    Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
-                    Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
-                    Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
+                    Helpers.addElementToObject(coinAccount, "free", this.safeString(entry, "available"));
+                    Helpers.addElementToObject(coinAccount, "used", this.safeString(entry, "locked"));
+                    Helpers.addElementToObject(coinAccount, "total", this.safeString(entry, "balance"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        this.balance.put(code, account);
+                        this.balance.put(code, coinAccount);
                     }
                 }
             } else

@@ -1477,7 +1477,7 @@ public class Kalshi extends KalshiApi
             {
                 // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
                 // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-                Object tfKeys = (this.timeframes == null ? new ArrayList<Object>() : new ArrayList<Object>(this.timeframes.keySet()));
+                List<String> tfKeys = (this.timeframes == null ? new ArrayList<String>() : new ArrayList<String>(this.timeframes.keySet()));
                 String supported = String.join(", ", (List<String>)tfKeys);
                 throw new BadRequest((((((this.id + " fetchOHLCV() does not support the ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + " timeframe (supported: ") + supported) + ")")) ;
             }

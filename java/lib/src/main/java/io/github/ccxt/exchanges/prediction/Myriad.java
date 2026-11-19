@@ -4304,7 +4304,7 @@ public class Myriad extends MyriadApi
 
             // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
             Object trades = (this.watchTrades(outcome, since, limit, parameters)).join();
-            List<Object> ohlcvc = this.buildOHLCVC(((Object)trades), java.util.Objects.requireNonNullElse(timeframe, "1m"), 0L, 2147483647L);
+            List<List<Object>> ohlcvc = this.buildOHLCVC(((Object)trades), java.util.Objects.requireNonNullElse(timeframe, "1m"), 0L, 2147483647L);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer ohlcvcLength = ohlcvc.size();
             for (var i = 0; (ohlcvcLength != null && i < ohlcvcLength); i++)

@@ -1301,8 +1301,7 @@ public class Whitebit extends WhitebitApi
                 depositResult.put("percentage", (((!java.util.Objects.equals(depositFee, null)))) ? false : null);
                 if (!java.util.Objects.equals(networkId, null))
                 {
-                    Integer networkLength = networkId.length();
-                    String networkCode = this.networkIdToCode(java.util.Objects.toString(Helpers.slice(networkId, 1, (((long) networkLength) - 1L)), null), code);
+                    String networkCode = this.networkIdToCode(java.util.Objects.toString((networkId == null ? null : ((String)networkId).substring(Math.min(Math.min(1, ((String)networkId).length()), Math.max(((String)networkId).length() - 1, 0)), Math.max(((String)networkId).length() - 1, 0))), null), code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
                         Map<String, Object> feeEntryNetworks = this.safeDict(feeEntry, "networks", new HashMap<String, Object>() {{}});
@@ -2400,7 +2399,7 @@ public class Whitebit extends WhitebitApi
                 {
                     Long start = this.parseToInt((((double) since) / ((double) 1000)));
                     request.put("start", start);
-                    Long rangeEnd = this.parseToInt(this.sum(start, Helpers.multiply(duration, cappedLimit)));
+                    Long rangeEnd = this.parseToInt(this.sum(start, (duration * cappedLimit)));
                     if ((java.util.Objects.equals(endTime, null)) || ((endTime != null && (rangeEnd == null || rangeEnd < endTime))))
                     {
                         endTime = rangeEnd;

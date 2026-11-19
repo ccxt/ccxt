@@ -6946,8 +6946,8 @@ public class Bitget extends BitgetApi
             Boolean historicalEndpointNeeded = (java.util.Objects.equals(useHistoryEndpoint, true));
             // exchange aligns from endTime, so it's important, not startTime
             // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-            Object calculatedStartTime = null;
-            Object calculatedEndTime = null;
+            Long calculatedStartTime = null;
+            Long calculatedEndTime = null;
             if (!java.util.Objects.equals(since, null))
             {
                 calculatedStartTime = since;
@@ -6973,10 +6973,10 @@ public class Bitget extends BitgetApi
                 request.put("endTime", untilEndTime);
                 if (java.util.Objects.equals(since, null))
                 {
-                    Object untilStartTime = (untilEndTime - recentDuration);
+                    Long untilStartTime = (untilEndTime - recentDuration);
                     calculatedStartTime = untilStartTime;
                     // we do not need to set "startTime" here
-                    if ((!java.util.Objects.equals(recentEndpointAvailableDays, null)) && (((!(((Number) untilStartTime).doubleValue() > (now - (((recentEndpointAvailableDays - 1L)) * ((long) msInDay))))))))
+                    if ((!java.util.Objects.equals(recentEndpointAvailableDays, null)) && ((untilStartTime == null || untilStartTime <= (now - (((recentEndpointAvailableDays - 1L)) * ((long) msInDay))))))
                     {
                         historicalEndpointNeeded = true;
                     }
@@ -6988,7 +6988,7 @@ public class Bitget extends BitgetApi
                 Long historicalLimit = ((((recentLimit != null && (maxLimitForHistoryEndpoint == null || recentLimit > maxLimitForHistoryEndpoint))))) ? maxLimitForHistoryEndpoint : recentLimit;
                 limitResolved = historicalLimit;
                 Long historicalDuration = (historicalLimit * duration);
-                calculatedStartTime = Helpers.subtract(calculatedEndTime, historicalDuration);
+                calculatedStartTime = (calculatedEndTime == null ? null : calculatedEndTime - historicalDuration);
                 request.put("startTime", calculatedStartTime);
                 // for contract, maximum 90 days allowed between start-end times
                 if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))

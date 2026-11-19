@@ -3699,10 +3699,6 @@ public class Limitless extends LimitlessApi
                 Boolean matched = false;
                 for (var wi = 0; wi < wanted.size(); wi++)
                 {
-                    if (java.util.Objects.equals(name, null))
-                    {
-                        throw new ExchangeError((this.id + " fetchRawMarketsByTags() missing name")) ;
-                    }
                     if (Helpers.getIndexOf(name, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
                     {
                         matched = true;

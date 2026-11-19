@@ -663,14 +663,14 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         String interval = (channelName == null ? null : ((String)channelName).replaceFirst("candle", ""));
-        Object unifiedTimeframe = this.findTimeframe(interval, (Object) null);
+        String unifiedTimeframe = this.findTimeframe(interval, (Object) null);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, stored);
+            this.ohlcvs.get(symbol).put(unifiedTimeframe, stored);
         }
         for (var i = 0; i < data.size(); i++)
         {

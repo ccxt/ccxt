@@ -2250,10 +2250,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String id = this.safeString(message, "id");
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Map<String, Object> subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-        Object method = this.safeValue(subscription, "method");
-        if (!java.util.Objects.equals(method, null))
+        boolean method = (this.safeValue(subscription, "method")) != null;
+        if (method)
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         return message;
     }

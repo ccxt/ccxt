@@ -2405,7 +2405,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Client client = this.client(url);
                 this.options.remove("listenKey");
                 client.reject(error);
-                ((Map<String,Object>)this.clients).remove((String)client.url);
+                this.clients.remove((String)client.url);
             }
             return null;
         });

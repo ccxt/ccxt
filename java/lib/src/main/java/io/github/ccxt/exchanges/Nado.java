@@ -3517,7 +3517,7 @@ public class Nado extends NadoApi
         {
             throw new BadRequest((this.id + " createOrder() subaccount must fit in 12 bytes")) ;
         }
-        return (("0x" + address) + this.padHex(encoded, 24, false));
+        return (("0x" + address) + this.padHex(encoded, 24L, false));
     }
 
     public CompletableFuture<Map<String, Object>> queryContracts(Map<String, Object> parameters)
@@ -3541,10 +3541,10 @@ public class Nado extends NadoApi
 
     public String orderVerifyingContract(Object productId)
     {
-        return ("0x" + this.padHex(this.intToBase16(productId), 40, true));
+        return ("0x" + this.padHex(this.intToBase16(productId), 40L, true));
     }
 
-    public String padHex(String value, Object length, Boolean left)
+    public String padHex(String value, Long length, Boolean left)
     {
         String zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         if (java.util.Objects.requireNonNullElse(left, true))
@@ -3554,7 +3554,7 @@ public class Nado extends NadoApi
             return (paddedLeft == null ? null : paddedLeft.substring((int) Math.min(Math.min(Math.max(start < 0 ? paddedLeft.length() + start : start, 0), paddedLeft.length()), paddedLeft.length()), (int) paddedLeft.length()));
         }
         String paddedRight = (value + zeros);
-        return Helpers.slice(paddedRight, 0, length);
+        return (paddedRight == null ? null : paddedRight.substring(0, (int) Math.min(length < 0 ? paddedRight.length() + length : length, paddedRight.length())));
     }
 
     public String signOrder(Map<String, Object> order, Object productId, String chainId)
@@ -3672,7 +3672,7 @@ public class Nado extends NadoApi
         String r = this.safeString(signature, "r", "");
         String s = this.safeString(signature, "s", "");
         String v = ((String)this.intToBase16(this.sum(27, signature.get("v")))).toLowerCase();
-        return ((("0x" + this.padHex(r, 64, true)) + this.padHex(s, 64, true)) + v);
+        return ((("0x" + this.padHex(r, 64L, true)) + this.padHex(s, 64L, true)) + v);
     }
 
     public String removeMarketSuffix(String marketId)

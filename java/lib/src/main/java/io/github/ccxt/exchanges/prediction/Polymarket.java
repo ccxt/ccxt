@@ -1708,7 +1708,7 @@ public class Polymarket extends PolymarketApi
             if (!(((Map<?, ?>)this.timeframes).containsKey(java.util.Objects.requireNonNullElse(timeframe, "1m"))))
             {
                 // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
-                Object supportedKeys = (this.timeframes == null ? new ArrayList<Object>() : new ArrayList<Object>(this.timeframes.keySet()));
+                List<String> supportedKeys = (this.timeframes == null ? new ArrayList<String>() : new ArrayList<String>(this.timeframes.keySet()));
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
@@ -4107,9 +4107,9 @@ public class Polymarket extends PolymarketApi
                 }
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
-            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
-            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
+            io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+            io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             Double bestBid = null;
             Double bestBidVolume = null;
             Integer bidsLength = 0;
@@ -4152,8 +4152,8 @@ public class Polymarket extends PolymarketApi
             mapLiteral14.put("outcomeId", this.safeString(market, "outcomeId"));
             mapLiteral14.put("label", this.safeString(market, "label"));
             mapLiteral14.put("market", this.safeString(market, "market"));
-            mapLiteral14.put("timestamp", Helpers.GetValue(orderbook, "timestamp"));
-            mapLiteral14.put("datetime", Helpers.GetValue(orderbook, "datetime"));
+            mapLiteral14.put("timestamp", (orderbook == null ? null : orderbook.get("timestamp")));
+            mapLiteral14.put("datetime", (orderbook == null ? null : orderbook.get("datetime")));
             mapLiteral14.put("high", null);
             mapLiteral14.put("low", null);
             mapLiteral14.put("bid", bestBid);

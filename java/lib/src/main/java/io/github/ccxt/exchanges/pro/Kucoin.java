@@ -2248,10 +2248,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String subscriptionHash = this.safeString(client.subscriptions, id);
         Map<String, Object> subscription = this.safeDict(client.subscriptions, subscriptionHash, null);
         client.subscriptions.remove((String)((String)id));
-        Object method = this.safeValue(subscription, "method");
-        if (!java.util.Objects.equals(method, null))
+        boolean method = (this.safeValue(subscription, "method")) != null;
+        if ((!java.util.Objects.equals(subscription, null)) && (method))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         Boolean isUnSub = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(isUnSub))

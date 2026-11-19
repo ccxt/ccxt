@@ -334,10 +334,10 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String symbol = this.safeString(market, "symbol", "");
             Map<String, Object> marketUpdates = new HashMap<String, Object>() {{}};
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            List<Object> keys = (this.timeframes == null ? new ArrayList<Object>() : new ArrayList<Object>(this.timeframes.keySet()));
+            List<String> keys = (this.timeframes == null ? new ArrayList<String>() : new ArrayList<String>(this.timeframes.keySet()));
             for (var j = 0; j < keys.size(); j++)
             {
-                Object timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
+                String timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                 String interval = this.safeString(this.timeframes, timeframe, timeframe);
                 Long duration = (this.parseToInt(interval) * 1000L);
                 Long timestamp = this.safeInteger(ohlcv, 0);
@@ -352,7 +352,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 {
                     Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                     stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                    Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                    this.ohlcvs.get(symbol).put(timeframe, stored);
                 }
                 Integer length = (stored == null ? 0 : stored.size());
                 Object previous = this.safeValue(stored, (((long) length) - 1L));
@@ -384,7 +384,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                     stored.append(new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(previous, 1), high, low, this.safeFloat(ohlcv, 4), this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5)))));
                     if (!java.util.Objects.equals(marketId, null))
                     {
-                        marketUpdates.put((String)timeframe, true);
+                        marketUpdates.put(timeframe, true);
                     }
                 } else
                 {
@@ -398,7 +398,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                     stored.append(parsed);
                     if (!java.util.Objects.equals(marketId, null))
                     {
-                        marketUpdates.put((String)timeframe, true);
+                        marketUpdates.put(timeframe, true);
                     }
                 }
             }
@@ -635,10 +635,10 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Map<String, Object> subscription = this.safeDict(subscriptionsById, id, null);
         if (!java.util.Objects.equals(subscription, null))
         {
-            Object method = this.safeValue(subscription, "method");
-            if (!java.util.Objects.equals(method, null))
+            boolean method = (this.safeValue(subscription, "method")) != null;
+            if (method)
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
+                this.handleOrderBookSubscription(client, message, subscription);
             }
         }
     }

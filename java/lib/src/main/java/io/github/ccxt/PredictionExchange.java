@@ -284,18 +284,10 @@ public Map<String, Object> describe()
             for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
             {
                 String q = this.safeString(queries, qi, "").toLowerCase();
-                if (java.util.Objects.equals(title, null))
-                {
-                    throw new ExchangeError((this.id + " filterEventsBySearchIn() missing title")) ;
-                }
                 if (Boolean.TRUE.equals(checkTitle) && (((String)title).indexOf(q) >= 0))
                 {
                     matched = true;
                     break;
-                }
-                if (java.util.Objects.equals(description, null))
-                {
-                    throw new ExchangeError((this.id + " filterEventsBySearchIn() missing description")) ;
                 }
                 if (Boolean.TRUE.equals(checkDescription) && (((String)description).indexOf(q) >= 0))
                 {

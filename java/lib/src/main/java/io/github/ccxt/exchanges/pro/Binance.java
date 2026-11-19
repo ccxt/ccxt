@@ -241,7 +241,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
-        Helpers.addElementToObject(options, url, newValue);
+        options.put(url, newValue);
         this.options.put("requestId", options);
         return newValue;
     }
@@ -2975,10 +2975,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // subscribe per underlying, not per contract
                         String baseIdLower = this.safeStringLower(market, "baseId", "");
                         String quoteIdLower = this.safeStringLower(market, "quoteId", "");
-                        Object underlying = ((baseIdLower + "") + quoteIdLower);
+                        String underlying = ((baseIdLower + "") + quoteIdLower);
                         if (!(seenUnderlyings.containsKey(underlying)))
                         {
-                            seenUnderlyings.put((String)underlying, true);
+                            seenUnderlyings.put(underlying, true);
                             ((List<Object>)subscriptionArgs).add((underlying + "@optionMarkPrice"));
                         }
                     } else if (Boolean.TRUE.equals(isOptionTicker))
@@ -2990,7 +2990,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         String expiryDate = this.safeString(parts, 1, "");
                         String baseIdLower = this.safeStringLower(market, "baseId", "");
                         String quoteIdLower = this.safeStringLower(market, "quoteId", "");
-                        Object underlying = ((baseIdLower + "") + quoteIdLower);
+                        String underlying = ((baseIdLower + "") + quoteIdLower);
                         String subscriptionArg = ((underlying + "@optionTicker@") + expiryDate);
                         if (!(seenUnderlyings.containsKey(subscriptionArg)))
                         {
@@ -3962,7 +3962,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             mapLiteral7.put("lastAuthenticatedTime", time);
             this.options.put(type, this.extend(options, mapLiteral7));
             // whether or not to schedule another listenKey keepAlive request
-            List<Object> clients = Helpers.objectValues(this.clients);
+            List<Object> clients = (this.clients == null ? new ArrayList<Object>() : new ArrayList<Object>(this.clients.values()));
             String refreshRateKey = "listenKeyRefreshRate";
             if (Boolean.TRUE.equals(isStock))
             {

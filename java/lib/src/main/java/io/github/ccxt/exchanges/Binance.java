@@ -6754,9 +6754,9 @@ public class Binance extends BinanceApi
                     symbolsNormalized = this.marketSymbols(symbolsNormalized, (Object) null, true, false, false);
                     Map<String, Object> request = new HashMap<String, Object>();
                     request.put("symbols", this.json(this.marketIds(symbolsNormalized)));
-                    response = (this.publicGetTicker(this.extend(request, paramsMarketType))).join();
+                    List<Object> rollingResponse = (this.publicGetTicker(this.extend(request, paramsMarketType))).join();
                     // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                    return this.parseTickersForRolling(response, symbolsNormalized);
+                    return this.parseTickersForRolling(rollingResponse, symbolsNormalized);
                 } else
                 {
                     Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -6778,10 +6778,10 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseTickersForRolling(Object response, Object symbols)
+    public Object parseTickersForRolling(List<Object> response, Object symbols)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+        for (var i = 0; i < response.size(); i++)
         {
             String marketId = this.safeString(this.safeDict(response, i, null), "symbol");
             Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "spot");
@@ -7044,7 +7044,7 @@ public class Binance extends BinanceApi
                         int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                         Long endTime = (Long) this.sum(since, (((limitValue * ((long) duration)) * 1000L) - 1L));
                         Long now = this.milliseconds();
-                        request.put("endTime", (now == null || endTime == null ? null : (((Number) now).doubleValue() < ((Number) endTime).doubleValue() ? (Object) (now) : (Object) (endTime))));
+                        request.put("endTime", Math.min(now, endTime));
                     }
                 }
             }
@@ -13966,10 +13966,10 @@ public class Binance extends BinanceApi
                 // sometimes not all the codes are correctly returned...
                 if (balances.containsKey(code))
                 {
-                    HashMap<String, Object> j39v16 = new HashMap<String, Object>();
-                    j39v16.put("crossMargin", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
-                    j39v16.put("crossWalletBalance", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
-                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, j39v16)), market);
+                    HashMap<String, Object> j39v13 = new HashMap<String, Object>();
+                    j39v13.put("crossMargin", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
+                    j39v13.put("crossWalletBalance", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
+                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, j39v13)), market);
                     ((List<Object>)result).add(parsed);
                 }
             }
@@ -16657,7 +16657,7 @@ public class Binance extends BinanceApi
             {
                 throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
             }
-            return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v17 = new HashMap<String, Object>(); j39v17.put("code", code); yield j39v17; } }));
+            return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>(); j39v14.put("code", code); yield j39v14; } }));
         });
 
     }

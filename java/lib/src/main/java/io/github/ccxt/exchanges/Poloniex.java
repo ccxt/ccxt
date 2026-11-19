@@ -939,7 +939,7 @@ public class Poloniex extends PoloniexApi
                 Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
                 Long firstCandle = (this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration)))))) * duration);
                 Long endTimeByLimit = (Long) this.sum(firstCandle, (duration * ((limit - 1L))));
-                ((Map<String, Object>)requestUntil).put(keyEnd, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(endTimeByLimit, this.milliseconds()));
+                ((Map<String, Object>)requestUntil).put(keyEnd, Math.min(endTimeByLimit, this.milliseconds()));
             }
             if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {

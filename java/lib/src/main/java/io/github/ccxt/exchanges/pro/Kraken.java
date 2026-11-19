@@ -765,7 +765,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
         Long interval = this.safeInteger(first, "interval");
-        Object timeframe = ((String)this.findTimeframe(interval, (Object) null));
+        String timeframe = ((String)this.findTimeframe(interval, (Object) null));
         String messageHash = this.getMessageHash("ohlcv", (String) null, symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -773,7 +773,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+            this.ohlcvs.get(symbol).put(timeframe, stored);
         }
         Integer ohlcvsLength = data.size();
         for (var i = 0; (ohlcvsLength != null && i < ohlcvsLength); i++)

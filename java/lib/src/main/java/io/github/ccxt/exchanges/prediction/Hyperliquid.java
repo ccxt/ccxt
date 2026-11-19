@@ -1018,14 +1018,14 @@ public class Hyperliquid extends HyperliquidApi
             {
                 int tf = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                 Long candleCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
-                Object startOffset = ((((long) tf) * candleCount) * -1000L);
-                Object shiftedStart = this.sum(until, startOffset);
+                Long startOffset = ((((long) tf) * candleCount) * -1000L);
+                Long shiftedStart = this.sum(until, startOffset);
                 startTime = shiftedStart;
                 if (java.util.Objects.equals(startTime, null))
                 {
                     throw new ExchangeError((this.id + " fetchOHLCV() missing startTime")) ;
                 }
-                if (((!(((Number) shiftedStart).doubleValue() >= 0))))
+                if (((shiftedStart == null || shiftedStart < 0)))
                 {
                     startTime = 0;
                 }

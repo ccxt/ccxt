@@ -2176,8 +2176,24 @@ public class Bitso extends BitsoApi
                 put( "address", address );
                 put( "destination_tag", tagWithdrawTag );
             }};
-            String classMethod = (("privatePost" + method) + "Withdrawal");
-            Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, classMethod, new Object[] { this.extend(request, paramsWithdrawTag) })).join();
+            Map<String, Object> withdrawRequest = this.extend(request, paramsWithdrawTag);
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(method, "Bitcoin"))
+            {
+                response = (this.privatePostBitcoinWithdrawal(withdrawRequest)).join();
+            } else if (java.util.Objects.equals(method, "Ether"))
+            {
+                response = (this.privatePostEtherWithdrawal(withdrawRequest)).join();
+            } else if (java.util.Objects.equals(method, "Ripple"))
+            {
+                response = (this.privatePostRippleWithdrawal(withdrawRequest)).join();
+            } else if (java.util.Objects.equals(method, "Bcash"))
+            {
+                response = (this.privatePostBcashWithdrawal(withdrawRequest)).join();
+            } else
+            {
+                response = (this.privatePostLitecoinWithdrawal(withdrawRequest)).join();
+            }
             //
             //     {
             //         "success": true,

@@ -218,44 +218,44 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Integer channelsLength = ((List<?>)channels).size();
             for (var attempt = 0; (channelsLength != null && attempt < channelsLength); attempt++)
             {
-                List<Object> pending = (List<Object>) this.unsubscribedChannels(url, channels);
+                List<Long> pending = this.unsubscribedChannels(url, channels);
                 Integer pendingLength = pending.size();
                 if (((pendingLength == null || pendingLength < 2)))
                 {
                     break;
                 }
-                Object channel = Helpers.GetValue(channels, (pending == null || 0 >= ((List<?>)pending).size() ? null : ((List<?>)pending).get(0)));
+                Object channel = (channels == null || pending == null || 0 >= pending.size() || pending.get(0) == null || pending.get(0).intValue() < 0 || pending.get(0).intValue() >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(pending.get(0).intValue()));
                 Map<String, Object> pendingRequest = this.subscribeRequest((String) (channel));
                 (this.sendRequest((String) (url), (Map<String, Object>) (this.deepExtend(pendingRequest, parameters)), java.util.Objects.toString(channel, null))).join();
             }
             // the last one goes with the watch, so that an update sent right after it is not missed
-            List<Object> missing = (List<Object>) this.unsubscribedChannels(url, channels);
+            List<Long> missing = this.unsubscribedChannels(url, channels);
             Integer missingLength = missing.size();
             if (java.util.Objects.equals(missingLength, 0))
             {
                 return (this.watchMultiple((String) (url), messageHashes, null, channels, null)).join();
             }
-            Object index = (missing == null || 0 >= ((List<?>)missing).size() ? null : ((List<?>)missing).get(0));
-            Map<String, Object> request = this.subscribeRequest((String) (Helpers.GetValue(channels, index)));
+            Long index = (missing == null || 0 >= missing.size() ? null : missing.get(0));
+            Map<String, Object> request = this.subscribeRequest((String) ((channels == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(index.intValue()))));
             // a failed subscribe rejects the watchers of its own channel only
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", request.get("id") );
-                put( "messageHashes", new ArrayList<Object>(Arrays.asList(Helpers.GetValue(messageHashes, index))) );
+                put( "messageHashes", new ArrayList<Object>(Arrays.asList((messageHashes == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(index.intValue())))) );
             }};
-            return (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(channels, index))), subscription)).join();
+            return (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), new ArrayList<Object>(Arrays.asList((channels == null || index == null || index.intValue() < 0 || index.intValue() >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(index.intValue())))), subscription)).join();
         });
 
     }
 
-    public List<Object> unsubscribedChannels(String url, Object channels)
+    public List<Long> unsubscribedChannels(String url, Object channels)
     {
         Client client = this.client(url);
-        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        List<Long> result = new ArrayList<Long>();
         for (var i = 0; i < ((List<?>)channels).size(); i++)
         {
             if (!(client.subscriptions.containsKey((channels == null || i < 0 || i >= ((List<?>)channels).size() ? null : ((List<?>)channels).get(i)))))
             {
-                ((List<Object>)result).add(i);
+                result.add(((long) i));
             }
         }
         return result;

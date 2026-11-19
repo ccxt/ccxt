@@ -11560,7 +11560,7 @@ public Map<String, Object> describe()
             Pair<String, Map<String, Object>> paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRemoveRepeated), (String) (method), "paginationDirection", "backward");
             String paginationDirection = paginationDirectionparamsPaginationDirectionVariable.first();
             Map<String, Object> paramsPaginationDirection = paginationDirectionparamsPaginationDirectionVariable.second();
-            Object paginationTimestamp = null;
+            Long paginationTimestamp = null;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             long errors = 0;
             Long until = this.safeIntegerN(paramsPaginationDirection, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
@@ -11613,7 +11613,7 @@ public Map<String, Object> describe()
                             shouldBreak = true;
                             break;
                         }
-                        if ((!java.util.Objects.equals(since, null)) && ((paginationTimestamp == null || (since != null && !(((Number) paginationTimestamp).doubleValue() > since)))))
+                        if ((!java.util.Objects.equals(since, null)) && ((paginationTimestamp == null || (since != null && paginationTimestamp <= since))))
                         {
                             shouldBreak = true;
                             break;
@@ -11954,7 +11954,7 @@ public Map<String, Object> describe()
             {
                 try
                 {
-                    Helpers.addElementToObject(paramsMaxEntriesPerRequest, ((String)pageKey), (((long) i) + 1L));
+                    paramsMaxEntriesPerRequest.put(((String)pageKey), (((long) i) + 1L));
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
                     errors = 0;
                     Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v49 -> j39v49.size(); case String j39v50 -> j39v50.length(); case Object j39v51 -> j39v51.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v51) : 0; });
@@ -12584,7 +12584,7 @@ public Map<String, Object> describe()
             } else if (java.util.Objects.equals(topic, "positions") && (!java.util.Objects.equals(this.positions, null)))
             {
                 this.positions = null;
-                List<Object> clients = Helpers.objectValues(this.clients);
+                List<Object> clients = (this.clients == null ? new ArrayList<Object>() : new ArrayList<Object>(this.clients.values()));
                 for (var i = 0; i < clients.size(); i++)
                 {
                     Client client = (Client)(clients == null || i < 0 || i >= clients.size() ? null : clients.get(i));
