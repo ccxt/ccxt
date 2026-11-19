@@ -742,7 +742,7 @@ function insertChainCallArgs (text: string, name: string): string[] | undefined 
 function keyConv (arg: string, intermediate: boolean, body?: string): string | undefined {
     const lit = arg.trim().match(LITERAL_KEY);
     if (lit !== null) return lit[1] + '.to_string()';
-    if (intermediate) return undefined;
+    if (intermediate) return body !== undefined && boxedStrKey(arg, body) ? 'crate::runtime::stringify_param(&' + arg.trim().slice(1) + ')' : undefined;
     const place = arg.trim().match(PLACE_KEY);
     if (place !== null) return 'crate::runtime::stringify_param(&' + place[1] + ')';
     // a `String` local boxed as a `Value::Str` key is that string
@@ -891,7 +891,7 @@ function nativeInserts (content: string): string {
         else continue;
         const keys: string[] = [];
         for (const k of chain.reverse()) {
-            const conv = keyConv(k, true);
+            const conv = keyConv(k, true, body);
             if (conv === undefined) { ok = false; break; }
             keys.push(conv);
         }
@@ -8987,6 +8987,23 @@ function lendAlgoLiterals(content: string): string {
 // unit slot 089
 //
 // unit slot 090
+/** `&x` where the `Value` local `x` is bound once to a value that is always `Value::Str` (a `Str` literal, or an
+ *  `Option<String>` local boxed only on the branch that tests it present): a nested hop keys the map by that string. */
+function boxedStrKey (arg: string, body: string): boolean {
+    const id = arg.trim().match(/^&([a-z][A-Za-z0-9_]*)$/);
+    if (id === null) return false;
+    const x = id[1];
+    if (new RegExp('&mut ' + x + '\\b|(^|[^.\\w])' + x + '[ \\t]*=(?!=)', 'm').test(body)) return false;
+    const decls = [...body.matchAll(new RegExp('^[ \\t]*let mut ' + x + ': Value = (.*);$', 'gm'))];
+    if (decls.length !== 1) return false;
+    const str = (v: string) => /^Value::Str\((?:"(?:[^"\\]|\\.)*"\.into\(\)|format!\([^()]*(?:\([^()]*\))?[^()]*\)\.into\(\))\)$/.test(v.trim());
+    const m = decls[0][1].match(/^\(if \(([a-z]\w*)\.is_(some|none)\(\)\) \{ (.*) \} else \{ (.*) \}\)$/);
+    if (m === null) return str(decls[0][1]);
+    const [, o, test, a, b] = m;
+    const some = test === 'some' ? a : b;
+    const other = test === 'some' ? b : a;
+    return new RegExp('^[ \\t]*let mut ' + o + ': Option<String> = ', 'm').test(body) && some.trim() === o + '.clone().map(Value::from).unwrap_or(Value::Null)' && str(other);
+}
 //
 // unit slot 091
 /** `list` is bound once to `[Value::Arr(]self.parse_positions(..)` (base body, overridden neither here nor on the REST parent:
