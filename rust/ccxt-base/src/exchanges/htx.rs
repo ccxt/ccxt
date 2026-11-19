@@ -6521,7 +6521,7 @@ impl Htx {
             }
             let mut tick: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "tick");
             let mut timestamp: Option<i64> = self.safe_integer_k(&tick, "ts", &[self.safe_integer_k(&response, "ts", &[])]).as_i64();
-            let mut result: indexmap::IndexMap<String, Value> = self.parse_order_book(&tick, symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+            let mut result: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&tick, symbol, &[Value::from(timestamp)]));
             result.insert("nonce".into(), self.safe_integer_k(&tick, "version", &[]));
             return Value::Map(result);
         }

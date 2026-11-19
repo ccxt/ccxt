@@ -2925,7 +2925,7 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut result: crate::value::Dict = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("remaining_base_amount".into())]).into_dict();
+        let mut result: crate::value::Dict = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("remaining_base_amount".into())]);
         return Value::Dict(result);
         Value::Null
         }).await?))

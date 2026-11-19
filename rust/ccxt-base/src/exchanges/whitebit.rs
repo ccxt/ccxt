@@ -3463,7 +3463,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //      }
         //
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&response, "timestamp", &[]).as_i64();
-        return self.parse_order_book(&response, symbol, &[Value::from(timestamp)]);
+        return Value::Dict(self.parse_order_book(&response, symbol, &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

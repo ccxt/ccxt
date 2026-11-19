@@ -3179,7 +3179,7 @@ impl Backpack {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOrderBook() missing microseconds")));
         }
         let mut timestamp: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = microseconds { Some((__l as f64) / 1000.0) } else { None })));
-        let mut orderbook: crate::value::Dict = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]).into_dict();
+        let mut orderbook: crate::value::Dict = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]);
         std::sync::Arc::make_mut(&mut orderbook).insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
         if (limit != Value::Null) {
             { let __be_tmp = self.array_slice(crate::value::KeyRead::key_read(&&orderbook, "bids"), Value::Int(0), &[limit.clone()]); std::sync::Arc::make_mut(&mut orderbook).insert("bids".into(), __be_tmp); }

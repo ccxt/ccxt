@@ -2406,7 +2406,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut depth: String = (match message.get("dp") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uta:orderbook:", symbol).into()), ":depth:").into()), depth);
         if (type_var.as_deref() == Some("snapshot")) {
-            let mut parsed: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Int(0), Value::Int(1)]).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Int(0), Value::Int(1)]);
             std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), self.safe_integer_k(&data, "O", &[]));
             orderbook.reset(Value::Dict(parsed));
             CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());

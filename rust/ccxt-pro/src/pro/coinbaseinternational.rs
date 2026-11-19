@@ -2163,7 +2163,7 @@ impl Coinbaseinternational {
             return;
         }
         if isGrouped {
-            orderbook.reset(self.parse_order_book(&data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
+            orderbook.reset(Value::Dict(self.parse_order_book(&data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())])));
         }  else {
             let mut previousChangeId: Option<i64> = self.safe_integer_k(&data, "prev_change_id", &[]).as_i64();
             if (type_var.as_deref() != Some("snapshot")) && (nonce.is_some()) && (previousChangeId != nonce) {

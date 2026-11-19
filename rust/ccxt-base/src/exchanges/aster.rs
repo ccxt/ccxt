@@ -3215,7 +3215,7 @@ impl Aster {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "T", &[]).as_i64();
-        return self.parse_order_book(&response, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
+        return Value::Dict(self.parse_order_book(&response, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
         Value::Null
         }).await?))
     }

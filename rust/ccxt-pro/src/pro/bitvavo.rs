@@ -1411,7 +1411,7 @@ impl Bitvavo {
         if (orderbook.is_none()) {
             return;
         }
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&response, Value::from(symbol.as_deref()), &[]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&response, Value::from(symbol.as_deref()), &[]);
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&response, "nonce", &[]));
         orderbook.reset(Value::Dict(snapshot));
         // unroll the accumulated deltas

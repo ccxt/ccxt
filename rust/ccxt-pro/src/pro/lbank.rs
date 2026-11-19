@@ -1366,7 +1366,7 @@ if _try_result.is_err() {
 })]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&orderBook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&orderBook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(Value::Dict(snapshot));
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());

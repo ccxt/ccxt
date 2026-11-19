@@ -2606,7 +2606,7 @@ impl Bitrue {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer2(&response, Value::Str("time".into()), Value::Str("lastUpdateId".into()), &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(response.clone(), symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(response.clone(), symbol, &[Value::from(timestamp)]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
         return Value::Map(orderbook);
         Value::Null

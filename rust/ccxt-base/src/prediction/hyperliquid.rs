@@ -1541,7 +1541,7 @@ impl Hyperliquid {
         m.insert("bids".to_string(), Value::from(bids));
         m.insert("asks".to_string(), Value::from(asks));
     m
-}), self.safe_string_k(&outcomeObj, "outcome", &[outcome]), &[Value::from(timestamp)]).into_dict();
+}), self.safe_string_k(&outcomeObj, "outcome", &[outcome]), &[Value::from(timestamp)]);
         return self.safe_prediction_order_book(Value::Dict(orderbook), &[crate::Value::from(outcomeObj.as_ref())]);
         Value::Null
         }).await?))

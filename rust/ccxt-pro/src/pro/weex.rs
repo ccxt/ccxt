@@ -1504,7 +1504,7 @@ impl Weex {
         let mut event: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut nonce: Option<i64> = (match __pro_message.get("u") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         if (event.as_deref() == Some("depthSnapshot")) {
-            let mut parsed: crate::value::Dict = self.parse_order_book(message, Value::from(symbol), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_order_book(message, Value::from(symbol), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
             std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), Value::from(nonce));
             orderbook.reset(Value::Dict(parsed));
         }  else {

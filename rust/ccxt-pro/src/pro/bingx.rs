@@ -1059,9 +1059,9 @@ impl Bingx {
         let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("timestamp".into()), Value::Str("ts".into()), &[]).as_i64();
         timestamp = self.safe_integer2(&data, Value::Str("timestamp".into()), Value::Str("ts".into()), &[Value::from(timestamp)]).as_i64();
         if ((market).inverse == Some(true)) {
-            snapshot = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
+            snapshot = Value::Dict(self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]));
         }  else {
-            snapshot = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+            snapshot = Value::Dict(self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         }
         let mut nonce: Option<i64> = self.safe_integer_k(&data, "lastUpdateId", &[]).as_i64();
         snapshot.set_book_meta("nonce", Value::from(nonce));

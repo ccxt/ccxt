@@ -1110,7 +1110,7 @@ impl Coincheck {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_order_books", &[__ws_arg_0]).await;
-        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]);
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]));
         Value::Null
         }).await?))
     }

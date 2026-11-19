@@ -1609,7 +1609,7 @@ impl Aster {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
         orderbook.reset(Value::Dict(snapshot));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbol.as_deref().unwrap_or("null"));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());

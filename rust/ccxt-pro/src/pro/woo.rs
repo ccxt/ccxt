@@ -533,7 +533,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             let mut timestamp: Option<i64> = (match __pro_message.get("ts") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), topic.as_deref());
         }

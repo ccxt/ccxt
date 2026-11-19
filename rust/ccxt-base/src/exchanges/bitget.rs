@@ -9375,7 +9375,7 @@ if _try_result.is_err() {
             asksKey = "a".to_string();
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
-        return self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
+        return Value::Dict(self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]));
         Value::Null
         }).await?))
     }

@@ -1725,7 +1725,7 @@ impl Krakenfutures {
         if (asks.is_none()) {
             return;
         }
-        let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("qty".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("qty".into())]);
         orderbook.reset(Value::Dict(snapshot));
         client.resolve(Value::from(&orderbook), messageHash.as_deref());
 }

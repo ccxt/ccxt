@@ -1248,7 +1248,7 @@ impl Independentreserve {
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_get_order_book", &[__ws_arg_0]).await;
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "CreatedTimestampUtc", &[]));
-        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("BuyOrders".into()), Value::Str("SellOrders".into()), Value::Str("Price".into()), Value::Str("Volume".into())]);
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("BuyOrders".into()), Value::Str("SellOrders".into()), Value::Str("Price".into()), Value::Str("Volume".into())]));
         Value::Null
         }).await?))
     }

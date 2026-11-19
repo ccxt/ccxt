@@ -216,7 +216,7 @@ impl Coincheck {
         let mut symbol: String = self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&message, Value::Int(0), &[])).as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut data: crate::value::Dict = self.safe_dict_t(message, Value::Int(1));
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&data, "last_update_at", &[]).as_i64();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp)]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp)]);
         let mut orderbook: crate::pro::order_book::Book = self.order_book(&[Value::Dict(snapshot)]);
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);

@@ -506,7 +506,7 @@ impl crate::exchange::DerivedExchange for Ndax {
 
     Value::Null
 }
-    fn parse_order_book(&self, orderbook: impl Into<crate::Value>, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn parse_order_book(&self, orderbook: impl Into<crate::Value>, mut symbol: Value, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut orderbook: Value = orderbook.into();
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
         let mut bidsKey = get_arg(optional_args, 1, Value::Str("bids".into()));
@@ -555,9 +555,9 @@ impl crate::exchange::DerivedExchange for Ndax {
         result.insert("timestamp".into(), Value::from(latestTimestamp));
         result.insert("datetime".into(), self.iso8601(latestTimestamp));
         result.insert("nonce".into(), Value::from(nonce));
-        return Value::Map(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
     fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let mut depositAddress: Value = depositAddress.into();
@@ -993,7 +993,7 @@ impl crate::exchange_generated::ExchangeBase for Ndax {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_order_book" => self.parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+                "parse_order_book" => Value::Dict(self.parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2090,7 +2090,7 @@ impl Ndax {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.call_method_lt("public_get_get_l2_snapshot", &[__ws_arg_4]).await;
-        return self.parse_order_book(&response, symbol, &[]);
+        return Value::Dict(self.parse_order_book(&response, symbol, &[]));
         Value::Null
         }).await?))
     }

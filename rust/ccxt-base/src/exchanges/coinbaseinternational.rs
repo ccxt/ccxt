@@ -2759,7 +2759,7 @@ impl Coinbaseinternational {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut timestamp: Option<i64> = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
-        return self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        return Value::Dict(self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

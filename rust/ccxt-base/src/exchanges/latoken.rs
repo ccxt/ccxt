@@ -1793,7 +1793,7 @@ impl Latoken {
                 m.insert("bid".to_string(), Value::from(bids));
             m
         });
-        return self.parse_order_book(Value::Map(filtered), symbol, &[Value::Null, Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        return Value::Dict(self.parse_order_book(Value::Map(filtered), symbol, &[Value::Null, Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("quantity".into())]));
         Value::Null
         }).await?))
     }

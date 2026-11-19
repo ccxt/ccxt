@@ -1569,7 +1569,7 @@ impl Cex {
         //
         let mut orderBook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut timestamp: Option<i64> = self.safe_integer_k(&orderBook, "timestamp", &[]).as_i64();
-        return self.parse_order_book(&orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        return Value::Dict(self.parse_order_book(&orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

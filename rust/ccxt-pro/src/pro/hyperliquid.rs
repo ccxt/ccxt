@@ -646,7 +646,7 @@ impl Hyperliquid {
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "time", &[]).as_i64();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(data), Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(data), Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]);
         if !(self.orderbooks.has(&symbol)) {
             let mut ob: crate::pro::order_book::Book = self.order_book(&[Value::from(&snapshot)]);
             CacheStore::put(&mut self.orderbooks, &symbol, ob);

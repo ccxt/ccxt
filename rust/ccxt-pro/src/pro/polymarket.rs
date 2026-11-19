@@ -391,7 +391,7 @@ impl Polymarket {
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut data: crate::value::Dict = message.key_dict("data");
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut snapshot: Value = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+        let mut snapshot: Value = Value::Dict(self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]));
         snapshot.set_book_meta("nonce", (match message.get("sq") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
         if !(self.orderbooks.has(&symbol)) {
             let mut ob: crate::pro::order_book::Book = self.order_book(&[snapshot.clone()]);

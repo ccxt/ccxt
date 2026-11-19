@@ -1500,7 +1500,7 @@ impl Bitget {
                     bidsKey = "b".to_string();
                 }
             }
-            let mut parsedOrderbook: crate::value::Dict = self.parse_order_book(rawOrderBook, Value::from(symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]).into_dict();
+            let mut parsedOrderbook: crate::value::Dict = self.parse_order_book(rawOrderBook, Value::from(symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
             orderbook.reset(Value::Dict(parsedOrderbook));
         }
         client.resolve(Value::from(self.orderbooks.at(&symbol)), messageHash.as_str());

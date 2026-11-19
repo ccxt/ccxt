@@ -2443,9 +2443,9 @@ impl Lbank {
         let mut orderbook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut timestamp: i64 = self.milliseconds();
         if (market).swap {
-            return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
+            return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]));
         }
-        return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
         Value::Null
         }).await?))
     }

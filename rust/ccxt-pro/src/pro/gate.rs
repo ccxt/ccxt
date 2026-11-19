@@ -1037,7 +1037,7 @@ impl Gate {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if full {
-            let mut snapshopt: crate::value::Dict = self.parse_order_book(&result, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+            let mut snapshopt: crate::value::Dict = self.parse_order_book(&result, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("b".into()), Value::Str("a".into())]);
             std::sync::Arc::make_mut(&mut snapshopt).insert("nonce".into(), self.safe_integer_k(&result, "u", &[]));
             std::sync::Arc::make_mut(&mut snapshopt).insert("timestamp".into(), self.safe_integer_k(&result, "t", &[]));
             orderbook.reset(Value::Dict(snapshopt));

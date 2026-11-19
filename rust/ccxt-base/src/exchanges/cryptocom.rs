@@ -2866,7 +2866,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut data: crate::value::List = self.safe_list_k_t(&result, "data");
         let mut orderBook: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
         let mut timestamp: Option<i64> = self.safe_integer_k(&orderBook, "t", &[]).as_i64();
-        return self.parse_order_book(&orderBook, symbol, &[Value::from(timestamp)]);
+        return Value::Dict(self.parse_order_book(&orderBook, symbol, &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

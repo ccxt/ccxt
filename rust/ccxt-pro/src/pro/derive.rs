@@ -332,7 +332,7 @@ impl Derive {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(Value::Dict(snapshot));
         client.resolve(Value::from(&orderbook), topic.as_deref());
 }

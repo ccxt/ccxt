@@ -2571,7 +2571,7 @@ impl Kraken {
         if (wsName.is_some()) {
             orderbook = self.safe_dict(&result, wsName.map(Value::from).unwrap_or(Value::Null), &[orderbook]);
         }
-        return self.parse_order_book(orderbook, symbol, &[]);
+        return Value::Dict(self.parse_order_book(orderbook, symbol, &[]));
         Value::Null
         }).await?))
     }

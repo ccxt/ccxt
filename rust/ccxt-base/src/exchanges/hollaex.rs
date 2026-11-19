@@ -1505,7 +1505,7 @@ impl Hollaex {
             let mut orderbook: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
             let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp)]));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp)])));
         }
         }
         return Value::Map(result);
@@ -1567,7 +1567,7 @@ impl Hollaex {
         //
         let mut orderbook: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from((market).id.as_deref()));
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
-        return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

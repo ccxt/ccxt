@@ -1507,7 +1507,7 @@ if _try_result.is_err() {
             m
         });
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(orderbookData), Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(orderbookData), Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), nonce);
         orderbook.reset(Value::Dict(snapshot));
         // a channel override in params still resolves, frames are routed by market and package type

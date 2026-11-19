@@ -904,7 +904,7 @@ impl Htx {
             let mut data: Option<crate::value::Dict> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_dict();
             let mut messages: crate::value::List = orderbook.cache_items();
             let mut firstMessage: crate::value::Dict = self.safe_dict_t(&messages, Value::Int(0));
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]);
             let mut tick: crate::value::Dict = self.safe_dict_k_t(&firstMessage, "tick");
             let mut sequence: Option<i64> = self.safe_integer_k(&tick, "prevSeqNum", &[]).as_i64();
             let mut nonce: Option<i64> = self.safe_integer_k(&data, "seqNum", &[]).as_i64();
@@ -1112,7 +1112,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut version: Option<i64> = self.safe_integer_k(&tick, "version", &[]).as_i64();
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         if (event.as_deref() == Some("snapshot")) {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&tick, Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&tick, Value::from(symbol.as_deref()), &[Value::from(timestamp)]);
             orderbook.reset(Value::Dict(snapshot));
             orderbook.set_book_meta("nonce", Value::from(version));
         }

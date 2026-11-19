@@ -2254,7 +2254,7 @@ impl Hibachi {
         });
         formattedResponse.insert("ask".into(), self.safe_list_k(self.safe_dict_k(&response, "ask", &[]), "levels", &[]));
         formattedResponse.insert("bid".into(), self.safe_list_k(self.safe_dict_k(&response, "bid", &[]), "levels", &[]));
-        return self.parse_order_book(Value::Map(formattedResponse), symbol, &[Value::Int(self.milliseconds()), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        return Value::Dict(self.parse_order_book(Value::Map(formattedResponse), symbol, &[Value::Int(self.milliseconds()), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("quantity".into())]));
         Value::Null
         }).await?))
     }

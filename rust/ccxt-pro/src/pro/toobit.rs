@@ -1092,7 +1092,7 @@ impl Toobit {
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&entry, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&entry, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }

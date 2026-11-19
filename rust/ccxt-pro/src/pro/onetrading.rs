@@ -665,7 +665,7 @@ impl Onetrading {
 })]));
         }
         if (type_var == "ORDER_BOOK_SNAPSHOT") {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else if (type_var == "ORDER_BOOK_UPDATE") {
             let mut changes: crate::value::List = __pro_message.key_list("changes");

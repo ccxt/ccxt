@@ -265,7 +265,7 @@ impl Extended {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if (type_var.as_deref() == Some("SNAPSHOT")) {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("q".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("q".into())]);
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), messageHash.as_str());

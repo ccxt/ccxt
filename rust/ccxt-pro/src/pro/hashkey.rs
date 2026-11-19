@@ -594,7 +594,7 @@ impl Hashkey {
         let mut data: crate::value::List = __pro_message.key_list("data");
         let mut dataEntry: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
         let mut timestamp: Option<i64> = self.safe_integer_k(&dataEntry, "t", &[]).as_i64();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&dataEntry, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&dataEntry, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
         orderbook.reset(Value::Dict(snapshot));
         orderbook.set_book_meta("nonce", (match __pro_message.get("id").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));

@@ -7280,7 +7280,7 @@ impl Kucoin {
                 timestamp = self.parse_to_int(Value::from((if let Some(__l) = nanoseconds { Some((__l as f64) / 1000000.0) } else { None })));
             }
         }
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int((level - 2)), Value::Int((level - 1))]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int((level - 2)), Value::Int((level - 1))]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&data, "sequence", &[]));
         return Value::Map(orderbook);
         Value::Null

@@ -1851,7 +1851,7 @@ impl Alpaca {
         let mut orderbooks: crate::value::Dict = self.safe_dict_k_t(&response, "orderbooks");
         let mut rawOrderbook: crate::value::Dict = self.safe_dict_t(&orderbooks, id.map(Value::from).unwrap_or(Value::Null));
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&rawOrderbook, "t", &[]));
-        return self.parse_order_book(&rawOrderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]);
+        return Value::Dict(self.parse_order_book(&rawOrderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]));
         Value::Null
         }).await?))
     }

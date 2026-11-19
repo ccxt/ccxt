@@ -626,7 +626,7 @@ impl Hitbtc {
             let mut timestamp: Option<i64> = self.safe_integer_k(&item, "t", &[]).as_i64();
             let mut nonce: Option<i64> = self.safe_integer_k(&item, "s", &[]).as_i64();
             if (type_var == "snapshot") {
-                let mut parsedSnapshot: crate::value::Dict = self.parse_order_book(&item, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+                let mut parsedSnapshot: crate::value::Dict = self.parse_order_book(&item, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
                 orderbook.reset(Value::Dict(parsedSnapshot));
             }  else {
                 let mut asks: crate::value::List = self.safe_list_k_t(&item, "a");

@@ -584,7 +584,7 @@ impl Bullish {
                 m.insert("asks".to_string(), Value::Arr(asks));
             m
         });
-        let mut parsed: crate::value::Dict = self.parse_order_book(Value::Map(snapshot), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
+        let mut parsed: crate::value::Dict = self.parse_order_book(Value::Map(snapshot), Value::from(symbol.as_deref()), &[Value::from(timestamp)]);
         let mut sequenceNumberRange: crate::value::List = self.safe_list_k_t(&data, "sequenceNumberRange");
         if ((sequenceNumberRange.len() as i64) as f64) > ((0i64) as f64) {
             let mut lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });

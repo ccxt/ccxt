@@ -525,7 +525,7 @@ impl Blofin {
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
         let mut action: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (action.as_deref() == Some("snapshot")) {
-            let mut orderBookSnapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
+            let mut orderBookSnapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp)]);
             std::sync::Arc::make_mut(&mut orderBookSnapshot).insert("nonce".into(), self.safe_integer_k(&data, "seqId", &[]));
             orderbook.reset(Value::Dict(orderBookSnapshot));
         }  else {

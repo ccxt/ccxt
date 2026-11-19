@@ -1439,7 +1439,7 @@ impl Bit2me {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         Value::Null
         }).await?))
     }

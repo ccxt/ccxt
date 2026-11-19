@@ -1434,7 +1434,7 @@ impl Cex {
 })]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(incrementalId));
         orderbook.reset(Value::Dict(snapshot));
         { let __bf03d0 = unsafe { crate::runtime::coerce_value_to_mut(&self.options) };

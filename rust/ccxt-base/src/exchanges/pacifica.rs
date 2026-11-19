@@ -2512,7 +2512,7 @@ if _try_result.is_err() {
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
-        return self.parse_order_book(Value::Map(result), self.safe_symbol(Value::Null, Some(&market), &[]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
+        return Value::Dict(self.parse_order_book(Value::Map(result), self.safe_symbol(Value::Null, Some(&market), &[]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]));
         Value::Null
         }).await?))
     }

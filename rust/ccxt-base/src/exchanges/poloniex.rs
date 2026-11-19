@@ -4267,7 +4267,7 @@ impl Poloniex {
             //
             let mut data: crate::value::Dict = self.safe_dict_k_t(&responseRaw, "data");
             let mut ts: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
-            return self.parse_order_book(&data, symbol, &[Value::from(ts)]);
+            return Value::Dict(self.parse_order_book(&data, symbol, &[Value::from(ts)]));
         }
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_markets_symbol_order_book", &[__ws_arg_30]).await;

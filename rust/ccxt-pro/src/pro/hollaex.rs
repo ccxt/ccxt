@@ -251,7 +251,7 @@ impl Hollaex {
             let mut data: Option<crate::value::Dict> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_dict();
             let mut timestamp: Option<String> = self.safe_string_k_opt(&data, "timestamp", &[]);
             let mut timestampMs: Option<i64> = self.parse8601(timestamp.map(Value::from).unwrap_or(Value::Null));
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestampMs)]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestampMs)]);
             let mut orderbook: Option<crate::pro::order_book::Book> = None;
             if !(self.orderbooks.has(&symbol)) {
                 orderbook = Some(self.order_book(&[Value::from(&snapshot)]));

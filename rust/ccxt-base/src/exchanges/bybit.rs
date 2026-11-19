@@ -7686,7 +7686,7 @@ impl Bybit {
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut timestamp: Option<i64> = self.safe_integer_k(&result, "ts", &[]).as_i64();
-        return self.parse_order_book(&result, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+        return Value::Dict(self.parse_order_book(&result, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]));
         Value::Null
         }).await?))
     }

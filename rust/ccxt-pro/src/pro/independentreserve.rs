@@ -372,7 +372,7 @@ impl Independentreserve {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if (event.as_deref() == Some("OrderBookSnapshot")) {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&orderBook, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("Bids".into()), Value::Str("Offers".into()), Value::Str("Price".into()), Value::Str("Volume".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&orderBook, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("Bids".into()), Value::Str("Offers".into()), Value::Str("Price".into()), Value::Str("Volume".into())]);
             orderbook.reset(Value::Dict(snapshot));
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag

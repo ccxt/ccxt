@@ -999,7 +999,7 @@ impl Blockchaincom {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if (event == "snapshot") {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else if (event == "updated") {
             let mut asks: crate::value::List = __pro_message.key_list("asks");

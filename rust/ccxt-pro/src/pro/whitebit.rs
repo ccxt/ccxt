@@ -409,7 +409,7 @@ impl Whitebit {
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         if isSnapshot {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]);
             orderbook.reset(Value::Dict(snapshot));
         }  else {
             let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");

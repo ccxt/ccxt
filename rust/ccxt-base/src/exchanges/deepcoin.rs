@@ -1911,7 +1911,7 @@ impl Deepcoin {
         //     }
         //
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return self.parse_order_book(&data, symbol, &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+        return Value::Dict(self.parse_order_book(&data, symbol, &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         Value::Null
         }).await?))
     }

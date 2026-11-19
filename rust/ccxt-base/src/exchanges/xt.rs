@@ -3950,11 +3950,11 @@ impl Xt {
         let mut orderBook: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut timestamp: Option<i64> = self.safe_integer2(&orderBook, Value::Str("timestamp".into()), Value::Str("t".into()), &[]).as_i64();
         if (market).spot {
-            let mut ob: indexmap::IndexMap<String, Value> = self.parse_order_book(&orderBook, symbol.clone(), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+            let mut ob: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&orderBook, symbol.clone(), &[Value::from(timestamp)]));
             ob.insert("nonce".into(), self.safe_integer_k(&orderBook, "lastUpdateId", &[]));
             return Value::Map(ob);
         }
-        let mut swapOb: indexmap::IndexMap<String, Value> = self.parse_order_book(&orderBook, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
+        let mut swapOb: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&orderBook, symbol, &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]));
         swapOb.insert("nonce".into(), self.safe_integer2(&orderBook, Value::Str("u".into()), Value::Str("lastUpdateId".into()), &[]));
         return Value::Map(swapOb);
         Value::Null

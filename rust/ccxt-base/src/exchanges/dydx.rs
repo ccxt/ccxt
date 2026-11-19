@@ -2818,7 +2818,7 @@ impl Dydx {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("indexer_get_orderbooks_perpetual_market_market", &[__ws_arg_9]).await;
-        return self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]));
         Value::Null
         }).await?))
     }

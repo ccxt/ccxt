@@ -1563,7 +1563,7 @@ impl Zebpay {
             response = self.call_method_o("public_swap_get_v1_market_order_book", &[__ws_arg_3]).await;
         }
         let mut bookData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&bookData, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&bookData, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&bookData, "nonce", &[]));
         return Value::Map(orderbook);
         Value::Null

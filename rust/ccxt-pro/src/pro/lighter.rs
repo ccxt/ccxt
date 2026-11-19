@@ -412,7 +412,7 @@ impl Lighter {
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("subscribed/order_book")) {
-            let mut parsed: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
             std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), self.safe_integer_k(&data, "offset", &[]));
             orderbook.reset(Value::Dict(parsed));
         }  else if (type_var.as_deref() == Some("update/order_book")) {

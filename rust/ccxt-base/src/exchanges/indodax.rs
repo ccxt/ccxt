@@ -1154,7 +1154,7 @@ impl Indodax {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut orderbook: crate::value::Dict = self.call_method_t("public_get_api_depth_pair", &[__ws_arg_0]).await;
-        return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into())]);
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into())]));
         Value::Null
         }).await?))
     }

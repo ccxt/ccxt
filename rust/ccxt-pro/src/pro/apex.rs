@@ -591,7 +591,7 @@ impl Apex {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if isSnapshot {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else {
             let mut asks: crate::value::List = self.safe_list_k_t(&data, "a");

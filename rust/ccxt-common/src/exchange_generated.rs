@@ -4816,11 +4816,11 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_order_book(&self, orderbook: impl Into<crate::Value>, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn parse_order_book(&self, orderbook: impl Into<crate::Value>, mut symbol: Value, optional_args: &[Value]) -> crate::value::Dict {
         let mut orderbook: Value = orderbook.into();
 
         // virtual-dispatch (static: DerivedExchange::parse_order_book(self, ...))
-        { let __v = crate::exchange::DerivedExchange::parse_order_book(self, orderbook.clone(), symbol.clone(), optional_args); if !matches!(__v, crate::Value::Null) { return __v; } }
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_order_book(self, orderbook.clone(), symbol.clone(), optional_args) { return __v; }
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
         let mut bidsKey = get_arg(optional_args, 1, Value::Str("bids".into()));
         let mut asksKey = get_arg(optional_args, 2, Value::Str("asks".into()));
@@ -4829,7 +4829,7 @@ pub trait ExchangeBase:
         let mut countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
         let mut bids: crate::value::List = self.parse_order_book_bids_asks(self.safe_value(&orderbook, bidsKey, &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]).into_list();
         let mut asks: crate::value::List = self.parse_order_book_bids_asks(self.safe_value(orderbook, asksKey, &[Value::from(vec![])]), &[priceKey, amountKey, countOrIdKey]).into_list();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
         m.insert("bids".to_string(), self.sort_by(Value::Arr(bids), Value::Int(0), &[Value::Bool(true)]));
@@ -4840,7 +4840,7 @@ pub trait ExchangeBase:
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
     fn parse_order_book_l3(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -13580,7 +13580,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parse_option_chain" => self.parse_option_chain(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_order" => <Self as crate::exchange_generated::ExchangeBase>::parse_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_order_book" => <Self as crate::exchange_generated::ExchangeBase>::parse_order_book(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "parse_order_book" => Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_order_book(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])),
             "parse_order_book_bid_ask" => self.parse_order_book_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_order_book_bid_ask_l3" => self.parse_order_book_bid_ask_l3(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_order_book_bids_asks" => self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),

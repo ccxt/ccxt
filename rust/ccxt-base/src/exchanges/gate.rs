@@ -6804,7 +6804,7 @@ if _try_result.is_err() {
         let mut priceKey: Value = (if (market).spot { Value::Int(0) } else { Value::Str("p".into()) });
         let mut amountKey: Value = (if (market).spot { Value::Int(1) } else { Value::Str("s".into()) });
         let mut nonce: Option<i64> = self.safe_integer_k(&response, "id", &[]).as_i64();
-        let mut result: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), priceKey, amountKey]).as_map().cloned().unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), priceKey, amountKey]));
         result.insert("nonce".into(), Value::from(nonce));
         return Value::Map(result);
         Value::Null

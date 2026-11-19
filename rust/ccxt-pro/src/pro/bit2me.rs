@@ -293,7 +293,7 @@ impl Bit2me {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "nonce", &[]).as_i64();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(timestamp));
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[Value::Map({

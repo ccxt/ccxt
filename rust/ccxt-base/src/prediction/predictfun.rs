@@ -2055,7 +2055,7 @@ impl Predictfun {
         let mut outcomeSymbol: Option<String> = self.safe_outcome_symbol(outcome, &[crate::Value::from(outcomeObj.as_ref())]).as_str().map(str::to_owned);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
         if isYesOutcome {
-            let mut yesOrderbook: crate::value::Dict = self.parse_order_book(&data, outcomeSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).into_dict();
+            let mut yesOrderbook: crate::value::Dict = self.parse_order_book(&data, outcomeSymbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
             return self.safe_prediction_order_book(Value::Dict(yesOrderbook), &[crate::Value::from(outcomeObj.as_ref())]);
         }  else {
             let mut bids: crate::value::List = self.safe_list_k_t(&data, "bids");

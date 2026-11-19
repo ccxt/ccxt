@@ -1312,7 +1312,7 @@ impl Coinbaseexchange {
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-            let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[]);
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }  else if (type_var.as_deref() == Some("l2update")) {

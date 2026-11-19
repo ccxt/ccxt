@@ -2338,7 +2338,7 @@ impl Okx {
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
-                let mut snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), Value::Int(4)]).into_dict();
+                let mut snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), Value::Int(4)]);
                 std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&update, "seqId", &[]));
                 snapshotBook.reset(Value::Dict(snapshot));
                 if !(__ch.has_subscription(&messageHash)) {
@@ -2383,7 +2383,7 @@ impl Okx {
                     while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (data.len() as i64) } {
                     let mut update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut timestamp: Option<i64> = self.safe_integer_k(&update, "ts", &[]).as_i64();
-                    let mut snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).into_dict();
+                    let mut snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
                     bboBook.reset(Value::Dict(snapshot));
                     client.resolve(Value::from(&bboBook), &messageHash);
                 }

@@ -941,7 +941,7 @@ impl Grvt {
         let mut isSnapshotChannel: bool = stream.as_deref() == Some("v1.book.s");
         let mut isSnapshotMessage: bool = sequenceNumber <= 0;
         if isSnapshotChannel || isSnapshotMessage {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else {
             let mut asks: crate::value::List = self.safe_list_k_t(&data, "asks");

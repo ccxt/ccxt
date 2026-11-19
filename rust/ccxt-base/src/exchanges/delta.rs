@@ -3052,7 +3052,7 @@ impl Delta {
         //     }
         //
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        return Value::Dict(self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into()), Value::Str("price".into()), Value::Str("size".into())]));
         Value::Null
         }).await?))
     }

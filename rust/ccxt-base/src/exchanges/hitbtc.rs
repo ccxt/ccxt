@@ -3066,7 +3066,7 @@ impl Hitbtc {
             let mut orderbook: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
             let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())])));
         }
         }
         return Value::Map(result);
@@ -3111,7 +3111,7 @@ impl Hitbtc {
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.call_method_t("public_get_public_orderbook_symbol", &[__ws_arg_12]).await;
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "timestamp", &[]));
-        return self.parse_order_book(&response, symbol, &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]);
+        return Value::Dict(self.parse_order_book(&response, symbol, &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]));
         Value::Null
         }).await?))
     }

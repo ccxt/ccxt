@@ -2092,7 +2092,7 @@ impl Coinsph {
         //         ]
         //     }
         //
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, symbol, &[]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, symbol, &[]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
         return Value::Map(orderbook);
         Value::Null

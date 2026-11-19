@@ -361,7 +361,7 @@ impl Woofipro {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(Value::Dict(snapshot));
         client.resolve(Value::from(&orderbook), topic.as_deref());
 }

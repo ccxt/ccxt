@@ -2520,7 +2520,7 @@ impl Blofin {
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
         let mut timestamp: Option<i64> = self.safe_integer_k(&first, "ts", &[]).as_i64();
-        return self.parse_order_book(&first, symbol, &[Value::from(timestamp)]);
+        return Value::Dict(self.parse_order_book(&first, symbol, &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

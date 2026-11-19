@@ -3575,7 +3575,7 @@ impl Deribit {
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut timestamp: Option<i64> = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
         let mut nonce: Option<i64> = self.safe_integer_k(&result, "change_id", &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
         orderbook.insert("nonce".into(), Value::from(nonce));
         return Value::Map(orderbook);
         Value::Null

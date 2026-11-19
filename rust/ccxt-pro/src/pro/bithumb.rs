@@ -755,7 +755,7 @@ impl Bithumb {
                 m.insert("bids".to_string(), Value::from(bidsSnapshot));
                 m.insert("asks".to_string(), Value::from(asksSnapshot));
             m
-        }), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
+        }), Value::from(symbol.as_deref()), &[Value::from(timestamp)]);
         orderbook.reset(Value::Dict(snapshot));
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());

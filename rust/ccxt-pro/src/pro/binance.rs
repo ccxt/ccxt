@@ -1530,7 +1530,7 @@ impl Binance {
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut result: Option<crate::value::Dict> = message.get("result").cloned().unwrap_or_default().into_opt_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&result, "T", &[]).as_i64();
-        let mut orderbook: crate::value::Dict = self.parse_order_book(&result, Value::Null, &[Value::from(timestamp)]).into_dict();
+        let mut orderbook: crate::value::Dict = self.parse_order_book(&result, Value::Null, &[Value::from(timestamp)]);
         std::sync::Arc::make_mut(&mut orderbook).insert("nonce".into(), self.safe_integer2(&result, Value::Str("lastUpdateId".into()), Value::Str("u".into()), &[]));
         client.resolve(Value::Dict(orderbook), messageHash.as_deref());
 }

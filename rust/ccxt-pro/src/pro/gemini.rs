@@ -667,7 +667,7 @@ impl Gemini {
                     m.insert("bids".to_string(), Value::from(bidsSnapshot));
                     m.insert("asks".to_string(), Value::from(asksSnapshot));
                 m
-            }), Value::from(symbol.clone()), &[]).into_dict();
+            }), Value::from(symbol.clone()), &[]);
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
             return;

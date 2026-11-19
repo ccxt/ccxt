@@ -2582,7 +2582,7 @@ impl Hyperliquid {
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "time", &[]).as_i64();
-        return self.parse_order_book(Value::Map(result), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]);
+        return Value::Dict(self.parse_order_book(Value::Map(result), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]));
         Value::Null
         }).await?))
     }

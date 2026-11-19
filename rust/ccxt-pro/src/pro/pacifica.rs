@@ -899,7 +899,7 @@ impl Pacifica {
             m
         });
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(result), Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(result), Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
         let mut nonce: Option<i64> = self.safe_integer_k(&entry, "li", &[]).as_i64();
         if (nonce.is_some()) && (nonce != Some(0)) {
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));

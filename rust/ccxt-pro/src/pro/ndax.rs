@@ -756,7 +756,7 @@ impl Ndax {
         if (symbol.is_none()) {
             return;
         }
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&payload, Value::from(symbol.as_deref()), &[]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&payload, Value::from(symbol.as_deref()), &[]);
         let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates

@@ -3123,7 +3123,7 @@ impl Bitstamp {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOrderBook() missing microtimestamp")));
         }
         let mut timestamp: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = microtimestamp { Some((__l as f64) / 1000.0) } else { None })));
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
         orderbook.insert("nonce".into(), Value::from(microtimestamp));
         return Value::Map(orderbook);
         Value::Null

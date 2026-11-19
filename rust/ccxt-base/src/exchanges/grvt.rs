@@ -2589,7 +2589,7 @@ if _try_result.is_err() {
         let mut result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&result, "event_time", &[]));
         let mut marketId: Option<String> = self.safe_string_k_opt(&result, "instrument", &[]);
-        return self.parse_order_book(&result, self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        return Value::Dict(self.parse_order_book(&result, self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]));
         Value::Null
         }).await?))
     }

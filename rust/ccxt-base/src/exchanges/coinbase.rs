@@ -6045,7 +6045,7 @@ if _try_result.is_err() {
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "pricebook");
         let mut time: Option<String> = self.safe_string_k_opt(&data, "time", &[]);
         let mut timestamp: Option<i64> = self.parse8601(time.map(Value::from).unwrap_or(Value::Null));
-        return self.parse_order_book(&data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        return Value::Dict(self.parse_order_book(&data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]));
         Value::Null
         }).await?))
     }

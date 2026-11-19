@@ -2512,7 +2512,7 @@ impl Polymarket {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        let mut orderbook: crate::value::Dict = self.parse_order_book(&response, self.safe_outcome_symbol(outcome, &[crate::Value::from(outcomeObj.as_ref())]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]).into_dict();
+        let mut orderbook: crate::value::Dict = self.parse_order_book(&response, self.safe_outcome_symbol(outcome, &[crate::Value::from(outcomeObj.as_ref())]), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         return self.safe_prediction_order_book(Value::Dict(orderbook), &[crate::Value::from(outcomeObj.as_ref())]);
         Value::Null
         }).await?))

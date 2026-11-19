@@ -1248,7 +1248,7 @@ impl Revolutx {
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut metadata: crate::value::Dict = self.safe_dict_k_t(&response, "metadata");
         let mut timestamp: Option<i64> = self.safe_integer_k(&metadata, "timestamp", &[]).as_i64();
-        return self.parse_order_book(&data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
+        return Value::Dict(self.parse_order_book(&data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]));
         Value::Null
         }).await?))
     }

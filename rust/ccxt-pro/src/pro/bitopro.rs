@@ -260,7 +260,7 @@ impl Bitopro {
 })]));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&message, "timestamp", &[]).as_i64();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]);
         orderbook.reset(Value::Dict(snapshot));
         if (event.is_some()) {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));

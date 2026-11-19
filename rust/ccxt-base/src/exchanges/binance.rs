@@ -10856,7 +10856,7 @@ impl Binance {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "T", &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, symbol, &[Value::from(timestamp)]));
         orderbook.insert("nonce".into(), self.safe_integer2(&response, Value::Str("lastUpdateId".into()), Value::Str("u".into()), &[]));
         return Value::Map(orderbook);
         Value::Null

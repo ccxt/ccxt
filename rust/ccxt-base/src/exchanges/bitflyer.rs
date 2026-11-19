@@ -1177,7 +1177,7 @@ impl Bitflyer {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut orderbook: crate::value::Dict = self.call_method_t("public_get_getboard", &[__ws_arg_0]).await;
-        return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]));
         Value::Null
         }).await?))
     }

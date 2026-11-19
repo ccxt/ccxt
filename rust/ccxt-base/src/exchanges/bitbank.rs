@@ -1110,7 +1110,7 @@ impl Bitbank {
         let mut response: crate::value::Dict = self.call_method_t("public_get_pair_depth", &[__ws_arg_1]).await;
         let mut orderbook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut timestamp: Option<i64> = self.safe_integer_k(&orderbook, "timestamp", &[]).as_i64();
-        return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

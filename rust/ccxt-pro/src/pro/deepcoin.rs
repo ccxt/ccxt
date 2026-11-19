@@ -1165,7 +1165,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let mut timestamp: i64 = (match message.get("mt") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) }).as_i64().unwrap_or(0);
-        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(orderedEntries), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(orderedEntries), Value::from(symbol.as_deref()), &[Value::from(timestamp)]);
         orderbook.reset(Value::Dict(snapshot));
         let mut cachedMessages: crate::value::List = orderbook.cache_items();
         {

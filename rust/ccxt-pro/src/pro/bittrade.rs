@@ -621,7 +621,7 @@ impl Bittrade {
             return;
         }
         let mut data: Option<crate::value::Dict> = message.get("data").cloned().unwrap_or_default().into_opt_dict();
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]);
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&data, "seqNum", &[]));
         std::sync::Arc::make_mut(&mut snapshot).insert("timestamp".into(), Value::from(timestamp));
         std::sync::Arc::make_mut(&mut snapshot).insert("datetime".into(), self.iso8601(timestamp));

@@ -1049,7 +1049,7 @@ impl Bit2c {
                 m.insert("asks".to_string(), Value::from(asks));
             m
         });
-        return self.parse_order_book(Value::Map(filtered), symbol, &[]);
+        return Value::Dict(self.parse_order_book(Value::Map(filtered), symbol, &[]));
         Value::Null
         }).await?))
     }

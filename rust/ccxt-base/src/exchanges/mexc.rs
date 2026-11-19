@@ -4005,7 +4005,7 @@ impl Mexc {
             //     }
             //
             let mut spotTimestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-            let mut spotOrderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&response, symbol.clone(), &[Value::from(spotTimestamp)]).as_map().cloned().unwrap_or_default();
+            let mut spotOrderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, symbol.clone(), &[Value::from(spotTimestamp)]));
             spotOrderbook.insert("nonce".into(), self.safe_integer_k(&response, "lastUpdateId", &[]));
             return Value::Map(spotOrderbook);
         }  else if (market).swap {
@@ -4031,7 +4031,7 @@ impl Mexc {
             //
             let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
             let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-            let mut swapOrderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&data, symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+            let mut swapOrderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&data, symbol, &[Value::from(timestamp)]));
             swapOrderbook.insert("nonce".into(), self.safe_integer_k(&data, "version", &[]));
             return Value::Map(swapOrderbook);
         }

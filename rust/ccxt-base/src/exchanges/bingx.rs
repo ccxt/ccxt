@@ -4629,7 +4629,7 @@ impl Bingx {
         let mut orderbook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut nonce: Option<i64> = self.safe_integer_k(&orderbook, "lastUpdateId", &[]).as_i64();
         let mut timestamp: Option<i64> = self.safe_integer2(&orderbook, Value::Str("T".into()), Value::Str("ts".into()), &[]).as_i64();
-        let mut result: indexmap::IndexMap<String, Value> = self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).as_map().cloned().unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         result.insert("nonce".into(), Value::from(nonce));
         return Value::Map(result);
         Value::Null

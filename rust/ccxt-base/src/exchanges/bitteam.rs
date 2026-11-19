@@ -1879,7 +1879,7 @@ impl Bitteam {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        let mut orderbook: crate::value::Dict = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]).into_dict();
+        let mut orderbook: crate::value::Dict = self.parse_order_book(&response, symbol, &[Value::from(timestamp)]);
         return Value::Dict(orderbook);
         Value::Null
         }).await?))

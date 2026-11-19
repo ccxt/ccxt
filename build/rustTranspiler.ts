@@ -4673,6 +4673,53 @@ function rustTypedIndexBy (content: string): string {
     return content;
 }
 
+// `parseOrderBook` always builds a book map: the base returns `Dict`, an override returns `Some(..)` through the
+// `DerivedExchange` slot (`None` = not overridden). `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
+function rustTypedParseOrderBook (content: string): string {
+    const sig = /\n    (pub )?fn parse_order_book\(&self, orderbook: impl Into<crate::Value>, mut symbol: Value, optional_args: &\[Value\]\) -> Value \{\n/g;
+    let m: RegExpExecArray | null;
+    const decls: number[] = [];
+    while ((m = sig.exec (content)) !== null) decls.push (m.index);
+    for (const at of decls.reverse ()) {
+        const open = content.indexOf ('{\n', at) + 1;
+        const end = balancedCloseIndex (content, open);
+        const derived = content.startsWith ('\nimpl crate::exchange::DerivedExchange for ', content.lastIndexOf ('\nimpl ', at));
+        let body = content.slice (open, end);
+        const tail = '\n\n    Value::Null\n';
+        if (!body.endsWith (tail)) continue;
+        body = body.slice (0, -tail.length);
+        const probe = '{ let __v = crate::exchange::DerivedExchange::parse_order_book(self, orderbook.clone(), symbol.clone(), optional_args); if !matches!(__v, crate::Value::Null) { return __v; } }';
+        body = body.replace (probe, 'if let Some(__v) = crate::exchange::DerivedExchange::parse_order_book(self, orderbook.clone(), symbol.clone(), optional_args) { return __v; }');
+        let out = '', last = 0, ok = true;
+        const ret = /\breturn ([^;\n]*)/g;
+        while ((m = ret.exec (body)) !== null) {
+            if (m[1] === '__v') continue;
+            if (!m[1].startsWith ('Value::Map(')) { ok = false; break; }
+            const close = balancedCloseIndex (body, m.index + 'return Value::Map('.length);
+            const inner = body.slice (m.index + 'return Value::Map('.length, close);
+            out += body.slice (last, m.index) + `return ${derived ? 'Some(' : ''}std::sync::Arc::new(${inner})${derived ? ')' : ''}`;
+            last = close + 1;
+            ret.lastIndex = last;
+        }
+        if (!ok) continue;
+        body = out + body.slice (last) + (derived ? '\n\n    None\n' : '\n\n    Default::default()\n');
+        const head = content.slice (at, open).replace ('-> Value {', derived ? '-> Option<crate::value::Dict> {' : '-> crate::value::Dict {');
+        content = content.slice (0, at) + head + body + content.slice (end);
+    }
+    const call = /(?<![\w.])(?:self(?:\.parent)?\.|<Self as crate::exchange_generated::ExchangeBase>::)parse_order_book\(/g;
+    const starts: number[] = [];
+    while ((m = call.exec (content)) !== null) starts.push (m.index);
+    for (const s of starts.reverse ()) {
+        const close = balancedCloseIndex (content, content.indexOf ('(', s + 4) + 1);
+        if (close >= content.length) continue;
+        const after = content.slice (close + 1);
+        if (after.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + after.slice ('.into_dict()'.length);
+        else if (after.startsWith ('.as_map().cloned().unwrap_or_default()')) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + after.slice ('.as_map().cloned().unwrap_or_default()'.length);
+        else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + after;
+    }
+    return content;
+}
+
 // coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
 // returns `Dict` (`omit_t`: the same map, empty for a non-map, like `.into_dict()`); its arm and `Value` slot box it back.
 function rustTypedRouteAndParams (content: string): string {
@@ -11208,6 +11255,8 @@ impl std::ops::DerefMut for ${coreName} {
                 );
             }
 
+            rustContent = rustTypedParseOrderBook(rustContent);
+
             // Phase 2 — lexical sanity check. A file with mismatched
             // delimiters would break the whole crate, so a failure here is
             // a transpiler bug that must be fixed, not skipped. Dump the
@@ -12001,6 +12050,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedImplicitApiResults(finalFile);
         finalFile = rustTypedListAndOmitBranches(finalFile);
         finalFile = rustTypedIndexBy(finalFile);
+        finalFile = rustTypedParseOrderBook(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);

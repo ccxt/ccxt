@@ -2491,7 +2491,7 @@ impl Krakenfutures {
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "serverTime", &[]));
         let mut orderBook: crate::value::Dict = self.safe_dict_k_t(&response, "orderBook");
-        return self.parse_order_book(&orderBook, symbol, &[Value::from(timestamp)]);
+        return Value::Dict(self.parse_order_book(&orderBook, symbol, &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }
