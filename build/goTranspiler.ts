@@ -9052,6 +9052,23 @@ function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf
     });
 }
 
+// a map[string]any local whose every write is a typed producer (SafeDictMap/SafeDict2Map, a channel result's
+// Value): only the lone if-init comma-ok form is emitted for it, a nil map answering false like InOp
+function goInOpTypedProducerReceiver (maskedFunc: string, decl: any, name: string): boolean {
+    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) {
+        return false;
+    }
+    const n = goAccessEscape (name);
+    if (new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=(?!=)|(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)', 'm').test (maskedFunc)) {
+        return false;
+    }
+    const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
+    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
+        writes.push (w[1].trim ());
+    }
+    return writes.every ((init: string) => /^(?:this\.SafeDict2?Map\(|r\d+\.Value$|nil$)/.test (init));
+}
+
 // `InOp(m, k)` in an `if` condition or a `var x bool =` initialiser -> native lookup on a proven read
 // receiver with a string key: `if _, ok := m[k]; ok {` for a lone call, else a comma-ok closure.
 function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc: string,
@@ -9073,18 +9090,21 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
         // the params result of `a, p := this.Handle*AndParams(..)` is a map[string]any local (the pair twin's second result),
         // read-only when nothing else can write it: no go/Spawn/unawaited Async in the func
         const pairParams = goTypedMaplistTupleMap (maskedFunc, name) && !(/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc) || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc));
-        if (!pairParams && ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf))) {
+        const typed = (typeAt (name, k) === 'map[string]any');
+        const readOnly = typed && goInOpReadReceiver (maskedFunc, declOf (name), name, declOf);
+        if (!pairParams && !readOnly && !(typed && goInOpTypedProducerReceiver (maskedFunc, declOf (name), name))) {
             continue;
         }
         if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
             continue;
         }
-        found.push ({ at, 'length': call[0].length, name, key });
+        found.push ({ at, 'length': call[0].length, name, key, 'ifOnly': !pairParams && !readOnly });
     }
-    if (found.length === 0) {
+    const single = (cond !== null) && (calls.length === 1) && !/\bok\b/.test (maskedFunc);
+    if ((found.length === 0) || (!single && found.some ((f) => f.ifOnly))) {
         return false;
     }
-    if ((cond !== null) && (calls.length === 1) && !/\bok\b/.test (maskedFunc)) {
+    if (single) {
         const { at, length, name, key } = found[0];
         let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + length);
         rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
@@ -19764,6 +19784,10 @@ function goAnyNilCompareSelfTest (ok: SelfTestOk): void {
     ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.OmitDict(this.Options, []any{"a"})\n\tif InOp(q, "symbol") {\n\t}\n').includes ('InOp(q, "symbol")'), 'OmitDict of a field keeps the helper');
     ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.Market("a")\n\tif InOp(q, "symbol") {\n\t}\n').includes ('InOp(q, "symbol")'), 'a shared market row keeps the helper');
     ok (inop ('\tif InOp(p, "symbol") {\n\t}\n').includes ('InOp(p, "symbol")'), 'a parameter keeps the helper');
+    ok (inop ('\tvar d map[string]any = this.SafeDictMap(p, "a", map[string]any{})\n\tif InOp(d, "t") {\n\t}\n').includes ('if _, ok := d["t"]; ok {'), 'a SafeDictMap local reads natively in an if');
+    ok (inop ('\tvar d map[string]any = this.SafeDictMap(p, "a", map[string]any{})\n\tvar b bool = !(InOp(d, "t"))\n').includes ('InOp(d, "t")'), 'a SafeDictMap local keeps the helper outside an if');
+    ok (inop ('\tvar d map[string]any = nil\n\tr1 := <-this.FAsync()\n\td = r1.Value\n\tif InOp(d, "t") {\n\t}\n').includes ('if _, ok := d["t"]; ok {'), 'a channel-result map reads natively');
+    ok (inop ('\tvar d map[string]any = this.SafeDictMap(p, "a")\n\td = this.Market("x")\n\tif InOp(d, "t") {\n\t}\n').includes ('InOp(d, "t")'), 'another write keeps the helper');
     ok (inop ('\tvar s string = "a"\n\tif (this.Markets != nil) && (InOp(this.Markets, s)) {\n\t}\n').includes ('InOp(this.Markets, s)'), 'a market table is not a receiver of this pass: the ast printer owns its reads');
     ok (inop ('\tvar s any = nil\n\tif (this.Markets != nil) && (InOp(this.Markets, s)) {\n\t}\n').includes ('InOp(this.Markets, s)'), 'this.Markets with an any key keeps the helper');
     ok (inop ('\tvar s string = "a"\n\tif (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, s)) {\n\t}\n').includes ('InOp(this.Markets_by_id, s)'), 'other getters keep the helper');
