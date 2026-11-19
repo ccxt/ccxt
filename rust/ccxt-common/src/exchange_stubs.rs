@@ -1802,8 +1802,9 @@ impl Exchange {
 
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
     /// array values repeat the key (`a=1&a=2`); scalars encode normally.
-    pub fn urlencode_with_array_repeat(&self, params: impl Into<Value>) -> String {
-        let Value::Dict(m) = Into::<Value>::into(params) else {
+    pub fn urlencode_with_array_repeat(&self, params: impl crate::value::EncodeOperand) -> String {
+        params.with_operand(|params| {
+        let Value::Dict(m) = params else {
             return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
@@ -1829,6 +1830,7 @@ impl Exchange {
             }
         }
         pairs.join("&")
+        })
     }
 
     pub fn safe_integer(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
@@ -2748,8 +2750,9 @@ impl Exchange {
     /// `urlencodeNested(object)` — `qs.stringify(object, { encodeValuesOnly: true })`:
     /// nested maps → `parent[child]`, arrays → `parent[index]`, only
     /// values are percent-encoded.
-    pub fn urlencode_nested(&self, v: impl Into<Value>, _optional_args: &[Value]) -> String {
-        let Value::Dict(m) = Into::<Value>::into(v) else {
+    pub fn urlencode_nested(&self, v: impl crate::value::EncodeOperand, _optional_args: &[Value]) -> String {
+        v.with_operand(|v| {
+        let Value::Dict(m) = v else {
             return String::new();
         };
         let mut pairs: Vec<String> = Vec::new();
@@ -2757,6 +2760,7 @@ impl Exchange {
             urlencode_nested_walk(k, val, &mut pairs);
         }
         pairs.join("&")
+        })
     }
     pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> bool {
         match optional_args.get(0) {
@@ -2981,8 +2985,9 @@ impl Exchange {
     /// `rawencode(params, [doSeq])` — URL-encode without sorting.
     /// `rawencode(object)` — `qs.stringify(object, { encode: false })`:
     /// flat `key=value` pairs with no percent-encoding.
-    pub fn rawencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
-        let Value::Dict(m) = Into::<Value>::into(params) else {
+    pub fn rawencode(&self, params: impl crate::value::EncodeOperand, _optional_args: &[Value]) -> String {
+        params.with_operand(|params| {
+        let Value::Dict(m) = params else {
             return String::new();
         };
         let pairs: Vec<String> = m
@@ -2990,6 +2995,7 @@ impl Exchange {
             .map(|(k, v)| format!("{}={}", k, stringify_param(v)))
             .collect();
         pairs.join("&")
+        })
     }
 
     /// `intToBase16(n)` — int → lowercase hex string.
@@ -3076,13 +3082,13 @@ impl Exchange {
     }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
-    pub fn urlencode(&self, params: impl Into<Value>, _optional_args: &[Value]) -> String {
-        self.urlencode_kv(&params.into())
+    pub fn urlencode(&self, params: impl crate::value::EncodeOperand, _optional_args: &[Value]) -> String {
+        params.with_operand(|params| self.urlencode_kv(params))
     }
 
     /// `json(value)` — JSON-stringify.
-    pub fn json(&self, v: Value) -> Value {
-        Value::Str(self.json_str(&v).into())
+    pub fn json(&self, v: impl crate::value::EncodeOperand) -> Value {
+        v.with_operand(|v| Value::Str(self.json_str(v).into()))
     }
 
     /// `encode(s)` — UTF-8 encode string to bytes (as Value::Array of ints).

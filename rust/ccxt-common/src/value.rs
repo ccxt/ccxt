@@ -921,6 +921,11 @@ impl ValueKey for &&Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) ->
 impl ValueKey for &str { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&Value::from(self)) } }
 impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { match self { Some(s) => f(&Value::from(s)), None => f(&Value::Null) } } }
 
+/// The object a URL / JSON encoder reads: anything boxed into a `Value` as before, or a boxed local lent by reference.
+pub trait EncodeOperand { fn with_operand<R>(self, f: impl FnOnce(&Value) -> R) -> R; }
+impl<T: Into<Value>> EncodeOperand for T { fn with_operand<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&self.into()) } }
+impl EncodeOperand for &Value { fn with_operand<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
+
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }

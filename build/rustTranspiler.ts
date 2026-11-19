@@ -6993,6 +6993,27 @@ function lendImplodeParams(content: string): string {
 // unit slot 032
 //
 // unit slot 033
+// Lend a boxed local to the encoders that read it (`urlencode`, `rawencode`, `urlencode_nested`,
+// `urlencode_with_array_repeat`, `json` take `impl EncodeOperand`; `encode` takes `Borrow<Value>`):
+// `self.f(x.clone()` prints `self.f(&x` when x is declared `Value` in this fn and not named again in the call.
+function lendEncoderOperands(content: string): string {
+    const site = /\bself\.(?:urlencode|rawencode|urlencode_nested|urlencode_with_array_repeat|json|encode)\(([A-Za-z_]\w*)\.clone\(\)(?=[,)])/g;
+    const edits: [number, number, string][] = [];
+    for (const m of content.matchAll(site)) {
+        const x = m[1];
+        if (x === 'self') continue;
+        const open = (m.index as number) + m[0].indexOf('(') + 1;
+        const callEnd = balancedCloseIndex(content, open);
+        if (new RegExp(`(?<![\\w.])${x}\\b`).test(content.slice(open + x.length + 8, callEnd))) continue;
+        const fnAt = content.lastIndexOf('fn ', open);
+        const decls = [...content.slice(fnAt, open).matchAll(new RegExp(`(?<![\\w.])${x}\\s*:\\s*([^=;,)]+?)\\s*[=;,)]`, 'g'))];
+        if (decls.length === 0 || decls[decls.length - 1][1].trim() !== 'Value') continue;
+        edits.push([open, open + x.length + 8, '&' + x]);
+    }
+    let out = '', last = 0;
+    for (const [a, b, r] of edits) { out += content.slice(last, a) + r; last = b; }
+    return out + content.slice(last);
+}
 //
 // unit slot 034
 //
@@ -7312,6 +7333,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // pass slot 032
     //
     // pass slot 033
+    lendEncoderOperands,
     //
     // pass slot 034
     //
