@@ -18765,9 +18765,67 @@ function goSliceLiteralNative (recv: { kind: string, text: string } | undefined,
     return { text: s + '[' + from + ':' + to + ']', pkg: '' };
 }
 
-function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } | undefined)[], rawArgs: string[]): { text: string, pkg: string } | undefined {
+// an int/int64 Slice bound read more than once: a once-declared local, a `for i := 0` counter, `x+N`, len(recv)
+function goSliceBoundKind (arg: string, masked: string, recv: string): { kind: string, nonneg: boolean } | undefined {
+    if ((arg === 'len(' + recv + ')') || (arg === 'len((' + recv + '))')) {
+        return { kind: 'int', nonneg: true };
+    }
+    const m = /^([A-Za-z_]\w*)(?:\s*\+\s*(\d{1,6}))?$/.exec (arg);
+    if (m === null) {
+        return undefined;
+    }
+    let kind = goStringOperandDeclaredType (masked, m[1]);
+    if ((kind === undefined) && (masked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\b[^\\n=]*:=', 'g')) ?? []).length === 1
+        && new RegExp ('\\bfor ' + m[1] + ' := \\d+; ').test (masked) && !new RegExp ('\\bvar ' + m[1] + '\\b|&' + m[1] + '\\b|\\bfunc\\b[^\\n]*\\b' + m[1] + '\\b').test (masked)) {
+        // a `for i := N; ..; i++` counter with no other write never goes negative
+        const writes = (masked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\s*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)', 'g')) ?? []);
+        return (writes.length === 1) && (writes[0].trim ().endsWith ('++')) ? { kind: 'int', nonneg: true } : { kind: 'int', nonneg: false };
+    }
+    return ((kind === 'int') || (kind === 'int64')) ? { kind, nonneg: false } : undefined;
+}
+
+// `Slice(s, a, b)` with int-typed bounds: a negative bound counts from the end (indicator min(max(-x, 0), 1)),
+// the end is clamped to len, a nil end clamps the start at 0; out-of-range bounds panic as in the helper
+function goSliceTypedBoundNative (recv: { kind: string, text: string } | undefined, rawArgs: string[], masked: string): { text: string, pkg: string } | undefined {
+    if ((recv === undefined) || (recv.kind !== 'string') || (rawArgs.length !== 3) || !/^\*?[A-Za-z_]\w*$/.test (recv.text)) {
+        return undefined;
+    }
+    const s = recv.text.startsWith ('*') ? '(' + recv.text + ')' : recv.text;
+    const lit = (a: string) => /^(?:int64\()?(\d{1,9})\)?$/.exec (a);
+    const one = (a: string): { text: string, kind: string, nonneg: boolean } | undefined => {
+        const l = lit (a);
+        if (l !== null) {
+            return { text: l[1], kind: 'const', nonneg: true };
+        }
+        const b = goSliceBoundKind (a, masked, recv.text);
+        if (b === undefined) {
+            return undefined;
+        }
+        if (b.nonneg) {
+            return { text: a, kind: b.kind, nonneg: true };
+        }
+        const len = (b.kind === 'int64') ? 'int64(len(' + s + '))' : 'len(' + s + ')';
+        const x = /^\w+$/.test (a) ? a : '(' + a + ')';
+        return { text: x + '+' + len + '*min(max(-' + x + ', 0), 1)', kind: b.kind, nonneg: b.nonneg };
+    };
+    const a = one (rawArgs[1]);
+    if (a === undefined) {
+        return undefined;
+    }
+    if (rawArgs[2] === 'nil') {
+        return { text: s + '[' + (a.nonneg ? a.text : 'max(' + a.text + ', 0)') + ':]', pkg: '' };
+    }
+    const b = one (rawArgs[2]);
+    if ((b === undefined) || ((a.kind === 'const') && (b.kind === 'const'))) {
+        return undefined;
+    }
+    const end = (rawArgs[2] === 'len(' + recv.text + ')') ? b.text : 'min(' + b.text + ', ' + ((b.kind === 'int64') ? 'int64(len(' + s + '))' : 'len(' + s + ')') + ')';
+    return { text: s + '[' + a.text + ':' + end + ']', pkg: '' };
+}
+
+function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } | undefined)[], rawArgs: string[], masked?: string): { text: string, pkg: string } | undefined {
     if (helper === 'Slice') {
-        return goSliceLiteralNative (ops[0], rawArgs);
+        return goSliceLiteralNative (ops[0], rawArgs) ?? ((masked === undefined) ? undefined : goSliceTypedBoundNative (ops[0], rawArgs, masked));
     }
     if (ops.some ((o) => o === undefined)) {
         return undefined;
@@ -18858,7 +18916,7 @@ function goTypedStrRewriteFunc (func: string, file: string, pkgs: Set<string>): 
                 continue;
             }
             const ops = parsed.args.map ((a) => goTypedStrOperand (a, out, masked, file) ?? goNilProvenStringPtr (a, masked, m.index));
-            const native = goTypedStrNative (m[2], ops, parsed.args);
+            const native = goTypedStrNative (m[2], ops, parsed.args, masked);
             if (native === undefined) {
                 continue;
             }
@@ -19009,6 +19067,9 @@ function goTypedStrSelfTest (ok: SelfTestOk): void {
     const hdr = 'package ccxt\n\n' + GO_CONTRIBUTING_HEADER () + '\n\n';
     const f = (body: string) => goTypedStrNativeStringHelpers ('x/foo.go', hdr + 'func (this *X) f() any {\n' + body + '}\n');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn Split(t, ".")\n').indexOf ('strings.Split(*t, ".")') >= 0, 'defaulted SafeString goes native');
+    ok (f ('\tvar s string = "ab"\n\tvar e int64 = int64(len(s)) - 1\n\treturn Slice(s, 0, e)\n').includes ('s[0:min(e+int64(len(s))*min(max(-e, 0), 1), int64(len(s)))]'), 'int64 bound local clamps natively');
+    ok (f ('\tvar s string = "ab"\n\tfor i := 0; i < 2; i++ {\n\t\t_ = Slice(s, i, nil)\n\t}\n\treturn nil\n').includes ('_ = s[i:]'), 'for counter start is non-negative');
+    ok (f ('\tvar s string = "ab"\n\tvar e any = 1\n\treturn Slice(s, 0, e)\n').includes ('Slice(s, 0, e)'), 'any bound keeps the helper');
     ok (f ('\tvar t *string = this.SafeString(m, "k")\n\treturn Split(t, ".")\n').indexOf ('Split(t, ".")') >= 0, 'nullable SafeString keeps the helper');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\tt = this.SafeString(m, "j")\n\treturn Split(t, ".")\n').indexOf ('strings.Split') < 0, 'rewritten local keeps the helper');
     ok (f ('\tvar n *int64 = this.SafeInteger(m, "k", 100)\n\treturn ToString(n)\n').indexOf ('strconv.FormatInt(*n, 10)') >= 0, 'defaulted SafeInteger goes native');
