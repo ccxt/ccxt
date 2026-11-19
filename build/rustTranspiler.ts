@@ -8375,6 +8375,38 @@ function rustSyncTryBlocks(content: string): string {
 }
 //
 // unit slot 099
+// `indexOf` on a provably string-or-null haystack with a `format!` needle: the loose dispatch reduces to
+// its Str arm (`find`, byte index) and -1 otherwise. Haystacks: an all-Str `msg` match local, a ws client
+// `__ch.url` (Str|Null), and `get_value(&k, &Value::Int(i))` where `k = object_keys(..)` (Str elements).
+const RUST_LOOSE_INDEX_OF_HEAD = '(match (&(';
+function rustStrHaystackIndexOf (content: string): string {
+    if (!content.includes('(Value::Arr(__a), __nd) => Value::Int(__a.iter().position(')) return content;
+    const fnStart = (at: number) => content.lastIndexOf('\n    fn ', at) >= content.lastIndexOf('\n    pub fn ', at) ? content.lastIndexOf('\n    fn ', at) : content.lastIndexOf('\n    pub fn ', at);
+    const strLocal = (name: string, at: number): boolean => {
+        const body = content.slice(Math.max(0, fnStart(at)), at);
+        const decls = [...body.matchAll(new RegExp(`let mut ${name}: Value = (.*);\\n`, 'g'))];
+        if (decls.length !== 1 || new RegExp(`\\b${name} = |&mut ${name}\\b`).test(body.slice(decls[0].index as number + 8))) return false;
+        const init = decls[0][1];
+        if (name === 'msg') return /^\(match __pro_message\.get\("msg"\)\.cloned\(\) \{ Some\(Value::Str\(__s\)\) if !__s\.is_empty\(\) => Value::Str\(__s\), Some\(Value::Int\(__n\)\) => Value::Str\(__n\.to_string\(\)\.into\(\)\), Some\(Value::Float\(__f\)\) => Value::Str\(__f\.to_string\(\)\.into\(\)\), _ => Value::Str\(""\.into\(\)\) \}\)$/.test(init);
+        return /^object_keys\(/.test(init);
+    };
+    let out = ''; let at = 0;
+    for (let i = content.indexOf(RUST_LOOSE_INDEX_OF_HEAD); i >= 0; i = content.indexOf(RUST_LOOSE_INDEX_OF_HEAD, i + 1)) {
+        if (i < at) continue;
+        const close = closeParenAt(content, i);
+        if (close < 0) continue;
+        const text = content.slice(i, close);
+        const m = /^\(match \(&\((.*)\), &\(Value::Str\((format!\(.*\))\.into\(\)\)\)\) \{ \(Value::Arr\(__a\), __nd\) => Value::Int\(__a\.iter\(\)\.position\(\|__it\| match \(__it, __nd\) \{ .* \}\)\.map\(\|__i\| __i as i64\)\.unwrap_or\(-1\)\), \(Value::Str\(__s\), Value::Str\(__nd\)\) => Value::Int\(__s\.find\(&\*\*__nd\)\.map\(\|__i\| __i as i64\)\.unwrap_or\(-1\)\), _ => Value::Int\(-1\) \}\)$/.exec(text);
+        if (m === null || m[1].includes('\n') || m[2].includes('\n')) continue;
+        const hay = m[1];
+        const g = /^get_value\(&(\w+), &Value::Int\(\w+\)\)$/.exec(hay);
+        const ok = hay === '__ch.url' || (/^\w+$/.test(hay) && hay === 'msg' && strLocal(hay, i)) || (g !== null && strLocal(g[1], i));
+        if (!ok) continue;
+        out += content.slice(at, i) + `Value::Int(match (${hay}).as_str() { Some(__s) => __s.find(${m[2]}.as_str()).map(|__i| __i as i64).unwrap_or(-1), None => -1 })`;
+        at = close;
+    }
+    return out + content.slice(at);
+}
 //
 // unit slot 100
 //
@@ -8651,6 +8683,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     rustSyncTryBlocks,
     //
     // pass slot 099
+    rustStrHaystackIndexOf,
     //
     // pass slot 100
     //
