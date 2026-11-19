@@ -75,8 +75,6 @@ public partial class BaseExchange
     public Dictionary<string, object> features { get; set; }
     public System.Collections.Concurrent.ConcurrentDictionary<string, object> options { get; set; } = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     public bool isSandboxModeEnabled { get; set; } = false;
-    public bool sandbox { get; set; } = false; // for backward-compatibility
-    public bool testnet { get; set; } = false; // alias of sandbox
 
     public IDictionary<string, object> markets { get; set; } = null;
     public object currencies { get; set; } = new dict();
