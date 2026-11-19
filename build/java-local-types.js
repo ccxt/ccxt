@@ -17415,13 +17415,16 @@ function javaMapLocal (printer, declaration) {
     const scope = enclosingFunction (declaration);
     const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
     const name = String (declaration.name.text);
-    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+    // same-named block-scoped siblings are decided per binding (checker symbol), each with its own Java block
+    const siblings = (index?.bindingCounts.get (name) ?? 0) !== 1;
+    if (index === undefined || (siblings && (declaration.parent.flags & ts.NodeFlags.BlockScoped) === 0) || index.parameterNames.has (name)
         || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_MAP_TYPE)) {
         return undefined;
     }
     // a nullish start needs at least one Map write to say anything
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
     const ok = isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, isProFile, {
+        ownBinding: siblings,
         noCastAssertions: true,
         writeOnly: true,
         writeOk: (right) => javaMapLocalValue (printer, right, declaration) !== undefined,
