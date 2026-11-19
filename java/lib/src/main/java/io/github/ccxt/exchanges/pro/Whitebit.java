@@ -1368,10 +1368,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 Long subId = this.safeInteger(subscription, "id");
                 if ((!java.util.Objects.equals(subId, null)) && (Helpers.isEqual(subId, id)))
                 {
-                    Object method = this.safeValue(subscription, "method");
-                    if (!java.util.Objects.equals(method, null))
+                    boolean method = (this.safeValue(subscription, "method")) != null;
+                    if (method)
                     {
-                        Helpers.callDynamically(this, method, new Object[] {client, message});
+                        this.handleAuthenticate(client, message);
                         return;
                     }
                 }

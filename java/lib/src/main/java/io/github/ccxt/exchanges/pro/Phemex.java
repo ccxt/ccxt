@@ -1838,11 +1838,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         String id = this.safeString(message, "id", "");
         if (client.subscriptions.containsKey(id))
         {
-            Object method = this.safeValue(client.subscriptions, id);
+            boolean method = Boolean.TRUE.equals(this.safeValue(client.subscriptions, id));
             client.subscriptions.remove((String)id);
-            if (!java.util.Objects.equals(method, true))
+            if (!method)
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                this.handleAuthenticate(client, message);
                 return;
             }
         }

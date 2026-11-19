@@ -402,7 +402,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "symbol", symbolValue );
                 put( "limit", limitValue );
                 put( "params", parameters );
-                put( "method", "handleOrderBookSubscription");
+                put( "method", "handleOrderBookSubscription" );
             }};
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             return orderbook.limit();
@@ -490,7 +490,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                     put( "symbol", symbol );
                     put( "limit", limit );
                     put( "params", parameters );
-                    put( "method", "handleOrderBookSnapshot");
+                    put( "method", "handleOrderBookSnapshot" );
                 }};
                 io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, String.valueOf(requestId), request, String.valueOf(requestId), snapshotSubscription)).join();
                 return orderbook.limit();
@@ -642,10 +642,15 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Map<String, Object> subscription = this.safeDict(subscriptionsById, id, null);
         if (!java.util.Objects.equals(subscription, null))
         {
-            Object method = this.safeValue(subscription, "method");
-            if (!java.util.Objects.equals(method, null))
+            String method = this.safeString(subscription, "method");
+            if (java.util.Objects.equals(method, "handleOrderBookSnapshot"))
             {
-                return Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
+                this.handleOrderBookSnapshot(client, message, subscription);
+                return null;
+            } else if (java.util.Objects.equals(method, "handleOrderBookSubscription"))
+            {
+                this.handleOrderBookSubscription(client, message, subscription);
+                return null;
             }
             // clean up
             if (client.subscriptions.containsKey(id))
