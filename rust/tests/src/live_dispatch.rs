@@ -427,8 +427,13 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
                 Some(match key {
                     "markets"          => core.markets.clone(),
+<<<<<<< merged
                     "markets_by_id"    => Value::from(&core.markets_by_id),
                     "currencies"       => core.currencies.clone(),
+=======
+                    "markets_by_id"    => core.markets_by_id.clone(),
+                    "currencies"       => Value::from(&core.currencies),
+>>>>>>> R03
                     "currencies_by_id" => core.currencies_by_id.clone(),
                     // Lightweight ones still served here so a `__live_id`
                     // snapshot stays fully introspectable through the
@@ -530,7 +535,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     // and downstream URL builders compute the wrong
                     // `currency.id` (e.g. bitmex `XBt` vs `XBT`).
                     "markets"       => core.markets    = value,
-                    "currencies"    => core.currencies = value,
+                    "currencies"    => if let Value::Dict(m) = value { core.currencies = m },
                     _ => {},
                 }
             }

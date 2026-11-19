@@ -4210,6 +4210,7 @@ function typedBaseDictFields(content: string): string {
         .replace(/if let \(Some\(__m\), Some\(__k\)\) = \(self\.tickers\.as_map\(\), /g, 'if let (__m, Some(__k)) = (&self.tickers, ')
         .replace(/self\.tickers\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.tickers'))
         .replace(/\(self\.tickers != Value::Null\)/g, 'true');
+<<<<<<< merged
     // `markets_by_id` is `Option<Dict>` (TS leaves it undefined until setMarkets publishes a dict).
     content = content
         .replace(/self\.markets_by_id = Value::Null;/g, 'self.markets_by_id = None;')
@@ -4222,6 +4223,16 @@ function typedBaseDictFields(content: string): string {
         .replace(/\b(safe_\w+)\(self\.markets_by_id\.clone\(\)/g, '$1(&self.markets_by_id')
         .replace(/([^\w:&])self\.markets_by_id\.clone\(\)/g, '$1Value::from(&self.markets_by_id)');
     for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance', 'tickers']) {
+=======
+    // `currencies` is a `Dict` from `createSafeDictionary` on (never undefined); `mapToSafeMap` is the identity in Rust.
+    content = content
+        .replace(/\{ let __t = self\.create_safe_dictionary\(&\[\]\); self\.currencies = __t; \}/g, 'self.currencies = crate::value::Dict::default();')
+        .replace(/\{ let __t = self\.map_to_safe_map\(self\.deep_extend\(([^;\n]*)\)\); self\.currencies = __t; \}/g, (_m, args) => 'self.currencies = self.deep_extend_t(' + args.replace(/self\.currencies\.clone\(\)/g, 'Value::from(&self.currencies)') + ');')
+        .replace(/\{ let __sv_tmp = (\w+)\.map_to_safe_map\(Value::Map\((\{[\s\S]*?\})\)\); \1\.currencies = __sv_tmp; \}/g, '$1.currencies = std::sync::Arc::new($2);')
+        .replace(/self\.currencies = (get_value\(&\w+, &Value::Str\("currencies"\.into\(\)\)\));/g, 'self.currencies = if let Value::Dict(__m) = $1 { __m } else { Default::default() };')
+        .replace(/self\.currencies\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.currencies'));
+    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance', 'tickers', 'currencies']) {
+>>>>>>> R03
         const r = 'self\\.' + f;
         const k = '("[^"\\\\]*")';
         const make = 'std::sync::Arc::make_mut(';
