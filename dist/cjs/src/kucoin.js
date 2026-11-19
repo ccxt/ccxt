@@ -5730,7 +5730,17 @@ class kucoin extends kucoin$1["default"] {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrdersByStatus', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOrdersByStatus', symbol, since, limit, paramsPaginate);
+            // paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+            let paramsContract = this.extend(paramsPaginate, { 'paginate': false, 'uta': false });
+            if (symbol === undefined) {
+                paramsContract = this.extend(paramsContract, { 'type': 'contract' });
+            }
+            const paginatedMethods = {
+                'active': 'fetchOpenOrders',
+                'open': 'fetchOpenOrders',
+            };
+            const paginatedMethod = this.safeString(paginatedMethods, status, 'fetchClosedOrders');
+            return await this.fetchPaginatedCallDynamic(paginatedMethod, symbol, since, limit, paramsContract);
         }
         const trigger = this.safeBool2(paramsPaginate, 'stop', 'trigger');
         const until = this.safeInteger(paramsPaginate, 'until');
@@ -9533,13 +9543,8 @@ class kucoin extends kucoin$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        let assets = undefined;
-        if (marginMode === 'isolated') {
-            assets = this.safeList(data, 'assets', []);
-        }
-        else {
-            assets = this.safeList(data, 'accounts', []);
-        }
+        const assetsKey = (marginMode === 'isolated') ? 'assets' : 'accounts';
+        const assets = this.safeList(data, assetsKey, []);
         const interest = this.parseBorrowInterests(assets, market);
         const filteredByCurrency = this.filterByCurrencySinceLimit(interest, code, since, limit);
         return this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit);
@@ -11889,7 +11894,13 @@ class kucoin extends kucoin$1["default"] {
         return this.safeString(getVersions, 'deposit-addresses', 'v1');
     }
     setDepositAddressesVersion(version) {
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        const versions = this.safeDict(this.options, 'versions', {});
+        const privateVersions = this.safeDict(versions, 'private', {});
+        const getVersions = this.safeDict(privateVersions, 'GET', {});
+        getVersions['deposit-addresses'] = version;
+        privateVersions['GET'] = getVersions;
+        versions['private'] = privateVersions;
+        this.options['versions'] = versions;
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];

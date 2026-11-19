@@ -6910,8 +6910,9 @@ export default class gate extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
+            'currency': currencyId.toUpperCase(), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision(code, amount),
         };
         const market = this.market(symbol);
@@ -6942,8 +6943,9 @@ export default class gate extends Exchange {
         }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
+            'currency': currencyId.toUpperCase(), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision(code, amount),
         };
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(params, 'repayCrossMargin', 'unifiedAccount', false);
@@ -6992,8 +6994,9 @@ export default class gate extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
+            'currency': currencyId.toUpperCase(), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision(code, amount),
         };
         const market = this.market(symbol);
@@ -7039,8 +7042,9 @@ export default class gate extends Exchange {
         }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
+            'currency': currencyId.toUpperCase(), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision(code, amount),
         };
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(params, 'borrowCrossMargin', 'unifiedAccount', false);

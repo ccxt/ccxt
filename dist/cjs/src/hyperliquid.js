@@ -663,10 +663,12 @@ class hyperliquid extends hyperliquid$1["default"] {
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode(name);
                     const hip3Code = (safeCode === undefined) ? name : safeCode.replace(':', '-');
-                    this.options['hip3TokensByName'][name] = {
+                    const hip3TokensByName = this.safeDict(this.options, 'hip3TokensByName', {});
+                    hip3TokensByName[name] = {
                         'quote': collateralTokenCode,
                         'code': hip3Code,
                     };
+                    this.options['hip3TokensByName'] = hip3TokensByName;
                 }
                 result.push(data);
             }

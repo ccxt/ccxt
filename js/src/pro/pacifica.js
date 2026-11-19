@@ -77,7 +77,11 @@ export default class pacifica extends pacificaRest {
                 headers['PF-API-KEY'] = this.options['apiKey'];
             }
         }
-        this.options['ws']['options']['headers'] = headers;
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const wsSubOptions = this.safeDict(wsOptions, 'options', {});
+        wsSubOptions['headers'] = headers;
+        wsOptions['options'] = wsSubOptions;
+        this.options['ws'] = wsOptions;
     }
     /**
      * @method

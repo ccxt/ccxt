@@ -380,7 +380,7 @@ export default class mudrex extends Exchange {
         const data = this.safeValue(response, 'data', []);
         let rows = [];
         if (Array.isArray(data)) {
-            rows = this.toArray(data);
+            rows = this.safeList(response, 'data', []);
         }
         else {
             rows = this.safeList(data, 'items', []);

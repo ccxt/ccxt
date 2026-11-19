@@ -1345,16 +1345,17 @@ export default class aster extends Exchange {
         if (sinceDefined) {
             request['startTime'] = since;
         }
+        let paramsUntil = params;
         if (untilDefined) {
-            request = this.handleUntilOption('endTime', request, params);
+            [request, paramsUntil] = this.handleUntilOption('endTime', request, params);
         }
         // use historical endpoint for targeted requests
         if (sinceDefined) {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
             else {
-                response = await this.sapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
             //
             // both FAPI and SAPI have same response format
@@ -1374,10 +1375,10 @@ export default class aster extends Exchange {
         }
         else {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.fapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
             else {
-                response = await this.sapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.sapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
             //
             // SAPI & FAPI have only one field difference

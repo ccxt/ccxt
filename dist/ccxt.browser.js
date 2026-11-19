@@ -169730,15 +169730,16 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         if (sinceDefined) {
             request['startTime'] = since;
         }
+        let paramsUntil = params;
         if (untilDefined) {
-            request = this.handleUntilOption('endTime', request, params);
+            [request, paramsUntil] = this.handleUntilOption('endTime', request, params);
         }
         // use historical endpoint for targeted requests
         if (sinceDefined) {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             } else {
-                response = await this.sapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
         //
         // both FAPI and SAPI have same response format
@@ -169757,9 +169758,9 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         //
         } else {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.fapiPublicGetV3Trades(this.extend(request, paramsUntil));
             } else {
-                response = await this.sapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.sapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
         //
         // SAPI & FAPI have only one field difference
@@ -253270,12 +253271,11 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'fetchOrderBook', 'generation', 2);
         const market = this.market(symbol);
         const request = {};
-        let response = undefined;
         let data = undefined;
         let timestamp = undefined;
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -253320,7 +253320,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             if (limit !== undefined) {
                 request['count'] = limit; // default 30, max 30
             }
-            response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -253688,11 +253688,10 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'fetchTicker', 'generation', 2);
         const market = this.market(symbol);
         const request = {};
-        let response = undefined;
         let data = {};
         if (generation === 2) {
             request['markets'] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
+            const response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -253729,7 +253728,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
-            response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
+            const response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -290253,15 +290252,14 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'tradingAccountId': tradingAccountId
         };
-        let response = undefined;
         const code = this.safeString(params, 'code');
         if (code !== undefined) {
             const currency = this.currency(code);
             request['symbol'] = currency['id'];
-            response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, params));
+            const response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, params));
             return this.parseBalanceForSingleCurrency(response, code);
         } else {
-            response = await this.privateGetV1AccountsAsset(this.extend(request, params));
+            const response = await this.privateGetV1AccountsAsset(this.extend(request, params));
             //
             //     [
             //         {
@@ -323276,7 +323274,7 @@ class coinspot extends _abstract_coinspot_js__rspack_import_0/* ["default"] */.A
         };
         const balances = this.safeValue2(response, 'balance', 'balances');
         if (Array.isArray(balances)) {
-            const rows = this.toArray(balances);
+            const rows = this.safeList2(response, 'balance', 'balances', []);
             const numRows = rows.length;
             for(let i = 0; i < numRows; i++){
                 const currencies = this.safeDict(rows, i, {});
@@ -367068,8 +367066,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(),
+            'currency': currencyId.toUpperCase(),
             'amount': this.currencyToPrecision(code, amount)
         };
         const market = this.market(symbol);
@@ -367099,8 +367098,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(),
+            'currency': currencyId.toUpperCase(),
             'amount': this.currencyToPrecision(code, amount)
         };
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(params, 'repayCrossMargin', 'unifiedAccount', false);
@@ -367147,8 +367147,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(),
+            'currency': currencyId.toUpperCase(),
             'amount': this.currencyToPrecision(code, amount)
         };
         const market = this.market(symbol);
@@ -367193,8 +367194,9 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(),
+            'currency': currencyId.toUpperCase(),
             'amount': this.currencyToPrecision(code, amount)
         };
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(params, 'borrowCrossMargin', 'unifiedAccount', false);
@@ -388273,12 +388275,10 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const wallet = this.safeList(response, 'wallet', []);
-        let addresses = undefined;
         if (network === undefined) {
-            addresses = wallet;
-        } else {
-            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
+            return this.parseDepositAddresses(wallet, codes, false);
         }
+        const addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         return this.parseDepositAddresses(addresses, codes, false);
     }
     /**
@@ -392997,7 +392997,9 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             type = 'crypto';
         }
         if (code !== undefined) {
-            this.options['networkChainIdsByNames'][code] = {};
+            const chainIdsByNames = this.safeDict(this.options, 'networkChainIdsByNames', {});
+            chainIdsByNames[code] = {};
+            this.options['networkChainIdsByNames'] = chainIdsByNames;
         }
         const chains = this.safeList(rawCurrency, 'chains', []);
         const networks = {};
@@ -393006,7 +393008,11 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2(chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code !== undefined && title !== undefined) {
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+                const chainIdsByNamesDict = this.safeDict(this.options, 'networkChainIdsByNames', {});
+                const chainIdsByTitle = this.safeDict(chainIdsByNamesDict, code, {});
+                chainIdsByTitle[title] = uniqueChainId;
+                chainIdsByNamesDict[code] = chainIdsByTitle;
+                this.options['networkChainIdsByNames'] = chainIdsByNamesDict;
             }
             if (uniqueChainId !== undefined) {
                 const networkNamesByChainIdsDict3 = this.safeDict(this.options, 'networkNamesByChainIds', {});
@@ -400452,10 +400458,12 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     const safeCode = this.safeCurrencyCode(name);
                     const hip3Code = safeCode === undefined ? name : safeCode.replace(':', '-');
-                    this.options['hip3TokensByName'][name] = {
+                    const hip3TokensByName = this.safeDict(this.options, 'hip3TokensByName', {});
+                    hip3TokensByName[name] = {
                         'quote': collateralTokenCode,
                         'code': hip3Code
                     };
+                    this.options['hip3TokensByName'] = hip3TokensByName;
                 }
                 result.push(data);
             }
@@ -422767,7 +422775,22 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrdersByStatus', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchOrdersByStatus', symbol, since, limit, paramsPaginate);
+            // paginate a (symbol, since, limit, params) method pinned to the contract endpoint
+            let paramsContract = this.extend(paramsPaginate, {
+                'paginate': false,
+                'uta': false
+            });
+            if (symbol === undefined) {
+                paramsContract = this.extend(paramsContract, {
+                    'type': 'contract'
+                });
+            }
+            const paginatedMethods = {
+                'active': 'fetchOpenOrders',
+                'open': 'fetchOpenOrders'
+            };
+            const paginatedMethod = this.safeString(paginatedMethods, status, 'fetchClosedOrders');
+            return await this.fetchPaginatedCallDynamic(paginatedMethod, symbol, since, limit, paramsContract);
         }
         const trigger = this.safeBool2(paramsPaginate, 'stop', 'trigger');
         const until = this.safeInteger(paramsPaginate, 'until');
@@ -426506,12 +426529,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        let assets = undefined;
-        if (marginMode === 'isolated') {
-            assets = this.safeList(data, 'assets', []);
-        } else {
-            assets = this.safeList(data, 'accounts', []);
-        }
+        const assetsKey = marginMode === 'isolated' ? 'assets' : 'accounts';
+        const assets = this.safeList(data, assetsKey, []);
         const interest = this.parseBorrowInterests(assets, market);
         const filteredByCurrency = this.filterByCurrencySinceLimit(interest, code, since, limit);
         return this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit);
@@ -428842,7 +428861,13 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         return this.safeString(getVersions, 'deposit-addresses', 'v1');
     }
     setDepositAddressesVersion(version) {
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        const versions = this.safeDict(this.options, 'versions', {});
+        const privateVersions = this.safeDict(versions, 'private', {});
+        const getVersions = this.safeDict(privateVersions, 'GET', {});
+        getVersions['deposit-addresses'] = version;
+        privateVersions['GET'] = getVersions;
+        versions['private'] = privateVersions;
+        this.options['versions'] = versions;
     }
     sign(path, api = [
         'public'
@@ -435944,10 +435969,10 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
-        let order = undefined;
-        if (totalOrderRequests > 0) {
-            order = orderRequests[0];
+        if (totalOrderRequests < 1) {
+            throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + ' createOrder() built no order request');
         }
+        const order = orderRequests[0];
         // the nonce could be updated
         if (this.safeInteger(order, 'nonce') === undefined) {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);
@@ -452418,7 +452443,7 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
         const data = this.safeValue(response, 'data', []);
         let rows = [];
         if (Array.isArray(data)) {
-            rows = this.toArray(data);
+            rows = this.safeList(response, 'data', []);
         } else {
             rows = this.safeList(data, 'items', []);
         }
@@ -527802,8 +527827,12 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
                     // waiters retry rather than proceed unauthenticated
                     throw new _base_errors_js__rspack_import_1.AuthenticationError(this.id + ' authenticate() received an empty listenKey');
                 }
-                this.options['listenKey'][type] = listenKey;
-                this.options['lastAuthenticatedTime'][type] = time;
+                const listenKeys = this.safeDict(this.options, 'listenKey', {});
+                listenKeys[type] = listenKey;
+                this.options['listenKey'] = listenKeys;
+                const lastAuthenticatedTimes = this.safeDict(this.options, 'lastAuthenticatedTime', {});
+                lastAuthenticatedTimes[type] = time;
+                this.options['lastAuthenticatedTime'] = lastAuthenticatedTimes;
                 const keepAliveParams = this.extend({
                     'type': type
                 }, params);
@@ -527842,7 +527871,9 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
                 client.reject(error, messageHash);
             }
             this.options['listenKey'][type] = undefined;
-            this.options['lastAuthenticatedTime'][type] = 0;
+            const lastAuthenticatedTimes = this.safeDict(this.options, 'lastAuthenticatedTime', {});
+            lastAuthenticatedTimes[type] = 0;
+            this.options['lastAuthenticatedTime'] = lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -569194,12 +569225,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol === undefined) {
-            market = undefined;
-        } else {
-            market = this.market(symbol);
-        }
+        const market = this.market(symbol);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_cancel_cp';
@@ -571314,15 +571340,13 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
     getUrlByMarket(market) {
         if (this.safeBool(market, 'contract', false)) {
             const settleKey = this.safeBool(market, 'linear', false) ? 'usdt' : 'btc';
-            return this.safeString(this.urls['api'][market['type']], settleKey, '');
-        } else {
-            return this.safeString(this.urls['api'], market['type'], '');
+            const contractUrl = this.safeString(this.urls['api'][market['type']], settleKey, '');
+            return contractUrl;
         }
+        const spotUrl = this.safeString(this.urls['api'], market['type'], '');
+        return spotUrl;
     }
     getTypeByMarket(market) {
-        if (market === undefined) {
-            return undefined;
-        }
         if (this.safeBool(market, 'spot', false)) {
             return 'spot';
         } else if (this.safeBool(market, 'option', false)) {
@@ -604152,7 +604176,11 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
                 headers['PF-API-KEY'] = this.options['apiKey'];
             }
         }
-        this.options['ws']['options']['headers'] = headers;
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const wsSubOptions = this.safeDict(wsOptions, 'options', {});
+        wsSubOptions['headers'] = headers;
+        wsOptions['options'] = wsSubOptions;
+        this.options['ws'] = wsOptions;
     }
     /**
      * @method

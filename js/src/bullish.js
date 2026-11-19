@@ -2456,16 +2456,15 @@ export default class bullish extends Exchange {
         const request = {
             'tradingAccountId': tradingAccountId,
         };
-        let response = undefined;
         const code = this.safeString(params, 'code');
         if (code !== undefined) {
             const currency = this.currency(code);
             request['symbol'] = currency['id'];
-            response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, params));
+            const response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, params));
             return this.parseBalanceForSingleCurrency(response, code);
         }
         else {
-            response = await this.privateGetV1AccountsAsset(this.extend(request, params));
+            const response = await this.privateGetV1AccountsAsset(this.extend(request, params));
             //
             //     [
             //         {

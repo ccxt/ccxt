@@ -170,8 +170,8 @@ export default class bingx extends bingxRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    setPositionsCache(client: Client, type: Str, symbols?: Strings): void;
-    loadPositionsSnapshot(client: Client, messageHash: string, type: Str): Promise<void>;
+    setPositionsCache(client: Client, type: string, symbols?: Strings): void;
+    loadPositionsSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
     parseWsPosition(position: Dict, market?: Market): Position;
     handlePositions(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): boolean;

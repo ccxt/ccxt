@@ -1592,13 +1592,10 @@ class hollaex extends hollaex$1["default"] {
         //     }
         //
         const wallet = this.safeList(response, 'wallet', []);
-        let addresses = undefined;
         if (network === undefined) {
-            addresses = wallet;
+            return this.parseDepositAddresses(wallet, codes, false);
         }
-        else {
-            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
-        }
+        const addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         return this.parseDepositAddresses(addresses, codes, false);
     }
     /**

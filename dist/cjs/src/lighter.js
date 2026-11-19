@@ -973,10 +973,10 @@ class lighter extends lighter$1["default"] {
                 }
             }
         }
-        let order = undefined;
-        if (totalOrderRequests > 0) {
-            order = orderRequests[0];
+        if (totalOrderRequests < 1) {
+            throw new errors.InvalidOrder(this.id + ' createOrder() built no order request');
         }
+        const order = orderRequests[0];
         // the nonce could be updated
         if (this.safeInteger(order, 'nonce') === undefined) {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);

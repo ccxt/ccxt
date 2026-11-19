@@ -236,13 +236,7 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol === undefined) {
-            market = undefined;
-        }
-        else {
-            market = this.market(symbol);
-        }
+        const market = this.market(symbol);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_cancel_cp';
@@ -2313,16 +2307,13 @@ export default class gate extends gateRest {
     getUrlByMarket(market) {
         if (this.safeBool(market, 'contract', false)) {
             const settleKey = (this.safeBool(market, 'linear', false)) ? 'usdt' : 'btc';
-            return this.safeString(this.urls['api'][market['type']], settleKey, '');
+            const contractUrl = this.safeString(this.urls['api'][market['type']], settleKey, '');
+            return contractUrl;
         }
-        else {
-            return this.safeString(this.urls['api'], market['type'], '');
-        }
+        const spotUrl = this.safeString(this.urls['api'], market['type'], '');
+        return spotUrl;
     }
     getTypeByMarket(market) {
-        if (market === undefined) {
-            return undefined;
-        }
         if (this.safeBool(market, 'spot', false)) {
             return 'spot';
         }

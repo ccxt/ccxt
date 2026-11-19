@@ -392,7 +392,7 @@ export default class gate extends gateRest {
     handleUnSubscribe(client: Client, message: Dict): void;
     handleMessage(client: Client, message: Dict): void;
     getUrlByMarket(market: any): string;
-    getTypeByMarket(market: Market): Str;
+    getTypeByMarket(market: Market): string;
     getUrlByMarketType(type: Str, isInverse?: Bool): Str;
     getMarketTypeByUrl(url: string): string;
     requestId(): int;
