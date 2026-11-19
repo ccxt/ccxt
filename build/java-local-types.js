@@ -11445,6 +11445,7 @@ export function resetJavaVenueIndexes () {
     javaVenueListFiles.length = 0;
     javaVenueTupleNames.clear ();
     javaFreshMapMethodIndex = undefined;
+    javaFreshMapUnindexedFiles.clear ();
 }
 
 // names m with some `const x = await this.m (..)` in a defining file whose x is read by .length or x[..]
@@ -15520,6 +15521,8 @@ function nativeJavaLongMultiplyMember (lines, from, to) {
 // only for a ConcurrentHashMap. A local declared Map<String, Object> holding only fresh maps prints put.
 const JAVA_FRESH_MAP_TS_ROOT = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src');
 let javaFreshMapMethodIndex;
+// files a rebuilt index still does not hold (ts/src/test): they never trigger another rebuild
+const javaFreshMapUnindexedFiles = new Set ();
 
 // every class of the generated tiers and the base: its methods by name and its parent file
 function javaFreshMapMethods () {
@@ -19208,7 +19211,9 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
         return collection.type === JAVA_MAP_TYPE ? { cast: collection.cast } : undefined;
     }
     // a method whose every dispatchable body returns a fresh map literal / extend (account, depositWithdrawFee)
-    if (!javaFreshMapMethods ().classes.has (path.resolve (value.getSourceFile ().fileName))) {
+    const valueFile = path.resolve (value.getSourceFile ().fileName);
+    if (!javaFreshMapUnindexedFiles.has (valueFile) && !javaFreshMapMethods ().classes.has (valueFile)) {
+        javaFreshMapUnindexedFiles.add (valueFile);
         javaFreshMapMethodIndex = undefined; // the class index predates this file: rebuild it once
     }
     if (!isAsyncMethodCall (printer, value) && javaFreshMapValue (value, new Set ())) {
