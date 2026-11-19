@@ -26459,6 +26459,7 @@ const JAVA_LIST_PARAM_SLOTS = {
     'parseSettlements': [ 0 ],
     'parseTransactionsByType': [ 1 ],
     'handleBookDeltas': [ 1 ],
+    'parseBorrowRateHistory': [ 0 ],
 };
 // dictionary slots: every caller hands a checker-proven string-indexed object
 // (calculateRateLimiterCost params stays boxed: fetch2 forwards implicit-endpoint list bodies)
@@ -26470,6 +26471,10 @@ const JAVA_ORDERBOOK_PARAM_SLOTS = {
     'handleOrderBookMessage': [ 2 ],
 };
 const JAVA_ORDERBOOK_PARAM_SLOT_TYPE = 'io.github.ccxt.ws.WsOrderBook';
+// per-file dictionary slots: the declaration overrides nothing and its only caller hands a Dict local
+const JAVA_FILE_MAP_PARAM_SLOTS = {
+    'handleOrders': { index: 1, file: /(^|[\\/])ts[\\/]src[\\/]pro[\\/]phemex\.ts$/ },
+};
 const JAVA_ORDERBOOK_PARAM_SLOT_FILES = /(^|[\\/])ts[\\/]src[\\/]pro[\\/](bittrade|bitvavo)\.ts$/;
 const JAVA_LIST_PARAM_SLOT_TYPE = 'java.util.List<Object>';
 const JAVA_MAP_PARAM_SLOT_TYPE = 'java.util.Map<String, Object>';
@@ -26491,6 +26496,9 @@ function javaListParamSlot (printer, node) {
 function javaParamSlotTypeAt (name, index, fileName) {
     if (JAVA_ORDERBOOK_PARAM_SLOTS[name]?.includes (index) && JAVA_ORDERBOOK_PARAM_SLOT_FILES.test (fileName)) {
         return JAVA_ORDERBOOK_PARAM_SLOT_TYPE;
+    }
+    if (JAVA_FILE_MAP_PARAM_SLOTS[name]?.index === index && JAVA_FILE_MAP_PARAM_SLOTS[name].file.test (fileName)) {
+        return JAVA_MAP_PARAM_SLOT_TYPE;
     }
     if (JAVA_LIST_PARAM_SLOTS[name]?.includes (index)) {
         return JAVA_LIST_PARAM_SLOT_TYPE;
