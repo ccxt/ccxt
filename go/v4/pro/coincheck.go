@@ -86,7 +86,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	var market map[string]any = this.Market(symbol)
 	messageHashStr := "orderbook:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": *this.SafeString(market, "id", "") + "-orderbook",
@@ -168,7 +168,7 @@ func (this *Coincheck) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	var market map[string]any = this.Market(symbol)
 	messageHashStr := "trade:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": *this.SafeString(market, "id", "") + "-trades",

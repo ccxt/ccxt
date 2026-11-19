@@ -8016,7 +8016,7 @@ func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any)
 		retStr := "isolated"
 		return &retStr, paramsMarginMode
 	}
-	return SafeStringPtr(marginMode), paramsMarginMode
+	return marginMode, paramsMarginMode
 }
 
 /**

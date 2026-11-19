@@ -261,7 +261,7 @@ func (this *Poloniex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], name strin
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"event":   "unsubscribe",
 		"channel": []any{name},

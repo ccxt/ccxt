@@ -106,7 +106,7 @@ func (this *Coinbase) subscribeBody(ch chan ccxt.AsyncResult[any], name string, 
 		messageHash = name + "::" + *symbol
 		productIds = []any{this.SafeString(market, "id")}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": productIds,
@@ -168,7 +168,7 @@ func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic stri
 		unWatchMessageHash = ccxt.Add("unsubscribe:"+name+"::", symbol)
 		productIds = []any{this.SafeString(market, "id")}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	// '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
 	var message map[string]any = map[string]any{
 		"type":        "unsubscribe",
@@ -253,7 +253,7 @@ func (this *Coinbase) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], name 
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, name+"::"+symbol)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": productIds,
@@ -320,7 +320,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], to
 		watchMessageHashes = append(watchMessageHashes, name+"::"+symbol)
 		unWatchMessageHashes = append(unWatchMessageHashes, "unsubscribe:"+name+"::"+symbol)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var message map[string]any = map[string]any{
 		"type":        "unsubscribe",
 		"product_ids": productIds,

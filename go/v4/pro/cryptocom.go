@@ -794,7 +794,7 @@ func (this *Cryptocom) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "ticker."+*this.SafeString(this.Market(symbol), "id", ""))
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -998,7 +998,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccx
 		messageHashes = append(messageHashes, "bidask."+symbol)
 		topics = append(topics, "ticker."+*this.SafeString(this.Market(symbol), "id", ""))
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1351,7 +1351,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1843,7 +1843,7 @@ func (this *Cryptocom) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHas
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1871,7 +1871,7 @@ func (this *Cryptocom) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], me
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1900,7 +1900,7 @@ func (this *Cryptocom) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool],
 	_ = params
 	var subExtend map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subExtend
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -1952,7 +1952,7 @@ func (this *Cryptocom) watchPrivateRequestBody(ch chan ccxt.AsyncResult[any], no
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 	var request map[string]any = map[string]any{
 		"id":    nonce,
 		"nonce": nonce,
@@ -1981,7 +1981,7 @@ func (this *Cryptocom) watchPrivateSubscribeBody(ch chan ccxt.AsyncResult[any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 	var id int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -2146,7 +2146,7 @@ func (this *Cryptocom) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)

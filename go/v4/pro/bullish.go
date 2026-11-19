@@ -136,7 +136,7 @@ func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	_ = request
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 
 	r := <-this.HandleTokenAsync()
 	if r.Err != nil {

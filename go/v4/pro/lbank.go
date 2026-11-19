@@ -98,7 +98,7 @@ func (this *Lbank) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash any, 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var client ccxt.ClientInterface = this.Client(url)
 	if client.(ccxt.ClientInterface).SubscriptionHas(subHash) {
 
@@ -173,7 +173,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchOHLCVWs")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
 	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
@@ -245,7 +245,7 @@ func (this *Lbank) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
 	messageHashStr := "ohlcv:" + market["symbol"].(string) + ":" + *timeframeId
 	var messageHash *string = &messageHashStr
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"action":    "subscribe",
 		"subscribe": "kbar",
@@ -449,7 +449,7 @@ func (this *Lbank) fetchTickerWsBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchTickerWs")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "fetchTicker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var message map[string]any = map[string]any{
@@ -496,7 +496,7 @@ func (this *Lbank) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchTicker")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var message map[string]any = map[string]any{
@@ -633,7 +633,7 @@ func (this *Lbank) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchTradesWs")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "fetchTrades:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var limitResolved int64
@@ -693,7 +693,7 @@ func (this *Lbank) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchTrades")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "trades:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var message map[string]any = map[string]any{
@@ -914,7 +914,7 @@ func (this *Lbank) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 		panic(r1.Err)
 	}
 	var key *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash any = nil
 	var symbolResolved any = func() any {
 		if symbol == nil {
@@ -1111,7 +1111,7 @@ func (this *Lbank) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 		panic(r1.Err)
 	}
 	var key *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "balance"
 	var message map[string]any = map[string]any{
 		"action":       "subscribe",
@@ -1205,7 +1205,7 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchOrderBookWs")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "fetchOrderbook:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var limitResolved int64
@@ -1263,7 +1263,7 @@ func (this *Lbank) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchOrderBook")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "orderbook:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var paramsOmitted map[string]any = this.OmitDict(params, "aggregation")
@@ -1464,7 +1464,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var now int64 = this.Milliseconds()
 	var messageHash string = "authenticateFlight"

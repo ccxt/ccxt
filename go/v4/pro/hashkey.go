@@ -74,7 +74,7 @@ func (this *Hashkey) wathPublicBody(ch chan ccxt.AsyncResult[any], market map[st
 		"topic":  topic,
 		"event":  "sub",
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 
 	r := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)
 	if r.Err != nil {

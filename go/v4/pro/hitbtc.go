@@ -232,7 +232,7 @@ func (this *Hitbtc) unSubscribePublicBody(ch chan ccxt.AsyncResult[any], name st
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

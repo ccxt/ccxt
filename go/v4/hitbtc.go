@@ -5222,7 +5222,7 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 		retStr := "isolated"
 		return &retStr, paramsMarginMode
 	}
-	return SafeStringPtr(marginMode), paramsMarginMode
+	return marginMode, paramsMarginMode
 }
 func (this *Hitbtc) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//

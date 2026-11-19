@@ -91,7 +91,7 @@ func (this *P2b) subscribeBody(ch chan ccxt.AsyncResult[any], name string, messa
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"method": name,
 		"params": request,
@@ -257,7 +257,7 @@ func (this *P2b) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 		messageHashes = append(messageHashes, *nameOption+"::"+*this.SafeString(market, "symbol", ""))
 		args = append(args, market["id"])
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"method": *nameOption + ".subscribe",
 		"params": args,
@@ -347,7 +347,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 		}
 	}
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"method": "deals.subscribe",
 		"params": marketIds,

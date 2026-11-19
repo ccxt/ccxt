@@ -77,7 +77,7 @@ func (this *Bit2me) subscribePublicBody(ch chan ccxt.AsyncResult[any], name stri
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"event":  "subscribe",
 		"symbol": market["id"],
@@ -124,7 +124,7 @@ func (this *Bit2me) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"subscription": map[string]any{
@@ -703,7 +703,7 @@ func (this *Bit2me) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	var pending map[string]any = this.SafeDictMap(this.Options, "pendingWsOrders", map[string]any{})
 	ccxt.AddElementToObject(pending, clientOrderId, market["id"])
 	this.Options["pendingWsOrders"] = pending
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "added-order:" + *clientOrderId
 
 	r2 := <-this.Watch(url, messageHash, request, messageHash)
@@ -810,7 +810,7 @@ func (this *Bit2me) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 		"event":   "cancel-order",
 		"orderId": id,
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "canceled-order:" + id
 
 	r2 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
@@ -880,7 +880,7 @@ func (this *Bit2me) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], i
 		"event":    "cancel-orders",
 		"ordersId": ids,
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "canceled-orders"
 
 	r2 := <-this.WatchList(url, messageHash, this.Extend(request, params), messageHash)
@@ -972,7 +972,7 @@ func (this *Bit2me) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order]
 		"event":  "cancel-all-orders",
 		"symbol": market["id"],
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("canceled-all-orders:", market["id"]))
 
 	r2 := <-this.WatchList(url, messageHash, this.Extend(request, params), messageHash)
@@ -1027,7 +1027,7 @@ func (this *Bit2me) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)

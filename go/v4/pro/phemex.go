@@ -589,7 +589,7 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			name = "market24h"
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
 	var messageHash string = "ticker:" + *symbolValue
@@ -652,7 +652,7 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 			name = "market24h"
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
 	var messageHashes []any = []any{}
@@ -722,7 +722,7 @@ func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = (market["settle"] == "USDT")
@@ -788,7 +788,7 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = (market["settle"] == "USDT")
@@ -855,7 +855,7 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
 	var settleIsUSDT bool = (market["settle"] == "USDT")
@@ -896,7 +896,7 @@ func (this *Phemex) unSubscribePublicBody(ch chan ccxt.AsyncResult[any], method 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var request map[string]any = map[string]any{
@@ -2066,7 +2066,7 @@ func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.Seconds()
 	var settleIsUSDT bool = (this.SafeString(params, "settle", "") != nil && *this.SafeString(params, "settle", "") == "USDT")
 	var paramsOmitted map[string]any = this.OmitDict(params, "settle")
@@ -2102,7 +2102,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var requestId int64 = this.RequestId()
 	var messageHash string = "authenticated"

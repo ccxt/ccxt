@@ -97,7 +97,7 @@ func (this *Lighter) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageH
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -123,7 +123,7 @@ func (this *Lighter) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[map[st
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
 	}
@@ -149,7 +149,7 @@ func (this *Lighter) unsubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"type": "unsubscribe",
 	}
@@ -1786,7 +1786,7 @@ func (this *Lighter) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var nextId int64 = this.RequestId(url)
 	// the venue takes a string request id
 	var requestId string = strconv.FormatInt(nextId, 10)
@@ -1847,7 +1847,7 @@ func (this *Lighter) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var nextId int64 = this.RequestId(url)
 	// the venue takes a string request id
 	var requestId string = strconv.FormatInt(nextId, 10)
@@ -1906,7 +1906,7 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var nextId int64 = this.RequestId(url)
 	// the venue takes a string request id
 	var requestId string = strconv.FormatInt(nextId, 10)

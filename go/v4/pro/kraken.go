@@ -342,7 +342,7 @@ func (this *Kraken) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
 	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var orderParams map[string]any = map[string]any{
@@ -438,7 +438,7 @@ func (this *Kraken) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id str
 		panic(r1.Err)
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var orderParams map[string]any = map[string]any{
@@ -497,7 +497,7 @@ func (this *Kraken) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], i
 		panic(r1.Err)
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
@@ -553,7 +553,7 @@ func (this *Kraken) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 		panic(r1.Err)
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
@@ -624,7 +624,7 @@ func (this *Kraken) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order]
 		panic(r1.Err)
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
@@ -1096,7 +1096,7 @@ func (this *Kraken) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		"req_id": this.RequestId(),
 	}
 	request["params"] = this.DeepExtend(request["params"], params)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["publicV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["publicV2"]
 
 	// kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
 	r1 := <-this.WatchMultiple(url, unsubMessageHashes, request, unsubMessageHashes)
@@ -1229,7 +1229,7 @@ func (this *Kraken) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var name string = "ohlc"
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["publicV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["publicV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash string = this.GetMessageHash("ohlcv", nil, symbolValue)
 	var subscribe map[string]any = map[string]any{
@@ -1298,7 +1298,7 @@ func (this *Kraken) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		"req_id": this.RequestId(),
 	}
 	var request map[string]any = this.DeepExtend(unsubscribe, params)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["publicV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["publicV2"]
 
 	r1 := <-this.Watch(url, unsubMessageHash, request, unsubMessageHash)
 	if r1.Err != nil {
@@ -1388,7 +1388,7 @@ func (this *Kraken) watchHeartbeatBody(ch chan ccxt.AsyncResult[map[string]any],
 		panic(r.Err)
 	}
 	var event string = "heartbeat"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["publicV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["publicV2"]
 
 	r1 := <-this.WatchMap(url, event)
 	if r1.Err != nil {
@@ -1629,7 +1629,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var authenticated string = "authenticated"
 	var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(authenticated)
@@ -1759,7 +1759,7 @@ func (this *Kraken) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], name strin
 		symbolResolved = this.Symbol(symbol)
 		messageHash = ccxt.Add(name+":", symbolResolved)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
@@ -2190,7 +2190,7 @@ func (this *Kraken) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], unifiedN
 		"req_id": this.RequestId(),
 	}
 	request["params"] = this.DeepExtend(request["params"], params)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["publicV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["publicV2"]
 
 	r1 := <-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs)
 	if r1.Err != nil {
@@ -2230,7 +2230,7 @@ func (this *Kraken) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	}
 	var token *string = ccxt.SafeStringPtr(r1.Value)
 	var messageHash string = "balances"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",

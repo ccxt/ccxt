@@ -92,7 +92,7 @@ func (this *Coinone) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var market map[string]any = this.Market(symbol)
 	messageHashStr := "orderbook:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "ORDERBOOK",
@@ -200,7 +200,7 @@ func (this *Coinone) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	var market map[string]any = this.Market(symbol)
 	messageHashStr := "ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "TICKER",
@@ -355,7 +355,7 @@ func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	var market map[string]any = this.Market(symbol)
 	messageHashStr := "trade:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "TRADE",

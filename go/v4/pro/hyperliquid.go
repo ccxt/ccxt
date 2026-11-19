@@ -107,7 +107,7 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var ordersRequest any = this.CreateOrdersRequest(orders, params)
 	var wrapped map[string]any = this.WrapAsPostAction(ordersRequest)
 	var request map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
@@ -227,7 +227,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	order, globalParams := this.ParseCreateEditOrderArgs(&id, &symbol, &typeVar, &side, amount, price, params)
 	var postRequest any = this.EditOrdersRequest([]any{order}, globalParams)
 	var wrapped map[string]any = this.WrapAsPostAction(postRequest)
@@ -283,7 +283,7 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 		}
 	}
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var wrapped map[string]any = this.WrapAsPostAction(request)
 	var wsRequest map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
 	var requestId *string = this.SafeString(wrapped, "requestId")
@@ -376,7 +376,7 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderB
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook:" + symbolValue
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -436,7 +436,7 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sy
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "orderbook:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var nonce int64 = this.IncrementingNonce()
 	var id *string = this.NumberToString(nonce)
 	var request map[string]any = map[string]any{
@@ -556,7 +556,7 @@ func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], 
 	// instead of the aggregate allMids broadcast that only carries mids and arrives at the
 	// server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
 	var messageHash string = "ticker:" + symbolValue
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -613,7 +613,7 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbo
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "ticker:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -678,7 +678,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true)
 	var messageHash string = "tickers"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var subscription map[string]any = map[string]any{
 		"type": "allMids",
 	}
@@ -759,7 +759,7 @@ func (this *Hyperliquid) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], opti
 	this.MarketSymbols(symbols, nil, true)
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -834,7 +834,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	if !ccxt.IsEqual(symbolResolved, nil) {
 		messageHash = ccxt.Add("myTrades:", symbolResolved)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -947,7 +947,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 			messageHashes = append(messageHashes, "myLiquidations::"+symbolsNormalized[i])
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -1027,7 +1027,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], opt
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("unWatchMyTrades", params), 0)
 	var paramsValue any = this.SafeDict(this.HandlePublicAddress("unWatchMyTrades", params), 1, params)
 	var messageHash string = "unsubscribe:myTrades"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -1300,7 +1300,7 @@ func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trade:" + symbolValue
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -1364,7 +1364,7 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbo
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "trade:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -1553,7 +1553,7 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -1620,7 +1620,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -1762,7 +1762,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 		topic = "spotState"
 	}
 	var messageHash string = topic + "::balance"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var subscription map[string]any = map[string]any{
 		"type": topic,
 		"user": userAddress,
@@ -1823,7 +1823,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], opti
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("unWatchBalance", params), 0)
 	var paramsValue any = this.SafeDict(this.HandlePublicAddress("unWatchBalance", params), 1, params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
@@ -2073,7 +2073,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 	if hasSymbols && (!ccxt.IsEqual(symbolsNormalized, nil)) {
 		messageHash += "::" + ccxt.Join(symbolsNormalized, ",")
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var subscription map[string]any = map[string]any{
 		"type": topic,
 		"user": userAddress,
@@ -2196,7 +2196,7 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], op
 		panic(ccxt.NotSupported(this.Id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders"))
 	}
 	var messageHash string = "unsubscribe:clearinghouseState"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("unWatchPositions", params), 0)
 	var paramsValue any = this.SafeDict(this.HandlePublicAddress("unWatchPositions", params), 1, params)
 	var request map[string]any = map[string]any{
@@ -2277,7 +2277,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 	} else {
 		symbolResolved = symbol
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
@@ -2350,7 +2350,7 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optio
 		panic(ccxt.NotSupported(this.Id + " unWatchOrders() does not support a symbol argument, unWatch from all markets only"))
 	}
 	var messageHash string = "unsubscribe:order"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("unWatchOrders", params), 0)
 	var paramsValue any = this.SafeDict(this.HandlePublicAddress("unWatchOrders", params), 1, params)
 	var request map[string]any = map[string]any{

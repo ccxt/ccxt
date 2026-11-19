@@ -106,7 +106,7 @@ func (this *Deribit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 		panic(r.Err)
 	}
 	var messageHash string = "balance"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var currencies []any = ccxt.SafeListTyped(this.Options, "currencies")
 	var channels []any = []any{}
 	for i := 0; i < len(currencies); i++ {
@@ -215,7 +215,7 @@ func (this *Deribit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var interval string = *this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	if this.Markets == nil {
@@ -282,7 +282,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var interval string = *this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	if this.Markets == nil {
@@ -404,7 +404,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
@@ -666,7 +666,7 @@ func (this *Deribit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		}
 		return nil
 	}()
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var interval string = *this.SafeString(params, "interval", "raw")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	var channel string = "user.trades.any.any." + interval
@@ -1008,7 +1008,7 @@ func (this *Deribit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		}
 		return nil
 	}()
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var currency string = *this.SafeString(params, "currency", "any")
 	var interval string = *this.SafeString(params, "interval", "raw")
 	var kind string = *this.SafeString(params, "kind", "any")
@@ -1284,7 +1284,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], cha
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var rawSubscriptions []any = []any{}
 	var messageHashes []any = []any{}
 	var isOHLCV bool = (channelName == "chart.trades")
@@ -1466,7 +1466,7 @@ func (this *Deribit) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var time int64 = this.Milliseconds()
 	var timeString *string = this.NumberToString(time)

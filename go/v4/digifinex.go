@@ -5764,7 +5764,7 @@ func (this *Digifinex) HandleMarginModeAndParams(methodName any, optionalArgs ..
 		retStr := "cross"
 		return &retStr, paramsMarginMode
 	}
-	return SafeStringPtr(marginMode), paramsMarginMode
+	return marginMode, paramsMarginMode
 }
 
 /**

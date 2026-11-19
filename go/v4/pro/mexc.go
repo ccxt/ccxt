@@ -512,7 +512,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		}
 		messageHashes = append(messageHashes, "bidask:"+symbolsNormalized[i])
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["spot"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["spot"]
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIPTION",
 		"params": topics,
@@ -607,7 +607,7 @@ func (this *Mexc) watchSpotPublicBody(ch chan ccxt.AsyncResult[any], channel any
 	_ = params
 	var unsubscribed *bool = this.SafeBool(params, "unsubscribed", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"unsubscribed"})
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["spot"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["spot"]
 	var method string = "SUBSCRIPTION"
 	if unsubscribed != nil && *unsubscribed {
 		method = "UNSUBSCRIPTION"
@@ -671,7 +671,7 @@ func (this *Mexc) watchSwapPublicBody(ch chan ccxt.AsyncResult[any], channel any
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["swap"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["swap"]
 	var request map[string]any = map[string]any{
 		"method": channel,
 		"param":  requestParams,
@@ -697,7 +697,7 @@ func (this *Mexc) watchSwapPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 	_ = params
 	this.CheckRequiredCredentials()
 	var channel string = "login"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["swap"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["swap"]
 	var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 	var payload string = this.ApiKey + timestamp
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
@@ -2292,7 +2292,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		}
 		messageHashes = append(messageHashes, "unsubscribe:bidask:"+symbolsNormalized[i])
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["spot"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["spot"]
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIPTION",
 		"params": topics,

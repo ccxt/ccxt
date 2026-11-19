@@ -92,7 +92,7 @@ func (this *Krakenfutures) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	// Base64-decode your api_secret
 	// Use the result of step 2 to hash the result of step 1 with the HMAC-SHA-512 algorithm
 	// Base64-encode the result of step 3
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "challenge"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -184,7 +184,7 @@ func (this *Krakenfutures) subscribePublicBody(ch chan ccxt.AsyncResult[map[stri
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"event": "subscribe",
 		"feed":  name,
@@ -248,7 +248,7 @@ func (this *Krakenfutures) subscribePrivateBody(ch chan ccxt.AsyncResult[any], n
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"event":              "subscribe",
 		"feed":               name,
@@ -2119,7 +2119,7 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], u
 			panic(r.Err)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	// symbols are required
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, false)
 	var messageHashes []any = []any{}

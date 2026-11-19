@@ -6629,7 +6629,14 @@ function goSafeStringPtrHoist (content: string): string {
             if (call === undefined) { continue; }
             const v = call[0].trim ();
             const rest = call[1].slice (1);
-            if (!(m[3] ? /^\s*(?:\/\/.*)?$/ : /^(?:, \w+)?\s*$/).test (rest) || !goPtrHoistIsString (v, func)) { continue; }
+            if (!(m[3] ? /^\s*(?:\/\/.*)?$/ : /^(?:, \w+)?\s*$/).test (rest)) { continue; }
+            // slot 0 of a base (*string, map) pair, declared once: the pointer is the value SafeStringPtr would copy
+            if (/^\w+$/.test (v) && ((func.match (new RegExp ('\\n\\s*(?:var ' + v + '\\b|' + v + '(?:, \\w+)? :?= )', 'g')) ?? []).length === 1)
+                && new RegExp ('\\n\\s*' + v + ', \\w+ := this\\.(?:Exchange\\.)?HandleMarginModeAndParams\\(').test (func)) {
+                lines[i] = m[1] + m[2] + v + rest;
+                continue;
+            }
+            if (!goPtrHoistIsString (v, func)) { continue; }
             const base = (m[3] ?? 'ret') + 'Str';
             let name = base;
             for (let n = 2; used.has (name) || new RegExp ('\\b' + name + '\\b').test (func); n++) { name = base + n; }
@@ -6667,6 +6674,7 @@ function goSafeStringPtrHoistCheck (): string[] {
         [ '\tvar m string = "q"\n\treturn SafeStringPtr(m)\n', '\tvar m string = "q"\n\tretStr := m\n\treturn &retStr\n' ],
         [ '\tvar m string = "q"\n\tm = "r"\n\tvar o any = this.G(a, SafeStringPtr(m), b)\n', '\tmStr := m\n\tvar o any = this.G(a, &mStr, b)\n' ],
         [ '\tthis.G(SafeStringPtr("c"))\n', '\targStr := "c"\n\tthis.G(&argStr)\n' ],
+        [ '\tm, p := this.Exchange.HandleMarginModeAndParams(a, b)\n\treturn SafeStringPtr(m), p\n', '\tm, p := this.Exchange.HandleMarginModeAndParams(a, b)\n\treturn m, p\n' ],
     ];
     const keep = [ '\treturn SafeStringPtr(a)\n', '\treturn SafeStringPtr(Add(a, "x"))\n', '\treturn SafeStringPtr(this.ForceString(a))\n',
         '\treturn SafeStringPtr("x"), this.M()\n', '\tvar h *string = SafeStringPtr("x") + y\n', '\treturn SafeStringPtr(f("a") + g(a))\n',

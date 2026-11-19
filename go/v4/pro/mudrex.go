@@ -92,7 +92,7 @@ func (this *Mudrex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "ticker:" + *symbolValue
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	this.SetBrokerHeaders()
 	var baseIdString string = *this.SafeString(market, "baseId", "")
 	var quoteIdString string = *this.SafeString(market, "quoteId", "")
@@ -146,7 +146,7 @@ func (this *Mudrex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 			assets = append(assets, assetId)
 		}
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	this.SetBrokerHeaders()
 	var subscribe map[string]any = map[string]any{
 		"id":     this.RequestId(),
@@ -214,7 +214,7 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var streamQuoteId string = *this.SafeString(market, "quoteId", "")
 	var stream string = prefix + "@" + *interval + "@" + strings.ToLower(streamBaseId) + strings.ToLower(streamQuoteId)
 	var messageHash string = stream
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	this.SetBrokerHeaders()
 	var subscribe map[string]any = map[string]any{
 		"id":     this.RequestId(),

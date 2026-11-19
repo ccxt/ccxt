@@ -628,7 +628,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncRes
 	for i := 0; i < symbolsLength; i++ {
 		messageHashes = append(messageHashes, name+":"+*this.SafeString(marketIds, i, ""))
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": marketIds,
@@ -685,7 +685,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = name + ":" + *this.SafeString(market, "id", "")
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": []any{market["id"]},

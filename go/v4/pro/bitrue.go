@@ -591,7 +591,7 @@ func (this *Bitrue) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash stri
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["futurePublic"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["futurePublic"]
 	var client ccxt.ClientInterface = this.Client(url)
 	if client.(ccxt.ClientInterface).SubscriptionHas(subHash) {
 		var request map[string]any = map[string]any{

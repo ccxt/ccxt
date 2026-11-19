@@ -218,6 +218,9 @@ type BaseExchange struct {
 	// re-derives them after every write) and a read is the dictionary's own map index.
 	UrlsApi         map[string]any            // urls["api"], exactly as stored
 	UrlsApiSections map[string]map[string]any // urls["api"] entries that are dictionaries
+	// the string leaves of UrlsApi / UrlsApiSections, as *string (an absent or non-string entry reads nil)
+	UrlsApiStrings        map[string]*string
+	UrlsApiSectionStrings map[string]map[string]*string
 }
 
 // Exchange is the thin, public REST exchange type. All shared infrastructure lives in the
@@ -829,16 +832,27 @@ func optionMethodLabel(methodName any) string {
 func (this *BaseExchange) RefreshUrlsViews() {
 	this.UrlsApi = MapTyped(this.Urls["api"])
 	this.UrlsApiSections = nil
+	this.UrlsApiStrings = nil
+	this.UrlsApiSectionStrings = nil
 	if this.UrlsApi == nil {
 		return
 	}
 	sections := make(map[string]map[string]any, len(this.UrlsApi))
+	leaves := make(map[string]*string, len(this.UrlsApi))
+	sectionLeaves := make(map[string]map[string]*string, len(this.UrlsApi))
 	for key, value := range this.UrlsApi {
+		leaves[key] = SafeStringPtr(value)
 		if section := MapTyped(value); section != nil {
 			sections[key] = section
+			sectionLeaves[key] = make(map[string]*string, len(section))
+			for entry, leaf := range section {
+				sectionLeaves[key][entry] = SafeStringPtr(leaf)
+			}
 		}
 	}
 	this.UrlsApiSections = sections
+	this.UrlsApiStrings = leaves
+	this.UrlsApiSectionStrings = sectionLeaves
 }
 
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan AsyncResult[any] {
