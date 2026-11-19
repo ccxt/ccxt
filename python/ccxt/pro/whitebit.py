@@ -1049,7 +1049,7 @@ class whitebit(ccxt.async_support.whitebit):
                 if (subId is not None) and (subId == id):
                     method = self.safe_value(subscription, 'method')
                     if method is not None:
-                        method(client, message)
+                        self.handle_authenticate(client, message)
                         return
 
     def handle_pong(self, client: Client, message: dict) -> dict:

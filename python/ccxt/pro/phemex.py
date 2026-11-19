@@ -1546,7 +1546,7 @@ class phemex(ccxt.async_support.phemex):
             method = self.safe_value(client.subscriptions, id)
             del client.subscriptions[id]
             if method is not True:
-                method(client, message)
+                self.handle_authenticate(client, message)
                 return
         if ('result' in message) or ('error' in message):
             self.handle_un_subscription(client, message)
