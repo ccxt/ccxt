@@ -496,6 +496,8 @@ class Transpiler {
             [ /if\s+\((.*)\)\s*[\n]/g, "if $1:\n" ],
             [ /\}\s*else\s*\{/g, 'else:' ],
             [ /else\s*[\n]/g, "else:\n" ],
+            // `<=` is inclusive and range() stops before its end: print `end + 1`
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+\<=\s*(\w+(?:\.(?!length\b)\w+)*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3 + 1):'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, len($3)):'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],

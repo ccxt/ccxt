@@ -6764,7 +6764,7 @@ export class BaseExchange {
         const retryDelay = 0;
         const [ retryDelayMaxRetriesOnFailureDelay, paramsMaxRetriesOnFailureDelay ] = this.handleOptionIntegerAndParams (paramsMaxRetriesOnFailure, path, 'maxRetriesOnFailureDelay', retryDelay);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
-        for (let i = 0; i < retriesMaxRetriesOnFailure + 1; i++) {
+        for (let i = 0; i <= retriesMaxRetriesOnFailure; i++) {
             let fetchData: NullableDict = undefined;
             if (fetchDataCacheEnabled) {
                 fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
