@@ -17075,6 +17075,9 @@ export const SIGNATURE_ARG_TYPES = {
     // base-only, no overrides; every caller passes a declared dictionary local (bigone/gate/htx/bybit, mexc/nado)
     'selectNetworkKeyFromNetworks': { 2: 'IDictionary<string, object>' },
     'handleTriggerDirectionAndParams': { 0: 'IDictionary<string, object>' },
+    // base-only, no overrides: safeNetwork's one caller passes a dictionary literal; no caller passes existingCurrencies
+    'safeNetwork': { 0: 'IDictionary<string, object>' },
+    'isLeveragedCurrency': { 2: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
