@@ -6580,6 +6580,11 @@ const RUST_PARSE_LIST_FNS = [
     'parse_orders',
     'parse_positions',
     'parse_settlements',
+    'parse_transactions',
+    'parse_transfers',
+    'parse_borrow_interests',
+    'parse_margin_modifications',
+    'parse_order_book_bid_ask',
 ];
 function typeParseListReturns(content: string): string {
     const typed = new Set<string>();
@@ -6588,16 +6593,20 @@ function typeParseListReturns(content: string): string {
     const self = String.raw`self(?:\.parent)?\.(?:${RUST_PARSE_LIST_FNS.join('|')})\(`;
     content = content.replace(decl, (whole, sig, name, open, body: string) => {
         const lines = body.split('\n').filter((l) => /^\s*return\b/.test(l));
-        const resultVec = /\n\s*let mut result: Vec<Value> = Vec::new\(\);/.test('\n' + body);
+        // a local declared once as `Vec<Value>` (never redeclared) is a built list
+        const vecs = [...body.matchAll(/\n\s*let mut (\w+): Vec<Value> = (?:Vec::new\(\)|vec!\[(?:Value::[^\n]*)?\]);/g)].map((v) => v[1])
+            .filter((v) => (body.match(new RegExp(String.raw`\blet mut ${v}\b`, 'g')) ?? []).length === 1);
+        const vecRet = (l: string) => vecs.some((v) => new RegExp(String.raw`^\s*return Value::from\(${v}\);$`).test(l));
         const ok = lines.length > 0 && lines.every((l) => /^\s*return Value::Arr\(self\.filter_by_\w+\(.*\)\);$/.test(l)
-            || /^\s*return Value::from\(vec!\[\]\);$/.test(l) || (resultVec && /^\s*return Value::from\(result\);$/.test(l))
+            || /^\s*return Value::from\(vec!\[(?:Value::.*)?\]\);$/.test(l) || vecRet(l)
             || new RegExp(String.raw`^\s*return ${self}.*\);$`).test(l)
             || (name === 'parse_positions' && /^\s*return self\.filter_by_array_positions\(.*\);$/.test(l)));
         if (!ok) { failed.add(name); return whole; }
         typed.add(name);
         const b = body.replace(/^(\s*return )Value::Arr\((self\.filter_by_\w+\(.*\))\);$/gm, '$1$2;')
             .replace(/^(\s*return )Value::from\(vec!\[\]\);$/gm, '$1Default::default();')
-            .replace(/^(\s*return )Value::from\(result\);$/gm, '$1std::sync::Arc::new(result);')
+            .replace(/^(\s*return )Value::from\((vec!\[Value::.*\])\);$/gm, '$1std::sync::Arc::new($2);')
+            .replace(new RegExp(String.raw`^(\s*return )Value::from\((${vecs.join('|') || '(?!)'})\);$`, 'gm'), '$1std::sync::Arc::new($2);')
             .replace(/^(\s*return self\.filter_by_array_positions\(.*\));$/gm, '$1.into_list();');
         return `${sig}crate::value::List${open}${b}\n}`;
     });
