@@ -5240,6 +5240,61 @@ function lendMergeOperands(content: string): string {
     return out + content.slice(last);
 }
 
+// Lend the optional-args slice of read-only methods (`optional_args` read only through `get_arg`): a method this
+// file declares with `optional_args: &[Value]`, or a prediction base helper, takes `&[&Value]` and callers lend
+// `&x` for `x.clone()`; by-name dispatch lends its `args` elements.
+const RUST_LENT_OPTIONAL_ARGS = ['authenticate', 'load_account'];
+const RUST_LENT_OPTIONAL_ARGS_BASE = ['parse_search_queries', 'require_event_query'];
+// Top-level comma split of an argument list (brackets, braces and string literals kept whole).
+function splitRustArgs(list: string): string[] {
+    const out: string[] = [];
+    let depth = 0, start = 0, inStr = false;
+    for (let i = 0; i < list.length; i++) {
+        const c = list[i];
+        if (inStr) { if (c === '\\') i++; else if (c === '"') inStr = false; continue; }
+        if (c === '"') inStr = true;
+        else if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        else if (c === ',' && depth === 0) { out.push(list.slice(start, i)); start = i + 1; }
+    }
+    out.push(list.slice(start));
+    return out;
+}
+
+function lendOptionalArgs(content: string): string {
+    const names = RUST_LENT_OPTIONAL_ARGS_BASE.filter(n => content.includes(n));
+    for (const n of RUST_LENT_OPTIONAL_ARGS) {
+        const decl = new RegExp(`\\bfn ${n}\\([^)]*optional_args: &\\[Value\\]\\)[^{]*\\{`).exec(content);
+        if (decl === null) continue;
+        const body = content.slice(decl.index + decl[0].length, balancedCloseIndex(content, decl.index + decl[0].length));
+        if (body.replace(/get_arg\(optional_args, /g, '').includes('optional_args')) continue;
+        names.push(n);
+    }
+    if (names.length === 0) return content;
+    const alt = names.join('|');
+    content = content.replace(new RegExp(`(\\bfn (?:${alt})\\([^)]*optional_args: &\\[)Value(\\]\\))`, 'g'), '$1&Value$2');
+    const re = new RegExp(`(?:\\bself\\.|::)(?:${alt})\\((?:self, )?`, 'g');
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = re.exec(content)) !== null) {
+        const open = m.index + m[0].length, close = balancedCloseIndex(content, open);
+        const args = splitRustArgs(content.slice(open, close));
+        const tail = args[args.length - 1].trim();
+        let lent: string | undefined;
+        if (/^&args\[[^\]]*\]$/.test(tail)) lent = `&${tail.slice(1)}.iter().collect::<Vec<_>>()`;
+        else if (tail.startsWith('&[') && tail.endsWith(']') && balancedCloseIndex(tail, 2) === tail.length - 1) {
+            const inner = tail.slice(2, -1).trim();
+            lent = inner === '' ? tail : '&[' + splitRustArgs(inner).map(e => e.trim())
+                .map(e => /^[A-Za-z_]\w*\.clone\(\)$/.test(e) ? '&' + e.slice(0, -8) : '&' + e).join(', ') + ']';
+        }
+        if (lent === undefined || lent === tail) continue;
+        const at = content.lastIndexOf(tail, close);
+        out += content.slice(last, at) + lent;
+        last = at + tail.length;
+        re.lastIndex = close;
+    }
+    return out + content.slice(last);
+}
+
 // Move an owned local into `&[x]` / `Value::Map(x)` instead of cloning it when this is its last use:
 // no later mention in the fn, none elsewhere in the statement, not inside a loop or closure.
 function moveLocalsAtLastUse(content: string): string {
@@ -5558,10 +5613,14 @@ function overwriteFileAndFolder(filePath: string, content: string) {
         checkCreateFolder(filePath);
     }
 <<<<<<< merged
+<<<<<<< merged
     content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
 =======
     content = splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
 >>>>>>> R08
+=======
+    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))))));
+>>>>>>> R11
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -12175,10 +12234,14 @@ impl std::ops::DerefMut for ${coreName} {
         );
 
 <<<<<<< merged
+<<<<<<< merged
         fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBalanceField(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
 =======
         fs.writeFileSync(outFile, splitLongRustLines(typePredictionPositionsList(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
 >>>>>>> R08
+=======
+        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendOptionalArgs(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))))));
+>>>>>>> R11
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
@@ -14572,6 +14635,11 @@ function rustPassesSelfTest(): string[] {
     };
     for (const [name, fn] of Object.entries(lists)) for (const p of fn()) problems.push(`${name}: ${p}`);
     if (mapParamDispatchSelfTest() !== 0) problems.push('mapParamDispatchSelfTest');
+    const lendSrc = 'fn authenticate(&mut self, optional_args: &[Value]) -> Value {\n    let mut params = get_arg(optional_args, 0, Value::Null);\n}\nfn f(&mut self, args: &[Value]) { self.authenticate(&[params.clone()]); self.authenticate(&args[..]); self.authenticate(&[]); }\n';
+    const lent = lendOptionalArgs(lendSrc);
+    ok(lent.includes('optional_args: &[&Value]') && lent.includes('self.authenticate(&[&params])') && lent.includes('self.authenticate(&args[..].iter().collect::<Vec<_>>())') && lent.includes('self.authenticate(&[])'), 'lendOptionalArgs: get_arg-only method lends');
+    const kept = lendOptionalArgs(lendSrc.replace('Value::Null);', 'Value::Null); g(optional_args);'));
+    ok(kept === lendSrc.replace('Value::Null);', 'Value::Null); g(optional_args);'), 'lendOptionalArgs: other optional_args use keeps the slice');
     const ok = (cond: boolean, msg: string) => { if (!cond) problems.push(msg); };
     const chain = 'pub fn f(&mut self, symbol: Value) {\n    let mut tf: Value = Value::Null;\n    if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), tf.clone()); }\n}\n';
     ok(plainDictChains(chain).includes('.entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null)') && !plainDictChains(chain).includes('get_value_mut'), 'plainDictChains: Value-ident key');

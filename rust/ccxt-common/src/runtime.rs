@@ -663,7 +663,8 @@ pub async fn promise_all(v: &Value) -> Value {
 
 /// `get_arg(args, index, default)` — used by transpiled methods that accept
 /// `params = []` variadic optional arguments.
-pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
+/// Takes owned (`&[Value]`) or lent (`&[&Value]`) slots.
+pub fn get_arg<T: std::borrow::Borrow<Value>>(args: &[T], idx: usize, default: Value) -> Value {
     // JS default parameters trigger on `undefined`, so `f(a, b)` and
     // `f(a, b, undefined, undefined)` both apply the declared defaults. The port
     // collapses `undefined`/`null` into `Value::Null`, and a caller may pass
@@ -674,7 +675,7 @@ pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
     // when the slot is `Null` *and* a non-`Null` default is declared, honour the
     // default — matching JS. A `Null` default is unchanged (explicit `Null`
     // stays `Null`).
-    match args.get(idx) {
+    match args.get(idx).map(std::borrow::Borrow::borrow) {
         None => default,
         Some(Value::Null) if !matches!(default, Value::Null) => default,
         Some(v) => v.clone(),
