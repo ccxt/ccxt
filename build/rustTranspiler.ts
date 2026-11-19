@@ -6175,13 +6175,15 @@ function splitLongRustLines(content: string, max = 400): string {
 // Base handleOption*AndParams(2) answer a native `(slot 0, Dict)` tuple: each printed `Vec<Value>` head and its slot reads
 // become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
 // Base handle{Option*,MarketType,MarginMode,SubType}AndParams, handleParam{String,Bool,Integer}(2) and handlePostOnly share the shape
-const RUST_TUPLE_FN_NAME = String.raw`(?:(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params)`;
-const rustTupleFam = (name: string): string => (/bool/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : /margin_mode/.test(name) ? 'margin_mode_' : /sub_type/.test(name) ? 'sub_type_' : '');
+const RUST_TUPLE_FN_NAME = String.raw`(?:(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params|handle_stock_params|is_unified_enabled|get_bybit_type)`;
+// handleStockParams and hyperliquid isUnifiedEnabled answer [Bool, Dict]; bybit isUnifiedEnabled answers [boolean, boolean]
+const rustTupleFam = (name: string, src = ''): string => (name === 'is_unified_enabled' && /\bpub struct Bybit\b/.test(src) ? 'bool_pair_' : /bool|_stock_|unified/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : /margin_mode/.test(name) ? 'margin_mode_' : /sub_type/.test(name) ? 'sub_type_' : '');
 const RUST_OPTION_TUPLE_FNS = new RegExp(String.raw`\b(?:self|exchange)(?:\.parent)?\.(${RUST_TUPLE_FN_NAME})\(`, 'g');
 const RUST_OPTION_TUPLE_SLOT0: { [fam: string]: [string, string | undefined, (v: string) => string] } = {
     '': ['Value', undefined, (v) => v], 'string_': ['Value', undefined, (v) => v],
     'bool_': ['Option<bool>', 'as_bool', (v) => `${v}.map_or(Value::Null, Value::Bool)`], 'integer_': ['Option<i64>', 'as_i64', (v) => `Value::from(${v})`],
     'margin_mode_': ['Value', undefined, (v) => v], 'sub_type_': ['Value', undefined, (v) => v],
+    'bool_pair_': ['Option<bool>', 'as_bool', (v) => `${v}.map_or(Value::Null, Value::Bool)`],
 };
 function rustCloseParen(s: string, j: number): number {
     for (let d = 1; j < s.length; j++) {
@@ -6209,8 +6211,8 @@ function typeOptionTupleLocals(src: string): string {
     for (let m: RegExpExecArray | null; (m = tup.exec(out)) !== null;) {
         const callEnd = rustCloseParen(out, m.index + m[0].length);
         const tail = /^;\s*Value::from\(vec!\[[^\n]*?\]\) \};/.exec(out.slice(callEnd, callEnd + 200));
-        if (callEnd < 0 || tail === null) continue;
-        const n = m[2], fam = rustTupleFam(m[4]), from = callEnd + tail[0].length;
+        if (callEnd < 0 || tail === null || /^is_unified_enabled$/.test(m[4]) && /\bpub struct Bybit\b/.test(out)) continue;
+        const n = m[2], fam = rustTupleFam(m[4], out), from = callEnd + tail[0].length;
         const rest = rustFnRest(out, from);
         const rd = new RegExp(`\\b${n}\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| __arr\\.get\\(([01])\\)\\)((?:\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)|\\.and_then\\(Value::as_\\w+\\))(?:\\.(?:into_dict|as_\\w+)\\(\\))?(?:\\.map\\(str::to_owned\\))?)`, 'g');
         const reads: string[] = [];
@@ -6239,14 +6241,15 @@ function typeOptionTupleLocals(src: string): string {
     }
     return out;
 }
-function typeHandleOptionTuples(content: string): string {
-    if (!/handle_(?:option_|param_|post_only|market_type_and_params|margin_mode_|sub_type_|network_code_|product_type_|uta_|trigger_direction_|max_entries_per_request_)/.test(content)) return content;
+function typeHandleOptionTuples(input: string): string {
+    let content = input;
+    if (!/handle_(?:option_|param_|post_only|market_type_and_params|margin_mode_|sub_type_|network_code_|product_type_|uta_|trigger_direction_|max_entries_per_request_|stock_params|is_unified_enabled|get_bybit_type)/.test(content)) return content;
     const SLOT = /\.get\(([01])\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/;
     let out = '';
     let last = 0;
     RUST_OPTION_TUPLE_FNS.lastIndex = 0;
     for (let m: RegExpExecArray | null; (m = RUST_OPTION_TUPLE_FNS.exec(content)) !== null;) {
-        const fam = rustTupleFam(m[1]);
+        const fam = rustTupleFam(m[1], content);
         const close = rustCloseParen(content, m.index + m[0].length);
         if (close < 0) break;
         // an async handler's `.await` belongs to the call
@@ -6256,7 +6259,7 @@ function typeHandleOptionTuples(content: string): string {
         const pre = content.slice(lineStart, m.index);
         const head = /let (?:mut )?(\w+)(?:: Vec<Value>)? = $/.exec(pre);
         const listTail = /^(?:\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\)|\.into_list\(\));/.exec(content.slice(end, end + 48));
-        if (head !== null && listTail !== null) {
+        if (head !== null && listTail !== null && fam !== 'bool_pair_') {
             // the slot reads follow on the same statement group (`{ ..; a = t.get(0)..; p = t.get(1)..; }`) or the next two lines
             const from = end + listTail[0].length;
             const block = pre.trimStart().startsWith('{ ');
@@ -6278,13 +6281,32 @@ function typeHandleOptionTuples(content: string): string {
                 continue;
             }
         }
+        // a `List` head of handleStockParams / isUnifiedEnabled read only through safe_bool(_opt) / safe_dict_(t|or) slot reads
+        const lhead = /^(?:handle_stock_params|is_unified_enabled)$/.test(m[1]) ? /let mut (\w+): crate::value::List = $/.exec(pre) : null;
+        if (lhead !== null && content.startsWith('.into_list();', end)) {
+            const n = lhead[1], from = end + 13, rest = rustFnRest(content, from);
+            let moves = 0;
+            const rd = new RegExp(String.raw`self\.(safe_bool_opt|safe_bool|safe_dict_t|safe_dict_or)\(&${n}, Value::Int\(([01])\)(, &\[Value::Bool\(false\)\]|, Value::Dict\(\w+\))?\)`, 'g');
+            const body = rest.replace(rd, (r, f, i, d) => {
+                if (i === '1' && fam !== 'bool_pair_') { if (f === 'safe_dict_t' && d === undefined || f === 'safe_dict_or' && d?.startsWith(', Value::Dict')) { moves++; return `${n}.1`; } return r; }
+                return f === 'safe_bool_opt' ? `${n}.${i}` : f === 'safe_bool' && d?.startsWith(', &[') ? `Value::Bool(${n}.${i}.unwrap_or(false))` : r;
+            });
+            const firstMove = body.search(new RegExp(`\\b${n}\\.1\\b`));
+            const left = body.replace(/"(?:[^"\\]|\\.)*"|\/\/[^\n]*/g, '').replace(new RegExp(`\\b${n}\\.[01]\\b`, 'g'), '');
+            if (body !== rest && moves <= 1 && !new RegExp(`(?<![\\w:])${n}\\b`).test(left) && !(moves > 0 && /\b(?:for|while|loop)\b/.test(body.slice(0, firstMove)))) {
+                // rewrite in place so later handler calls in the same fn are still visited
+                content = content.slice(0, lineStart + lhead.index) + `let ${n} = ${call};` + body + content.slice(from + rest.length);
+                RUST_OPTION_TUPLE_FNS.lastIndex = lineStart + lhead.index + n.length + call.length + 8;
+                continue;
+            }
+        }
         const slot = /^\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(([01])\)\)((?:\.cloned\(\)\.unwrap_or\(Value::Null\)|\.and_then\(Value::as_\w+\))(?:\.(?:into_dict|as_\w+)\(\))?(?:\.map\(str::to_owned\))?)/.exec(content.slice(end, end + 120));
         const ownFn = new RegExp(String.raw`\n {4}(?:pub )?fn ${RUST_TUPLE_FN_NAME}\(`).exec(content.slice(content.lastIndexOf('\n    ', content.lastIndexOf(' fn ', m.index)), m.index));
         const own = /^\s*return $/.test(pre) && ownFn !== null;
         // already a tuple binding (the pass reruns on files written twice): leave it
         const bound = /^\)\.[01]\b/.test(content.slice(end, end + 4)) || /\{ let __t = $/.test(pre)
             || (head !== null && content[end] === ';' && new RegExp(`\\b${head[1]}\\.[01]\\b`).test(content.slice(end, end + 2000)));
-        if (bound) {
+        if (bound || (m[1] === 'handle_stock_params' && /^\s*$/.test(pre) && content[end] === ';' && /[;{}]\s*$/.test(content.slice(0, lineStart)))) {
             out += content.slice(last, end);
             last = end;
         } else if (slot !== null) {
@@ -6295,7 +6317,7 @@ function typeHandleOptionTuples(content: string): string {
             last = end;
         } else {
             const brk = content.indexOf('\n', end) - lineStart > 300 ? `\n${' '.repeat(pre.length - pre.trimStart().length + 4)}` : ' ';
-            out += content.slice(last, m.index) + `{ let __t = ${call};${brk}Value::from(vec![${RUST_OPTION_TUPLE_SLOT0[fam][2]('__t.0')}, Value::Dict(__t.1)]) }`;
+            out += content.slice(last, m.index) + `{ let __t = ${call};${brk}Value::from(vec![${RUST_OPTION_TUPLE_SLOT0[fam][2]('__t.0')}, ${fam === 'bool_pair_' ? RUST_OPTION_TUPLE_SLOT0[fam][2]('__t.1') : 'Value::Dict(__t.1)'}]) }`;
             last = end;
         }
         RUST_OPTION_TUPLE_FNS.lastIndex = last;
@@ -6315,7 +6337,7 @@ function typeHandleOptionTuples(content: string): string {
     // handleMarketTypeAndParams overrides (okx, deepcoin) only return the base's tuple through `super_`
     out = out.replace(/(\n {4}pub fn handle_market_type_and_params\([^\n]*\) -> )Value( \{\n(?:(?!\n {4}(?:pub )?fn )[\s\S])*?return self\.super_handle_market_type_and_params\([^\n]*\);)\n\n {4}Value::Null\n\}/g, '$1(Value, crate::value::Dict)$2\n}');
     return out.replace(new RegExp(String.raw`(\n {4}(?:pub )?(?:async )?fn (${RUST_TUPLE_FN_NAME})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'),
-        (_m, sig, name, open, body) => { const fam = rustTupleFam(name); return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
+        (_m, sig, name, open, body) => { const fam = rustTupleFam(name, out); if (fam === 'bool_pair_') return `${sig}(Option<bool>, Option<bool>)${open}${body.replace(/return Value::from\(vec!\[(self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\)), (self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\))\]\);/g, 'return ($1.as_bool(), $2.as_bool());')}\n}`; return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
             (_r, v, d, b) => `return (${v.replace(/^(\w+)\.map_or\(Value::Null, Value::Bool\)$/, '$1@')}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? `${b}.into_dict()`});`.replace(/@\.as_bool\(\)/, ''))}\n}`; });
 }
 
