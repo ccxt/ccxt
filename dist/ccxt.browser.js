@@ -553006,6 +553006,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 'watchTradesForSymbols': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchBidsAsks': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': true,
@@ -553620,6 +553621,33 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
             return ticker;
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbolsValue);
+    }
+    /**
+     * @method
+     * @name bybit#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */ async unWatchBidsAsks(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsValue = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const subMessageHashes = [];
+        const marketIds = this.marketIds(symbolsValue);
+        const topics = [];
+        for(let i = 0; i < marketIds.length; i++){
+            const marketId = this.safeString(marketIds, i, '');
+            const symbol = symbolsValue[i];
+            topics.push('orderbook.1.' + marketId);
+            subMessageHashes.push('bidask:' + symbol);
+            messageHashes.push('unsubscribe:bidask:' + symbol);
+        }
+        const url = await this.getUrlByMarketType(symbolsValue[0], false, 'watchBidsAsks', params);
+        return await this.unWatchTopics(url, 'bidsasks', symbolsValue, messageHashes, subMessageHashes, topics, params);
     }
     parseWsBidAsk(orderbook, market = undefined) {
         const timestamp = this.safeInteger(orderbook, 'timestamp');

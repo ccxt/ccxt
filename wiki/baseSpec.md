@@ -7673,6 +7673,7 @@ unWatches best bid & ask for symbols
 [aster](/exchanges/aster.md#unwatchbidsasks)
 [backpack](/exchanges/backpack.md#unwatchbidsasks)
 [binance](/exchanges/binance.md#unwatchbidsasks)
+[bybit](/exchanges/bybit.md#unwatchbidsasks)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchbidsasks)
 [mexc](/exchanges/mexc.md#unwatchbidsasks)
 [nado](/exchanges/nado.md#unwatchbidsasks)
