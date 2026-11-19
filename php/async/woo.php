@@ -4316,7 +4316,7 @@ class woo extends Exchange {
             return Async\await($this->v3PrivatePutFuturesLeverage($this->extend($request, $paramsMarginMode)));
         } else {
             $marketType = $this->safe_string($market, 'type', '');
-            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $marketType . ' markets');
+            throw new NotSupported($this->id . ' setLeverage() is not supported for ' . $marketType . ' markets');
         }
     }
 
