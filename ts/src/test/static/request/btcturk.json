@@ -1,0 +1,67 @@
+{
+    "exchange": "btcturk",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "spot 1d +since +limit -until",
+                "method": "fetchOHLCV",
+                "url": "https://graph-api.btcturk.com/v1/klines/history?symbol=BTCUSDT&resolution=1%20d&to=1794315402&from=1794142602",
+                "input": [
+                    "BTC/USDT",
+                    "1d",
+                    1794142602000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "spot 1d +since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://graph-api.btcturk.com/v1/klines/history?symbol=BTCUSDT&resolution=1%20d&to=1794252602&from=1794142602",
+                "input": [
+                    "BTC/USDT",
+                    "1d",
+                    1794142602000,
+                    2,
+                    {
+                        "until": 1794252602000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot 1d -since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://graph-api.btcturk.com/v1/klines/history?symbol=BTCUSDT&resolution=1%20d&to=1794252602&from=1794079802",
+                "input": [
+                    "BTC/USDT",
+                    "1d",
+                    null,
+                    2,
+                    {
+                        "until": 1794252602000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot -since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://graph-api.btcturk.com/v1/klines/history?symbol=BTCUSDT&resolution=1&to=1794252602&from=1794252482",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    2,
+                    {
+                        "until": 1794252602000
+                    }
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
