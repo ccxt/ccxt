@@ -332,7 +332,7 @@ const CSHARP_INOP_DICT_FIELDS: { [name: string]: string } = {
     'timeframes': 'Dictionary<string, object>', 'has': 'Dictionary<string, object>',
     'options': 'ConcurrentDictionary<string, object>', 'clients': 'ConcurrentDictionary<string, WebSocketClient>',
     'markets': 'IDictionary<string, object>', 'currencies_by_id': 'IDictionary<string, object>',
-    'outcomes': 'IDictionary<string, object>', 'outcomes_by_id': 'IDictionary<string, object>',
+    'outcomes': 'Dictionary<string, object>', 'outcomes_by_id': 'IDictionary<string, object>',
     'events': 'IDictionary<string, object>', 'events_by_slug': 'IDictionary<string, object>',
 }
 const CSHARP_WS_CLIENT_MAP_RE = /^([A-Za-z_]\w*)\.(subscriptions|futures)$/
@@ -2473,11 +2473,17 @@ function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: 
     if (value.startsWith ('new ' + targetType)) {
         return true
     }
+<<<<<<< merged
     // generic `List<T> sortBy<T>(IList<T> ...)` (Exchange.Generic.cs) binds over the object overload
     const sorted = /^(?:this|base)\.sortBy\(([A-Za-z_]\w*), [^()]*\)$/.exec (value)
     if ((sorted !== null) && (targetType === 'List<Dictionary<string, object>>')) {
         const types = csharpRetMethodBindings (methodLines).get (sorted[1])
         return (types !== undefined) && (types.length === 1) && (types[0] === targetType)
+=======
+    // a hand-written base field declared with the target type (the field table below)
+    if (/^this\.[A-Za-z_]\w*$/.test (value) && (CSHARP_INOP_DICT_FIELDS[value.slice (5)] === targetType) && (targetType === 'Dictionary<string, object>')) {
+        return true
+>>>>>>> C06
     }
     const call = CSHARP_RET_CALL.exec (value) ?? CSHARP_RET_BARE_CALL.exec (value)
     if (call !== null) {
@@ -6174,7 +6180,7 @@ class NewTranspiler {
             const fields = [
                 '    public PredictionExchange(object args = null) : base(args) {}',
                 '',
-                '    public IDictionary<string, object> outcomes { get; set; } = null;',
+                '    public Dictionary<string, object> outcomes { get; set; } = null;',
                 '    public IDictionary<string, object> outcomes_by_id { get; set; } = null;',
                 '    public IDictionary<string, object> events { get; set; } = null;',
                 '    public IDictionary<string, object> events_by_slug { get; set; } = null;',
