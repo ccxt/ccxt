@@ -804,7 +804,7 @@ impl Exchange {
     /// `safe_bool2` without the box: first key holding a real boolean wins, else `None`.
     #[inline]
     pub fn safe_bool2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<bool> {
-        if let Value::Bool(b) = self.safe_value(obj.clone(), k1, &[]) {
+        if let Value::Bool(b) = self.safe_value(&obj, k1, &[]) {
             return Some(b);
         }
         match self.safe_value(obj, k2, &[]) {
@@ -826,7 +826,7 @@ impl Exchange {
     /// default; `None` where the boxed helper yields `Value::Null`.
     #[inline]
     pub fn safe_string2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
-        self.safe_string_opt(obj.clone(), k1, &[])
+        self.safe_string_opt(&obj, k1, &[])
             .or_else(|| self.safe_string_opt(obj, k2, &[]))
             .or_else(|| match arg_default(optional_args) {
                 Value::Str(d) => Some(d.to_string()),
@@ -840,7 +840,7 @@ impl Exchange {
     pub fn safe_string_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Option<String> {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                if let Some(s) = self.safe_string_opt(obj.clone(), k, &[]) {
+                if let Some(s) = self.safe_string_opt(&obj, k, &[]) {
                     return Some(s);
                 }
             }
@@ -941,7 +941,7 @@ impl Exchange {
     }
 
     pub fn safe_value2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        let v = self.safe_value(obj.clone(), k1, &[]);
+        let v = self.safe_value(&obj, k1, &[]);
         if !v.is_null() {
             return v;
         }
@@ -956,7 +956,7 @@ impl Exchange {
     pub fn safe_value_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_value(obj.clone(), k, &[]);
+                let v = self.safe_value(&obj, k, &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -980,7 +980,7 @@ impl Exchange {
     }
 
     pub fn safe_string2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        let v = self.safe_string(obj.clone(), k1, &[]);
+        let v = self.safe_string(&obj, k1, &[]);
         if !v.is_null() {
             return v;
         }
@@ -995,7 +995,7 @@ impl Exchange {
     pub fn safe_string_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_string(obj.clone(), k, &[]);
+                let v = self.safe_string(&obj, k, &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -1044,7 +1044,7 @@ impl Exchange {
     pub fn safe_string_lower_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_string(obj.clone(), k, &[]);
+                let v = self.safe_string(&obj, k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v {
                         return Value::Str(s.to_lowercase().into());
@@ -1059,7 +1059,7 @@ impl Exchange {
     pub fn safe_string_upper_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_string(obj.clone(), k, &[]);
+                let v = self.safe_string(&obj, k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v {
                         return Value::Str(s.to_uppercase().into());
@@ -1854,7 +1854,7 @@ impl Exchange {
         k2: Value,
         optional_args: &[Value],
     ) -> Value {
-        let v = self.safe_integer(obj.clone(), k1, &[]);
+        let v = self.safe_integer(&obj, k1, &[]);
         if !v.is_null() {
             return v;
         }
@@ -1869,7 +1869,7 @@ impl Exchange {
     pub fn safe_integer_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_integer(obj.clone(), k, &[]);
+                let v = self.safe_integer(&obj, k, &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -1880,13 +1880,13 @@ impl Exchange {
 
     /// `safe_integer2` without the box (no default): first key yielding an integer.
     pub fn safe_integer2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
-        self.safe_integer(obj.clone(), k1, &[]).as_i64().or_else(|| self.safe_integer(obj, k2, &[]).as_i64())
+        self.safe_integer(&obj, k1, &[]).as_i64().or_else(|| self.safe_integer(obj, k2, &[]).as_i64())
     }
 
     /// `safe_integer_n` without the box (no default): first key in `keys` yielding an integer.
     pub fn safe_integer_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, _optional_args: &[Value]) -> Option<i64> {
         let Value::Arr(ks) = keys else { return None };
-        ks.iter().find_map(|k| self.safe_integer(obj.clone(), k.clone(), &[]).as_i64())
+        ks.iter().find_map(|k| self.safe_integer(&obj, k.clone(), &[]).as_i64())
     }
 
     /// Reads `obj[key]` as a number, multiplies by `factor`, and casts
@@ -1951,7 +1951,7 @@ impl Exchange {
         factor: Value,
         optional_args: &[Value],
     ) -> Value {
-        let v = self.safe_integer_product(obj.clone(), k1, factor.clone(), &[]);
+        let v = self.safe_integer_product(&obj, k1, factor.clone(), &[]);
         if !v.is_null() {
             return v;
         }
@@ -1972,7 +1972,7 @@ impl Exchange {
     ) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_integer_product(obj.clone(), k, factor.clone(), &[]);
+                let v = self.safe_integer_product(&obj, k, factor.clone(), &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -2683,7 +2683,7 @@ impl Exchange {
     pub fn safe_float_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
-                let v = self.safe_float(obj.clone(), k, &[]);
+                let v = self.safe_float(&obj, k, &[]);
                 if !v.is_null() {
                     return v;
                 }
@@ -2692,7 +2692,7 @@ impl Exchange {
         arg_default(optional_args)
     }
     pub fn safe_float2(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        let v = self.safe_float(obj.clone(), k1, &[]);
+        let v = self.safe_float(&obj, k1, &[]);
         if !v.is_null() {
             return v;
         }

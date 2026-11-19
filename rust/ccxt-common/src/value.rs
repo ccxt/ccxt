@@ -773,9 +773,10 @@ impl KeyRead for Value {
     fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
     fn read(&self, key: &Value) -> Value { get_value(self, key) }
 }
-impl KeyRead for &Value {
-    fn key_read(&self, key: &str) -> Value { get_value_k(self, key) }
-    fn read(&self, key: &Value) -> Value { get_value(self, key) }
+/// A lent reader container reads what it borrows: `&obj` on an `impl KeyRead` parameter needs no copy.
+impl<T: KeyRead> KeyRead for &T {
+    fn key_read(&self, key: &str) -> Value { (**self).key_read(key) }
+    fn read(&self, key: &Value) -> Value { (**self).read(key) }
 }
 impl KeyRead for &Dict {
     fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) }
@@ -811,11 +812,6 @@ impl KeyRead for Option<&crate::types::Market> {
     fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
 }
-/// A lent optional market reads its own map (Null when absent).
-impl KeyRead for &Option<&crate::types::Market> {
-    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
-    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
-}
 /// An optional market reads its own map, as the boxed local did (Null when empty).
 impl KeyRead for &Option<crate::types::Market> {
     fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
@@ -839,11 +835,6 @@ impl KeyRead for &Option<crate::types::Currency> {
 }
 /// An optional currency argument reads its own map (Null when absent).
 impl KeyRead for Option<&crate::types::Currency> {
-    fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
-    fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
-}
-/// A lent optional currency reads its own map (Null when absent).
-impl KeyRead for &Option<&crate::types::Currency> {
     fn key_read(&self, key: &str) -> Value { if let Some(c) = self { get_value_k(&c.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(c) = self { get_value(&c.raw, key) } else { Value::Null } }
 }
