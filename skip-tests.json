@@ -1779,7 +1779,28 @@
     },
     "interactivebrokers": {
         "skip": "all methods private",
-        "skipWs": "all methods private"
+        "skipWs": "all methods private",
+        "preferredSpotSymbol": "BTC.PAXOS/USD",
+        "preferredSwapSymbol": "BTC.NANO.COINDERIV/USD:USD",
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "todo",
+                "precision": "todo"
+            },
+            "fetchOrderBook": "endpoint doesnt exist",
+            "ticker": {
+                "compareChange": "not correct values from api, todo revise"
+            },
+            "fetchPositions": {
+                "leverage": "todo check",
+                "collateral": "todo check",
+                "marginMode": "todo check",
+                "percentage": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo check"
+            }
+        }
     },
     "kalshi": {
         "until": "2026-12-31",
