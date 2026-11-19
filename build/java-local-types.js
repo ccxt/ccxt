@@ -9866,10 +9866,12 @@ export function javaVenueAsyncReturnTable () {
     return javaVenueReturnTable;
 }
 
-// file-scoped venue async cores: a `Promise<Str>` declaration in exactly that ts/src file, with no
-// declaration of the name in its REST parent or the base files (closed list: their awaited locals
-// are handed to String slots)
-const JAVA_VENUE_FILE_STRING_CORES = [ [ 'pro', 'hashkey', 'authenticate' ], [ 'pro', 'bitrue', 'authenticate' ], [ '', 'bullish', 'loadAccount' ] ];
+// file-scoped venue async cores: a `Promise<T>` declaration in exactly that ts/src file, with no
+// declaration of the name in its REST parent or the base files (closed list: every return is a typed
+// local or parseTransactions, and the awaited locals are handed to slots of that type)
+const JAVA_VENUE_FILE_STRING_CORES = [ [ 'pro', 'hashkey', 'authenticate' ], [ 'pro', 'bitrue', 'authenticate' ], [ '', 'bullish', 'loadAccount' ],
+    [ '', 'alpaca', 'fetchTransactionsHelper', 'Transaction[]', 'List<Object>' ], [ '', 'hitbtc', 'fetchTransactionsHelper', 'Transaction[]', 'List<Object>' ],
+    [ '', 'dydx', 'fetchTransactionsHelper', 'Dict[]', 'List<Object>' ], [ '', 'poloniex', 'fetchTransactionsHelper', 'Dict', 'Map<String, Object>' ] ];
 const javaVenueFileCoreCache = new Map ();
 
 export function javaVenueFileAsyncReturns (tsFile) {
@@ -9878,18 +9880,18 @@ export function javaVenueFileAsyncReturns (tsFile) {
         return javaVenueFileCoreCache.get (rel);
     }
     const out = new Map ();
-    for (const [ dir, id, name ] of JAVA_VENUE_FILE_STRING_CORES) {
+    for (const [ dir, id, name, tsType = 'Str', javaType = 'String' ] of JAVA_VENUE_FILE_STRING_CORES) {
         if (rel !== (dir === '' ? id : dir + '/' + id)) {
             continue;
         }
         const declares = (file, re) => (readTsIndexSource (file) ?? '').split ('\n').filter ((l) => re.test (l)).length;
-        const own = declares (path.join (JAVA_VENUE_TS_ROOT, dir, id + '.ts'), new RegExp ('^ {4}async ' + name + ' \\(.*\\): Promise<Str> \\{$'));
+        const own = declares (path.join (JAVA_VENUE_TS_ROOT, dir, id + '.ts'), new RegExp ('^ {4}async ' + name + ' \\(.*\\): Promise<' + tsType.replace (/[[\]]/g, '\\$&') + '> \\{$'));
         const any = new RegExp ('^ {4}(?:override )?(?:async )?' + name + ' ?[(<]');
         const elsewhere = (dir === '' ? 0 : declares (path.join (JAVA_VENUE_TS_ROOT, id + '.ts'), any))
             + declares (path.join (JAVA_VENUE_TS_ROOT, 'base', 'Exchange.ts'), any)
             + declares (path.join (JAVA_VENUE_TS_ROOT, 'base', 'PredictionExchange.ts'), any);
         if (own === 1 && elsewhere === 0) {
-            out.set (name, { name, javaReturnType: 'String', isArray: false });
+            out.set (name, { name, javaReturnType: javaType, isArray: false });
         }
     }
     javaVenueFileCoreCache.set (rel, out);
