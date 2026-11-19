@@ -2559,7 +2559,6 @@ impl Exchange {
         put("myTrades", &Value::from(&self.myTrades));
         put("positions", &Value::from(&self.positions));
         put("positionsByType", &Value::from(&self.positionsByType));
-        put("tickers", &self.tickers);
         put("bidsasks", &self.bidsasks);
         put("ohlcvs", &Value::from(&self.ohlcvs));
         put("clients", &self.clients);
@@ -2592,6 +2591,8 @@ impl Exchange {
         put("userAgent", &self.userAgent);
         put("user_agent", &self.user_agent);
         put("userAgents", &Value::Dict(self.userAgents.clone()));
+        // Typed `Dict` field: one Arc share straight into the map, not a temporary `Value` cloned again by `put`.
+        m.insert("tickers".to_string(), Value::from(&self.tickers));
         Value::Map(m)
     }
 

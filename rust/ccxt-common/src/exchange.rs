@@ -419,7 +419,7 @@ pub struct Exchange {
     // `cache.getLimit(...)` (return only what's new since the last call) or
     // emit the whole rolling buffer.
     pub newUpdates:        Value,
-    pub tickers:           Value,
+    pub tickers:           crate::value::Dict,
     pub bidsasks:          Value,
     pub ohlcvs:            crate::pro::cache::CacheShelf,
     pub clients:           Value,
@@ -779,7 +779,7 @@ impl Exchange {
             positions:     None,
             positionsByType: crate::pro::cache::CacheMap::new(),
             newUpdates:    Value::Bool(true),
-            tickers:       Value::Map(HashMap::new()),
+            tickers:       crate::value::Dict::default(),
             bidsasks:      Value::Map(HashMap::new()),
             ohlcvs:        crate::pro::cache::CacheShelf::new(),
             clients:       Value::Map(HashMap::new()),

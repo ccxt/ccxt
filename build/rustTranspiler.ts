@@ -3953,7 +3953,21 @@ function typedUrlsField(content: string): string {
 // `options`, `fees`, `userAgents` are typed `Dict`s too (always a dict, never tagged): the same
 // map ops as `typedUrlsField`; a value the `Dict` cannot satisfy is boxed back as `Value::Dict`.
 function typedBaseDictFields(content: string): string {
+<<<<<<< merged
     for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'balance']) {
+=======
+    // `tickers` holds only dicts too (init and `create_safe_dictionary` are empty maps; keys are symbols, never tags).
+    content = content
+        .replace(/\{ let __t = self\.create_safe_dictionary\(&\[[^\]]*\]\); self\.tickers = __t; \}/g, 'self.tickers = crate::value::Dict::default();')
+        .replace(/add_element_to_object\(&mut self\.tickers, (&crate::value::KeyRead::key_read\(&&\w+, "\w+"\)), (Value::from\(&\w+\))\);/g, 'std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param($1), $2);')
+        .replace(/matches!\(\(&self\.tickers, ([^()]*(?:\([^()]*\))?)\), \(Value::Dict\(__d\), /g, 'matches!((&self.tickers, $1), (__d, ')
+        .replace(/matches!\(&self\.tickers, Value::Dict\(__d\) if __d\.contains_key\(([\w.]+\(\))\)\)/g, 'self.tickers.contains_key($1)')
+        .replace(/if let \(Value::Dict\(__d\), (Some\(__k\)|Value::Str\(__k\))\) = \(&mut self\.tickers/g, 'if let (__d, $1) = (&mut self.tickers')
+        .replace(/if let \(Some\(__m\), Some\(__k\)\) = \(self\.tickers\.as_map\(\), /g, 'if let (__m, Some(__k)) = (&self.tickers, ')
+        .replace(/self\.tickers\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.tickers'))
+        .replace(/\(self\.tickers != Value::Null\)/g, 'true');
+    for (const f of ['options', 'fees', 'userAgents', 'has', 'httpExceptions', 'tickers']) {
+>>>>>>> R02
         const r = 'self\\.' + f;
         const k = '("[^"\\\\]*")';
         const make = 'std::sync::Arc::make_mut(';
