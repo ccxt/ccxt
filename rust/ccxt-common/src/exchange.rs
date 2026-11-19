@@ -353,10 +353,6 @@ pub struct Exchange {
     pub userConfig:             Value,
     pub verbose:                Value,
     pub isSandboxModeEnabled:   Value,
-    /// read-only mirror of `isSandboxModeEnabled`, use `set_sandbox_mode()` to change it
-    pub sandbox:                Value,
-    /// alias of `sandbox`
-    pub testnet:                Value,
 
     // proxy
     pub proxy:               Value,
@@ -704,8 +700,6 @@ impl Exchange {
             userConfig:           Value::Null,
             verbose:              Value::Bool(false),
             isSandboxModeEnabled: Value::Bool(false),
-            sandbox:              Value::Bool(false),
-            testnet:              Value::Bool(false),
 
             proxy:               Value::Null,
             proxyUrl:            Value::Null,
@@ -1165,19 +1159,9 @@ impl Exchange {
         match &self.id { Value::Str(s) => s.to_string(), _ => String::new() }
     }
 
-    /// Whether sandbox/testnet directive was passed by user explicitly.
+    /// Whether sandbox/testnet endpoints are in use.
     pub fn is_sandbox_mode_enabled(&self) -> bool {
         matches!(self.isSandboxModeEnabled, Value::Bool(true))
-    }
-
-    /// Whether sandbox/testnet directive was passed by user explicitly.
-    pub fn sandbox(&self) -> bool {
-        matches!(self.sandbox, Value::Bool(true))
-    }
-
-    /// Alias of `sandbox()`.
-    pub fn testnet(&self) -> bool {
-        matches!(self.testnet, Value::Bool(true))
     }
 
     /// Log every HTTP request and response to stderr.
