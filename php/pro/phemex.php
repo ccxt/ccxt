@@ -1696,7 +1696,7 @@ class phemex extends \ccxt\async\phemex {
             $method = $this->safe_value($client->subscriptions, $id);
             unset($client->subscriptions[$id]);
             if ($method !== true) {
-                $method($client, $message);
+                $this->handle_authenticate($client, $message);
                 return;
             }
         }
