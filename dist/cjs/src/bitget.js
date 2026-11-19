@@ -2419,12 +2419,16 @@ class bitget extends bitget$1["default"] {
             const priceEndStep = this.safeString(market, 'priceEndStep');
             const sizeMultiplier = this.safeString(market, 'sizeMultiplier');
             const precise = new Precise["default"](priceEndStep);
-            precise.decimals = Math.max(precise.decimals, pricePlaces);
+            if (pricePlaces !== undefined) {
+                precise.decimals = Math.max(precise.decimals, pricePlaces);
+            }
             precise.reduce();
             const priceString = precise.toString();
             pricePrecision = this.parseNumber(priceString);
             const preciseAmount = new Precise["default"](sizeMultiplier);
-            preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces);
+            if (volumePlaces !== undefined) {
+                preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces);
+            }
             preciseAmount.reduce();
             const amountString = preciseAmount.toString();
             amountPrecision = this.parseNumber(amountString);

@@ -918,7 +918,7 @@ class cex extends cex$1["default"] {
             return undefined;
         }
         const precise = new Precise["default"](amount);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger([scale], 0, 0));
         precise.reduce();
         return precise.toString();
     }

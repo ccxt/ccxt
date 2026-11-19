@@ -242360,12 +242360,16 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             const priceEndStep = this.safeString(market, 'priceEndStep');
             const sizeMultiplier = this.safeString(market, 'sizeMultiplier');
             const precise = new _base_Precise_js__rspack_import_3/* .Precise */.Y(priceEndStep);
-            precise.decimals = Math.max(precise.decimals, pricePlaces);
+            if (pricePlaces !== undefined) {
+                precise.decimals = Math.max(precise.decimals, pricePlaces);
+            }
             precise.reduce();
             const priceString = precise.toString();
             pricePrecision = this.parseNumber(priceString);
             const preciseAmount = new _base_Precise_js__rspack_import_3/* .Precise */.Y(sizeMultiplier);
-            preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces);
+            if (volumePlaces !== undefined) {
+                preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces);
+            }
             preciseAmount.reduce();
             const amountString = preciseAmount.toString();
             amountPrecision = this.parseNumber(amountString);
@@ -485040,7 +485044,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         }
         const stringN = this.numberToString(n);
         const precise = new _base_Precise_js__rspack_import_3/* .Precise */.Y(stringN);
-        precise.decimals = this.sum(precise.decimals, scale * -1);
+        precise.decimals = this.sum(precise.decimals, this.parseToInt(scale * -1));
         precise.reduce();
         const preciseString = precise.toString();
         return this.parseToNumeric(preciseString);
@@ -485062,7 +485066,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             return undefined;
         }
         const precise = new _base_Precise_js__rspack_import_3/* .Precise */.Y(en);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.parseToInt(scale));
         precise.reduce();
         return precise.toString();
     }
@@ -557505,7 +557509,9 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
             return undefined;
         }
         const precise = new _base_Precise_js__rspack_import_3/* .Precise */.Y(amount);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger([
+            scale
+        ], 0, 0));
         precise.reduce();
         return precise.toString();
     }
@@ -582533,11 +582539,10 @@ class independentreserve extends _independentreserve_js__rspack_import_0/* ["def
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        let result = this.decimalToPrecision(value, (/* inlined export .ROUND */1), 8, (/* inlined export .DECIMAL_PLACES */2), (/* inlined export .PAD_WITH_ZERO */6));
-        result = result.replace('.', '');
+        const padded = this.decimalToPrecision(value, (/* inlined export .ROUND */1), 8, (/* inlined export .DECIMAL_PLACES */2), (/* inlined export .PAD_WITH_ZERO */6));
+        const digits = padded.replace('.', '');
         // remove leading zeros
-        result = this.parseNumber(result);
-        result = this.numberToString(result);
+        const result = this.numberToString(this.parseNumber(digits));
         return result;
     }
     handleDelta(bookside, delta) {
@@ -608997,7 +609002,9 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
             return undefined;
         }
         const precise = new _base_Precise_js__rspack_import_1/* .Precise */.Y(en);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger([
+            scale
+        ], 0, 0));
         precise.reduce();
         return precise.toString();
     }

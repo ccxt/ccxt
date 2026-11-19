@@ -1314,7 +1314,7 @@ class phemex extends phemex$1["default"] {
         }
         const stringN = this.numberToString(n);
         const precise = new Precise["default"](stringN);
-        precise.decimals = this.sum(precise.decimals, scale * -1);
+        precise.decimals = this.sum(precise.decimals, this.parseToInt(scale * -1));
         precise.reduce();
         const preciseString = precise.toString();
         return this.parseToNumeric(preciseString);
@@ -1336,7 +1336,7 @@ class phemex extends phemex$1["default"] {
             return undefined;
         }
         const precise = new Precise["default"](en);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.parseToInt(scale));
         precise.reduce();
         return precise.toString();
     }

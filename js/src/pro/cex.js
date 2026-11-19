@@ -919,7 +919,7 @@ export default class cex extends cexRest {
             return undefined;
         }
         const precise = new Precise(amount);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger([scale], 0, 0));
         precise.reduce();
         return precise.toString();
     }
