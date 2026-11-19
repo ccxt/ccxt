@@ -5828,25 +5828,32 @@ function lendOptionalArgCalls(content: string, lend: Set<string>): string {
 // Move an owned local into `&[x]` / `Value::Map(x)` instead of cloning it when this is its last use:
 // no later mention in the fn, none elsewhere in the statement, not inside a loop or closure.
 function moveLocalsAtLastUse(content: string): string {
+    // comment lines blanked so sample payloads in them cannot unbalance the body scan
+    const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
     const fnStarts = [...content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
-    const site = /(&\[|Value::Map\()([A-Za-z_]\w*)\.clone\(\)(?=[\])])/g;
+    // also a whole by-value operand: call/ctor argument, element, `let` rhs, `return` or block tail value,
+    // and the receiver of a consuming `.map(` / `.map_or(`
+    const site = /(&\[|Value::Map\(|(?<![&\w])[(\[]|, |(?<![=!<>+\-*/])= |\breturn |\{ )([A-Za-z_]\w*)\.clone\(\)(?=[\]),;]| \}|\.map(?:_or)?\()/g;
     const edits: [number, number, string][] = [];
     let fi = -1;
     for (const m of content.matchAll(site)) {
         const pos = m.index as number, name = m[2], end = pos + m[0].length;
-        if (content[end] !== (m[1] === '&[' ? ']' : ')') || name === 'self') continue;
+        if ((m[1] === '&[' && content[end] !== ']') || (m[1] === 'Value::Map(' && content[end] !== ')') || name === 'self') continue;
         while (fi + 1 < fnStarts.length && fnStarts[fi + 1] <= pos) fi++;
         if (fi < 0) continue;
         const open = content.indexOf('{', fnStarts[fi]);
         if (open < 0 || open > pos) continue;
-        const close = balancedCloseIndex(content, open + 1);
+        const close = balancedCloseIndex(code, open + 1);
         const word = new RegExp(`(?<![\\w.])${name}\\b`);
-        if (word.test(content.slice(end, close))) continue;
+        if (word.test(code.slice(end, close))) continue;
         const body = content.slice(open + 1, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
         // owned binding: `let [mut] x: T = ` (T not a reference) or untyped `let x = get_arg(`
-        const decl = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
+        let decl: RegExpMatchArray | undefined = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
+        // or an owned by-value parameter of this fn (`[mut] x: T`, T not a reference / impl / slice)
+        const param = decl === undefined ? new RegExp(`[(,]\\s*(?:mut )?${name}\\s*:\\s*([^,)]+)`).exec(content.slice(fnStarts[fi], open)) : null;
+        if (param !== null && !/^&|\bimpl\b|^\[/.test(param[1].trim())) decl = Object.assign([param[0], param[1].trim(), 'param'], { index: -1 - param[0].length }) as unknown as RegExpMatchArray;
         if (decl === undefined || (decl[1] === undefined ? decl[2] === undefined : /^&|\bimpl\b/.test(decl[1].trim()))) continue;
-        const after = body.slice((decl.index as number) + decl[0].length);
+        const after = body.slice(Math.max(0, (decl.index as number) + decl[0].length));
         if (new RegExp(`\\bfor (?:mut )?${name}\\b|[(|,]\\s*(?:ref )?(?:mut )?${name}\\s*[)|,]`).test(after)) continue;
         // enclosing blocks and the current statement: refuse loops, closures and other mentions
         const stack: number[] = [];
