@@ -2335,7 +2335,7 @@ func (this *Pacifica) CreateOrdersRequest(orders []any, optionalArgs ...any) any
 		var requestList []any = ArrayTyped(this.CreateOrderRequest(symbol, *typeVar, side, amountNumber, priceNumber, orderParams))
 		var action map[string]any = map[string]any{
 			"type": "Create",
-			"data": DerefScalar(requestList[0]),
+			"data": requestList[0],
 		}
 		actions = append(actions, action)
 	}

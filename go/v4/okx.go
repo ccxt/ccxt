@@ -7758,7 +7758,7 @@ func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 		var networkUpper string = strings.ToUpper(*network)
 		var networkKey *string = this.SafeString(this.NetworkAliases, networkUpper, networkUpper)
 		network = this.SafeString(networks, networkKey, network) // resolve aliases to the unified key
-		request["chain"] = Add(currency["id"].(string)+"-", network)
+		request["chain"] = currency["id"].(string) + "-" + *network
 	}
 	var omitKeys []any = []any{"fee"}
 	if network != nil {

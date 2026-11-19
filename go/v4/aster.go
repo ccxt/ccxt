@@ -1787,34 +1787,35 @@ func (this *Aster) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", min(*limit, 1000))
+		request["limit"] = min(*limit, 1000)
 	}
 	var response []any = nil
 	var sinceDefined bool = (since != nil)
 	_, has1 := params["until"]
 	var untilDefined bool = has1
 	if sinceDefined {
-		AddElementToObject(request, "startTime", since)
+		request["startTime"] = since
 	}
+	var paramsUntil any = params
 	if untilDefined {
-		request = TupleSlice(this.HandleUntilOption("endTime", request, params))
+		request, paramsUntil = this.HandleUntilOption("endTime", request, params)
 	}
 	// use historical endpoint for targeted requests
 	if sinceDefined {
 		if *this.SafeBool(market, "swap", false) {
 
-			responseRecv := <-this.FapiPublicGetV3AggTrades(this.Extend(request, params))
+			responseRecv := <-this.FapiPublicGetV3AggTrades(this.Extend(request, paramsUntil))
 			if responseRecv.Err != nil {
 				panic(responseRecv.Err)
 			}
 			response = responseRecv.Value
 		} else {
 
-			responseRecv := <-this.SapiPublicGetV3AggTrades(this.Extend(request, params))
+			responseRecv := <-this.SapiPublicGetV3AggTrades(this.Extend(request, paramsUntil))
 			if responseRecv.Err != nil {
 				panic(responseRecv.Err)
 			}
@@ -1823,14 +1824,14 @@ func (this *Aster) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	} else {
 		if *this.SafeBool(market, "swap", false) {
 
-			responseRecv := <-this.FapiPublicGetV3Trades(this.Extend(request, params))
+			responseRecv := <-this.FapiPublicGetV3Trades(this.Extend(request, paramsUntil))
 			if responseRecv.Err != nil {
 				panic(responseRecv.Err)
 			}
 			response = responseRecv.Value
 		} else {
 
-			responseRecv := <-this.SapiPublicGetV3Trades(this.Extend(request, params))
+			responseRecv := <-this.SapiPublicGetV3Trades(this.Extend(request, paramsUntil))
 			if responseRecv.Err != nil {
 				panic(responseRecv.Err)
 			}
@@ -5102,11 +5103,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes381519 []any = PositionsToList(r.Value)
-		if retRes381519 == nil {
+		var retRes381619 []any = PositionsToList(r.Value)
+		if retRes381619 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381519)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381619)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -5115,11 +5116,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes381719 []any = PositionsToList(r1.Value)
-		if retRes381719 == nil {
+		var retRes381819 []any = PositionsToList(r1.Value)
+		if retRes381819 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381719)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381819)}
 		}
 		return nil
 	} else {

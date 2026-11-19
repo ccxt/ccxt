@@ -4313,13 +4313,14 @@ func (this *Extended) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]an
 	if r.Err != nil {
 		panic(r.Err)
 	}
+	var countdownTimeValue int64
+	if timeout > 0 {
+		countdownTimeValue = this.ParseToInt(float64(timeout) / 1000)
+	} else {
+		countdownTimeValue = int64(0)
+	}
 	var request map[string]any = map[string]any{
-		"countdownTime": func() any {
-			if timeout > 0 {
-				return this.ParseToInt(float64(timeout) / 1000)
-			}
-			return 0
-		}(),
+		"countdownTime": countdownTimeValue,
 	}
 
 	r1 := <-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params))

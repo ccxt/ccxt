@@ -934,7 +934,6 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "generation", 2)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var response any = nil
 	var data any = nil
 	var timestamp *int64 = nil
 	if generation == 2 {
@@ -944,7 +943,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response := r1.Raw
 		//
 		//     [
 		//         {
@@ -994,7 +993,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response := r2.Raw
 		//
 		//     {
 		//         "status":"0000",
@@ -1407,7 +1406,6 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchTicker", "generation", 2)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	var response any = nil
 	var data any = map[string]any{}
 	if generation == 2 {
 		request["markets"] = this.GetGen2MarketId(market)
@@ -1416,7 +1414,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response := r1.Raw
 		//
 		//     [
 		//         {
@@ -1458,7 +1456,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response := r2.Raw
 		//
 		//     {
 		//         "status":"0000",
@@ -1579,11 +1577,11 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes133323 []any = r1.Value
-			if retRes133323 == nil {
+			var retRes133123 []any = r1.Value
+			if retRes133123 == nil {
 				ch <- AsyncResult[[]OHLCV]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133323)}
+				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133123)}
 			}
 			return nil
 		}

@@ -575,7 +575,7 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var data any = this.SafeValue(response, "data", []any{})
 	var rows []any = []any{}
 	if IsArray(data) {
-		rows = this.ToArray(data)
+		rows = ArrayTyped(this.SafeList(response, "data", []any{}))
 	} else {
 		rows = ArrayTyped(this.SafeList(data, "items", []any{}))
 	}

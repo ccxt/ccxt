@@ -2171,13 +2171,14 @@ func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan AsyncResult[map[stri
 			panic(r.Err)
 		}
 	}
+	var timeoutValue int64
+	if timeout > 0 {
+		timeoutValue = (this.ParseToInt(float64(timeout) / 1000))
+	} else {
+		timeoutValue = int64(0)
+	}
 	var request map[string]any = map[string]any{
-		"timeout": func() any {
-			if timeout > 0 {
-				return (this.ParseToInt(float64(timeout) / 1000))
-			}
-			return 0
-		}(),
+		"timeout": timeoutValue,
 	}
 
 	r1 := <-this.PrivatePostCancelallordersafter(this.Extend(request, params))

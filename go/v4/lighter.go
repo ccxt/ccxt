@@ -1421,10 +1421,10 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 			}
 		}
 	}
-	var order any = nil
-	if totalOrderRequests > 0 {
-		order = DerefScalar(orderRequests[0])
+	if totalOrderRequests < 1 {
+		panic(InvalidOrder(this.Id + " createOrder() built no order request"))
 	}
+	var order any = DerefScalar(orderRequests[0])
 	// the nonce could be updated
 	if this.SafeInteger(order, "nonce") == nil {
 		r4 := <-this.FetchNonceAsync(accountIndex, apiKeyIndex)

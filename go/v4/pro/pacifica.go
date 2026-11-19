@@ -91,7 +91,11 @@ func (this *Pacifica) SetupApiKeyHeaders(optionalArgs ...any) {
 			headers["PF-API-KEY"] = this.Options["apiKey"]
 		}
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", headers)
+	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	var wsSubOptions map[string]any = this.SafeDictMap(wsOptions, "options", map[string]any{})
+	wsSubOptions["headers"] = headers
+	wsOptions["options"] = wsSubOptions
+	this.Options["ws"] = wsOptions
 }
 
 /**

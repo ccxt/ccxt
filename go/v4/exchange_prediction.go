@@ -604,14 +604,14 @@ func (this *PredictionExchange) ShortenSlug(slug any) string {
 		}
 	}
 	var rawParts []string = strings.Split(s, "-")
-	var parts []any = []any{}
+	var parts []string = []string{}
 	for i := 0; i < len(rawParts); i++ {
 		var w string = rawParts[i]
 		if (len(w) > 0) && !this.InArray(w, stopWords) {
 			parts = append(parts, w)
 		}
 	}
-	var joined string = Join(parts, "_")
+	var joined string = strings.Join(parts, "_")
 	return strings.ToUpper(joined)
 }
 func (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any) any {
@@ -968,7 +968,7 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 	// handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
 	var normalized string = strings.ReplaceAll(ToLower(marketPart), "-", "_")
 	var rawWords []string = strings.Split(normalized, "_")
-	var words []any = []any{}
+	var words []string = []string{}
 	var hasLetters bool = false
 	var letters string = "abcdefghijklmnopqrstuvwxyz"
 	for i := 0; i < len(rawWords); i++ {
@@ -1001,7 +1001,7 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 		// a purely numeric/symbolic handle is an id, not searchable text
 		return nil
 	}
-	return Join(words, " ")
+	return strings.Join(words, " ")
 }
 func (this *PredictionExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
 	ch := make(chan AsyncResult[PredictionOutcome], 1)

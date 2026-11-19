@@ -3452,7 +3452,6 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	var request map[string]any = map[string]any{
 		"tradingAccountId": tradingAccountId,
 	}
-	var response any = nil
 	var code *string = this.SafeString(params, "code")
 	if code != nil {
 		var currency map[string]any = this.Currency(code)
@@ -3462,7 +3461,7 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response := r2.Raw
 
 		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceForSingleCurrency(response, code))}
 		return nil
@@ -3472,7 +3471,7 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response = r3.Raw
+		response := r3.Raw
 
 		//
 		//     [
@@ -3707,11 +3706,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes266619 []any = r2.Value
-		if retRes266619 == nil {
+		var retRes266519 []any = r2.Value
+		if retRes266519 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes266619)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes266519)}
 		}
 		return nil
 	}

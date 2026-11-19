@@ -7470,13 +7470,13 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes569432 := ccxt.GetValue(order, "fees")
+							retRes569432 := order["fees"]
 							ccxt.AppendToArray(&retRes569432, tradeFee)
 							ccxt.AddElementToObject(order, "fees", retRes569432)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
-							var feeCost any = this.Sum(ccxt.GetValue(fee, "cost"), tradeFee["cost"])
+							var feeCost any = this.Sum(fee["cost"], tradeFee["cost"])
 							var feeCostString *string = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
 							if feeCostString == nil {
 								feeCostStringValue := "0"

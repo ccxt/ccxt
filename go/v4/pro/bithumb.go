@@ -1113,7 +1113,7 @@ func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType string, subsc
 		}
 	}
 	for i := 0; i < len(keys); i++ {
-		request = append(request, ccxt.GetValue(subscriptions, keys[i]))
+		request = append(request, subscriptions[keys[i]])
 	}
 	return request
 }

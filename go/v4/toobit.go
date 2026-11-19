@@ -2318,7 +2318,7 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 	} else {
 		request["type"] = strings.ToUpper(typeVar)
 	}
-	return request, MapTyped(paramsPostOnly)
+	return request, paramsPostOnly
 }
 func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2369,18 +2369,8 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		request["timeInForce"] = "LIMIT_MAKER"
 	}
 	var values []any = ArrayTyped(this.HandleTriggerPricesAndParams(symbol, paramsPostOnly))
-	var triggerPrice *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(values) {
-			return DerefScalar(values[0])
-		}
-		return nil
-	}())
-	var paramsTrigger any = func() any {
-		if 3 >= 0 && 3 < len(values) {
-			return DerefScalar(values[3])
-		}
-		return nil
-	}()
+	var triggerPrice *string = SafeStringPtr(values[0])
+	var paramsTrigger any = DerefScalar(values[3])
 	if triggerPrice != nil {
 		request["stopPrice"] = triggerPrice
 	}

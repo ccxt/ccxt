@@ -670,7 +670,7 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	var isStockOrUta bool = (isStockSpot || uta)
 	instType, paramsInstType := this.GetInstType("watchOHLCV", market, isStockOrUta, paramsStock)
-	var paramsRequest any = paramsInstType
+	var paramsRequest map[string]any = paramsInstType
 	if isStockOrUta {
 		paramsRequest = this.Extend(paramsInstType, map[string]any{
 			"uta": true,
@@ -748,7 +748,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	var isStockOrUta bool = (isStockSpot || (uta != nil && *uta == true))
 	instType, paramsInstType := this.GetInstType("watchOHLCV", market, isStockOrUta, paramsStock)
-	var paramsRequest any = paramsInstType
+	var paramsRequest map[string]any = paramsInstType
 	if isStockOrUta {
 		paramsRequest = this.Extend(paramsInstType, map[string]any{
 			"uta":      true,

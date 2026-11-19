@@ -77,12 +77,12 @@ func (this *Backpack) Describe() map[string]any {
  * @param {object} params exchange-specific parameters
  * @returns {object} local parameters with the validated stock selector
  */
-func (this *Backpack) PrepareWsStockParamsAsync(methodName string, params any) <-chan ccxt.AsyncResult[any] {
+func (this *Backpack) PrepareWsStockParamsAsync(methodName string, params map[string]any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.prepareWsStockParamsBody(ch, methodName, params)
 	return ch
 }
-func (this *Backpack) prepareWsStockParamsBody(ch chan ccxt.AsyncResult[any], methodName string, params any) any {
+func (this *Backpack) prepareWsStockParamsBody(ch chan ccxt.AsyncResult[any], methodName string, params map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var stockPtr *bool = nil

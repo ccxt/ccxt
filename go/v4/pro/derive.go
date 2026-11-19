@@ -133,7 +133,8 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var market map[string]any = this.Market(symbol)
 	var marketId string = *this.SafeString(market, "id", "")
-	var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderbook."+marketId+".10.", this.NumberToString(limitResolved)))
+	topicStr := "orderbook." + marketId + ".10." + *this.NumberToString(limitResolved)
+	var topic *string = &topicStr
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{

@@ -1747,8 +1747,8 @@ func (this *Bingx) SetPositionsCache(client any, typeVar *string, optionalArgs .
 	}
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
 	if fetchPositionsSnapshot == true {
-		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
-		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
+		var messageHash string = *typeVar + ":fetchPositionsSnapshot"
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
@@ -1756,12 +1756,12 @@ func (this *Bingx) SetPositionsCache(client any, typeVar *string, optionalArgs .
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Bingx) LoadPositionsSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bingx) LoadPositionsSnapshotAsync(client any, messageHash string, typeVar any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any) any {
+func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1783,8 +1783,8 @@ func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 		}
 	}
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "swap:positions")
 	}

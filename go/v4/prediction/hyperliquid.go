@@ -814,7 +814,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 		panic(r2.Err)
 	}
 	allMidsResponse := r2.Value
-	var allMids any = this.InfoDict(allMidsResponse)
+	var allMids map[string]any = this.InfoDict(allMidsResponse)
 	//
 	// { "mids": { "#10": "0.45", "#11": "0.55", ... } }
 	//
@@ -2046,7 +2046,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		panic(r.Err)
 	}
 	orderStatusResponse := r.Value
-	var orderStatus any = this.InfoDict(orderStatusResponse)
+	var orderStatus map[string]any = this.InfoDict(orderStatusResponse)
 	var orderWrapper any = this.SafeDict(orderStatus, "order", orderStatus)
 	var parsed map[string]any = this.ParsePredictionOrder(orderWrapper, nil)
 	if outcome != nil {
@@ -3010,9 +3010,9 @@ func (this *Hyperliquid) InfoList(response any) []any {
  * @param {object|object[]|string} response the info endpoint response
  * @returns {object} the response object, or an empty object for any other response
  */
-func (this *Hyperliquid) InfoDict(response any) any {
-	if (!ccxt.IsString(response)) && !ccxt.IsArray(response) {
-		return response
+func (this *Hyperliquid) InfoDict(response any) map[string]any {
+	if m, ok := response.(map[string]any); ok {
+		return m
 	}
 	return map[string]any{}
 }

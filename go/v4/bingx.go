@@ -1507,12 +1507,12 @@ func (this *Bingx) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
 }
-func (this *Bingx) FetchInverseSwapMarketsAsync(params any) <-chan AsyncResult[[]MarketInterface] {
+func (this *Bingx) FetchInverseSwapMarketsAsync(params map[string]any) <-chan AsyncResult[[]MarketInterface] {
 	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchInverseSwapMarketsBody(ch, params)
 	return ch
 }
-func (this *Bingx) fetchInverseSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], params any) any {
+func (this *Bingx) fetchInverseSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], params map[string]any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 
@@ -5676,14 +5676,15 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 	} else {
 		typeValue = "CLOSE"
 	}
+	var timeOutValue int64
+	if isActive {
+		timeOutValue = (this.ParseToInt(float64(timeout) / 1000))
+	} else {
+		timeOutValue = int64(0)
+	}
 	var request map[string]any = map[string]any{
-		"type": typeValue,
-		"timeOut": func() any {
-			if isActive {
-				return (this.ParseToInt(float64(timeout) / 1000))
-			}
-			return 0
-		}(),
+		"type":    typeValue,
+		"timeOut": timeOutValue,
 	}
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params)
@@ -8868,7 +8869,7 @@ func (this *Bingx) FetchSwapMarkets(params any) ([]MarketInterface, error) {
 	var res []MarketInterface = r.Value
 	return res, nil
 }
-func (this *Bingx) FetchInverseSwapMarkets(params any) ([]MarketInterface, error) {
+func (this *Bingx) FetchInverseSwapMarkets(params map[string]any) ([]MarketInterface, error) {
 	r := <-this.FetchInverseSwapMarketsAsync(params)
 	if r.Err != nil {
 		return nil, r.Err

@@ -395,7 +395,7 @@ func (this *Bybit) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 			panic(r.Err)
 		}
 	}
-	var orderRequest any = this.EditOrderRequest(&id, &symbol, &typeVar, &side, amount, price, params)
+	var orderRequest map[string]any = this.EditOrderRequest(&id, &symbol, &typeVar, &side, amount, price, params)
 	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)
@@ -1035,7 +1035,7 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 		var symbolString *string = ccxt.SafeStringPtr(market["symbol"])
 		var unfiedTimeframe *string = ccxt.SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(data) {
-				return ccxt.DerefScalar(data[1])
+				return data[1]
 			}
 			return nil
 		}())
@@ -1112,7 +1112,7 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		var symbolString *string = ccxt.SafeStringPtr(market["symbol"])
 		var unfiedTimeframe *string = ccxt.SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(data) {
-				return ccxt.DerefScalar(data[1])
+				return data[1]
 			}
 			return nil
 		}())

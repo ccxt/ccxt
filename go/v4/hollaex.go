@@ -2147,13 +2147,13 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	//         ]
 	//     }
 	//
-	var wallet any = this.SafeList(response, "wallet", []any{})
-	var addresses any = nil
+	var wallet []any = this.SafeListSlice(response, "wallet", []any{})
 	if network == nil {
-		addresses = wallet
-	} else {
-		addresses = this.FilterBy(wallet, "network", this.NetworkCodeToId(network))
+
+		ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ParseDepositAddresses(wallet, codes, false))}
+		return nil
 	}
+	var addresses []any = this.FilterBy(wallet, "network", this.NetworkCodeToId(network))
 
 	ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ParseDepositAddresses(addresses, codes, false))}
 	return nil

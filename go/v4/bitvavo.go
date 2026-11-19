@@ -2382,14 +2382,15 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 		}
 	}
 	codGroupId, paramsCodGroupId := this.HandleOptionIntegerAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
+	var expiryAfterSecondsValue int64
+	if timeout > 0 {
+		expiryAfterSecondsValue = this.ParseToInt(float64(timeout) / 1000)
+	} else {
+		expiryAfterSecondsValue = int64(0)
+	}
 	var request map[string]any = map[string]any{
-		"codGroupId": codGroupId,
-		"expiryAfterSeconds": func() any {
-			if timeout > 0 {
-				return this.ParseToInt(float64(timeout) / 1000)
-			}
-			return 0
-		}(),
+		"codGroupId":         codGroupId,
+		"expiryAfterSeconds": expiryAfterSecondsValue,
 	}
 
 	r1 := <-this.PrivatePostCancelOrdersAfter(this.Extend(request, paramsCodGroupId))

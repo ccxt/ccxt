@@ -1687,7 +1687,7 @@ func (this *Cryptocom) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 			panic(r.Err)
 		}
 	}
-	var paramsValue any = this.EditOrderRequest(&id, symbol, amount, price, params)
+	var paramsValue map[string]any = this.EditOrderRequest(&id, symbol, amount, price, params)
 	var request map[string]any = map[string]any{
 		"method": "private/amend-order",
 		"params": paramsValue,

@@ -775,10 +775,14 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 						retStr := strings.Replace(*safeCode, ":", "-", 1)
 						return &retStr
 					}()
-					AddElementToObject(this.Options["hip3TokensByName"], name, map[string]any{
-						"quote": collateralTokenCode,
-						"code":  hip3Code,
-					})
+					var hip3TokensByName map[string]any = this.SafeDictMap(this.Options, "hip3TokensByName", map[string]any{})
+					if name != nil {
+						hip3TokensByName[*name] = map[string]any{
+							"quote": collateralTokenCode,
+							"code":  hip3Code,
+						}
+					}
+					this.Options["hip3TokensByName"] = hip3TokensByName
 				}
 			}
 			result = append(result, data)

@@ -2008,8 +2008,8 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		"latestBlockHeight": lastBlockHeight,
 	})
 	var orderRequestRes []any = ArrayTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, newParams))
-	var orderId *string = SafeStringPtr(DerefScalar(orderRequestRes[0]))
-	var orderRequest any = DerefScalar(orderRequestRes[1])
+	var orderId *string = SafeStringPtr(orderRequestRes[0])
+	var orderRequest any = orderRequestRes[1]
 	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), orderRequest, "", chainName, account, nil)
 	var request map[string]any = map[string]any{

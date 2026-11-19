@@ -1644,7 +1644,7 @@ func (this *Bitvavo) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
 	r2 := <-this.WatchRequestAsync("privateUpdateOrder", request)
 	if r2.Err != nil {
@@ -1688,7 +1688,7 @@ func (this *Bitvavo) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.CancelOrderRequest(&id, symbol, params)
+	var request map[string]any = this.CancelOrderRequest(&id, symbol, params)
 
 	r2 := <-this.WatchRequestAsync("privateCancelOrder", request)
 	if r2.Err != nil {
@@ -1875,7 +1875,7 @@ func (this *Bitvavo) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.FetchOrdersRequest(symbol, since, limit, params)
+	var request map[string]any = this.FetchOrdersRequest(symbol, since, limit, params)
 
 	r2 := <-this.WatchRequestAsync("privateGetOrders", request)
 	if r2.Err != nil {
@@ -1892,18 +1892,18 @@ func (this *Bitvavo) RequestId() int64 {
 	var randomPart string = strconv.FormatInt(randomNumber, 10)
 	return this.ParseToInt(ts + randomPart)
 }
-func (this *Bitvavo) WatchRequestAsync(action string, request any) <-chan ccxt.AsyncResult[any] {
+func (this *Bitvavo) WatchRequestAsync(action string, request map[string]any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchRequestBody(ch, action, request)
 	return ch
 }
-func (this *Bitvavo) watchRequestBody(ch chan ccxt.AsyncResult[any], action string, request any) any {
+func (this *Bitvavo) watchRequestBody(ch chan ccxt.AsyncResult[any], action string, request map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var messageHash int64 = this.RequestId()
 	var messageHashStr string = strconv.FormatInt(messageHash, 10)
-	ccxt.AddElementToObject(request, "action", action)
-	ccxt.AddElementToObject(request, "requestId", messageHash)
+	request["action"] = action
+	request["requestId"] = messageHash
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	r := <-this.Watch(url, messageHashStr, request, messageHashStr)
@@ -2011,7 +2011,7 @@ func (this *Bitvavo) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.FetchMyTradesRequest(symbol, since, limit, params)
+	var request map[string]any = this.FetchMyTradesRequest(symbol, since, limit, params)
 
 	r2 := <-this.WatchRequestAsync("privateGetTrades", request)
 	if r2.Err != nil {
@@ -2095,7 +2095,7 @@ func (this *Bitvavo) withdrawWsBody(ch chan ccxt.AsyncResult[ccxt.Transaction], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.WithdrawRequest(&code, amount, &address, tagWithdrawTag, paramsWithdrawTag)
+	var request map[string]any = this.WithdrawRequest(&code, amount, &address, tagWithdrawTag, paramsWithdrawTag)
 
 	r2 := <-this.WatchRequestAsync("privateWithdrawAssets", request)
 	if r2.Err != nil {
@@ -2162,7 +2162,7 @@ func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Tran
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.FetchWithdrawalsRequest(code, since, limit, params)
+	var request map[string]any = this.FetchWithdrawalsRequest(code, since, limit, params)
 
 	r2 := <-this.WatchRequestAsync("privateGetWithdrawalHistory", request)
 	if r2.Err != nil {
@@ -2234,7 +2234,7 @@ func (this *Bitvavo) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 			panic(r.Err)
 		}
 	}
-	var request any = this.FetchOHLCVRequest(&symbol, timeframe, since, limit, params)
+	var request map[string]any = this.FetchOHLCVRequest(&symbol, timeframe, since, limit, params)
 	var action string = "getCandles"
 
 	r1 := <-this.WatchRequestAsync(action, request)
@@ -2286,7 +2286,7 @@ func (this *Bitvavo) fetchDepositsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Transac
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.FetchDepositsRequest(code, since, limit, params)
+	var request map[string]any = this.FetchDepositsRequest(code, since, limit, params)
 
 	r2 := <-this.WatchRequestAsync("privateGetDepositHistory", request)
 	if r2.Err != nil {

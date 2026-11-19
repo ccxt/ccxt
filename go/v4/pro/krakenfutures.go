@@ -1142,7 +1142,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 					previousOrder["trades"] = []any{}
 				}
 			}
-			retRes80116 := ccxt.GetValue(previousOrder, "trades")
+			retRes80116 := previousOrder["trades"]
 			ccxt.AppendToArray(&retRes80116, trade)
 			ccxt.AddElementToObject(previousOrder, "trades", retRes80116)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])

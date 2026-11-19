@@ -1548,7 +1548,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 						previousOrder["trades"] = []any{}
 					}
 				}
-				retRes104720 := ccxt.GetValue(previousOrder, "trades")
+				retRes104720 := previousOrder["trades"]
 				ccxt.AppendToArray(&retRes104720, trade)
 				ccxt.AddElementToObject(previousOrder, "trades", retRes104720)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])

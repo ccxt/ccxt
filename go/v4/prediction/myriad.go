@@ -5120,37 +5120,7 @@ func (this *Myriad) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	var ohlcvcLength int = len(ohlcvc)
 	for i := 0; i < ohlcvcLength; i++ {
 		var candle []any = ccxt.ArrayTyped(ohlcvc[i])
-		result = append(result, []any{func() any {
-			if 0 >= 0 && 0 < len(candle) {
-				return ccxt.DerefScalar(candle[0])
-			}
-			return nil
-		}(), func() any {
-			if 1 >= 0 && 1 < len(candle) {
-				return ccxt.DerefScalar(candle[1])
-			}
-			return nil
-		}(), func() any {
-			if 2 >= 0 && 2 < len(candle) {
-				return ccxt.DerefScalar(candle[2])
-			}
-			return nil
-		}(), func() any {
-			if 3 >= 0 && 3 < len(candle) {
-				return ccxt.DerefScalar(candle[3])
-			}
-			return nil
-		}(), func() any {
-			if 4 >= 0 && 4 < len(candle) {
-				return ccxt.DerefScalar(candle[4])
-			}
-			return nil
-		}(), func() any {
-			if 5 >= 0 && 5 < len(candle) {
-				return ccxt.DerefScalar(candle[5])
-			}
-			return nil
-		}()})
+		result = append(result, []any{ccxt.DerefScalar(candle[0]), ccxt.DerefScalar(candle[1]), ccxt.DerefScalar(candle[2]), ccxt.DerefScalar(candle[3]), ccxt.DerefScalar(candle[4]), ccxt.DerefScalar(candle[5])})
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(result, since, limit, 0, true))}

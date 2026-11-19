@@ -595,7 +595,7 @@ func (this *Coinspot) ParseBalance(response any) map[string]any {
 	}
 	var balances any = this.SafeValue2(response, "balance", "balances")
 	if IsArray(balances) {
-		var rows []any = this.ToArray(balances)
+		var rows []any = SafeList2Typed(response, "balance", "balances")
 		var numRows int = len(rows)
 		for i := 0; i < numRows; i++ {
 			var currencies map[string]any = SafeMapTyped(rows, i)

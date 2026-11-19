@@ -2497,14 +2497,14 @@ func (this *Paradex) CreateOrderRequest(symbol *string, typeVar *string, side *s
 	var isStopOrder bool = (triggerPrice != nil) || isTakeProfitOrder || isStopLossOrder
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	var instruction any = "GTC"
+	var instruction string = "GTC"
 	if timeInForce != nil {
-		instruction = this.EncodeTimeInForce(*timeInForce)
+		instruction = *this.EncodeTimeInForce(*timeInForce)
 	}
-	if postOnly && (!IsEqual(instruction, "RPI")) {
+	if postOnly && (instruction != "RPI") {
 		instruction = "POST_ONLY"
 	}
-	if (IsEqual(instruction, "POST_ONLY")) || (IsEqual(instruction, "RPI")) {
+	if (instruction == "POST_ONLY") || (instruction == "RPI") {
 		// both instructions only rest on the book, the exchange rejects them on market and trigger orders
 		if isMarket {
 			panic(InvalidOrder(this.Id + " createOrder() market orders cannot be post only or RPI"))

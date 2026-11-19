@@ -3614,13 +3614,14 @@ func (this *Kraken) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any]
 	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
+	var timeoutValue int64
+	if timeout > 0 {
+		timeoutValue = (this.ParseToInt(float64(timeout) / 1000))
+	} else {
+		timeoutValue = int64(0)
+	}
 	var request map[string]any = map[string]any{
-		"timeout": func() any {
-			if timeout > 0 {
-				return (this.ParseToInt(float64(timeout) / 1000))
-			}
-			return 0
-		}(),
+		"timeout": timeoutValue,
 	}
 
 	r1 := <-this.PrivatePostCancelAllOrdersAfter(this.Extend(request, params))

@@ -1619,13 +1619,13 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]ma
 		var symbolAndTimeframe []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
 		var sym *string = ccxt.SafeStringPtr(func() any {
 			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
-				return ccxt.DerefScalar(symbolAndTimeframe[0])
+				return symbolAndTimeframe[0]
 			}
 			return nil
 		}())
 		var tf *string = ccxt.SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
-				return ccxt.DerefScalar(symbolAndTimeframe[1])
+				return symbolAndTimeframe[1]
 			}
 			return nil
 		}())
@@ -1698,13 +1698,13 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symb
 		var symbolAndTimeframe []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
 		var sym *string = ccxt.SafeStringPtr(func() any {
 			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
-				return ccxt.DerefScalar(symbolAndTimeframe[0])
+				return symbolAndTimeframe[0]
 			}
 			return nil
 		}())
 		var tf *string = ccxt.SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
-				return ccxt.DerefScalar(symbolAndTimeframe[1])
+				return symbolAndTimeframe[1]
 			}
 			return nil
 		}())

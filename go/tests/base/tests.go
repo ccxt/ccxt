@@ -875,7 +875,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var activeMarkets []any = exchange.FilterBy(currentTypeMarkets, "active", true)
 		var activeSymbols []any = []any{}
 		for i := 0; i < len(activeMarkets); i++ {
-			activeSymbols = append(activeSymbols, GetValue(DerefScalar(activeMarkets[i]), "symbol"))
+			activeSymbols = append(activeSymbols, GetValue(activeMarkets[i], "symbol"))
 		}
 		symbol = this.GetTestSymbol(exchange, spot, activeSymbols)
 	}

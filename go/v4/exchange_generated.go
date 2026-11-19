@@ -4614,7 +4614,7 @@ func (this *BaseExchange) SafePosition(position map[string]any) Position {
 		var percentageString *string = Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")
 		position["percentage"] = this.ParseNumber(percentageString)
 	}
-	return PositionFromMap(MapTyped(position))
+	return PositionFromMap(position)
 }
 func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) []any {
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4920,7 +4920,7 @@ func (this *BaseExchange) GetListFromObjectValues(objects any, key any) any {
 	var newArray []any = this.ToArray(objects)
 	var results []any = []any{}
 	for i := 0; i < len(newArray); i++ {
-		results = append(results, GetValue(DerefScalar(newArray[i]), key))
+		results = append(results, GetValue(newArray[i], key))
 	}
 	return results
 }
@@ -4968,7 +4968,7 @@ func (this *BaseExchange) FilterByArray(objects any, key any, optionalArgs ...an
 	}
 	var results []any = []any{}
 	for i := 0; i < len(objectsValue); i++ {
-		if this.InArray(GetValue(DerefScalar(objectsValue[i]), key), values) {
+		if this.InArray(GetValue(objectsValue[i], key), values) {
 			results = append(results, DerefScalar(objectsValue[i]))
 		}
 	}
@@ -4995,7 +4995,7 @@ func (this *BaseExchange) FilterOutByArray(objects any, key any, optionalArgs ..
 	}
 	var results []any = []any{}
 	for i := 0; i < len(objectsValue); i++ {
-		if !this.InArray(GetValue(DerefScalar(objectsValue[i]), key), values) {
+		if !this.InArray(GetValue(objectsValue[i], key), values) {
 			results = append(results, DerefScalar(objectsValue[i]))
 		}
 	}
@@ -5250,8 +5250,8 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		if ts == nil {
 			panic(ExchangeError(this.Id + " buildOHLCVC() missing ts"))
 		}
-		var openingTime any = Multiply(math.Floor(float64(*ts)/float64(ms)), ms) // shift to the edge of m/h/d (but not M)
-		if IsLessThan(openingTime, since) {
+		var openingTime any = (int64(math.Floor(float64(*ts)/float64(ms))) * ms) // shift to the edge of m/h/d (but not M)
+		if openingTime.(int64) < since {
 			continue
 		}
 		var ohlcv_length int = len(ohlcvs)
@@ -6601,7 +6601,7 @@ func (this *BaseExchange) Account() map[string]any {
 func (this *BaseExchange) MergeBalanceAccount(result map[string]any, code string, account any) map[string]any {
 	if _, ok := result[code]; !ok {
 		result[code] = account
-		return MapTyped(result)
+		return result
 	}
 	var fields []string = []string{"free", "used", "total", "debt"}
 	for i := 0; i < len(fields); i++ {
@@ -6614,7 +6614,7 @@ func (this *BaseExchange) MergeBalanceAccount(result map[string]any, code string
 			AddElementToObject(result[code], field, Precise.StringAdd(current, incoming))
 		}
 	}
-	return MapTyped(result)
+	return result
 }
 func (this *BaseExchange) CommonCurrencyCode(code any) any {
 	if !this.SubstituteCommonCurrencyCodes {
@@ -7028,7 +7028,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) map[str
 	}
 	return this.FilterByArrayTickers(results, "symbol", this.MarketSymbols(symbols))
 }
-func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...any) []any {
+func (this *BaseExchange) ParseDepositAddresses(addresses []any, optionalArgs ...any) []any {
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var indexed bool = GetArgBool(optionalArgs, 1, true)
@@ -7036,7 +7036,7 @@ func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(addresses); i++ {
+	for i := 0; i < len(addresses); i++ {
 		var address map[string]any = this.Extend(DepositAddressToMap(this.DerivedExchange.ParseDepositAddress(GetValue(addresses, i))), params)
 		result = append(result, address)
 	}
@@ -7048,11 +7048,11 @@ func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...a
 	}
 	return result
 }
-func (this *BaseExchange) ParseBorrowInterests(response any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseBorrowInterests(response []any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var interests []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var row any = this.SafeDict(response, i, map[string]any{})
 		interests = append(interests, this.DerivedExchange.ParseBorrowInterest(row, market))
 	}
@@ -8599,13 +8599,19 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input []any) any {
 	}
 	return values
 }
-func (this *BaseExchange) RemoveKeysFromDict(dict any, removeKeys any) map[string]any {
-	var keys []string = ObjectKeys(dict)
+func (this *BaseExchange) RemoveKeysFromDict(dict map[string]any, removeKeys any) map[string]any {
+	var keys []string = nil
+	if dict != nil {
+		keys = make([]string, 0, len(dict))
+		for objectKey := range dict {
+			keys = append(keys, objectKey)
+		}
+	}
 	var newDict map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		if !this.InArray(key, removeKeys) {
-			newDict[key] = GetValue(dict, key)
+			newDict[key] = dict[key]
 		}
 	}
 	return newDict

@@ -508,7 +508,7 @@ func (this *Paradex) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool
 		var pendingHashes []any = ccxt.SafeListTyped(unsubscription, "subscribeHashes")
 		var pending bool = false
 		for j := 0; j < len(pendingHashes); j++ {
-			if this.InArray(ccxt.DerefScalar(pendingHashes[j]), subscribeHashes) {
+			if this.InArray(pendingHashes[j], subscribeHashes) {
 				pending = true
 			}
 		}

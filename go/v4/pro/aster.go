@@ -1917,8 +1917,12 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				ccxt.AddElementToObject(this.Options["listenKey"], typeVar, listenKey)
-				ccxt.AddElementToObject(this.Options["lastAuthenticatedTime"], typeVar, time)
+				var listenKeys map[string]any = this.SafeDictMap(this.Options, "listenKey", map[string]any{})
+				listenKeys[typeVar] = *listenKey
+				this.Options["listenKey"] = listenKeys
+				var lastAuthenticatedTimes map[string]any = this.SafeDictMap(this.Options, "lastAuthenticatedTime", map[string]any{})
+				lastAuthenticatedTimes[typeVar] = time
+				this.Options["lastAuthenticatedTime"] = lastAuthenticatedTimes
 				var keepAliveParams map[string]any = this.Extend(map[string]any{
 					"type": typeVar,
 				}, params)
@@ -1973,7 +1977,9 @@ func (this *Aster) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
 						ccxt.AddElementToObject(this.Options["listenKey"], typeVar, nil)
-						ccxt.AddElementToObject(this.Options["lastAuthenticatedTime"], typeVar, 0)
+						var lastAuthenticatedTimes map[string]any = this.SafeDictMap(this.Options, "lastAuthenticatedTime", map[string]any{})
+						lastAuthenticatedTimes[typeVar] = 0
+						this.Options["lastAuthenticatedTime"] = lastAuthenticatedTimes
 
 						return nil
 
@@ -2662,13 +2668,13 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes185832 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes185832, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes185832)
+							retRes186432 := order["fees"]
+							ccxt.AppendToArray(&retRes186432, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes186432)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
-							var feeCost any = this.Sum(ccxt.GetValue(fee, "cost"), tradeFee["cost"])
+							var feeCost any = this.Sum(fee["cost"], tradeFee["cost"])
 							var feeCostString *string = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
 							ccxt.AddElementToObject(ccxt.GetValue(order, "fee"), "cost", func() any {
 								if feeCostString == nil {

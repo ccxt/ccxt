@@ -324,7 +324,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var marketId string = *this.SafeString(market, "id2", "")
-		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("orderBook", this.NumberToString(limitValue)), ".H."), marketId))
+		topics = append(topics, "orderBook"+*this.NumberToString(limitValue)+".H."+marketId)
 		var messageHash string = "orderbook:" + symbol
 		messageHashes = append(messageHashes, messageHash)
 	}
