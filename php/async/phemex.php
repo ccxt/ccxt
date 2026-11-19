@@ -1334,7 +1334,7 @@ class phemex extends Exchange {
         }
         $stringN = $this->number_to_string($n);
         $precise = new Precise($stringN);
-        $precise->decimals = $this->sum($precise->decimals, $scale * -1);
+        $precise->decimals = $this->sum($precise->decimals, $this->parse_to_int($scale * -1));
         $precise->reduce();
         $preciseString = (string) $precise;
         return $this->parse_to_numeric($preciseString);
@@ -1359,7 +1359,7 @@ class phemex extends Exchange {
             return null;
         }
         $precise = new Precise($en);
-        $precise->decimals = $this->sum($precise->decimals, $scale);
+        $precise->decimals = $this->sum($precise->decimals, $this->parse_to_int($scale));
         $precise->reduce();
         return (string) $precise;
     }

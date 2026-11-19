@@ -980,7 +980,7 @@ class cex extends \ccxt\async\cex {
             return null;
         }
         $precise = new Precise($amount);
-        $precise->decimals = $this->sum($precise->decimals, $scale);
+        $precise->decimals = $this->sum($precise->decimals, $this->safe_integer(array( $scale ), 0, 0));
         $precise->reduce();
         return (string) $precise;
     }

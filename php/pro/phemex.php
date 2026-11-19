@@ -59,7 +59,7 @@ class phemex extends \ccxt\async\phemex {
             return null;
         }
         $precise = new Precise($en);
-        $precise->decimals = $this->sum($precise->decimals, $scale);
+        $precise->decimals = $this->sum($precise->decimals, $this->safe_integer(array( $scale ), 0, 0));
         $precise->reduce();
         return (string) $precise;
     }

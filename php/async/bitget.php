@@ -2430,12 +2430,16 @@ class bitget extends Exchange {
             $priceEndStep = $this->safe_string($market, 'priceEndStep');
             $sizeMultiplier = $this->safe_string($market, 'sizeMultiplier');
             $precise = new Precise($priceEndStep);
-            $precise->decimals = max($precise->decimals, $pricePlaces);
+            if ($pricePlaces !== null) {
+                $precise->decimals = max($precise->decimals, $pricePlaces);
+            }
             $precise->reduce();
             $priceString = (string) $precise;
             $pricePrecision = $this->parse_number($priceString);
             $preciseAmount = new Precise($sizeMultiplier);
-            $preciseAmount->decimals = max($preciseAmount->decimals, $volumePlaces);
+            if ($volumePlaces !== null) {
+                $preciseAmount->decimals = max($preciseAmount->decimals, $volumePlaces);
+            }
             $preciseAmount->reduce();
             $amountString = (string) $preciseAmount;
             $amountPrecision = $this->parse_number($amountString);
