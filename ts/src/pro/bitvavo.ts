@@ -263,11 +263,9 @@ export default class bitvavo extends bitvavoRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const trades = await this.watchPublic ('trades', symbolValue, params);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -336,11 +334,9 @@ export default class bitvavo extends bitvavoRest {
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, message, messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -424,11 +420,9 @@ export default class bitvavo extends bitvavoRest {
         };
         const message = this.extend (request, params);
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, message, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleFetchOHLCV (client: Client, message: Dict) {
@@ -538,11 +532,9 @@ export default class bitvavo extends bitvavoRest {
         };
         const message = this.extend (request, params);
         const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, message, messageHashes);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (candles, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -1019,11 +1011,9 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolValue, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolValue, since, limitResolved, true);
     }
 
     /**
@@ -1060,11 +1050,9 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolValue, since, limitResolved, true);
     }
 
     /**
