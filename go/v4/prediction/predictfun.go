@@ -2638,12 +2638,15 @@ func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...an
 		}
 		settleFraction = &settleFractionStr
 		// a winning share redeems for one unit of collateral, a losing one for nothing
-		payout = func() any {
-			if won == true {
-				return contracts
+		if won == true {
+			if derefPtr := contracts; derefPtr != nil {
+				payout = *derefPtr
+			} else {
+				payout = nil
 			}
-			return "0"
-		}()
+		} else {
+			payout = "0"
+		}
 	}
 	// pnl is realized once the market has resolved, unrealized while it is still trading
 	var realizedPnl *string = nil

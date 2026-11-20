@@ -1103,8 +1103,8 @@ func (this *Polymarket) HandleOrder(client any, message any) {
 		}
 	}
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbol *string = this.SafeString(symbolKeys, i, "")
-		client.(ccxt.ClientInterface).Resolve(stored, "orders:"+*symbol)
+		var symbol string = symbolKeys[i]
+		client.(ccxt.ClientInterface).Resolve(stored, "orders:"+symbol)
 	}
 }
 
@@ -1232,8 +1232,8 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbol *string = this.SafeString(symbolKeys, i, "")
-		client.(ccxt.ClientInterface).Resolve(stored, "myTrades:"+*symbol)
+		var symbol string = symbolKeys[i]
+		client.(ccxt.ClientInterface).Resolve(stored, "myTrades:"+symbol)
 	}
 }
 

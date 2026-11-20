@@ -7637,7 +7637,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[str
 	var networkFees map[string]any = map[string]any{}
 	if networksLength != 0 {
 		for i := 0; i < networksLength; i++ {
-			var networkCode string = *this.SafeString(networkCodes, i, "")
+			var networkCode string = networkCodes[i]
 			var network map[string]any = SafeMapTyped(networks, networkCode)
 			networkFees[networkCode] = map[string]any{
 				"deposit": map[string]any{

@@ -1235,7 +1235,11 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 	var isContract bool = (this.SafeString(market, "contractMultiplier") != nil)
 	var inverse *bool = this.SafeBool2(market, "isInverse", "inverse")
 	if isContract {
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 	}
 	var typeValue string
 	if isContract {

@@ -1204,13 +1204,13 @@ func (this *Phemex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	}
 	var market map[string]any = nil
 	var messageHash any = "trades:"
-	var symbolResolved *string = func() *string {
-		if symbol != nil {
-			symbolText := this.Symbol(symbol)
-			return &symbolText
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if symbol != nil {
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
 	if symbol != nil {
 		market = this.Market(symbol)
 		messageHash = "trades:" + *this.SafeString(market, "symbol", "")
@@ -1423,13 +1423,13 @@ func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	}
 	var messageHash any = "orders:"
 	var market map[string]any = nil
-	var symbolResolved *string = func() *string {
-		if symbol != nil {
-			symbolText := this.Symbol(symbol)
-			return &symbolText
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if symbol != nil {
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
 	if symbol != nil {
 		market = this.Market(symbol)
 		messageHash = "orders:" + *this.SafeString(market, "symbol", "")

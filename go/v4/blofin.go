@@ -846,7 +846,11 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 	}
 	var symbol any = *base + "/" + *quote
 	if swap {
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 	}
 	var expiry any = nil
 	var strikePrice any = nil
@@ -3976,12 +3980,11 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 0 {
-			market = this.Market(func() any {
-				if 0 >= 0 && 0 < len(symbols) {
-					return symbols[0]
-				}
-				return nil
-			}())
+			var symbolsElem292138 *string = nil
+			if 0 >= 0 && 0 < len(symbols) {
+				symbolsElem292138 = &symbols[0]
+			}
+			market = this.Market(symbolsElem292138)
 			request["instId"] = market["id"]
 		}
 	}

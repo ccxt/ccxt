@@ -545,14 +545,19 @@ func (this *Hashkey) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		}
 	}
 	var messageHash any = "orders"
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
+	var symbolResolved *string
 	if symbol != nil {
-		messageHash = ccxt.Add("orders"+":", symbolResolved)
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
+	if symbol != nil {
+		if symbolResolved != nil {
+			messageHash = "orders" + ":" + *symbolResolved
+		} else {
+			messageHash = nil
+		}
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash)
@@ -713,14 +718,19 @@ func (this *Hashkey) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		}
 	}
 	var messageHash any = "myTrades"
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
+	var symbolResolved *string
 	if symbol != nil {
-		messageHash = ccxt.Add("myTrades"+":", symbolResolved)
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
+	if symbol != nil {
+		if symbolResolved != nil {
+			messageHash = "myTrades" + ":" + *symbolResolved
+		} else {
+			messageHash = nil
+		}
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash)

@@ -2665,7 +2665,7 @@ func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription any) {
+func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var symbols any = this.SafeList(subscription, "symbols")
 	if symbols == nil {
@@ -2708,7 +2708,7 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message map[string]any)
 		return
 	}
 	var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), id)
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
+	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
 	client.(ccxt.ClientInterface).SubscriptionDel(id)
 	var method any = this.SafeValue(subscription, "method")
 	if (subscription != nil) && (method != nil) {
@@ -3788,20 +3788,17 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
 			entry["info"] = data
 		}
+		var balance map[string]any = this.SafeDictMap(this.Balance, uniformType, map[string]any{})
 		var timestamp *int64 = this.SafeInteger2(data, "time", "timestamp")
-		if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
-			if timestamp != nil {
-				entry["timestamp"] = *timestamp
-			} else {
-				entry["timestamp"] = nil
-			}
+		if timestamp != nil {
+			balance["timestamp"] = *timestamp
+		} else {
+			balance["timestamp"] = nil
 		}
-		if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
-			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-				entry["datetime"] = *ptrValue
-			} else {
-				entry["datetime"] = nil
-			}
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			balance["datetime"] = *ptrValue
+		} else {
+			balance["datetime"] = nil
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3814,11 +3811,9 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		account["used"] = used
 		account["total"] = this.SafeString(data, "total")
 		if code != nil {
-			if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
+			balance[*code] = account
 		}
-		this.Balance[*uniformType] = this.SafeBalance(this.Balance[*uniformType])
+		this.Balance[*uniformType] = this.SafeBalance(balance)
 		client.(ccxt.ClientInterface).Resolve(this.Balance[*uniformType], *uniformType+":balance")
 	}
 }
@@ -3848,31 +3843,26 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = data
 	}
+	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
 	var timestamp *int64 = this.SafeIntegerProduct(data, "U", 0.000001)
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		if timestamp != nil {
-			entry["timestamp"] = *timestamp
-		} else {
-			entry["timestamp"] = nil
-		}
+	if timestamp != nil {
+		balance["timestamp"] = *timestamp
+	} else {
+		balance["timestamp"] = nil
 	}
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-			entry["datetime"] = *ptrValue
-		} else {
-			entry["datetime"] = nil
-		}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		balance["datetime"] = *ptrValue
+	} else {
+		balance["datetime"] = nil
 	}
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(data, "a")
 	account["used"] = this.SafeString(data, "h")
 	account["total"] = this.SafeString(data, "b")
 	if code != nil {
-		if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-			entry[*code] = account
-		}
+		balance[*code] = account
 	}
-	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	this.Balance[typeVar] = this.SafeBalance(balance)
 	var messageHash string = typeVar + ":balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 }

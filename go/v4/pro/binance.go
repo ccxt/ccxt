@@ -2731,7 +2731,7 @@ func (this *Binance) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchOHLCVWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
-		"symbol":           this.MarketId(symbol),
+		"symbol":           this.MarketId(&symbol),
 		"returnRateLimits": returnRateLimits,
 		"interval":         this.Timeframes[timeframe],
 	}
@@ -4081,7 +4081,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 					if symbol == nil {
 						panic(ccxt.ArgumentsRequired(this.Id + " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode"))
 					}
-					var marketId any = this.MarketId(symbol)
+					var marketId *string = this.MarketId(symbol)
 					request["symbol"] = marketId
 					request["isIsolated"] = true
 				}
@@ -7278,7 +7278,7 @@ func (this *Binance) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchTradesWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
-		"symbol":           this.MarketId(symbol),
+		"symbol":           this.MarketId(&symbol),
 		"returnRateLimits": returnRateLimits,
 	}
 	if limit != nil {
@@ -7624,6 +7624,7 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
 		entry["info"] = message
 	}
+	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
 	var B []any = ccxt.SafeListTyped(message, "B")
 	for i := 0; i < len(B); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(B, i)
@@ -7632,27 +7633,21 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 		if code != nil {
 			var account map[string]any = this.Account()
 			account["total"] = this.SafeString(entry, "b")
-			if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
+			balance[*code] = account
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		if timestamp != nil {
-			entry["timestamp"] = *timestamp
-		} else {
-			entry["timestamp"] = nil
-		}
+	if timestamp != nil {
+		balance["timestamp"] = *timestamp
+	} else {
+		balance["timestamp"] = nil
 	}
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-			entry["datetime"] = *ptrValue
-		} else {
-			entry["datetime"] = nil
-		}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		balance["datetime"] = *ptrValue
+	} else {
+		balance["datetime"] = nil
 	}
-	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
+	this.Balance[accountType] = this.SafeBalance(balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], accountType+":balance")
 	// --- positions ---
 	if !(this.PositionsByType[accountType] != nil) {

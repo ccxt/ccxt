@@ -2032,7 +2032,7 @@ func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 		}
 	}
 	var market any = nil
-	var messageHash any = ""
+	var messageHash string = ""
 	if (!this.IsEmpty(symbols)) && (symbols != nil) {
 		market = this.GetMarketFromSymbols(symbols)
 		messageHash = "::" + ccxt.Join(symbols, ",")
@@ -2053,12 +2053,13 @@ func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 		}
 	} else {
 		marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchPositions", market, params)
-		typeVar = func() any {
-			if marketType != nil && *marketType == "spot" {
-				return "future"
-			}
-			return marketType
-		}()
+		if marketType != nil && *marketType == "spot" {
+			typeVar = "future"
+		} else if derefPtr := marketType; derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		var subTypePtr *string = nil
 		subTypePtr, paramsSubType = this.HandleOptionStringAndParams(paramsMarketType, "watchPositions", "subType", subType)
 		subType = nil
@@ -2076,10 +2077,10 @@ func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchPositions", paramsPositions, "cross")
 	var paramsRequest any = paramsMarginMode
 	var linear bool = (subType == "linear")
-	var swap bool = (ccxt.IsEqual(typeVar, "swap"))
-	var future bool = (ccxt.IsEqual(typeVar, "future"))
+	var swap bool = (typeVar == "swap")
+	var future bool = (typeVar == "future")
 	var isV5Linear bool = (linear && (swap || future))
-	messageHash = ccxt.Add(ccxt.Add(marginMode, ":positions"), messageHash)
+	messageHash = *marginMode + ":positions" + messageHash
 	var channel any = "positions.*"
 	// one positions cache per margin mode: linear, inverse and futures symbols never collide
 	var cacheKey string = "isolated"
@@ -2707,7 +2708,7 @@ func (this *Htx) HandleSubscriptionStatus(client any, message map[string]any) {
 		return
 	}
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-	var subscription any = this.SafeDict(subscriptionsById, id)
+	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
 	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if method != nil {

@@ -4680,12 +4680,12 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var url string = *apiUrl + endpoint
-	var headersResolved any = func() any {
-		if apiName == "private" {
-			return headersSigned
-		}
-		return nil
-	}()
+	var headersResolved map[string]any
+	if apiName == "private" {
+		headersResolved = headersSigned
+	} else {
+		headersResolved = nil
+	}
 	var bodyResolved *string = nil
 	if (apiName == "private") && (method != "GET") {
 		bodyResolved = bodySigned

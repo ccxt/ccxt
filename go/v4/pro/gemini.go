@@ -745,7 +745,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 	var messageHashes []string = []string{}
 	var marketIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = *this.SafeString(symbolsNormalized, i, "")
+		var symbol string = symbolsNormalized[i]
 		var messageHash string = itemHashName + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
 		var market map[string]any = this.Market(symbol)

@@ -194,7 +194,7 @@ func (this *Krakenfutures) subscribePublicBody(ch chan ccxt.AsyncResult[map[stri
 	var symbolsValue []string = symbols
 	for i := 0; i < len(symbolsValue); i++ {
 		var symbol string = symbolsValue[i]
-		marketIds = append(marketIds, this.MarketId(symbol))
+		marketIds = append(marketIds, this.MarketId(&symbol))
 	}
 	var length int = len(symbolsValue)
 	if length == 1 {

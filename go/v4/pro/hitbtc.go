@@ -600,7 +600,7 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		marketIds = append(marketIds, "*")
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var marketId any = this.MarketId(symbolsNormalized[i])
+			var marketId *string = this.MarketId(&symbolsNormalized[i])
 			if marketId != nil {
 				marketIds = append(marketIds, marketId)
 			}

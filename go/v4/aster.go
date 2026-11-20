@@ -1377,7 +1377,11 @@ func (this *Aster) ParseMarket(market any) map[string]any {
 		settleId = this.SafeString(market, "marginAsset")
 		var settleCode *string = this.SafeCurrencyCode(settleId)
 		settle = settleCode
-		symbol = Add(*base+"/"+*quote+":", settleCode)
+		if settleCode != nil {
+			symbol = *base + "/" + *quote + ":" + *settleCode
+		} else {
+			symbol = nil
+		}
 		linear = (settleCode == quote || (settleCode != nil && quote != nil && *settleCode == *quote))
 		inverse = (settleCode == base || (settleCode != nil && base != nil && *settleCode == *base))
 		contractSize = this.SafeNumber2(market, "contractSize", "unit", this.ParseNumber("1"))
@@ -5684,8 +5688,8 @@ func (this *Aster) transferBody(ch chan AsyncResult[TransferEntry], code string,
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 	var typeVar *string = nil
-	var fromId string = ToUpper(this.ConvertTypeToAccount(fromAccount))
-	var toId string = ToUpper(this.ConvertTypeToAccount(toAccount))
+	var fromId string = strings.ToUpper(this.ConvertTypeToAccount(fromAccount))
+	var toId string = strings.ToUpper(this.ConvertTypeToAccount(toAccount))
 	if (fromId == "SPOT") && (toId == "FUTURE") {
 		typeVarStr := "SPOT_FUTURE"
 		typeVar = &typeVarStr

@@ -3732,9 +3732,9 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	startRegex := GetArg(optionalArgs, 0, nil)
+	var startRegex *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = startRegex
-	endRegex := GetArg(optionalArgs, 1, nil)
+	var endRegex *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = endRegex
 	var options any = this.SafeValue(this.Options, method, map[string]any{})
 	var muteOnFailure *bool = this.SafeBool(options, "webApiMuteFailure", true)
@@ -4814,11 +4814,11 @@ func (this *BaseExchange) CurrencyId(code any) any {
 	}
 	return code
 }
-func (this *BaseExchange) MarketId(symbol any) any {
+func (this *BaseExchange) MarketId(symbol *string) *string {
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
 	if market != nil {
-		return market["id"]
+		return this.SafeString(market, "id")
 	}
 	return symbol
 }
@@ -5393,7 +5393,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = marketId
 	market := GetArg(optionalArgs, 1, nil)
 	_ = market
-	delimiter := GetArg(optionalArgs, 2, nil)
+	var delimiter *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = delimiter
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
@@ -5420,8 +5420,8 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 					}
 				}
 			}
-		} else if (delimiter != nil) && (delimiter != "") {
-			var parts []string = Split(marketId, delimiter)
+		} else if (delimiter != nil) && (delimiter == nil || *delimiter != "") {
+			var parts []string = strings.Split(*marketId, *delimiter)
 			var partsLength int = len(parts)
 			var result map[string]any = this.SafeMarketStructure(map[string]any{
 				"symbol":   marketId,
@@ -7567,7 +7567,7 @@ func (this *BaseExchange) HandleTimeInForce(optionalArgs ...any) *string {
 	}
 	return nil
 }
-func (this *BaseExchange) ConvertTypeToAccount(account any) any {
+func (this *BaseExchange) ConvertTypeToAccount(account string) string {
 	/**
 	 * @ignore
 	 * @method
@@ -7576,16 +7576,18 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 	 * @returns the exchange specific account name or the isolated margin id for transfers
 	 */
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	var lowercaseAccount string = ToLower(account)
+	var lowercaseAccount string = strings.ToLower(account)
 	if _, ok := accountsByType[lowercaseAccount]; ok {
-		return accountsByType[lowercaseAccount]
+		return *this.SafeString(accountsByType, lowercaseAccount, account)
 	}
 	var markets map[string]any = this.Markets
 	var marketsById map[string]any = this.Markets_by_id
-	if ((markets != nil) && (InOp(markets, account))) || ((marketsById != nil) && (InOp(marketsById, account))) {
+	_, has2 := markets[account]
+	_, has3 := marketsById[account]
+	if ((markets != nil) && has2) || ((marketsById != nil) && has3) {
 
 		var market map[string]any = this.DerivedExchange.Market(account)
-		return market["id"]
+		return *this.SafeString(market, "id", account)
 	} else {
 		return account
 	}

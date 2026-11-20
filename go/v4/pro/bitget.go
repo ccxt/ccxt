@@ -763,10 +763,18 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		args["interval"] = interval
 		messageHash = "kline" + symbol
 	} else {
-		channel = ccxt.Add("candle", interval)
+		if interval != nil {
+			channel = "candle" + *interval
+		} else {
+			channel = nil
+		}
 		args["channel"] = channel
 		args["instId"] = market["id"]
-		messageHash = ccxt.Add("candles:", interval)
+		if interval != nil {
+			messageHash = "candles:" + *interval
+		} else {
+			messageHash = nil
+		}
 	}
 
 	r1 := <-this.UnWatchChannelAsync(symbol, channel, messageHash, "watchOHLCV", paramsRequest)

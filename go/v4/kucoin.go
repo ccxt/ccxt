@@ -4252,9 +4252,10 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	} else {
 		limitResolved = limit
 	}
-	var sinceResolved any = since
+	var sinceResolved *int64 = since
 	if (since == nil) && (limit != nil) {
-		sinceResolved = now - (*limit * duration)
+		sinceResolvedValue := now - (*limit * duration)
+		sinceResolved = &sinceResolvedValue
 	}
 	var endAt int64
 	if since != nil {
@@ -4389,9 +4390,10 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	} else {
 		limitResolved = limit
 	}
-	var sinceResolved any = since
+	var sinceResolved *int64 = since
 	if (since == nil) && (limit != nil) {
-		sinceResolved = now - (*limit * duration)
+		sinceResolvedValue := now - (*limit * duration)
+		sinceResolved = &sinceResolvedValue
 	}
 	var endAt int64
 	if since != nil {
@@ -4507,9 +4509,10 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol 
 	} else {
 		limitResolved = limit
 	}
-	var sinceResolved any = since
+	var sinceResolved *int64 = since
 	if (since == nil) && (limit != nil) {
-		sinceResolved = now - (*limit * duration)
+		sinceResolvedValue := now - (*limit * duration)
+		sinceResolved = &sinceResolvedValue
 	}
 	var endAt any = now
 	if since != nil {
@@ -11718,8 +11721,8 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code
 	if _, ok := paramsTransferType["clientOid"]; !ok {
 		request["clientOid"] = this.Uuid()
 	}
-	var fromId any = this.ConvertTypeToAccount(fromAccount)
-	var toId any = this.ConvertTypeToAccount(toAccount)
+	var fromId string = this.ConvertTypeToAccount(fromAccount)
+	var toId string = this.ConvertTypeToAccount(toAccount)
 	var exchangeIds any = func() any {
 		if this.Ids == nil {
 			return []any{}
@@ -11751,8 +11754,8 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code
 		response = r1.Value
 	} else {
 		request["type"] = transferTypeOption
-		request["fromAccountType"] = ToUpper(fromId)
-		request["toAccountType"] = ToUpper(toId)
+		request["fromAccountType"] = strings.ToUpper(fromId)
+		request["toAccountType"] = strings.ToUpper(toId)
 		//
 		//     {
 		//         "code": "200000",
@@ -11782,7 +11785,7 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(transfer)}
 	return nil
 }
-func (this *Kucoin) IsHfOrMining(fromId any, toId any) bool {
+func (this *Kucoin) IsHfOrMining(fromId string, toId string) bool {
 	return this.InArray(fromId, []any{"trade_hf", "pool"}) || this.InArray(toId, []any{"trade_hf", "pool"})
 }
 func (this *Kucoin) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
@@ -13863,10 +13866,11 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var uta bool = false
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchFundingRateHistory", "uta", uta)
 	var paramsOmitted map[string]any = this.OmitDict(paramsUta, "until")
-	var start any = since
+	var start *int64 = since
 	var end any = until
 	if since == nil {
-		start = 0
+		startValue := int64(0)
+		start = &startValue
 	}
 	if until == nil {
 		end = this.Milliseconds()

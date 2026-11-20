@@ -2393,7 +2393,7 @@ func (this *Backpack) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "positions"+":"+symbol)
-			topics = append(topics, ccxt.Add("account.positionUpdate.", this.MarketId(symbol)))
+			topics = append(topics, ccxt.Add("account.positionUpdate.", this.MarketId(&symbol)))
 		}
 	} else {
 		messageHashes = append(messageHashes, "positions")
@@ -2460,7 +2460,7 @@ func (this *Backpack) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optio
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "unsubscribe:positions"+":"+symbol)
-			topics = append(topics, ccxt.Add("account.positionUpdate.", this.MarketId(symbol)))
+			topics = append(topics, ccxt.Add("account.positionUpdate.", this.MarketId(&symbol)))
 		}
 	} else {
 		messageHashes = append(messageHashes, "unsubscribe:positions")

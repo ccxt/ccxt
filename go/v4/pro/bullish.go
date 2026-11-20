@@ -901,11 +901,12 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 				parsedKeys = append(parsedKeys, objectKey)
 			}
 		}
+		var balance map[string]any = this.SafeDictMap(this.Balance, tradingAccountId, map[string]any{})
 		for i := 0; i < len(parsedKeys); i++ {
 			var parsedKey string = parsedKeys[i]
-			ccxt.AddElementToObject(this.Balance[*tradingAccountId], parsedKey, parsed[parsedKey])
+			ccxt.AddElementToObject(balance, parsedKey, parsed[parsedKey])
 		}
-		this.Balance[*tradingAccountId] = this.SafeBalance(this.Balance[*tradingAccountId])
+		this.Balance[*tradingAccountId] = this.SafeBalance(balance)
 	} else {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		var assetId *string = this.SafeString(data, "assetSymbol")

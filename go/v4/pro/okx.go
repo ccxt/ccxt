@@ -160,7 +160,7 @@ func (this *Okx) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], access str
 		if symbolsNormalized == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribeMultiple() symbols is required"))
 		}
-		var marketId any = this.MarketId(symbolsNormalized[i])
+		var marketId *string = this.MarketId(&symbolsNormalized[i])
 		var arg map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -303,7 +303,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, *channel+":"+symbol)
-		var marketId any = this.MarketId(symbol)
+		var marketId *string = this.MarketId(&symbol)
 		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -376,7 +376,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "unsubscribe:"+*channel+":"+symbol)
-		var marketId any = this.MarketId(symbol)
+		var marketId *string = this.MarketId(&symbol)
 		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -578,7 +578,7 @@ func (this *Okx) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, channel+":"+symbol)
-		var marketId any = this.MarketId(symbol)
+		var marketId *string = this.MarketId(&symbol)
 		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -597,10 +597,10 @@ func (this *Okx) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	}
 	fundingRate := r1.Value
 	if this.NewUpdates {
-		var symbol *string = this.SafeString(fundingRate, "symbol")
+		var fundingSymbol *string = this.SafeString(fundingRate, "symbol")
 		var result map[string]any = map[string]any{}
-		if symbol != nil {
-			result[*symbol] = fundingRate
+		if fundingSymbol != nil {
+			result[*fundingSymbol] = fundingRate
 		}
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(result)}
@@ -914,7 +914,7 @@ func (this *Okx) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optionalA
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "unsubscribe:mark-price:"+symbol)
-		var marketId any = this.MarketId(symbol)
+		var marketId *string = this.MarketId(&symbol)
 		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -983,7 +983,7 @@ func (this *Okx) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+symbol)
-		var marketId any = this.MarketId(symbol)
+		var marketId *string = this.MarketId(&symbol)
 		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -1104,7 +1104,7 @@ func (this *Okx) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var marketId any = this.MarketId(symbolsNormalized[i])
+		var marketId *string = this.MarketId(&symbolsNormalized[i])
 		var arg map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
@@ -1729,7 +1729,7 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]ma
 		if 1 >= 0 && 1 < len(symbolAndTimeframe) {
 			tf = ccxt.SafeStringPtr(symbolAndTimeframe[1])
 		}
-		var marketId any = this.MarketId(sym)
+		var marketId *string = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
 		var topic map[string]any = map[string]any{
@@ -1804,7 +1804,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symb
 		if 1 >= 0 && 1 < len(symbolAndTimeframe) {
 			tf = ccxt.SafeStringPtr(symbolAndTimeframe[1])
 		}
-		var marketId any = this.MarketId(sym)
+		var marketId *string = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
 		var topic map[string]any = map[string]any{
@@ -1999,7 +1999,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 		messageHashes = append(messageHashes, *depth+":"+symbol)
 		var topic map[string]any = map[string]any{
 			"channel": depth,
-			"instId":  this.MarketId(symbol),
+			"instId":  this.MarketId(&symbol),
 		}
 		topics = append(topics, topic)
 	}
@@ -2102,7 +2102,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		var symbol string = symbolsNormalized[i]
 		subMessageHashes = append(subMessageHashes, ccxt.Add(ccxt.Add(depth, ":"), symbol))
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+symbol)
-		var marketId any = this.MarketId(symbol)
+		var marketId *string = this.MarketId(&symbol)
 		var topic map[string]any = map[string]any{
 			"channel": depth,
 			"instId":  marketId,
@@ -2611,7 +2611,7 @@ func (this *Okx) HandleBalance(client any, message map[string]any) {
 		if this.InArray(key, reserved) {
 			continue
 		}
-		ccxt.AddElementToObject(this.Balance, key, this.SafeValue(balance, key))
+		this.Balance[key] = this.SafeValue(balance, key)
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, channel)
@@ -3871,7 +3871,7 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol string, channel st
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	// watchOHLCV subscribes through subscribe () under channel:marketId
-	this.CleanUnsubscription(ccxt.AsClient(client), ccxt.Add(channel+":", this.MarketId(symbol)), nil)
+	this.CleanUnsubscription(ccxt.AsClient(client), ccxt.Add(channel+":", this.MarketId(&symbol)), nil)
 	if _, ok := this.Ohlcvs[symbol][*timeframe]; ok {
 		delete(this.Ohlcvs[symbol], *timeframe)
 	}

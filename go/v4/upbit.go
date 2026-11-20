@@ -1183,7 +1183,7 @@ func (this *Upbit) IdsQueryStrings(ids []string) []any {
 		if idsString != "" {
 			idsString = idsString + ","
 		}
-		idsString = idsString + *this.SafeString(ids, i, "")
+		idsString = idsString + ids[i]
 		if len(idsString) >= 4000 {
 			queries = append(queries, idsString)
 			idsString = ""

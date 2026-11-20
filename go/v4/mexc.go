@@ -2574,12 +2574,11 @@ func (this *Mexc) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	if symbols != nil {
 		var length int = len(symbols)
 		isSingularMarket = (length == 1)
-		market = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbols) {
-				return symbols[0]
-			}
-			return nil
-		}())
+		var symbolsElem200234 *string = nil
+		if 0 >= 0 && 0 < len(symbols) {
+			symbolsElem200234 = &symbols[0]
+		}
+		market = this.Market(symbolsElem200234)
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var tickers any = nil
@@ -2884,12 +2883,11 @@ func (this *Mexc) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	if symbols != nil {
 		var length int = len(symbols)
 		isSingularMarket = (length == 1)
-		market = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbols) {
-				return symbols[0]
-			}
-			return nil
-		}())
+		var symbolsElem230034 *string = nil
+		if 0 >= 0 && 0 < len(symbols) {
+			symbolsElem230034 = &symbols[0]
+		}
+		market = this.Market(symbolsElem230034)
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var tickers any = nil

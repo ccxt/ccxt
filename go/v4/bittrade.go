@@ -710,12 +710,12 @@ func (this *Bittrade) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any]
 	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
 }
-func (this *Bittrade) FetchTradingLimitsByIdAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Bittrade) FetchTradingLimitsByIdAsync(id *string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTradingLimitsByIdBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) fetchTradingLimitsByIdBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bittrade) fetchTradingLimitsByIdBody(ch chan AsyncResult[map[string]any], id *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3138,7 +3138,7 @@ func (this *Bittrade) FetchTradingLimits(options ...FetchTradingLimitsOptions) (
 	var res map[string]any = r.Value
 	return res, nil
 }
-func (this *Bittrade) FetchTradingLimitsById(id string, options ...FetchTradingLimitsByIdOptions) (map[string]any, error) {
+func (this *Bittrade) FetchTradingLimitsById(id *string, options ...FetchTradingLimitsByIdOptions) (map[string]any, error) {
 
 	opts := FetchTradingLimitsByIdOptionsStruct{}
 

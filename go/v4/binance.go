@@ -5408,9 +5408,17 @@ func (this *Binance) ParseMarket(market any) map[string]any {
 	var strike any = nil
 	if contract {
 		if swap {
-			symbol = Add(*base+"/"+*quote+":", settle)
+			if settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle
+			} else {
+				symbol = nil
+			}
 		} else if future {
-			symbol = Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.Yymmdd(expiry))
+			if settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle + "-" + this.Yymmdd(expiry)
+			} else {
+				symbol = nil
+			}
 		} else if option {
 			strike = this.NumberToString(this.ParseToNumeric(this.SafeString(market, "strikePrice")))
 			symbol = Add(Add(Add(Add(Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), this.SafeString(optionParts, 3))
@@ -5834,14 +5842,14 @@ func (this *Binance) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		if paramSymbols != nil {
 			var symbols any = ""
 			if paramSymbols != nil {
-				var mid any = this.MarketId(this.SafeString(paramSymbols, 0))
+				var mid *string = this.MarketId(this.SafeString(paramSymbols, 0))
 				if mid != nil {
 					symbols = mid
 				}
 				for i := 1; i < GetArrayLength(paramSymbols); i++ {
-					var id any = this.MarketId(this.SafeString(paramSymbols, i))
+					var id *string = this.MarketId(this.SafeString(paramSymbols, i))
 					if id != nil {
-						symbols = Add(symbols, Add(",", id))
+						symbols = Add(symbols, ","+*id)
 					}
 				}
 			} else {
@@ -6602,7 +6610,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], o
 	if (symbolsNormalized != nil) && (this.IsLinear(typeVar, subType) || this.IsInverse(typeVar, subType)) {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			request["symbol"] = this.MarketId(symbolsNormalized[0])
+			request["symbol"] = this.MarketId(this.SafeString(symbolsNormalized, 0))
 		}
 	}
 	var response any = nil
@@ -12703,7 +12711,11 @@ func (this *Binance) ParseDustTrade(trade any, optionalArgs ...any) any {
 		costString = this.SafeString(trade, "amount")
 		side = "buy"
 	} else {
-		symbol = Add(Add(tradedCurrency, "/"), earnedCurrency)
+		if tradedCurrency != nil {
+			symbol = *tradedCurrency + "/" + *earnedCurrency
+		} else {
+			symbol = nil
+		}
 		amountString = this.SafeString(trade, "amount")
 		costString = this.SafeString(trade, "transferedAmount")
 		side = "sell"
@@ -13356,8 +13368,8 @@ func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code strin
 			market = this.Market(symbol)
 			paramsOmitted = this.OmitDict(paramsOmitted, "symbol")
 		}
-		var fromId string = ToUpper(this.ConvertTypeToAccount(fromAccount))
-		var toId string = ToUpper(this.ConvertTypeToAccount(toAccount))
+		var fromId string = strings.ToUpper(this.ConvertTypeToAccount(fromAccount))
+		var toId string = strings.ToUpper(this.ConvertTypeToAccount(toAccount))
 		var isolatedSymbol any = nil
 		if market != nil {
 			isolatedSymbol = market["id"]

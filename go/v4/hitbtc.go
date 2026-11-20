@@ -927,7 +927,11 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			settle = settleCode
 			linear = (quote == settleCode || (quote != nil && settleCode != nil && *quote == *settleCode))
 			inverse = !(linear == true)
-			symbol = Add(*base+"/"+*quote+":", settle)
+			if settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle
+			} else {
+				symbol = nil
+			}
 			if future {
 				symbol = Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.SafeString(market, "expiry", ""))
 				typeVar = "future"
@@ -4436,10 +4440,10 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenIn
 	}
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var marketIds any = nil
+	var marketIds []string = nil
 	if symbolsNormalized != nil {
 		marketIds = this.MarketIds(symbolsNormalized)
-		request["symbols"] = Join(marketIds, ",")
+		request["symbols"] = strings.Join(marketIds, ",")
 	}
 
 	r1 := <-this.PublicGetPublicFuturesInfo(this.Extend(request, params))

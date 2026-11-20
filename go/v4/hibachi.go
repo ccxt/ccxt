@@ -1483,7 +1483,7 @@ func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	_ = params
 	var orders []any = []any{}
 	for i := 0; i < len(ids); i++ {
-		var orderRequest map[string]any = this.CancelOrderRequest(*this.SafeString(ids, i, ""))
+		var orderRequest map[string]any = this.CancelOrderRequest(ids[i])
 		orderRequest["action"] = "cancel"
 		orders = append(orders, orderRequest)
 	}

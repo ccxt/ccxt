@@ -2182,16 +2182,21 @@ func (this *Paradex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	}
 	var messageHash any = "orders"
 	var channel any = "orders.ALL"
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if symbol != nil {
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		channel = ccxt.Add("orders.", market["id"])
-		messageHash = ccxt.Add("orders:", symbolResolved)
+		if symbolResolved != nil {
+			messageHash = "orders:" + *symbolResolved
+		} else {
+			messageHash = nil
+		}
 	}
 	var url string = this.GetWsUrl()
 	var request map[string]any = this.SubscribeRequest(channel)
@@ -2299,16 +2304,21 @@ func (this *Paradex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	}
 	var messageHash any = "myTrades"
 	var channel any = "fills.ALL"
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if symbol != nil {
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		channel = ccxt.Add("fills.", market["id"])
-		messageHash = ccxt.Add("myTrades:", symbolResolved)
+		if symbolResolved != nil {
+			messageHash = "myTrades:" + *symbolResolved
+		} else {
+			messageHash = nil
+		}
 	}
 	var url string = this.GetWsUrl()
 	var request map[string]any = this.SubscribeRequest(channel)

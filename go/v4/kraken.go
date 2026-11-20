@@ -4281,12 +4281,12 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//        }
 	//     }
 	//
-	var rawWithdrawals any = nil
+	var rawWithdrawals any = []any{}
 	var result any = this.SafeValue(response, "result")
 	if !IsArray(result) {
 		rawWithdrawals = this.AddPaginationCursorToResult(result)
 	} else {
-		rawWithdrawals = result
+		rawWithdrawals = this.SafeList(response, "result", []any{})
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactionsByType("withdrawal", rawWithdrawals, code, since, limit))}

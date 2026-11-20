@@ -1188,7 +1188,11 @@ func (this *Hyperliquid) ParseMarket(market any) map[string]any {
 	var swap bool = true
 	if contract {
 		if swap {
-			symbol = Add(symbolBase+":", settle)
+			if settle != nil {
+				symbol = symbolBase + ":" + *settle
+			} else {
+				symbol = nil
+			}
 		}
 	}
 	var fees map[string]any = SafeMapTyped(this.Fees, "swap")

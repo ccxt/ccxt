@@ -1040,10 +1040,11 @@ func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var until *int64 = this.SafeInteger2(params, "until", "endtime")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until", "endtime", "endTime", "interval", "startTime"})
 	var response map[string]any = nil
-	var limitResolved any = limit
+	var limitResolved *int64 = limit
 	if *this.SafeBool(market, "spot", false) {
 		if limit == nil {
-			limitResolved = 100
+			limitResolvedValue := int64(100)
+			limitResolved = &limitResolvedValue
 		}
 		request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 		if since != nil {

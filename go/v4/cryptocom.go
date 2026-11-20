@@ -1613,9 +1613,10 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		"instrument_name": market["id"],
 		"timeframe":       this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var limitResolved any = limit
+	var limitResolved *int64 = limit
 	if (limit != nil) && (*limit > 300) {
-		limitResolved = 300
+		limitResolvedValue := int64(300)
+		limitResolved = &limitResolvedValue
 	}
 	if limit != nil {
 		request["count"] = limitResolved

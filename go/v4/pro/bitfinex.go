@@ -1386,7 +1386,7 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]
 	var channelId string = *this.SafeString(message, "chanId", "")
 	var unSubChannel string = "unsubscribe:" + channelId
 	var subMessageHash string = *this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unSubChannel, "")
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "unsubscribe:"+subMessageHash)
+	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "unsubscribe:"+subMessageHash)
 	client.(ccxt.ClientInterface).SubscriptionDel(unSubChannel)
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")

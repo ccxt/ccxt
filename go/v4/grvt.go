@@ -1251,7 +1251,7 @@ func (this *Grvt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"instrument": this.MarketId(symbol),
+		"instrument": this.MarketId(&symbol),
 	}
 
 	r1 := <-this.PublicMarketPostFullV1Ticker(this.Extend(request, params))
@@ -1387,7 +1387,7 @@ func (this *Grvt) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		}
 	}
 	var request map[string]any = map[string]any{
-		"instrument": this.MarketId(symbol),
+		"instrument": this.MarketId(&symbol),
 	}
 	var limitResolved any = 100
 	if limit != nil {

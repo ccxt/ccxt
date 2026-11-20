@@ -3907,9 +3907,10 @@ func (this *Whitebit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if since != nil {
 		request["startDate"] = this.ParseToInt(float64(*since) / 1000)
 	}
-	var limitResolved any = limit
+	var limitResolved *int64 = limit
 	if (limit == nil) || (limit != nil && *limit > 100) {
-		limitResolved = 100
+		limitResolvedValue := int64(100)
+		limitResolved = &limitResolvedValue
 	}
 	request["limit"] = limitResolved
 	// Use transactionMethod parameter to filter withdrawals server-side (method = 2)
@@ -3987,9 +3988,10 @@ func (this *Whitebit) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 	if since != nil {
 		request["startDate"] = this.ParseToInt(float64(*since) / 1000)
 	}
-	var limitResolved any = limit
+	var limitResolved *int64 = limit
 	if (limit == nil) || (limit != nil && *limit > 100) {
-		limitResolved = 100
+		limitResolvedValue := int64(100)
+		limitResolved = &limitResolvedValue
 	}
 	request["limit"] = limitResolved
 	// Do not filter by transactionMethod to get all transactions (deposits and withdrawals)

@@ -7105,7 +7105,11 @@ func (this *Coinbase) CreateAuthToken(seconds int64, url string, optionalArgs ..
 	_ = useEddsa
 	var uri any = nil
 	if url != "" {
-		uri = Add(Add(method, " "), strings.Replace(url, "https://", "", 1))
+		if method != nil {
+			uri = *method + " " + strings.Replace(url, "https://", "", 1)
+		} else {
+			uri = nil
+		}
 		var quesPos int = GetIndexOf(uri, "?")
 		// Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
 		// Also it's not possible that the question mark is first character, only check > 0 here.

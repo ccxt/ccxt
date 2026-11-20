@@ -4695,12 +4695,12 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var marketIds any = []any{"ALL"}
+	var marketIds []string = []string{"ALL"}
 	if symbolsNormalized != nil {
 		marketIds = this.MarketIds(symbolsNormalized)
 	}
 	var request map[string]any = map[string]any{
-		"keys": Join(marketIds, ","),
+		"keys": strings.Join(marketIds, ","),
 	}
 
 	responseRecv := <-this.PublicGetStatusDeriv(this.Extend(request, params))

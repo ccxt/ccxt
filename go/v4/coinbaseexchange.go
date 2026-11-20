@@ -1094,7 +1094,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan AsyncResult[OrderBook],
 	// level 2 - top 50 bids and asks (aggregated)
 	// level 3 - full order book (non aggregated)
 	var request map[string]any = map[string]any{
-		"id":    this.MarketId(symbol),
+		"id":    this.MarketId(&symbol),
 		"level": 2,
 	}
 

@@ -660,13 +660,13 @@ func (this *Deribit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 			panic(r1.Err)
 		}
 	}
-	var symbolResolved *string = func() *string {
-		if symbol != nil {
-			symbolText := this.Symbol(symbol)
-			return &symbolText
-		}
-		return nil
-	}()
+	var symbolResolved *string
+	if symbol != nil {
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = nil
+	}
 	var url *string = this.UrlsApiStrings["ws"]
 	var interval string = *this.SafeString(params, "interval", "raw")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
@@ -1003,13 +1003,13 @@ func (this *Deribit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var symbolResolved *string = func() *string {
-		if symbol != nil {
-			symbolText := this.Symbol(symbol)
-			return &symbolText
-		}
-		return nil
-	}()
+	var symbolResolved *string
+	if symbol != nil {
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = nil
+	}
 	var url *string = this.UrlsApiStrings["ws"]
 	var currency string = *this.SafeString(params, "currency", "any")
 	var interval string = *this.SafeString(params, "interval", "raw")

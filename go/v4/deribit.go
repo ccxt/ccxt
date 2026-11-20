@@ -1382,7 +1382,11 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			if isSpot {
 				symbol = *base + "/" + *quote
 			} else if !isComboMarket {
-				symbol = Add(*base+"/"+*quote+":", settle)
+				if settle != nil {
+					symbol = *base + "/" + *quote + ":" + *settle
+				} else {
+					symbol = nil
+				}
 				if option || future {
 					symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry, ""))
 					if option {

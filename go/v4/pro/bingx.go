@@ -1913,8 +1913,8 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 	}
 	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), "swap:positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = this.SafeString(messageHashes, i, "")
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var filteredSymbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", filteredSymbols, false)
@@ -2422,19 +2422,16 @@ func (this *Bingx) HandleBalance(client any, message map[string]any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = data
 	}
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		if timestamp != nil {
-			entry["timestamp"] = *timestamp
-		} else {
-			entry["timestamp"] = nil
-		}
+	var typeBalance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	if timestamp != nil {
+		typeBalance["timestamp"] = *timestamp
+	} else {
+		typeBalance["timestamp"] = nil
 	}
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-			entry["datetime"] = *ptrValue
-		} else {
-			entry["datetime"] = nil
-		}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		typeBalance["datetime"] = *ptrValue
+	} else {
+		typeBalance["datetime"] = nil
 	}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var balance any = ccxt.GetValue(data, i)
@@ -2445,12 +2442,10 @@ func (this *Bingx) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(balance, "lk")
 		account["free"] = this.SafeString(balance, "wb")
 		if code != nil {
-			if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
+			typeBalance[*code] = account
 		}
 	}
-	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	this.Balance[typeVar] = this.SafeBalance(typeBalance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 }
 

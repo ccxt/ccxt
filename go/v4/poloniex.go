@@ -1268,7 +1268,11 @@ func (this *Poloniex) ParseSwapMarket(market any) map[string]any {
 	var linear bool = (this.SafeString(market, "ctType") != nil && *this.SafeString(market, "ctType") == "LINEAR")
 	var symbol any = *base + "/" + *quote
 	if linear {
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 	} else {
 		// actually, exchange does not have any inverse future now
 		symbol = *base + "/" + *quote + ":" + *base

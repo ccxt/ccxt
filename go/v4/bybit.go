@@ -3296,7 +3296,11 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 			}
 		}
 		var expiryDatetime *string = this.Iso8601(expiry)
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 		if expiry != nil {
 			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 		}
@@ -4027,9 +4031,10 @@ func (this *Bybit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		"symbol": market["id"],
 	}
 	// default is 200 when requested with `since`
-	var limitResolved any = limit
-	if IsEqual(limitResolved, nil) {
-		limitResolved = 200
+	var limitResolved *int64 = limit
+	if limitResolved == nil {
+		limitResolvedValue := int64(200)
+		limitResolved = &limitResolvedValue
 	}
 	if since != nil {
 		// bybit returns the candle that contains `start`, whose timestamp is

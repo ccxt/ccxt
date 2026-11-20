@@ -2777,7 +2777,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []stri
 		var orders []any = []any{}
 		for i := 0; i < len(ids); i++ {
 			var orderItem map[string]any = map[string]any{
-				"id":     this.SafeString(ids, i, ""),
+				"id":     ids[i],
 				"symbol": marketSymbol,
 			}
 			orders = append(orders, orderItem)

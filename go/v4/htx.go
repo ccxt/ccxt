@@ -2434,12 +2434,12 @@ func (this *Htx) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any], opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the limits object of a market structure
  */
-func (this *Htx) FetchTradingLimitsByIdAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Htx) FetchTradingLimitsByIdAsync(id *string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTradingLimitsByIdBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchTradingLimitsByIdBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Htx) fetchTradingLimitsByIdBody(ch chan AsyncResult[map[string]any], id *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4330,9 +4330,10 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	} else {
 		contractLimit = 2000
 	} // only used for from/to calculation
-	var rangeLimit any = limit
+	var rangeLimit *int64 = limit
 	if isContract {
-		rangeLimit = contractLimit
+		rangeLimitValue := contractLimit
+		rangeLimit = &rangeLimitValue
 	}
 	if isContract {
 		if limit != nil {
@@ -9365,23 +9366,23 @@ func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 		"amount":   this.ParseNumber(transferAmount),
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("transfer", nil, params)
-	var fromAccountId any = this.ConvertTypeToAccount(fromAccount)
-	var toAccountId any = this.ConvertTypeToAccount(toAccount)
-	var fromAccountIdStr any = fromAccountId
-	var toAccountIdStr any = toAccountId
-	var toCross bool = (IsEqual(toAccountIdStr, "cross"))
-	var fromCross bool = (IsEqual(fromAccountIdStr, "cross"))
+	var fromAccountId string = this.ConvertTypeToAccount(fromAccount)
+	var toAccountId string = this.ConvertTypeToAccount(toAccount)
+	var fromAccountIdStr string = fromAccountId
+	var toAccountIdStr string = toAccountId
+	var toCross bool = (toAccountIdStr == "cross")
+	var fromCross bool = (fromAccountIdStr == "cross")
 	var toIsolated bool = ((this.Ids != nil) && this.InArray(toAccountIdStr, this.Ids))
 	var fromIsolated bool = ((this.Ids != nil) && this.InArray(fromAccountIdStr, this.Ids))
-	var fromSpot bool = (IsEqual(fromAccountIdStr, "pro"))
-	var toSpot bool = (IsEqual(toAccountIdStr, "pro"))
+	var fromSpot bool = (fromAccountIdStr == "pro")
+	var toSpot bool = (toAccountIdStr == "pro")
 	if fromSpot && toSpot {
 		panic(BadRequest(this.Id + " transfer () cannot make a transfer between " + fromAccount + " and " + toAccount))
 	}
-	var fromOrToFuturesAccount bool = (IsEqual(fromAccountIdStr, "futures")) || (IsEqual(toAccountIdStr, "futures"))
+	var fromOrToFuturesAccount bool = (fromAccountIdStr == "futures") || (toAccountIdStr == "futures")
 	var response map[string]any = nil
 	if fromOrToFuturesAccount {
-		var typeVar any = Add(Add(fromAccountIdStr, "-to-"), toAccountIdStr)
+		var typeVar any = fromAccountIdStr + "-to-" + toAccountIdStr
 		typeVar = DerefScalar(this.SafeString(paramsSubType, "type", typeVar))
 		request["type"] = typeVar
 
@@ -9423,33 +9424,31 @@ func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 	} else {
 		var query map[string]any = paramsSubType
 		if subType != nil && *subType == "linear" {
-			if (IsEqual(fromAccountIdStr, "swap")) || (fromAccount == "linear-swap") {
+			if (fromAccountIdStr == "swap") || (fromAccount == "linear-swap") {
 				fromAccountId = "linear-swap"
 			} else {
 				toAccountId = "linear-swap"
 			}
 			// check if cross-margin or isolated
-			var symbol any = DerefScalar(this.SafeString(paramsSubType, "symbol"))
+			var symbol *string = this.SafeString(paramsSubType, "symbol")
 			query = this.OmitDict(paramsSubType, "symbol")
-			if !IsEqual(symbol, nil) {
+			if symbol != nil {
 				symbol = this.MarketId(symbol)
 				request["margin-account"] = symbol
 			} else {
 				request["margin-account"] = "USDT" // cross-margin
 			}
 		}
-		request["from"] = func() any {
-			if fromSpot {
-				return "spot"
-			}
-			return fromAccountId
-		}()
-		request["to"] = func() any {
-			if toSpot {
-				return "spot"
-			}
-			return toAccountId
-		}()
+		if fromSpot {
+			request["from"] = "spot"
+		} else {
+			request["from"] = fromAccountId
+		}
+		if toSpot {
+			request["to"] = "spot"
+		} else {
+			request["to"] = toAccountId
+		}
 
 		r6 := <-this.V2PrivatePostAccountTransfer(this.Extend(request, query))
 		if r6.Err != nil {
@@ -12974,7 +12973,7 @@ func (this *Htx) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the limits object of a market structure
  */
-func (this *Htx) FetchTradingLimitsById(id string, options ...FetchTradingLimitsByIdOptions) (map[string]any, error) {
+func (this *Htx) FetchTradingLimitsById(id *string, options ...FetchTradingLimitsByIdOptions) (map[string]any, error) {
 
 	opts := FetchTradingLimitsByIdOptionsStruct{}
 

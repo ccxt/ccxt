@@ -1191,9 +1191,10 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		windowLimit = *limit
 	}
 	var windowSize int64 = this.ParseToInt(windowLimit)
-	var limitResolved any = nil
+	var limitResolved *int64 = nil
 	if (since != nil) || (limit != nil) {
-		limitResolved = windowSize
+		limitResolvedValue := windowSize
+		limitResolved = &limitResolvedValue
 	}
 	if since != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)

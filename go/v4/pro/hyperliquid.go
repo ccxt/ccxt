@@ -824,15 +824,16 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 			panic(r.Err)
 		}
 	}
-	var messageHash any = "myTrades"
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
-	if !ccxt.IsEqual(symbolResolved, nil) {
-		messageHash = ccxt.Add("myTrades:", symbolResolved)
+	var messageHash string = "myTrades"
+	var symbolResolved *string
+	if symbol != nil {
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
+	if symbolResolved != nil {
+		messageHash = "myTrades:" + *symbolResolved
 	}
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
@@ -1205,7 +1206,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(keys); i++ {
-		client.(ccxt.ClientInterface).Resolve(trades, "myTrades:"+*this.SafeString(keys, i, ""))
+		client.(ccxt.ClientInterface).Resolve(trades, "myTrades:"+keys[i])
 	}
 	// non-symbol specific
 	var messageHash string = "myTrades"

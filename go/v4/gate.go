@@ -2567,10 +2567,18 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 	var symbol any = ""
 	var marketType string = "swap"
 	if date != nil {
-		symbol = Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.Yymmdd(expiry, ""))
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle + "-" + this.Yymmdd(expiry, "")
+		} else {
+			symbol = nil
+		}
 		marketType = "future"
 	} else {
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 	}
 	var priceDeviate *string = this.SafeString(market, "order_price_deviate")
 	var markPrice *string = this.SafeString(market, "mark_price")
@@ -6875,7 +6883,10 @@ func (this *Gate) EditOrderRequest(id string, symbol string, typeVar string, sid
 	_ = params
 	var market map[string]any = this.Market(symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("editOrder", market, params)
-	var accountParsed any = this.ConvertTypeToAccount(marketType)
+	var accountParsed any = nil
+	if marketType != nil {
+		accountParsed = this.ConvertTypeToAccount(*marketType)
+	}
 	isUnifiedAccount, paramsUnifiedAccount := this.HandleOptionBoolAndParams(paramsMarketType, "editOrder", "unifiedAccount", false)
 	var account any = func() any {
 		if isUnifiedAccount {
@@ -7598,11 +7609,11 @@ func (this *Gate) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes553815 []any = OrdersToList(r.Value)
-	if retRes553815 == nil {
+	var retRes554115 []any = OrdersToList(r.Value)
+	if retRes554115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes553815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes554115)}
 	}
 	return nil
 }
@@ -7666,12 +7677,12 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes557319 []any = r2.Value
+		var retRes557619 []any = r2.Value
 		// see https://github.com/ccxt/ccxt/issues/22825
-		if retRes557319 == nil {
+		if retRes557619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes557319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes557619)}
 		}
 		return nil
 	}
@@ -7694,11 +7705,11 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes558419 []any = OrdersToList(r3.Value)
-		if retRes558419 == nil {
+		var retRes558719 []any = OrdersToList(r3.Value)
+		if retRes558719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes558419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes558719)}
 		}
 		return nil
 	}
@@ -8311,7 +8322,7 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 	if isSpot {
 		var ordersRequests []any = []any{}
 		for i := 0; i < len(ids); i++ {
-			var id *string = this.SafeString(ids, i, "")
+			var id string = ids[i]
 			var orderItem map[string]any = map[string]any{
 				"id":     id,
 				"symbol": symbol,
@@ -8323,11 +8334,11 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes602319 []any = OrdersToList(r2.Value)
-		if retRes602319 == nil {
+		var retRes602619 []any = OrdersToList(r2.Value)
+		if retRes602619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes602319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes602619)}
 		}
 		return nil
 	}
@@ -8336,7 +8347,7 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 	}
 	var finalList []any = []any{request} // hacky but needs to be done here
 	for i := 0; i < len(ids); i++ {
-		finalList = append(finalList, this.SafeString(ids, i, ""))
+		finalList = append(finalList, ids[i])
 	}
 
 	responseRecv := <-this.PrivateFuturesPostSettleBatchCancelOrders(finalList)
@@ -8592,27 +8603,27 @@ func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var fromId any = this.ConvertTypeToAccount(fromAccount)
-	var toId any = this.ConvertTypeToAccount(toAccount)
+	var fromId string = this.ConvertTypeToAccount(fromAccount)
+	var toId string = this.ConvertTypeToAccount(toAccount)
 	var truncated *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   truncated,
 	}
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	if !(InOp(accountsByType, fromId)) {
+	if _, ok := accountsByType[fromId]; !ok {
 		request["from"] = "margin"
 		request["currency_pair"] = fromId
 	} else {
 		request["from"] = fromId
 	}
-	if !(InOp(accountsByType, toId)) {
+	if _, ok := accountsByType[toId]; !ok {
 		request["to"] = "margin"
 		request["currency_pair"] = toId
 	} else {
 		request["to"] = toId
 	}
-	if (IsEqual(fromId, "margin")) || (IsEqual(toId, "margin")) {
+	if (fromId == "margin") || (toId == "margin") {
 		var symbol *string = this.SafeString2(params, "symbol", "currency_pair")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " transfer requires params[\"symbol\"] for isolated margin transfers"))
@@ -8620,10 +8631,10 @@ func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		var market map[string]any = this.Market(symbol)
 		request["currency_pair"] = market["id"]
 	}
-	if (IsEqual(toId, "futures")) || (IsEqual(toId, "delivery")) || (IsEqual(fromId, "futures")) || (IsEqual(fromId, "delivery")) {
+	if (toId == "futures") || (toId == "delivery") || (fromId == "futures") || (fromId == "delivery") {
 		request["settle"] = currency["id"] // todo: currencies have network-junctions
 	}
-	var isMarginTransfer bool = (IsEqual(fromId, "margin")) || (IsEqual(toId, "margin"))
+	var isMarginTransfer bool = (fromId == "margin") || (toId == "margin")
 	var query map[string]any = params
 	if isMarginTransfer {
 		query = this.OmitDict(params, "symbol")
@@ -10202,11 +10213,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInteres
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes740019 []any = r1.Value
-		if retRes740019 == nil {
+		var retRes740319 []any = r1.Value
+		if retRes740319 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes740019)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes740319)}
 		}
 		return nil
 	}
@@ -10631,11 +10642,11 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes772319 []any = r1.Value
-		if retRes772319 == nil {
+		var retRes772619 []any = r1.Value
+		if retRes772619 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes772319)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes772619)}
 		}
 		return nil
 	}

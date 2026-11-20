@@ -929,7 +929,7 @@ func (this *Blockchaincom) cancelAllOrdersBody(ch chan AsyncResult[[]Order], opt
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var marketId any = this.MarketId(symbol)
+		var marketId *string = this.MarketId(symbol)
 		request["symbol"] = marketId
 	}
 

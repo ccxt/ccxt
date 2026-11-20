@@ -490,7 +490,7 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	if this.Markets == nil {
 		this.Markets = map[string]any{}
 	}
-	var rawTopics any = []any{}
+	var rawTopics []any = []any{}
 	if allQueriesLength > 0 {
 
 		r := <-this.FetchEventsByQueryAsync(allQueries, fetchCap, rest)
@@ -559,10 +559,10 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 			rawTopics = ccxt.MapSliceToList(r3.Value)
 		}
 	}
-	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
+	var rawTopicsLength int = len(rawTopics)
 	var result []any = []any{}
 	for i := 0; i < rawTopicsLength; i++ {
-		var parsedEvent map[string]any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
+		var parsedEvent map[string]any = this.ParseEvent(rawTopics[i])
 		result = append(result, parsedEvent)
 		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var parsedMarketsLength int = len(parsedMarkets)

@@ -1108,7 +1108,11 @@ func (this *Woo) ParseMarket(market any) map[string]any {
 		margin = false
 		settleId = this.SafeString(parts, 2)
 		settle = this.SafeCurrencyCode(settleId)
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 		contractSize = this.ParseNumber("1")
 		linear = true
 		inverse = false

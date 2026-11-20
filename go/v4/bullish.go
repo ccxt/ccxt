@@ -1031,7 +1031,11 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 		}
 	} else {
 		contractSize = this.SafeNumber(market, "contractMultiplier")
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 		linear = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
 		inverse = !(linear == true)
 		if typeVar != nil && *typeVar == "swap" {
@@ -3928,7 +3932,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 		"tradingAccountId": tradingAccountId,
 	}
 	var now int64 = this.Milliseconds()
-	var startTimestamp any = since
+	var startTimestamp *int64 = since
 	requestUntil, paramsUntil := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
 	var until any
 	if derefPtr := this.SafeInteger(requestUntil, "createdAtDatetime[lte]"); derefPtr != nil {
@@ -3936,7 +3940,8 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 	}
 	// current endpoint requires both since and until parameters
 	if since == nil {
-		startTimestamp = now - (1000*60)*60*24*90 // Only the last 90 days of data is available for querying
+		startTimestampValue := now - (1000*60)*60*24*90
+		startTimestamp = &startTimestampValue // Only the last 90 days of data is available for querying
 	}
 	if until == nil {
 		until = now

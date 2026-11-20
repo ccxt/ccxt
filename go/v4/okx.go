@@ -8336,7 +8336,7 @@ func (this *Okx) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string,
 		}
 	}
 	// cross as default marginMode
-	var defaultMarginMode *string = this.SafeString(params, "mgnMode", "cross")
+	var defaultMarginMode string = *this.SafeString(params, "mgnMode", "cross")
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchLeverage", params, defaultMarginMode)
 	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated"))
@@ -9208,7 +9208,7 @@ func (this *Okx) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = this.ImplodeHostname(baseApiUrl) + request
-	var privateHeaders any = nil
+	var privateHeaders map[string]any = nil
 	var hasJsonBody bool = false
 	var jsonBody any = nil
 	// const type = this.getPathAuthenticationType (path);
@@ -9263,21 +9263,21 @@ func (this *Okx) Sign(path string, optionalArgs ...any) map[string]any {
 			if hasJsonBody {
 				auth = Add(auth, jsonBody)
 			}
-			AddElementToObject(privateHeaders, "Content-Type", "application/json")
+			privateHeaders["Content-Type"] = "application/json"
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
-		AddElementToObject(privateHeaders, "OK-ACCESS-SIGN", signature)
+		privateHeaders["OK-ACCESS-SIGN"] = signature
 	}
 	var requestBody any = nil
 	if hasJsonBody {
 		requestBody = jsonBody
 	}
-	var requestHeaders any = func() any {
-		if apiName == "private" {
-			return privateHeaders
-		}
-		return nil
-	}()
+	var requestHeaders map[string]any
+	if apiName == "private" {
+		requestHeaders = privateHeaders
+	} else {
+		requestHeaders = nil
+	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -9488,7 +9488,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRat
 			var ruleType *string = this.SafeString(marketInfo, "ruleType")
 			var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
 			if (!(*this.SafeBool(market, "swap", false))) && !isExtendedPerpetual {
-				panic(BadRequest(this.Id + " fetchFundingRates() symbols must be swap markets or XPERP futures, " + *this.SafeString(symbolsNormalized, i, "") + " is not"))
+				panic(BadRequest(this.Id + " fetchFundingRates() symbols must be swap markets or XPERP futures, " + symbolsNormalized[i] + " is not"))
 			}
 		}
 	}
@@ -9701,7 +9701,7 @@ func (this *Okx) setLeverageBody(ch chan AsyncResult[map[string]any], leverage i
 	}
 	var market map[string]any = this.Market(symbol)
 	// cross as default marginMode
-	var defaultMarginMode *string = this.SafeString(params, "mgnMode", "cross")
+	var defaultMarginMode string = *this.SafeString(params, "mgnMode", "cross")
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params, defaultMarginMode)
 	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " setLeverage() requires a marginMode parameter that must be either cross or isolated"))
@@ -10488,7 +10488,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTier
 		}
 	}
 	// cross as default marginMode
-	var defaultMarginMode *string = this.SafeString(params, "tdMode", "cross")
+	var defaultMarginMode string = *this.SafeString(params, "tdMode", "cross")
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, defaultMarginMode)
 	var request map[string]any = map[string]any{
 		"instType":   typeVar,
@@ -10615,7 +10615,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 		}
 	}
 	// cross as default marginMode
-	var defaultMarginMode *string = this.SafeString(params, "mgnMode", "cross")
+	var defaultMarginMode string = *this.SafeString(params, "mgnMode", "cross")
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBorrowInterest", params, defaultMarginMode)
 	var request map[string]any = map[string]any{
 		"mgnMode": marginMode,

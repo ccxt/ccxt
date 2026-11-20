@@ -549,7 +549,7 @@ func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncR
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "user.orders."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+		channels = append(channels, "user.orders."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.SubscribeAsync(channels, channels, true, paramsInterval)
@@ -1052,7 +1052,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
+		var market map[string]any = this.Market(symbolsResolved[i])
 		channels = append(channels, "ticker."+*this.SafeString(market, "id", "")+"."+*interval)
 	}
 
@@ -1112,7 +1112,7 @@ func (this *Coinbaseinternational) unWatchTickersBody(ch chan ccxt.AsyncResult[b
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "ticker."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+		channels = append(channels, "ticker."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsInterval)
@@ -1288,7 +1288,7 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
+		var market map[string]any = this.Market(symbolsResolved[i])
 		channels = append(channels, "quote."+*this.SafeString(market, "id", ""))
 	}
 
@@ -1344,7 +1344,7 @@ func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "quote."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", ""))
+		channels = append(channels, "quote."+*this.SafeString(this.Market(symbolsResolved[i]), "id", ""))
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, false, paramsResolved)
@@ -1714,7 +1714,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncR
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
+		var market map[string]any = this.Market(symbolsResolved[i])
 		channels = append(channels, "trades."+*this.SafeString(market, "id", "")+"."+*interval)
 	}
 
@@ -1799,7 +1799,7 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "trades."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+		channels = append(channels, "trades."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsInterval)
@@ -2004,7 +2004,7 @@ func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.A
 	var channels []any = []any{}
 	var symbolsLength int = len(symbols)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "book."+*this.SafeString(this.Market(this.SafeString(symbols, i, "")), "id", "")+descriptor)
+		channels = append(channels, "book."+*this.SafeString(this.Market(symbols[i]), "id", "")+descriptor)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsChannel)

@@ -1308,7 +1308,7 @@ func (this *Hollaex) ParseBalance(response map[string]any) map[string]any {
 		}
 	}
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = *this.SafeString(currencyIds, i, "")
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(response, currencyId+"_available")

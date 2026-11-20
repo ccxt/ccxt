@@ -1537,12 +1537,12 @@ func (this *Extended) ParseFundingHistories(histories []any, optionalArgs ...any
 	for i := 0; i < len(histories); i++ {
 		result = append(result, this.ParseFundingHistory(this.SafeDict(histories, i, map[string]any{}), market))
 	}
-	var symbol *string = func() *string {
-		if market == nil {
-			return nil
-		}
-		return this.SafeString(market, "symbol")
-	}()
+	var symbol *string
+	if market == nil {
+		symbol = nil
+	} else {
+		symbol = this.SafeString(market, "symbol")
+	}
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }
 func (this *Extended) ParseTrade(trade any, optionalArgs ...any) Trade {

@@ -1989,9 +1989,10 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		market = symbolMarket
 		request["instrument_name"] = symbolMarket["id"]
 	}
-	var limitResolved any = limit
+	var limitResolved *int64 = limit
 	if (limit != nil) && (*limit > 1000) {
-		limitResolved = 1000
+		limitResolvedValue := int64(1000)
+		limitResolved = &limitResolvedValue
 	}
 	if limit != nil {
 		// the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount

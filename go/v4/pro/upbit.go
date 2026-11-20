@@ -79,7 +79,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var marketId *string = this.SafeString(marketIds, i, "")
-		var symbol string = *this.SafeString(symbolsNormalized, i, "")
+		var symbol string = symbolsNormalized[i]
 		var messageHash string = channel + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
 		if _, ok := subscriptions[messageHash]; !ok {

@@ -3093,7 +3093,7 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 		this.Markets = map[string]any{}
 	}
 	var eventId *string = this.SafeString2(paramsOmitted, "eventId", "slug")
-	var rawEvents any = []any{}
+	var rawEvents []any = []any{}
 	if queriesLength > 0 {
 		// free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
 
@@ -3144,10 +3144,10 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			rawEvents = ccxt.MapSliceToList(r3.Value)
 		}
 	}
-	var rawEventsLength int = ccxt.GetArrayLength(rawEvents)
+	var rawEventsLength int = len(rawEvents)
 	var result []any = []any{}
 	for di := 0; di < rawEventsLength; di++ {
-		var parsedEvent map[string]any = this.ParseEvent(ccxt.GetValue(rawEvents, di))
+		var parsedEvent map[string]any = this.ParseEvent(rawEvents[di])
 		result = append(result, parsedEvent)
 		// register the parsed markets so populateOutcomes can index their outcomes
 		var parsedMarkets []any = ccxt.ArrayTyped(parsedEvent["markets"])

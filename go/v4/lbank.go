@@ -1595,7 +1595,7 @@ func (this *Lbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, sinceResolved, limitResolved))}
 	return nil
 }
-func (this *Lbank) ParseBalance(response any) map[string]any {
+func (this *Lbank) ParseBalance(response map[string]any) map[string]any {
 	//
 	// spotPrivatePostUserInfo
 	//
