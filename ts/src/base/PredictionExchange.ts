@@ -1693,7 +1693,10 @@ export default class PredictionExchange extends BaseExchange {
             return this.intToBase16 (128 + byteLength) + hex;
         }
         let lengthHex = this.intToBase16 (byteLength);
-        lengthHex = this.padHexToEven (lengthHex);
+        const lengthHexLength = lengthHex.length;
+        if ((lengthHexLength % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
         const lengthOfLength = this.parseToInt (lengthHex.length / 2);
         return this.intToBase16 (183 + lengthOfLength) + lengthHex + hex;
     }
@@ -1708,7 +1711,10 @@ export default class PredictionExchange extends BaseExchange {
             return this.intToBase16 (192 + byteLength) + concatenated;
         }
         let lengthHex = this.intToBase16 (byteLength);
-        lengthHex = this.padHexToEven (lengthHex);
+        const lengthHexLength = lengthHex.length;
+        if ((lengthHexLength % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
         const lengthOfLength = this.parseToInt (lengthHex.length / 2);
         return this.intToBase16 (247 + lengthOfLength) + lengthHex + concatenated;
     }
@@ -1722,7 +1728,10 @@ export default class PredictionExchange extends BaseExchange {
             return '';
         }
         let hex = this.intToBase16 (value);
-        hex = this.padHexToEven (hex);
+        const hexLength = hex.length;
+        if ((hexLength % 2) !== 0) {
+            hex = '0' + hex;
+        }
         return hex;
     }
 
