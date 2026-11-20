@@ -522,17 +522,17 @@ class grvt extends grvt$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         const [limitOption, paramsLimitOption] = this.handleOptionIntegerAndParams(paramsChannel, 'watchOrderBook', 'limit', 100);
-        let limitResolved = limitOption;
+        let limitString = limitOption.toString();
         let paramsLimit = paramsLimitOption;
         if (limit !== undefined) {
-            limitResolved = limit;
+            limitString = limit.toString();
             paramsLimit = paramsChannel;
         }
         const [interval, paramsInterval] = this.handleOptionIntegerAndParams(paramsLimit, 'watchOrderBook', 'interval', 500);
         const symbolsNormalized = this.marketSymbols(symbols);
         let extraPart = undefined;
         if (isSnapshot) {
-            extraPart = interval.toString() + '-' + limitResolved.toString();
+            extraPart = interval.toString() + '-' + limitString;
         }
         else {
             extraPart = interval.toString();
@@ -666,7 +666,7 @@ class grvt extends grvt$1["default"] {
         const rawHashes = [];
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            rawHashes.push(subAccountId + '-' + market['id']);
+            rawHashes.push(subAccountId + '-' + this.safeString(market, 'id', ''));
             messageHashes.push('myTrades::' + market['symbol']);
         }
         else {
@@ -757,7 +757,7 @@ class grvt extends grvt$1["default"] {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
-                rawHashes.push(subAccountId + '-' + market['id']);
+                rawHashes.push(subAccountId + '-' + this.safeString(market, 'id', ''));
                 messageHashes.push('positions::' + market['symbol']);
             }
         }
@@ -845,7 +845,7 @@ class grvt extends grvt$1["default"] {
         else {
             const market = this.market(symbol);
             messageHashes.push('order::' + market['symbol']);
-            rawHashes.push(subAccountId + '-' + market['id']);
+            rawHashes.push(subAccountId + '-' + this.safeString(market, 'id', ''));
         }
         const request = {
             'stream': 'v1.order',

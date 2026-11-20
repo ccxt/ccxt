@@ -2516,7 +2516,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances = undefined;
+        let balances = [];
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeList(response, 'result', []);
         }

@@ -2515,7 +2515,7 @@ class xt extends xt$1["default"] {
         //         ]
         //     }
         //
-        let balances = undefined;
+        let balances = [];
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeList(response, 'result', []);
         }

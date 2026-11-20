@@ -968,12 +968,12 @@ export declare class BaseExchange {
     parseBorrowRate(info: any, currency?: Currency): Dict;
     parseBorrowRateHistory(response: any, code: Str, since: Int, limit: Int): any[];
     parseIsolatedBorrowRates(info: List): IsolatedBorrowRates;
-    parseFundingRateHistories(response: List, market?: Market, since?: Int, limit?: Int): FundingRateHistory[];
+    parseFundingRateHistories(response: Dict[], market?: Market, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
     parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
-    parseFundingRates(response: List, symbols?: Strings): FundingRates;
+    parseFundingRates(response: Dict[], symbols?: Strings): FundingRates;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
-    parseLongShortRatioHistory(response: List, market?: Market, since?: Int, limit?: Int): LongShortRatio[];
+    parseLongShortRatioHistory(response: Dict[], market?: Market, since?: Int, limit?: Int): LongShortRatio[];
     handleTriggerPricesAndParams(symbol: any, params: Dict, omitParams?: boolean): [Str, Str, Str, Dict];
     handleTriggerDirectionAndParams(params: Dict, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
     handleTriggerAndParams(params: any): [Bool, Dict];

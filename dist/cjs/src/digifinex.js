@@ -1107,7 +1107,7 @@ class digifinex extends digifinex$1["default"] {
                 'date': date,
             }, this.safeDict(tickers, i));
             const ticker = this.parseTicker(rawTicker);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -2079,7 +2079,7 @@ class digifinex extends digifinex$1["default"] {
         const error = this.safeList(response, 'error', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
-            const order = success[i];
+            const order = this.safeString(success, i);
             result.push(this.safeOrder({
                 'info': order,
                 'id': order,
@@ -2088,7 +2088,7 @@ class digifinex extends digifinex$1["default"] {
             }));
         }
         for (let i = 0; i < error.length; i++) {
-            const order = error[i];
+            const order = this.safeString(error, i);
             result.push(this.safeOrder({
                 'info': order,
                 'id': order,
@@ -2183,7 +2183,7 @@ class digifinex extends digifinex$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrdersForSymbols() requires a symbol for each order');
             }
             const market = this.market(symbol);
-            const orderMarketType = market['type'];
+            const orderMarketType = this.safeString(market, 'type');
             if (marketType === undefined) {
                 marketType = orderMarketType;
             }
@@ -2202,7 +2202,7 @@ class digifinex extends digifinex$1["default"] {
             const ordersRequests = [];
             for (let i = 0; i < ids.length; i++) {
                 const market = this.market(symbols[i]);
-                const marketId = market['id'];
+                const marketId = this.safeString(market, 'id');
                 const orderId = ids[i];
                 ordersRequests.push({
                     'instrument_id': marketId,
@@ -3306,7 +3306,7 @@ class digifinex extends digifinex$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const currencyId = currency['id'];
+        const currencyId = this.safeString(currency, 'id');
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -4052,7 +4052,7 @@ class digifinex extends digifinex$1["default"] {
         //
         const marketId = this.safeString2(position, 'instrument_id', 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         let marginMode = this.safeString(position, 'margin_mode');
         if (marginMode !== undefined) {
             marginMode = (marginMode === 'crossed') ? 'cross' : 'isolated';

@@ -35,7 +35,7 @@ export default class onetrading extends onetradingRest {
      */
     watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleTicker(client: Client, message: Dict): void;
-    parseWSTicker(ticker: Dict, market?: Market): Ticker;
+    parseWSTicker(ticker: Dict, market: Market, timestamp: Int, datetime: Str): Ticker;
     /**
      * @method
      * @name onetrading#watchMyTrades

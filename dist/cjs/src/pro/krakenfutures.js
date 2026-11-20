@@ -1468,8 +1468,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     cashBalance[code] = newAccount;
                 }
             }
-            this.balance['cash'] = cashBalance;
-            this.balance['cash'] = this.pruneStaleBalanceKeys(this.balance['cash'], holdingCodes);
+            this.balance['cash'] = this.pruneStaleBalanceKeys(cashBalance, holdingCodes);
             this.balance['cash'] = this.safeBalance(this.balance['cash']);
             updatedBalance = this.balance['cash'];
         }
@@ -1498,8 +1497,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 }
                 marginBalance[symbol] = symbolAccounts;
             }
-            this.balance['margin'] = marginBalance;
-            this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
+            this.balance['margin'] = this.pruneStaleBalanceKeys(marginBalance, futuresSymbols);
             this.balance['margin'] = this.safeBalance(this.balance['margin']);
             client.resolve(this.balance['margin'], messageHash + ':futures');
             if (updatedBalance === undefined) {
@@ -1528,8 +1526,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     flexBalance[code] = newAccount;
                 }
             }
-            this.balance['flex'] = flexBalance;
-            this.balance['flex'] = this.pruneStaleBalanceKeys(this.balance['flex'], flexCodes);
+            this.balance['flex'] = this.pruneStaleBalanceKeys(flexBalance, flexCodes);
             this.balance['flex'] = this.safeBalance(this.balance['flex']);
             client.resolve(this.balance['flex'], messageHash + ':flex_futures');
             if (updatedBalance === undefined) {

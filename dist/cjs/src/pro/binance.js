@@ -5777,8 +5777,8 @@ class binance extends binance$1["default"] {
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
         }
-        this.balance[accountType]['info'] = message;
         const balance = this.safeDict(this.balance, accountType, {});
+        balance['info'] = message;
         const B = this.safeList(message, 'B', []);
         for (let i = 0; i < B.length; i++) {
             const entry = this.safeDict(B, i);

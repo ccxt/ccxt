@@ -1320,9 +1320,9 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        let ohlcvs = this.safeValue(response, 'data', []);
-        if (!Array.isArray(ohlcvs)) {
-            ohlcvs = [ohlcvs];
+        let ohlcvs = this.safeList(response, 'data', []);
+        if (this.safeList(response, 'data') === undefined && this.safeDict(response, 'data') !== undefined) {
+            ohlcvs = [this.safeDict(response, 'data')];
         }
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
@@ -4143,29 +4143,19 @@ export default class bingx extends Exchange {
                 feeCurrencyCode = this.safeString(marketResolved, feeKey);
             }
         }
-        let stopLoss = this.safeValue(orderData, 'stopLoss');
-        let stopLossPrice = undefined;
-        if ((stopLoss !== undefined) && (stopLoss !== '')) {
-            stopLossPrice = this.omitZero(this.safeString(stopLoss, 'stopLoss'));
+        // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        const stopLossString = this.safeString(orderData, 'stopLoss');
+        const stopLossIsDict = this.safeDict(orderData, 'stopLoss') !== undefined;
+        let stopLossPrice = this.omitZero(this.safeString(this.safeDict(orderData, 'stopLoss', {}), 'stopPrice'));
+        if (!stopLossIsDict && (stopLossString !== undefined) && (stopLossString.indexOf('{') === 0)) {
+            stopLossPrice = this.omitZero(this.safeString(this.parseJson(stopLossString), 'stopPrice'));
         }
-        if ((stopLoss !== undefined) && (typeof stopLoss !== 'number') && (stopLoss !== '')) {
-            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if (typeof stopLoss === 'string') {
-                stopLoss = this.parseJson(stopLoss);
-            }
-            stopLossPrice = this.omitZero(this.safeString(stopLoss, 'stopPrice'));
-        }
-        let takeProfit = this.safeValue(orderData, 'takeProfit');
-        let takeProfitPrice = undefined;
-        if (takeProfit !== undefined && (takeProfit !== '')) {
-            takeProfitPrice = this.omitZero(this.safeString(takeProfit, 'takeProfit'));
-        }
-        if ((takeProfit !== undefined) && (typeof takeProfit !== 'number') && (takeProfit !== '')) {
-            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if (typeof takeProfit === 'string') {
-                takeProfit = this.parseJson(takeProfit);
-            }
-            takeProfitPrice = this.omitZero(this.safeString(takeProfit, 'stopPrice'));
+        // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        const takeProfitString = this.safeString(orderData, 'takeProfit');
+        const takeProfitIsDict = this.safeDict(orderData, 'takeProfit') !== undefined;
+        let takeProfitPrice = this.omitZero(this.safeString(this.safeDict(orderData, 'takeProfit', {}), 'stopPrice'));
+        if (!takeProfitIsDict && (takeProfitString !== undefined) && (takeProfitString.indexOf('{') === 0)) {
+            takeProfitPrice = this.omitZero(this.safeString(this.parseJson(takeProfitString), 'stopPrice'));
         }
         const rawType = this.safeStringLower2(orderData, 'type', 'o');
         const stopPrice = this.omitZero(this.safeString2(orderData, 'StopPrice', 'stopPrice'));

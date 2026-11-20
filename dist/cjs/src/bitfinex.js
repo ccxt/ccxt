@@ -540,8 +540,9 @@ class bitfinex extends bitfinex$1["default"] {
     }
     getCurrencyName(code) {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (code in this.options['currencyNames']) {
-            return this.options['currencyNames'][code];
+        const name = this.safeString(this.options['currencyNames'], code);
+        if (name !== undefined) {
+            return name;
         }
         throw new errors.NotSupported(this.id + ' ' + code + ' not supported for withdrawal');
     }
@@ -1167,10 +1168,10 @@ class bitfinex extends bitfinex$1["default"] {
         const fullRequest = this.extend(request, params);
         const orderbook = await this.publicGetBookSymbolPrecision(fullRequest);
         const timestamp = this.milliseconds();
+        const bids = [];
+        const asks = [];
         const result = {
             'symbol': market['symbol'],
-            'bids': [],
-            'asks': [],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'nonce': undefined,
@@ -1182,14 +1183,15 @@ class bitfinex extends bitfinex$1["default"] {
             const price = this.safeNumber(order, priceIndex);
             const signedAmount = this.safeString(order, 2);
             const amount = Precise["default"].stringAbs(signedAmount);
-            let side = 'asks';
             if (Precise["default"].stringGt(signedAmount, '0')) {
-                side = 'bids';
+                bids.push([price, this.parseNumber(amount)]);
             }
-            result[side].push([price, this.parseNumber(amount)]);
+            else {
+                asks.push([price, this.parseNumber(amount)]);
+            }
         }
-        result['bids'] = this.sortBy(result['bids'], 0, true);
-        result['asks'] = this.sortBy(result['asks'], 0);
+        result['bids'] = this.sortBy(bids, 0, true);
+        result['asks'] = this.sortBy(asks, 0);
         return result;
     }
     parseTicker(ticker, market = undefined) {

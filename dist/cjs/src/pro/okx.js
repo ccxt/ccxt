@@ -1381,10 +1381,9 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        let depth = undefined;
-        let paramsDepth = undefined;
-        [depth, paramsDepth] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'depth', 'books');
-        const limit = this.safeInteger(paramsDepth, 'limit');
+        const limit = this.safeInteger(params, 'limit');
+        const depthOption = this.handleOptionStringAndParams(params, 'watchOrderBook', 'depth', 'books')[0];
+        let depth = depthOption;
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';

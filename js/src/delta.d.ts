@@ -355,7 +355,7 @@ export default class delta extends Exchange {
      */
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     parseSettlement(settlement: Dict, market: Market): Dict;
-    parseSettlements(settlements: any[], market: Market): Dict[];
+    parseSettlements(settlements: Dict[], market: Market): Dict[];
     /**
      * @method
      * @name delta#fetchGreeks

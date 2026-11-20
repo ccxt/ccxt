@@ -938,7 +938,7 @@ class htx extends htx$1["default"] {
         }
         let baseId = undefined;
         if (market !== undefined) {
-            baseId = market['baseId'];
+            baseId = this.safeString(market, 'baseId');
         }
         const prefix = orderType;
         let messageHash = prefix;
@@ -988,7 +988,7 @@ class htx extends htx$1["default"] {
     getV5LinearChannelAndMessageHash(topic, market = undefined, params = {}) {
         let contractCode = undefined;
         if (market !== undefined) {
-            contractCode = market['id'];
+            contractCode = this.safeString(market, 'id');
         }
         else {
             contractCode = this.safeString(params, 'contract_code', '*');
@@ -2885,14 +2885,14 @@ class htx extends htx$1["default"] {
         if (type === 'spot') {
             const spotUrls = this.safeDict(typeUrlsByApi, 'spot', {});
             if (isPrivate) {
-                hostnameURL = spotUrls['private'];
+                hostnameURL = this.safeString(spotUrls, 'private');
             }
             else {
                 if (isFeed) {
-                    hostnameURL = spotUrls['feed'];
+                    hostnameURL = this.safeString(spotUrls, 'feed');
                 }
                 else {
-                    hostnameURL = spotUrls['public'];
+                    hostnameURL = this.safeString(spotUrls, 'public');
                 }
             }
             url = this.implodeParams(hostnameURL, hostname);
@@ -2908,14 +2908,14 @@ class htx extends htx$1["default"] {
             }
             if (isPrivate) {
                 if (isV5 && isLinear) {
-                    url = this.safeString(subTypeUrl, 'privateV5', subTypeUrl['private']);
+                    url = this.safeString2(subTypeUrl, 'privateV5', 'private');
                 }
                 else {
-                    url = subTypeUrl['private'];
+                    url = this.safeString(subTypeUrl, 'private');
                 }
             }
             else {
-                url = subTypeUrl['public'];
+                url = this.safeString(subTypeUrl, 'public');
             }
         }
         return url;

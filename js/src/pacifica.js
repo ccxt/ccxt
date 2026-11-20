@@ -2488,11 +2488,10 @@ export default class pacifica extends Exchange {
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         const sorted = this.sortBy(data, 'history_id', true);
         const lastIdx = sorted.length;
-        let lastInfo = {};
         if (lastIdx > 0) {
-            lastInfo = sorted[0];
+            return this.parseOrder(sorted[0], market);
         }
-        return this.parseOrder(lastInfo, market);
+        return this.parseOrder({}, market);
     }
     parseOrderStatus(status) {
         const statuses = {

@@ -604,13 +604,12 @@ export default class bybit extends bybitRest {
         if (isSpot) {
             type = 'spot';
         }
-        let symbol = undefined;
-        let parsed = undefined;
-        if ((updateType === 'snapshot')) {
-            parsed = this.parseTicker(data);
-            symbol = this.safeString(parsed, 'symbol');
+        if ((updateType !== 'snapshot') && (updateType !== 'delta')) {
+            return;
         }
-        else if (updateType === 'delta') {
+        let symbol = undefined;
+        let tickerInput = data;
+        if (updateType === 'delta') {
             const topicParts = topic.split('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString(topicParts, topicLength - 1);
@@ -619,10 +618,13 @@ export default class bybit extends bybitRest {
             // update the info in place
             const ticker = this.safeDict(this.tickers, symbol, {});
             const rawTicker = this.safeDict(ticker, 'info', {});
-            const merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged);
+            tickerInput = this.extend(rawTicker, data);
         }
-        if ((parsed === undefined) || (symbol === undefined)) {
+        const parsed = this.parseTicker(tickerInput);
+        if (updateType === 'snapshot') {
+            symbol = this.safeString(parsed, 'symbol');
+        }
+        if (symbol === undefined) {
             return;
         }
         const timestamp = this.safeInteger(message, 'ts');
@@ -2341,8 +2343,8 @@ export default class bybit extends bybitRest {
             if (this.safeDict(this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
-            this.balance[account]['info'] = info;
             const balance = this.safeDict(this.balance, account, {});
+            balance['info'] = info;
             const timestamp = this.safeInteger(message, 'ts');
             balance['timestamp'] = timestamp;
             balance['datetime'] = this.iso8601(timestamp);

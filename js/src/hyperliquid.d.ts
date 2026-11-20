@@ -761,7 +761,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     createSubAccount(name: string, params?: Dict): Promise<Dict>;
-    extractTypeFromDelta(data?: Dict[]): Dict[];
+    extractTypeFromDelta(data: Dict[]): Dict[];
     formatVaultAddress(address?: Str): Str;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     coinToMarketId(coin: Str): Str;

@@ -1264,8 +1264,8 @@ class poloniex extends poloniex$1["default"] {
             const subscription = this.safeDict(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');
             const timestamp = this.safeInteger(item, 'ts');
-            const asks = this.safeList(item, 'asks');
-            const bids = this.safeList(item, 'bids');
+            const asks = this.safeList(item, 'asks', []);
+            const bids = this.safeList(item, 'bids', []);
             if (snapshot || update) {
                 let orderbook = this.safeValue(this.orderbooks, symbol);
                 if (snapshot && (orderbook === undefined)) {

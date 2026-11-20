@@ -5236,13 +5236,16 @@ class coinbase extends coinbase$1["default"] {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri = undefined;
-        if (url !== '') {
-            uri = method + ' ' + url.replace('https://', '');
-            const quesPos = uri.indexOf('?');
+        if ((url !== '') && (method !== undefined)) {
+            const fullUri = method + ' ' + url.replace('https://', '');
+            const quesPos = fullUri.indexOf('?');
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if (quesPos > 0) {
-                uri = uri.slice(0, quesPos);
+                uri = fullUri.slice(0, quesPos);
+            }
+            else {
+                uri = fullUri;
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}

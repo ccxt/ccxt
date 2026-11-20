@@ -2883,7 +2883,8 @@ export default class btse extends Exchange {
         for (let i = 0; i < typesList.length; i++) {
             const historyType = this.safeString(typesList, i, '');
             allowed[historyType] = true;
-            allowed[this.capitalize(historyType.toLowerCase())] = true;
+            const capitalizedType = this.capitalize(historyType.toLowerCase());
+            allowed[capitalizedType] = true;
         }
         const rows = [];
         for (let i = 0; i < rawRows.length; i++) {

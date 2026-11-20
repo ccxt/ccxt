@@ -751,7 +751,7 @@ export default class cex extends cexRest {
         const data = this.safeDict(message, 'data', {});
         const isTransaction = this.safeString(message, 'e') === 'tx';
         const orderId = this.safeString2(data, 'id', 'order');
-        let remains = this.safeString(data, 'remains');
+        const remainsPrecision = this.safeString(data, 'remains');
         let baseId = this.safeString(data, 'symbol');
         let quoteId = this.safeString(data, 'symbol2');
         const pair = this.safeDict(data, 'pair');
@@ -766,7 +766,7 @@ export default class cex extends cexRest {
         }
         const symbol = base + '/' + quote;
         const market = this.safeMarket(symbol);
-        remains = this.currencyFromPrecision(base, remains);
+        const remains = this.currencyFromPrecision(base, remainsPrecision);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);

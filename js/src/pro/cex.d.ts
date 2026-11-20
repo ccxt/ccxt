@@ -101,8 +101,8 @@ export default class cex extends cexRest {
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleOrderUpdate(client: Client, message: Dict): void;
     parseWsOrderUpdate(order: Dict, market?: Market): NullableDict;
-    fromPrecision(amount: any, scale: any): Str;
-    currencyFromPrecision(currency: string, amount: any): Str;
+    fromPrecision(amount: Str, scale: Int): Str;
+    currencyFromPrecision(currency: string, amount: Str): Str;
     handleOrdersSnapshot(client: Client, message: Dict): void;
     /**
      * @method

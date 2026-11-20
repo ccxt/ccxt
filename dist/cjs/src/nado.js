@@ -562,7 +562,8 @@ class nado extends nado$1["default"] {
             }
             const triggerPriceX18 = this.convertToX18(triggerPrice);
             const priceRequirement = {};
-            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18;
+            const oracleKey = 'oracle_price_' + directionSuffix;
+            priceRequirement[oracleKey] = triggerPriceX18;
             const trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -586,7 +587,8 @@ class nado extends nado$1["default"] {
             }
             const triggerPriceX18 = this.convertToX18(triggerPrice);
             const priceRequirement = {};
-            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18;
+            const oracleKey = 'oracle_price_' + oracleSide;
+            priceRequirement[oracleKey] = triggerPriceX18;
             const trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -2888,7 +2890,9 @@ class nado extends nado$1["default"] {
             }
             filled = this.parseX18(Precise["default"].stringAbs(archiveFilled));
             const costString = this.safeString(order, 'quote_filled');
-            cost = (costString === undefined) ? undefined : this.parseX18(Precise["default"].stringAbs(costString));
+            if (costString !== undefined) {
+                cost = this.parseX18(Precise["default"].stringAbs(costString));
+            }
             if ((filled !== undefined) && (cost !== undefined)) {
                 average = Precise["default"].stringDiv(this.numberToString(cost), this.numberToString(filled));
             }
@@ -3100,7 +3104,8 @@ class nado extends nado$1["default"] {
             return paddedLeft.slice(start, paddedLeft.length);
         }
         const paddedRight = value + zeros;
-        return paddedRight.slice(0, length);
+        const end = this.parseToInt(length);
+        return paddedRight.slice(0, end);
     }
     signOrder(order, productId, chainId) {
         const domain = {

@@ -1899,8 +1899,14 @@ class whitebit extends whitebit$1["default"] {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
-        const limitResolved = (since !== undefined) ? cappedLimit : limit;
+        let cappedLimit = 1440;
+        if ((limit !== undefined) && (limit < 1440)) {
+            cappedLimit = limit;
+        }
+        let limitResolved = limit;
+        if (since !== undefined) {
+            limitResolved = cappedLimit;
+        }
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
         if ((since !== undefined) || (until !== undefined)) {

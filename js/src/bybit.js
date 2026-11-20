@@ -1595,7 +1595,7 @@ export default class bybit extends Exchange {
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
-        let quote = undefined;
+        let quote = 'USDC';
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
         let expiry = undefined;
@@ -1609,16 +1609,12 @@ export default class bybit extends Exchange {
                 throw new ExchangeError(this.id + ' createExpiredOptionMarket() missing symbolQuoteAndSettle');
             }
             const splitQuote = symbolQuoteAndSettle.split(':');
-            const quoteAndSettle = this.safeString(splitQuote, 0);
-            quote = quoteAndSettle;
+            quote = this.safeString(splitQuote, 0, '');
         }
         else {
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (symbol.endsWith('-USDT')) {
                 quote = 'USDT';
-            }
-            else {
-                quote = 'USDC';
             }
         }
         const strike = this.safeString(optionParts, 2);

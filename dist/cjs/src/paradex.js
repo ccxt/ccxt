@@ -1215,8 +1215,10 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries(data) : data;
-        return this.parseTickers(rows, symbolsNormalized);
+        if (request['market'] === 'ALL') {
+            return this.parseTickers(this.filterLoadedSummaries(data), symbolsNormalized);
+        }
+        return this.parseTickers(data, symbolsNormalized);
     }
     /**
      * @method
@@ -3582,8 +3584,10 @@ class paradex extends paradex$1["default"] {
         //
         const results = this.safeList(response, 'results', []);
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries(results, 'option') : results;
-        return this.parseAllGreeks(rows, symbolsNormalized);
+        if (request['market'] === 'ALL') {
+            return this.parseAllGreeks(this.filterLoadedSummaries(results, 'option'), symbolsNormalized);
+        }
+        return this.parseAllGreeks(results, symbolsNormalized);
     }
     parseGreeks(greeks, market = undefined) {
         //

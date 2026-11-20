@@ -1553,8 +1553,9 @@ export default class binance extends Exchange {
      * @returns {object} a wallet
      */
     async fetchWallet(methodName, params = {}) {
-        if (this.safeDict(this.options, 'wallet') !== undefined) {
-            return this.safeDict(this.options, 'wallet');
+        const cachedWallet = this.safeDict(this.options, 'wallet');
+        if (cachedWallet !== undefined) {
+            return cachedWallet;
         }
         const walletAddress = this.handleOptionStringAndParams(params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList();

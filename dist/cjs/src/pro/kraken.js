@@ -1655,8 +1655,8 @@ class kraken extends kraken$1["default"] {
             this.balance = {};
         }
         this.balance[type] = this.safeDict(this.balance, type, {});
-        this.balance[type]['info'] = message;
         const balance = this.safeDict(this.balance, type, {});
+        balance['info'] = message;
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString(data[i], 'asset');

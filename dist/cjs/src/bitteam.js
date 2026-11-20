@@ -672,9 +672,9 @@ class bitteam extends bitteam$1["default"] {
         let fee = undefined;
         const withdrawCommissionFixed = this.safeDict(txLimits, 'withdrawCommissionFixed', {});
         let feesByNetworkId = {};
-        const blockChain = this.safeString(currency, 'blockChain');
+        const blockChain = this.safeString(currency, 'blockChain', '');
         // if only one blockChain
-        if ((blockChain !== undefined) && (blockChain !== '')) {
+        if (blockChain !== '') {
             fee = this.parseNumber(withdrawCommissionFixed);
             feesByNetworkId[blockChain] = fee;
         }

@@ -1699,11 +1699,16 @@ class delta extends delta$1["default"] {
             const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'asset_id');
             const currency = this.safeDict(currenciesByNumericId, currencyId);
-            const code = (currency === undefined) ? currencyId : currency['code'];
+            let code = currencyId;
+            if (currency !== undefined) {
+                code = this.safeString(currency, 'code');
+            }
             const account = this.account();
             account['total'] = this.safeString(balance, 'balance');
             account['free'] = this.safeString(balance, 'available_balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

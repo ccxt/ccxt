@@ -1285,14 +1285,11 @@ export default class apex extends Exchange {
         return super.safeMarket(marketId, marketResolved, delimiter, marketType);
     }
     generateRandomClientIdOmni(_accountId) {
-        let accountId = '';
+        const suffix = '-' + this.milliseconds().toString() + '-' + this.randNumber(6).toString();
         if ((_accountId !== undefined) && (_accountId !== '')) {
-            accountId = _accountId;
+            return 'apexomni-' + _accountId + suffix;
         }
-        else {
-            accountId = this.randNumber(12).toString();
-        }
-        return 'apexomni-' + accountId + '-' + this.milliseconds().toString() + '-' + this.randNumber(6).toString();
+        return 'apexomni-' + this.randNumber(12).toString() + suffix;
     }
     addHyphenBeforeUsdt(symbol) {
         const uppercaseSymbol = symbol.toUpperCase();

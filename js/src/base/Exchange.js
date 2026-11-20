@@ -2817,9 +2817,8 @@ export class BaseExchange {
          * @method
          * @description store value under key if key is defined (no-op on undefined)
          */
-        const k = key;
-        if (k !== undefined) {
-            dict[k] = value;
+        if (key !== undefined) {
+            dict[key] = value;
         }
     }
     handleDeltas(bookside, deltas) {
@@ -2904,9 +2903,10 @@ export class BaseExchange {
     }
     urlEncoderForProxyUrl(targetUrl) {
         // to be overriden
-        const includesQuery = targetUrl.indexOf('?') >= 0;
-        const finalUrl = includesQuery ? this.encodeURIComponent(targetUrl) : targetUrl;
-        return finalUrl;
+        if (targetUrl.indexOf('?') >= 0) {
+            return this.encodeURIComponent(targetUrl);
+        }
+        return targetUrl;
     }
     checkProxySettings(url = undefined, method = undefined, headers = undefined, body = undefined) {
         const usedProxies = [];
@@ -7291,8 +7291,7 @@ export class BaseExchange {
     parseFundingRateHistories(response, market = undefined, since = undefined, limit = undefined) {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            rates.push(this.parseFundingRateHistory(entry, market));
+            rates.push(this.parseFundingRateHistory(response[i], market));
         }
         const sorted = this.sortBy(rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
@@ -7308,8 +7307,7 @@ export class BaseExchange {
     parseFundingRates(response, symbols = undefined) {
         const fundingRates = {};
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const parsed = this.parseFundingRate(entry);
+            const parsed = this.parseFundingRate(response[i]);
             if (parsed['symbol'] !== undefined) {
                 fundingRates[parsed['symbol']] = parsed;
             }
@@ -7322,8 +7320,7 @@ export class BaseExchange {
     parseLongShortRatioHistory(response, market = undefined, since = undefined, limit = undefined) {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            rates.push(this.parseLongShortRatio(entry, market));
+            rates.push(this.parseLongShortRatio(response[i], market));
         }
         const sorted = this.sortBy(rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
@@ -7478,8 +7475,7 @@ export class BaseExchange {
     parseOpenInterests(response, symbols = undefined) {
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const parsed = this.parseOpenInterest(entry);
+            const parsed = this.parseOpenInterest(response[i]);
             if (parsed['symbol'] !== undefined) {
                 result[parsed['symbol']] = parsed;
             }

@@ -3090,9 +3090,10 @@ class deepcoin extends deepcoin$1["default"] {
             };
             let requestBody = undefined;
             if (method !== 'GET') {
-                requestBody = this.json(params);
+                const body = this.json(params);
                 privateHeaders['Content-Type'] = 'application/json';
-                payload += requestBody;
+                payload += body;
+                requestBody = body;
             }
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             privateHeaders['DC-ACCESS-SIGN'] = signature;

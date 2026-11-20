@@ -3129,8 +3129,9 @@ class blofin extends blofin$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         const symbolsNormalized = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbolsNormalized);
         const request = {
-            'instId': this.marketIds(symbolsNormalized).join(','),
+            'instId': marketIds.join(','),
             'marginMode': marginMode,
         };
         const response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, query));

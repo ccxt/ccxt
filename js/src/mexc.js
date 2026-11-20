@@ -1065,11 +1065,12 @@ export default class mexc extends Exchange {
         let status = undefined;
         let updated = undefined;
         if (marketType === 'spot') {
-            response = await this.spotPublicGetPing(query);
+            const spotResponse = await this.spotPublicGetPing(query);
+            response = spotResponse;
             //
             //     {}
             //
-            const keys = Object.keys(response);
+            const keys = Object.keys(spotResponse);
             const length = keys.length;
             status = (length > 0) ? this.json(response) : 'ok';
         }

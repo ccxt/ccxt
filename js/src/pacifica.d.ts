@@ -193,7 +193,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
-    cancelOrdersRequest(ids: Str[], symbol?: Str, params?: Dict): Dict;
+    cancelOrdersRequest(ids: string[], symbol?: Str, params?: Dict): Dict;
     /**
      * @method
      * @name pacifica#cancelAllOrders

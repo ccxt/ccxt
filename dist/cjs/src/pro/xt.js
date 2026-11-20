@@ -1189,7 +1189,7 @@ class xt extends xt$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeDict(message, 'data');
+        const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         if (marketId !== undefined) {
             let event = this.safeString(message, 'event', '');

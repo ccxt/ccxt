@@ -128,11 +128,15 @@ export default class cryptocom extends cryptocomRest {
         }
         const [bookSubscriptionType, paramsBookSubscriptionType] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         const [bookSubscriptionType2, paramsBookSubscriptionType2] = this.handleOptionStringAndParams(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        const bookParams = this.safeDict(paramsBookSubscriptionType2, 'params', {});
+        bookParams['bookSubscriptionType'] = bookSubscriptionType2;
+        paramsBookSubscriptionType2['params'] = bookParams;
         const [bookUpdateFrequency, paramsBookUpdateFrequency] = this.handleOptionStringAndParams(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
         const [bookUpdateFrequency2, paramsBookUpdateFrequency2] = this.handleOptionStringAndParams(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            const frequencyParams = this.safeDict(paramsBookUpdateFrequency2, 'params', {});
+            frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2['params'] = frequencyParams;
         }
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
@@ -171,11 +175,15 @@ export default class cryptocom extends cryptocomRest {
         }
         const [bookSubscriptionType, paramsBookSubscriptionType] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         const [bookSubscriptionType2, paramsBookSubscriptionType2] = this.handleOptionStringAndParams(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        const bookParams = this.safeDict(paramsBookSubscriptionType2, 'params', {});
+        bookParams['bookSubscriptionType'] = bookSubscriptionType2;
+        paramsBookSubscriptionType2['params'] = bookParams;
         const [bookUpdateFrequency, paramsBookUpdateFrequency] = this.handleOptionStringAndParams(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
         const [bookUpdateFrequency2, paramsBookUpdateFrequency2] = this.handleOptionStringAndParams(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            const frequencyParams = this.safeDict(paramsBookUpdateFrequency2, 'params', {});
+            frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2['params'] = frequencyParams;
         }
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];

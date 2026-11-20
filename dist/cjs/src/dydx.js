@@ -1446,9 +1446,15 @@ class dydx extends dydx$1["default"] {
         const paramsOmitted = this.omit(paramsGoodTillBlockTimeInSeconds, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId']);
         const walletAddress = this.getWalletAddress();
         const clobPairId = this.safeInteger(marketInfo, 'clobPairId', 0);
-        const subaccountIdValue = (subaccountIdOption === undefined) ? 0 : subaccountIdOption;
+        let subaccountIdValue = 0;
+        if (subaccountIdOption !== undefined) {
+            subaccountIdValue = subaccountIdOption;
+        }
         const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
-        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        let orderFlagValue = 0;
+        if (orderFlag !== undefined) {
+            orderFlagValue = orderFlag;
+        }
         const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
         const orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [orderId, this.extend(signingPayload, paramsOmitted)];

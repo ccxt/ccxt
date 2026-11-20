@@ -389,7 +389,7 @@ class bitrue extends bitrue$1["default"] {
         const isFutures = (channelKind === 'e');
         let market = undefined;
         if (isFutures) {
-            const wsBaseQuote = this.safeStringLower(parts, 2);
+            const wsBaseQuote = this.safeStringLower(parts, 2, '');
             market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         }
         else {
@@ -421,9 +421,7 @@ class bitrue extends bitrue$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     findSwapMarketByWsBaseQuote(wsBaseQuote) {
-        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
-        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
-        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
+        // callers pass safeStringLower (parts, 2, ''), a plain string in every port
         if (this.markets === undefined) {
             return undefined;
         }
@@ -568,8 +566,8 @@ class bitrue extends bitrue$1["default"] {
         if (market['swap'] !== true) {
             throw new errors.NotSupported(this.id + ' unWatchTrades is only supported for swap markets');
         }
-        const baseIdLower = this.safeStringLower(market, 'baseId');
-        const quoteIdLower = this.safeStringLower(market, 'quoteId');
+        const baseIdLower = this.safeStringLower(market, 'baseId', '');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_trade_ticker';
         const subscription = {
@@ -601,7 +599,7 @@ class bitrue extends bitrue$1["default"] {
         //
         const channel = this.safeString(message, 'channel');
         const parts = channel.split('_');
-        const wsBaseQuote = this.safeStringLower(parts, 2);
+        const wsBaseQuote = this.safeStringLower(parts, 2, '');
         const market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         const symbol = this.safeString(market, 'symbol');
         if (symbol === undefined) {
@@ -725,8 +723,8 @@ class bitrue extends bitrue$1["default"] {
         if (interval === undefined) {
             throw new errors.NotSupported(this.id + ' unWatchOHLCV does not support timeframe ' + timeframe);
         }
-        const baseIdLower = this.safeStringLower(market, 'baseId');
-        const quoteIdLower = this.safeStringLower(market, 'quoteId');
+        const baseIdLower = this.safeStringLower(market, 'baseId', '');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_kline_' + interval;
         const subscription = {
@@ -756,7 +754,7 @@ class bitrue extends bitrue$1["default"] {
         //
         const channel = this.safeString(message, 'channel');
         const parts = channel.split('_');
-        const wsBaseQuote = this.safeStringLower(parts, 2);
+        const wsBaseQuote = this.safeStringLower(parts, 2, '');
         const market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         const symbol = this.safeString(market, 'symbol');
         if (symbol === undefined) {
@@ -853,7 +851,7 @@ class bitrue extends bitrue$1["default"] {
         //
         const channel = this.safeString(message, 'channel');
         const parts = channel.split('_');
-        const wsBaseQuote = this.safeStringLower(parts, 2);
+        const wsBaseQuote = this.safeStringLower(parts, 2, '');
         const market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         const symbol = this.safeString(market, 'symbol');
         if (symbol === undefined) {

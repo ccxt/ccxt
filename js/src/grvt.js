@@ -1786,8 +1786,18 @@ export default class grvt extends Exchange {
             if (tradingAccountId === undefined || fundingAccountId === undefined) {
                 throw new ArgumentsRequired(this.id + ' transfer(): you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }
-            fromSubAccount = (fromAccount === 'trading') ? tradingAccountId : fundingAccountId;
-            toSubAccount = (toAccount === 'trading') ? tradingAccountId : fundingAccountId;
+            if (fromAccount === 'trading') {
+                fromSubAccount = tradingAccountId;
+            }
+            else {
+                fromSubAccount = fundingAccountId;
+            }
+            if (toAccount === 'trading') {
+                toSubAccount = tradingAccountId;
+            }
+            else {
+                toSubAccount = fundingAccountId;
+            }
             paramsFundingAccountId = paramsFunding;
         }
         const request = {

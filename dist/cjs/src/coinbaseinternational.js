@@ -3143,10 +3143,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
         let uri = undefined;
         if ((url !== undefined) && (method !== undefined)) {
-            uri = method + ' ' + url.replace('https://', '');
-            const quesPos = uri.indexOf('?');
+            const fullUri = method + ' ' + url.replace('https://', '');
+            const quesPos = fullUri.indexOf('?');
             if (quesPos > 0) {
-                uri = uri.slice(0, quesPos);
+                uri = fullUri.slice(0, quesPos);
+            }
+            else {
+                uri = fullUri;
             }
         }
         const nonce = this.randomBytes(16);

@@ -980,23 +980,34 @@ class predictfun extends predictfun$1["default"] {
         const digits = '0123456789';
         const chars = this.stringToCharsArray(text);
         let stripped = '';
+        let prevCh = '';
+        // a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        let pendingComma = false;
         for (let i = 0; i < chars.length; i++) {
             const ch = chars[i];
-            let keep = true;
-            if (ch === '$') {
-                keep = false;
+            const isDigit = (digits.indexOf(ch) >= 0);
+            if (pendingComma && !isDigit) {
+                stripped = stripped + ',';
             }
-            else if (ch === ',') {
+            pendingComma = false;
+            if (ch === ',') {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                const prevIsDigit = (i > 0) && (digits.indexOf(chars[i - 1]) >= 0);
-                const nextIsDigit = ((i + 1) < chars.length) && (digits.indexOf(chars[i + 1]) >= 0);
-                keep = !(prevIsDigit && nextIsDigit);
+                if ((i > 0) && (digits.indexOf(prevCh) >= 0)) {
+                    pendingComma = true;
+                }
+                else {
+                    stripped = stripped + ch;
+                }
             }
-            if (keep) {
+            else if (ch !== '$') {
                 stripped = stripped + ch;
             }
+            prevCh = ch;
+        }
+        if (pendingComma) {
+            stripped = stripped + ',';
         }
         return stripped;
     }
@@ -3014,8 +3025,11 @@ class predictfun extends predictfun$1["default"] {
         if ((subscribeHash !== undefined) && (subscribeHash in client.subscriptions)) {
             delete client.subscriptions[subscribeHash];
         }
-        let messageHashes = this.safeList(subscription, 'messageHashes', []);
-        if (this.safeString(subscription, 'topic') === 'walletEvents') {
+        let messageHashes = [];
+        if (this.safeString(subscription, 'topic') !== 'walletEvents') {
+            messageHashes = this.safeList(subscription, 'messageHashes', []);
+        }
+        else {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
             // only to the client. read the live waiters now, or those later callers would never be

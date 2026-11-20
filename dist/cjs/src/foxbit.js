@@ -2046,12 +2046,11 @@ class foxbit extends foxbit$1["default"] {
             }
         }
         let requestBody = undefined;
-        if (method === 'POST' || method === 'PUT') {
-            requestBody = this.json(paramsOmitted);
-        }
         let bodyToSignature = '';
-        if (requestBody !== undefined) {
-            bodyToSignature = requestBody;
+        if (method === 'POST' || method === 'PUT') {
+            const jsonBody = this.json(paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         const headersValue = {
             'Content-Type': 'application/json',

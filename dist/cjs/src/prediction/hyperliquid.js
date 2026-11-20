@@ -1024,10 +1024,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const response = this.safeDict(results, 0);
         const midsResponse = results[1];
         const balances = this.safeList(response, 'balances', []);
-        let allMids = {};
-        if ((typeof midsResponse !== 'string') && !Array.isArray(midsResponse)) {
-            allMids = midsResponse;
-        }
+        const allMids = this.infoDict(midsResponse);
         const mids = this.safeDict(allMids, 'mids', allMids);
         const positions = [];
         for (let i = 0; i < balances.length; i++) {
@@ -1118,8 +1115,8 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     findOutcomeInMarket(market, sideHint = undefined) {
         const outcomesList = this.safeList(market, 'outcomes', []);
-        const normalizedHint = (sideHint !== undefined && sideHint !== '') ? sideHint.toUpperCase() : undefined;
-        if (normalizedHint !== undefined) {
+        if (sideHint !== undefined && sideHint !== '') {
+            const normalizedHint = sideHint.toUpperCase();
             for (let i = 0; i < outcomesList.length; i++) {
                 const oc = this.safeDict(outcomesList, i, {});
                 const ocSymbol = this.safeString2(oc, 'outcome', 'symbol', '');

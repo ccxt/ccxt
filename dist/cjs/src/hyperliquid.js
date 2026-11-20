@@ -638,7 +638,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         this.options['hip3TokensByName'] = {};
         let markets = [];
         for (let i = 0; i < promises.length; i++) {
-            const dexName = fetchDexesList[i];
+            const dexName = this.safeString(fetchDexesList, i);
             const offset = this.safeInteger(perpDexesOffset, dexName);
             const response = this.safeList(promises, i);
             const meta = this.safeDict(response, 0, {});
@@ -5133,7 +5133,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const response = await this.privatePostExchange(this.extend(request, this.omit(params, 'expiresAfter')));
         return response;
     }
-    extractTypeFromDelta(data = []) {
+    extractTypeFromDelta(data) {
         const records = [];
         for (let i = 0; i < data.length; i++) {
             const record = this.safeDict(data, i, {});

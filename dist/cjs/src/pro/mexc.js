@@ -436,8 +436,12 @@ class mexc extends mexc$1["default"] {
         if (symbolsNormalized === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), 'watchBidsAsks() markets is required');
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', markets[0], params);
+        const symbolsLength = symbolsNormalized.length;
+        let firstMarket = undefined;
+        if (symbolsLength > 0) {
+            firstMarket = this.market(symbolsNormalized[0]);
+        }
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new errors.NotSupported(this.id + ' watchBidsAsks only support spot market');
@@ -1858,8 +1862,12 @@ class mexc extends mexc$1["default"] {
         if (symbolsNormalized === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), 'unWatchBidsAsks() markets is required');
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', markets[0], params);
+        const symbolsLength = symbolsNormalized.length;
+        let firstMarket = undefined;
+        if (symbolsLength > 0) {
+            firstMarket = this.market(symbolsNormalized[0]);
+        }
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new errors.NotSupported(this.id + ' watchBidsAsks only support spot market');

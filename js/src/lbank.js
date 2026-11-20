@@ -1366,22 +1366,6 @@ export default class lbank extends Exchange {
             }
             return this.safeBalance(result);
         }
-        // from spotPrivatePostSupplementUserInfo
-        const isArray = Array.isArray(data);
-        if (isArray) {
-            for (let i = 0; i < data.length; i++) {
-                const item = this.safeDict(data, i);
-                const currencyId = this.safeString(item, 'coin');
-                const codeInner = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['free'] = this.safeString(item, 'usableAmt');
-                account['used'] = this.safeString(item, 'freezeAmt');
-                if (codeInner !== undefined) {
-                    result[codeInner] = account;
-                }
-            }
-            return this.safeBalance(result);
-        }
         return this.safeBalance(result);
     }
     parseFundingRate(ticker, market = undefined) {

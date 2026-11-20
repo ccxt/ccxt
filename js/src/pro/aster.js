@@ -1234,7 +1234,7 @@ export default class aster extends asterRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) === undefined) {
+        if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp(limit);
         }
@@ -1479,8 +1479,8 @@ export default class aster extends asterRest {
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
         }
-        this.balance[accountType]['info'] = message;
         const balance = this.safeDict(this.balance, accountType, {});
+        balance['info'] = message;
         const messageValue = this.safeDict(message, 'a', message);
         const B = this.safeList(messageValue, 'B', []);
         const wallet = this.safeString(this.options, 'wallet', 'wb');

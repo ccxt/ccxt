@@ -976,7 +976,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        "more_candles": true
         //    }
         //
-        const candles = this.safeList(response, 'candles');
+        const candles = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(candles, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {

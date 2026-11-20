@@ -515,7 +515,7 @@ class bingx extends bingx$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data', []);
+        const dataList = this.safeList(message, 'data', []);
         const rawHash = this.safeString(message, 'dataType', '');
         const hashParts = rawHash.split('@');
         const marketId = this.safeString(hashParts, 0);
@@ -528,11 +528,11 @@ class bingx extends bingx$1["default"] {
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
         let trades;
-        if (Array.isArray(data)) {
-            trades = this.parseTrades(data, market);
+        if (this.safeDict(message, 'data') === undefined) {
+            trades = this.parseTrades(dataList, market);
         }
         else {
-            trades = [this.parseTrade(data, market)];
+            trades = [this.parseTrade(this.safeDict(message, 'data', {}), market)];
         }
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
