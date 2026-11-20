@@ -752,12 +752,13 @@ public partial class bullish : ccxt.bullish
             List<object> data = this.safeList(message, "data", new List<object>() {});
             Dictionary<string, object> parsed = this.parseBalanceList(data);
             List<object> parsedKeys = new List<object>(parsed.Keys);
+            IDictionary<string, object> balance = this.safeDict(this.balance, tradingAccountId, new Dictionary<string, object>() {});
             for (int i = 0; i < parsedKeys.Count; i++)
             {
                 string? parsedKey = ((string)parsedKeys[i]);
-                ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))[(string)parsedKey] = (parsed != null && parsedKey != null && parsed.ContainsKey(parsedKey) ? parsed[parsedKey] : null);
+                balance[(string)parsedKey] = (parsed != null && parsedKey != null && parsed.ContainsKey(parsedKey) ? parsed[parsedKey] : null);
             }
-            this.balance[(string)tradingAccountId] = this.safeBalance((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null));
+            this.balance[(string)tradingAccountId] = this.safeBalance(balance);
         } else
         {
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});

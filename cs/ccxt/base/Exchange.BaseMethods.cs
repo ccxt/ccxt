@@ -4586,7 +4586,7 @@ public partial class BaseExchange
         Dictionary<string, object> market = this.market(symbol);
         if ((market != null))
         {
-            return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
+            return this.safeString(market, "id");
         }
         return ((string?)((object)(symbol)));
     }
@@ -6946,14 +6946,14 @@ public partial class BaseExchange
         string lowercaseAccount = ((string)account).ToLower();
         if ((accountsByType != null && accountsByType.ContainsKey(lowercaseAccount)))
         {
-            return ((string?)((object)((lowercaseAccount != null && accountsByType.ContainsKey(lowercaseAccount) ? accountsByType[lowercaseAccount] : null))));
+            return ((string?)((object)(this.safeString(accountsByType, lowercaseAccount, account))));
         }
         IDictionary<string, object> markets = this.markets;
         IDictionary<string, object> marketsById = this.markets_by_id;
         if ((((markets != null)) && ((markets != null && account is string inOpKey10 && markets.ContainsKey(inOpKey10)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey11 && marketsById.ContainsKey(inOpKey11)))))
         {
             Dictionary<string, object> market = this.market(account);
-            return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
+            return ((string?)((object)(this.safeString(market, "id", account))));
         } else
         {
             return ((string?)((object)(account)));

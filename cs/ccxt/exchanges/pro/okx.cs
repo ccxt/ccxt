@@ -453,11 +453,11 @@ public partial class okx : ccxt.okx
         object fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates)
         {
-            string? symbol = this.safeString(fundingRate, "symbol");
+            string? fundingSymbol = this.safeString(fundingRate, "symbol");
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            if ((symbol != null))
+            if ((fundingSymbol != null))
             {
-                result[(string)symbol] = fundingRate;
+                result[(string)fundingSymbol] = fundingRate;
             }
             return ccxt.BaseExchange.ToFundingRates(result);
         }
@@ -1305,7 +1305,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54575 && ((hxArr54575 is IList<object>) || (hxArr54575.GetType().IsGenericType && hxArr54575.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54596 && ((hxArr54596 is IList<object>) || (hxArr54596.GetType().IsGenericType && hxArr54596.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1361,7 +1361,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57045 && ((hxArr57045 is IList<object>) || (hxArr57045.GetType().IsGenericType && hxArr57045.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57066 && ((hxArr57066 is IList<object>) || (hxArr57066.GetType().IsGenericType && hxArr57066.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }

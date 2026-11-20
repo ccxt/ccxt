@@ -6119,7 +6119,11 @@ public partial class gate : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("editOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        string? accountParsed = this.convertTypeToAccount(marketType);
+        string? accountParsed = null;
+        if ((marketType != null))
+        {
+            accountParsed = this.convertTypeToAccount(marketType);
+        }
         (bool?, IDictionary<string, object>) isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(paramsMarketType, "editOrder", "unifiedAccount", false);
         bool? isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.Item1;
         IDictionary<string, object> paramsUnifiedAccount = (isUnifiedAccountparamsUnifiedAccountVariable.Item2);

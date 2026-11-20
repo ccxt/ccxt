@@ -6480,7 +6480,7 @@ public partial class binance : Exchange
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                request["symbol"] = this.marketId((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+                request["symbol"] = this.marketId(this.safeString(symbolsNormalized, 0));
             }
         }
         object response = null;

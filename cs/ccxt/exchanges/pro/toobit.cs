@@ -873,8 +873,9 @@ public partial class toobit : ccxt.toobit
             this.balance[type] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = this.safeList(message, "B", new List<object>() {});
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
+        IDictionary<string, object> typeBalance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        typeBalance["timestamp"] = timestamp;
+        typeBalance["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> balance = ((IDictionary<string, object>)data[i]);
@@ -886,10 +887,10 @@ public partial class toobit : ccxt.toobit
             account["free"] = this.safeString(balance, "f");
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
+                typeBalance[(string)code] = account;
             }
         }
-        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        this.balance[type] = this.safeBalance(typeBalance);
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
     }
 

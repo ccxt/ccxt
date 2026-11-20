@@ -3133,9 +3133,10 @@ public partial class kucoin : ccxt.kucoin
                 this.balance[uniformType] = new Dictionary<string, object>() {};
             }
             ((IDictionary<string,object>)(this.balance != null && uniformType != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))["info"] = data;
+            IDictionary<string, object> balance = this.safeDict(this.balance, uniformType, new Dictionary<string, object>() {});
             Int64? timestamp = this.safeInteger2(data, "time", "timestamp");
-            ((IDictionary<string,object>)(this.balance != null && uniformType != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))["timestamp"] = timestamp;
-            ((IDictionary<string,object>)(this.balance != null && uniformType != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))["datetime"] = this.iso8601(timestamp);
+            balance["timestamp"] = timestamp;
+            balance["datetime"] = this.iso8601(timestamp);
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             string? used = this.safeString2(data, "hold", "holdBalance");
@@ -3149,9 +3150,9 @@ public partial class kucoin : ccxt.kucoin
             account["total"] = this.safeString(data, "total");
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && uniformType != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))[(string)code] = account;
+                balance[(string)code] = account;
             }
-            this.balance[uniformType] = this.safeBalance((this.balance != null && uniformType != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null));
+            this.balance[uniformType] = this.safeBalance(balance);
             client.resolve((this.balance != null && uniformType != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null), (uniformType + ":balance"));
         }
     }
@@ -3182,18 +3183,19 @@ public partial class kucoin : ccxt.kucoin
             this.balance[type] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
+        IDictionary<string, object> balance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeIntegerProduct(data, "U", 0.000001);
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
+        balance["timestamp"] = timestamp;
+        balance["datetime"] = this.iso8601(timestamp);
         Dictionary<string, object> account = this.account();
         account["free"] = this.safeString(data, "a");
         account["used"] = this.safeString(data, "h");
         account["total"] = this.safeString(data, "b");
         if ((code != null))
         {
-            ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
+            balance[(string)code] = account;
         }
-        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        this.balance[type] = this.safeBalance(balance);
         string messageHash = (type + ":balance");
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
     }

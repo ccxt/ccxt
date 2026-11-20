@@ -3457,14 +3457,14 @@ public partial class kraken : Exchange
         };
     }
 
-    public virtual object parseTransactionsByType(string type, object transactions, string code = null, Int64? since = null, Int64? limit = null)
+    public virtual object parseTransactionsByType(string type, IList<object> transactions, string code = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(transactions); i++)
+        for (int i = 0; i < (transactions?.Count ?? 0); i++)
         {
             Dictionary<string, object> transaction = this.parseTransaction(this.extend(new Dictionary<string, object>() {
                 { "type", type },
-            }, getValue(transactions, i)));
+            }, (transactions != null && i < transactions.Count ? transactions[i] : null)));
             result.Add(transaction);
         }
         return this.filterByCurrencySinceLimit(result,code, since, limit);
@@ -3639,14 +3639,14 @@ public partial class kraken : Exchange
         //        }
         //     }
         //
-        object rawWithdrawals = null;
+        List<object> rawWithdrawals = new List<object>() {};
         object result = this.safeValue(response, "result");
         if (!((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             rawWithdrawals = this.addPaginationCursorToResult(result);
         } else
         {
-            rawWithdrawals = result;
+            rawWithdrawals = this.safeList(response, "result", new List<object>() {});
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactionsByType("withdrawal", rawWithdrawals,code, since, limit));
     }
