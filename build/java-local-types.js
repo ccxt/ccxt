@@ -27420,6 +27420,9 @@ function j02Plain (ctx, node, depth) {
     if (ts.isElementAccessExpression (value)) {
         return j02ElementOk (ctx, value.expression, [ value.argumentExpression ]);
     }
+    if (ts.isAwaitExpression (value)) {
+        return ctx.checker === undefined && j26j05ImplicitEndpointCall (value.expression);
+    }
     if (!ts.isCallExpression (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
         return false;
     }
@@ -27462,6 +27465,35 @@ function j02Plain (ctx, node, depth) {
     return declarations.every ((d) => ts.isMethodDeclaration (d) && d.body !== undefined && j02BodyReturnsPlain (d, depth + 1));
 }
 
+// ===== h26-J05: an awaited implicit endpoint (ts/src/abstract, `return this.request (..)`) =====
+// request -> fetch2 -> the hand-written Java fetch: a Jackson body (LinkedHashMap / ArrayList), the raw
+// string or the test mock; never a null-hostile store. Only for callee bodies read by name (no cast site).
+function j26j05ImplicitEndpointCall (node) {
+    const call = javaFreshMapUnwrap (node);
+    if (call === undefined || !isThisCall (call) || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const name = call.expression.name.text;
+    const state = javaFreshMapMethods ();
+    const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name, true);
+    const viaRequest = (d) => {
+        const statements = ts.isMethodDeclaration (d) ? d.body?.statements : undefined;
+        const ret = statements?.length === 1 && ts.isReturnStatement (statements[0]) ? javaFreshMapUnwrap (statements[0].expression) : undefined;
+        return ret !== undefined && isThisCall (ret) && ret.expression.name.text === 'request';
+    };
+    return declarations !== undefined && declarations.length > 0 && !state.handWritten.some ((t) => t === undefined || new RegExp (`[.\\s]${name}\\s*\\(`).test (t))
+        && declarations.every ((d) => /[\\/]ts[\\/]src[\\/]abstract[\\/]/.test (d.getSourceFile ().fileName) && viaRequest (d))
+        && j26j05RequestUnoverridden (call.getSourceFile ().fileName);
+}
+
+// the caller's class chain and its subclasses resolve `request`, `fetch2` and `fetch` to the base only
+function j26j05RequestUnoverridden (file) {
+    return [ 'request', 'fetch2', 'fetch' ].every ((m) => {
+        const found = javaFreshMapDispatch (file, m, true);
+        return found !== undefined && found.length > 0 && found.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+    });
+}
+
 function j02BodyReturnsPlain (method, depth) {
     const returns = [];
     const walk = (n) => {
@@ -27493,8 +27525,8 @@ function j02IdentifierPlain (ctx, identifier, depth) {
             const parent = n.parent;
             if (ts.isVariableDeclaration (parent) && parent.name === n) {
                 found++;
-                ok = ok && parent.initializer !== undefined && !ts.isForOfStatement (parent.parent?.parent) && !ts.isForInStatement (parent.parent?.parent)
-                    && j02Plain (ctx, parent.initializer, depth);
+                ok = ok && !ts.isForOfStatement (parent.parent?.parent) && !ts.isForInStatement (parent.parent?.parent)
+                    && (parent.initializer !== undefined ? j02Plain (ctx, parent.initializer, depth) : ts.isVariableDeclarationList (parent.parent));
             } else if (ts.isBinaryExpression (parent) && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
                 ok = ok && j02Plain (ctx, parent.right, depth);
             } else if (writeOnlyPatternTarget (n) || j02TopPatternTarget (n) || ts.isBindingElement (parent)) {
