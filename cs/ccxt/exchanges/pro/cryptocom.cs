@@ -1551,7 +1551,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "user.balance", this.handleBalance },
             { "user.position_balance", this.handlePositions },
         };
-        object result = this.safeValue2(message, "result", "info");
+        IDictionary<string, object> result = this.safeDict2(message, "result", "info", new Dictionary<string, object>() {});
         string? channel = this.safeString(result, "channel");
         if (((channel != null)) && channel.IndexOf("user.trade", StringComparison.Ordinal) > -1)
         {

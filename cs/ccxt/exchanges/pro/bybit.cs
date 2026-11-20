@@ -1504,9 +1504,10 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
+            symbolResolved = this.symbol(symbol);
             messageHash = messageHash + (":" + symbolResolved);
         }
         string? url = await this.getUrlByMarketType(symbolResolved, true, method, parameters);
@@ -2023,7 +2024,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88208 && ((hxArr88208 is IList<object>) || (hxArr88208.GetType().IsGenericType && hxArr88208.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88212 && ((hxArr88212 is IList<object>) || (hxArr88212.GetType().IsGenericType && hxArr88212.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2129,9 +2130,10 @@ public partial class bybit : ccxt.bybit
         }
         string method = "watchOrders";
         string messageHash = "orders";
-        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
+            symbolResolved = this.symbol(symbol);
             messageHash = messageHash + (":" + symbolResolved);
         }
         string? url = await this.getUrlByMarketType(symbolResolved, true, method, parameters);
@@ -2707,7 +2709,7 @@ public partial class bybit : ccxt.bybit
         int messageHashesLength = messageHashes?.Count ?? 0;
         if ((topicsLength == messageHashesLength))
         {
-            for (int i = 0; i < topicsLength; i++)
+            for (int i = 0; i < messageHashesLength; i++)
             {
                 string? messageHash = ((string)(messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
                 if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))

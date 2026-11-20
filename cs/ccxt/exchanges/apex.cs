@@ -1399,7 +1399,7 @@ public partial class apex : Exchange
                 marketResolved = (this.markets != null && marketId != null && this.markets.ContainsKey((string)marketId) ? this.markets[(string)marketId] : null);
             } else if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
             {
-                marketResolved = (this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey((string)marketId) ? this.markets_by_id[(string)marketId] : null);
+                marketResolved = this.safeDict((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey((string)marketId) ? this.markets_by_id[(string)marketId] : null), 0);
             } else
             {
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
@@ -1407,11 +1407,11 @@ public partial class apex : Exchange
                 {
                     object markets = (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId) ? this.markets_by_id[newMarketId] : null);
                     int numMarkets = getArrayLength(markets);
-                    if (numMarkets > 0)
+                    for (int i = 0; i < numMarkets; i++)
                     {
-                        if (isEqual(getValue(getValue(markets, 0), "id2"), marketId))
+                        if (((i == 0)) && (isEqual(getValue(getValue(markets, i), "id2"), marketId)))
                         {
-                            marketResolved = getValue(markets, 0);
+                            marketResolved = getValue(markets, i);
                         }
                     }
                 }

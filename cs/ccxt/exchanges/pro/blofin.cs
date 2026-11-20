@@ -659,6 +659,7 @@ public partial class blofin : ccxt.blofin
         // the merged currencies by safeBalance
         this.balance[marketType] = this.safeDict(this.balance, marketType, new Dictionary<string, object>() {});
         Dictionary<string, object> parsed = this.parseWsBalance(message);
+        IDictionary<string, object> marketBalance = this.safeDict(this.balance, marketType, new Dictionary<string, object>() {});
         List<object> reserved = new List<object>() {"free", "used", "total"};
         List<object> keys = new List<object>(parsed.Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -668,8 +669,9 @@ public partial class blofin : ccxt.blofin
             {
                 continue;
             }
-            ((IDictionary<string,object>)(this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null))[(string)key] = (parsed != null && key != null && parsed.ContainsKey(key) ? parsed[key] : null);
+            marketBalance[(string)key] = (parsed != null && key != null && parsed.ContainsKey(key) ? parsed[key] : null);
         }
+        this.balance[marketType] = marketBalance;
         this.balance[marketType] = this.safeBalance((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null));
         string messageHash = (marketType + ":balance");
         client.resolve((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);

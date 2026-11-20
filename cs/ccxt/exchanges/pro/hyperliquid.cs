@@ -1458,14 +1458,12 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         if ((accountType != null))
         {
-            if ((this.safeValue(this.balance, accountType) == null))
+            IDictionary<string, object> accountBalance = this.safeDict(this.balance, accountType, new Dictionary<string, object>() {});
+            if ((code != null))
             {
-                this.balance[(string)accountType] = new Dictionary<string, object>() {};
+                accountBalance[(string)code] = account;
             }
-            if (((accountType != null)) && ((code != null)))
-            {
-                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))[(string)code] = account;
-            }
+            this.balance[(string)accountType] = accountBalance;
         } else
         {
             if ((code != null))

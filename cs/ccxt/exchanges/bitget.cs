@@ -11937,7 +11937,7 @@ public partial class bitget : Exchange
         string? productType = null;
         bool? uta = null;
         Dictionary<string, object> response = null;
-        List<object> result = null;
+        List<object> result = new List<object>() {};
         IDictionary<string, object> paramsProductType = null;
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         productType = (string)productTypeparamsProductTypeVariable[0];
@@ -12006,7 +12006,7 @@ public partial class bitget : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (result?.Count ?? 0); i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");

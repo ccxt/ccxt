@@ -1603,6 +1603,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null))["timestamp"] = timestamp;
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null))["datetime"] = this.iso8601(timestamp);
             Dictionary<string, object> holdingCodes = new Dictionary<string, object>() {};
+            IDictionary<string, object> cashBalance = this.safeDict(this.balance, "cash", new Dictionary<string, object>() {});
             for (int i = 0; i < holdingKeys.Count; i++)
             {
                 string? key = ((string)holdingKeys[i]);
@@ -1612,9 +1613,10 @@ public partial class krakenfutures : ccxt.krakenfutures
                 if ((code != null))
                 {
                     holdingCodes[(string)code] = true;
-                    ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null))[(string)code] = newAccount;
+                    cashBalance[(string)code] = newAccount;
                 }
             }
+            this.balance["cash"] = cashBalance;
             this.balance["cash"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null), holdingCodes);
             this.balance["cash"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null));
             updatedBalance = (this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null);
@@ -1627,6 +1629,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null))["timestamp"] = timestamp;
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null))["datetime"] = this.iso8601(timestamp);
             Dictionary<string, object> futuresSymbols = new Dictionary<string, object>() {};
+            IDictionary<string, object> marginBalance = this.safeDict(this.balance, "margin", new Dictionary<string, object>() {});
             for (int i = 0; i < futuresKeys.Count; i++)
             {
                 string? key = ((string)futuresKeys[i]);
@@ -1644,8 +1647,9 @@ public partial class krakenfutures : ccxt.krakenfutures
                     futuresSymbols[(string)symbol] = true;
                     symbolAccounts[(string)code] = newAccount;
                 }
-                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null))[(string)symbol] = symbolAccounts;
+                marginBalance[(string)symbol] = symbolAccounts;
             }
+            this.balance["margin"] = marginBalance;
             this.balance["margin"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), futuresSymbols);
             this.balance["margin"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null));
             client.resolve((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), (messageHash + ":futures"));
@@ -1663,6 +1667,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null))["timestamp"] = timestamp;
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null))["datetime"] = this.iso8601(timestamp);
             Dictionary<string, object> flexCodes = new Dictionary<string, object>() {};
+            IDictionary<string, object> flexBalance = this.safeDict(this.balance, "flex", new Dictionary<string, object>() {});
             for (int i = 0; i < flexFuturesKeys.Count; i++)
             {
                 string? key = ((string)flexFuturesKeys[i]);
@@ -1675,9 +1680,10 @@ public partial class krakenfutures : ccxt.krakenfutures
                 if ((code != null))
                 {
                     flexCodes[(string)code] = true;
-                    ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null))[(string)code] = newAccount;
+                    flexBalance[(string)code] = newAccount;
                 }
             }
+            this.balance["flex"] = flexBalance;
             this.balance["flex"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), flexCodes);
             this.balance["flex"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null));
             client.resolve((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), (messageHash + ":flex_futures"));
