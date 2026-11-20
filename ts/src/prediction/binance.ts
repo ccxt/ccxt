@@ -372,7 +372,7 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        let rawTopics: List = [];
+        let rawTopics: Dict[] = [];
         if (allQueriesLength > 0) {
             rawTopics = await this.fetchEventsByQuery (allQueries, fetchCap, rest);
         } else if (eventId !== undefined) {

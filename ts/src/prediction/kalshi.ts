@@ -2213,7 +2213,7 @@ export default class kalshi extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         const eventId = this.safeString2 (paramsOmitted, 'eventId', 'slug');
-        let rawEvents: any[] = [];
+        let rawEvents: Dict[] = [];
         if (queriesLength > 0) {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
             rawEvents = await this.fetchEventsByQuery (queries, fetchCap, rest);
