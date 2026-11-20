@@ -21408,11 +21408,19 @@ function goBlockScopedDeclFunc (lines: string[], masked: string[], start: number
         const beforeMasked = masked[k];
         goNativeMapWrite (lines, masked, start, end, k, maskedFunc, declOf, typeAt, notRebound);
         // the nil-key guard `if k != nil { m[*k] = v }` is born gofmt-expanded and is one entry here, so it may stay
-        if ((lines[k].indexOf ('\n') >= 0) && !/^\s*if \w+ != nil \{\n\s*\w+\[\*\w+\] = [^\n]+\n\s*\}$/.test (lines[k])) {
+        if ((lines[k].indexOf ('\n') >= 0) && !/^\s*if \w+ != nil \{\n\s*\w+\[\*\w+\] = [^\n]+\n\s*\}$/.test (lines[k]) && !goBlockScopedPointerStore (lines[k])) {
             lines[k] = before; // D3: no multi-line nil-key guard block
             masked[k] = beforeMasked;
         }
     }
+}
+
+// the pointer-value store goNativeMapWrite prints (`if p != nil { m[k] = *p } else { m[k] = nil }`), optionally
+// inside its nil-key / nil-receiver guards: every line is a nil test, `} else {`, `}` or one map store
+function goBlockScopedPointerStore (text: string): boolean {
+    const rows = text.split ('\n').map ((l) => l.trim ());
+    return /\] = nil\n/.test (text) && rows.some ((l) => l === '} else {') && rows.every ((l) => /^if (?:ptrValue := [^\n]+; )?(?:\w+|ptrValue) != nil \{$/.test (l)
+        || (l === '} else {') || (l === '}') || /^\w+\[(?:\*\w+|"[^"\\]*"|\w+)\] = (?:\*\w+|nil)$/.test (l));
 }
 
 function goBlockScopedDeclPass (content: string): string {
@@ -21426,6 +21434,8 @@ function goBlockScopedDeclCheck (ok: SelfTestOk): void {
     ok (r.includes ('if (m == nil) {') && r.includes ('if (m != nil) && len(l) > 0 {'), 'shadowed map local compares natively: ' + r);
     r = f ('\tvar result map[string]any = map[string]any{}\n\tfor i := 0; i < 2; i++ {\n\t\tvar account map[string]any = this.Account()\n\t\t_ = account\n\t}\n\tfor i := 0; i < 2; i++ {\n\t\tvar account map[string]any = this.Account()\n\t\tvar code *string = this.SafeString(p, "c")\n\t\tif code == nil {\n\t\t\tcontinue\n\t\t}\n\t\tAddElementToObject(result, code, account)\n\t}\n');
     ok (r.includes ('result[*code] = account'), 'shadowed never-nil value under a nil-exit key guard: ' + r);
+    r = f ('\tif a {\n\t\tvar t *int64 = nil\n\t\t_ = t\n\t} else {\n\t\tvar m map[string]any = map[string]any{}\n\t\tvar t *int64 = this.SafeInteger(p, \"t\")\n\t\tAddElementToObject(m, \"t\", t)\n\t\t_ = m\n\t}\n');
+    ok (r.includes ('if t != nil {\n\t\t\tm["t"] = *t\n\t\t} else {\n\t\t\tm["t"] = nil\n\t\t}'), 'shadowed pointer value stores its deref or nil: ' + r);
     r = f ('\tif a {\n\t\tvar s string = "x"\n\t\t_ = s\n\t} else {\n\t\tvar s string = "y"\n\t\tif IsEqual(s, "spot") {\n\t\t}\n\t}\n');
     ok (r.includes ('if (s == "spot") {'), 'shadowed string literal compare: ' + r);
     for (const keep of [
