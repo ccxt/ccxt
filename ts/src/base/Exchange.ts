@@ -7377,13 +7377,13 @@ export class BaseExchange {
         }
     }
 
-    findBroadlyMatchedKey (broad: Dict, string: Str): Str {
+    findBroadlyMatchedKey (broad: Dict, errorString: Str): Str {
         // a helper for matching error strings exactly vs broadly
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (string !== undefined) { // #issues/12698
-                if (string.indexOf (key) >= 0) {
+            if (errorString !== undefined) { // #issues/12698
+                if (errorString.indexOf (key) >= 0) {
                     return key;
                 }
             }
