@@ -18,4 +18,7 @@ func TestArraySlice() {
 	AssertDeepEqual(exchange, nil, "testArraySlice", exchange.ArraySlice(arr, 3, 6), []any{"d", "e", "f"})
 	AssertDeepEqual(exchange, nil, "testArraySlice", exchange.ArraySlice(arr, 2), []any{"c", "d", "e", "f"})
 	AssertDeepEqual(exchange, nil, "testArraySlice", exchange.ArraySlice(arr, int64(-2)), []any{"e", "f"})
+	// an end index of 0 is a valid (empty) range, not "no end index"
+	AssertDeepEqual(exchange, nil, "testArraySlice", exchange.ArraySlice(arr, 0, 0), []any{})
+	AssertDeepEqual(exchange, nil, "testArraySlice", exchange.ArraySlice(arr, 3, 3), []any{})
 }
