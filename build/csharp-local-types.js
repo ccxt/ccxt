@@ -13374,9 +13374,16 @@ function stringLiteralCalleeWriteType (csharp, declaration, node) {
 // receiver of a member access (`.length`, `.slice (..)`, ...).
 const stringLiteralElementWrites = new WeakSet ();
 
+function strAnnotation (type) {
+    return type?.kind === ts.SyntaxKind.StringKeyword
+        || (type?.kind === ts.SyntaxKind.TypeReference && type.typeArguments === undefined && type.typeName?.kind === ts.SyntaxKind.Identifier && type.typeName.text === 'Str');
+}
+
 function stringLiteralElementWriteType (csharp, declaration, node) {
     // a safeString-family seed is a `string?` box too, so the same element write joins it
-    if ((declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral && !safeStringFamilyLocal (declaration)) || declaration.parent?.declarations?.length !== 1
+    // a `let x: Str = undefined` seed holds null or the string element (the null write's spelling)
+    const strSeed = c5ParameterProofDepth === 0 && isNullInit (declaration) && strAnnotation (declaration.type);
+    if ((declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral && !safeStringFamilyLocal (declaration) && !strSeed) || declaration.parent?.declarations?.length !== 1
             || declaration.name?.kind !== ts.SyntaxKind.Identifier || node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
@@ -13404,7 +13411,7 @@ function stringLiteralElementWriteType (csharp, declaration, node) {
         const other = (p.left === n) ? p.right : p.left;
         return (op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken) && other?.kind === ts.SyntaxKind.StringLiteral;
     });
-    if (!native) {
+    if (!native && !strSeed) {
         return undefined;
     }
     stringLiteralElementWrites.add (node);
