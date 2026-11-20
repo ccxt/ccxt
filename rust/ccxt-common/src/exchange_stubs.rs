@@ -74,6 +74,10 @@ impl ContainerArg for Vec<Value> {
     fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|x| f(x)) }
     fn container_empty(&self) -> bool { self.is_empty() }
 }
+impl ContainerArg for [Value] {
+    fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|x| f(x)) }
+    fn container_empty(&self) -> bool { self.is_empty() }
+}
 impl ContainerArg for crate::value::List {
     fn any_item(&self, f: &mut dyn FnMut(&Value) -> bool) -> bool { self.iter().any(|x| f(x)) }
     fn container_empty(&self) -> bool { self.is_empty() }

@@ -1388,6 +1388,7 @@ impl WsHashList for Value { fn ws_hashes(&self) -> Vec<String> { ws_string_list(
 impl WsHashList for &Value { fn ws_hashes(&self) -> Vec<String> { ws_string_list(self) } }
 impl WsHashList for &crate::value::List { fn ws_hashes(&self) -> Vec<String> { list_strings(self) } }
 impl WsHashList for crate::value::List { fn ws_hashes(&self) -> Vec<String> { list_strings(self) } }
+impl WsHashList for &[Value] { fn ws_hashes(&self) -> Vec<String> { list_strings(self) } }
 fn list_strings(a: &[Value]) -> Vec<String> {
     a.iter().filter_map(|x| x.as_str().map(str::to_string)).collect()
 }
