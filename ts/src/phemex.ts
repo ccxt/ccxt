@@ -1408,10 +1408,10 @@ export default class phemex extends Exchange {
      * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle to fetch
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
+     * @param {int} [params.until] end time in ms (or params.to); explicit since/until ranges must not exceed 2000 candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
@@ -1425,44 +1425,39 @@ export default class phemex extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const until = this.safeInteger2 (params, 'until', 'to');
-        const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'until', 'to' ]);
         const marketSettle = this.safeString (market, 'settle');
         const isStableSettled = (marketSettle === 'USDT') || (marketSettle === 'USDC');
-        const usesSpecialFromToEndpoint = (((this.safeBool (market, 'linear', false)) || isStableSettled)) && ((since !== undefined) || (until !== undefined));
+        const usesFromToEndpoint = (since !== undefined) || (until !== undefined);
         let maxLimit = 1000;
-        if (usesSpecialFromToEndpoint) {
+        if (usesFromToEndpoint) {
             maxLimit = 2000;
         }
         const limitResolved = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         request['limit'] = limitResolved;
-        let sinceSeconds: Int = undefined;
         let response: Dict;
-        if ((this.safeBool (market, 'linear', false)) || isStableSettled) {
-            if ((until !== undefined) || (since !== undefined)) {
-                const candleDuration = this.parseTimeframe (timeframe);
-                if (since !== undefined) {
-                    const fromSeconds = Math.round (since / 1000);
-                    sinceSeconds = fromSeconds;
-                    request['from'] = fromSeconds;
-                    if (until !== undefined) {
-                        request['to'] = Math.round (until / 1000);
-                    } else {
-                        // when since is defined 'to' is mandatory
-                        const now = this.seconds ();
-                        const to = this.parseToInt (this.parseToInt (fromSeconds) + (maxLimit * candleDuration));
-                        request['to'] = (to > now) ? now : to;
-                    }
-                } else if (until !== undefined) {
-                    // when 'to' is defined since is mandatory
-                    const untilSeconds = Math.round (until / 1000);
-                    sinceSeconds = untilSeconds - (maxLimit * candleDuration);
-                    request['from'] = sinceSeconds;
-                    request['to'] = untilSeconds;
+        if (usesFromToEndpoint) {
+            const candleDuration = this.parseTimeframe (timeframe);
+            if (since !== undefined) {
+                const fromSeconds = Math.round (since / 1000);
+                request['from'] = fromSeconds;
+                if (until !== undefined) {
+                    request['to'] = Math.round (until / 1000);
+                } else {
+                    // when since is defined 'to' is mandatory
+                    const now = this.seconds ();
+                    const to = this.sum (fromSeconds, maxLimit * candleDuration);
+                    request['to'] = (to > now) ? now : to;
                 }
-                response = await this.publicGetMdV2KlineList (this.extend (request, paramsOmitted));
-            } else {
-                response = await this.publicGetMdV2KlineLast (this.extend (request, paramsOmitted));
+            } else if (until !== undefined) {
+                // when 'to' is defined 'from' is mandatory
+                const untilSeconds = Math.round (until / 1000);
+                request['from'] = untilSeconds - (maxLimit * candleDuration);
+                request['to'] = untilSeconds;
             }
+            response = await this.publicGetMdV2KlineList (this.extend (request, paramsOmitted));
+        } else if ((this.safeBool (market, 'linear', false)) || isStableSettled) {
+            response = await this.publicGetMdV2KlineLast (this.extend (request, paramsOmitted));
         } else {
             response = await this.publicGetMdV2Kline (this.extend (request, paramsOmitted));
         }
@@ -1482,12 +1477,7 @@ export default class phemex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rows = this.safeList (data, 'rows', []) as List;
-        // the from/to endpoint works in seconds and the parser receives that value
-        let sinceResolved: Int = since;
-        if (usesSpecialFromToEndpoint) {
-            sinceResolved = sinceSeconds;
-        }
-        return this.parseOHLCVs (rows, market, timeframe, sinceResolved, userLimit);
+        return this.parseOHLCVs (rows, market, timeframe, since, userLimit);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {

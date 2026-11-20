@@ -950,6 +950,230 @@
                     "until": 1718637717000
                   }
                 ]
+            },
+            {
+                "description": "spot history since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=sBTCUSDT&resolution=3600&limit=5&from=1735689600&to=1735704000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1735689600000,
+                    5,
+                    {
+                        "until": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "spot history since only",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=sBTCUSDT&resolution=3600&limit=5&from=1735689600&to=1742889600",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1735689600000,
+                    5
+                ]
+            },
+            {
+                "description": "spot history until only newest limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=sBTCUSDT&resolution=3600&limit=5&from=1728504000&to=1735704000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "until": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "spot history millisecond to alias",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=sBTCUSDT&resolution=3600&limit=5&from=1728504000&to=1735704000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "to": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "inverse history since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSD&resolution=3600&limit=5&from=1735689600&to=1735704000",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1h",
+                    1735689600000,
+                    5,
+                    {
+                        "until": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "inverse history since only",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSD&resolution=3600&limit=5&from=1735689600&to=1742889600",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1h",
+                    1735689600000,
+                    5
+                ]
+            },
+            {
+                "description": "inverse history until only newest limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSD&resolution=3600&limit=5&from=1728504000&to=1735704000",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "until": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "inverse history millisecond to alias",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSD&resolution=3600&limit=5&from=1728504000&to=1735704000",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "to": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "inverse latest route unchanged",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline?symbol=BTCUSD&resolution=3600&limit=5",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1h",
+                    null,
+                    5
+                ]
+            },
+            {
+                "description": "linear history since and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSDT&resolution=3600&limit=5&from=1735689600&to=1735704000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1735689600000,
+                    5,
+                    {
+                        "until": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "linear history millisecond to alias",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSDT&resolution=3600&limit=5&from=1728504000&to=1735704000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "to": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "until takes precedence over to alias",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=sBTCUSDT&resolution=3600&limit=5&from=1735689600&to=1735704000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1735689600000,
+                    5,
+                    {
+                        "until": 1735704000000,
+                        "to": 1735800000000
+                    }
+                ]
+            },
+            {
+                "description": "USDC settled history route unchanged",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=ETHUSDC&resolution=3600&limit=5&from=1735689600&to=1735704000",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "1h",
+                    1735689600000,
+                    5,
+                    {
+                        "until": 1735704000000
+                    }
+                ]
+            },
+            {
+                "description": "spot history default limit window",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=sBTCUSDT&resolution=3600&limit=2000&from=1735689600&to=1742889600",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1735689600000,
+                    null
+                ]
+            },
+            {
+                "description": "inverse history oversized limit capped query",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSD&resolution=3600&limit=2000&from=1735689600&to=1742889600",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1h",
+                    1735689600000,
+                    3000
+                ]
+            },
+            {
+                "description": "explicit wide window forwarded for vendor validation",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=sBTCUSDT&resolution=3600&limit=5&from=1735689600&to=1742893200",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1735689600000,
+                    5,
+                    {
+                        "until": 1742893200000
+                    }
+                ]
+            },
+            {
+                "description": "unaligned millisecond since",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=sBTCUSDT&resolution=3600&limit=5&from=1735689601&to=1735704000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1735689601000,
+                    5,
+                    {
+                        "until": 1735704000000
+                    }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
