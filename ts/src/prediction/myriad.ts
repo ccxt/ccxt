@@ -317,7 +317,7 @@ export default class myriad extends Exchange {
                 'trading_model': tradingModel,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const rawMarkets = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const rawMarkets: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
                 break;
@@ -2935,7 +2935,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const responseIsArray = Array.isArray (response);
-        const rows = (responseIsArray) ? response : this.safeList (response, 'data', []);
+        const rows: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
         const trades: any[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = this.safeDict (rows, i);

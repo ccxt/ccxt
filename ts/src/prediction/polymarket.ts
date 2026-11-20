@@ -1553,7 +1553,7 @@ export default class polymarket extends Exchange {
             request['asset_id'] = this.safeString (outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataTrades (this.extend (request, params));
-        const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []);
+        const rawTrades: Dict[] = Array.isArray (response) ? response : this.safeList (response, 'data', []);
         return this.parsePredictionTrades (rawTrades, outcomeObj, since, limit);
     }
 
