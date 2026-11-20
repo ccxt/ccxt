@@ -8795,10 +8795,13 @@ const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt']> = [
     ['parse_balance_custom', 'dict'],
     ['accept_rfq_quote', 'opt'],
     ['create_rfq_order', 'opt'],
+    ['parse_balance_list', 'dict'],
 ];
 function rustTypedDictProducers (content: string): string {
     const parseOrder = '<Self as crate::exchange::DerivedExchange>::parse_order(', boxOrder = '.map_or(Value::Null, Value::Dict)';
-    for (const [fn, kind] of RUST_TYPED_DICT_PRODUCERS) {
+    // later rows first: a dict producer may return another one (binance parse_balance_custom -> parse_balance_list)
+    const dictRet = new RegExp ('^( *return )Value::Dict\\((self\\.(?:safe_balance|' + RUST_TYPED_DICT_PRODUCERS.filter ((r) => r[1] === 'dict').map ((r) => r[0]).join ('|') + ')\\(.*\\))\\);$', 'gm');
+    for (const [fn, kind] of [ ...RUST_TYPED_DICT_PRODUCERS ].reverse ()) {
         const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
         let d: RegExpExecArray | null;
@@ -8808,8 +8811,8 @@ function rustTypedDictProducers (content: string): string {
             let body = content.slice (open, end);
             const rets = body.match (/^ *return\b[^\n]*$/gm) ?? [];
             if (kind === 'dict') {
-                if (rets.length === 0 || !rets.every ((r) => /^ *return Value::Dict\(self\.safe_balance\(.*\)\);$/.test (r))) throw new Error (fn + ': unproven return');
-                body = body.replace (/^( *return )Value::Dict\((self\.safe_balance\(.*\))\);$/gm, '$1$2;');
+                if (rets.length === 0 || !rets.every ((r) => new RegExp (dictRet.source).test (r))) throw new Error (fn + ': unproven return');
+                body = body.replace (dictRet, '$1$2;');
             } else {
                 const local = body.match (/\n( *)let mut (\w+): Value = (<Self as crate::exchange::DerivedExchange>::parse_order\([^\n]*\))\.map_or\(Value::Null, Value::Dict\);\n\1if let Value::Dict\(__rda\) = &mut \2 \{ ([^\n]*) \}\n\1return \2;$/);
                 if (local && rets.length === 1) {

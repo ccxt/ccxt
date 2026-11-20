@@ -3997,44 +3997,14 @@ export default class binance extends Exchange {
         return account;
     }
 
-    parseBalanceCustom (response: any, type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin: boolean = false): Balances {
+    parseBalanceCustom (response: Dict, type: Str = undefined, marginMode: Str = undefined): Balances {
         let result: Dict = {
             'info': response,
         };
         let timestamp: Int = undefined;
         const isolated = marginMode === 'isolated';
         const cross = (type === 'margin') || (marginMode === 'cross');
-        if (isPortfolioMargin) {
-            for (let i = 0; i < response.length; i++) {
-                const entry = this.safeDict (response, i);
-                const accountPapi = this.account ();
-                const currencyId = this.safeString (entry, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                if (type === 'linear') {
-                    accountPapi['free'] = this.safeString (entry, 'umWalletBalance');
-                    accountPapi['used'] = this.safeString (entry, 'umUnrealizedPNL');
-                } else if (type === 'inverse') {
-                    accountPapi['free'] = this.safeString (entry, 'cmWalletBalance');
-                    accountPapi['used'] = this.safeString (entry, 'cmUnrealizedPNL');
-                } else if (cross) {
-                    const borrowed = this.safeString (entry, 'crossMarginBorrowed');
-                    const interest = this.safeString (entry, 'crossMarginInterest');
-                    accountPapi['debt'] = Precise.stringAdd (borrowed, interest);
-                    accountPapi['free'] = this.safeString (entry, 'crossMarginFree');
-                    accountPapi['used'] = this.safeString (entry, 'crossMarginLocked');
-                    accountPapi['total'] = this.safeString (entry, 'crossMarginAsset');
-                } else {
-                    const usedLinear = this.safeString (entry, 'umUnrealizedPNL');
-                    const usedInverse = this.safeString (entry, 'cmUnrealizedPNL');
-                    const totalUsed = Precise.stringAdd (usedLinear, usedInverse);
-                    const totalWalletBalance = this.safeString (entry, 'totalWalletBalance');
-                    accountPapi['total'] = Precise.stringAdd (totalUsed, totalWalletBalance);
-                }
-                if (code !== undefined) {
-                    result[code] = accountPapi;
-                }
-            }
-        } else if (!isolated && ((type === 'spot') || cross)) {
+        if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
             const balances: Dict[] = this.safeList2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
@@ -4082,6 +4052,53 @@ export default class binance extends Exchange {
                     result[code] = accountSavings;
                 }
             }
+        } else {
+            const assets: Dict[] = this.safeList (response, 'assets', []);
+            return this.parseBalanceList (assets, type, marginMode, false, response);
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
+    }
+
+    parseBalanceList (response: Dict[], type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin: boolean = false, info: any = undefined): Balances {
+        let result: Dict = {
+            'info': response,
+        };
+        if (info !== undefined) {
+            result['info'] = info;
+        }
+        const cross = (type === 'margin') || (marginMode === 'cross');
+        if (isPortfolioMargin) {
+            for (let i = 0; i < response.length; i++) {
+                const entry = this.safeDict (response, i);
+                const accountPapi = this.account ();
+                const currencyId = this.safeString (entry, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                if (type === 'linear') {
+                    accountPapi['free'] = this.safeString (entry, 'umWalletBalance');
+                    accountPapi['used'] = this.safeString (entry, 'umUnrealizedPNL');
+                } else if (type === 'inverse') {
+                    accountPapi['free'] = this.safeString (entry, 'cmWalletBalance');
+                    accountPapi['used'] = this.safeString (entry, 'cmUnrealizedPNL');
+                } else if (cross) {
+                    const borrowed = this.safeString (entry, 'crossMarginBorrowed');
+                    const interest = this.safeString (entry, 'crossMarginInterest');
+                    accountPapi['debt'] = Precise.stringAdd (borrowed, interest);
+                    accountPapi['free'] = this.safeString (entry, 'crossMarginFree');
+                    accountPapi['used'] = this.safeString (entry, 'crossMarginLocked');
+                    accountPapi['total'] = this.safeString (entry, 'crossMarginAsset');
+                } else {
+                    const usedLinear = this.safeString (entry, 'umUnrealizedPNL');
+                    const usedInverse = this.safeString (entry, 'cmUnrealizedPNL');
+                    const totalUsed = Precise.stringAdd (usedLinear, usedInverse);
+                    const totalWalletBalance = this.safeString (entry, 'totalWalletBalance');
+                    accountPapi['total'] = Precise.stringAdd (totalUsed, totalWalletBalance);
+                }
+                if (code !== undefined) {
+                    result[code] = accountPapi;
+                }
+            }
         } else if (type === 'funding') {
             for (let i = 0; i < response.length; i++) {
                 const entry = this.safeDict (response, i);
@@ -4098,10 +4115,7 @@ export default class binance extends Exchange {
                 }
             }
         } else {
-            let balances = response;
-            if (!Array.isArray (response)) {
-                balances = this.safeList (response, 'assets', []);
-            }
+            const balances: Dict[] = response;
             for (let i = 0; i < balances.length; i++) {
                 const balance = this.safeDict (balances, i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -4120,8 +4134,8 @@ export default class binance extends Exchange {
                 }
             }
         }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
+        result['timestamp'] = undefined;
+        result['datetime'] = undefined;
         return this.safeBalance (result);
     }
 
@@ -4168,8 +4182,8 @@ export default class binance extends Exchange {
             } else if (this.isInverse (type, subType)) {
                 type = 'inverse';
             }
-            isPortfolioMargin = true;
-            response = await this.papiGetBalance (this.extend (request, query));
+            const papiResponse = await this.papiGetBalance (this.extend (request, query));
+            return this.parseBalanceList (papiResponse, type, marginMode, true);
         } else if (this.isLinear (type, subType)) {
             type = 'linear';
             let useV2: Bool = undefined;
@@ -4210,7 +4224,8 @@ export default class binance extends Exchange {
         } else if (type === 'savings') {
             response = await this.sapiGetLendingUnionAccount (this.extend (request, query));
         } else if (type === 'funding') {
-            response = await this.sapiPostAssetGetFundingAsset (this.extend (request, query));
+            const fundingResponse = await this.sapiPostAssetGetFundingAsset (this.extend (request, query));
+            return this.parseBalanceList (fundingResponse, type, marginMode);
         } else {
             response = await this.privateGetAccount (this.extend (request, query));
         }
@@ -4394,7 +4409,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBalanceCustom (response, type, marginMode, isPortfolioMargin);
+        return this.parseBalanceCustom (response, type, marginMode);
     }
 
     /**
