@@ -899,9 +899,10 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         io.github.ccxt.ws.ArrayCache storedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> ordersBySymbol = this.safeDict(((io.github.ccxt.ws.ArrayCache)storedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-        Object order = this.safeValue(ordersBySymbol, orderId);
+        Object order = this.safeDict(ordersBySymbol, orderId, null);
         if (java.util.Objects.equals(order, null))
         {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             order = this.parseWsOrderUpdate(data, market);
         }
         ((Map<String, Object>)order).put("remaining", remains);
@@ -927,8 +928,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         ((Map<String, Object>)order).put("timestamp", timestamp);
         ((Map<String, Object>)order).put("datetime", this.iso8601(timestamp));
         // a fresh map copy: the cached entry is untyped
-        order = this.safeOrder((Map<String, Object>) (this.extend(order, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
-        storedOrders.append(order);
+        Order parsedOrder = this.safeOrder((Map<String, Object>) (this.extend(order, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+        storedOrders.append(parsedOrder);
         String messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);
     }

@@ -2731,10 +2731,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 this.balance.put(account, new HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "info", info);
+            Map<String, Object> balance = this.safeDict(this.balance, account, new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(message, "ts");
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "timestamp", timestamp);
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "datetime", this.iso8601(timestamp));
-            this.balance.put(account, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account))));
+            balance.put("timestamp", timestamp);
+            balance.put("datetime", this.iso8601(timestamp));
+            this.balance.put(account, this.safeBalance(balance));
             messageHash = ("balances:" + account);
             client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), messageHash);
         } else

@@ -6603,7 +6603,7 @@ public Map<String, Object> describe()
             Map<String, Object> value = this.safeDict(marketValues, i, new HashMap<String, Object>() {{}});
             if (Helpers.inOp(marketsById, value.get("id")))
             {
-                List<Object> marketsByIdArray = (List<Object>) (Helpers.GetValue(marketsById, value.get("id")));
+                List<Object> marketsByIdArray = (List<Object>) ((marketsById == null || !(value.get("id") instanceof String) ? null : marketsById.get(value.get("id"))));
                 marketsByIdArray.add(value);
                 Helpers.addElementToObject(marketsById, value.get("id"), marketsByIdArray);
             } else
@@ -9885,16 +9885,16 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object findBroadlyMatchedKey(Map<String, Object> broad, String str)
+    public Object findBroadlyMatchedKey(Map<String, Object> broad, String errorString)
     {
         // a helper for matching error strings exactly vs broadly
         List<String> keys = new ArrayList<String>(broad.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (!java.util.Objects.equals(str, null))
+            if (!java.util.Objects.equals(errorString, null))
             {
-                if (((String)str).indexOf(key) >= 0)
+                if (((String)errorString).indexOf(key) >= 0)
                 {
                     return key;
                 }
