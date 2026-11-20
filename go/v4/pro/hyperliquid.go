@@ -2024,16 +2024,13 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 		account["total"] = this.SafeString(balance, "total")
 	}
 	if accountType != nil {
-		if ccxt.IsEqual(this.SafeValue(this.Balance, accountType), nil) {
-			this.Balance[*accountType] = map[string]any{}
-		}
-		if (accountType != nil) && (code != nil) {
+		var accountBalance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+		if code != nil {
 			if code != nil {
-				if entry, ok := this.Balance[*accountType].(map[string]any); ok && (entry != nil) {
-					entry[*code] = account
-				}
+				accountBalance[*code] = account
 			}
 		}
+		this.Balance[*accountType] = accountBalance
 	} else {
 		if code != nil {
 			this.Balance[*code] = account

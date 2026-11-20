@@ -148,7 +148,7 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	var previousNonce *int64 = this.SafeInteger(orderbook, "nonce")
-	if (previousNonce != nil) && (!ccxt.IsEqual(nonce, *previousNonce+1)) {
+	if (previousNonce != nil) && (nonce == nil || *nonce != *previousNonce+1) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)

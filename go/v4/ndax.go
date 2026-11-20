@@ -697,7 +697,11 @@ func (this *Ndax) signInBody(ch chan AsyncResult[any], optionalArgs ...any) any 
 	//
 	var sessionToken *string = this.SafeString(response, "SessionToken")
 	if sessionToken != nil {
-		this.Options["sessionToken"] = DerefScalar(sessionToken)
+		if sessionToken != nil {
+			this.Options["sessionToken"] = *sessionToken
+		} else {
+			this.Options["sessionToken"] = nil
+		}
 
 		ch <- AsyncResult[any]{Value: response}
 		return nil
@@ -707,7 +711,11 @@ func (this *Ndax) signInBody(ch chan AsyncResult[any], optionalArgs ...any) any 
 		if this.Twofa == "" {
 			panic(AuthenticationError(this.Id + " signIn() requires exchange.twofa credentials"))
 		}
-		this.Options["pending2faToken"] = DerefScalar(pending2faToken)
+		if pending2faToken != nil {
+			this.Options["pending2faToken"] = *pending2faToken
+		} else {
+			this.Options["pending2faToken"] = nil
+		}
 		request = map[string]any{
 			"Code": Totp(this.Twofa),
 		}
@@ -725,7 +733,11 @@ func (this *Ndax) signInBody(ch chan AsyncResult[any], optionalArgs ...any) any 
 		//     }
 		//
 		sessionToken = this.SafeString(responseInner, "SessionToken")
-		this.Options["sessionToken"] = DerefScalar(sessionToken)
+		if sessionToken != nil {
+			this.Options["sessionToken"] = *sessionToken
+		} else {
+			this.Options["sessionToken"] = nil
+		}
 
 		ch <- AsyncResult[any]{Value: responseInner}
 		return nil

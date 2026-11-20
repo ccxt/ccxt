@@ -6634,15 +6634,18 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 	if InOp(markets, symbol) {
 		return MarketTyped(GetValue(markets, symbol))
 	} else if (marketsById != nil) && (InOp(marketsById, symbol)) {
-		var marketsList any = GetValue(marketsById, symbol)
+		var marketsList []any = ArrayTyped(GetValue(marketsById, symbol))
 		var defaultType *string = this.SafeString2(this.Options, "defaultType", "defaultSubType", "spot")
-		for i := 0; i < GetArrayLength(marketsList); i++ {
-			var market any = GetValue(marketsList, i)
+		for i := 0; i < len(marketsList); i++ {
+			var market any = marketsList[i]
 			if this.SafeBool(market, defaultType, false) != nil && *this.SafeBool(market, defaultType, false) {
 				return MarketTyped(market)
 			}
 		}
-		return MarketTyped(GetValue(marketsList, 0))
+		if 0 >= 0 && 0 < len(marketsList) {
+			return MarketTyped(marketsList[0])
+		}
+		return MarketTyped(nil)
 	} else if (EndsWith(symbol, "-C")) || (EndsWith(symbol, "-P")) || (StartsWith(symbol, "C-")) || (StartsWith(symbol, "P-")) {
 		return MarketTyped(this.DerivedExchange.CreateExpiredOptionMarket(symbol))
 	}

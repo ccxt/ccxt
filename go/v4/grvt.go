@@ -2661,7 +2661,11 @@ func (this *Grvt) loadAccountInfosBody(ch chan AsyncResult[bool]) any {
 	var responses []any = r.Value
 	var result1 map[string]any = SafeMapTyped(responses[0], "result")
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
-	this.Options["userMainAccountId"] = DerefScalar(mainAccountId)
+	if mainAccountId != nil {
+		this.Options["userMainAccountId"] = *mainAccountId
+	} else {
+		this.Options["userMainAccountId"] = nil
+	}
 	if accountIsUndefined {
 		var subAccountIds []any = this.SafeListSlice(GetValue(responses, 1), "sub_account_ids", []any{})
 		var length int = len(subAccountIds)
@@ -2672,7 +2676,11 @@ func (this *Grvt) loadAccountInfosBody(ch chan AsyncResult[bool]) any {
 			panic(ArgumentsRequired(this.Id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: " + this.Json(subAccountIds)))
 		}
 		var subAccountId *string = this.SafeString(subAccountIds, 0)
-		this.Options["accountId"] = DerefScalar(subAccountId)
+		if subAccountId != nil {
+			this.Options["accountId"] = *subAccountId
+		} else {
+			this.Options["accountId"] = nil
+		}
 	}
 
 	ch <- AsyncResult[bool]{Value: true}
@@ -4507,7 +4515,11 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) map[string]any {
 func (this *Grvt) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if strings.HasSuffix(url, "auth/api_key/login") || strings.HasSuffix(url, "auth/wallet/login") {
 		var accountId *string = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
-		this.Options["AuthAccountId"] = DerefScalar(accountId)
+		if accountId != nil {
+			this.Options["AuthAccountId"] = *accountId
+		} else {
+			this.Options["AuthAccountId"] = nil
+		}
 		var cookie *string = this.SafeString2(headers, "Set-Cookie", "set-cookie")
 		if cookie != nil {
 			this.Options["AuthCookieValue"] = DerefScalar(this.SafeString(strings.Split(*cookie, ";"), 0, ""))

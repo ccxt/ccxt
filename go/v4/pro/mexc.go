@@ -2600,7 +2600,11 @@ func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[*string], subscripti
 	//    }
 	//
 	listenKey = this.SafeString(response, "listenKey")
-	this.Options["listenKey"] = ccxt.DerefScalar(listenKey)
+	if listenKey != nil {
+		this.Options["listenKey"] = *listenKey
+	} else {
+		this.Options["listenKey"] = nil
+	}
 	client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 	this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)

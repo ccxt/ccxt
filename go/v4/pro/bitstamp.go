@@ -1327,8 +1327,16 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 				var userId *string = this.SafeString(response, "user_id")
 				var validity *int64 = this.SafeIntegerProduct(response, "valid_sec", 1000)
 				this.Options["expiresIn"] = this.Sum(time, validity)
-				this.Options["userId"] = ccxt.DerefScalar(userId)
-				this.Options["wsSessionToken"] = ccxt.DerefScalar(sessionToken)
+				if userId != nil {
+					this.Options["userId"] = *userId
+				} else {
+					this.Options["userId"] = nil
+				}
+				if sessionToken != nil {
+					this.Options["wsSessionToken"] = *sessionToken
+				} else {
+					this.Options["wsSessionToken"] = nil
+				}
 				// settle the flight: client.resolve deletes the future from
 				// client.futures and wakes every waiter parked on it
 				client.(ccxt.ClientInterface).Resolve(sessionToken, messageHash)

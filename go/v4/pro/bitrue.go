@@ -1303,7 +1303,11 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 				if key == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				this.Options["listenKey"] = ccxt.DerefScalar(key)
+				if key != nil {
+					this.Options["listenKey"] = *key
+				} else {
+					this.Options["listenKey"] = nil
+				}
 				var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
 				var wsUrl *string = this.SafeString(wsUrls, "private")
 				if wsUrl == nil {

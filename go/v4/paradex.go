@@ -2592,7 +2592,11 @@ func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optional
 	// }
 	//
 	var token *string = this.SafeString(response, "jwt_token")
-	this.Options["authToken"] = DerefScalar(token)
+	if token != nil {
+		this.Options["authToken"] = *token
+	} else {
+		this.Options["authToken"] = nil
+	}
 	this.Options["expires"] = expires
 
 	ch <- AsyncResult[*string]{Value: token}

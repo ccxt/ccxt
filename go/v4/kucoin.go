@@ -15574,13 +15574,9 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 			if _, ok := result[*symbol]; !ok {
 				result[*symbol] = []any{}
 			}
-			retRes1170016 := func() any {
-				if symbol == nil {
-					return nil
-				}
-				return result[*symbol]
-			}()
+			retRes1170016 := result[*symbol]
 			AppendToArray(&retRes1170016, tier)
+			result[*symbol] = retRes1170016
 		}
 	}
 

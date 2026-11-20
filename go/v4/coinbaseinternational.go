@@ -4239,7 +4239,11 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 	}
 	var tokenRefreshInMilliseconds int64 = this.ParseToInt(float64((*expiresIn * 1000)) * refreshRatio)
 	this.Token = accessToken
-	this.Options["v2AccessToken"] = DerefScalar(accessToken)
+	if accessToken != nil {
+		this.Options["v2AccessToken"] = *accessToken
+	} else {
+		this.Options["v2AccessToken"] = nil
+	}
 	this.Options["v2TokenExpires"] = now + tokenRefreshInMilliseconds
 
 	ch <- AsyncResult[any]{Value: accessToken}

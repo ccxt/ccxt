@@ -569,7 +569,7 @@ func (this *Cryptocom) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Cryptocom) HandleTrades(client any, message any) {
+func (this *Cryptocom) HandleTrades(client any, message map[string]any) {
 	//
 	// {
 	//     "code": 0,
@@ -2048,7 +2048,7 @@ func (this *Cryptocom) HandleSubscribe(client any, message map[string]any) {
 		"user.balance":          this.HandleBalance,
 		"user.position_balance": this.HandlePositions,
 	}
-	var result any = this.SafeValue2(message, "result", "info")
+	var result map[string]any = ccxt.SafeDict2Typed(message, "result", "info", map[string]any{})
 	var channel *string = this.SafeString(result, "channel")
 	if (channel != nil) && (strings.Index(*channel, "user.trade") > -1) {
 		// channel might be user.trade.BTC_USDT

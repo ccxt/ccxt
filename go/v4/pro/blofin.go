@@ -913,6 +913,7 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 	// the merged currencies by safeBalance
 	this.Balance[marketType] = this.SafeDict(this.Balance, marketType, map[string]any{})
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsBalance(message))
+	var marketBalance map[string]any = this.SafeDictMap(this.Balance, marketType, map[string]any{})
 	var reserved []any = []any{"free", "used", "total"}
 	var keys []string = nil
 	if parsed != nil {
@@ -926,8 +927,9 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 		if this.InArray(key, reserved) {
 			continue
 		}
-		ccxt.AddElementToObject(this.Balance[marketType], key, parsed[key])
+		ccxt.AddElementToObject(marketBalance, key, parsed[key])
 	}
+	this.Balance[marketType] = marketBalance
 	this.Balance[marketType] = this.SafeBalance(this.Balance[marketType])
 	var messageHash string = marketType + ":balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance[marketType], messageHash)

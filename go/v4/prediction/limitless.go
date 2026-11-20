@@ -4122,11 +4122,7 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.Iso8601(this.Milliseconds())
 		var newline string = "\n" // eslint-disable-line quotes
-		var payload *string = nil
-		if timestamp != nil {
-			payloadValue := *timestamp + newline + method + newline + url + newline + bodyString
-			payload = &payloadValue
-		}
+		var payload string = *timestamp + newline + method + newline + url + newline + bodyString
 		var signature string = this.Hmac(this.Encode(payload), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 		headersValue = this.Extend(headersValue, map[string]any{
 			"lmts-timestamp": timestamp,

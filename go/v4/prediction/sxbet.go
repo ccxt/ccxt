@@ -621,13 +621,9 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 			grouped[*sportXeventId] = []any{}
 			order = append(order, *sportXeventId)
 		}
-		retRes48412 := func() any {
-			if sportXeventId == nil {
-				return nil
-			}
-			return grouped[*sportXeventId]
-		}()
+		retRes48412 := grouped[*sportXeventId]
 		ccxt.AppendToArray(&retRes48412, raw)
+		grouped[*sportXeventId] = retRes48412
 	}
 	if this.Markets == nil {
 		this.Markets = map[string]any{}

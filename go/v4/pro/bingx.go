@@ -2093,7 +2093,11 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				this.Options["listenKey"] = ccxt.DerefScalar(listenKey)
+				if listenKey != nil {
+					this.Options["listenKey"] = *listenKey
+				} else {
+					this.Options["listenKey"] = nil
+				}
 				this.Options["lastAuthenticatedTime"] = time
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 				// settle the flight: client.resolve () removes the future from

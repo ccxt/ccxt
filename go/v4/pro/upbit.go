@@ -561,7 +561,8 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol *strin
 		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
 	var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
-	var isNewChannel bool = !(ccxt.InOp(subscriptions, channelKey))
+	_, has2 := subscriptions[channelKey]
+	var isNewChannel bool = !has2
 	if isNewChannel {
 		subscriptions[channelKey] = request
 	}

@@ -479,7 +479,11 @@ func (this *Kucoin) authenticateUtaBody(ch chan ccxt.AsyncResult[*string]) any {
 					var data map[string]any = ccxt.SafeMapTyped(response, "data")
 					var utaTokenString *string = this.SafeString(data, "token")
 					this.Options["utaTokenLastUpdate"] = now
-					this.Options["utaToken"] = ccxt.DerefScalar(utaTokenString)
+					if utaTokenString != nil {
+						this.Options["utaToken"] = *utaTokenString
+					} else {
+						this.Options["utaToken"] = nil
+					}
 					client.(ccxt.ClientInterface).Resolve(utaTokenString, messageHash)
 					return nil
 				}(this)

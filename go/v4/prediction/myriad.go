@@ -378,14 +378,14 @@ func (this *Myriad) fetchRawMarketsBySearchBody(ch chan ccxt.AsyncResult[[]map[s
 		}
 		response := r.Raw
 		var responseIsArray bool = ccxt.IsArray(response)
-		var found any = func() any {
-			if responseIsArray {
-				return response
-			}
-			return this.SafeList(response, "data", []any{})
-		}()
-		for j := 0; j < ccxt.GetArrayLength(found); j++ {
-			var raw any = ccxt.GetValue(found, j)
+		var found []any
+		if responseIsArray {
+			found = ccxt.ArrayTyped(response)
+		} else {
+			found = ccxt.ArrayTyped(this.SafeList(response, "data", []any{}))
+		}
+		for j := 0; j < len(found); j++ {
+			var raw any = found[j]
 			var networkId string = *this.SafeString(raw, "networkId", "")
 			var marketId string = *this.SafeString(raw, "id", "")
 			var key string = networkId + ":" + marketId
@@ -446,19 +446,19 @@ func (this *Myriad) fetchRawMarketsListBody(ch chan ccxt.AsyncResult[[]map[strin
 		}
 		response := r.Raw
 		var responseIsArray bool = ccxt.IsArray(response)
-		var rawMarkets any = func() any {
-			if responseIsArray {
-				return response
-			}
-			return this.SafeList(response, "data", []any{})
-		}()
-		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+		var rawMarkets []any
+		if responseIsArray {
+			rawMarkets = ccxt.ArrayTyped(response)
+		} else {
+			rawMarkets = ccxt.ArrayTyped(this.SafeList(response, "data", []any{}))
+		}
+		var rawMarketsLength int = len(rawMarkets)
 		if rawMarketsLength == 0 {
 			break
 		}
 		for i := 0; i < rawMarketsLength; i++ {
 			if maxMarkets != nil && int64(collected) < *maxMarkets {
-				allRawMarkets = append(allRawMarkets, ccxt.GetValue(rawMarkets, i))
+				allRawMarkets = append(allRawMarkets, rawMarkets[i])
 				collected = len(allRawMarkets)
 			}
 		}
@@ -685,14 +685,14 @@ func (this *Myriad) fetchRawQuestionsBySearchBody(ch chan ccxt.AsyncResult[[]map
 		}
 		response := r.Raw
 		var responseIsArray bool = ccxt.IsArray(response)
-		var found any = func() any {
-			if responseIsArray {
-				return response
-			}
-			return this.SafeList(response, "data", []any{})
-		}()
-		for j := 0; j < ccxt.GetArrayLength(found); j++ {
-			var raw any = ccxt.GetValue(found, j)
+		var found []any
+		if responseIsArray {
+			found = ccxt.ArrayTyped(response)
+		} else {
+			found = ccxt.ArrayTyped(this.SafeList(response, "data", []any{}))
+		}
+		for j := 0; j < len(found); j++ {
+			var raw any = found[j]
 			var questionId *string = this.SafeString(raw, "id")
 			if questionId != nil {
 				if _, ok := seen[*questionId]; !ok {
@@ -749,18 +749,18 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan ccxt.AsyncResult[[]map[str
 		}
 		response := r.Raw
 		var responseIsArray bool = ccxt.IsArray(response)
-		var rawQuestions any = func() any {
-			if responseIsArray {
-				return response
-			}
-			return this.SafeList(response, "data", []any{})
-		}()
-		var rawQuestionsLength int = ccxt.GetArrayLength(rawQuestions)
+		var rawQuestions []any
+		if responseIsArray {
+			rawQuestions = ccxt.ArrayTyped(response)
+		} else {
+			rawQuestions = ccxt.ArrayTyped(this.SafeList(response, "data", []any{}))
+		}
+		var rawQuestionsLength int = len(rawQuestions)
 		if rawQuestionsLength == 0 {
 			break
 		}
 		for i := 0; i < rawQuestionsLength; i++ {
-			var rawQuestion any = ccxt.GetValue(rawQuestions, i)
+			var rawQuestion any = rawQuestions[i]
 			var questionId *string = this.SafeString(rawQuestion, "id")
 			if questionId != nil {
 				if _, ok := seen[*questionId]; ok {
@@ -4106,14 +4106,14 @@ func (this *Myriad) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 	//     }
 	//
 	var responseIsArray bool = ccxt.IsArray(response)
-	var rows any = func() any {
-		if responseIsArray {
-			return response
-		}
-		return this.SafeList(response, "data", []any{})
-	}()
+	var rows []any
+	if responseIsArray {
+		rows = ccxt.ArrayTyped(response)
+	} else {
+		rows = ccxt.ArrayTyped(this.SafeList(response, "data", []any{}))
+	}
 	var trades []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rows); i++ {
+	for i := 0; i < len(rows); i++ {
 		var row any = this.SafeDict(rows, i)
 		var action *string = this.SafeString(row, "action")
 		if (action == nil || *action != "buy") && (action == nil || *action != "sell") {

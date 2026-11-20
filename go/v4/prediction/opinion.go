@@ -1223,7 +1223,11 @@ func (this *Opinion) loadMultiSignAddressBody(ch chan ccxt.AsyncResult[*string])
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var walletUsers map[string]any = ccxt.SafeMapTyped(result, "walletUsers")
 	var multiSignAddress *string = this.SafeString(walletUsers, "56", this.WalletAddress)
-	this.Options["multiSignAddress"] = ccxt.DerefScalar(multiSignAddress)
+	if multiSignAddress != nil {
+		this.Options["multiSignAddress"] = *multiSignAddress
+	} else {
+		this.Options["multiSignAddress"] = nil
+	}
 
 	ch <- ccxt.AsyncResult[*string]{Value: multiSignAddress}
 	return nil

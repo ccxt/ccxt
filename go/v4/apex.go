@@ -1634,15 +1634,15 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 		if (this.Markets != nil) && (InOp(this.Markets, marketId)) {
 			marketResolved = GetValue(this.Markets, marketId)
 		} else if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
-			marketResolved = GetValue(this.Markets_by_id, marketId)
+			marketResolved = this.SafeDict(GetValue(this.Markets_by_id, marketId), 0)
 		} else {
 			var newMarketId any = this.AddHyphenBeforeUsdt(marketId)
 			if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, newMarketId)) {
-				var markets any = GetValue(this.Markets_by_id, newMarketId)
-				var numMarkets int = GetArrayLength(markets)
-				if numMarkets > 0 {
-					if IsEqual(GetValue(GetValue(markets, 0), "id2"), marketId) {
-						marketResolved = GetValue(markets, 0)
+				var markets []any = ArrayTyped(GetValue(this.Markets_by_id, newMarketId))
+				var numMarkets int = len(markets)
+				for i := 0; i < numMarkets; i++ {
+					if (i == 0) && (IsEqual(GetValue(markets[i], "id2"), marketId)) {
+						marketResolved = markets[i]
 					}
 				}
 			}

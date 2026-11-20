@@ -331,7 +331,11 @@ func (this *Deepcoin) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 				}
 				var newExpiryTimestamp *int64 = this.SafeTimestamp(data, "expire_time")
 				this.Options["listenKey"] = listenKey
-				this.Options["listenKeyExpiryTimestamp"] = ccxt.DerefScalar(newExpiryTimestamp)
+				if newExpiryTimestamp != nil {
+					this.Options["listenKeyExpiryTimestamp"] = *newExpiryTimestamp
+				} else {
+					this.Options["listenKeyExpiryTimestamp"] = nil
+				}
 			}
 			// settle the flight: client.resolve wakes every waiter and drops
 			// the future from the registry under the client's own lock, so the

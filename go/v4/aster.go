@@ -5781,7 +5781,11 @@ func (this *Aster) Sign(path string, optionalArgs ...any) map[string]any {
 		if (walletAddress == nil) || (cachedPrivateKeyHash == nil || *cachedPrivateKeyHash != privateKeyHash) {
 			ethGetAddressFromPrivateKeyText := this.EthGetAddressFromPrivateKey(this.PrivateKey)
 			walletAddress = &ethGetAddressFromPrivateKeyText
-			this.Options["cachedWalletAddress"] = DerefScalar(walletAddress)
+			if walletAddress != nil {
+				this.Options["cachedWalletAddress"] = *walletAddress
+			} else {
+				this.Options["cachedWalletAddress"] = nil
+			}
 			this.Options["privateKeyHashForCachedWalletAddress"] = privateKeyHash
 		}
 		var signerAddress *string = this.SafeString(this.Options, "signerAddress", walletAddress) // default to user's wallet

@@ -4256,7 +4256,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var dateTime *string = this.Iso8601(timestamp)
-		var payload any = Add(Add(Add(dateTime, method), "/"), requestPath)
+		var payload any = *dateTime + method + "/" + requestPath
 		var privateHeaders map[string]any = map[string]any{
 			"DC-ACCESS-KEY":        this.ApiKey,
 			"DC-ACCESS-TIMESTAMP":  dateTime,

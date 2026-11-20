@@ -1330,7 +1330,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	var messageHash string = "orderbook:" + symbol
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
-	if (nonce == nil) || (!ccxt.IsEqual(incrementalId, *nonce+1)) {
+	if (nonce == nil) || (incrementalId == nil || *incrementalId != *nonce+1) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook() skipped a message")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)

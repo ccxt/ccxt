@@ -2232,15 +2232,15 @@ func (this *Polymarket) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var rawTrades any = func() any {
-		if response != nil {
-			return response
-		}
-		return this.SafeList(response, "data", []any{})
-	}()
+	var rawTrades []any
+	if response != nil {
+		rawTrades = ccxt.ArrayTyped(response)
+	} else {
+		rawTrades = ccxt.ArrayTyped(this.SafeList(response, "data", []any{}))
+	}
 	var filteredTrades []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
-		var trade any = ccxt.GetValue(rawTrades, i)
+	for i := 0; i < len(rawTrades); i++ {
+		var trade any = rawTrades[i]
 		var tradeAsset *string = this.SafeString(trade, "asset")
 		if tradeAsset == tokenId || (tradeAsset != nil && tokenId != nil && *tradeAsset == *tokenId) {
 			filteredTrades = append(filteredTrades, trade)
@@ -2306,12 +2306,12 @@ func (this *Polymarket) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		panic(r2.Err)
 	}
 	response := r2.Raw
-	var rawTrades any = func() any {
-		if ccxt.IsArray(response) {
-			return response
-		}
-		return this.SafeList(response, "data", []any{})
-	}()
+	var rawTrades []any
+	if ccxt.IsArray(response) {
+		rawTrades = ccxt.ArrayTyped(response)
+	} else {
+		rawTrades = ccxt.ArrayTyped(this.SafeList(response, "data", []any{}))
+	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.ParsePredictionTrades(rawTrades, outcomeObj, since, limit))}
 	return nil

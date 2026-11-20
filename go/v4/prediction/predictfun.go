@@ -2102,7 +2102,11 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	if token == nil {
 		panic(ccxt.AuthenticationError(this.Id + " authenticate() did not return a token"))
 	}
-	this.Options["jwtToken"] = ccxt.DerefScalar(token)
+	if token != nil {
+		this.Options["jwtToken"] = *token
+	} else {
+		this.Options["jwtToken"] = nil
+	}
 	// measured from before the round trip, so the cached window closes a little early rather
 	// than a little late
 	var tokenExpiresIn int64 = *this.SafeInteger(this.Options, "tokenExpiresIn", 86400000)

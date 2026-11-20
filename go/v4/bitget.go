@@ -12989,7 +12989,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var productType *string = nil
 	var uta any = nil
 	var response map[string]any = nil
-	var result []any = nil
+	var result []any = []any{}
 	var paramsProductType map[string]any = nil
 	productType, paramsProductType = this.HandleProductTypeAndParams(market, params)
 	argStr := "fetchFundingRateHistory"
@@ -13027,7 +13027,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		//     }
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
-		result = this.SafeListSlice(data, "resultList", []any{})
+		result = ArrayTyped(this.SafeList(data, "resultList", []any{}))
 	} else {
 		var paginate bool = false
 		paginate, paramsProductType = this.HandleOptionBoolAndParams(paramsProductType, "fetchFundingRateHistory", "paginate", false)
@@ -13069,11 +13069,11 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		//         ]
 		//     }
 		//
-		result = this.SafeListSlice(response, "data", []any{})
+		result = ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var entry any = GetValue(result, i)
+		var entry any = result[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId, market)
 		var timestamp *int64 = this.SafeInteger2(entry, "fundingTime", "fundingRateTimestamp")

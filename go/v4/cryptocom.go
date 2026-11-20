@@ -2808,20 +2808,20 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
 }
-func (this *Cryptocom) ParseAddress(addressString *string) []any {
+func (this *Cryptocom) ParseAddress(addressString *string) (*string, *string) {
 	if (addressString != nil) && (strings.Index(*addressString, "?") > 0) {
 		var addressParts []string = strings.Split(*addressString, "?")
 		var address *string = &addressParts[0]
 		var rawTag *string = &addressParts[1]
 		var splitted []string = strings.Split(*rawTag, "=")
-		return []any{address, func() any {
+		return address, SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(splitted) {
 				return splitted[1]
 			}
 			return nil
-		}()}
+		}())
 	}
-	return []any{addressString, nil}
+	return addressString, nil
 }
 
 /**
@@ -2964,9 +2964,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[ma
 		var addressString *string = this.SafeString(value, "address")
 		var currencyId *string = this.SafeString(value, "currency")
 		var responseCode *string = this.SafeCurrencyCode(currencyId)
-		addresstagVariable := this.ParseAddress(addressString)
-		var address *string = SafeStringPtr(addresstagVariable[0])
-		var tag *string = SafeStringPtr(addresstagVariable[1])
+		address, tag := this.ParseAddress(addressString)
 		this.CheckAddress(address)
 		var networkId *string = this.SafeString(value, "network")
 		var network *string = this.NetworkIdToCode(networkId, responseCode)
@@ -3546,9 +3544,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) Tr
 		status = this.ParseDepositStatus(rawStatus)
 	}
 	var addressString *string = this.SafeString(transaction, "address")
-	addresstagVariable := this.ParseAddress(addressString)
-	var address *string = SafeStringPtr(addresstagVariable[0])
-	var tag *string = SafeStringPtr(addresstagVariable[1])
+	address, tag := this.ParseAddress(addressString)
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transaction, "create_time")
