@@ -9390,6 +9390,8 @@ const GO_ORDERBOOK_PRINTER = {
         'datetime': { 'method': 'SetDatetime', 'value': '^this\\.Iso8601\\(', 'type': '*string' },
         'symbol': { 'method': 'SetSymbol', 'value': '^this\\.SafeSymbol\\(', 'type': '*string' },
     },
+    // `book.<field> = undefined` -> `book.Fields().<Field> = nil` (the nil-able fields of WsOrderBook)
+    'clears': { 'accessor': 'Fields', 'fields': { 'nonce': 'Nonce', 'timestamp': 'Timestamp', 'datetime': 'Datetime' } },
 };
 
 // A nil interface answers the helper with a no-op but panics on a method call. An earlier method call on the same

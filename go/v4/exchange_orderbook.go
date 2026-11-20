@@ -28,6 +28,7 @@ type OrderBookInterface interface {
 	SetDatetime(datetime *string)
 	SetNonce(nonce *int64)
 	SetSymbol(symbol *string)
+	Fields() *WsOrderBook
 }
 
 type WsOrderBook struct {
@@ -557,6 +558,11 @@ func (this *WsOrderBook) SetSymbol(symbol *string) {
 	if symbol != nil {
 		this.Symbol = *symbol
 	}
+}
+
+// Fields exposes the book's own fields (Counted/Indexed books promote it from the embedded *WsOrderBook)
+func (this *WsOrderBook) Fields() *WsOrderBook {
+	return this
 }
 
 func (this *WsOrderBook) GetNonce() any {
