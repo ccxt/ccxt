@@ -657,6 +657,7 @@ func (this *Poloniex) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 		"exceptions": map[string]any{
 			"exact": map[string]any{
+				"401":    PermissionDenied,
 				"500":    ExchangeNotAvailable,
 				"603":    RequestTimeout,
 				"601":    BadRequest,
@@ -892,11 +893,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes69219 []any = r1.Value
-		if retRes69219 == nil {
+		var retRes69319 []any = r1.Value
+		if retRes69319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes69219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes69319)}
 		}
 		return nil
 	}
@@ -2009,11 +2010,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes158519 []any = r1.Value
-		if retRes158519 == nil {
+		var retRes158619 []any = r1.Value
+		if retRes158619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158619)}
 		}
 		return nil
 	}
