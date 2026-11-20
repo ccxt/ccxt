@@ -313,16 +313,16 @@ export default class toobit extends toobitRest {
         const url = this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const messageHashes: List = [];
         const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
-        const marketIds: Str[] = [];
-        let selectedTimeframe: Str = undefined;
+        const marketIds: string[] = [];
+        let selectedTimeframe: string = '';
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
             const symbolStr = this.safeString (data, 0, '');
             const market = this.market (symbolStr);
-            const marketId = market['id'];
-            const unfiedTimeframe = this.safeString (data, 1, '1m');
-            const rawTimeframe = this.safeString (timeframes, unfiedTimeframe, unfiedTimeframe);
-            if (selectedTimeframe !== undefined && selectedTimeframe !== rawTimeframe) {
+            const marketId: string = this.safeString (market, 'id', '');
+            const unfiedTimeframe: string = this.safeString (data, 1, '1m');
+            const rawTimeframe: string = this.safeString (timeframes, unfiedTimeframe, unfiedTimeframe);
+            if (selectedTimeframe !== '' && selectedTimeframe !== rawTimeframe) {
                 throw new NotSupported (this.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             } else {
                 selectedTimeframe = rawTimeframe;
