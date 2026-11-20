@@ -1871,24 +1871,20 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	var paramsOmitted any = this.Omit(paramsGoodTillBlockTimeInSeconds, []any{"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"})
 	var walletAddress any = this.GetWalletAddress()
 	var clobPairId *int64 = this.SafeInteger(marketInfo, "clobPairId", 0)
-	var subaccountIdValue any = func() any {
-		if subaccountIdOption == nil {
-			return 0
-		}
-		return subaccountIdOption
-	}()
+	var subaccountIdValue any = 0
+	if subaccountIdOption != nil {
+		subaccountIdValue = subaccountIdOption
+	}
 	var clientOrderIdValue int64
 	if clientOrderId == nil {
 		clientOrderIdValue = 0
 	} else {
 		clientOrderIdValue = *clientOrderId
 	}
-	var orderFlagValue any = func() any {
-		if orderFlag == nil {
-			return 0
-		}
-		return orderFlag
-	}()
+	var orderFlagValue any = 0
+	if orderFlag != nil {
+		orderFlagValue = orderFlag
+	}
 	var clobPairIdValue int64
 	if clobPairId == nil {
 		clobPairIdValue = 0

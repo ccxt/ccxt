@@ -509,8 +509,12 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	if symbolsNormalized == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
-	var markets any = this.RequireValue(this.MarketsForSymbols(symbolsNormalized), "watchBidsAsks() markets is required")
-	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
+	var symbolsLength int = len(symbolsNormalized)
+	var firstMarket map[string]any = nil
+	if symbolsLength > 0 {
+		firstMarket = this.Market(symbolsNormalized[0])
+	}
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	if !isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks only support spot market"))
@@ -2300,8 +2304,12 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	if symbolsNormalized == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
-	var markets any = this.RequireValue(this.MarketsForSymbols(symbolsNormalized), "unWatchBidsAsks() markets is required")
-	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
+	var symbolsLength int = len(symbolsNormalized)
+	var firstMarket map[string]any = nil
+	if symbolsLength > 0 {
+		firstMarket = this.Market(symbolsNormalized[0])
+	}
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
 	if !isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks only support spot market"))

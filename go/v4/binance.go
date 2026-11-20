@@ -5065,7 +5065,11 @@ func (this *Binance) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				promisesRaw = append(promisesRaw, this.SapiGetEquityMarketExchangeInfo(params))
 			}
 		} else {
-			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", marketType), "\" is not a supported market type")))
+			if marketType != nil {
+				messageText := this.Id + " fetchMarkets() this.options fetchMarkets \"" + *marketType + "\" is not a supported market type"
+				panic(ExchangeError(messageText))
+			}
+			panic(ExchangeError(nil))
 		}
 	}
 
@@ -12864,7 +12868,7 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		responseList = this.ToArray(response)
 	}
 	for i := 0; i < len(responseList); i++ {
-		AddElementToObject(GetValue(responseList, i), "type", "deposit")
+		AddElementToObject(responseList[i], "type", "deposit")
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(responseList, currency, since, limit))}
@@ -12987,7 +12991,7 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		responseList = this.ToArray(response)
 	}
 	for i := 0; i < len(responseList); i++ {
-		AddElementToObject(GetValue(responseList, i), "type", "withdrawal")
+		AddElementToObject(responseList[i], "type", "withdrawal")
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(responseList, currency, since, limit))}
@@ -17372,7 +17376,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var apiUrls map[string]any = SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	if _, ok := apiUrls[apiName]; !ok {
 		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + apiName + " endpoints"))
 	}

@@ -966,7 +966,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var isTransaction bool = (this.SafeString(message, "e") != nil && *this.SafeString(message, "e") == "tx")
 	var orderId *string = this.SafeString2(data, "id", "order")
-	var remains any = ccxt.DerefScalar(this.SafeString(data, "remains"))
+	var remainsPrecision *string = this.SafeString(data, "remains")
 	var baseId *string = this.SafeString(data, "symbol")
 	var quoteId *string = this.SafeString(data, "symbol2")
 	var pair map[string]any = ccxt.SafeMapTyped(data, "pair")
@@ -981,7 +981,7 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	}
 	var symbol string = *base + "/" + *quote
 	var market map[string]any = this.SafeMarket(symbol)
-	remains = this.CurrencyFromPrecision(base, remains)
+	var remains any = this.CurrencyFromPrecision(base, remainsPrecision)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1132,8 +1132,8 @@ func (this *Cex) ParseWsOrderUpdate(order map[string]any, optionalArgs ...any) a
 	}
 	return ccxt.OrderToMap(this.SafeOrder(parsedOrder, marketResolved))
 }
-func (this *Cex) FromPrecision(amount any, scale any) any {
-	if ccxt.IsEqual(amount, nil) {
+func (this *Cex) FromPrecision(amount *string, scale *int64) any {
+	if amount == nil {
 		return nil
 	}
 	precise := ccxt.NewPrecise(amount)
@@ -1141,7 +1141,7 @@ func (this *Cex) FromPrecision(amount any, scale any) any {
 	precise.Reduce()
 	return precise.String()
 }
-func (this *Cex) CurrencyFromPrecision(currency any, amount any) any {
+func (this *Cex) CurrencyFromPrecision(currency any, amount *string) any {
 	var scale *int64 = this.SafeInteger(ccxt.GetValue(this.Currencies, currency), "precision", 0)
 	return this.FromPrecision(amount, scale)
 }
@@ -1176,7 +1176,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message map[string]any) {
 		myOrders.Append(order)
 	}
 	var messageHash string = "orders:" + symbol
-	var ordersLength int = ccxt.GetArrayLength(myOrders)
+	var ordersLength int = len(myOrders.ToArray())
 	if ordersLength > 0 {
 		client.(ccxt.ClientInterface).Resolve(myOrders, messageHash)
 	}

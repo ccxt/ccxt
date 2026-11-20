@@ -4256,18 +4256,20 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var dateTime *string = this.Iso8601(timestamp)
-		var payload any = *dateTime + method + "/" + requestPath
+		var payload string = *dateTime + method + "/" + requestPath
 		var privateHeaders map[string]any = map[string]any{
 			"DC-ACCESS-KEY":        this.ApiKey,
 			"DC-ACCESS-TIMESTAMP":  dateTime,
 			"DC-ACCESS-PASSPHRASE": this.Password,
 			"appid":                "200103",
 		}
-		var requestBody any = nil
+		var requestBody *string = nil
 		if method != "GET" {
-			requestBody = this.Json(params)
+			var body string = this.Json(params)
 			privateHeaders["Content-Type"] = "application/json"
-			payload = Add(payload, requestBody)
+			payload += body
+			requestBodyStr := body
+			requestBody = &requestBodyStr
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		privateHeaders["DC-ACCESS-SIGN"] = signature

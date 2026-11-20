@@ -1000,10 +1000,10 @@ func (this *Upbit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orderbooks map[string]any = StructResultMap(r.Value, OrderBookMapToMap)
-	var orderbook map[string]any = SafeMapTyped(orderbooks, symbol)
+	var orderbooks map[string]OrderBook = r.Value
+	var orderbook OrderBook = orderbooks[symbol]
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
+	ch <- AsyncResult[OrderBook]{Value: orderbook}
 	return nil
 }
 func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1098,7 +1098,7 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var tickers any = []any{}
+	var tickers []any = []any{}
 	if symbolsNormalized == nil {
 		// ticker/all returns every market of the requested quote currencies with a single request
 		var quoteIds []any = []any{}
@@ -1122,11 +1122,11 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 			"quote_currencies": quoteCurrencies,
 		}
 
-		r1 := <-this.PublicGetTickerAll(this.Extend(request, params))
-		if r1.Err != nil {
-			panic(r1.Err)
+		tickersRecv := <-this.PublicGetTickerAll(this.Extend(request, params))
+		if tickersRecv.Err != nil {
+			panic(tickersRecv.Err)
 		}
-		tickers = r1.Raw
+		tickers = tickersRecv.Value
 	} else {
 		var ids []string = this.MarketIds(symbolsNormalized)
 		var promises []any = []any{}
@@ -1137,11 +1137,11 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 			}, params)))
 		}
 
-		r2 := <-promiseAll(promises)
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-promiseAll(promises)
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		var responses []any = r2.Value
+		var responses []any = r1.Value
 		tickers = this.ArraysConcat(responses)
 	}
 
@@ -1220,10 +1220,10 @@ func (this *Upbit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var tickers map[string]any = StructResultMap(r.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbol)
+	var tickers map[string]Ticker = r.Value
+	var ticker Ticker = tickers[symbol]
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {

@@ -2485,18 +2485,16 @@ func (this *Grvt) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		if (tradingAccountId == nil) || (fundingAccountId == nil) {
 			panic(ArgumentsRequired(this.Id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)"))
 		}
-		fromSubAccount = func() any {
-			if fromAccount == "trading" {
-				return tradingAccountId
-			}
-			return fundingAccountId
-		}()
-		toSubAccount = func() any {
-			if toAccount == "trading" {
-				return tradingAccountId
-			}
-			return fundingAccountId
-		}()
+		if fromAccount == "trading" {
+			fromSubAccount = tradingAccountId
+		} else {
+			fromSubAccount = fundingAccountId
+		}
+		if toAccount == "trading" {
+			toSubAccount = tradingAccountId
+		} else {
+			toSubAccount = fundingAccountId
+		}
 		paramsFundingAccountId = paramsFunding
 	}
 	var request map[string]any = map[string]any{
@@ -3111,11 +3109,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes228719 []any = r1.Value
-		if retRes228719 == nil {
+		var retRes229519 []any = r1.Value
+		if retRes229519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes228719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes229519)}
 		}
 		return nil
 	}
@@ -3578,11 +3576,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes262619 []any = r1.Value
-		if retRes262619 == nil {
+		var retRes263419 []any = r1.Value
+		if retRes263419 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes262619)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes263419)}
 		}
 		return nil
 	}

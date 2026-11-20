@@ -684,7 +684,7 @@ func (this *Bingx) HandleTrades(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", []any{})
+	var dataList []any = this.SafeListSlice(message, "data", []any{})
 	var rawHash string = *this.SafeString(message, "dataType", "")
 	var hashParts []string = strings.Split(rawHash, "@")
 	var marketId *string = this.SafeString(hashParts, 0)
@@ -697,10 +697,10 @@ func (this *Bingx) HandleTrades(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade::" + *symbol
 	var trades []any = nil
-	if ccxt.IsArray(data) {
-		trades = this.ParseTrades(data, market)
+	if this.SafeDictMap(message, "data") == nil {
+		trades = this.ParseTrades(dataList, market)
 	} else {
-		trades = []any{ccxt.TradeToMap(this.ParseTrade(data, market))}
+		trades = []any{ccxt.TradeToMap(this.ParseTrade(this.SafeDict(message, "data", map[string]any{}), market))}
 	}
 	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	if stored == nil {
@@ -2265,7 +2265,7 @@ func (this *Bingx) HandleOrder(client any, message map[string]any) {
 			if orderId != nil {
 				// Linear scan bounded by ccxt.ToGetsLimit(orderbooks).Limit (default 1000), avoiding cache-specific maps.
 				// Match both id and symbol: several cached orders can share a symbol.
-				for i := 0; i < ccxt.GetArrayLength(stored); i++ {
+				for i := 0; i < len(stored.ToArray()); i++ {
 					var previousOrder any = ccxt.GetValue(stored, i)
 					if (this.SafeString(previousOrder, "id") == orderId || (this.SafeString(previousOrder, "id") != nil && orderId != nil && *this.SafeString(previousOrder, "id") == *orderId)) && (this.SafeString(previousOrder, "symbol") == this.SafeString(parsedOrder, "symbol") || (this.SafeString(previousOrder, "symbol") != nil && this.SafeString(parsedOrder, "symbol") != nil && *this.SafeString(previousOrder, "symbol") == *this.SafeString(parsedOrder, "symbol"))) {
 						var previousTimestamp *int64 = this.SafeInteger(previousOrder, "lastUpdateTimestamp")

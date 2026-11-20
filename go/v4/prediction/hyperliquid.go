@@ -1276,10 +1276,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	var response map[string]any = ccxt.SafeMapTyped(results, 0)
 	var midsResponse any = results[1]
 	var balances []any = ccxt.SafeListTyped(response, "balances")
-	var allMids any = map[string]any{}
-	if (!ccxt.IsString(midsResponse)) && !ccxt.IsArray(midsResponse) {
-		allMids = midsResponse
-	}
+	var allMids any = this.InfoDict(midsResponse)
 	var mids map[string]any = this.SafeDictMap(allMids, "mids", allMids)
 	var positions []any = []any{}
 	for i := 0; i < len(balances); i++ {
@@ -1388,18 +1385,13 @@ func (this *Hyperliquid) FindOutcomeInMarket(market map[string]any, optionalArgs
 	var sideHint *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = sideHint
 	var outcomesList []any = ccxt.SafeListTyped(market, "outcomes")
-	var normalizedHint any = func() any {
-		if (sideHint != nil) && (sideHint == nil || *sideHint != "") {
-			return strings.ToUpper(*sideHint)
-		}
-		return nil
-	}()
-	if normalizedHint != nil {
+	if (sideHint != nil) && (sideHint == nil || *sideHint != "") {
+		var normalizedHint string = strings.ToUpper(*sideHint)
 		for i := 0; i < len(outcomesList); i++ {
 			var oc map[string]any = this.SafeDictMap(outcomesList, i, map[string]any{})
 			var ocSymbol *string = this.SafeString2(oc, "outcome", "symbol", "")
 			var ocLabel *string = this.SafeStringUpper(oc, "label")
-			if ccxt.IsEqual(ocLabel, normalizedHint) || ccxt.EndsWith(ocSymbol, ccxt.Add(":", normalizedHint)) {
+			if (ocLabel != nil && *ocLabel == normalizedHint) || strings.HasSuffix(*ocSymbol, ":"+normalizedHint) {
 				return oc
 			}
 		}
@@ -1703,10 +1695,13 @@ func (this *Hyperliquid) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ccxt.PredictionOrdersToList(r.Value)
-	var first map[string]any = ccxt.SafeMapTyped(orders, 0)
+	var orders []ccxt.PredictionOrder = r.Value
+	var first ccxt.PredictionOrder
+	if len(orders) > 0 {
+		first = orders[0]
+	}
 
-	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(first)}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: first}
 	return nil
 }
 
@@ -1815,7 +1810,11 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		var status any = statuses[i]
 		var error *string = this.SafeString(status, "error")
 		if error != nil {
-			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" cancelOrders() failed for ", this.SafeString(requestIds, i, this.SafeString(requestIds, 0))), ": "), error)))
+			if messagePiece := this.SafeString(requestIds, i, this.SafeString(requestIds, 0)); messagePiece != nil {
+				messageText := this.Id + " cancelOrders() failed for " + *messagePiece + ": " + *error
+				panic(ccxt.OrderNotFound(messageText))
+			}
+			panic(ccxt.OrderNotFound(nil))
 		}
 		var success bool = (ccxt.IsEqual(status, "success")) || (this.SafeString(status, "status") != nil && *this.SafeString(status, "status") == "success")
 		if !success {
@@ -2056,7 +2055,11 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		var outcomeObj map[string]any = this.Outcome(outcome)
 		var expected *string = this.SafeString(outcomeObj, "outcome")
 		if this.SafeString(parsed, "outcome") != expected && (this.SafeString(parsed, "outcome") == nil || expected == nil || *this.SafeString(parsed, "outcome") != *expected) {
-			panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" fetchOrder() order "+id+" is not in outcome ", expected)))
+			if expected != nil {
+				messageText := this.Id + " fetchOrder() order " + id + " is not in outcome " + *expected
+				panic(ccxt.OrderNotFound(messageText))
+			}
+			panic(ccxt.OrderNotFound(nil))
 		}
 	}
 
@@ -2926,7 +2929,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		var testUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "test")
 		baseUrl = this.SafeString(testUrls, apiGroup, this.SafeString(testUrls, "public", ""))
 	} else {
-		var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+		var apiUrls map[string]any = this.UrlsApi
 		baseUrl = this.SafeString(apiUrls, apiGroup, this.SafeString(apiUrls, "public", ""))
 	}
 	var url string = *baseUrl + "/" + path

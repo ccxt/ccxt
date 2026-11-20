@@ -5579,10 +5579,13 @@ func (this *Okx) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var orderInner []any = OrdersToList(r.Value)
-		var canceledInner map[string]any = SafeMapTyped(orderInner, 0)
+		var orderInner []Order = r.Value
+		var canceledInner Order
+		if len(orderInner) > 0 {
+			canceledInner = orderInner[0]
+		}
 
-		ch <- AsyncResult[Order]{Value: OrderFromMap(canceledInner)}
+		ch <- AsyncResult[Order]{Value: canceledInner}
 		return nil
 	}
 	if this.Markets == nil {

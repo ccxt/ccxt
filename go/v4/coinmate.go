@@ -829,7 +829,10 @@ func (this *Coinmate) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	for i := 0; i < len(keys); i++ {
 		var market map[string]any = this.Market(keys[i])
 		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(data, keys[i], map[string]any{}), market))
-		AddElementToObject(result, market["symbol"], ticker)
+		var symbol *string = this.SafeString(market, "symbol")
+		if symbol != nil {
+			result[*symbol] = ticker
+		}
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}

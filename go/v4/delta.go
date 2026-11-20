@@ -2052,16 +2052,18 @@ func (this *Delta) ParseBalance(response map[string]any) map[string]any {
 		var balance map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset_id")
 		var currency map[string]any = SafeMapTyped(currenciesByNumericId, currencyId)
-		var code any = func() any {
-			if currency == nil {
-				return currencyId
-			}
-			return currency["code"]
-		}()
+		var code *string = currencyId
+		if currency != nil {
+			code = this.SafeString(currency, "code")
+		}
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "balance")
 		account["free"] = this.SafeString(balance, "available_balance")
-		AddElementToObject(result, code, account)
+		if code != nil {
+			if code != nil {
+				result[*code] = account
+			}
+		}
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
@@ -2869,11 +2871,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233115 []any = OrdersToList(r.Value)
-	if retRes233115 == nil {
+	var retRes233615 []any = OrdersToList(r.Value)
+	if retRes233615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233615)}
 	}
 	return nil
 }
@@ -2910,11 +2912,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes234615 []any = OrdersToList(r.Value)
-	if retRes234615 == nil {
+	var retRes235115 []any = OrdersToList(r.Value)
+	if retRes235115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes235115)}
 	}
 	return nil
 }
@@ -4205,7 +4207,7 @@ func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
 func (this *Delta) ParseSettlements(settlements []any, market any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(DerefScalar(settlements[i]), market))
+		result = append(result, this.ParseSettlement(settlements[i], market))
 	}
 	return result
 }

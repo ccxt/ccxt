@@ -4119,12 +4119,16 @@ func (this *Coinbaseinternational) CreateAuthToken(seconds int64, optionalArgs .
 	_ = url
 	var useEddsa bool = GetArgBool(optionalArgs, 2, false)
 	_ = useEddsa
-	var uri any = nil
+	var uri *string = nil
 	if (url != nil) && (method != nil) {
-		uri = *method + " " + strings.Replace(*url, "https://", "", 1)
-		var quesPos int = GetIndexOf(uri, "?")
+		var fullUri string = *method + " " + strings.Replace(*url, "https://", "", 1)
+		var quesPos int = strings.Index(fullUri, "?")
 		if quesPos > 0 {
-			uri = Slice(uri, 0, quesPos)
+			uriStr := fullUri[0:min(quesPos+len(fullUri)*min(max(-quesPos, 0), 1), len(fullUri))]
+			uri = &uriStr
+		} else {
+			uriStr2 := fullUri
+			uri = &uriStr2
 		}
 	}
 	var nonce string = this.RandomBytes(16)

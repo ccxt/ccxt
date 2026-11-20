@@ -6176,7 +6176,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if limit != nil {
 			request["size"] = *limit
 		}
-		var paramsOmitted any = this.Omit(paramsSubType, "account-id")
+		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "account-id")
 
 		r2 := <-this.SpotPrivateGetV1OrderOpenOrders(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -6200,7 +6200,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		var stopLoss *bool = this.SafeBool(paramsSubType, "stopLoss", false)
 		var takeProfit *bool = this.SafeBool(paramsSubType, "takeProfit", false)
 		var trailing *bool = this.SafeBool(paramsSubType, "trailing", false)
-		var paramsOmitted any = this.Omit(paramsSubType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
+		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 		if isLinear {
 			if (trigger != nil && *trigger == true) || (trailing != nil && *trailing) || (stopLossTakeProfit != nil && *stopLossTakeProfit) || (stopLoss != nil && *stopLoss) || (takeProfit != nil && *takeProfit) {
 				if trigger != nil && *trigger == true {

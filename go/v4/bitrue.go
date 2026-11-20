@@ -2139,7 +2139,7 @@ func (this *Bitrue) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var response any = []any{}
+	var response []any = []any{}
 	if *this.SafeBool(market, "spot", false) {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
@@ -2148,11 +2148,11 @@ func (this *Bitrue) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			request["limit"] = *limit // default 100, max 1000
 		}
 
-		r1 := <-this.SpotV1PublicGetTrades(this.Extend(request, params))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.SpotV1PublicGetTrades(this.Extend(request, params))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades only support spot markets"))
 	}

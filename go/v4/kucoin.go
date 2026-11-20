@@ -4650,7 +4650,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		accountType = *accountTypePtr
 	}
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
+	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
 
 	r1 := <-this.IsUTAEnabledAsync()
 	if r1.Err != nil {
@@ -4658,7 +4658,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	}
 	var uta bool = r1.Value
 	uta, paramsRequest = this.HandleOptionBoolAndParams(paramsRequest, "fetchDepositAddress", "uta", uta)
-	if accountType == "contract" {
+	if accountId != nil && *accountId == "contract" {
 
 		r2 := <-this.FetchContractDepositAddressAsync(code, paramsRequest)
 		if r2.Err != nil {
@@ -4666,7 +4666,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		}
 		ch <- AsyncResult[DepositAddress]{Value: r2.Value}
 		return nil
-	} else if (uta == true) || (accountType == "uta") || (accountType == "unified") {
+	} else if (uta == true) || (accountId != nil && *accountId == "uta") || (accountId != nil && *accountId == "unified") {
 
 		r3 := <-this.Exchange.FetchDepositAddressAsync(code, this.Extend(paramsRequest, map[string]any{
 			"uta": true,
@@ -10550,8 +10550,8 @@ func (this *Kucoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		accountType = *accountTypePtr
 	}
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
-	if accountType == "contract" {
+	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
+	if accountId != nil && *accountId == "contract" {
 
 		r1 := <-this.FetchContractDepositsAsync(code, since, limit, paramsRequest)
 		if r1.Err != nil {
@@ -10797,8 +10797,8 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		accountType = *accountTypePtr
 	}
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
-	if accountType == "contract" {
+	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
+	if accountId != nil && *accountId == "contract" {
 
 		r1 := <-this.FetchContractWithdrawalsAsync(code, since, limit, paramsRequest)
 		if r1.Err != nil {

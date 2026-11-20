@@ -1398,7 +1398,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 		var groupOrderExpiry int64 = this.Sum(this.Milliseconds(), 2419200000).(int64) // 28 days
 		for i := 0; i < totalOrderRequests; i++ {
 			if IsEqual(this.SafeInteger(orderRequests[i], "order_expiry"), int64(-1)) {
-				AddElementToObject(GetValue(orderRequests, i), "order_expiry", groupOrderExpiry)
+				AddElementToObject(orderRequests[i], "order_expiry", groupOrderExpiry)
 			}
 		}
 	}
@@ -4426,7 +4426,7 @@ func (this *Lighter) setLeverageBody(ch chan AsyncResult[map[string]any], levera
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires an marginMode parameter"))
 	}
 
-	r := <-this.ModifyLeverageAndMarginModeAsync(leverage, marginMode, symbol, paramsMarginMode)
+	r := <-this.ModifyLeverageAndMarginModeAsync(leverage, *marginMode, symbol, paramsMarginMode)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -4483,12 +4483,12 @@ func (this *Lighter) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	}
 	return nil
 }
-func (this *Lighter) ModifyLeverageAndMarginModeAsync(leverage any, marginMode any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Lighter) ModifyLeverageAndMarginModeAsync(leverage any, marginMode string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.modifyLeverageAndMarginModeBody(ch, leverage, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[string]any], leverage any, marginMode any, optionalArgs ...any) any {
+func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[string]any], leverage any, marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4502,7 +4502,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 			panic(r.Err)
 		}
 	}
-	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
+	if (marginMode != "cross") && (marginMode != "isolated") {
 		panic(BadRequest(this.Id + " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "modifyLeverageAndMarginMode", "apiKeyIndex", "api_key_index")
@@ -4534,7 +4534,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 		"market_index":            this.ParseToInt(market["id"]),
 		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
 		"margin_mode": func() int {
-			if IsEqual(marginMode, "cross") {
+			if marginMode == "cross" {
 				return 0
 			}
 			return 1

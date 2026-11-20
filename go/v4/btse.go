@@ -3766,7 +3766,8 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 	for i := 0; i < len(typesList); i++ {
 		var historyType string = *this.SafeString(typesList, i, "")
 		allowed[historyType] = true
-		AddElementToObject(allowed, this.Capitalize(strings.ToLower(historyType)), true)
+		var capitalizedType string = this.Capitalize(strings.ToLower(historyType))
+		allowed[capitalizedType] = true
 	}
 	var rows []any = []any{}
 	for i := 0; i < len(rawRows); i++ {
@@ -3815,11 +3816,11 @@ func (this *Btse) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes291415 []any = r.Value
-	if retRes291415 == nil {
+	var retRes291515 []any = r.Value
+	if retRes291515 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes291415)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes291515)}
 	}
 	return nil
 }
@@ -3858,11 +3859,11 @@ func (this *Btse) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes293115 []any = r.Value
-	if retRes293115 == nil {
+	var retRes293215 []any = r.Value
+	if retRes293215 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes293115)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes293215)}
 	}
 	return nil
 }
@@ -3901,11 +3902,11 @@ func (this *Btse) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes294815 []any = r.Value
-	if retRes294815 == nil {
+	var retRes294915 []any = r.Value
+	if retRes294915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes294815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes294915)}
 	}
 	return nil
 }
@@ -4308,11 +4309,11 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes325715 []any = PositionsToList(r1.Value)
-	if retRes325715 == nil {
+	var retRes325815 []any = PositionsToList(r1.Value)
+	if retRes325815 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes325715)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes325815)}
 	}
 	return nil
 }

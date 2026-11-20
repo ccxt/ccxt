@@ -1242,10 +1242,10 @@ func (this *Alpaca) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbolValue)
+	var tickers map[string]Ticker = r1.Value
+	var ticker Ticker = tickers[symbolValue]
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 
@@ -1597,12 +1597,11 @@ func (this *Alpaca) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	}
 	defaultTIF, paramsTimeInForce := this.HandleOptionStringAndParams(paramsCost, "createOrder", "timeInForce")
 	// the venue only accepts lowercase values, normalize the unified uppercase spellings
-	request["time_in_force"] = func() any {
-		if defaultTIF != nil {
-			return ToLower(defaultTIF)
-		}
-		return defaultTIF
-	}()
+	if defaultTIF != nil {
+		request["time_in_force"] = strings.ToLower(*defaultTIF)
+	} else {
+		request["time_in_force"] = nil
+	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsTimeInForce, []any{"timeInForce", "triggerPrice"})
 	request["client_order_id"] = this.GenerateClientOrderId(paramsOmitted)
 
@@ -1939,11 +1938,11 @@ func (this *Alpaca) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes140315 []any = OrdersToList(r.Value)
-	if retRes140315 == nil {
+	var retRes140715 []any = OrdersToList(r.Value)
+	if retRes140715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140715)}
 	}
 	return nil
 }
@@ -1985,11 +1984,11 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes142315 []any = OrdersToList(r.Value)
-	if retRes142315 == nil {
+	var retRes142715 []any = OrdersToList(r.Value)
+	if retRes142715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142715)}
 	}
 	return nil
 }

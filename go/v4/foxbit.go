@@ -2770,13 +2770,13 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
+	var bodyToSignature string = ""
 	if (method == "POST") || (method == "PUT") {
-		requestBody = this.Json(paramsOmitted)
-	}
-	var bodyToSignature any = ""
-	if requestBody != nil {
-		bodyToSignature = requestBody
+		var jsonBody string = this.Json(paramsOmitted)
+		requestBodyStr := jsonBody
+		requestBody = &requestBodyStr
+		bodyToSignature = jsonBody
 	}
 	var headersValue map[string]any = map[string]any{
 		"Content-Type":        "application/json",
@@ -2785,7 +2785,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	if urlPath == "private" {
 		this.CheckRequiredCredentials()
-		var preHash *string = SafeStringPtr(Add(strconv.FormatInt(timestamp, 10)+method+fullPath+signatureQuery, bodyToSignature))
+		var preHash string = strconv.FormatInt(timestamp, 10) + method + fullPath + signatureQuery + bodyToSignature
 		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
 		headersValue["X-FB-ACCESS-KEY"] = this.ApiKey
 		headersValue["X-FB-ACCESS-TIMESTAMP"] = strconv.FormatInt(timestamp, 10)

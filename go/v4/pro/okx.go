@@ -107,7 +107,7 @@ func (this *Okx) Describe() map[string]any {
 		},
 	})
 }
-func (this *Okx) GetUrl(channel any, optionalArgs ...any) string {
+func (this *Okx) GetUrl(channel string, optionalArgs ...any) string {
 	// for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
 	var access string = ccxt.GetArgString(optionalArgs, 0, "public")
 	_ = access
@@ -119,7 +119,7 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) string {
 	var isBusiness bool = (access == "business")
 	var isPublic bool = (access == "public")
 	var url string = *this.SafeString(this.Urls["api"], "ws", "")
-	if isBusiness || (ccxt.GetIndexOf(channel, "candle") > -1) || (ccxt.IsEqual(channel, "orders-algo")) {
+	if isBusiness || (strings.Index(channel, "candle") > -1) || (channel == "orders-algo") {
 		return url + "/business" + sandboxSuffix
 	} else if isPublic {
 		return url + "/public" + sandboxSuffix
@@ -325,7 +325,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 			panic(r1.Err)
 		}
 	}
-	var url string = this.GetUrl(channel, access)
+	var url string = this.GetUrl(*channel, access)
 
 	r2 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
 	if r2.Err != nil {
@@ -398,7 +398,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 			panic(r1.Err)
 		}
 	}
-	var url string = this.GetUrl(channel, access)
+	var url string = this.GetUrl(*channel, access)
 
 	r2 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
 	if r2.Err != nil {
@@ -925,7 +925,7 @@ func (this *Okx) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optionalA
 		"op":   "unsubscribe",
 		"args": topics,
 	}
-	var url string = this.GetUrl(channel, "public")
+	var url string = this.GetUrl(*channel, "public")
 
 	r1 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
 	if r1.Err != nil {
@@ -994,7 +994,7 @@ func (this *Okx) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs
 		"op":   "unsubscribe",
 		"args": topics,
 	}
-	var url string = this.GetUrl(channel, "public")
+	var url string = this.GetUrl(*channel, "public")
 
 	r1 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
 	if r1.Err != nil {
@@ -1100,7 +1100,7 @@ func (this *Okx) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchBidsAsks", "channel", "bbo-tbt")
-	var url string = this.GetUrl(channel, "public")
+	var url string = this.GetUrl(*channel, "public")
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -2007,7 +2007,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 		"op":   "subscribe",
 		"args": topics,
 	}
-	var url string = this.GetUrl(depth, "public")
+	var url string = this.GetUrl(*depth, "public")
 	var client ccxt.ClientInterface = this.Client(url)
 	var resyncTopics []any = []any{}
 	var resyncHashes []any = []any{}
@@ -2017,7 +2017,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 			// okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
 			resyncTopics = append(resyncTopics, func() any {
 				if i >= 0 && i < len(topics) {
-					return ccxt.DerefScalar(topics[i])
+					return topics[i]
 				}
 				return nil
 			}())
@@ -2076,23 +2076,22 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var depth any = nil
-	var paramsDepth map[string]any = nil
-	var depthPtr *string = nil
-	depthPtr, paramsDepth = this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")
-	if depthPtr != nil {
-		depth = *depthPtr
-	}
-	var limit *int64 = this.SafeInteger(paramsDepth, "limit")
+	var limit *int64 = this.SafeInteger(params, "limit")
+	depthOption, _ := this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")
+	var depth *string = depthOption
 	if limit != nil {
 		if limit != nil && *limit == 1 {
-			depth = "bbo-tbt"
+			depthStr := "bbo-tbt"
+			depth = &depthStr
 		} else if (*limit > 1) && (*limit <= 5) {
-			depth = "books5"
+			depthStr2 := "books5"
+			depth = &depthStr2
 		} else if limit != nil && *limit == 50 {
-			depth = "books50-l2-tbt" // Make sure you have VIP4 and above
+			depthStr3 := "books50-l2-tbt"
+			depth = &depthStr3 // Make sure you have VIP4 and above
 		} else if limit != nil && *limit == 400 {
-			depth = "books"
+			depthStr4 := "books"
+			depth = &depthStr4
 		}
 	}
 	var topics []any = []any{}
@@ -2100,7 +2099,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		subMessageHashes = append(subMessageHashes, ccxt.Add(ccxt.Add(depth, ":"), symbol))
+		subMessageHashes = append(subMessageHashes, *depth+":"+symbol)
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+symbol)
 		var marketId *string = this.MarketId(&symbol)
 		var topic map[string]any = map[string]any{
@@ -2113,7 +2112,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		"op":   "unsubscribe",
 		"args": topics,
 	}
-	var url string = this.GetUrl(depth, "public")
+	var url string = this.GetUrl(*depth, "public")
 
 	r1 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
 	if r1.Err != nil {

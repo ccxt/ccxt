@@ -589,7 +589,10 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
 			var m any = eventMarkets[mi]
-			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
+			var marketKey *string = this.SafeString(m, "market")
+			if marketKey != nil {
+				this.AddMarketsEntry(marketKey, m)
+			}
 		}
 	}
 	this.PopulateOutcomes()
@@ -1781,11 +1784,11 @@ func (this *Opinion) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes126115 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes126115 == nil {
+	var retRes126415 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes126415 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes126115)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes126415)}
 	}
 	return nil
 }
@@ -1826,11 +1829,11 @@ func (this *Opinion) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes127815 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes127815 == nil {
+	var retRes128115 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes128115 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes127815)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes128115)}
 	}
 	return nil
 }

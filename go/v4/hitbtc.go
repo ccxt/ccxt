@@ -1682,39 +1682,39 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	if since != nil {
 		request["from"] = *since
 	}
-	var response any = []any{}
+	var response []any = []any{}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMyTrades", paramsMarketType)
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"marginMode", "margin"})
 	if marginMode != nil {
 
-		r1 := <-this.PrivateGetMarginHistoryTrade(this.Extend(request, paramsOmitted))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetMarginHistoryTrade(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			r2 := <-this.PrivateGetSpotHistoryTrade(this.Extend(request, paramsOmitted))
-			if r2.Err != nil {
-				panic(r2.Err)
+			responseRecv := <-this.PrivateGetSpotHistoryTrade(this.Extend(request, paramsOmitted))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r2.Raw
+			response = responseRecv.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			r3 := <-this.PrivateGetFuturesHistoryTrade(this.Extend(request, paramsOmitted))
-			if r3.Err != nil {
-				panic(r3.Err)
+			responseRecv := <-this.PrivateGetFuturesHistoryTrade(this.Extend(request, paramsOmitted))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r3.Raw
+			response = responseRecv.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			r4 := <-this.PrivateGetMarginHistoryTrade(this.Extend(request, paramsOmitted))
-			if r4.Err != nil {
-				panic(r4.Err)
+			responseRecv := <-this.PrivateGetMarginHistoryTrade(this.Extend(request, paramsOmitted))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r4.Raw
+			response = responseRecv.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchMyTrades() not support this market type"))
 		}
@@ -2808,36 +2808,36 @@ func (this *Hitbtc) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchOrderTrades", paramsMarketType)
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"marginMode", "margin"})
-	var response any = []any{}
+	var response []any = []any{}
 	if marginMode != nil {
 
-		r1 := <-this.PrivateGetMarginHistoryTrade(this.Extend(request, paramsOmitted))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetMarginHistoryTrade(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			r2 := <-this.PrivateGetSpotHistoryTrade(this.Extend(request, paramsOmitted))
-			if r2.Err != nil {
-				panic(r2.Err)
+			responseRecv := <-this.PrivateGetSpotHistoryTrade(this.Extend(request, paramsOmitted))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r2.Raw
+			response = responseRecv.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			r3 := <-this.PrivateGetFuturesHistoryTrade(this.Extend(request, paramsOmitted))
-			if r3.Err != nil {
-				panic(r3.Err)
+			responseRecv := <-this.PrivateGetFuturesHistoryTrade(this.Extend(request, paramsOmitted))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r3.Raw
+			response = responseRecv.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			r4 := <-this.PrivateGetMarginHistoryTrade(this.Extend(request, paramsOmitted))
-			if r4.Err != nil {
-				panic(r4.Err)
+			responseRecv := <-this.PrivateGetMarginHistoryTrade(this.Extend(request, paramsOmitted))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r4.Raw
+			response = responseRecv.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchOrderTrades() not support this market type"))
 		}

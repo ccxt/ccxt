@@ -1712,7 +1712,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 		panic(NotSupported(this.Id + " safeDeterministicCall() does not support the " + method + " method"))
 	}
 	var errors int = 0
-	var paramsOmitted any = this.Omit(paramsMaxRetries, "until")
+	var paramsOmitted map[string]any = this.OmitDict(paramsMaxRetries, "until")
 	// the exchange returns the most recent data, so we do not need to pass until into paginated calls
 	// the correct util value will be calculated inside of the method
 	for int64(errors) <= maxRetries {
@@ -2090,7 +2090,7 @@ func (this *Bullish) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 	methodResolved, paramsMethod := this.HandleOptionStringAndParams(paramsSinceAndUntil, "fetchOrders", "method", "privateGetV2HistoryOrders")
-	var response any = []any{}
+	var response []any = []any{}
 	if methodResolved != nil && *methodResolved == "privateGetV2Orders" {
 		//
 		//     [
@@ -2122,18 +2122,18 @@ func (this *Bullish) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		//     ]
 		//
 
-		r3 := <-this.PrivateGetV2Orders(this.Extend(request, paramsMethod))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateGetV2Orders(this.Extend(request, paramsMethod))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	} else if methodResolved != nil && *methodResolved == "privateGetV2HistoryOrders" {
 
-		r4 := <-this.PrivateGetV2HistoryOrders(this.Extend(request, paramsMethod))
-		if r4.Err != nil {
-			panic(r4.Err)
+		responseRecv := <-this.PrivateGetV2HistoryOrders(this.Extend(request, paramsMethod))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r4.Raw
+		response = responseRecv.Value
 	} else {
 		panic(BadRequest(this.Id + " fetchOrders() method parameter must be either \"privateGetV2Orders\" or \"privateGetV2HistoryOrders\""))
 	}

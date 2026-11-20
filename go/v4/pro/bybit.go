@@ -215,7 +215,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[string], opti
 	var isSpot bool
 	var typeVar *string = nil
 	var market map[string]any = nil
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var accessibilityUrls map[string]any = ccxt.SafeMapTyped(wsUrls, accessibility)
 	var url any = this.UrlsApi["ws"]
 	if symbol != nil {
@@ -809,12 +809,12 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 	if isSpot {
 		typeVar = "spot"
 	}
+	if (updateType != "snapshot") && (updateType != "delta") {
+		return
+	}
 	var symbol any = nil
-	var parsed any = nil
-	if updateType == "snapshot" {
-		parsed = ccxt.TickerToMap(this.ParseTicker(data))
-		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
-	} else if updateType == "delta" {
+	var tickerInput any = data
+	if updateType == "delta" {
 		var topicParts []string = strings.Split(topic, ".")
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
@@ -823,15 +823,18 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 		// update the info in place
 		var ticker any = ccxt.TickerToMap(this.Tickers[symbol.(string)])
 		var rawTicker map[string]any = this.SafeDictMap(ticker, "info", map[string]any{})
-		var merged map[string]any = this.Extend(rawTicker, data)
-		parsed = ccxt.TickerToMap(this.ParseTicker(merged))
+		tickerInput = this.Extend(rawTicker, data)
 	}
-	if (ccxt.IsEqual(parsed, nil)) || (symbol == nil) {
+	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(tickerInput))
+	if updateType == "snapshot" {
+		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
+	}
+	if symbol == nil {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	ccxt.AddElementToObject(parsed, "timestamp", timestamp)
-	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
+	parsed["timestamp"] = timestamp
+	parsed["datetime"] = this.Iso8601(timestamp)
 	if wsKey, ok := symbol.(string); ok {
 		this.Tickers[wsKey] = ccxt.TickerFromMap(parsed)
 	}
@@ -1365,21 +1368,21 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var symbolsNormalizedElem95751 *string = nil
+	var symbolsNormalizedElem96051 *string = nil
 	if 0 >= 0 && 0 < len(symbolsNormalized) {
-		symbolsNormalizedElem95751 = &symbolsNormalized[0]
+		symbolsNormalizedElem96051 = &symbolsNormalized[0]
 	}
-	r1 := <-this.GetUrlByMarketTypeAsync(symbolsNormalizedElem95751, false, "watchOrderBook", params)
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsNormalizedElem96051, false, "watchOrderBook", params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
-	var symbolsNormalizedElem95936 *string = nil
+	var symbolsNormalizedElem96236 *string = nil
 	if 0 >= 0 && 0 < len(symbolsNormalized) {
-		symbolsNormalizedElem95936 = &symbolsNormalized[0]
+		symbolsNormalizedElem96236 = &symbolsNormalized[0]
 	}
-	var market map[string]any = this.Market(symbolsNormalizedElem95936)
+	var market map[string]any = this.Market(symbolsNormalizedElem96236)
 	if limit != nil {
 		var limits map[string]any = map[string]any{
 			"spot":    []any{1, 50, 200, 1000},
@@ -3285,8 +3288,8 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 		if this.SafeDictMap(this.Balance, account) == nil {
 			this.Balance[*account] = map[string]any{}
 		}
-		ccxt.AddElementToObject(this.Balance[*account], "info", info)
 		var balance map[string]any = this.SafeDictMap(this.Balance, account, map[string]any{})
+		balance["info"] = info
 		var timestamp *int64 = this.SafeInteger(message, "ts")
 		if timestamp != nil {
 			balance["timestamp"] = *timestamp
@@ -3844,7 +3847,7 @@ func (this *Bybit) HandleUnSubscribe(client any, message map[string]any) map[str
 			continue
 		}
 		if strings.HasPrefix(messageHash, "unsubscribe") {
-			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+			var subscription any = client.(ccxt.ClientInterface).SubscriptionGet(messageHash)
 			var subId *string = this.SafeString(subscription, "id")
 			if reqId != subId && (reqId == nil || subId == nil || *reqId != *subId) {
 				continue

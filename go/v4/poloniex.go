@@ -1714,10 +1714,10 @@ func (this *Poloniex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-		var contractTicker map[string]any = SafeMapTyped(tickers, symbol)
+		var tickers map[string]Ticker = r1.Value
+		var contractTicker Ticker = tickers[symbol]
 
-		ch <- AsyncResult[Ticker]{Value: TickerFromMap(contractTicker)}
+		ch <- AsyncResult[Ticker]{Value: contractTicker}
 		return nil
 	}
 
@@ -2401,7 +2401,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	var isTrigger *bool = this.SafeBool2(paramsMarketType, "trigger", "stop")
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"trigger", "stop"})
-	var response any = []any{}
+	var response []any = []any{}
 	if marketType == nil || *marketType != "spot" {
 
 		r1 := <-this.SwapPrivateGetV3TradeOrderOpens(this.Extend(request, paramsOmitted))
@@ -2448,21 +2448,21 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		//                "qCcy": "USDT"
 		//            },
 		//
-		response = this.SafeList(raw, "data", []any{})
+		response = ArrayTyped(this.SafeList(raw, "data", []any{}))
 	} else if isTrigger != nil && *isTrigger == true {
 
-		r2 := <-this.PrivateGetSmartorders(this.Extend(request, paramsOmitted))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateGetSmartorders(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else {
 
-		r3 := <-this.PrivateGetOrders(this.Extend(request, paramsOmitted))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateGetOrders(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	}
 	//
 	//     [
@@ -2784,7 +2784,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var entryMarket any = func() any {
 			if i >= 0 && i < len(ordersMarkets) {
-				return DerefScalar(ordersMarkets[i])
+				return ordersMarkets[i]
 			}
 			return nil
 		}()
@@ -3208,7 +3208,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		market = this.Market(symbol)
 		request["symbols"] = []any{market["id"]}
 	}
-	var response any = []any{}
+	var response []any = []any{}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") {
 
@@ -3231,7 +3231,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		//        ]
 		//    }
 		//
-		response = this.SafeList(raw, "data", []any{})
+		response = ArrayTyped(this.SafeList(raw, "data", []any{}))
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 		return nil
@@ -3240,18 +3240,18 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"trigger", "stop"})
 	if isTrigger != nil && *isTrigger == true {
 
-		r2 := <-this.PrivateDeleteSmartorders(this.Extend(request, paramsOmitted))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateDeleteSmartorders(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else {
 
-		r3 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOmitted))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateDeleteOrders(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	}
 
 	//

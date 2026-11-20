@@ -1813,7 +1813,7 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	if ccxt.IsEqual(this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe), nil) {
+	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		if symbol != nil && this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
@@ -2182,10 +2182,8 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		entry["info"] = message
-	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+	balance["info"] = message
 	var messageValue map[string]any = this.SafeDictMap(message, "a", message)
 	var B []any = ccxt.SafeListTyped(messageValue, "B")
 	var wallet string = *this.SafeString(this.Options, "wallet", "wb")

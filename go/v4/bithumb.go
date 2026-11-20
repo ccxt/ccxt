@@ -1356,7 +1356,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			var response map[string]any = SafeMapTyped(responses, i)
 			var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 			var timestamp *int64 = this.SafeInteger(data, "date")
-			var tickers any = this.Omit(data, "date")
+			var tickers map[string]any = this.OmitDict(data, "date")
 			var currencyIds []string = ObjectKeys(tickers)
 			for j := 0; j < len(currencyIds); j++ {
 				var currencyId string = currencyIds[j]
@@ -1588,7 +1588,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			return nil
 		}
 		var until *int64 = this.SafeInteger(paramsGeneration, "until")
-		var requestParams any = this.Omit(paramsGeneration, []any{"until", "paginate"})
+		var requestParams map[string]any = this.OmitDict(paramsGeneration, []any{"until", "paginate"})
 		request["market"] = this.GetGen2MarketId(market)
 		// the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
 		var count int64 = 200
@@ -3974,7 +3974,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[DepositAddress
 		"currency": currency["id"],
 	}
 	var network *string = this.SafeString2(paramsGeneration, "network", "net_type")
-	var paramsOmitted any = this.Omit(paramsGeneration, "network")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "network")
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " createDepositAddress() requires a network parameter"))
 	}
@@ -4035,7 +4035,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"currency": currency["id"],
 	}
 	var network *string = this.SafeString2(paramsGeneration, "network", "net_type")
-	var paramsOmitted any = this.Omit(paramsGeneration, "network")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "network")
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " fetchDepositAddress() requires a network parameter"))
 	}

@@ -94,7 +94,7 @@ func (this *Modetrade) WatchPublicAsync(messageHash string, message map[string]a
 func (this *Modetrade) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash string, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var wsUrl *string = this.SafeString(wsUrls, "public")
 	if wsUrl == nil {
@@ -747,7 +747,7 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) map[string]a
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString2(trade, "executedPrice", "price")
 	var amount *string = this.SafeString2(trade, "executedQuantity", "size")
 	var cost *string = ccxt.Precise.StringMul(price, amount)
@@ -822,7 +822,7 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var wsUrl *string = this.SafeString(wsUrls, "private")
 	if wsUrl == nil {
@@ -885,7 +885,7 @@ func (this *Modetrade) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var wsUrl *string = this.SafeString(wsUrls, "private")
 	if wsUrl == nil {
@@ -920,7 +920,7 @@ func (this *Modetrade) watchPrivateMultipleBody(ch chan ccxt.AsyncResult[[]any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var wsUrl *string = this.SafeString(wsUrls, "private")
 	if wsUrl == nil {
@@ -1149,7 +1149,7 @@ func (this *Modetrade) ParseWsOrder(order any, optionalArgs ...any) map[string]a
 	var orderId *string = this.SafeString(order, "orderId")
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
@@ -1335,7 +1335,7 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	var messageHash string = "myTrades"
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol")
 	var trade map[string]any = this.ParseWsTrade(message, market)
 	var trades ccxt.WsArrayCache = this.MyTrades
 	if trades == nil {
@@ -1345,7 +1345,11 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	}
 	trades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
+	var symbolSpecificMessageHash *string = nil
+	if symbol != nil {
+		symbolSpecificMessageHashValue := messageHash + ":" + *symbol
+		symbolSpecificMessageHash = &symbolSpecificMessageHashValue
+	}
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
 
@@ -1393,7 +1397,7 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	} else {
 		messageHashes = append(messageHashes, "positions")
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var wsUrl *string = this.SafeString(wsUrls, "private")
 	if wsUrl == nil {

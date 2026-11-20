@@ -2995,7 +2995,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			}(), rawItem)
 			var parsedItem map[string]any = this.ParsePredictionOrder(enriched, func() any {
 				if i >= 0 && i < len(outcomes) {
-					return ccxt.DerefScalar(outcomes[i])
+					return outcomes[i]
 				}
 				return nil
 			}())
@@ -3350,7 +3350,7 @@ func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress st
 		var eoaSig any = this.SignMessage(encoded, this.PrivateKey)
 		// lowercase: intToBase16 emits uppercase hex in some target languages, but the
 		// signature is case-insensitive bytes and the rest of the hex is lowercase
-		var eoaSignature string = "0x" + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "r")) + this.Remove0xPrefix(ccxt.GetValue(eoaSig, "s")) + this.IntToBase16(ccxt.GetValue(eoaSig, "v"))
+		var eoaSignature string = "0x" + this.Remove0xPrefix(this.SafeString(eoaSig, "r")) + this.Remove0xPrefix(this.SafeString(eoaSig, "s")) + this.IntToBase16(ccxt.GetValue(eoaSig, "v"))
 		return strings.ToLower(eoaSignature)
 	}
 	// POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -4153,7 +4153,7 @@ func (this *Polymarket) SignClobAuth(address any, timestamp string, nonce any) s
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, messageData)
 	var sig any = this.SignMessage(encoded, this.PrivateKey)
-	return "0x" + this.Remove0xPrefix(ccxt.GetValue(sig, "r")) + this.Remove0xPrefix(ccxt.GetValue(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
+	return "0x" + this.Remove0xPrefix(this.SafeString(sig, "r")) + this.Remove0xPrefix(this.SafeString(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
 }
 
 /**

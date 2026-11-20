@@ -2875,21 +2875,21 @@ func (this *Toobit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["limit"] = *limit
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
-	var response any = []any{}
+	var response []any = []any{}
 	if marketType != nil && *marketType == "spot" {
 
-		r1 := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsMarketType))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsMarketType))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 
-		r2 := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsMarketType))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsMarketType))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
@@ -2944,14 +2944,14 @@ func (this *Toobit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		requestUntil["symbol"] = market["id"]
 	}
 	marketType, _ := this.HandleMarketTypeAndParams("fetchOrders", market, paramsUntil)
-	var response any = []any{}
+	var response []any = []any{}
 	if marketType != nil && *marketType == "spot" {
 
-		r1 := <-this.PrivateGetApiV1SpotTradeOrders(requestUntil)
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetApiV1SpotTradeOrders(requestUntil)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchOrders() is not supported for " + *marketType + " markets"))
 	}
@@ -3082,21 +3082,21 @@ func (this *Toobit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	request["symbol"] = market["id"]
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
-	var response any = []any{}
+	var response []any = []any{}
 	if marketType != nil && *marketType == "spot" {
 
-		r1 := <-this.PrivateGetApiV1AccountTrades(this.Extend(requestUntil, paramsUntil))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetApiV1AccountTrades(this.Extend(requestUntil, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 
-		r2 := <-this.PrivateGetApiV1FuturesUserTrades(requestUntil)
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateGetApiV1FuturesUserTrades(requestUntil)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
@@ -3495,21 +3495,21 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
-	var response any = []any{}
+	var response []any = []any{}
 	if typeVar == "deposits" {
 
-		r1 := <-this.PrivateGetApiV1AccountDepositOrders(this.Extend(requestUntil, paramsUntil))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetApiV1AccountDepositOrders(this.Extend(requestUntil, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else if typeVar == "withdrawals" {
 
-		r2 := <-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(requestUntil, paramsUntil))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(requestUntil, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	}
 	var transactType string
 	if typeVar == "deposits" {
@@ -3518,7 +3518,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 		transactType = "withdrawal"
 	}
 	var results []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		results = append(results, this.Extend(this.ParseTransactionWithType(this.SafeDictMap(response, i, map[string]any{}), currency, transactType), paramsUntil))
 	}
 	var sorted []any = this.SortBy(results, "timestamp")

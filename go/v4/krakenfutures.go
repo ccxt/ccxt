@@ -1230,7 +1230,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 	//        "more_candles": true
 	//    }
 	//
-	var candles []any = SafeListTyped(response, "candles")
+	var candles []any = this.SafeListSlice(response, "candles", []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limitResolved))}
 	return nil

@@ -916,7 +916,11 @@ func (this *Deepcoin) HandleOHLCV(client any, message map[string]any) {
 		var ohlcv any = this.ParseWsOHLCV(data, market)
 		stored.Append(ohlcv)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv"+"::"+*symbol+"::", timeframe))
+	var messageHash *string = nil
+	if timeframe != nil {
+		messageHashValue := "ohlcv" + "::" + *symbol + "::" + *timeframe
+		messageHash = &messageHashValue
+	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Deepcoin) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1082,7 +1086,7 @@ func (this *Deepcoin) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var typeVar *string = this.SafeString(message, "t")
-	if ccxt.IsEqual(orderbook.Fields().Timestamp, nil) {
+	if this.SafeInteger(orderbook, "timestamp") == nil {
 		if typeVar != nil && *typeVar == "f" {
 			// snapshot
 			this.HandleOrderBookSnapshot(client, message)

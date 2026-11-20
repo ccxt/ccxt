@@ -596,12 +596,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		var parts []string = strings.Split(key, "_")
 		var currencyId *string = this.SafeString(parts, 0)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.Account()
-		if code != nil {
-			if _, ok := this.Balance[*code]; ok {
-				account = this.Balance[*code]
-			}
-		}
+		var account map[string]any = this.SafeDictMap(this.Balance, code, this.Account())
 		var second *string = this.SafeString(parts, 1)
 		var freeOrTotal string
 		if second != nil && *second == "available" {
@@ -609,7 +604,11 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 		} else {
 			freeOrTotal = "total"
 		}
-		ccxt.AddElementToObject(account, freeOrTotal, this.SafeString(data, key))
+		if ptrValue := this.SafeString(data, key); ptrValue != nil {
+			account[freeOrTotal] = *ptrValue
+		} else {
+			account[freeOrTotal] = nil
+		}
 		if code != nil {
 			this.Balance[*code] = account
 		}

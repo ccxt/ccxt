@@ -1170,14 +1170,14 @@ func (this *Bitopro) InsertMissingCandles(candles []any, distanceInMs int64, sin
 	} else {
 		timestamp = since
 	}
-	var i any = 0
+	var i int = 0
 	var candleLength int = len(candles)
 	var resultLength int = 0
-	for (int64(resultLength) < limit) && (IsLessThan(i, candleLength)) {
+	for (int64(resultLength) < limit) && (i < candleLength) {
 		var candle any = this.SafeList(candles, i, []any{})
 		if IsEqual(GetValue(candle, 0), timestamp) {
 			result = append(result, candle)
-			i = this.Sum(i, 1)
+			i = i + 1
 		} else {
 			// set open, high, low to close
 			var closeValue any = this.SafeValue(copyFrom, 4)
@@ -2376,7 +2376,11 @@ func (this *Bitopro) withdrawBody(ch chan AsyncResult[Transaction], code string,
 			networkId = this.SafeString(networks, this.SafeString(this.NetworkAliases, requestedNetwork, requestedNetwork))
 		}
 		if networkId == nil {
-			panic(ExchangeError(Add(this.Id+" invalid network ", requestedNetwork)))
+			if requestedNetwork != nil {
+				messageText := this.Id + " invalid network " + *requestedNetwork
+				panic(ExchangeError(messageText))
+			}
+			panic(ExchangeError(nil))
 		}
 		request["protocol"] = networkId
 	}

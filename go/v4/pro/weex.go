@@ -1131,7 +1131,11 @@ func (this *Weex) HandleOHLCV(client any, message map[string]any) {
 		var parsed any = this.ParseWsOHLCV(entry)
 		stored.Append(parsed)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
+	var messageHash *string = nil
+	if timeframe != nil {
+		messageHashValue := "ohlcv::" + *symbol + "::" + *timeframe
+		messageHash = &messageHashValue
+	}
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }

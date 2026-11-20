@@ -1781,7 +1781,7 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 	// trigger - undefined entries are removed and later entries shift left,
 	// the venue rebuilds the same compact array from the body to verify
 	var row []any = []any{instrumentId, isBuy, priceString, quantity, tif, postOnly, reduceOnlyValue, clientOrderId}
-	var signable any = this.CompactSignable(row)
+	var signable []any = this.CompactSignable(row)
 	var entry map[string]any = map[string]any{
 		"iid": instrumentId,
 		"buy": isBuy,
@@ -1945,7 +1945,7 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var marketInner any = func() any {
 			if i >= 0 && i < len(ordersMarkets) {
-				return DerefScalar(ordersMarkets[i])
+				return ordersMarkets[i]
 			}
 			return nil
 		}()
@@ -2617,10 +2617,13 @@ func (this *Polymarket) fetchPositionBody(ch chan AsyncResult[Position], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = PositionsToList(r.Value)
-	var position map[string]any = SafeMapTyped(positions, 0)
+	var positions []Position = r.Value
+	var position Position
+	if len(positions) > 0 {
+		position = positions[0]
+	}
 
-	ch <- AsyncResult[Position]{Value: PositionFromMap(position)}
+	ch <- AsyncResult[Position]{Value: position}
 	return nil
 }
 func (this *Polymarket) ParsePosition(position any, optionalArgs ...any) Position {
@@ -4021,7 +4024,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[map[string]any], sig
  * @param {any[]} row the positional array to compact
  * @returns {any[]} the compacted array
  */
-func (this *Polymarket) CompactSignable(row []any) any {
+func (this *Polymarket) CompactSignable(row []any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(row); i++ {
 		if !IsEqual(DerefScalar(row[i]), nil) {

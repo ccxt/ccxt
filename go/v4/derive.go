@@ -1870,7 +1870,7 @@ func (this *Derive) ParseSettlements(settlements []any, optionalArgs ...any) []a
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(DerefScalar(settlements[i]), market))
+		result = append(result, this.ParseSettlement(settlements[i], market))
 	}
 	return result
 }

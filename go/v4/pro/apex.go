@@ -597,30 +597,36 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 	var topic string = *this.SafeString(message, "topic", "")
 	var updateType string = *this.SafeString(message, "type", "")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var symbol any = nil
 	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
+	var symbol *string = this.SafeString(parsed, "symbol")
 	if updateType == "snapshot" {
 		parsed = ccxt.TickerToMap(this.ParseTicker(data))
-		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
+		symbol = this.SafeString(parsed, "symbol")
 	} else if updateType == "delta" {
 		var topicParts []string = strings.Split(topic, ".")
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil)
-		symbol = ccxt.DerefScalar(this.SafeString(market, "symbol"))
-		var ticker any = ccxt.TickerToMap(this.Tickers[symbol.(string)])
+		symbol = this.SafeString(market, "symbol")
+		var ticker any = ccxt.TickerToMap(this.Tickers[*symbol])
 		var rawTicker map[string]any = this.SafeDictMap(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = ccxt.TickerToMap(this.ParseTicker(merged))
+	} else {
+		symbol = nil
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(message, "ts", 0.001)
 	parsed["timestamp"] = timestamp
 	parsed["datetime"] = this.Iso8601(timestamp)
-	if wsKey, ok := symbol.(string); ok {
-		this.Tickers[wsKey] = ccxt.TickerFromMap(parsed)
+	if symbol != nil {
+		this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
-	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[symbol.(string)]), messageHash)
+	var messageHash *string = nil
+	if symbol != nil {
+		messageHashValue := "ticker:" + *symbol
+		messageHash = &messageHashValue
+	}
+	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
 }
 
 /**
@@ -790,7 +796,11 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 		var parsed any = this.ParseWsOHLCV(data[i])
 		stored.Append(parsed)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
+	var messageHash *string = nil
+	if timeframe != nil {
+		messageHashValue := "ohlcv::" + *symbol + "::" + *timeframe
+		messageHash = &messageHashValue
+	}
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }

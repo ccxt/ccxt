@@ -298,8 +298,8 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot) {
 		var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
 		var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
-		var asksLength int = ccxt.GetArrayLength(storedAsks)
-		var bidsLength int = ccxt.GetArrayLength(storedBids)
+		var asksLength int = ccxt.IOrderBookSide.Len(storedAsks)
+		var bidsLength int = ccxt.IOrderBookSide.Len(storedBids)
 		var payload any = ""
 		for i := 0; i < 10; i++ {
 			if i < bidsLength {

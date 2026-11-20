@@ -3851,7 +3851,11 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			fetchMargins = true
 			promises = append(promises, EndpointRaw(this.PublicMarginGetV2MarginCurrencies(params)))
 		} else {
-			panic(NotSupported(Add(Add(this.Id+" does not support ", typeVar), " market")))
+			if typeVar != nil {
+				messageText := this.Id + " does not support " + *typeVar + " market"
+				panic(NotSupported(messageText))
+			}
+			panic(NotSupported(nil))
 		}
 	}
 	var spotInstrumentsIndex int = len(promises)

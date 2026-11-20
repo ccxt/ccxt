@@ -97,7 +97,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 	if ccxt.EvalTruthy(isContract) {
 		tradeType = "contract"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var apiUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(apiUrls, tradeType)
 	if !ccxt.EvalTruthy(isContract) {
 		if url != nil {
@@ -349,7 +349,7 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	var subscription map[string]any = map[string]any{
 		"id": id,
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var apiUrls map[string]any = this.UrlsApiSections["ws"]
 	var url string = *this.SafeString(apiUrls, tradeType, "") + "/" + tail
 
 	r2 := <-this.Watch(url, messageHash, request, messageHash, subscription)
@@ -442,7 +442,7 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 			tail = "market"
 		}
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var apiUrls map[string]any = this.UrlsApiSections["ws"]
 	var url string = *this.SafeString(apiUrls, tradeType, "") + "/" + tail
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
@@ -1146,7 +1146,7 @@ func (this *Xt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], op
 			panic(r.Err)
 		}
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var apiUrls map[string]any = this.UrlsApiSections["ws"]
 	var url string = *this.SafeString(apiUrls, "contract", "") + "/" + "user"
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
@@ -1779,14 +1779,14 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
 		var event string = *this.SafeString(message, "event", "")
 		var splitEvent []string = strings.Split(event, ",")
 		event = *this.SafeString(splitEvent, 0, "")
 		var tradeType string = "spot"
-		if (data != nil) && (ccxt.InOp(data, "fu")) {
+		if _, ok := data["fu"]; (data != nil) && ok {
 			tradeType = "contract"
 		}
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)

@@ -5549,7 +5549,7 @@ func (this *Weex) setMarginModeBody(ch chan AsyncResult[map[string]any], marginM
 	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
-func (this *Weex) EncodeMarginMode(marginMode any) any {
+func (this *Weex) EncodeMarginMode(marginMode string) any {
 	var marginTypes map[string]any = map[string]any{
 		"cross":    "CROSSED",
 		"isolated": "ISOLATED",
@@ -5711,7 +5711,7 @@ func (this *Weex) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params)
 	if marginMode != nil {
-		request["marginType"] = this.EncodeMarginMode(marginMode)
+		request["marginType"] = this.EncodeMarginMode(*marginMode)
 	}
 	var isolatedLongLeverage *float64 = this.SafeNumber(paramsMarginMode, "isolatedLongLeverage")
 	var isolatedShortLeverage *float64 = this.SafeNumber(paramsMarginMode, "isolatedShortLeverage")
@@ -5825,7 +5825,7 @@ func (this *Weex) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 	}
 	var request map[string]any = map[string]any{
 		"symbol":        market["id"],
-		"marginType":    this.EncodeMarginMode(marginMode),
+		"marginType":    this.EncodeMarginMode(*marginMode),
 		"separatedType": separatedType,
 	}
 

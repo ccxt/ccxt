@@ -744,11 +744,11 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 		var market map[string]any = this.Market(this.SafeString(symbolAndTimeframe, 0, ""))
 		var timeframeString *string = this.SafeString(symbolAndTimeframe, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
-		var intervalInMarketIdsByInterval bool
+		var has1 bool
 		if interval != nil {
-			_, intervalInMarketIdsByInterval = marketIdsByInterval[*interval]
+			_, has1 = marketIdsByInterval[*interval]
 		}
-		if !(intervalInMarketIdsByInterval) {
+		if !has1 {
 			if interval != nil {
 				marketIdsByInterval[*interval] = []any{}
 			}
@@ -867,11 +867,11 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		var market map[string]any = this.Market(this.SafeString(symbolAndTimeframe, 0, ""))
 		var timeframeString *string = this.SafeString(symbolAndTimeframe, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
-		var intervalInMarketIdsByInterval bool
+		var has1 bool
 		if interval != nil {
-			_, intervalInMarketIdsByInterval = marketIdsByInterval[*interval]
+			_, has1 = marketIdsByInterval[*interval]
 		}
-		if !(intervalInMarketIdsByInterval) {
+		if !has1 {
 			if interval != nil {
 				marketIdsByInterval[*interval] = []any{}
 			}

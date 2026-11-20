@@ -1569,7 +1569,11 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	var chains map[string]any = ccxt.SafeMapTyped(this.Options, "chains")
 	var chainConfig map[string]any = ccxt.SafeMapTyped(chains, networkId)
 	if chainConfig == nil {
-		panic(ccxt.NotSupported(ccxt.Add(this.Id+" createOrder() has no on-chain config for network ", networkId)))
+		if networkId != nil {
+			messageText := this.Id + " createOrder() has no on-chain config for network " + *networkId
+			panic(ccxt.NotSupported(messageText))
+		}
+		panic(ccxt.NotSupported(nil))
 	}
 	var rpcUrl *string = this.SafeString2(params, "rpcUrl", "rpc", this.SafeString(chainConfig, "rpcUrl"))
 	var predictionMarket *string = this.SafeString(chainConfig, "predictionMarket")
@@ -1606,8 +1610,10 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		}
 	}
 	var skipWaitForReceipt *bool = this.SafeBool(params, "skipWaitForReceipt", hasPreBroadcastTxHash)
-	var txHash any = txHashParam
-	if ccxt.IsEqual(txHash, nil) {
+	var txHash any = nil
+	if txHashParam != nil {
+		txHash = txHashParam
+	} else {
 
 		r3 := <-this.SendEvmTransactionAsync(rpcUrl, this.ParseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit)
 		if r3.Err != nil {
@@ -2070,12 +2076,12 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		return nil
 	}
 	var traderParam *string = this.SafeString2(params, "trader", "address")
-	var trader any = func() any {
-		if traderParam != nil {
-			return traderParam
-		}
-		return this.WalletAddressOrUndefined()
-	}()
+	var trader any = nil
+	if traderParam != nil {
+		trader = traderParam
+	} else {
+		trader = this.WalletAddressOrUndefined()
+	}
 	if ccxt.IsEqual(trader, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey"))
 	}
@@ -2592,11 +2598,11 @@ func (this *Myriad) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes178319 []any = ccxt.PredictionOrdersToList(r1.Value)
-		if retRes178319 == nil {
+		var retRes179019 []any = ccxt.PredictionOrdersToList(r1.Value)
+		if retRes179019 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes178319)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes179019)}
 		}
 		return nil
 	}
@@ -2686,11 +2692,11 @@ func (this *Myriad) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes184415 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes184415 == nil {
+	var retRes185115 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes185115 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes184415)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes185115)}
 	}
 	return nil
 }
@@ -2730,11 +2736,11 @@ func (this *Myriad) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes186215 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes186215 == nil {
+	var retRes186915 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes186915 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes186215)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes186915)}
 	}
 	return nil
 }
@@ -2774,11 +2780,11 @@ func (this *Myriad) fetchCanceledOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes188015 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes188015 == nil {
+	var retRes188715 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes188715 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes188015)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes188715)}
 	}
 	return nil
 }
@@ -5127,7 +5133,7 @@ func (this *Myriad) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	var ohlcvcLength int = len(ohlcvc)
 	for i := 0; i < ohlcvcLength; i++ {
 		var candle []any = ccxt.ArrayTyped(ohlcvc[i])
-		result = append(result, []any{ccxt.DerefScalar(candle[0]), ccxt.DerefScalar(candle[1]), ccxt.DerefScalar(candle[2]), ccxt.DerefScalar(candle[3]), ccxt.DerefScalar(candle[4]), ccxt.DerefScalar(candle[5])})
+		result = append(result, []any{candle[0], candle[1], candle[2], candle[3], candle[4], candle[5]})
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(result, since, limit, 0, true))}

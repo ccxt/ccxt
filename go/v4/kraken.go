@@ -1783,10 +1783,13 @@ func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[LedgerEntry], id st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var items []any = LedgerEntriesToList(r.Value)
-	var entry map[string]any = SafeMapTyped(items, 0)
+	var items []LedgerEntry = r.Value
+	var entry LedgerEntry
+	if len(items) > 0 {
+		entry = items[0]
+	}
 
-	ch <- AsyncResult[LedgerEntry]{Value: LedgerEntryFromMap(entry)}
+	ch <- AsyncResult[LedgerEntry]{Value: entry}
 	return nil
 }
 func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -4804,7 +4807,11 @@ func (this *Kraken) transferBody(ch chan AsyncResult[TransferEntry], code string
 		"asset":  currency["id"],
 	}
 	if fromAccountParsed == nil || *fromAccountParsed != "Spot Wallet" {
-		panic(BadRequest(this.Id + " transfer cannot transfer from " + *fromAccountParsed + " to " + *toAccountParsed + ". Use krakenfutures instead to transfer from the futures account."))
+		if fromAccountParsed != nil && toAccountParsed != nil {
+			messageText := this.Id + " transfer cannot transfer from " + *fromAccountParsed + " to " + *toAccountParsed + ". Use krakenfutures instead to transfer from the futures account."
+			panic(BadRequest(messageText))
+		}
+		panic(BadRequest(nil))
 	}
 
 	r1 := <-this.PrivatePostWalletTransfer(this.Extend(request, params))

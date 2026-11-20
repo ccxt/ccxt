@@ -386,13 +386,11 @@ func (this *PredictionExchange) EventsList() []any {
 	for i := 0; i < len(keys); i++ {
 		var event any = this.Events[keys[i]]
 		var identity *string = this.SafeString2(event, "id", "event", keys[i])
-		if !(func() bool {
-			if identity == nil {
-				return false
-			}
-			_, ok := seen[*identity]
-			return ok
-		}()) {
+		var has1 bool
+		if identity != nil {
+			_, has1 = seen[*identity]
+		}
+		if !has1 {
 			if identity != nil {
 				seen[*identity] = true
 			}
@@ -2293,10 +2291,13 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 	if byteLength < 56 {
 		return Add(this.IntToBase16(128+byteLength), hex)
 	}
-	var lengthHex any = this.IntToBase16(byteLength)
-	lengthHex = this.PadHexToEven(lengthHex)
-	var lengthOfLength int64 = this.ParseToInt(float64(GetLength(lengthHex)) / 2)
-	return Add(Add(this.IntToBase16(183+lengthOfLength), lengthHex), hex)
+	var lengthHex string = this.IntToBase16(byteLength)
+	var lengthHexLength int = len(lengthHex)
+	if (lengthHexLength % 2) != 0 {
+		lengthHex = "0" + lengthHex
+	}
+	var lengthOfLength int64 = this.ParseToInt(float64(len(lengthHex)) / 2)
+	return Add(this.IntToBase16(183+lengthOfLength)+lengthHex, hex)
 }
 func (this *PredictionExchange) RlpEncodeList(items []any) any {
 	var concatenated string = ""
@@ -2307,10 +2308,13 @@ func (this *PredictionExchange) RlpEncodeList(items []any) any {
 	if byteLength < 56 {
 		return this.IntToBase16(192+byteLength) + concatenated
 	}
-	var lengthHex any = this.IntToBase16(byteLength)
-	lengthHex = this.PadHexToEven(lengthHex)
-	var lengthOfLength int64 = this.ParseToInt(float64(GetLength(lengthHex)) / 2)
-	return Add(Add(this.IntToBase16(247+lengthOfLength), lengthHex), concatenated)
+	var lengthHex string = this.IntToBase16(byteLength)
+	var lengthHexLength int = len(lengthHex)
+	if (lengthHexLength % 2) != 0 {
+		lengthHex = "0" + lengthHex
+	}
+	var lengthOfLength int64 = this.ParseToInt(float64(len(lengthHex)) / 2)
+	return this.IntToBase16(247+lengthOfLength) + lengthHex + concatenated
 }
 func (this *PredictionExchange) IntToRlpHex(value *int64) any {
 	if value == nil {
@@ -2320,8 +2324,11 @@ func (this *PredictionExchange) IntToRlpHex(value *int64) any {
 	if value != nil && *value == 0 {
 		return ""
 	}
-	var hex any = this.IntToBase16(value)
-	hex = this.PadHexToEven(hex)
+	var hex string = this.IntToBase16(value)
+	var hexLength int = len(hex)
+	if (hexLength % 2) != 0 {
+		hex = "0" + hex
+	}
 	return hex
 }
 func (this *PredictionExchange) HexToRlpBytes(hexValue any) any {

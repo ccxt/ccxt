@@ -88,7 +88,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".detail"
 	var api string = *this.SafeString(this.Options, "api", "api")
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
 	var hostname map[string]any = map[string]any{
@@ -189,7 +189,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".trade.detail"
 	var api string = *this.SafeString(this.Options, "api", "api")
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
 	var hostname map[string]any = map[string]any{
@@ -308,7 +308,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".kline." + *interval
 	var api string = *this.SafeString(this.Options, "api", "api")
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
 	var hostname map[string]any = map[string]any{
@@ -426,7 +426,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".mbp.150"
 	var api string = *this.SafeString(this.Options, "api", "api")
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
 	var hostname map[string]any = map[string]any{
@@ -534,7 +534,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
 			var api string = *this.SafeString(this.Options, "api", "api")
-			var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+			var apiUrls map[string]any = this.UrlsApi
 			var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 			var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
 			var hostname map[string]any = map[string]any{

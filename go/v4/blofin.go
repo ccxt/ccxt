@@ -2313,10 +2313,13 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var tpslResponse []any = OrdersToList(r1.Value)
-		var first map[string]any = SafeMapTyped(tpslResponse, 0)
+		var tpslResponse []Order = r1.Value
+		var first Order
+		if len(tpslResponse) > 0 {
+			first = tpslResponse[0]
+		}
 
-		ch <- AsyncResult[Order]{Value: OrderFromMap(first)}
+		ch <- AsyncResult[Order]{Value: first}
 		return nil
 	} else if isTrigger != nil && *isTrigger {
 
@@ -3098,7 +3101,11 @@ func (this *Blofin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if first == nil {
-		panic(InvalidAddress(Add(this.Id+" fetchDepositAddress() returned no address for "+code+" on ", this.SafeString(request, "chain", chain))))
+		if messagePiece := this.SafeString(request, "chain", chain); messagePiece != nil {
+			messageText := this.Id + " fetchDepositAddress() returned no address for " + code + " on " + *messagePiece
+			panic(InvalidAddress(messageText))
+		}
+		panic(InvalidAddress(nil))
 	}
 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(first, currency)}
@@ -4272,8 +4279,9 @@ func (this *Blofin) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage],
 		panic(BadRequest(this.Id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated"))
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var request map[string]any = map[string]any{
-		"instId":     Join(this.MarketIds(symbolsNormalized), ","),
+		"instId":     strings.Join(marketIds, ","),
 		"marginMode": marginMode,
 	}
 
@@ -4540,11 +4548,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332819 []any = r1.Value
-		if retRes332819 == nil {
+		var retRes332919 []any = r1.Value
+		if retRes332919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332919)}
 		}
 		return nil
 	}

@@ -1626,8 +1626,8 @@ func (this *Woo) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], option
 func (this *Woo) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var tokensByNetworkId map[string]any = this.IndexBy(GetValue(rawCurrency, "_tokens_by_id"), "network")
-	var chainsByNetworkId map[string]any = this.IndexBy(GetValue(rawCurrency, "_networks_by_id"), "network")
+	var tokensByNetworkId map[string]any = this.IndexBy(this.SafeList(rawCurrency, "_tokens_by_id", []any{}), "network")
+	var chainsByNetworkId map[string]any = this.IndexBy(this.SafeList(rawCurrency, "_networks_by_id", []any{}), "network")
 	var keys []string = nil
 	if chainsByNetworkId != nil {
 		keys = make([]string, 0, len(chainsByNetworkId))
@@ -1926,7 +1926,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsOmitted)
 	if marginMode != nil {
-		request["marginMode"] = this.EncodeMarginMode(marginMode)
+		request["marginMode"] = this.EncodeMarginMode(*marginMode)
 	}
 	var triggerPrice *string = this.SafeString2(paramsMarginMode, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeValue(paramsMarginMode, "stopLoss")
@@ -2073,7 +2073,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	}), market)}
 	return nil
 }
-func (this *Woo) EncodeMarginMode(mode any) *string {
+func (this *Woo) EncodeMarginMode(mode string) *string {
 	var modes map[string]any = map[string]any{
 		"cross":    "CROSS",
 		"isolated": "ISOLATED",
@@ -5222,7 +5222,7 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string,
 			"symbol": market["id"],
 		}
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchLeverage", params, "cross")
-		request["marginMode"] = this.EncodeMarginMode(marginMode)
+		request["marginMode"] = this.EncodeMarginMode(*marginMode)
 
 		r2 := <-this.V3PrivateGetFuturesLeverage(this.Extend(request, paramsMarginMode))
 		if r2.Err != nil {
@@ -5323,7 +5323,7 @@ func (this *Woo) setLeverageBody(ch chan AsyncResult[map[string]any], leverage i
 	} else if *this.SafeBool(market, "swap", false) {
 		request["symbol"] = this.SafeString(market, "id")
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params, "cross")
-		request["marginMode"] = this.EncodeMarginMode(marginMode)
+		request["marginMode"] = this.EncodeMarginMode(*marginMode)
 
 		r2 := <-this.V3PrivatePutFuturesLeverage(this.Extend(request, paramsMarginMode))
 		if r2.Err != nil {

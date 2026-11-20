@@ -1571,24 +1571,24 @@ func (this *Latoken) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	if limit != nil {
 		request["limit"] = *limit // default 100
 	}
-	var response any = []any{}
+	var response []any = []any{}
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["currency"] = market["baseId"]
 		request["quote"] = market["quoteId"]
 
-		r1 := <-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetAuthTradePairCurrencyQuote(this.Extend(request, params))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else {
 
-		r2 := <-this.PrivateGetAuthTrade(this.Extend(request, params))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateGetAuthTrade(this.Extend(request, params))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	}
 
 	//

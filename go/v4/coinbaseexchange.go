@@ -2652,7 +2652,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	var response []any = responseRecv.Value
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
-		AddElementToObject(GetValue(entries, i), "currency", code)
+		AddElementToObject(entries[i], "currency", code)
 	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(entries, currency, since, limit))}

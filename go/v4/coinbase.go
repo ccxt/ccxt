@@ -7107,18 +7107,18 @@ func (this *Coinbase) CreateAuthToken(seconds int64, url string, optionalArgs ..
 	_ = method
 	var useEddsa bool = GetArgBool(optionalArgs, 1, false)
 	_ = useEddsa
-	var uri any = nil
-	if url != "" {
-		if method != nil {
-			uri = *method + " " + strings.Replace(url, "https://", "", 1)
-		} else {
-			uri = nil
-		}
-		var quesPos int = GetIndexOf(uri, "?")
+	var uri *string = nil
+	if (url != "") && (method != nil) {
+		var fullUri string = *method + " " + strings.Replace(url, "https://", "", 1)
+		var quesPos int = strings.Index(fullUri, "?")
 		// Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
 		// Also it's not possible that the question mark is first character, only check > 0 here.
 		if quesPos > 0 {
-			uri = Slice(uri, 0, quesPos)
+			uriStr := fullUri[0:min(quesPos+len(fullUri)*min(max(-quesPos, 0), 1), len(fullUri))]
+			uri = &uriStr
+		} else {
+			uriStr2 := fullUri
+			uri = &uriStr2
 		}
 	}
 	// eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}

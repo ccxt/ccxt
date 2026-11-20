@@ -1334,6 +1334,8 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	if isMarketBuy {
 		paramsOmitted = this.OmitDict(params, "cost")
 	}
+	var quoteId string = *this.SafeString(market, "quoteId", "")
+	var baseId string = *this.SafeString(market, "baseId", "")
 	if typeVar == "market" {
 		if side == "buy" {
 			var quoteAmount any = nil
@@ -1349,7 +1351,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 				var costRequest *string = Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
-			AddElementToObject(request, market["quoteId"], quoteAmount)
+			request[quoteId] = quoteAmount
 		} else {
 			quantityIsRequired = true
 		}
@@ -1357,7 +1359,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		priceIsRequired = true
 		quantityIsRequired = true
 		if side == "buy" {
-			AddElementToObject(request, market["quoteId"], this.ParseToNumeric(this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))))
+			request[quoteId] = this.ParseToNumeric(this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))))
 		}
 	}
 	if priceIsRequired {
@@ -1367,7 +1369,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["price"] = *price
 	}
 	if quantityIsRequired {
-		AddElementToObject(request, market["baseId"], this.AmountToPrecision(symbol, amount))
+		request[baseId] = this.AmountToPrecision(symbol, amount)
 	}
 
 	r1 := <-this.PrivatePostTrade(this.Extend(request, paramsOmitted))

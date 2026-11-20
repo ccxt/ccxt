@@ -195,7 +195,7 @@ func (this *Extended) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 			},
 		}
 		this.ExtendExchangeOptions(defaultOptions)
-		var originalOptions any = ccxt.GetValue(this.Options["ws"], "options")
+		var originalOptions any = this.SafeDict(this.Options["ws"], "options")
 		var originalHeaders map[string]any = this.SafeDictMap(originalOptions, "headers", map[string]any{})
 		ccxt.AddElementToObject(this.Options["ws"], "options", this.Extend(this.Extend(map[string]any{}, originalOptions), map[string]any{
 			"headers": this.Extend(this.Extend(map[string]any{
@@ -1095,25 +1095,26 @@ func (this *Extended) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	var symbol *string = this.SafeString(subscription, "symbol")
-	var timeframe *string = this.SafeString(subscription, "timeframe", "")
+	var timeframe string = *this.SafeString(subscription, "timeframe", "")
 	var candleType string = *this.SafeString(subscription, "candleType", "")
-	var cacheKey any = nil
-	if candleType == "trades" {
-		cacheKey = timeframe
-	} else {
-		cacheKey = *timeframe + ":" + candleType
+	var cacheKey string = timeframe
+	if candleType != "trades" {
+		cacheKey = cacheKey + ":" + candleType
 	}
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any = this.SafeValue(this.Ohlcvs[*symbol], cacheKey)
+	var stored ccxt.WsArrayCache
+	if symbol != nil {
+		stored, _ = this.Ohlcvs[*symbol][cacheKey].(ccxt.WsArrayCache)
+	}
 	if stored == nil {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil {
-			ccxt.AddElementToObject(this.Ohlcvs[*symbol], cacheKey, stored)
+		if symbol != nil && this.Ohlcvs[*symbol] != nil {
+			this.Ohlcvs[*symbol][cacheKey] = stored
 		}
 	}
 	var previousNonce *int64 = this.SafeInteger(subscription, "nonce")
@@ -1125,7 +1126,7 @@ func (this *Extended) HandleOHLCV(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data[i]))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

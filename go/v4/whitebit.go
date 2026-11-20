@@ -2616,18 +2616,14 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"market":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var cappedLimit any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 1440) {
-			return 1440
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
-		if since != nil {
-			return cappedLimit
-		}
-		return limit
-	}()
+	var cappedLimit any = 1440
+	if (limit != nil) && (*limit < 1440) {
+		cappedLimit = limit
+	}
+	var limitResolved any = limit
+	if since != nil {
+		limitResolved = cappedLimit
+	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	if (since != nil) || (until != nil) {
@@ -4912,10 +4908,10 @@ func (this *Whitebit) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	var fundingRate map[string]any = SafeMapTyped(response, symbolValue)
+	var response map[string]FundingRate = r1.Value
+	var fundingRate FundingRate = response[symbolValue]
 
-	ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(fundingRate)}
+	ch <- AsyncResult[FundingRate]{Value: fundingRate}
 	return nil
 }
 
@@ -5879,11 +5875,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes424519 []any = r.Value
-		if retRes424519 == nil {
+		var retRes425119 []any = r.Value
+		if retRes425119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes424519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes425119)}
 		}
 		return nil
 	}

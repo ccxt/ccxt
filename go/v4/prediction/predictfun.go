@@ -827,11 +827,11 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 	var orphanSlugsLength int = len(orphanSlugs)
 	for i := 0; i < orphanSlugsLength; i++ {
 		var orphanSlug *string = ccxt.SafeStringPtr(orphanSlugs[i])
-		var orphanSlugInSeenSlugs bool
+		var has3 bool
 		if orphanSlug != nil {
-			_, orphanSlugInSeenSlugs = seenSlugs[*orphanSlug]
+			_, has3 = seenSlugs[*orphanSlug]
 		}
-		if !(orphanSlugInSeenSlugs) {
+		if !has3 {
 			if orphanSlug != nil {
 				seenSlugs[*orphanSlug] = true
 			}
@@ -1108,22 +1108,32 @@ func (this *Predictfun) StripPriceFormatting(text *string) any {
 	var digits string = "0123456789"
 	var chars []string = this.StringToCharsArray(text)
 	var stripped string = ""
+	var prevCh string = ""
+	// a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+	var pendingComma bool = false
 	for i := 0; i < len(chars); i++ {
 		var ch string = chars[i]
-		var keep bool = true
-		if ch == "$" {
-			keep = false
-		} else if ch == "," {
+		var isDigit bool = (strings.Index(digits, ch) >= 0)
+		if pendingComma && !isDigit {
+			stripped = stripped + ","
+		}
+		pendingComma = false
+		if ch == "," {
 			// only a comma between two digits is a thousands separator: "1,500" has to close
 			// up to "1500" to match the venue's comma-free slug. a comma anywhere else is
 			// ordinary punctuation and stays, so it still separates words
-			var prevIsDigit bool = (i > 0) && (ccxt.GetIndexOf(digits, ccxt.GetValue(chars, i-1)) >= 0)
-			var nextIsDigit bool = ((i + 1) < len(chars)) && (ccxt.GetIndexOf(digits, ccxt.GetValue(chars, i+1)) >= 0)
-			keep = !(prevIsDigit && nextIsDigit)
-		}
-		if keep {
+			if (i > 0) && (strings.Index(digits, prevCh) >= 0) {
+				pendingComma = true
+			} else {
+				stripped = stripped + ch
+			}
+		} else if ch != "$" {
 			stripped = stripped + ch
 		}
+		prevCh = ch
+	}
+	if pendingComma {
+		stripped = stripped + ","
 	}
 	return stripped
 }
@@ -2949,11 +2959,11 @@ func (this *Predictfun) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes241915 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes241915 == nil {
+	var retRes242915 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes242915 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes241915)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes242915)}
 	}
 	return nil
 }
@@ -2996,11 +3006,11 @@ func (this *Predictfun) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes244015 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes244015 == nil {
+	var retRes245015 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes245015 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes244015)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes245015)}
 	}
 	return nil
 }
@@ -3731,15 +3741,17 @@ func (this *Predictfun) HandleSubscriptionError(client any, message map[string]a
 	if (subscribeHash != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
 		client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 	}
-	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-	if this.SafeString(subscription, "topic") != nil && *this.SafeString(subscription, "topic") == "walletEvents" {
+	var messageHashes []any = []any{}
+	if this.SafeString(subscription, "topic") == nil || *this.SafeString(subscription, "topic") != "walletEvents" {
+		messageHashes = ccxt.ArrayTyped(this.SafeList(subscription, "messageHashes", []any{}))
+	} else {
 		// watch () registers the wallet subscription once, for whichever watcher came first, so
 		// its list is a snapshot of that moment - a narrowed watcher that joined later is known
 		// only to the client. read the live waiters now, or those later callers would never be
 		// rejected and, with the subscription gone below, never retried or torn down either
 		messageHashes = this.WalletEventMessageHashes(client)
 	}
-	var messageHashesLength int = ccxt.GetArrayLength(messageHashes)
+	var messageHashesLength int = len(messageHashes)
 	if messageHashesLength == 0 {
 		panic(error)
 	}

@@ -2512,13 +2512,13 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(ordersToReturn)}
 	return nil
 }
-func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
+func (this *Pacifica) CancelOrdersRequest(ids []string, optionalArgs ...any) any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var actions []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	for i := 0; i < len(ids); i++ {
 		var id *string = this.SafeString(ids, i)
 		var request any = this.CancelOrderRequest(id, symbol, params)
 		var action map[string]any = map[string]any{
@@ -3468,12 +3468,13 @@ func (this *Pacifica) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	// return last state, history_id is the per-event sequence, created_at can tie within a millisecond
 	var sorted []any = this.SortBy(data, "history_id", true)
 	var lastIdx int = len(sorted)
-	var lastInfo any = map[string]any{}
 	if lastIdx > 0 {
-		lastInfo = DerefScalar(sorted[0])
+
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(DerefScalar(sorted[0]), market)}
+		return nil
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(lastInfo, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(map[string]any{}, market)}
 	return nil
 }
 func (this *Pacifica) ParseOrderStatus(status *string) *string {
@@ -4310,11 +4311,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes311619 []any = r1.Value
-		if retRes311619 == nil {
+		var retRes311519 []any = r1.Value
+		if retRes311519 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311619)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311519)}
 		}
 		return nil
 	}
@@ -4618,11 +4619,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333419 []any = r1.Value
-		if retRes333419 == nil {
+		var retRes333319 []any = r1.Value
+		if retRes333319 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333419)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333319)}
 		}
 		return nil
 	}
@@ -4846,7 +4847,7 @@ func (this *Pacifica) createSubAccountBody(ch chan AsyncResult[map[string]any], 
 	var subSigPayload map[string]any = map[string]any{
 		"account": originAddress,
 	}
-	var subaccountSignature string = this.SignMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey)
+	var subaccountSignature string = this.SignMessage(subaccountSignatureHeader, subSigPayload, *subAccountPrivateKey)
 	var mainSignatureHeader map[string]any = map[string]any{
 		"timestamp":     timestamp,
 		"expiry_window": expiryWindow,
@@ -5237,7 +5238,7 @@ func (this *Pacifica) PrepareMessage(header map[string]any, payload map[string]a
 	var sorted any = this.SortJsonKeys(data)
 	return this.Json(sorted)
 }
-func (this *Pacifica) SignMessage(header map[string]any, payload map[string]any, privateKey any) string {
+func (this *Pacifica) SignMessage(header map[string]any, payload map[string]any, privateKey string) string {
 	var message string = this.PrepareMessage(header, payload)
 	var messageBytes string = this.Encode(message)
 	var secretBytes []byte = this.Base58ToBinary(privateKey)

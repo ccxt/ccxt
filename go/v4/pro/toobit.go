@@ -409,25 +409,25 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	var url string = *this.SafeString(this.UrlsApi["ws"], "common", "") + "/quote/ws/v1"
 	var messageHashes []any = []any{}
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options["ws"], "timeframes")
-	var marketIds []any = []any{}
-	var selectedTimeframe any = nil
+	var marketIds []string = []string{}
+	var selectedTimeframe any = ""
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolStr string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolStr)
-		var marketId *string = ccxt.SafeStringPtr(market["id"])
-		var unfiedTimeframe *string = this.SafeString(data, 1, "1m")
+		var marketId string = *this.SafeString(market, "id", "")
+		var unfiedTimeframe string = *this.SafeString(data, 1, "1m")
 		var rawTimeframe *string = this.SafeString(timeframes, unfiedTimeframe, unfiedTimeframe)
-		if !ccxt.IsEqual(selectedTimeframe, nil) && !ccxt.IsEqual(selectedTimeframe, rawTimeframe) {
+		if !ccxt.IsEqual(selectedTimeframe, "") && !ccxt.IsEqual(selectedTimeframe, rawTimeframe) {
 			panic(ccxt.NotSupported(this.Id + " watchOHLCVForSymbols() only supports a single timeframe for all symbols"))
 		} else {
 			selectedTimeframe = rawTimeframe
 		}
 		marketIds = append(marketIds, marketId)
-		messageHashes = append(messageHashes, "ohlcv::"+symbolStr+"::"+*unfiedTimeframe)
+		messageHashes = append(messageHashes, "ohlcv::"+symbolStr+"::"+unfiedTimeframe)
 	}
 	var request map[string]any = map[string]any{
-		"symbol": ccxt.Join(marketIds, ","),
+		"symbol": strings.Join(marketIds, ","),
 		"topic":  ccxt.Add("kline_", selectedTimeframe),
 		"event":  "sub",
 	}
@@ -501,7 +501,11 @@ func (this *Toobit) HandleOHLCV(client any, message map[string]any) {
 		var parsed any = this.ParseWsOHLCV(data[i], market)
 		stored.Append(parsed)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
+	var messageHash *string = nil
+	if timeframe != nil {
+		messageHashValue := "ohlcv::" + *symbol + "::" + *timeframe
+		messageHash = &messageHashValue
+	}
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }

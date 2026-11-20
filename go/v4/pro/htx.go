@@ -1250,9 +1250,9 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	if market != nil {
 		marketCode = this.SafeStringLower(market, "lowercaseId")
 	}
-	var baseId any = nil
+	var baseId *string = nil
 	if market != nil {
-		baseId = market["baseId"]
+		baseId = this.SafeString(market, "baseId")
 	}
 	var prefix string = orderType
 	var messageHash string = prefix
@@ -1275,7 +1275,7 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	} else if ccxt.IsEqual(typeVar, "future") {
 		// inverse futures Example: BCH/USD:BCH-220408
 		if baseId != nil {
-			var lowerBaseId string = ccxt.ToLower(baseId)
+			var lowerBaseId string = strings.ToLower(*baseId)
 			var baseTopic string = prefix + "." + lowerBaseId
 			channel = baseTopic
 			messageHash = baseTopic
@@ -1299,16 +1299,16 @@ func (this *Htx) GetV5LinearChannelAndMessageHash(topic string, optionalArgs ...
 	_ = market
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var contractCode any = nil
+	var contractCode *string = nil
 	if market != nil {
-		contractCode = market["id"]
+		contractCode = this.SafeString(market, "id")
 	} else {
-		contractCode = (*this.SafeString(params, "contract_code", "*"))
+		contractCode = this.SafeString(params, "contract_code", "*")
 	}
 	var channel string = topic
 	var messageHash string = topic
-	if (!ccxt.IsEqual(contractCode, nil)) && (contractCode != "*") {
-		messageHash = topic + "." + ccxt.ToLower(contractCode)
+	if (contractCode != nil) && (contractCode == nil || *contractCode != "*") {
+		messageHash = topic + "." + strings.ToLower(*contractCode)
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "contract_code")
 	var requestParams map[string]any = this.Extend(map[string]any{
@@ -3459,7 +3459,7 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var typeUrlsByApi map[string]any = ccxt.SafeMapTyped(wsUrls, api)
 	var hostnameURL any = nil
@@ -3467,12 +3467,24 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	if ccxt.IsEqual(typeVar, "spot") {
 		var spotUrls map[string]any = ccxt.SafeMapTyped(typeUrlsByApi, "spot")
 		if isPrivate == true {
-			hostnameURL = spotUrls["private"]
+			if derefPtr := this.SafeString(spotUrls, "private"); derefPtr != nil {
+				hostnameURL = *derefPtr
+			} else {
+				hostnameURL = nil
+			}
 		} else {
 			if isFeed == true {
-				hostnameURL = spotUrls["feed"]
+				if derefPtr := this.SafeString(spotUrls, "feed"); derefPtr != nil {
+					hostnameURL = *derefPtr
+				} else {
+					hostnameURL = nil
+				}
 			} else {
-				hostnameURL = spotUrls["public"]
+				if derefPtr := this.SafeString(spotUrls, "public"); derefPtr != nil {
+					hostnameURL = *derefPtr
+				} else {
+					hostnameURL = nil
+				}
 			}
 		}
 		url = this.ImplodeParams(hostnameURL, hostname)
@@ -3486,16 +3498,24 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 		}
 		if isPrivate == true {
 			if (isV5 == true) && (isLinear == true) {
-				if derefPtr := this.SafeString(subTypeUrl, "privateV5", subTypeUrl["private"]); derefPtr != nil {
+				if derefPtr := this.SafeString2(subTypeUrl, "privateV5", "private"); derefPtr != nil {
 					url = *derefPtr
 				} else {
 					url = nil
 				}
 			} else {
-				url = ccxt.GetValue(subTypeUrl, "private")
+				if derefPtr := this.SafeString(subTypeUrl, "private"); derefPtr != nil {
+					url = *derefPtr
+				} else {
+					url = nil
+				}
 			}
 		} else {
-			url = ccxt.GetValue(subTypeUrl, "public")
+			if derefPtr := this.SafeString(subTypeUrl, "public"); derefPtr != nil {
+				url = *derefPtr
+			} else {
+				url = nil
+			}
 		}
 	}
 	return url

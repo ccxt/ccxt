@@ -1896,9 +1896,9 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	//        ]
 	//    }
 	//
-	var ohlcvs any = this.SafeValue(response, "data", []any{})
-	if !IsArray(ohlcvs) {
-		ohlcvs = []any{ohlcvs}
+	var ohlcvs any = this.SafeList(response, "data", []any{})
+	if (this.SafeListSlice(response, "data", nil) == nil) && (this.SafeDictMap(response, "data") != nil) {
+		ohlcvs = []any{this.SafeDict(response, "data")}
 	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
@@ -5196,29 +5196,19 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 			feeCurrencyCode = this.SafeString(marketResolved, feeKey)
 		}
 	}
-	var stopLoss any = this.SafeValue(orderData, "stopLoss")
-	var stopLossPrice *string = nil
-	if (stopLoss != nil) && (!IsEqual(stopLoss, "")) {
-		stopLossPrice = this.OmitZero(this.SafeString(stopLoss, "stopLoss"))
+	// the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+	var stopLossString *string = this.SafeString(orderData, "stopLoss")
+	var stopLossIsDict bool = (this.SafeDictMap(orderData, "stopLoss") != nil)
+	var stopLossPrice *string = this.OmitZero(this.SafeString(this.SafeDict(orderData, "stopLoss", map[string]any{}), "stopPrice"))
+	if !stopLossIsDict && (stopLossString != nil) && (strings.Index(*stopLossString, "{") == 0) {
+		stopLossPrice = this.OmitZero(this.SafeString(this.ParseJson(stopLossString), "stopPrice"))
 	}
-	if (stopLoss != nil) && (!IsNumber(stopLoss)) && (!IsEqual(stopLoss, "")) {
-		//  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-		if IsString(stopLoss) {
-			stopLoss = this.ParseJson(stopLoss)
-		}
-		stopLossPrice = this.OmitZero(this.SafeString(stopLoss, "stopPrice"))
-	}
-	var takeProfit any = this.SafeValue(orderData, "takeProfit")
-	var takeProfitPrice *string = nil
-	if (takeProfit != nil) && (!IsEqual(takeProfit, "")) {
-		takeProfitPrice = this.OmitZero(this.SafeString(takeProfit, "takeProfit"))
-	}
-	if (takeProfit != nil) && (!IsNumber(takeProfit)) && (!IsEqual(takeProfit, "")) {
-		//  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-		if IsString(takeProfit) {
-			takeProfit = this.ParseJson(takeProfit)
-		}
-		takeProfitPrice = this.OmitZero(this.SafeString(takeProfit, "stopPrice"))
+	// the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+	var takeProfitString *string = this.SafeString(orderData, "takeProfit")
+	var takeProfitIsDict bool = (this.SafeDictMap(orderData, "takeProfit") != nil)
+	var takeProfitPrice *string = this.OmitZero(this.SafeString(this.SafeDict(orderData, "takeProfit", map[string]any{}), "stopPrice"))
+	if !takeProfitIsDict && (takeProfitString != nil) && (strings.Index(*takeProfitString, "{") == 0) {
+		takeProfitPrice = this.OmitZero(this.SafeString(this.ParseJson(takeProfitString), "stopPrice"))
 	}
 	var rawType *string = this.SafeStringLower2(orderData, "type", "o")
 	var stopPrice *string = this.OmitZero(this.SafeString2(orderData, "StopPrice", "stopPrice"))
@@ -6567,11 +6557,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes554319 []any = r1.Value
-		if retRes554319 == nil {
+		var retRes553319 []any = r1.Value
+		if retRes553319 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes554319)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553319)}
 		}
 		return nil
 	}

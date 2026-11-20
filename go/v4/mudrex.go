@@ -241,7 +241,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var apiUrls map[string]any = SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var base *string = this.SafeString(apiUrls, apiName)
 	if base == nil {
 		panic(ExchangeError(this.Id + " unknown API namespace: " + apiName))
@@ -572,12 +572,11 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data any = this.SafeValue(response, "data", []any{})
 	var rows []any = []any{}
-	if IsArray(data) {
-		rows = ArrayTyped(this.SafeList(response, "data", []any{}))
-	} else {
-		rows = ArrayTyped(this.SafeList(data, "items", []any{}))
+	rows = ArrayTyped(this.SafeList(response, "data", []any{}))
+	var rowsLength int = len(rows)
+	if rowsLength == 0 {
+		rows = ArrayTyped(this.SafeList(this.SafeDict(response, "data", map[string]any{}), "items", []any{}))
 	}
 	var resultTickers map[string]any = map[string]any{}
 	for i := 0; i < len(rows); i++ {
@@ -1440,11 +1439,11 @@ func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes98915 []any = OrdersToList(r.Value)
-	if retRes98915 == nil {
+	var retRes98815 []any = OrdersToList(r.Value)
+	if retRes98815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes98915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes98815)}
 	}
 	return nil
 }
@@ -1481,11 +1480,11 @@ func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes100415 []any = OrdersToList(r.Value)
-	if retRes100415 == nil {
+	var retRes100315 []any = OrdersToList(r.Value)
+	if retRes100315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes100415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes100315)}
 	}
 	return nil
 }
@@ -1522,11 +1521,11 @@ func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes101915 []any = OrdersToList(r.Value)
-	if retRes101915 == nil {
+	var retRes101815 []any = OrdersToList(r.Value)
+	if retRes101815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes101915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes101815)}
 	}
 	return nil
 }

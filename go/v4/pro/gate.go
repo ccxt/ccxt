@@ -2569,10 +2569,11 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 			}
 		}
 		stored.Append(parsed)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsed, "symbol"))
+		var symbol *string = this.SafeString(parsed, "symbol")
 		var market map[string]any = this.Market(symbol)
-		if !ccxt.IsEqual(market["id"], nil) {
-			ccxt.AddElementToObject(marketIds, market["id"], true)
+		var marketId *string = this.SafeString(market, "id")
+		if marketId != nil {
+			marketIds[*marketId] = true
 		}
 	}
 	var keys []string = nil
@@ -2778,10 +2779,7 @@ func (this *Gate) HandleLiquidation(client any, message map[string]any) {
 		newLiquidations = append(newLiquidations, liquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
 		if symbol != nil {
-			var symbolLiquidations any = this.SafeList(liquidationsBySymbol, symbol)
-			if ccxt.IsEqual(symbolLiquidations, nil) {
-				symbolLiquidations = []any{}
-			}
+			var symbolLiquidations any = this.SafeList(liquidationsBySymbol, symbol, []any{})
 			ccxt.AppendToArray(&symbolLiquidations, liquidation)
 			ccxt.AddElementToObject(liquidationsBySymbol, symbol, symbolLiquidations)
 		}
@@ -3028,7 +3026,7 @@ func (this *Gate) HandleUnSubscribe(client any, message map[string]any) {
 			continue
 		}
 		if strings.HasPrefix(messageHash, "unsubscribe") {
-			var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+			var subscription any = client.(ccxt.ClientInterface).SubscriptionGet(messageHash)
 			var subId *string = this.SafeString(subscription, "id")
 			if id != subId && (id == nil || subId == nil || *id != *subId) {
 				continue

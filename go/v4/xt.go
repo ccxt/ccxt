@@ -3246,18 +3246,18 @@ func (this *Xt) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...
 	//         ]
 	//     }
 	//
-	var balances any = nil
+	var balances []any = []any{}
 	if (subType != nil) || isContractWallet {
-		balances = this.SafeList(response, "result", []any{})
+		balances = ArrayTyped(this.SafeList(response, "result", []any{}))
 	} else {
 		var data map[string]any = SafeMapTyped(response, "result")
-		balances = this.SafeList(data, "assets", []any{})
+		balances = ArrayTyped(this.SafeList(data, "assets", []any{}))
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(balances))}
 	return nil
 }
-func (this *Xt) ParseBalanceList(response any) map[string]any {
+func (this *Xt) ParseBalanceList(response []any) map[string]any {
 	//
 	// spot
 	//
@@ -3287,7 +3287,7 @@ func (this *Xt) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString2(balance, "currency", "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)

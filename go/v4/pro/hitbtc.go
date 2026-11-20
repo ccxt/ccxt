@@ -107,7 +107,7 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	this.CheckRequiredCredentials()
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(wsUrls, "private")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
@@ -181,7 +181,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name stri
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var isBatch bool = (strings.Index(name, "batch") >= 0)
 	var resolvedPerSymbol bool = !isBatch || (messageHashPrefix == "orderbooks") // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(wsUrls, "public")
 	var messageHashes []any = []any{}
 	if (symbolsNormalized != nil) && resolvedPerSymbol {
@@ -295,7 +295,7 @@ func (this *Hitbtc) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(wsUrls, "private")
 	var splitName []string = strings.Split(name, "_subscribe")
 	var messageHashBase *string = this.SafeString(splitName, 0, "")
@@ -350,7 +350,7 @@ func (this *Hitbtc) tradeRequestBody(ch chan ccxt.AsyncResult[any], name string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(wsUrls, "private")
 	var requestId int64 = this.IncrementingNonce()
 	var messageHash *string = this.NumberToString(requestId)
@@ -2127,7 +2127,7 @@ func (this *Hitbtc) HandleUnSubscription(client any, message map[string]any) {
 	var id *string = this.SafeString(message, "id")
 	var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(subscriptionHashes); i++ {
-		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHashes[i])
+		var subscription any = client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHashes[i])
 		var isUnSubscription *bool = this.SafeBool(subscription, "unsubscribe", false)
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if (isUnSubscription != nil && *isUnSubscription) && (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {

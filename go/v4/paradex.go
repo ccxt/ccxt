@@ -1300,7 +1300,11 @@ func (this *Paradex) SafeMarket(optionalArgs ...any) map[string]any {
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
 	if (marketId != nil) && (strings.Index(*marketId, "/") < 0) && (strings.HasSuffix(*marketId, "-C") || strings.HasSuffix(*marketId, "-P")) {
-		var isKnown bool = (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId))
+		var has1 bool
+		if marketId != nil {
+			_, has1 = this.Markets_by_id[*marketId]
+		}
+		var isKnown bool = (this.Markets_by_id != nil) && has1
 		if !isKnown {
 			var marketIdParts []string = strings.Split(*marketId, "-")
 			var marketIdPartsLength int = len(marketIdParts)
@@ -1675,15 +1679,14 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "results", []any{})
-	var rows any = func() any {
-		if IsEqual(request["market"], "ALL") {
-			return this.FilterLoadedSummaries(data)
-		}
-		return data
-	}()
+	var data []any = this.SafeListSlice(response, "results", []any{})
+	if IsEqual(request["market"], "ALL") {
 
-	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(rows, symbolsNormalized))}
+		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(this.FilterLoadedSummaries(data), symbolsNormalized))}
+		return nil
+	}
+
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
 }
 
@@ -1716,7 +1719,7 @@ func (this *Paradex) SummaryMarketId(optionalArgs ...any) any {
  * @param {string} [marketType] keep this market type only
  * @returns {object[]} the rows of loaded markets
  */
-func (this *Paradex) FilterLoadedSummaries(summaries any, optionalArgs ...any) []any {
+func (this *Paradex) FilterLoadedSummaries(summaries []any, optionalArgs ...any) []any {
 	marketType := GetArg(optionalArgs, 0, nil)
 	_ = marketType
 	var result []any = []any{}
@@ -1724,8 +1727,8 @@ func (this *Paradex) FilterLoadedSummaries(summaries any, optionalArgs ...any) [
 	if marketsById == nil {
 		return result
 	}
-	for i := 0; i < GetArrayLength(summaries); i++ {
-		var summary any = GetValue(summaries, i)
+	for i := 0; i < len(summaries); i++ {
+		var summary any = summaries[i]
 		var marketId *string = this.SafeString(summary, "symbol")
 		if marketId != nil {
 			if _, ok := marketsById[*marketId]; ok {
@@ -2128,11 +2131,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes154319 []any = r1.Value
-		if retRes154319 == nil {
+		var retRes154519 []any = r1.Value
+		if retRes154519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154319)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154519)}
 		}
 		return nil
 	}
@@ -3646,11 +3649,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes259519 []any = r2.Value
-		if retRes259519 == nil {
+		var retRes259719 []any = r2.Value
+		if retRes259719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes259519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes259719)}
 		}
 		return nil
 	}
@@ -3926,11 +3929,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes277919 []any = r2.Value
-		if retRes277919 == nil {
+		var retRes278119 []any = r2.Value
+		if retRes278119 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes277919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278119)}
 		}
 		return nil
 	}
@@ -4558,11 +4561,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes320419 []any = r2.Value
-		if retRes320419 == nil {
+		var retRes320619 []any = r2.Value
+		if retRes320619 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes320419)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes320619)}
 		}
 		return nil
 	}
@@ -5164,16 +5167,15 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 	//         ]
 	//     }
 	//
-	var results any = this.SafeList(response, "results", []any{})
+	var results []any = this.SafeListSlice(response, "results", []any{})
 	// the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-	var rows any = func() any {
-		if IsEqual(request["market"], "ALL") {
-			return this.FilterLoadedSummaries(results, "option")
-		}
-		return results
-	}()
+	if IsEqual(request["market"], "ALL") {
 
-	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(rows, symbolsNormalized))}
+		ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(this.FilterLoadedSummaries(results, "option"), symbolsNormalized))}
+		return nil
+	}
+
+	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(results, symbolsNormalized))}
 	return nil
 }
 func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
@@ -5480,11 +5482,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes387619 []any = r2.Value
-		if retRes387619 == nil {
+		var retRes388019 []any = r2.Value
+		if retRes388019 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes387619)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388019)}
 		}
 		return nil
 	}

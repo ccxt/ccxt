@@ -1274,8 +1274,8 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 		if !isSnapshot && (checksum == true) && (responseChecksum != nil) {
 			var storedAsks ccxt.IOrderBookSide = storedOrderBook.GetAsks()
 			var storedBids ccxt.IOrderBookSide = storedOrderBook.GetBids()
-			var asksLength int = ccxt.GetArrayLength(storedAsks)
-			var bidsLength int = ccxt.GetArrayLength(storedBids)
+			var asksLength int = ccxt.IOrderBookSide.Len(storedAsks)
+			var bidsLength int = ccxt.IOrderBookSide.Len(storedBids)
 			var payloadArray []any = []any{}
 			for i := 0; i < 25; i++ {
 				if i < bidsLength {

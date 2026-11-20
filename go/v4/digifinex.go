@@ -1465,7 +1465,7 @@ func (this *Digifinex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 			"date": date,
 		}, this.SafeDict(tickers, i))
 		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
 		}
@@ -2713,7 +2713,7 @@ func (this *Digifinex) ParseCancelOrders(response any, optionalArgs ...any) []an
 	var error []any = SafeListTyped(response, "error")
 	var result []any = []any{}
 	for i := 0; i < len(success); i++ {
-		var order *string = SafeStringPtr(success[i])
+		var order *string = this.SafeString(success, i)
 		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
@@ -2722,7 +2722,7 @@ func (this *Digifinex) ParseCancelOrders(response any, optionalArgs ...any) []an
 		})))
 	}
 	for i := 0; i < len(error); i++ {
-		var order *string = SafeStringPtr(error[i])
+		var order *string = this.SafeString(error, i)
 		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
@@ -2866,7 +2866,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 			panic(ArgumentsRequired(this.Id + " cancelOrdersForSymbols() requires a symbol for each order"))
 		}
 		var market map[string]any = this.Market(symbol)
-		var orderMarketType *string = SafeStringPtr(market["type"])
+		var orderMarketType *string = this.SafeString(market, "type")
 		if marketType == nil {
 			marketType = orderMarketType
 		} else if marketType != orderMarketType && (marketType == nil || orderMarketType == nil || *marketType != *orderMarketType) {
@@ -2889,7 +2889,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 				}
 				return nil
 			}())
-			var marketId *string = SafeStringPtr(market["id"])
+			var marketId *string = this.SafeString(market, "id")
 			var orderId *string = SafeStringPtr(ids[i])
 			ordersRequests = append(ordersRequests, map[string]any{
 				"instrument_id": marketId,
@@ -4314,7 +4314,7 @@ func (this *Digifinex) transferBody(ch chan AsyncResult[TransferEntry], code str
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var currencyId *string = SafeStringPtr(currency["id"])
+	var currencyId *string = this.SafeString(currency, "id")
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -5323,7 +5323,7 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) Position
 	_ = market
 	var marketId *string = this.SafeString2(position, "instrument_id", "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var marginMode *string = this.SafeString(position, "margin_mode")
 	if marginMode != nil {
 		var marginModeStr string

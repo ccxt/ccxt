@@ -508,9 +508,8 @@ func (this *BaseExchange) StoreByKey(dict any, key any, value any) {
 	 * @method
 	 * @description store value under key if key is defined (no-op on undefined)
 	 */
-	var k any = key
-	if !IsEqual(k, nil) {
-		AddElementToObject(dict, k, value)
+	if !IsEqual(key, nil) {
+		AddElementToObject(dict, key, value)
 	}
 }
 func (this *BaseExchange) HandleDeltas(bookside any, deltas []any) {
@@ -615,14 +614,10 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 }
 func (this *BaseExchange) UrlEncoderForProxyUrl(targetUrl any) any {
 	// to be overriden
-	var includesQuery bool = (GetIndexOf(targetUrl, "?") >= 0)
-	var finalUrl any = func() any {
-		if includesQuery {
-			return this.EncodeURIComponent(targetUrl)
-		}
-		return targetUrl
-	}()
-	return finalUrl
+	if GetIndexOf(targetUrl, "?") >= 0 {
+		return this.EncodeURIComponent(targetUrl)
+	}
+	return targetUrl
 }
 func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	url := GetArg(optionalArgs, 0, nil)
@@ -7073,8 +7068,7 @@ func (this *BaseExchange) ParseFundingRateHistories(response []any, optionalArgs
 	_ = limit
 	var rates []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var entry any = GetValue(response, i)
-		rates = append(rates, this.DerivedExchange.ParseFundingRateHistory(entry, market))
+		rates = append(rates, this.DerivedExchange.ParseFundingRateHistory(response[i], market))
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 	var symbol any = func() any {
@@ -7106,9 +7100,8 @@ func (this *BaseExchange) ParseFundingRates(response []any, optionalArgs ...any)
 	_ = symbols
 	var fundingRates map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var entry any = GetValue(response, i)
 
-		var parsed map[string]any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(entry))
+		var parsed map[string]any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(response[i]))
 		if !IsEqual(parsed["symbol"], nil) {
 			AddElementToObject(fundingRates, parsed["symbol"], parsed)
 		}
@@ -7129,8 +7122,7 @@ func (this *BaseExchange) ParseLongShortRatioHistory(response []any, optionalArg
 	_ = limit
 	var rates []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var entry any = GetValue(response, i)
-		rates = append(rates, this.ParseLongShortRatio(entry, market))
+		rates = append(rates, this.ParseLongShortRatio(response[i], market))
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 	var symbol any = func() any {
@@ -7312,9 +7304,8 @@ func (this *BaseExchange) ParseOpenInterests(response []any, optionalArgs ...any
 	_ = symbols
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var entry any = GetValue(response, i)
 
-		var parsed map[string]any = OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(entry))
+		var parsed map[string]any = OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(GetValue(response, i)))
 		if !IsEqual(parsed["symbol"], nil) {
 			AddElementToObject(result, parsed["symbol"], parsed)
 		}
@@ -8138,7 +8129,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 	// paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
 	// pagination always walks forward internally, so strip it here to avoid leaking an
 	// unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-	var paramsOmitted any = this.Omit(paramsMaxEntriesPerRequest, "paginationDirection")
+	var paramsOmitted map[string]any = this.OmitDict(paramsMaxEntriesPerRequest, "paginationDirection")
 	var current int64 = this.Milliseconds()
 	var tasks []any = []any{}
 	var time int64 = this.ParseTimeframe(timeframe) * 1000
@@ -11459,12 +11450,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048915Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048915 []any = retRes1048915Recv
-	if retRes1048915 == nil {
+	retRes1048515Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048515 []any = retRes1048515Recv
+	if retRes1048515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048515)}
 	}
 	return nil
 }

@@ -1050,7 +1050,7 @@ func (this *Phemex) HandleUnSubscription(client any, message map[string]any) {
 	var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(subscriptionHashes); i++ {
 		var subscriptionHash string = subscriptionHashes[i]
-		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
+		var subscription any = client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash)
 		var isUnSubscription *bool = this.SafeBool(subscription, "unsubscribe", false)
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if (isUnSubscription != nil && *isUnSubscription) && (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {

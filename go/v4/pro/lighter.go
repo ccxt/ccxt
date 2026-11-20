@@ -1935,8 +1935,8 @@ func (this *Lighter) HandleWsSendtxApi(client any, message map[string]any) {
 	//
 	//     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
 	//
-	var id *string = this.SafeString(message, "id")
-	client.(ccxt.ClientInterface).Resolve(message, ccxt.Add("jsonapi/sendtx:", id))
+	var id string = *this.SafeString(message, "id", "")
+	client.(ccxt.ClientInterface).Resolve(message, "jsonapi/sendtx:"+id)
 }
 func (this *Lighter) HandleOrders(client any, message map[string]any) bool {
 	//

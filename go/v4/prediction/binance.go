@@ -1542,7 +1542,7 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		request["startDate"] = this.Yyyymmdd(since)
 	}
 	var until *int64 = this.SafeInteger(paramsMaxEntriesPerRequest, "until")
-	var paramsOmitted any = this.Omit(paramsMaxEntriesPerRequest, "until")
+	var paramsOmitted map[string]any = this.OmitDict(paramsMaxEntriesPerRequest, "until")
 	if until != nil {
 		request["endDate"] = this.Yyyymmdd(until)
 	}
@@ -1908,7 +1908,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		request["startDate"] = this.Yyyymmdd(since)
 	}
 	var until *int64 = this.SafeInteger(paramsMaxEntriesPerRequest, "until")
-	var paramsOmitted any = this.Omit(paramsMaxEntriesPerRequest, "until")
+	var paramsOmitted map[string]any = this.OmitDict(paramsMaxEntriesPerRequest, "until")
 	if until != nil {
 		request["endDate"] = this.Yyyymmdd(until)
 	}
@@ -2068,9 +2068,10 @@ func (this *Binance) fetchWalletBody(ch chan ccxt.AsyncResult[map[string]any], m
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !ccxt.IsEqual(this.SafeDict(this.Options, "wallet"), nil) {
+	var cachedWallet map[string]any = this.SafeDictMap(this.Options, "wallet")
+	if cachedWallet != nil {
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "wallet")}
+		ch <- ccxt.AsyncResult[map[string]any]{Value: cachedWallet}
 		return nil
 	}
 	walletAddress, _ := this.HandleOptionStringAndParams(params, methodName, "walletAddress", this.WalletAddress)

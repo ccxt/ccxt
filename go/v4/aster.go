@@ -2780,28 +2780,28 @@ func (this *Aster) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var response map[string]any = nil
-	var data any = []any{}
+	var data []any = []any{}
 	if marketType != nil && *marketType == "swap" {
 
-		r1 := <-this.FapiPrivateGetV3Balance(paramsMarketType)
+		dataRecv := <-this.FapiPrivateGetV3Balance(paramsMarketType)
+		if dataRecv.Err != nil {
+			panic(dataRecv.Err)
+		}
+		data = dataRecv.Value
+	} else if marketType != nil && *marketType == "spot" {
+
+		r1 := <-this.SapiPrivateGetV3Account(paramsMarketType)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		data = r1.Raw
-	} else if marketType != nil && *marketType == "spot" {
-
-		r2 := <-this.SapiPrivateGetV3Account(paramsMarketType)
-		if r2.Err != nil {
-			panic(r2.Err)
-		}
-		response = r2.Value
-		data = this.SafeList(response, "balances", []any{})
+		response = r1.Value
+		data = ArrayTyped(this.SafeList(response, "balances", []any{}))
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 	return nil
 }
-func (this *Aster) ParseBalanceList(response any) map[string]any {
+func (this *Aster) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

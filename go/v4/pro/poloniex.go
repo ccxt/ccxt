@@ -185,12 +185,12 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
  * @param {object} [params] extra parameters specific to the poloniex api
  * @returns {object} data from the websocket stream
  */
-func (this *Poloniex) SubscribeAsync(name any, messageHash any, isPrivate bool, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Poloniex) SubscribeAsync(name string, messageHash string, isPrivate bool, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, name, messageHash, isPrivate, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, messageHash any, isPrivate bool, optionalArgs ...any) any {
+func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name string, messageHash string, isPrivate bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -224,11 +224,11 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, mes
 	} else {
 		symbolsSuffix = ccxt.Join(symbols, ",")
 	}
-	var symbolsHash any = messageHash
+	var symbolsHash string = messageHash
 	if !this.IsEmpty(symbols) {
-		symbolsHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolsSuffix)
+		symbolsHash = messageHash + "::" + symbolsSuffix
 	}
-	if !ccxt.IsEqual(name, "balances") {
+	if name != "balances" {
 		subscribe["symbols"] = marketIds
 	}
 	var request map[string]any = this.Extend(subscribe, params)
@@ -615,7 +615,7 @@ func (this *Poloniex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		panic(ccxt.BadRequest(this.Id + " watchOHLCV cannot take a timeframe of " + timeframe))
 	}
 
-	r1 := <-this.SubscribeAsync(channel, channel, false, []any{symbol}, params)
+	r1 := <-this.SubscribeAsync(*channel, *channel, false, []any{symbol}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -960,7 +960,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var name string = *this.SafeString(watchOrderBookOptions, "name", "book_lv2")
 	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchOrderBook", "name", name)
 
-	r1 := <-this.SubscribeAsync(nameOption, nameOption, false, []any{symbol}, paramsName)
+	r1 := <-this.SubscribeAsync(*nameOption, *nameOption, false, []any{symbol}, paramsName)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1830,8 +1830,8 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var timestamp *int64 = this.SafeInteger(item, "ts")
-		var asks []any = ccxt.SafeListTyped(item, "asks")
-		var bids []any = ccxt.SafeListTyped(item, "bids")
+		var asks []any = this.SafeListSlice(item, "asks", []any{})
+		var bids []any = this.SafeListSlice(item, "bids", []any{})
 		if snapshot || update {
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			if snapshot && (orderbook == nil) {

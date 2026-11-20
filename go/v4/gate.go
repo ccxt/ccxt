@@ -11514,7 +11514,11 @@ func (this *Gate) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string
 		}
 		response = r3.Value
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() does not support ", this.SafeString(market, "type")), " markets")))
+		if messagePiece := this.SafeString(market, "type"); messagePiece != nil {
+			messageText := this.Id + " fetchLeverage() does not support " + *messagePiece + " markets"
+			panic(NotSupported(messageText))
+		}
+		panic(NotSupported(nil))
 	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(response, market)}

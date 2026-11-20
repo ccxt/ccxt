@@ -260,7 +260,7 @@ func (this *Binance) Stream(typeVar any, subscriptionHash *string, optionalArgs 
 	return stream
 }
 func (this *Binance) GetWsUrl(typeVar any, category string) string {
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	if (ccxt.IsEqual(typeVar, "option")) || (ccxt.IsEqual(typeVar, "optionMarket")) || (ccxt.IsEqual(typeVar, "optionPrivate")) {
 		// eOptions urls are stored as full public/market/private paths, no category rewrite needed,
 		// see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -301,7 +301,7 @@ func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey *string) any {
 	if ccxt.IsEqual(typeVar, "linear") {
 		return this.GetWsUrl(typeVar, "private") + "?listenKey=" + *listenKey
 	}
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsUrl *string = this.SafeString(wsUrls, typeVar)
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " getPrivateWsUrl() has no websocket url for this market type"))
@@ -311,7 +311,7 @@ func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey *string) any {
 func (this *Binance) GetStockWsUrl(optionalArgs ...any) any {
 	var streamType string = ccxt.GetArgString(optionalArgs, 0, "market")
 	_ = streamType
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var baseUrl any = wsUrls["stock"]
 	if streamType == "combined" {
 		return ccxt.Replace(baseUrl, "/ws", "/stream")
@@ -1201,7 +1201,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	if marketType == nil || *marketType != "linear" {
 		panic(ccxt.BadRequest(this.Id + " fetchOrderBookWs only supports swap markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, marketType)
 	if url == nil {
@@ -2596,7 +2596,11 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 		volumeKey = "v"
 	}
 	var parsed []any = []any{this.SafeInteger(kline, "t"), this.SafeFloat(kline, "o"), this.SafeFloat(kline, "h"), this.SafeFloat(kline, "l"), this.SafeFloat(kline, "c"), this.SafeFloat(kline, volumeKey)}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", unifiedTimeframe))
+	var messageHash *string = nil
+	if unifiedTimeframe != nil {
+		messageHashValue := "ohlcv::" + *symbol + "::" + *unifiedTimeframe
+		messageHash = &messageHashValue
+	}
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
@@ -2653,7 +2657,7 @@ func (this *Binance) fetchTickerWsBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sy
 	if typeVar == nil || *typeVar != "linear" {
 		panic(ccxt.BadRequest(this.Id + " fetchTickerWs only supports swap markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -2728,7 +2732,7 @@ func (this *Binance) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 	if (marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "linear") {
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCVWs only supports spot or swap markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, marketType)
 	if url == nil {
@@ -3895,7 +3899,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 	defer ccxt.ReturnPanicError(ch)
 	var marketType string = ccxt.GetArgString(optionalArgs, 0, "spot")
 	_ = marketType
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, marketType)
 	if url == nil {
@@ -4028,7 +4032,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, "spot")
 	if url == nil {
@@ -4640,7 +4644,7 @@ func (this *Binance) fetchBalanceWsBody(ch chan ccxt.AsyncResult[ccxt.Balances],
 	if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "linear") && (typeVar == nil || *typeVar != "inverse") {
 		panic(ccxt.BadRequest(this.Id + " fetchBalanceWs only supports spot or swap markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -4827,7 +4831,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	if (typeVar == nil || *typeVar != "linear") && (typeVar == nil || *typeVar != "inverse") {
 		panic(ccxt.BadRequest(this.Id + " fetchPositionsWs only supports swap markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -4948,7 +4952,7 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	var urlType any = typeVar
 	if (typeVar == "spot") || (typeVar == "margin") {
 		// route to WebSocket API connection where the user data stream is subscribed
-		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+		var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
@@ -5222,7 +5226,7 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	if (marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "linear") && (marketType == nil || *marketType != "inverse") {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs only supports spot or swap markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, marketType)
 	if url == nil {
@@ -5412,7 +5416,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	if (marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "linear") && (marketType == nil || *marketType != "inverse") {
 		panic(ccxt.BadRequest(this.Id + " editOrderWs only supports spot or swap markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, marketType)
 	if url == nil {
@@ -5601,7 +5605,7 @@ func (this *Binance) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	}
 	var market map[string]any = this.Market(symbol)
 	var typeVar *string = this.GetMarketType("cancelOrderWs", market, params)
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -5687,7 +5691,7 @@ func (this *Binance) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	if typeVar == nil || *typeVar != "spot" {
 		panic(ccxt.BadRequest(this.Id + " cancelAllOrdersWs only supports spot markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -5756,7 +5760,7 @@ func (this *Binance) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "linear") && (typeVar == nil || *typeVar != "inverse") {
 		panic(ccxt.BadRequest(this.Id + " fetchOrderWs only supports spot or swap markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -5838,7 +5842,7 @@ func (this *Binance) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	if typeVar == nil || *typeVar != "spot" {
 		panic(ccxt.BadRequest(this.Id + " fetchOrdersWs only supports spot markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -5954,7 +5958,7 @@ func (this *Binance) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	if typeVar == nil || *typeVar != "spot" {
 		panic(ccxt.BadRequest(this.Id + " fetchOpenOrdersWs only supports spot markets"))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -6115,7 +6119,7 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	var url any = ""
 	if (typeVar == "spot") || (typeVar == "margin") {
 		// route orders to ws-api user data stream
-		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+		var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
@@ -7179,9 +7183,13 @@ func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	var market map[string]any = this.Market(symbol)
 	var typeVar *string = this.GetMarketType("fetchMyTradesWs", market, params)
 	if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "linear") {
-		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" fetchMyTradesWs does not support ", typeVar), " markets")))
+		if typeVar != nil {
+			messageText := this.Id + " fetchMyTradesWs does not support " + *typeVar + " markets"
+			panic(ccxt.BadRequest(messageText))
+		}
+		panic(ccxt.BadRequest(nil))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -7261,9 +7269,13 @@ func (this *Binance) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	var market map[string]any = this.Market(symbol)
 	var typeVar *string = this.GetMarketType("fetchTradesWs", market, params)
 	if (typeVar == nil || *typeVar != "spot") && (typeVar == nil || *typeVar != "linear") {
-		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" fetchTradesWs does not support ", typeVar), " markets")))
+		if typeVar != nil {
+			messageText := this.Id + " fetchTradesWs does not support " + *typeVar + " markets"
+			panic(ccxt.BadRequest(messageText))
+		}
+		panic(ccxt.BadRequest(nil))
 	}
-	var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 	var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 	var url *string = this.SafeString(wsApiDict, typeVar)
 	if url == nil {
@@ -7420,7 +7432,7 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	isPortfolioMargin := &isPortfolioMarginValue
 	var url any = ""
 	if (typeVar == "spot") || (typeVar == "margin") {
-		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+		var wsApiUrls map[string]any = this.UrlsApiSections["ws"]
 		var wsApiDict map[string]any = ccxt.SafeMapTyped(wsApiUrls, "ws-api")
 		url = (*this.SafeString(wsApiDict, "spot", ""))
 	} else {
@@ -7616,10 +7628,8 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		entry["info"] = message
-	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+	balance["info"] = message
 	var B []any = ccxt.SafeListTyped(message, "B")
 	for i := 0; i < len(B); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(B, i)

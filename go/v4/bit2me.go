@@ -481,7 +481,7 @@ func (this *Bit2me) ParseMarket(market any) map[string]any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var status *string = this.SafeString(market, "marketEnabled")
-	var fees any = this.Fees
+	var tradingFees any = this.SafeValue(this.Fees, "trading")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
@@ -506,8 +506,8 @@ func (this *Bit2me) ParseMarket(market any) map[string]any {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"taker":          GetValue(GetValue(fees, "trading"), "taker"),
-		"maker":          GetValue(GetValue(fees, "trading"), "maker"),
+		"taker":          this.SafeNumber(tradingFees, "taker"),
+		"maker":          this.SafeNumber(tradingFees, "maker"),
 		"precision": map[string]any{
 			"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amountPrecision"))),
 			"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision"))),

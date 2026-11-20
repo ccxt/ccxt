@@ -1225,7 +1225,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[s
 			}
 			// get order without symbol
 			var cancelledOrderId *string = this.SafeString(message, "order_id")
-			for i := 0; i < ccxt.GetArrayLength(orders); i++ {
+			for i := 0; i < len(orders.ToArray()); i++ {
 				var currentOrder any = ccxt.GetValue(orders, i)
 				var currentOrderId *string = this.SafeString(currentOrder, "id")
 				if currentOrderId == cancelledOrderId || (currentOrderId != nil && cancelledOrderId != nil && *currentOrderId == *cancelledOrderId) {
@@ -1896,8 +1896,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 				cashBalance[*code] = newAccount
 			}
 		}
-		this.Balance["cash"] = cashBalance
-		this.Balance["cash"] = this.PruneStaleBalanceKeys(this.Balance["cash"], holdingCodes)
+		this.Balance["cash"] = this.PruneStaleBalanceKeys(cashBalance, holdingCodes)
 		this.Balance["cash"] = this.SafeBalance(this.Balance["cash"])
 		updatedBalance = this.Balance["cash"]
 	}
@@ -1948,8 +1947,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 				marginBalance[*symbol] = symbolAccounts
 			}
 		}
-		this.Balance["margin"] = marginBalance
-		this.Balance["margin"] = this.PruneStaleBalanceKeys(this.Balance["margin"], futuresSymbols)
+		this.Balance["margin"] = this.PruneStaleBalanceKeys(marginBalance, futuresSymbols)
 		this.Balance["margin"] = this.SafeBalance(this.Balance["margin"])
 		client.(ccxt.ClientInterface).Resolve(this.Balance["margin"], messageHash+":futures")
 		if ccxt.IsEqual(updatedBalance, nil) {
@@ -1998,8 +1996,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 				flexBalance[*code] = newAccount
 			}
 		}
-		this.Balance["flex"] = flexBalance
-		this.Balance["flex"] = this.PruneStaleBalanceKeys(this.Balance["flex"], flexCodes)
+		this.Balance["flex"] = this.PruneStaleBalanceKeys(flexBalance, flexCodes)
 		this.Balance["flex"] = this.SafeBalance(this.Balance["flex"])
 		client.(ccxt.ClientInterface).Resolve(this.Balance["flex"], messageHash+":flex_futures")
 		if ccxt.IsEqual(updatedBalance, nil) {
@@ -2023,13 +2020,19 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
  * @param {object} seenKeys the currency codes / symbols present in the current message
  * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
  */
-func (this *Krakenfutures) PruneStaleBalanceKeys(balanceObject any, seenKeys map[string]any) any {
+func (this *Krakenfutures) PruneStaleBalanceKeys(balanceObject map[string]any, seenKeys map[string]any) map[string]any {
 	var reserved []any = []any{"info", "timestamp", "datetime", "free", "used", "total", "debt"}
-	var keys []string = ccxt.ObjectKeys(balanceObject)
+	var keys []string = nil
+	if balanceObject != nil {
+		keys = make([]string, 0, len(balanceObject))
+		for objectKey := range balanceObject {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		if _, ok := seenKeys[key]; !ok && !this.InArray(key, reserved) {
-			ccxt.Remove(balanceObject, key)
+			delete(balanceObject, key)
 		}
 	}
 	return balanceObject
@@ -2248,7 +2251,11 @@ func (this *Krakenfutures) HandleErrorMessage(client any, message map[string]any
 				}
 			}()
 			// try block:
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", errMsg)))
+			if errMsg != nil {
+				messageText := this.Id + " " + *errMsg
+				panic(ccxt.ExchangeError(messageText))
+			}
+			panic(ccxt.ExchangeError(nil))
 		}(this)
 		return ret__
 	}

@@ -1383,11 +1383,12 @@ func (this *Mexc) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		response = r.Raw
+		spotResponse := r.Raw
+		response = spotResponse
 		//
 		//     {}
 		//
-		var keys []string = ObjectKeys(response)
+		var keys []string = ObjectKeys(spotResponse)
 		var length int = len(keys)
 		if length > 0 {
 			status = this.Json(response)
@@ -2094,7 +2095,7 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	if limit != nil {
 		request["limit"] = *limit
 	}
-	var trades any = []any{}
+	var trades []any = []any{}
 	if *this.SafeBool(market, "spot", false) {
 		var until *int64 = this.SafeInteger2(params, "endTime", "until")
 		if since != nil {
@@ -2114,35 +2115,35 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 		var paramsOmitted map[string]any = this.OmitDict(params, []any{"method"})
 		if method == "spotPublicGetAggTrades" {
 
-			r1 := <-this.SpotPublicGetAggTrades(this.Extend(request, paramsOmitted))
-			if r1.Err != nil {
-				panic(r1.Err)
+			tradesRecv := <-this.SpotPublicGetAggTrades(this.Extend(request, paramsOmitted))
+			if tradesRecv.Err != nil {
+				panic(tradesRecv.Err)
 			}
-			trades = r1.Raw
+			trades = tradesRecv.Value
 		} else if method == "spotPublicGetHistoricalTrades" {
 
-			r2 := <-this.SpotPublicGetHistoricalTrades(this.Extend(request, paramsOmitted))
-			if r2.Err != nil {
-				panic(r2.Err)
+			tradesRecv := <-this.SpotPublicGetHistoricalTrades(this.Extend(request, paramsOmitted))
+			if tradesRecv.Err != nil {
+				panic(tradesRecv.Err)
 			}
-			trades = r2.Raw
+			trades = tradesRecv.Value
 		} else if method == "spotPublicGetTrades" {
 
-			r3 := <-this.SpotPublicGetTrades(this.Extend(request, paramsOmitted))
-			if r3.Err != nil {
-				panic(r3.Err)
+			tradesRecv := <-this.SpotPublicGetTrades(this.Extend(request, paramsOmitted))
+			if tradesRecv.Err != nil {
+				panic(tradesRecv.Err)
 			}
-			trades = r3.Raw
+			trades = tradesRecv.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchTrades() not support this method"))
 		}
 	} else if *this.SafeBool(market, "swap", false) {
 
-		r4 := <-this.ContractPublicGetDealsSymbol(this.Extend(request, params))
-		if r4.Err != nil {
-			panic(r4.Err)
+		r1 := <-this.ContractPublicGetDealsSymbol(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		var response map[string]any = r4.Value
+		var response map[string]any = r1.Value
 		//
 		//     {
 		//         "success": true,
@@ -2159,7 +2160,7 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 		//         ]
 		//     }
 		//
-		trades = this.SafeList(response, "data", []any{})
+		trades = ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
@@ -2395,11 +2396,11 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes186519 []any = r1.Value
-		if retRes186519 == nil {
+		var retRes186619 []any = r1.Value
+		if retRes186619 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes186519)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes186619)}
 		}
 		return nil
 	}
@@ -2574,11 +2575,11 @@ func (this *Mexc) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	if symbols != nil {
 		var length int = len(symbols)
 		isSingularMarket = (length == 1)
-		var symbolsElem200234 *string = nil
+		var symbolsElem200334 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem200234 = &symbols[0]
+			symbolsElem200334 = &symbols[0]
 		}
-		market = this.Market(symbolsElem200234)
+		market = this.Market(symbolsElem200334)
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var tickers any = nil
@@ -2883,11 +2884,11 @@ func (this *Mexc) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	if symbols != nil {
 		var length int = len(symbols)
 		isSingularMarket = (length == 1)
-		var symbolsElem230034 *string = nil
+		var symbolsElem230134 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem230034 = &symbols[0]
+			symbolsElem230134 = &symbols[0]
 		}
-		market = this.Market(symbolsElem230034)
+		market = this.Market(symbolsElem230134)
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var tickers any = nil
@@ -4153,12 +4154,12 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes326415Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes326415 []any = retRes326415Recv
-	if retRes326415 == nil {
+	retRes326515Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes326515 []any = retRes326515Recv
+	if retRes326515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes326415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes326515)}
 	}
 	return nil
 }
@@ -4197,12 +4198,12 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes328115Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes328115 []any = retRes328115Recv
-	if retRes328115 == nil {
+	retRes328215Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes328215 []any = retRes328215Recv
+	if retRes328215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328215)}
 	}
 	return nil
 }
@@ -4244,11 +4245,11 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes329819 []any = OrdersToList(r1.Value)
-		if retRes329819 == nil {
+		var retRes329919 []any = OrdersToList(r1.Value)
+		if retRes329919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes329819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes329919)}
 		}
 		return nil
 	}
@@ -5382,7 +5383,7 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var trades any = []any{}
+	var trades []any = []any{}
 	if marketType != nil && *marketType == "spot" {
 		if since != nil {
 			request["startTime"] = *since
@@ -5401,11 +5402,11 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 			paramsUntil = paramsMarketType
 		}
 
-		r1 := <-this.SpotPrivateGetMyTrades(this.Extend(request, paramsUntil))
-		if r1.Err != nil {
-			panic(r1.Err)
+		tradesRecv := <-this.SpotPrivateGetMyTrades(this.Extend(request, paramsUntil))
+		if tradesRecv.Err != nil {
+			panic(tradesRecv.Err)
 		}
-		trades = r1.Raw
+		trades = tradesRecv.Value
 	} else {
 		if since != nil {
 			request["start_time"] = *since
@@ -5418,11 +5419,11 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 			request["page_size"] = *limit
 		}
 
-		r2 := <-this.ContractPrivateGetOrderListOrderDeals(this.Extend(request, paramsMarketType))
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-this.ContractPrivateGetOrderListOrderDeals(this.Extend(request, paramsMarketType))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		var response map[string]any = r2.Value
+		var response map[string]any = r1.Value
 		//
 		//     {
 		//         "success": true,
@@ -5446,7 +5447,7 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		//         ]
 		//     }
 		//
-		trades = this.SafeList(response, "data", []any{})
+		trades = ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
@@ -5495,7 +5496,7 @@ func (this *Mexc) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 		market = this.Market(symbol)
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
-	var trades any = []any{}
+	var trades []any = []any{}
 	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchOrderTrades() requires a symbol argument"))
@@ -5503,19 +5504,19 @@ func (this *Mexc) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 		request["symbol"] = this.SafeString(market, "id")
 		request["orderId"] = id
 
-		r1 := <-this.SpotPrivateGetMyTrades(this.Extend(request, query))
-		if r1.Err != nil {
-			panic(r1.Err)
+		tradesRecv := <-this.SpotPrivateGetMyTrades(this.Extend(request, query))
+		if tradesRecv.Err != nil {
+			panic(tradesRecv.Err)
 		}
-		trades = r1.Raw
+		trades = tradesRecv.Value
 	} else {
 		request["order_id"] = id
 
-		r2 := <-this.ContractPrivateGetOrderDealDetailsOrderId(this.Extend(request, query))
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-this.ContractPrivateGetOrderDealDetailsOrderId(this.Extend(request, query))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		var response map[string]any = r2.Value
+		var response map[string]any = r1.Value
 		//
 		//     {
 		//         "success": true,
@@ -5539,7 +5540,7 @@ func (this *Mexc) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 		//         ]
 		//     }
 		//
-		trades = this.SafeList(response, "data", []any{})
+		trades = ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, query))}
@@ -5612,11 +5613,11 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes445815 map[string]any = r.Value
-	if retRes445815 == nil {
+	var retRes445915 map[string]any = r.Value
+	if retRes445915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes445815}
+		ch <- AsyncResult[map[string]any]{Value: retRes445915}
 	}
 	return nil
 }
@@ -5646,11 +5647,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes447215 map[string]any = r.Value
-	if retRes447215 == nil {
+	var retRes447315 map[string]any = r.Value
+	if retRes447315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes447215}
+		ch <- AsyncResult[map[string]any]{Value: retRes447315}
 	}
 	return nil
 }
@@ -6445,7 +6446,11 @@ func (this *Mexc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 		}
 	}
 	if (key == nil) || (this.SafeDictMap(addressStructures, key) == nil) {
-		panic(InvalidAddress(Add(Add(this.Id+" fetchDepositAddress() cannot find a deposit address for "+code+", and network", network), "consider creating one using .createDepositAddress() method or in MEXC website")))
+		if network != nil {
+			messageText := this.Id + " fetchDepositAddress() cannot find a deposit address for " + code + ", and network" + *network + "consider creating one using .createDepositAddress() method or in MEXC website"
+			panic(InvalidAddress(messageText))
+		}
+		panic(InvalidAddress(nil))
 	}
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(addressStructures, key))}

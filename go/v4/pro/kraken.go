@@ -2062,7 +2062,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 				var newRawOrder map[string]any = this.Extend(previousOrder["info"], parsed["info"])
 				newOrder = this.ParseWsOrder(newRawOrder)
 			}
-			var length int = ccxt.GetArrayLength(stored)
+			var length int = len(stored.ToArray())
 			if (limit != nil && *limit == int64(length)) && (previousOrder == nil) {
 				var first any = ccxt.GetValue(stored, 0)
 				var symbolsByOrderId map[string]any = this.SafeDictMap(this.Options, "symbolsByOrderId", map[string]any{})
@@ -2300,10 +2300,8 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 		this.Balance = map[string]any{}
 	}
 	this.Balance[typeVar] = this.SafeDict(this.Balance, typeVar, map[string]any{})
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		entry["info"] = message
-	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	balance["info"] = message
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var currencyId *string = this.SafeString(data[i], "asset")

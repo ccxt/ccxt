@@ -1651,13 +1651,11 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 	return this.Exchange.SafeMarket(marketId, marketResolved, delimiter, marketType)
 }
 func (this *Apex) GenerateRandomClientIdOmni(_accountId any) any {
-	var accountId any = ""
+	var suffix string = "-" + strconv.FormatInt(this.Milliseconds(), 10) + "-" + strconv.FormatInt(this.RandNumber(6), 10)
 	if (!IsEqual(_accountId, nil)) && (!IsEqual(_accountId, "")) {
-		accountId = _accountId
-	} else {
-		accountId = strconv.FormatInt(this.RandNumber(12), 10)
+		return Add(Add("apexomni-", _accountId), suffix)
 	}
-	return Add(Add(Add(Add(Add("apexomni-", accountId), "-"), strconv.FormatInt(this.Milliseconds(), 10)), "-"), strconv.FormatInt(this.RandNumber(6), 10))
+	return "apexomni-" + strconv.FormatInt(this.RandNumber(12), 10) + suffix
 }
 func (this *Apex) AddHyphenBeforeUsdt(symbol any) any {
 	var uppercaseSymbol string = ToUpper(symbol)

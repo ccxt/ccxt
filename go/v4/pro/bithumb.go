@@ -115,7 +115,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTicker", "generation", 2)
 	var isGenerationTwo bool = (generation == 2)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string
 	if isGenerationTwo {
 		url = this.SafeString(wsUrls, "publicGen2", "")
@@ -126,7 +126,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	messageHashStr := "ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var tickTypes *string = this.SafeString(paramsGeneration, "tickTypes", "24H")
-	var paramsOmitted any = this.Omit(paramsGeneration, "tickTypes")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "tickTypes")
 	var request any = map[string]any{
 		"type":      "ticker",
 		"symbols":   []any{*this.SafeString(market, "base", "") + "_" + *this.SafeString(market, "quote", "")},
@@ -205,7 +205,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		symbolsResolved = symbolsNormalized
 	}
 	var symbolsLengthDefined int = len(symbolsResolved)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string
 	if isGenerationTwo {
 		url = this.SafeString(wsUrls, "publicGen2", "")
@@ -227,7 +227,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		messageHashes = append(messageHashes, "ticker:"+market["symbol"].(string))
 	}
 	var tickTypes *string = this.SafeString(paramsGeneration, "tickTypes", "24H")
-	var paramsOmitted any = this.Omit(paramsGeneration, "tickTypes")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "tickTypes")
 	var message any = map[string]any{
 		"type":      "ticker",
 		"symbols":   streamMarketIds,
@@ -339,29 +339,20 @@ func (this *Bithumb) HandleTicker(client any, message map[string]any) {
 	if marketId == nil {
 		return
 	}
-	var symbol any = nil
+	var delimiter string
 	if isGenerationTwo {
-		if derefPtr := this.SafeSymbol(marketId, nil, "-"); derefPtr != nil {
-			symbol = *derefPtr
-		} else {
-			symbol = nil
-		}
+		delimiter = "-"
 	} else {
-		if derefPtr := this.SafeSymbol(marketId, nil, "_"); derefPtr != nil {
-			symbol = *derefPtr
-		} else {
-			symbol = nil
-		}
+		delimiter = "_"
 	}
+	var symbol *string = this.SafeSymbol(marketId, nil, delimiter)
 	if symbol == nil {
 		return
 	}
 	var ticker map[string]any = this.ParseWsTicker(tickerMessage)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
-	if wsKey, ok := symbol.(string); ok {
-		this.Tickers[wsKey] = ccxt.TickerFromMap(ticker)
-	}
-	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[symbol.(string)]), messageHash)
+	var messageHash string = "ticker:" + *symbol
+	this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
+	client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
 }
 func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
@@ -527,7 +518,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "generation", 2)
 	var isGenerationTwo bool = (generation == 2)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string
 	if isGenerationTwo {
 		url = this.SafeString(wsUrls, "publicGen2", "")
@@ -741,7 +732,7 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTrades", "generation", 2)
 	var isGenerationTwo bool = (generation == 2)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string
 	if isGenerationTwo {
 		url = this.SafeString(wsUrls, "publicGen2", "")
@@ -967,7 +958,11 @@ func (this *Bithumb) HandleErrorMessage(client any, message map[string]any) bool
 			}
 			if errorCode == nil || *errorCode != "0000" {
 				var msg *string = this.SafeString(message, "resmsg")
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", msg)))
+				if msg != nil {
+					messageText := this.Id + " " + *msg
+					panic(ccxt.ExchangeError(messageText))
+				}
+				panic(ccxt.ExchangeError(nil))
 			}
 			return true
 		}(this)
@@ -1010,7 +1005,7 @@ func (this *Bithumb) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(wsUrls, "privateGen2", "")
 	var messageHash string = "myAsset"
 	var request []any = this.BuildGen2SubscriptionRequest(messageHash, map[string]any{
@@ -1135,7 +1130,7 @@ func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[ccxt.ClientInterf
 		}
 		this.Options["ws"] = wsOptions
 	}
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(wsUrls, "privateGen2", "")
 	var client ccxt.ClientInterface = this.Client(url)
 
@@ -1188,7 +1183,7 @@ func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(wsUrls, "privateGen2", "")
 	var messageHash string = "myOrder"
 	var codes []any = this.SafeListSlice(params, "codes", []any{})

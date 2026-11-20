@@ -1056,7 +1056,11 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	var chainConfig map[string]any = ccxt.SafeMapTyped(chains, this.NumberToString(chainId))
 	var rpcUrl *string = this.SafeString(paramsSpender, "rpcUrl", this.SafeString(chainConfig, "rpcUrl"))
 	if rpcUrl == nil {
-		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" approve() has no RPC endpoint configured for chainId ", this.NumberToString(chainId)), " - pass params.rpcUrl")))
+		if messagePiece := this.NumberToString(chainId); messagePiece != nil {
+			messageText := this.Id + " approve() has no RPC endpoint configured for chainId " + *messagePiece + " - pass params.rpcUrl"
+			panic(ccxt.ArgumentsRequired(messageText))
+		}
+		panic(ccxt.ArgumentsRequired(nil))
 	}
 	var owner string = this.WalletAddress
 	nonceCallDataStr := "0x7ecebe00" + this.PadHexAddress(owner)

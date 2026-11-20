@@ -761,11 +761,11 @@ func (this *Bitteam) ParseCurrency(currency any) map[string]any {
 	var fee any = nil
 	var withdrawCommissionFixed map[string]any = this.SafeDictMap(txLimits, "withdrawCommissionFixed", map[string]any{})
 	var feesByNetworkId map[string]any = map[string]any{}
-	var blockChain *string = this.SafeString(currency, "blockChain")
+	var blockChain string = *this.SafeString(currency, "blockChain", "")
 	// if only one blockChain
-	if (blockChain != nil) && (blockChain == nil || *blockChain != "") {
+	if blockChain != "" {
 		fee = this.ParseNumber(withdrawCommissionFixed)
-		AddElementToObject(feesByNetworkId, blockChain, fee)
+		feesByNetworkId[blockChain] = fee
 	} else {
 		feesByNetworkId = this.Extend(withdrawCommissionFixed, map[string]any{})
 	}

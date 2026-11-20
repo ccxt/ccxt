@@ -1031,10 +1031,10 @@ func (this *Bigone) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var tickers map[string]any = StructResultMap(r2.Value, TickerMapToMap)
-		var spotTicker map[string]any = SafeMapTyped(tickers, symbol)
+		var tickers map[string]Ticker = r2.Value
+		var spotTicker Ticker = tickers[symbol]
 
-		ch <- AsyncResult[Ticker]{Value: TickerFromMap(spotTicker)}
+		ch <- AsyncResult[Ticker]{Value: spotTicker}
 		return nil
 	}
 }

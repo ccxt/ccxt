@@ -743,7 +743,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 	this.Options["hip3TokensByName"] = map[string]any{}
 	var markets []any = []any{}
 	for i := 0; i < len(promises); i++ {
-		var dexName any = GetValue(fetchDexesList, i)
+		var dexName *string = this.SafeString(fetchDexesList, i)
 		var offset *int64 = this.SafeInteger(perpDexesOffset, dexName)
 		var response []any = SafeListTyped(promises, i)
 		var meta map[string]any = SafeMapTyped(response, 0)
@@ -2834,10 +2834,13 @@ func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[Order], symbol stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders []any = OrdersToList(r1.Value)
-	var created map[string]any = SafeMapTyped(orders, 0)
+	var orders []Order = r1.Value
+	var created Order
+	if len(orders) > 0 {
+		created = orders[0]
+	}
 
-	ch <- AsyncResult[Order]{Value: OrderFromMap(created)}
+	ch <- AsyncResult[Order]{Value: created}
 	return nil
 }
 
@@ -3929,10 +3932,13 @@ func (this *Hyperliquid) editOrderBody(ch chan AsyncResult[Order], id string, sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders []any = OrdersToList(r1.Value)
-	var edited map[string]any = SafeMapTyped(orders, 0)
+	var orders []Order = r1.Value
+	var edited Order
+	if len(orders) > 0 {
+		edited = orders[0]
+	}
 
-	ch <- AsyncResult[Order]{Value: OrderFromMap(edited)}
+	ch <- AsyncResult[Order]{Value: edited}
 	return nil
 }
 
@@ -6918,11 +6924,9 @@ func (this *Hyperliquid) createSubAccountBody(ch chan AsyncResult[map[string]any
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Hyperliquid) ExtractTypeFromDelta(optionalArgs ...any) []any {
-	data := GetArg(optionalArgs, 0, []any{})
-	_ = data
+func (this *Hyperliquid) ExtractTypeFromDelta(data []any) []any {
 	var records []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
+	for i := 0; i < len(data); i++ {
 		var record map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var delta map[string]any = SafeMapTyped(record, "delta")
 		record["type"] = delta["type"]

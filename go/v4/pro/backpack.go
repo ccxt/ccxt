@@ -178,7 +178,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 	var symbolsResolved []any = []any{}
 	var topics []any = []any{}
 	var messageHashes []string = []string{}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var url *string = this.SafeString(wsUrls, "public", "")
 	var client ccxt.ClientInterface = this.Client(url)
@@ -338,7 +338,7 @@ func (this *Backpack) watchPublicBody(ch chan ccxt.AsyncResult[any], topics any,
 			panic(r.Err)
 		}
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var url *string = this.SafeString(wsUrls, "public", "")
 	var method string = "SUBSCRIBE"
@@ -376,7 +376,7 @@ func (this *Backpack) watchPrivateBody(ch chan ccxt.AsyncResult[any], topics any
 	var unwatch bool = ccxt.GetArgBool(optionalArgs, 1, false)
 	_ = unwatch
 	this.CheckRequiredCredentials()
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = this.UrlsApi
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var url *string = this.SafeString(wsUrls, "private", "")
 	var instruction string = "subscribe"

@@ -309,10 +309,9 @@ func (this *Onetrading) HandleTicker(client any, message map[string]any) {
 		var ticker any = tickers[i]
 		var marketId *string = this.SafeString(ticker, "instrument")
 		var symbol *string = this.SafeSymbol(marketId)
-		var parsedTicker any = this.ParseWSTicker(ticker)
 		var timestamp *int64 = this.Parse8601(datetime)
-		ccxt.AddElementToObject(parsedTicker, "timestamp", timestamp)
-		ccxt.AddElementToObject(parsedTicker, "datetime", this.Iso8601(timestamp))
+		var isoDatetime *string = this.Iso8601(timestamp)
+		var parsedTicker any = this.ParseWSTicker(ticker, nil, timestamp, isoDatetime)
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(parsedTicker)
 		}
@@ -320,7 +319,7 @@ func (this *Onetrading) HandleTicker(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(ccxt.TickerMapToMap(this.Tickers), "tickers")
 }
-func (this *Onetrading) ParseWSTicker(ticker any, optionalArgs ...any) any {
+func (this *Onetrading) ParseWSTicker(ticker any, market any, timestamp *int64, datetime *string) any {
 	//
 	//     {
 	//         "instrument": "ETH_BTC",
@@ -332,13 +331,11 @@ func (this *Onetrading) ParseWSTicker(ticker any, optionalArgs ...any) any {
 	//         "volume": "6.3821593247"
 	//     }
 	//
-	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
-	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        this.SafeSymbol(marketId, market),
-		"timestamp":     nil,
-		"datetime":      nil,
+		"timestamp":     timestamp,
+		"datetime":      datetime,
 		"high":          this.SafeString(ticker, "high"),
 		"low":           this.SafeString(ticker, "low"),
 		"bid":           nil,
@@ -1414,7 +1411,11 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var timeframeId map[string]any = ccxt.SafeMapTyped(message, "granularity")
 	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
-	var channel *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+*symbol+".", timeframe))
+	var channel *string = nil
+	if timeframe != nil {
+		channelValue := "ohlcv." + *symbol + "." + *timeframe
+		channel = &channelValue
+	}
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}

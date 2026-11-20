@@ -1679,7 +1679,7 @@ func (this *Lbank) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	// from spotPrivatePostUserInfo
 	var toBtc map[string]any = SafeMapTyped(data, "toBtc")
 	if toBtc != nil {
@@ -1714,22 +1714,6 @@ func (this *Lbank) ParseBalance(response map[string]any) map[string]any {
 			var account map[string]any = this.Account()
 			account["free"] = this.SafeString(item, "free")
 			account["used"] = this.SafeString(item, "locked")
-			if codeInner != nil {
-				result[*codeInner] = account
-			}
-		}
-		return this.SafeBalance(result).(map[string]any)
-	}
-	// from spotPrivatePostSupplementUserInfo
-	var isArray bool = false
-	if isArray {
-		for i := 0; i < GetArrayLength(data); i++ {
-			var item map[string]any = SafeMapTyped(data, i)
-			var currencyId *string = this.SafeString(item, "coin")
-			var codeInner *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(item, "usableAmt")
-			account["used"] = this.SafeString(item, "freezeAmt")
 			if codeInner != nil {
 				result[*codeInner] = account
 			}
@@ -2041,10 +2025,10 @@ func (this *Lbank) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var result map[string]any = StructResultMap(r.Value, TradingFeeInterfaceMapToMap)
-	var fee map[string]any = SafeMapTyped(result, symbol)
+	var result map[string]TradingFeeInterface = r.Value
+	var fee TradingFeeInterface = result[symbol]
 
-	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(fee)}
+	ch <- AsyncResult[TradingFeeInterface]{Value: fee}
 	return nil
 }
 
@@ -3585,11 +3569,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes272223 map[string]any = r1.Value
-			if retRes272223 == nil {
+			var retRes270623 map[string]any = r1.Value
+			if retRes270623 == nil {
 				ch <- AsyncResult[map[string]any]{Value: nil}
 			} else {
-				ch <- AsyncResult[map[string]any]{Value: retRes272223}
+				ch <- AsyncResult[map[string]any]{Value: retRes270623}
 			}
 			return nil
 		}
@@ -3598,11 +3582,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes272419 map[string]any = r2.Value
-		if retRes272419 == nil {
+		var retRes270819 map[string]any = r2.Value
+		if retRes270819 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes272419}
+			ch <- AsyncResult[map[string]any]{Value: retRes270819}
 		}
 		return nil
 	}
@@ -3611,11 +3595,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var retRes272615 map[string]any = r3.Value
-	if retRes272615 == nil {
+	var retRes271015 map[string]any = r3.Value
+	if retRes271015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes272615}
+		ch <- AsyncResult[map[string]any]{Value: retRes271015}
 	}
 	return nil
 }
