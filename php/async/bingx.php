@@ -1355,9 +1355,9 @@ class bingx extends Exchange {
         //        ]
         //    }
         //
-        $ohlcvs = $this->safe_value($response, 'data', array());
-        if ((gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs)))) {
-            $ohlcvs = array( $ohlcvs );
+        $ohlcvs = $this->safe_list($response, 'data', array());
+        if ($this->safe_list($response, 'data') === null && $this->safe_dict($response, 'data') !== null) {
+            $ohlcvs = array( $this->safe_dict($response, 'data') );
         }
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
@@ -4221,29 +4221,19 @@ class bingx extends Exchange {
                 $feeCurrencyCode = $this->safe_string($marketResolved, $feeKey);
             }
         }
-        $stopLoss = $this->safe_value($orderData, 'stopLoss');
-        $stopLossPrice = null;
-        if (($stopLoss !== null) && ($stopLoss !== '')) {
-            $stopLossPrice = $this->omit_zero($this->safe_string($stopLoss, 'stopLoss'));
+        // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        $stopLossString = $this->safe_string($orderData, 'stopLoss');
+        $stopLossIsDict = $this->safe_dict($orderData, 'stopLoss') !== null;
+        $stopLossPrice = $this->omit_zero($this->safe_string($this->safe_dict($orderData, 'stopLoss', array()), 'stopPrice'));
+        if (!$stopLossIsDict && ($stopLossString !== null) && (mb_strpos($stopLossString, '{') === 0)) {
+            $stopLossPrice = $this->omit_zero($this->safe_string($this->parse_json($stopLossString), 'stopPrice'));
         }
-        if (($stopLoss !== null) && (!(is_float($stopLoss) || is_int($stopLoss))) && ($stopLoss !== '')) {
-            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if (gettype($stopLoss) === 'string') {
-                $stopLoss = $this->parse_json($stopLoss);
-            }
-            $stopLossPrice = $this->omit_zero($this->safe_string($stopLoss, 'stopPrice'));
-        }
-        $takeProfit = $this->safe_value($orderData, 'takeProfit');
-        $takeProfitPrice = null;
-        if ($takeProfit !== null && ($takeProfit !== '')) {
-            $takeProfitPrice = $this->omit_zero($this->safe_string($takeProfit, 'takeProfit'));
-        }
-        if (($takeProfit !== null) && (!(is_float($takeProfit) || is_int($takeProfit))) && ($takeProfit !== '')) {
-            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if (gettype($takeProfit) === 'string') {
-                $takeProfit = $this->parse_json($takeProfit);
-            }
-            $takeProfitPrice = $this->omit_zero($this->safe_string($takeProfit, 'stopPrice'));
+        // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        $takeProfitString = $this->safe_string($orderData, 'takeProfit');
+        $takeProfitIsDict = $this->safe_dict($orderData, 'takeProfit') !== null;
+        $takeProfitPrice = $this->omit_zero($this->safe_string($this->safe_dict($orderData, 'takeProfit', array()), 'stopPrice'));
+        if (!$takeProfitIsDict && ($takeProfitString !== null) && (mb_strpos($takeProfitString, '{') === 0)) {
+            $takeProfitPrice = $this->omit_zero($this->safe_string($this->parse_json($takeProfitString), 'stopPrice'));
         }
         $rawType = $this->safe_string_lower_2($orderData, 'type', 'o');
         $stopPrice = $this->omit_zero($this->safe_string_2($orderData, 'StopPrice', 'stopPrice'));

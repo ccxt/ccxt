@@ -1106,9 +1106,9 @@ class phemex extends Exchange {
         $products = $this->safe_list($v2ProductsData, 'products', array());
         $perpetualProductsV2 = $this->safe_list($v2ProductsData, 'perpProductsV2', array());
         $products = $this->array_concat($products, $perpetualProductsV2);
-        $riskLimits = $this->safe_list($v2ProductsData, 'riskLimits', array());
+        $riskLimitsV1 = $this->safe_list($v2ProductsData, 'riskLimits', array());
         $riskLimitsV2 = $this->safe_list($v2ProductsData, 'riskLimitsV2', array());
-        $riskLimits = $this->array_concat($riskLimits, $riskLimitsV2);
+        $riskLimits = $this->array_concat($riskLimitsV1, $riskLimitsV2);
         $currencies = $this->safe_list($v2ProductsData, 'currencies', array());
         $riskLimitsById = $this->index_by($riskLimits, 'symbol');
         $v1ProductsById = $this->index_by($v1ProductsData, 'symbol');

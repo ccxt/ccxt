@@ -2564,7 +2564,7 @@ class xt extends Exchange {
         //         ]
         //     }
         //
-        $balances = null;
+        $balances = array();
         if (($subType !== null) || $isContractWallet) {
             $balances = $this->safe_list($response, 'result', array());
         } else {
@@ -2574,7 +2574,7 @@ class xt extends Exchange {
         return $this->parse_balance_list($balances);
     }
 
-    public function parse_balance_list(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         //
         // spot
         //

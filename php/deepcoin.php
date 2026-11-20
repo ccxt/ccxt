@@ -3110,9 +3110,10 @@ class deepcoin extends Exchange {
             );
             $requestBody = null;
             if ($method !== 'GET') {
-                $requestBody = $this->json($params);
+                $body = $this->json($params);
                 $privateHeaders['Content-Type'] = 'application/json';
-                $payload .= $requestBody;
+                $payload .= $body;
+                $requestBody = $body;
             }
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $privateHeaders['DC-ACCESS-SIGN'] = $signature;

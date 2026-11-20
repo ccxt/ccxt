@@ -1381,8 +1381,8 @@ class poloniex extends \ccxt\async\poloniex {
             $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');
             $timestamp = $this->safe_integer($item, 'ts');
-            $asks = $this->safe_list($item, 'asks');
-            $bids = $this->safe_list($item, 'bids');
+            $asks = $this->safe_list($item, 'asks', array());
+            $bids = $this->safe_list($item, 'bids', array());
             if ($snapshot || $update) {
                 $orderbook = $this->safe_value($this->orderbooks, $symbol);
                 if ($snapshot && ($orderbook === null)) {

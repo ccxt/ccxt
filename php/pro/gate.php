@@ -1909,10 +1909,11 @@ class gate extends \ccxt\async\gate {
                 }
             }
             $stored->append($parsed);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             $market = $this->market($symbol);
-            if ($market['id'] !== null) {
-                $marketIds[$market['id']] = true;
+            $marketId = $this->safe_string($market, 'id');
+            if ($marketId !== null) {
+                $marketIds[$marketId] = true;
             }
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
@@ -2062,10 +2063,7 @@ class gate extends \ccxt\async\gate {
             $newLiquidations[] = $liquidation;
             $symbol = $this->safe_string($liquidation, 'symbol');
             if ($symbol !== null) {
-                $symbolLiquidations = $this->safe_list($liquidationsBySymbol, $symbol);
-                if ($symbolLiquidations === null) {
-                    $symbolLiquidations = array();
-                }
+                $symbolLiquidations = $this->safe_list($liquidationsBySymbol, $symbol, array());
                 $symbolLiquidations[] = $liquidation;
                 $liquidationsBySymbol[$symbol] = $symbolLiquidations;
             }

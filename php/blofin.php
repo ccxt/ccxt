@@ -3140,8 +3140,9 @@ class blofin extends Exchange {
             throw new BadRequest($this->id . ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         $symbolsNormalized = $this->market_symbols($symbols);
+        $marketIds = $this->market_ids($symbolsNormalized);
         $request = array(
-            'instId' => implode(',', $this->market_ids($symbolsNormalized)),
+            'instId' => implode(',', $marketIds),
             'marginMode' => $marginMode,
         );
         $response = $this->privateGetAccountBatchLeverageInfo($this->extend($request, $query));

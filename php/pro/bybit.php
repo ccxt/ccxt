@@ -652,12 +652,12 @@ class bybit extends \ccxt\async\bybit {
         if ($isSpot) {
             $type = 'spot';
         }
+        if (($updateType !== 'snapshot') && ($updateType !== 'delta')) {
+            return;
+        }
         $symbol = null;
-        $parsed = null;
-        if (($updateType === 'snapshot')) {
-            $parsed = $this->parse_ticker($data);
-            $symbol = $this->safe_string($parsed, 'symbol');
-        } elseif ($updateType === 'delta') {
+        $tickerInput = $data;
+        if ($updateType === 'delta') {
             $topicParts = explode('.', $topic);
             $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
@@ -666,10 +666,13 @@ class bybit extends \ccxt\async\bybit {
             // update the info in place
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
-            $merged = $this->extend($rawTicker, $data);
-            $parsed = $this->parse_ticker($merged);
+            $tickerInput = $this->extend($rawTicker, $data);
         }
-        if (($parsed === null) || ($symbol === null)) {
+        $parsed = $this->parse_ticker($tickerInput);
+        if ($updateType === 'snapshot') {
+            $symbol = $this->safe_string($parsed, 'symbol');
+        }
+        if ($symbol === null) {
             return;
         }
         $timestamp = $this->safe_integer($message, 'ts');
@@ -2502,8 +2505,8 @@ class bybit extends \ccxt\async\bybit {
             if ($this->safe_dict($this->balance, $account) === null) {
                 $this->balance[$account] = array();
             }
-            $this->balance[$account]['info'] = $info;
             $balance = $this->safe_dict($this->balance, $account, array());
+            $balance['info'] = $info;
             $timestamp = $this->safe_integer($message, 'ts');
             $balance['timestamp'] = $timestamp;
             $balance['datetime'] = $this->iso8601($timestamp);

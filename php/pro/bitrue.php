@@ -416,7 +416,7 @@ class bitrue extends \ccxt\async\bitrue {
         $isFutures = ($channelKind === 'e');
         $market = null;
         if ($isFutures) {
-            $wsBaseQuote = $this->safe_string_lower($parts, 2);
+            $wsBaseQuote = $this->safe_string_lower($parts, 2, '');
             $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
         } else {
             $marketId = $this->safe_string_upper($parts, 1);
@@ -447,10 +447,8 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function find_swap_market_by_ws_base_quote(?string $wsBaseQuote) {
-        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
-        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
-        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
+    public function find_swap_market_by_ws_base_quote(string $wsBaseQuote) {
+        // callers pass safeStringLower (parts, 2, ''), a plain string in every port
         if ($this->markets === null) {
             return null;
         }
@@ -610,8 +608,8 @@ class bitrue extends \ccxt\async\bitrue {
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' unWatchTrades is only supported for swap markets');
         }
-        $baseIdLower = $this->safe_string_lower($market, 'baseId');
-        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+        $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId', '');
         $wsId = 'e_' . $baseIdLower . $quoteIdLower;
         $channel = 'market_' . $wsId . '_trade_ticker';
         $subscription = array(
@@ -644,7 +642,7 @@ class bitrue extends \ccxt\async\bitrue {
         //
         $channel = $this->safe_string($message, 'channel');
         $parts = explode('_', $channel);
-        $wsBaseQuote = $this->safe_string_lower($parts, 2);
+        $wsBaseQuote = $this->safe_string_lower($parts, 2, '');
         $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
         $symbol = $this->safe_string($market, 'symbol');
         if ($symbol === null) {
@@ -779,8 +777,8 @@ class bitrue extends \ccxt\async\bitrue {
         if ($interval === null) {
             throw new NotSupported($this->id . ' unWatchOHLCV does not support timeframe ' . $timeframe);
         }
-        $baseIdLower = $this->safe_string_lower($market, 'baseId');
-        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+        $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId', '');
         $wsId = 'e_' . $baseIdLower . $quoteIdLower;
         $channel = 'market_' . $wsId . '_kline_' . $interval;
         $subscription = array(
@@ -811,7 +809,7 @@ class bitrue extends \ccxt\async\bitrue {
         //
         $channel = $this->safe_string($message, 'channel');
         $parts = explode('_', $channel);
-        $wsBaseQuote = $this->safe_string_lower($parts, 2);
+        $wsBaseQuote = $this->safe_string_lower($parts, 2, '');
         $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
         $symbol = $this->safe_string($market, 'symbol');
         if ($symbol === null) {
@@ -915,7 +913,7 @@ class bitrue extends \ccxt\async\bitrue {
         //
         $channel = $this->safe_string($message, 'channel');
         $parts = explode('_', $channel);
-        $wsBaseQuote = $this->safe_string_lower($parts, 2);
+        $wsBaseQuote = $this->safe_string_lower($parts, 2, '');
         $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
         $symbol = $this->safe_string($market, 'symbol');
         if ($symbol === null) {

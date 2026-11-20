@@ -614,7 +614,10 @@ class coinmate extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $market = $this->market($keys[$i]);
             $ticker = $this->parse_ticker($this->safe_dict($data, $keys[$i], array()), $market);
-            $result[$market['symbol']] = $ticker;
+            $symbol = $this->safe_string($market, 'symbol');
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }

@@ -2741,7 +2741,7 @@ class polymarket extends Exchange {
         return $envelope;
     }
 
-    public function compact_signable(array $row) {
+    public function compact_signable(array $row): array {
         /**
          * @ignore
          * removes null entries from a positional signable array, later entries shift left exactly like the official sdk does before hashing

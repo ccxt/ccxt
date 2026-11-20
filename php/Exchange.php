@@ -3623,9 +3623,8 @@ class BaseExchange {
          * @ignore
          * store $value under $key if $key is defined (no-op on null)
          */
-        $k = $key;
-        if ($k !== null) {
-            $dict[$k] = $value;
+        if ($key !== null) {
+            $dict[$key] = $value;
         }
     }
 
@@ -3719,9 +3718,10 @@ class BaseExchange {
 
     public function url_encoder_for_proxy_url(string $targetUrl) {
         // to be overriden
-        $includesQuery = mb_strpos($targetUrl, '?') !== false;
-        $finalUrl = $includesQuery ? $this->encode_uri_component($targetUrl) : $targetUrl;
-        return $finalUrl;
+        if (mb_strpos($targetUrl, '?') !== false) {
+            return $this->encode_uri_component($targetUrl);
+        }
+        return $targetUrl;
     }
 
     public function check_proxy_settings(?string $url = null, ?string $method = null, mixed $headers = null, mixed $body = null) {
@@ -8275,8 +8275,7 @@ class BaseExchange {
     public function parse_funding_rate_histories(array $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $rates[] = $this->parse_funding_rate_history($entry, $market);
+            $rates[] = $this->parse_funding_rate_history($response[$i], $market);
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         $symbol = ($market === null) ? null : $market['symbol'];
@@ -8295,8 +8294,7 @@ class BaseExchange {
     public function parse_funding_rates(array $response, ?array $symbols = null) {
         $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $parsed = $this->parse_funding_rate($entry);
+            $parsed = $this->parse_funding_rate($response[$i]);
             if ($parsed['symbol'] !== null) {
                 $fundingRates[$parsed['symbol']] = $parsed;
             }
@@ -8311,8 +8309,7 @@ class BaseExchange {
     public function parse_long_short_ratio_history(array $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $rates[] = $this->parse_long_short_ratio($entry, $market);
+            $rates[] = $this->parse_long_short_ratio($response[$i], $market);
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         $symbol = ($market === null) ? null : $market['symbol'];
@@ -8469,8 +8466,7 @@ class BaseExchange {
     public function parse_open_interests(array $response, ?array $symbols = null) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $parsed = $this->parse_open_interest($entry);
+            $parsed = $this->parse_open_interest($response[$i]);
             if ($parsed['symbol'] !== null) {
                 $result[$parsed['symbol']] = $parsed;
             }

@@ -338,15 +338,15 @@ class toobit extends \ccxt\async\toobit {
         $messageHashes = array();
         $timeframes = $this->safe_dict($this->options['ws'], 'timeframes', array());
         $marketIds = array();
-        $selectedTimeframe = null;
+        $selectedTimeframe = '';
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolStr = $this->safe_string($data, 0, '');
             $market = $this->market($symbolStr);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
             $unfiedTimeframe = $this->safe_string($data, 1, '1m');
             $rawTimeframe = $this->safe_string($timeframes, $unfiedTimeframe, $unfiedTimeframe);
-            if ($selectedTimeframe !== null && $selectedTimeframe !== $rawTimeframe) {
+            if ($selectedTimeframe !== '' && $selectedTimeframe !== $rawTimeframe) {
                 throw new NotSupported($this->id . ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             } else {
                 $selectedTimeframe = $rawTimeframe;

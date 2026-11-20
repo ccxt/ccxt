@@ -682,10 +682,15 @@ class backpack extends Exchange {
         $stock = $this->safe_bool($selection, 0, false);
         $query = $this->safe_dict($selection, 1, array());
         $marketType = $this->safe_string($query, 'marketType');
-        $requestedTypes = $this->safe_list($query, 'marketType', array( 'SPOT', 'PERP', 'RFQ' ));
+        $defaultTypes = array();
         if ($marketType !== null) {
-            $requestedTypes = array( $marketType );
+            $defaultTypes[] = $marketType;
+        } else {
+            $defaultTypes[] = 'SPOT';
+            $defaultTypes[] = 'PERP';
+            $defaultTypes[] = 'RFQ';
         }
+        $requestedTypes = $this->safe_list($query, 'marketType', $defaultTypes);
         $aliases = array( 'spot' => 'SPOT', 'swap' => 'PERP', 'stock' => 'RFQ' );
         $supportedTypes = array( 'SPOT', 'PERP', 'RFQ' );
         $marketTypes = array();
@@ -2975,7 +2980,7 @@ class backpack extends Exchange {
             $rfqResponse = Async\await($this->privateGetApiV1Rfqs($this->extend($query, array( 'symbol' => $market['id'], 'rfqId' => $id ))));
             for ($i = 0; $i < count($rfqResponse); $i++) {
                 $order = $this->parse_order($this->safe_dict($rfqResponse, $i, array()), $market);
-                if ($order['id'] === $id) {
+                if ($this->safe_string($order, 'id') === $id) {
                     return $order;
                 }
             }
@@ -3029,7 +3034,7 @@ class backpack extends Exchange {
         }
         for ($i = 0; $i < count($response); $i++) {
             $order = $this->parse_order($this->safe_dict($response, $i, array()), $market);
-            if ($order['id'] === $id) {
+            if ($this->safe_string($order, 'id') === $id) {
                 return $order;
             }
         }

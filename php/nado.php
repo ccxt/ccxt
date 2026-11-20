@@ -553,7 +553,8 @@ class nado extends Exchange {
             }
             $triggerPriceX18 = $this->convert_to_x18($triggerPrice);
             $priceRequirement = array();
-            $priceRequirement['oracle_price_' . $directionSuffix] = $triggerPriceX18;
+            $oracleKey = 'oracle_price_' . $directionSuffix;
+            $priceRequirement[$oracleKey] = $triggerPriceX18;
             $trigger = array(
                 'price_trigger' => array(
                     'price_requirement' => $priceRequirement,
@@ -574,7 +575,8 @@ class nado extends Exchange {
             }
             $triggerPriceX18 = $this->convert_to_x18($triggerPrice);
             $priceRequirement = array();
-            $priceRequirement['oracle_price_' . $oracleSide] = $triggerPriceX18;
+            $oracleKey = 'oracle_price_' . $oracleSide;
+            $priceRequirement[$oracleKey] = $triggerPriceX18;
             $trigger = array(
                 'price_trigger' => array(
                     'price_requirement' => $priceRequirement,
@@ -2903,7 +2905,9 @@ class nado extends Exchange {
             }
             $filled = $this->parse_x18(Precise::string_abs($archiveFilled));
             $costString = $this->safe_string($order, 'quote_filled');
-            $cost = ($costString === null) ? null : $this->parse_x18(Precise::string_abs($costString));
+            if ($costString !== null) {
+                $cost = $this->parse_x18(Precise::string_abs($costString));
+            }
             if (($filled !== null) && ($cost !== null)) {
                 $average = Precise::string_div($this->number_to_string($cost), $this->number_to_string($filled));
             }
@@ -3117,7 +3121,8 @@ class nado extends Exchange {
             return mb_substr($paddedLeft, $start, strlen($paddedLeft) - $start);
         }
         $paddedRight = $value . $zeros;
-        return mb_substr($paddedRight, 0, $length - 0);
+        $end = $this->parse_to_int($length);
+        return mb_substr($paddedRight, 0, $end - 0);
     }
 
     public function sign_order(array $order, ?int $productId, ?string $chainId): string {

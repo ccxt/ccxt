@@ -1552,8 +1552,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $cashBalance[$code] = $newAccount;
                 }
             }
-            $this->balance['cash'] = $cashBalance;
-            $this->balance['cash'] = $this->prune_stale_balance_keys($this->balance['cash'], $holdingCodes);
+            $this->balance['cash'] = $this->prune_stale_balance_keys($cashBalance, $holdingCodes);
             $this->balance['cash'] = $this->safe_balance($this->balance['cash']);
             $updatedBalance = $this->balance['cash'];
         }
@@ -1582,8 +1581,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 }
                 $marginBalance[$symbol] = $symbolAccounts;
             }
-            $this->balance['margin'] = $marginBalance;
-            $this->balance['margin'] = $this->prune_stale_balance_keys($this->balance['margin'], $futuresSymbols);
+            $this->balance['margin'] = $this->prune_stale_balance_keys($marginBalance, $futuresSymbols);
             $this->balance['margin'] = $this->safe_balance($this->balance['margin']);
             $client->resolve($this->balance['margin'], $messageHash . ':futures');
             if ($updatedBalance === null) {
@@ -1612,8 +1610,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $flexBalance[$code] = $newAccount;
                 }
             }
-            $this->balance['flex'] = $flexBalance;
-            $this->balance['flex'] = $this->prune_stale_balance_keys($this->balance['flex'], $flexCodes);
+            $this->balance['flex'] = $this->prune_stale_balance_keys($flexBalance, $flexCodes);
             $this->balance['flex'] = $this->safe_balance($this->balance['flex']);
             $client->resolve($this->balance['flex'], $messageHash . ':flex_futures');
             if ($updatedBalance === null) {

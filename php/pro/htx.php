@@ -999,7 +999,7 @@ class htx extends \ccxt\async\htx {
         }
         $baseId = null;
         if ($market !== null) {
-            $baseId = $market['baseId'];
+            $baseId = $this->safe_string($market, 'baseId');
         }
         $prefix = $orderType;
         $messageHash = $prefix;
@@ -1045,7 +1045,7 @@ class htx extends \ccxt\async\htx {
     public function get_v5_linear_channel_and_message_hash(?string $topic, ?array $market = null, $params = array()): array {
         $contractCode = null;
         if ($market !== null) {
-            $contractCode = $market['id'];
+            $contractCode = $this->safe_string($market, 'id');
         } else {
             $contractCode = $this->safe_string($params, 'contract_code', '*');
         }
@@ -2948,12 +2948,12 @@ class htx extends \ccxt\async\htx {
         if ($type === 'spot') {
             $spotUrls = $this->safe_dict($typeUrlsByApi, 'spot', array());
             if ($isPrivate) {
-                $hostnameURL = $spotUrls['private'];
+                $hostnameURL = $this->safe_string($spotUrls, 'private');
             } else {
                 if ($isFeed) {
-                    $hostnameURL = $spotUrls['feed'];
+                    $hostnameURL = $this->safe_string($spotUrls, 'feed');
                 } else {
-                    $hostnameURL = $spotUrls['public'];
+                    $hostnameURL = $this->safe_string($spotUrls, 'public');
                 }
             }
             $url = $this->implode_params($hostnameURL, $hostname);
@@ -2967,12 +2967,12 @@ class htx extends \ccxt\async\htx {
             }
             if ($isPrivate) {
                 if ($isV5 && $isLinear) {
-                    $url = $this->safe_string($subTypeUrl, 'privateV5', $subTypeUrl['private']);
+                    $url = $this->safe_string_2($subTypeUrl, 'privateV5', 'private');
                 } else {
-                    $url = $subTypeUrl['private'];
+                    $url = $this->safe_string($subTypeUrl, 'private');
                 }
             } else {
-                $url = $subTypeUrl['public'];
+                $url = $this->safe_string($subTypeUrl, 'public');
             }
         }
         return $url;

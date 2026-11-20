@@ -549,7 +549,7 @@ class bingx extends \ccxt\async\bingx {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $dataList = $this->safe_list($message, 'data', array());
         $rawHash = $this->safe_string($message, 'dataType', '');
         $hashParts = explode('@', $rawHash);
         $marketId = $this->safe_string($hashParts, 0);
@@ -561,10 +561,10 @@ class bingx extends \ccxt\async\bingx {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $trades = $this->parse_trades($data, $market);
+        if ($this->safe_dict($message, 'data') === null) {
+            $trades = $this->parse_trades($dataList, $market);
         } else {
-            $trades = array( $this->parse_trade($data, $market) );
+            $trades = array( $this->parse_trade($this->safe_dict($message, 'data', array()), $market) );
         }
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {

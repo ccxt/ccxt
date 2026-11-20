@@ -608,7 +608,7 @@ class modetrade extends \ccxt\async\modetrade {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
@@ -913,7 +913,7 @@ class modetrade extends \ccxt\async\modetrade {
         $orderId = $this->safe_string($order, 'orderId');
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($order, 'timestamp');
         $fee = array(
             'cost' => $this->safe_string($order, 'totalFee'),
@@ -1084,7 +1084,7 @@ class modetrade extends \ccxt\async\modetrade {
         $messageHash = 'myTrades';
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $trade = $this->parse_ws_trade($message, $market);
         $trades = $this->myTrades;
         if ($trades === null) {

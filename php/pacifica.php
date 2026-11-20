@@ -2501,11 +2501,10 @@ class pacifica extends Exchange {
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         $sorted = $this->sort_by($data, 'history_id', true);
         $lastIdx = count($sorted);
-        $lastInfo = array();
         if ($lastIdx > 0) {
-            $lastInfo = $sorted[0];
+            return $this->parse_order($sorted[0], $market);
         }
-        return $this->parse_order($lastInfo, $market);
+        return $this->parse_order(array(), $market);
     }
 
     public function parse_order_status(?string $status): ?string {

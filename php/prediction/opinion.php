@@ -481,7 +481,10 @@ class opinion extends Exchange {
             $eventMarketsLength = count($eventMarkets);
             for ($mi = 0; $mi < $eventMarketsLength; $mi++) {
                 $m = $eventMarkets[$mi];
-                $this->markets[$m['market']] = $m;
+                $marketKey = $this->safe_string($m, 'market');
+                if ($marketKey !== null) {
+                    $this->markets[$marketKey] = $m;
+                }
             }
         }
         $this->populate_outcomes();

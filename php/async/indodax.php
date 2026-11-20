@@ -1061,6 +1061,8 @@ class indodax extends Exchange {
         if ($isMarketBuy) {
             $paramsOmitted = $this->omit($params, 'cost');
         }
+        $quoteId = $this->safe_string($market, 'quoteId', '');
+        $baseId = $this->safe_string($market, 'baseId', '');
         if ($type === 'market') {
             if ($side === 'buy') {
                 $quoteAmount = null;
@@ -1076,7 +1078,7 @@ class indodax extends Exchange {
                     $costRequest = Precise::string_mul($amountString, $priceString);
                     $quoteAmount = $this->cost_to_precision($symbol, $costRequest);
                 }
-                $request[$market['quoteId']] = $quoteAmount;
+                $request[$quoteId] = $quoteAmount;
             } else {
                 $quantityIsRequired = true;
             }
@@ -1084,7 +1086,7 @@ class indodax extends Exchange {
             $priceIsRequired = true;
             $quantityIsRequired = true;
             if ($side === 'buy') {
-                $request[$market['quoteId']] = $this->parse_to_numeric($this->cost_to_precision($symbol, Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price))));
+                $request[$quoteId] = $this->parse_to_numeric($this->cost_to_precision($symbol, Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price))));
             }
         }
         if ($priceIsRequired) {
@@ -1094,7 +1096,7 @@ class indodax extends Exchange {
             $request['price'] = $price;
         }
         if ($quantityIsRequired) {
-            $request[$market['baseId']] = $this->amount_to_precision($symbol, $amount);
+            $request[$baseId] = $this->amount_to_precision($symbol, $amount);
         }
         $result = Async\await($this->privatePostTrade($this->extend($request, $paramsOmitted)));
         $data = $this->safe_dict($result, 'return', array());

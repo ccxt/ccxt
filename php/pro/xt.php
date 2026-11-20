@@ -1304,7 +1304,7 @@ class xt extends \ccxt\async\xt {
         //        }
         //    }
         //
-        $data = $this->safe_dict($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
             $event = $this->safe_string($message, 'event', '');

@@ -1662,7 +1662,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return $this->int_to_base16(128 . $byteLength) . $hex;
         }
         $lengthHex = $this->int_to_base16($byteLength);
-        $lengthHex = $this->pad_hex_to_even($lengthHex);
+        $lengthHexLength = count($lengthHex);
+        if ((fmod($lengthHexLength, 2)) !== 0) {
+            $lengthHex = '0' . $lengthHex;
+        }
         $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
         return $this->int_to_base16(183 . $lengthOfLength) . $lengthHex . $hex;
     }
@@ -1677,7 +1680,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return $this->int_to_base16(192 . $byteLength) . $concatenated;
         }
         $lengthHex = $this->int_to_base16($byteLength);
-        $lengthHex = $this->pad_hex_to_even($lengthHex);
+        $lengthHexLength = count($lengthHex);
+        if ((fmod($lengthHexLength, 2)) !== 0) {
+            $lengthHex = '0' . $lengthHex;
+        }
         $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
         return $this->int_to_base16(247 . $lengthOfLength) . $lengthHex . $concatenated;
     }
@@ -1691,7 +1697,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return '';
         }
         $hex = $this->int_to_base16($value);
-        $hex = $this->pad_hex_to_even($hex);
+        $hexLength = count($hex);
+        if ((fmod($hexLength, 2)) !== 0) {
+            $hex = '0' . $hex;
+        }
         return $hex;
     }
 

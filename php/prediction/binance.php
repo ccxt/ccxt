@@ -1626,8 +1626,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a wallet
          */
-        if ($this->safe_dict($this->options, 'wallet') !== null) {
-            return $this->safe_dict($this->options, 'wallet');
+        $cachedWallet = $this->safe_dict($this->options, 'wallet');
+        if ($cachedWallet !== null) {
+            return $cachedWallet;
         }
         $walletAddress = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress)[0];
         $response = Async\await($this->sapiPrivateGetWalletList());

@@ -3635,12 +3635,12 @@ class kucoin extends Exchange {
         $accountType = 'main';
         list($accountType, $paramsRequest) = $this->handle_option_string_and_params($params, 'fetchDepositAddress', 'accountType', $accountType);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-        $accountType = $this->safe_string($accountsByType, $accountType, $accountType);
+        $accountId = $this->safe_string($accountsByType, $accountType, $accountType);
         $uta = $this->is_uta_enabled();
         list($uta, $paramsRequest) = $this->handle_option_bool_and_params($paramsRequest, 'fetchDepositAddress', 'uta', $uta);
-        if ($accountType === 'contract') {
+        if ($accountId === 'contract') {
             return $this->fetch_contract_deposit_address($code, $paramsRequest);
-        } elseif ($uta || ($accountType === 'uta') || ($accountType === 'unified')) {
+        } elseif ($uta || ($accountId === 'uta') || ($accountId === 'unified')) {
             return parent::fetch_deposit_address($code, $this->extend($paramsRequest, array( 'uta' => true )));
         }
         $currency = $this->currency($code);
@@ -7870,8 +7870,8 @@ class kucoin extends Exchange {
         $paramsRequest = null;
         list($accountType, $paramsRequest) = $this->handle_option_string_and_params($params, 'fetchDeposits', 'accountType', $accountType);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-        $accountType = $this->safe_string($accountsByType, $accountType, $accountType);
-        if ($accountType === 'contract') {
+        $accountId = $this->safe_string($accountsByType, $accountType, $accountType);
+        if ($accountId === 'contract') {
             return $this->fetch_contract_deposits($code, $since, $limit, $paramsRequest);
         }
         $paginate = false;
@@ -8027,8 +8027,8 @@ class kucoin extends Exchange {
         $paramsRequest = null;
         list($accountType, $paramsRequest) = $this->handle_option_string_and_params($params, 'fetchWithdrawals', 'accountType', $accountType);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-        $accountType = $this->safe_string($accountsByType, $accountType, $accountType);
-        if ($accountType === 'contract') {
+        $accountId = $this->safe_string($accountsByType, $accountType, $accountType);
+        if ($accountId === 'contract') {
             return $this->fetch_contract_withdrawals($code, $since, $limit, $paramsRequest);
         }
         $maxLimit = 500;

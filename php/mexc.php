@@ -1059,11 +1059,12 @@ class mexc extends Exchange {
         $status = null;
         $updated = null;
         if ($marketType === 'spot') {
-            $response = $this->spotPublicGetPing($query);
+            $spotResponse = $this->spotPublicGetPing($query);
+            $response = $spotResponse;
             //
             //     {}
             //
-            $keys = is_array($response) ? array_keys($response) : array();
+            $keys = is_array($spotResponse) ? array_keys($spotResponse) : array();
             $length = count($keys);
             $status = ($length > 0) ? $this->json($response) : 'ok';
         } elseif ($marketType === 'swap') {

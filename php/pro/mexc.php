@@ -455,8 +455,12 @@ class mexc extends \ccxt\async\mexc {
         if ($symbolsNormalized === null) {
             throw new ArgumentsRequired($this->id . ' watchBidsAsks required symbols argument');
         }
-        $markets = $this->require_value($this->markets_for_symbols($symbolsNormalized), 'watchBidsAsks() markets is required');
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
+        $symbolsLength = count($symbolsNormalized);
+        $firstMarket = null;
+        if ($symbolsLength > 0) {
+            $firstMarket = $this->market($symbolsNormalized[0]);
+        }
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
         $isSpot = $marketType === 'spot';
         if (!$isSpot) {
             throw new NotSupported($this->id . ' watchBidsAsks only support spot market');
@@ -1945,8 +1949,12 @@ class mexc extends \ccxt\async\mexc {
         if ($symbolsNormalized === null) {
             throw new ArgumentsRequired($this->id . ' watchBidsAsks required symbols argument');
         }
-        $markets = $this->require_value($this->markets_for_symbols($symbolsNormalized), 'unWatchBidsAsks() markets is required');
-        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
+        $symbolsLength = count($symbolsNormalized);
+        $firstMarket = null;
+        if ($symbolsLength > 0) {
+            $firstMarket = $this->market($symbolsNormalized[0]);
+        }
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
         $isSpot = $marketType === 'spot';
         if (!$isSpot) {
             throw new NotSupported($this->id . ' watchBidsAsks only support spot market');

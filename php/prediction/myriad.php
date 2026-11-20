@@ -1139,8 +1139,10 @@ class myriad extends Exchange {
             Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
         }
         $skipWaitForReceipt = $this->safe_bool($params, 'skipWaitForReceipt', $hasPreBroadcastTxHash);
-        $txHash = $txHashParam;
-        if ($txHash === null) {
+        $txHash = null;
+        if ($txHashParam !== null) {
+            $txHash = $txHashParam;
+        } else {
             $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
         }
         if (!$skipWaitForReceipt) {
@@ -1486,7 +1488,12 @@ class myriad extends Exchange {
             return array();
         }
         $traderParam = $this->safe_string_2($params, 'trader', 'address');
-        $trader = ($traderParam !== null) ? $traderParam : $this->wallet_address_or_undefined();
+        $trader = null;
+        if ($traderParam !== null) {
+            $trader = $traderParam;
+        } else {
+            $trader = $this->wallet_address_or_undefined();
+        }
         if ($trader === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }

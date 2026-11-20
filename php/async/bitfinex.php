@@ -550,8 +550,9 @@ class bitfinex extends Exchange {
 
     public function get_currency_name(string $code): string {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (is_array($this->options['currencyNames']) && array_key_exists($code ?? '', $this->options['currencyNames'])) {
-            return $this->options['currencyNames'][$code];
+        $name = $this->safe_string($this->options['currencyNames'], $code);
+        if ($name !== null) {
+            return $name;
         }
         throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
     }
@@ -1212,10 +1213,10 @@ class bitfinex extends Exchange {
         $fullRequest = $this->extend($request, $params);
         $orderbook = Async\await($this->publicGetBookSymbolPrecision($fullRequest));
         $timestamp = $this->milliseconds();
+        $bids = array();
+        $asks = array();
         $result = array(
             'symbol' => $market['symbol'],
-            'bids' => array(),
-            'asks' => array(),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
@@ -1227,14 +1228,14 @@ class bitfinex extends Exchange {
             $price = $this->safe_number($order, $priceIndex);
             $signedAmount = $this->safe_string($order, 2);
             $amount = Precise::string_abs($signedAmount);
-            $side = 'asks';
             if (Precise::string_gt($signedAmount, '0')) {
-                $side = 'bids';
+                $bids[] = array( $price, $this->parse_number($amount) );
+            } else {
+                $asks[] = array( $price, $this->parse_number($amount) );
             }
-            $result[$side][] = array( $price, $this->parse_number($amount) );
         }
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
+        $result['bids'] = $this->sort_by($bids, 0, true);
+        $result['asks'] = $this->sort_by($asks, 0);
         return $result;
     }
 

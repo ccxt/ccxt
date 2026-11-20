@@ -1358,13 +1358,11 @@ class apex extends Exchange {
     }
 
     public function generate_random_client_id_omni(?string $_accountId): string {
-        $accountId = '';
+        $suffix = '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
         if (($_accountId !== null) && ($_accountId !== '')) {
-            $accountId = $_accountId;
-        } else {
-            $accountId = (string) $this->rand_number(12);
+            return 'apexomni-' . $_accountId . $suffix;
         }
-        return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
+        return 'apexomni-' . (string) $this->rand_number(12) . $suffix;
     }
 
     public function add_hyphen_before_usdt(string $symbol): string {

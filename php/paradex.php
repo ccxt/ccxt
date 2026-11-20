@@ -1211,8 +1211,10 @@ class paradex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'results', array());
-        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($data) : $data;
-        return $this->parse_tickers($rows, $symbolsNormalized);
+        if ($request['market'] === 'ALL') {
+            return $this->parse_tickers($this->filter_loaded_summaries($data), $symbolsNormalized);
+        }
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function summary_market_id(?array $symbols = null): string {
@@ -3624,8 +3626,10 @@ class paradex extends Exchange {
         //
         $results = $this->safe_list($response, 'results', array());
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($results, 'option') : $results;
-        return $this->parse_all_greeks($rows, $symbolsNormalized);
+        if ($request['market'] === 'ALL') {
+            return $this->parse_all_greeks($this->filter_loaded_summaries($results, 'option'), $symbolsNormalized);
+        }
+        return $this->parse_all_greeks($results, $symbolsNormalized);
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {

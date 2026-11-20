@@ -671,9 +671,9 @@ class bitteam extends Exchange {
         $fee = null;
         $withdrawCommissionFixed = $this->safe_dict($txLimits, 'withdrawCommissionFixed', array());
         $feesByNetworkId = array();
-        $blockChain = $this->safe_string($currency, 'blockChain');
+        $blockChain = $this->safe_string($currency, 'blockChain', '');
         // if only one blockChain
-        if (($blockChain !== null) && ($blockChain !== '')) {
+        if ($blockChain !== '') {
             $fee = $this->parse_number($withdrawCommissionFixed);
             $feesByNetworkId[$blockChain] = $fee;
         } else {

@@ -1045,10 +1045,7 @@ class hyperliquid extends Exchange {
         $response = $this->safe_dict($results, 0);
         $midsResponse = $results[1];
         $balances = $this->safe_list($response, 'balances', array());
-        $allMids = array();
-        if ((gettype($midsResponse) !== 'string') && (gettype($midsResponse) !== 'array' || array_keys($midsResponse) !== array_keys(array_keys($midsResponse)))) {
-            $allMids = $midsResponse;
-        }
+        $allMids = $this->info_dict($midsResponse);
         $mids = $this->safe_dict($allMids, 'mids', $allMids);
         $positions = array();
         for ($i = 0; $i < count($balances); $i++) {
@@ -1139,8 +1136,8 @@ class hyperliquid extends Exchange {
 
     public function find_outcome_in_market(array $market, ?string $sideHint = null): array {
         $outcomesList = $this->safe_list($market, 'outcomes', array());
-        $normalizedHint = ($sideHint !== null && $sideHint !== '') ? strtoupper($sideHint) : null;
-        if ($normalizedHint !== null) {
+        if ($sideHint !== null && $sideHint !== '') {
+            $normalizedHint = strtoupper($sideHint);
             for ($i = 0; $i < count($outcomesList); $i++) {
                 $oc = $this->safe_dict($outcomesList, $i, array());
                 $ocSymbol = $this->safe_string_2($oc, 'outcome', 'symbol', '');

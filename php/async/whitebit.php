@@ -1971,8 +1971,14 @@ class whitebit extends Exchange {
             'market' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $cappedLimit = (($limit === null) || ($limit > 1440)) ? 1440 : $limit;
-        $limitResolved = ($since !== null) ? $cappedLimit : $limit;
+        $cappedLimit = 1440;
+        if (($limit !== null) && ($limit < 1440)) {
+            $cappedLimit = $limit;
+        }
+        $limitResolved = $limit;
+        if ($since !== null) {
+            $limitResolved = $cappedLimit;
+        }
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
         if (($since !== null) || ($until !== null)) {

@@ -1515,9 +1515,15 @@ class dydx extends Exchange {
         $paramsOmitted = $this->omit($paramsGoodTillBlockTimeInSeconds, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
         $walletAddress = $this->get_wallet_address();
         $clobPairId = $this->safe_integer($marketInfo, 'clobPairId', 0);
-        $subaccountIdValue = ($subaccountIdOption === null) ? 0 : $subaccountIdOption;
+        $subaccountIdValue = 0;
+        if ($subaccountIdOption !== null) {
+            $subaccountIdValue = $subaccountIdOption;
+        }
         $clientOrderIdValue = ($clientOrderId === null) ? 0 : $clientOrderId;
-        $orderFlagValue = ($orderFlag === null) ? 0 : $orderFlag;
+        $orderFlagValue = 0;
+        if ($orderFlag !== null) {
+            $orderFlagValue = $orderFlag;
+        }
         $clobPairIdValue = ($clobPairId === null) ? 0 : $clobPairId;
         $orderId = $this->create_order_id_from_parts($walletAddress, $subaccountIdValue, $clientOrderIdValue, $orderFlagValue, $clobPairIdValue);
         return array( $orderId, $this->extend($signingPayload, $paramsOmitted) );

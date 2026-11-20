@@ -811,7 +811,7 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_dict($message, 'data', array());
         $isTransaction = $this->safe_string($message, 'e') === 'tx';
         $orderId = $this->safe_string_2($data, 'id', 'order');
-        $remains = $this->safe_string($data, 'remains');
+        $remainsPrecision = $this->safe_string($data, 'remains');
         $baseId = $this->safe_string($data, 'symbol');
         $quoteId = $this->safe_string($data, 'symbol2');
         $pair = $this->safe_dict($data, 'pair');
@@ -826,7 +826,7 @@ class cex extends \ccxt\async\cex {
         }
         $symbol = $base . '/' . $quote;
         $market = $this->safe_market($symbol);
-        $remains = $this->currency_from_precision($base, $remains);
+        $remains = $this->currency_from_precision($base, $remainsPrecision);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -977,7 +977,7 @@ class cex extends \ccxt\async\cex {
         return $this->safe_order($parsedOrder, $marketResolved);
     }
 
-    public function from_precision(mixed $amount, mixed $scale): ?string {
+    public function from_precision(?string $amount, ?int $scale): ?string {
         if ($amount === null) {
             return null;
         }
@@ -987,7 +987,7 @@ class cex extends \ccxt\async\cex {
         return (string) $precise;
     }
 
-    public function currency_from_precision(string $currency, mixed $amount): ?string {
+    public function currency_from_precision(string $currency, ?string $amount): ?string {
         $scale = $this->safe_integer($this->currencies[$currency], 'precision', 0);
         return $this->from_precision($amount, $scale);
     }

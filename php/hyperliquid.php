@@ -634,7 +634,7 @@ class hyperliquid extends Exchange {
         $this->options['hip3TokensByName'] = array();
         $markets = array();
         for ($i = 0; $i < count($promises); $i++) {
-            $dexName = $fetchDexesList[$i];
+            $dexName = $this->safe_string($fetchDexesList, $i);
             $offset = $this->safe_integer($perpDexesOffset, $dexName);
             $response = $this->safe_list($promises, $i);
             $meta = $this->safe_dict($response, 0, array());
@@ -5152,7 +5152,7 @@ class hyperliquid extends Exchange {
         return $response;
     }
 
-    public function extract_type_from_delta(array $data = array()): array {
+    public function extract_type_from_delta(array $data): array {
         $records = array();
         for ($i = 0; $i < count($data); $i++) {
             $record = $this->safe_dict($data, $i, array());

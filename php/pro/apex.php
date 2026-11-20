@@ -485,8 +485,8 @@ class apex extends \ccxt\async\apex {
         $topic = $this->safe_string($message, 'topic', '');
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_dict($message, 'data', array());
-        $symbol = null;
         $parsed = $this->parse_ticker($data);
+        $symbol = $this->safe_string($parsed, 'symbol');
         if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
             $symbol = $this->safe_string($parsed, 'symbol');
@@ -500,6 +500,8 @@ class apex extends \ccxt\async\apex {
             $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = $this->extend($rawTicker, $data);
             $parsed = $this->parse_ticker($merged);
+        } else {
+            $symbol = null;
         }
         $timestamp = $this->safe_integer_product($message, 'ts', 0.001);
         $parsed['timestamp'] = $timestamp;

@@ -998,22 +998,32 @@ class predictfun extends Exchange {
         $digits = '0123456789';
         $chars = $this->string_to_chars_array($text);
         $stripped = '';
+        $prevCh = '';
+        // a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        $pendingComma = false;
         for ($i = 0; $i < count($chars); $i++) {
             $ch = $chars[$i];
-            $keep = true;
-            if ($ch === '$') {
-                $keep = false;
-            } elseif ($ch === ',') {
+            $isDigit = (mb_strpos($digits, $ch) !== false);
+            if ($pendingComma && !$isDigit) {
+                $stripped = $stripped . ',';
+            }
+            $pendingComma = false;
+            if ($ch === ',') {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                $prevIsDigit = ($i > 0) && (mb_strpos($digits, $chars[$i - 1]) !== false);
-                $nextIsDigit = (($i + 1) < strlen($chars)) && (mb_strpos($digits, $chars[$i + 1]) !== false);
-                $keep = !($prevIsDigit && $nextIsDigit);
-            }
-            if ($keep) {
+                if (($i > 0) && (mb_strpos($digits, $prevCh) !== false)) {
+                    $pendingComma = true;
+                } else {
+                    $stripped = $stripped . $ch;
+                }
+            } elseif ($ch !== '$') {
                 $stripped = $stripped . $ch;
             }
+            $prevCh = $ch;
+        }
+        if ($pendingComma) {
+            $stripped = $stripped . ',';
         }
         return $stripped;
     }
@@ -3084,8 +3094,10 @@ class predictfun extends Exchange {
         if (($subscribeHash !== null) && (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions))) {
             unset($client->subscriptions[$subscribeHash]);
         }
-        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
-        if ($this->safe_string($subscription, 'topic') === 'walletEvents') {
+        $messageHashes = array();
+        if ($this->safe_string($subscription, 'topic') !== 'walletEvents') {
+            $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        } else {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
             // only to the client. read the live waiters now, or those later callers would never be

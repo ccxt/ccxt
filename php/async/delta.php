@@ -1749,11 +1749,16 @@ class delta extends Exchange {
             $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'asset_id');
             $currency = $this->safe_dict($currenciesByNumericId, $currencyId);
-            $code = ($currency === null) ? $currencyId : $currency['code'];
+            $code = $currencyId;
+            if ($currency !== null) {
+                $code = $this->safe_string($currency, 'code');
+            }
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
             $account['free'] = $this->safe_string($balance, 'available_balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }

@@ -2077,12 +2077,11 @@ class foxbit extends Exchange {
             }
         }
         $requestBody = null;
-        if ($method === 'POST' || $method === 'PUT') {
-            $requestBody = $this->json($paramsOmitted);
-        }
         $bodyToSignature = '';
-        if ($requestBody !== null) {
-            $bodyToSignature = $requestBody;
+        if ($method === 'POST' || $method === 'PUT') {
+            $jsonBody = $this->json($paramsOmitted);
+            $requestBody = $jsonBody;
+            $bodyToSignature = $jsonBody;
         }
         $headersValue = array(
             'Content-Type' => 'application/json',

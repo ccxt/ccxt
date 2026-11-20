@@ -6028,8 +6028,8 @@ class binance extends \ccxt\async\binance {
         if ($this->balance[$accountType] === null) {
             $this->balance[$accountType] = array();
         }
-        $this->balance[$accountType]['info'] = $message;
         $balance = $this->safe_dict($this->balance, $accountType, array());
+        $balance['info'] = $message;
         $B = $this->safe_list($message, 'B', array());
         for ($i = 0; $i < count($B); $i++) {
             $entry = $this->safe_dict($B, $i);

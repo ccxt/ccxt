@@ -2377,7 +2377,7 @@ class polymarket extends Exchange {
             $eoaSig = $this->sign_message($encoded, $this->privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            $eoaSignature = '0x' . $this->remove0x_prefix($eoaSig['r']) . $this->remove0x_prefix($eoaSig['s']) . $this->int_to_base16($eoaSig['v']);
+            $eoaSignature = '0x' . $this->remove0x_prefix($this->safe_string($eoaSig, 'r')) . $this->remove0x_prefix($this->safe_string($eoaSig, 's')) . $this->int_to_base16($eoaSig['v']);
             return strtolower($eoaSignature);
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -2998,7 +2998,7 @@ class polymarket extends Exchange {
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $messageData);
         $sig = $this->sign_message($encoded, $this->privateKey);
-        return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
+        return '0x' . $this->remove0x_prefix($this->safe_string($sig, 'r')) . $this->remove0x_prefix($this->safe_string($sig, 's')) . $this->int_to_base16($sig['v']);
     }
 
     public function derive_api_key($params = array()): PromiseInterface {

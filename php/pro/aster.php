@@ -1356,7 +1356,7 @@ class aster extends \ccxt\async\aster {
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if ($this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe) === null) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -1620,8 +1620,8 @@ class aster extends \ccxt\async\aster {
         if ($this->balance[$accountType] === null) {
             $this->balance[$accountType] = array();
         }
-        $this->balance[$accountType]['info'] = $message;
         $balance = $this->safe_dict($this->balance, $accountType, array());
+        $balance['info'] = $message;
         $messageValue = $this->safe_dict($message, 'a', $message);
         $B = $this->safe_list($messageValue, 'B', array());
         $wallet = $this->safe_string($this->options, 'wallet', 'wb');
