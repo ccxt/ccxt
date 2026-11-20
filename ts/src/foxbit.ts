@@ -2082,12 +2082,11 @@ export default class foxbit extends Exchange {
             }
         }
         let requestBody = undefined;
-        if (method === 'POST' || method === 'PUT') {
-            requestBody = this.json (paramsOmitted);
-        }
         let bodyToSignature = '';
-        if (requestBody !== undefined) {
-            bodyToSignature = requestBody;
+        if (method === 'POST' || method === 'PUT') {
+            const jsonBody = this.json (paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
