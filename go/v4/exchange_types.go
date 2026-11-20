@@ -262,6 +262,7 @@ type MarketInterface struct {
 	FeeSide         *string
 	MarginModes     *MarketMarginModes
 	Outcomes        []PredictionOutcome
+	MarketId        *string
 }
 
 // CreateMarketInterface initializes the MarketInterface struct
@@ -346,6 +347,7 @@ func NewMarketInterface(data any) MarketInterface {
 		FeeSide:         SafeStringTyped(m, "feeSide"),
 		MarginModes:     marginModes,
 		Outcomes:        NewPredictionOutcomeArray(m["outcomes"]),
+		MarketId:        SafeStringTyped(m, "marketId"),
 	}
 }
 
@@ -1693,12 +1695,14 @@ func NewMinMax(data any) MinMax {
 type CurrencyLimits struct {
 	Amount   MinMax
 	Withdraw MinMax
+	Deposit  MinMax
 }
 
 func NewCurrencyLimits(data any) CurrencyLimits {
 	return CurrencyLimits{
 		Amount:   NewMinMax(SafeValue(data, "amount", map[string]any{})),
 		Withdraw: NewMinMax(SafeValue(data, "withdraw", map[string]any{})),
+		Deposit:  NewMinMax(SafeValue(data, "deposit", map[string]any{})),
 	}
 }
 
@@ -1711,6 +1715,7 @@ type Network struct {
 	Withdraw  *bool
 	Precision *float64
 	Limits    CurrencyLimits
+	Network   *string
 }
 
 func NewNetwork(data any) Network {
@@ -1723,6 +1728,7 @@ func NewNetwork(data any) Network {
 		Withdraw:  SafeBoolTyped(data, "withdraw"),
 		Precision: SafeFloatTyped(data, "precision"),
 		Limits:    NewCurrencyLimits(SafeValue(data, "limits", map[string]any{})),
+		Network:   SafeStringTyped(data, "network"),
 	}
 }
 

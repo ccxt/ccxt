@@ -1300,6 +1300,9 @@ func MarketInterfaceToMap(mi MarketInterface) map[string]any {
 	if mi.Quanto == nil {
 		delete(m, "quanto")
 	}
+	if mi.MarketId == nil {
+		delete(m, "marketId")
+	}
 	return m
 }
 func MarketInterfacesFromList(data any) []MarketInterface {
