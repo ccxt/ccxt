@@ -151,7 +151,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $length = count($symbolsValue);
         if ($length === 1) {
-            $market = $this->market($marketIds[0]);
+            $market = $this->market($symbolsValue[0]);
             $messageHash .= ':' . $market['symbol'];
         }
         $subscribe['product_ids'] = $marketIds;

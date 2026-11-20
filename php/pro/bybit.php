@@ -1030,8 +1030,6 @@ class bybit extends \ccxt\async\bybit {
         $url = Async\await($this->get_url_by_market_type($symbolsNormalized[0], false, 'watchOrderBook', $params));
         $paramsValue = $this->clean_params($params);
         $market = $this->market($symbolsNormalized[0]);
-        $defaultLimit = ($this->safe_bool($market, 'option', false)) ? 100 : 50;
-        $limitResolved = ($limit === null) ? $defaultLimit : $limit;
         if ($limit !== null) {
             $limits = array(
                 'spot' => array( 1, 50, 200, 1000 ),
@@ -1043,12 +1041,16 @@ class bybit extends \ccxt\async\bybit {
                 throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $this->safe_string($market, 'type', '') . ' markets limit can be one of => ' . $this->json($selectedLimits));
             }
         }
+        $limitParam = $this->safe_integer(array( 'limit' => $limit ), 'limit');
+        $limitDefault = ($this->safe_bool($market, 'option', false)) ? 100 : 50;
+        $limitValue = ($limitParam === null) ? $limitDefault : $limitParam;
+        $topicPrefix = 'orderbook.' . (string) $limitValue . '.';
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
-            $marketId = $this->market_id($symbol);
-            $topic = 'orderbook.' . $this->number_to_string($limitResolved) . '.' . $marketId;
+            $marketId = $this->safe_string($this->market($symbol), 'id', '');
+            $topic = $topicPrefix . $marketId;
             $topics[] = $topic;
             $messageHash = 'orderbook:' . $symbol;
             $messageHashes[] = $messageHash;
@@ -1485,12 +1487,13 @@ class bybit extends \ccxt\async\bybit {
         }
         $url = Async\await($this->get_url_by_market_type($symbolResolved, true, $method, $params));
         Async\await($this->authenticate($url));
-        $topicByMarket = array(
-            'spot' => 'ticketInfo',
-            'unified' => 'execution',
-            'usdc' => 'user.openapi.perp.trade',
-        );
-        $topic = $this->safe_string($topicByMarket, $this->get_private_type($url));
+        $privateType = $this->get_private_type($url);
+        $topic = 'execution';
+        if ($privateType === 'spot') {
+            $topic = 'ticketInfo';
+        } elseif ($privateType === 'usdc') {
+            $topic = 'user.openapi.perp.trade';
+        }
         list($executionFast, $paramsExecutionFast) = $this->handle_option_bool_and_params($params, 'watchMyTrades', 'executionFast', false);
         if ($executionFast) {
             $topic = 'execution.fast';
@@ -1531,12 +1534,13 @@ class bybit extends \ccxt\async\bybit {
         }
         $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
         Async\await($this->authenticate($url));
-        $topicByMarket = array(
-            'spot' => 'ticketInfo',
-            'unified' => 'execution',
-            'usdc' => 'user.openapi.perp.trade',
-        );
-        $topic = $this->safe_string($topicByMarket, $this->get_private_type($url));
+        $privateType = $this->get_private_type($url);
+        $topic = 'execution';
+        if ($privateType === 'spot') {
+            $topic = 'ticketInfo';
+        } elseif ($privateType === 'usdc') {
+            $topic = 'user.openapi.perp.trade';
+        }
         list($executionFast, $paramsExecutionFast) = $this->handle_option_bool_and_params($params, 'watchMyTrades', 'executionFast', false);
         if ($executionFast) {
             $topic = 'execution.fast';
@@ -2057,12 +2061,16 @@ class bybit extends \ccxt\async\bybit {
         }
         $url = Async\await($this->get_url_by_market_type($symbolResolved, true, $method, $params));
         Async\await($this->authenticate($url));
-        $topicsByMarket = array(
-            'spot' => array( 'order', 'stopOrder' ),
-            'unified' => array( 'order' ),
-            'usdc' => array( 'user.openapi.perp.order' ),
-        );
-        $topics = $this->safe_list($topicsByMarket, $this->get_private_type($url), array());
+        $privateType = $this->get_private_type($url);
+        $topics = array();
+        if ($privateType === 'usdc') {
+            $topics[] = 'user.openapi.perp.order';
+        } else {
+            $topics[] = 'order';
+            if ($privateType === 'spot') {
+                $topics[] = 'stopOrder';
+            }
+        }
         $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -2097,12 +2105,16 @@ class bybit extends \ccxt\async\bybit {
         }
         $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
         Async\await($this->authenticate($url));
-        $topicsByMarket = array(
-            'spot' => array( 'order', 'stopOrder' ),
-            'unified' => array( 'order' ),
-            'usdc' => array( 'user.openapi.perp.order' ),
-        );
-        $topics = $this->safe_list($topicsByMarket, $this->get_private_type($url));
+        $privateType = $this->get_private_type($url);
+        $topics = array();
+        if ($privateType === 'usdc') {
+            $topics[] = 'user.openapi.perp.order';
+        } else {
+            $topics[] = 'order';
+            if ($privateType === 'spot') {
+                $topics[] = 'stopOrder';
+            }
+        }
         return Async\await($this->un_watch_topics($url, 'orders', array(), array( $messageHash ), array( $subHash ), $topics, $params));
     }
 
@@ -2272,10 +2284,6 @@ class bybit extends \ccxt\async\bybit {
         $isUnifiedAccount = $this->safe_bool($unified, 1, false);
         $url = Async\await($this->get_url_by_market_type(null, true, $method, $paramsSubType));
         Async\await($this->authenticate($url));
-        $topicByMarket = array(
-            'spot' => 'outboundAccountInfo',
-            'unified' => 'wallet',
-        );
         if ($isUnifiedAccount) {
             // unified account
             if ($subType === 'inverse') {
@@ -2304,7 +2312,15 @@ class bybit extends \ccxt\async\bybit {
                 }
             }
         }
-        $topics = array( $this->safe_string($topicByMarket, $this->get_private_type($url)) );
+        $privateType = $this->get_private_type($url);
+        if ($privateType === 'usdc') {
+            throw new NotSupported($this->id . ' watchBalance() is not supported on the usdc private stream');
+        }
+        $topic = 'wallet';
+        if ($privateType === 'spot') {
+            $topic = 'outboundAccountInfo';
+        }
+        $topics = array( $topic );
         return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $paramsSubType));
     }
 
@@ -2618,11 +2634,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $subscription));
     }
 
-    public function un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), array $subExtension = array()) {
+    public function un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), array $subExtension = array()) {
         return Async\async(self::do_un_watch_topics(...))($url, $topic, $symbols, $messageHashes, $subMessageHashes, $topics, $params, $subExtension);
     }
 
-    private function do_un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), array $subExtension = array()) {
+    private function do_un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), array $subExtension = array()) {
         $reqId = $this->request_id();
         $request = array(
             'op' => 'unsubscribe',
