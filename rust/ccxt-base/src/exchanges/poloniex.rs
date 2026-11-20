@@ -1007,8 +1007,8 @@ impl crate::exchange::DerivedExchange for Poloniex {
         if (responseCode.is_some()) && (responseCode.as_deref() != Some("200")) {
             let mut message: Option<String> = self.safe_string2_opt(response, Value::Str("message".into()), Value::Str("msg".into()), &[]);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2072,6 +2072,7 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("401".to_string(), Value::Str("PermissionDenied".into()));
         m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".into()));
         m.insert("603".to_string(), Value::Str("RequestTimeout".into()));
         m.insert("601".to_string(), Value::Str("BadRequest".into()));
@@ -2216,6 +2217,9 @@ impl Poloniex {
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("Invalid Apikey or Signature".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("ApiKey not exist".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Illegal of ip".to_string(), Value::Str("PermissionDenied".into()));
     m
 }));
     m

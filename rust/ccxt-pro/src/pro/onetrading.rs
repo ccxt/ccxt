@@ -323,8 +323,8 @@ impl Onetrading {
         let mut keys: Vec<Value> = Value::Array(balance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_565: bool = true;
-            while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (keys.len() as i64) } {
+            let mut __for_first_566: bool = true;
+            while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if self.in_array(Value::from(key.as_deref()), &reserved) {
                 continue;
@@ -447,8 +447,8 @@ impl Onetrading {
         let mut datetime: Option<String> = (match message.get("time") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_566: bool = true;
-            while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_567: bool = true;
+            while { if !__for_first_567 { i += 1; } __for_first_567 = false; i < (tickers.len() as i64) } {
             let mut ticker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument", &[]);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
@@ -702,8 +702,8 @@ impl Onetrading {
     pub fn handle_book_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: i64 = 0;
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i += 1; } __for_first_567 = false; (i as f64) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_568: bool = true;
+            while { if !__for_first_568 { i += 1; } __for_first_568 = false; (i as f64) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             self.handle_book_delta(orderbook.clone(), get_value(&deltas, &Value::Int(i)));
         }
         }
@@ -1039,8 +1039,8 @@ impl Onetrading {
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (rawOrders.len() as i64) } {
+            let mut __for_first_570: bool = true;
+            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (rawOrders.len() as i64) } {
             let mut order: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[Value::Str("".into())]);
             orders.append(Value::Dict(order));
@@ -1048,8 +1048,8 @@ impl Onetrading {
             let mut rawTrades: crate::value::List = self.safe_list_k(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), "trades", &[Value::from(vec![])]).into_list();
             {
                                 let mut ii: i64 = 0;
-                let mut __for_first_568: bool = true;
-                while { if !__for_first_568 { ii += 1; } __for_first_568 = false; ii < (rawTrades.len() as i64) } {
+                let mut __for_first_569: bool = true;
+                while { if !__for_first_569 { ii += 1; } __for_first_569 = false; ii < (rawTrades.len() as i64) } {
                 let mut trade: crate::value::Dict = self.parse_trade(rawTrades.get(ii as usize).cloned().unwrap_or(Value::Null), None).into_dict();
                 symbol = self.safe_string_k_opt(&trade, "symbol", &[symbol.map(Value::from).unwrap_or(Value::Null)]);
                 self.myTrades.append(Value::Dict(trade));
@@ -1333,8 +1333,8 @@ impl Onetrading {
         let mut balanceKeys: crate::value::List = std::sync::Arc::new(vec![Value::Str("locked".into()), Value::Str("unlocked".into()), Value::Str("spent".into()), Value::Str("spent_on_fees".into()), Value::Str("credited".into()), Value::Str("deducted".into())]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_570: bool = true;
-            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (balanceKeys.len() as i64) } {
+            let mut __for_first_571: bool = true;
+            while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (balanceKeys.len() as i64) } {
             let mut newBalance: Option<crate::value::Dict> = self.safe_dict(&update, balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]).into_opt_dict();
             if (newBalance.is_some()) {
                 self.update_balance(&newBalance);
@@ -1471,8 +1471,8 @@ impl Onetrading {
         let mut marketIds: Vec<Value> = object_keys(&subscription).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_573: bool = true;
+            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (marketIds.len() as i64) } {
             let mut marketSubscription: indexmap::IndexMap<String, Value> = self.safe_dict(subscription.clone(), marketIds.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1480,8 +1480,8 @@ impl Onetrading {
             let mut marketIdtimeframes: Vec<Value> = Value::Array(marketSubscription.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut ii: i64 = 0;
-                let mut __for_first_571: bool = true;
-                while { if !__for_first_571 { ii += 1; } __for_first_571 = false; ii < (marketIdtimeframes.len() as i64) } {
+                let mut __for_first_572: bool = true;
+                while { if !__for_first_572 { ii += 1; } __for_first_572 = false; ii < (marketIdtimeframes.len() as i64) } {
                 let mut marketTimeframeId: indexmap::IndexMap<String, Value> = self.safe_dict(&timeframes, timeframe.clone(), &[]).as_map().cloned().unwrap_or_default();
                 let mut property: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -1589,8 +1589,8 @@ impl Onetrading {
         let mut keys: Vec<Value> = object_keys(&timeframesResolved).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (keys.len() as i64) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut timeframeResolved: indexmap::IndexMap<String, Value> = self.safe_dict(timeframesResolved.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1720,8 +1720,8 @@ impl Onetrading {
             if (subscription != Value::Null) {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_574: bool = true;
-                    while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (marketIds.len() as i64) } {
+                    let mut __for_first_575: bool = true;
+                    while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<String> = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut marketSubscribed: bool = self.safe_bool_opt(subscription.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).unwrap_or(false);
                     if !marketSubscribed {
@@ -1739,8 +1739,8 @@ impl Onetrading {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_576: bool = true;
+            while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
         }
