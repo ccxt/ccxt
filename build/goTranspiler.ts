@@ -7150,6 +7150,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'parseLiquidations': { 0: '[]any' }, 'parseOpenInterests': { 0: '[]any' },
     // PredictionExchange params (no override) every venue caller hands a `[]any` local or literal
     'applyEventFetchParams': { 0: '[]any' }, 'rlpEncodeList': { 0: '[]any' },
+    // cancelOrdersWs (ids: string[]) on the base and every ws override; the typed wrapper already takes []string
+    'cancelOrdersWs': { 0: '[]string' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
