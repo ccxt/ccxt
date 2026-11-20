@@ -297,6 +297,8 @@ class BaseExchange(object):
     currencies = {}
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
+    sandbox = False  # for backward-compatibility
+    testnet = False  # alias of sandbox
     accounts = None
     positions = None
     positionsByType = None

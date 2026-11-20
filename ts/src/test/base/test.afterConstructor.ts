@@ -40,7 +40,48 @@ function helperTestSandboxState (exchange: any, expectEnabled = true) {
     }
 }
 
-function helperTestInitSandbox () {
+function helperTestInitSandboxProps () {
+    // todo: sandbox for real exchanges
+    const opts = {
+        'id': 'sampleexchange',
+        'sandbox': false,
+        'testnet': false,
+        'urls': {
+            'api': {
+                'public': 'https://example.com'
+            },
+            'test': {
+                'public': 'https://testnet.org'
+            },
+        }
+    };
+    //
+    // CASE A: when sandbox is not enabled
+    //
+    const exchange3 = new ccxt.Exchange (opts);
+    helperTestSandboxState (exchange3, false);
+    exchange3.setSandboxMode (true);
+    helperTestSandboxState (exchange3, true);
+    //
+    // CASE B: when sandbox is enabled
+    //
+    opts['sandbox'] = true;
+    const exchange4 = new ccxt.Exchange (opts);
+    helperTestSandboxState (exchange4, true);
+    exchange4.setSandboxMode (false);
+    helperTestSandboxState (exchange4, false);
+    //
+    // same for `testnet`
+    //
+    opts['sandbox'] = false;
+    opts['testnet'] = true;
+    const exchange5 = new ccxt.Exchange (opts);
+    helperTestSandboxState (exchange5, true);
+    exchange5.setSandboxMode (false);
+    helperTestSandboxState (exchange5, false);
+}
+
+function helperTestInitSandboxOpts () {
     // todo: sandbox for real exchanges
     const opts = {
         'id': 'sampleexchange',
@@ -81,6 +122,11 @@ function helperTestInitSandbox () {
     helperTestSandboxState (exchange5, true);
     exchange5.setSandboxMode (false);
     helperTestSandboxState (exchange5, false);
+}
+
+function helperTestInitSandbox () {
+    helperTestInitSandboxOpts ();
+    helperTestInitSandboxProps ();
 }
 
 function helperTestInitMarket () {

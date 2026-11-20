@@ -147,6 +147,8 @@ class BaseExchange {
 
     public $options = array(); // exchange-specific options if any
     public $isSandboxModeEnabled = false;
+    public $sandbox = false; // for backward-compatibility
+    public $testnet = false; // alias of sandbox
 
     public $skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
     public $quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
