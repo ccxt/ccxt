@@ -198,7 +198,7 @@ type BaseExchange struct {
 	FetchHistoryCache     *ConcurrentListForRequests
 
 	// ws
-	WsClients map[string]any // one websocket client per URL
+	WsClients map[string]*WSClient // one websocket client per URL
 	// the venue frame handler, resolved on the first frame
 	wsHandler func(client any, message any)
 	// ownersStarted guards startOwners (markets load and aux tables only); it is set in the
@@ -209,7 +209,7 @@ type BaseExchange struct {
 	Positions       WsArrayCache            // one cache object, nil until a handler creates it
 	PositionsByType map[string]WsArrayCache // one cache per account type / subaccount
 	// the ws client registry, a plain map keyed by url
-	Clients    map[string]any
+	Clients    map[string]*WSClient
 	newUpdates bool
 	streaming  map[string]any
 
@@ -281,7 +281,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// the liquidation caches start empty: every reader creates the ArrayCache on nil
 	this.Liquidations = nil
 	this.MyLiquidations = nil
-	this.Clients = make(map[string]any)
+	this.Clients = make(map[string]*WSClient)
 	this.Balance = map[string]any{}
 
 	// beforeNs := time.Now().UnixNano()
@@ -1903,11 +1903,7 @@ func (this *BaseExchange) Client(url any) *WSClient {
 	// pointer-carried string; normalize once so the assertions below hold
 	url = derefScalar(url)
 	// get-or-create: one client per URL
-	created := this.wsClientGetOrCreate(url.(string), func() any { return this.newWsClient(url) })
-	if client, ok := created.(*WSClient); ok {
-		return client
-	}
-	return nil
+	return this.wsClientGetOrCreate(url.(string), func() *WSClient { return this.newWsClient(url) })
 }
 
 // newWsClient builds one ws client for url.

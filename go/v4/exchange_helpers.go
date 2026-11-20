@@ -1160,6 +1160,11 @@ func InOp(dict any, key any) bool {
 		if ok {
 			return true
 		}
+	case map[string]*WSClient:
+		_, ok := v[key.(string)]
+		if ok {
+			return true
+		}
 	case OrderBookInterface:
 		// WsOrderBook is a typed struct, not a map - without this case every key-presence
 		// check on ws orderbooks is false and shared structure tests fail with

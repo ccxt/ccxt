@@ -79,15 +79,15 @@ func (this *BaseExchange) ApplyOrderBookSnapshot(stored any, snapshot any) bool 
 	return true
 }
 
-func (this *BaseExchange) wsClients() map[string]any {
+func (this *BaseExchange) wsClients() map[string]*WSClient {
 	if this.Clients == nil {
-		this.Clients = map[string]any{}
+		this.Clients = map[string]*WSClient{}
 	}
 	return this.Clients
 }
 
 // wsClientGetOrCreate answers the client registered for url, building it when absent.
-func (this *BaseExchange) wsClientGetOrCreate(url string, create func() any) any {
+func (this *BaseExchange) wsClientGetOrCreate(url string, create func() *WSClient) *WSClient {
 	clients := this.wsClients()
 	if existing, ok := clients[url]; ok {
 		return existing
@@ -105,13 +105,13 @@ func (this *BaseExchange) wsClientDelete(url string) {
 }
 
 func (this *BaseExchange) wsClientDeleteIfErrored(url string) {
-	if existing, ok := this.Clients[url]; ok && existing.(ClientInterface).GetError() != nil {
+	if existing, ok := this.Clients[url]; ok && existing.GetError() != nil {
 		delete(this.Clients, url)
 	}
 }
 
 func (this *BaseExchange) wsClientDeleteIfSame(url string, client any) {
-	if existing, ok := this.Clients[url]; ok && existing == client {
+	if existing, ok := this.Clients[url]; ok && any(existing) == client {
 		delete(this.Clients, url)
 	}
 }
@@ -120,8 +120,8 @@ func (this *BaseExchange) wsClientDeleteIfSame(url string, client any) {
 func (this *BaseExchange) wsClientDrain() []*WSClient {
 	clients := make([]*WSClient, 0, len(this.Clients))
 	for _, client := range this.Clients {
-		clients = append(clients, client.(*WSClient))
+		clients = append(clients, client)
 	}
-	this.Clients = map[string]any{}
+	this.Clients = map[string]*WSClient{}
 	return clients
 }

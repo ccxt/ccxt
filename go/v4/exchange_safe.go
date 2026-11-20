@@ -127,6 +127,17 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			}
 		}
 		return defVal
+	} else if clients, ok := obj.(map[string]*WSClient); ok {
+		// the ws client registry: a missing or nil entry reads as absent
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			if client, found := clients[fmt.Sprintf("%v", key)]; found && client != nil {
+				return client
+			}
+		}
+		return defVal
 	} else if bookMap, ok := obj.(map[string]map[string]any); ok {
 		// the ohlcv book is two-level: a symbol key answers its timeframe map
 		for _, key := range keys {
