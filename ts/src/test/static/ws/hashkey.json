@@ -1,0 +1,56 @@
+{
+    "exchange": "hashkey",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "unWatchTrades": [
+            {
+                "description": "spot trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream-glb.hashkey.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "spot 1m kline unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://stream-glb.hashkey.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "spot depth unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream-glb.hashkey.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTicker": [
+            {
+                "description": "spot realtimes unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream-glb.hashkey.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ]
+    }
+}
