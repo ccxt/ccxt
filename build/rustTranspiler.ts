@@ -474,6 +474,7 @@ class Proof {
     regions: Region[];
     calls = new Map<string, boolean>();
     locals = new Map<string, boolean>();
+    active = new Set<string>();
 
     constructor (content: string, regions: Region[]) {
         this.content = content;
@@ -482,20 +483,24 @@ class Proof {
 
     /** A local whose every binding is a fresh tag-free literal. */
     localTagFree (name: string, body: string, region: Region, depth = 0): boolean {
-        if (depth > 2) return false;
         const key = region.start + ':' + name;
+        // a local reached again through its own sources adds no value beyond the ones being proven
+        if (this.active.has(key)) return true;
+        if (depth > 2) return false;
         if (depth === 0) {
             const cached = this.locals.get(key);
             if (cached !== undefined) return cached;
         }
+        this.active.add(key);
         const verdict = this.localTagFreeUncached(name, body, region, depth);
-        if (depth === 0) this.locals.set(key, verdict);
+        this.active.delete(key);
+        if (depth === 0 && this.active.size === 0) this.locals.set(key, verdict);
         return verdict;
     }
 
     private localTagFreeUncached (name: string, body: string, region: Region, depth: number): boolean {
         if (body.includes('"__')) return false;
-        const decl = new RegExp('^[ \\t]*let mut ' + name + '[ \\t]*:[ \\t]*(?:Value|crate::value::Dict|Option<crate::value::Dict>|indexmap::IndexMap<String, Value>)(?![\\w:<])(.*)$', 'gm');
+        const decl = new RegExp('^[ \\t]*let (?:mut )?' + name + '[ \\t]*:[ \\t]*(?:Value|crate::value::Dict|Option<crate::value::Dict>|indexmap::IndexMap<String, Value>)(?![\\w:<])(.*)$', 'gm');
         const bare = new RegExp('^[ \\t]*let (?:mut )?' + name + '[ \\t]*=(.*)$', 'gm');
         const bound = new RegExp('(^|[^.\\w])' + name + '[ \\t]*=(?!=)(.*)$', 'gm');
         const sources: string[] = [];
@@ -544,6 +549,11 @@ class Proof {
         // a typed Dict local boxed into a `Value` proves like that local
         const boxedDict = t.match(/^Value::Dict\(([a-z][A-Za-z0-9]*)\)$/);
         if (boxedDict !== null) return boxedDict[1] !== self && this.localTagFree(boxedDict[1], body, region, depth + 1);
+        // another local (or its clone) proves like that local; a branch value proves when both arms do
+        const other = t.match(/^([a-z][A-Za-z0-9_]*)(?:\.clone\(\))?$/);
+        if (other !== null) return other[1] === self || this.localTagFree(other[1], body, region, depth + 1);
+        const arms = ifElseArms(t);
+        if (arms !== undefined) return arms.every(a => this.srcTagFree(a, body, region, depth + 1, self));
         if (/^\(\{\s*let mut m = indexmap::IndexMap::new\(\);[\s\S]*\n\s*m\s*\}\)$/.test(t)) return true;
         const destr = t.match(/^(__destr_tmp\w*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\);/);
         if (destr !== null) return this.destrSlot0Plain(destr[1], body.indexOf(src), body);
@@ -735,6 +745,39 @@ class Proof {
     }
 }
 
+/** The two arm values of a printed `(if (c) { a } else { b })` expression, or undefined. */
+function ifElseArms (t: string): [string, string] | undefined {
+    if (!t.startsWith('(if (') || closeParenAt(t, 0) !== t.length) return undefined;
+    const condEnd = closeParenAt(t, 4);
+    if (condEnd < 0 || !t.startsWith(' { ', condEnd)) return undefined;
+    const thenEnd = closeBraceAt(t, condEnd + 1);
+    if (thenEnd < 0 || !t.startsWith(' else { ', thenEnd)) return undefined;
+    const elseEnd = closeBraceAt(t, thenEnd + 6);
+    if (elseEnd !== t.length - 1) return undefined;
+    return [t.slice(condEnd + 3, thenEnd - 1), t.slice(thenEnd + 8, elseEnd - 1)];
+}
+
+/** One past the `}` closing the `{` at `open` (string-aware), or -1. */
+function closeBraceAt (content: string, open: number): number {
+    let depth = 0, inStr = false, esc = false;
+    for (let i = open; i < content.length; i++) {
+        const c = content[i];
+        if (inStr) {
+            if (esc) esc = false;
+            else if (c === '\\') esc = true;
+            else if (c === '"') inStr = false;
+            continue;
+        }
+        if (c === '"') { inStr = true; continue; }
+        if (c === '{') depth++;
+        else if (c === '}') {
+            depth--;
+            if (depth === 0) return i + 1;
+        }
+    }
+    return -1;
+}
+
 /** Arguments of `text` when it is exactly one `<name>(...)` call. */
 function insertChainCallArgs (text: string, name: string): string[] | undefined {
     if (!text.startsWith(name + '(')) return undefined;
@@ -752,6 +795,11 @@ function keyConv (arg: string, intermediate: boolean, body?: string): string | u
     // a `String` local boxed as a `Value::Str` key is that string
     const str = arg.trim().match(/^&Value::from\(([a-z]\w*)\.as_str\(\)\)$/);
     if (str !== null && body !== undefined && new RegExp('^[ \\t]*let mut ' + str[1] + ': String = ', 'm').test(body)) return str[1] + '.as_str().to_string()';
+    // a boxed key computed in place (a `safe_string` read, a dict member read): the helper's string or stringified key
+    const expr = arg.trim().slice(1);
+    const member = /^[a-z]\w*\.as_map\(\)\.and_then\(\|__m\| __m\.get\("[A-Za-z0-9_]*"\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.test(expr);
+    const safeStr = /^self\.safe_string(?:_k)?\(/.test(expr) && closeParenAt(expr, expr.indexOf('(')) === expr.length;
+    if (arg.trim().startsWith('&') && (member || safeStr)) return 'crate::runtime::stringify_param(&' + expr + ')';
     return undefined;
 }
 
@@ -902,6 +950,7 @@ function nativeInserts (content: string): string {
         if (!ok) continue;
         const last = keyConv(args[1], false, body);
         if (last === undefined) continue;
+        if (/\.as_map\(\)|self\.safe_string/.test(last) && (field !== null || (local !== null && new RegExp('\\b' + local[1] + '\\b').test(last)))) continue;
         const value = args[2].trim();
         // A write holds a `&mut`/`&self` borrow of the receiver: evaluate a
         // value that reads it into a temp first, exactly like the printer does.
@@ -18413,6 +18462,14 @@ function rustPassesSelfTest(): string[] {
     const chain = 'pub fn f(&mut self, symbol: Value) {\n    let mut tf: Value = Value::Null;\n    if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), tf.clone()); }\n}\n';
     ok(plainDictChains(chain).includes('.entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null)') && !plainDictChains(chain).includes('get_value_mut'), 'plainDictChains: Value-ident key');
     ok(plainDictChains(chain.replace('symbol: Value', 'symbol: &str')).includes('get_value_mut'), 'plainDictChains: unknown key type');
+    const arms = 'fn f(&self, c: bool) -> Value {\n    let mut h: Value = Value::Null;\n    if c {\n        h = Value::Map({\n    let m = indexmap::IndexMap::new();\n    m\n});\n    }\n    let b: Value = h.clone();\n    h = (if (b == Value::Null) { Value::Map({\n    let m = indexmap::IndexMap::new();\n    m\n}) } else { b });\n    add_element_to_object(&mut h, &Value::Str("k".into()), Value::Int(1));\n    return h;\n}\n';
+    ok(nativeInserts(arms).includes('.insert("k".to_string(), Value::Int(1))'), 'nativeInserts: receiver tag-free through an if/else and a local copy');
+    ok(nativeInserts(arms.replace('else { b }', 'else { self.get_sub(b) }')).includes('add_element_to_object('), 'nativeInserts: unproven arm keeps the helper');
+    const rk = 'fn f(&self, v: Value) {\n    let mut d: Value = Value::Map({\n    let m = indexmap::IndexMap::new();\n    m\n});\n    add_element_to_object(&mut d, &v.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Int(1));\n    add_element_to_object(&mut d, &self.safe_string_k(&v, "name", &[]), Value::Int(2));\n}\n';
+    const rko = nativeInserts(rk);
+    ok(rko.includes('insert(crate::runtime::stringify_param(&v.as_map()') && rko.includes('insert(crate::runtime::stringify_param(&self.safe_string_k(&v, "name", &[])), Value::Int(2))'), 'nativeInserts: computed string key');
+    ok(nativeInserts(rk.replace('&v.as_map()', '&d.as_map()')).includes('add_element_to_object(&mut d, &d.as_map()'), 'nativeInserts: key reading the receiver keeps the helper');
+    ok(nativeInserts(rk.replace('&self.safe_string_k(&v', '&self.safe_value_k(&v')).includes('add_element_to_object(&mut d, &self.safe_value_k'), 'nativeInserts: non-string reader keeps the helper');
     return problems;
 }
 
