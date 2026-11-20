@@ -1874,7 +1874,7 @@ export default class pacifica extends Exchange {
         return ordersToReturn as Order[];
     }
 
-    cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params: Dict = {}): Dict {
+    cancelOrdersRequest (ids: string[], symbol: Str = undefined, params: Dict = {}): Dict {
         const actions: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = this.safeString (ids, i);
@@ -2509,11 +2509,10 @@ export default class pacifica extends Exchange {
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         const sorted = this.sortBy (data, 'history_id', true);
         const lastIdx = sorted.length;
-        let lastInfo: Dict = {};
         if (lastIdx > 0) {
-            lastInfo = sorted[0];
+            return this.parseOrder (sorted[0], market);
         }
-        return this.parseOrder (lastInfo, market);
+        return this.parseOrder ({}, market);
     }
 
     parseOrderStatus (status: Str): Str {
