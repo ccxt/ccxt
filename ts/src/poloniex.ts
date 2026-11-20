@@ -608,6 +608,10 @@ export default class poloniex extends Exchange {
                     '21001': OperationRejected, // POSITION_NOT_EXIST
                 },
                 'broad': {
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature': AuthenticationError,
+                    'ApiKey not exist': AuthenticationError,
+                    'Illegal of ip': PermissionDenied,
                 },
             },
         });
@@ -4070,8 +4074,8 @@ export default class poloniex extends Exchange {
         if ((responseCode !== undefined) && (responseCode !== '200')) {
             const message = this.safeString2 (response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
