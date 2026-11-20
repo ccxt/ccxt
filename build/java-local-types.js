@@ -6124,6 +6124,26 @@ function dataflowInternalReturnType (printer, node) {
     return DATAFLOW_INTERNAL_RETURN_BOXES.has (native) ? native : undefined;
 }
 
+// omit of a declared Map parameter / base Map field binds the hand-written `Map omit (Map, ..)`
+// overloads (Functions.omitMap: a fresh Map, or null): no checkcast. Other locals are left out: their
+// Map type is published only once printed, so the answer would depend on print order
+function dataflowOmitMapType (printer, node) {
+    const source = unwrapParens (node.arguments[0]);
+    let declaration;
+    try {
+        declaration = (source !== undefined && ts.isIdentifier (source))
+            ? printer.getChecker ().getSymbolAtLocation (source)?.valueDeclaration?.resolve () : undefined;
+    } catch (e) {
+        return undefined;
+    }
+    if (javaBaseMapField (printer, source) || (declaration !== undefined && ts.isParameterDeclaration (declaration))) {
+        return javaOmitMapCall (printer, node)?.type;
+    }
+    // slot 1 of a const handle* tuple (audited Map, see j08MapIdentifier)
+    const handleSlot = declaration !== undefined && ts.isBindingElement (declaration) && j08MapCopyWrite (printer, node);
+    return handleSlot ? JAVA_STRUCTURE_TYPE : undefined;
+}
+
 function dataflowIsStructureCall (printer, node) {
     while (node !== undefined && ts.isParenthesizedExpression (node)) {
         node = node.expression;
@@ -6198,7 +6218,7 @@ function dataflowValueType (printer, node, context) {
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
                 // a venue method the printer retyped to `public String` (kucoin marketOrderAmountToPrecision)
                 return dataflowThisCallType (printer, node) ?? joinBaseProducerType (printer, node)
-                    ?? dataflowInternalReturnType (printer, node);
+                    ?? dataflowInternalReturnType (printer, node) ?? dataflowOmitMapType (printer, node);
             }
             if (ts.isIdentifier (callee.expression) && callee.expression.text === 'Precise') {
                 return PRECISE_STRING_STATICS.has (callee.name.text) ? JAVA_DATAFLOW_STRING : undefined;
