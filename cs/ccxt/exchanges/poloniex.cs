@@ -646,6 +646,7 @@ public partial class poloniex : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "401", typeof(PermissionDenied) },
                     { "500", typeof(ExchangeNotAvailable) },
                     { "603", typeof(RequestTimeout) },
                     { "601", typeof(BadRequest) },
