@@ -2369,13 +2369,13 @@ public partial class gate : ccxt.gate
                     List<object> payload = this.safeList(message, "payload", new List<object>() {});
                     for (int i = 0; i < payload.Count; i++)
                     {
-                        object marketType = null;
+                        string? marketType = null;
                         if (((parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null) is "futures"))
                         {
                             marketType = "swap";
                         } else
                         {
-                            marketType = (parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null);
+                            marketType = ((string)(parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null));
                         }
                         string? symbol = this.safeSymbol(payload[i], null, "_", marketType);
                         string? messageHashSymbol = ((string)((object)((parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null) == null ? null : (parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null) + ":" + symbol)));

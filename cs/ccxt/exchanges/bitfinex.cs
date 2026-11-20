@@ -894,13 +894,13 @@ public partial class bitfinex : Exchange
             type = "spot";
         }
         bool swap = type == "swap";
-        object baseId = null;
-        object quoteId = null;
+        string? baseId = null;
+        string? quoteId = null;
         if (id.IndexOf(":", StringComparison.Ordinal) >= 0)
         {
             List<object> parts = id.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
-            baseId = (parts != null && 0 < parts.Count ? parts[0] : null);
-            quoteId = (parts != null && 1 < parts.Count ? parts[1] : null);
+            baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
+            quoteId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
         } else
         {
             baseId = ((id == null) ? null : id.Substring(0, Math.Min(3, id.Length)));

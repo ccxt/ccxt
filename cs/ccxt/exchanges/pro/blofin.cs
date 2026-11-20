@@ -739,7 +739,7 @@ public partial class blofin : ccxt.blofin
         // every symbol shares one orders cache, so filter by the requested symbols and count
         // per symbol only when exactly one is requested
         IList<object> requestedSymbols = null;
-        object countSymbol = null;
+        string? countSymbol = null;
         IList<object> unifiedSymbols = this.marketSymbols(symbols, null, true);
         if ((unifiedSymbols != null))
         {
@@ -750,7 +750,7 @@ public partial class blofin : ccxt.blofin
             }
             if ((symbolsLength == 1))
             {
-                countSymbol = (unifiedSymbols != null && 0 < unifiedSymbols.Count ? unifiedSymbols[0] : null);
+                countSymbol = ((string)(unifiedSymbols != null && 0 < unifiedSymbols.Count ? unifiedSymbols[0] : null));
             }
         }
         object newest = orders;

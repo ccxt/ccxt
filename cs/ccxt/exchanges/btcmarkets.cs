@@ -521,16 +521,16 @@ public partial class btcmarkets : Exchange
         IDictionary<string, object> cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new Dictionary<string, object>() {});
         string? txid = this.safeString(cryptoPaymentDetail, "txId");
         string? addressRaw = this.safeString(cryptoPaymentDetail, "address");
-        object address = null;
-        object tag = null;
+        string? address = null;
+        string? tag = null;
         if ((addressRaw != null))
         {
             List<object> addressParts = addressRaw.Split(new [] {"?dt="}, StringSplitOptions.None).ToList<object>();
             int numParts = addressParts.Count;
             if (numParts > 1)
             {
-                address = (addressParts != null && 0 < addressParts.Count ? addressParts[0] : null);
-                tag = (addressParts != null && 1 < addressParts.Count ? addressParts[1] : null);
+                address = ((string)(addressParts != null && 0 < addressParts.Count ? addressParts[0] : null));
+                tag = ((string)(addressParts != null && 1 < addressParts.Count ? addressParts[1] : null));
             } else
             {
                 address = addressRaw;

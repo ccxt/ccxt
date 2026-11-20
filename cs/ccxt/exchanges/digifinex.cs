@@ -2686,7 +2686,7 @@ public partial class digifinex : Exchange
         Int64? timestamp = null;
         Int64? lastTradeTimestamp = null;
         string? timeInForce = null;
-        object type = null;
+        string? type = null;
         bool? reduceOnly = null;
         object side = this.safeString(order, "type");
         string? sideRaw = this.safeString(order, "type");
@@ -2747,7 +2747,7 @@ public partial class digifinex : Exchange
                 if (numParts > 1)
                 {
                     side = (parts != null && 0 < parts.Count ? parts[0] : null);
-                    type = (parts != null && 1 < parts.Count ? parts[1] : null);
+                    type = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
                 } else
                 {
                     type = "limit";

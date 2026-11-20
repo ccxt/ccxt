@@ -3352,14 +3352,14 @@ public partial class coinbase : Exchange
         string? type = this.parseLedgerEntryType(this.safeString(item, "type"));
         string? status = this.parseLedgerEntryStatus(this.safeString(item, "status"));
         string? path = this.safeString(item, "resource_path");
-        object accountId = null;
+        string? accountId = null;
         if ((path != null))
         {
             List<object> parts = path.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
             int numParts = parts.Count;
             if (numParts > 3)
             {
-                accountId = (parts != null && 3 < parts.Count ? parts[3] : null);
+                accountId = ((string)(parts != null && 3 < parts.Count ? parts[3] : null));
             }
         }
         return this.safeLedgerEntry(new Dictionary<string, object>() {

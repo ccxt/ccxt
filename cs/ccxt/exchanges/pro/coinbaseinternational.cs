@@ -173,7 +173,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the subscription result
      */
-    public async virtual Task<object> subscribe(object channels, object messageHashes, bool? isPrivate = null, object parameters = null)
+    public async virtual Task<object> subscribe(IList<object> channels, IList<object> messageHashes, bool? isPrivate = null, object parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -199,7 +199,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             { "id", this.requestId() },
         };
         Dictionary<string, object> extendedRequest = this.deepExtend(request, paramsResolved);
-        int channelsLength = getArrayLength(channels);
+        int channelsLength = channels?.Count ?? 0;
         if ((channelsLength == 1))
         {
             return await this.watch(url, this.safeString(messageHashes, 0, ""), extendedRequest, this.safeString(channels, 0, ""), extendedRequest);
@@ -220,7 +220,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {boolean} true when unsubscription has been requested
      */
-    public async virtual Task<object> unSubscribe(object channels, bool? isPrivate = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribe(IList<object> channels, bool? isPrivate = null, IDictionary<string, object> parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -234,7 +234,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.authenticate();
         }
         List<object> unWatchMessageHashes = new List<object>() {};
-        int channelsLength = getArrayLength(channels);
+        int channelsLength = channels?.Count ?? 0;
         for (int i = 0; i < channelsLength; i++)
         {
             unWatchMessageHashes.Add(("unsubscribe:" + this.safeString(channels, i, "")));

@@ -583,7 +583,8 @@ public partial class sxbet : PredictionExchange
     public async override Task<ccxt.PredictionEvent> FetchEvent(string id, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> rawMarkets = await this.fetchRawMarketsPaged(this.extend(new Dictionary<string, object>() {
+        List<object> rawMarkets = new List<object>() {};
+        rawMarkets = await this.fetchRawMarketsPaged(this.extend(new Dictionary<string, object>() {
             { "sportXeventId", id },
         }, parameters), null);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture

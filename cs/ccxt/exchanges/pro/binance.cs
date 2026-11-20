@@ -3417,10 +3417,8 @@ public partial class binance : ccxt.binance
      * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(string? marketType = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(string? marketType, IDictionary<string, object>? parameters = null)
     {
-        string? marketTypeVar = marketType;
-        marketTypeVar ??= "margin";
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new Dictionary<string, object>() {});
@@ -3429,7 +3427,7 @@ public partial class binance : ccxt.binance
         {
             throw new ExchangeError ((this.id + " has no websocket url for this endpoint")) ;
         }
-        IDictionary<string, object> options = this.safeDict(this.options, marketTypeVar, new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, marketType, new Dictionary<string, object>() {});
         Int64? lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
         Int64? listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
         Int64 time = this.milliseconds();
@@ -3440,7 +3438,7 @@ public partial class binance : ccxt.binance
             // renewal timer re-entry through renewListenToken, so a concurrent caller
             // waits for the leader rather than minting a second listenToken
             var client = this.client(url);
-            string messageHash = (("authenticate:" + (marketTypeVar)) + ":listenToken");
+            string messageHash = (("authenticate:" + (marketType)) + ":listenToken");
             if ((client.futures != null && client.futures.ContainsKey(messageHash)))
             {
                 // another caller is already fetching, wait for it instead of fetching again
@@ -3489,10 +3487,10 @@ public partial class binance : ccxt.binance
                 Dictionary<string, object> subscription = new Dictionary<string, object>() {
                     { "id", requestHash },
                     { "method", this.handleUserDataStreamSubscribe },
-                    { "subscription", marketTypeVar },
+                    { "subscription", marketType },
                 };
                 await this.watch(url, requestHash, message, requestHash, subscription);
-                this.options[(string)marketTypeVar] = this.extend(options, new Dictionary<string, object>() {
+                this.options[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
                     { "listenToken", listenToken },
                     { "expirationTime", expirationTime },
                     { "lastAuthenticatedTime", time },
@@ -3507,7 +3505,7 @@ public partial class binance : ccxt.binance
                     if (renewalTime > 0)
                     {
                         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
-                            { "type", marketTypeVar },
+                            { "type", marketType },
                         });
                         this.delay(renewalTime,  this.renewListenToken, new object[] { extendedParams});
                     }
@@ -3515,7 +3513,7 @@ public partial class binance : ccxt.binance
                 client.resolve(listenToken, messageHash);
             } catch(Exception e)
             {
-                this.options[(string)marketTypeVar] = this.extend(options, new Dictionary<string, object>() {
+                this.options[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
                     { "lastAuthenticatedTime", 0 },
                 });
                 client.reject(e, messageHash);
@@ -3932,7 +3930,7 @@ public partial class binance : ccxt.binance
         //
         string? messageHash = this.safeString(message, "id");
         List<object> rawBalance = null;
-        if (((getValue(message, "result")) is var hxArr189431 && ((hxArr189431 is IList<object>) || (hxArr189431.GetType().IsGenericType && hxArr189431.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr189420 && ((hxArr189420 is IList<object>) || (hxArr189420.GetType().IsGenericType && hxArr189420.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             rawBalance = this.safeList(message, "result", new List<object>() {});

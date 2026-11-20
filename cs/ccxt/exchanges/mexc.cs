@@ -5758,12 +5758,12 @@ public partial class mexc : Exchange
         string type = ((id == null)) ? "deposit" : "withdrawal";
         Int64? timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         Int64? updated = this.safeInteger(transaction, "updateTime");
-        object currencyId = null;
+        string? currencyId = null;
         string? currencyWithNetwork = this.safeString(transaction, "coin");
         if ((currencyWithNetwork != null))
         {
             List<object> currencyParts = currencyWithNetwork.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            currencyId = (currencyParts != null && 0 < currencyParts.Count ? currencyParts[0] : null);
+            currencyId = ((string)(currencyParts != null && 0 < currencyParts.Count ? currencyParts[0] : null));
         }
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? network = null;

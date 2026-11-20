@@ -1047,10 +1047,8 @@ public partial class htx : ccxt.htx
     public virtual List<object> getOrderChannelAndMessageHash(string? type, string? subType, IDictionary<string, object>? market = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object messageHash = null;
-        object channel = null;
-        string? orderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
-        orderType = this.safeString(parameters, "orderType", orderType);
+        string? defaultOrderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
+        string? orderType = this.safeString(parameters, "orderType", defaultOrderType);
         IDictionary<string, object> paramsOmitted = this.omit(parameters, "orderType");
         string? marketCode = null;
         if ((market != null))
@@ -1063,7 +1061,8 @@ public partial class htx : ccxt.htx
             baseId = ((string)(market != null && market.ContainsKey("baseId") ? market["baseId"] : null));
         }
         string? prefix = orderType;
-        messageHash = prefix;
+        object messageHash = prefix;
+        object channel = (prefix == null ? null : prefix + "." + "*");
         if ((subType == "linear"))
         {
             // USDT Margined Contracts Example: LTC/USDT:USDT
@@ -1076,8 +1075,9 @@ public partial class htx : ccxt.htx
             messageHash = marginPrefix;
             if ((marketCode != null))
             {
-                messageHash = ((object)(marginPrefix == null ? null : marginPrefix + "." + marketCode));
-                channel = messageHash;
+                string? marketTopic = (marginPrefix == null ? null : marginPrefix + "." + marketCode);
+                messageHash = marketTopic;
+                channel = marketTopic;
             } else
             {
                 channel = ((object)(marginPrefix == null ? null : marginPrefix + "." + "*"));
@@ -1087,8 +1087,10 @@ public partial class htx : ccxt.htx
             // inverse futures Example: BCH/USD:BCH-220408
             if ((baseId != null))
             {
-                channel = (prefix == null ? null : prefix + "." + baseId.ToLower());
-                messageHash = channel;
+                string lowerBaseId = baseId.ToLower();
+                string? baseTopic = ((string)(prefix == null ? null : prefix + "." + lowerBaseId));
+                channel = baseTopic;
+                messageHash = baseTopic;
             } else
             {
                 channel = (prefix == null ? null : prefix + "." + "*");
@@ -1098,8 +1100,9 @@ public partial class htx : ccxt.htx
             // inverse swaps: Example: BTC/USD:BTC
             if ((marketCode != null))
             {
-                channel = (prefix == null ? null : prefix + "." + marketCode);
-                messageHash = channel;
+                string? swapTopic = ((string)(prefix == null ? null : prefix + "." + marketCode));
+                channel = swapTopic;
+                messageHash = swapTopic;
             } else
             {
                 channel = (prefix == null ? null : prefix + "." + "*");
@@ -1738,11 +1741,11 @@ public partial class htx : ccxt.htx
         string? order = this.safeString(trade, "orderId");
         Int64? timestamp = this.safeInteger(trade, "tradeTime");
         string? type = this.safeString(trade, "type");
-        object side = null;
+        string? side = null;
         if ((type != null))
         {
             List<object> typeParts = type.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            side = (typeParts != null && 0 < typeParts.Count ? typeParts[0] : null);
+            side = ((string)(typeParts != null && 0 < typeParts.Count ? typeParts[0] : null));
             type = ((string)(typeParts != null && 1 < typeParts.Count ? typeParts[1] : null));
         }
         bool? aggressor = this.safeBool(trade, "aggressor");

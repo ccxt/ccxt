@@ -313,7 +313,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.unSubscribeMultiple(url, new List<object>() {messageHash}, topic, new List<object>() {subscriptionHash}, parameters, subscription);
     }
 
-    public async virtual Task<object> subscribeMultiple(object url, object messageHashes, object topic, object subscriptionHashes, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribeMultiple(object url, object messageHashes, object topic, IList<object> subscriptionHashes, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
@@ -325,7 +325,7 @@ public partial class kucoin : ccxt.kucoin
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         var client = this.client(url);
-        for (int i = 0; i < getArrayLength(subscriptionHashes); i++)
+        for (int i = 0; i < (subscriptionHashes?.Count ?? 0); i++)
         {
             string? subscriptionHash = this.safeString(subscriptionHashes, i, "");
             if (!(((subscriptionHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))))

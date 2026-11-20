@@ -1335,20 +1335,20 @@ public partial class nado : ccxt.nado
         };
     }
 
-    public async virtual Task<object> watchPublicMultiple(object streamType, object markets, object messageHashes, object parameters = null, object subscriptionParams = null)
+    public async virtual Task<object> watchPublicMultiple(object streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object> subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
         var client = this.client(url);
-        for (int i = 0; i < getArrayLength(messageHashes); i++)
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = this.safeString(messageHashes, i, "");
             object clientSubscription = this.safeValue(client.subscriptions, messageHash);
             if ((clientSubscription == null))
             {
-                object market = getValue(markets, i);
+                object market = (markets != null && i < markets.Count ? markets[i] : null);
                 Int64 id = this.requestId();
-                object requestParams = ((subscriptionParams == null)) ? parameters : getValue(subscriptionParams, i);
+                object requestParams = ((subscriptionParams == null)) ? parameters : (subscriptionParams != null && i < subscriptionParams.Count ? subscriptionParams[i] : null);
                 Dictionary<string, object> request = this.createPublicSubscriptionRequest("subscribe", streamType, market, id, requestParams);
                 string subscribeHash = ("subscribe:" + this.json((request != null && request.ContainsKey("stream") ? request["stream"] : null)));
                 object streamSubscription = this.safeValue(client.subscriptions, subscribeHash);

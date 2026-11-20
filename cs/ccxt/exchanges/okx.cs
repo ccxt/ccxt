@@ -7532,32 +7532,44 @@ public partial class okx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
+        string? marketId = null;
+        string? rowMarginMode = null;
+        Int64? longLeverage = null;
+        Int64? shortLeverage = null;
+        for (int i = 0; i < (data?.Count ?? 0); i++)
+        {
+            IDictionary<string, object> entry = this.safeDict(data, i);
+            rowMarginMode = this.safeStringLower(entry, "mgnMode");
+            marketId = this.safeString(entry, "instId");
+            string? positionSide = this.safeStringLower(entry, "posSide");
+            Int64? lever = this.safeInteger(entry, "lever");
+            if (positionSide != "short")
+            {
+                longLeverage = lever;
+            }
+            if (positionSide != "long")
+            {
+                shortLeverage = lever;
+            }
+        }
+        return ccxt.BaseExchange.ToLeverage(new Dictionary<string, object>() {             { "info", data },             { "symbol", this.safeSymbol(marketId, market) },             { "marginMode", rowMarginMode },             { "longLeverage", longLeverage },             { "shortLeverage", shortLeverage },         });
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
     {
-        string? marketId = null;
-        string? marginMode = null;
+        string? marketId = this.safeString(leverage, "instId");
+        string? positionSide = this.safeStringLower(leverage, "posSide");
+        Int64? lever = this.safeInteger(leverage, "lever");
+        string? marginMode = this.safeStringLower(leverage, "mgnMode");
         Int64? longLeverage = null;
         Int64? shortLeverage = null;
-        for (int i = 0; i < getArrayLength(leverage); i++)
+        if (positionSide != "short")
         {
-            IDictionary<string, object> entry = this.safeDict(leverage, i);
-            marginMode = this.safeStringLower(entry, "mgnMode");
-            marketId = this.safeString(entry, "instId");
-            string? positionSide = this.safeStringLower(entry, "posSide");
-            if (positionSide == "long")
-            {
-                longLeverage = this.safeInteger(entry, "lever");
-            } else if (positionSide == "short")
-            {
-                shortLeverage = this.safeInteger(entry, "lever");
-            } else
-            {
-                longLeverage = this.safeInteger(entry, "lever");
-                shortLeverage = this.safeInteger(entry, "lever");
-            }
+            longLeverage = lever;
+        }
+        if (positionSide != "long")
+        {
+            shortLeverage = lever;
         }
         return new Dictionary<string, object>() {
             { "info", leverage },

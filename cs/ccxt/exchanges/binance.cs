@@ -4722,7 +4722,7 @@ public partial class binance : Exchange
             promises.Add(this.sapiGetMarginAllPairs(parameters));
         }
         List<object> results = new List<object>(await Task.WhenAll(promises));
-        object responseCurrencies = this.safeValue(results, 0);
+        List<object> responseCurrencies = this.safeList(results, 0, new List<object>() {});
         Dictionary<string, object> marginablesById = null;
         if ((fetchMargins == true))
         {
@@ -4732,12 +4732,12 @@ public partial class binance : Exchange
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(responseCurrencies, marginablesById))));
     }
 
-    public virtual Dictionary<string, object> parseCurrenciesCustom(object responseCurrencies, IDictionary<string, object> marginablesById)
+    public virtual Dictionary<string, object> parseCurrenciesCustom(IList<object> responseCurrencies, IDictionary<string, object> marginablesById)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(responseCurrencies); i++)
+        for (int i = 0; i < (responseCurrencies?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parseCurrency(getValue(responseCurrencies, i));
+            Dictionary<string, object> parsed = this.parseCurrency((responseCurrencies != null && i < responseCurrencies.Count ? responseCurrencies[i] : null));
             if ((parsed == null))
             {
                 throw new ExchangeError ((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
