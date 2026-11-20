@@ -593,6 +593,10 @@ abstract class Exchange extends _Exchange {
         return this.request ('asset/deposit-withdraw-status', [ 'private' ], 'GET', params, { 'cost': 20 });
     }
 
+    privateGetAssetTravelRuleGetLocked (params = {}): Promise<Dict> {
+        return this.request ('asset/travel-rule/get-locked', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
     privateGetAssetMonthlyStatement (params = {}): Promise<Dict> {
         return this.request ('asset/monthly-statement', [ 'private' ], 'GET', params, { 'cost': 2 });
     }
@@ -1363,6 +1367,10 @@ abstract class Exchange extends _Exchange {
 
     privatePostAssetCancelWithdrawal (params = {}): Promise<Dict> {
         return this.request ('asset/cancel-withdrawal', [ 'private' ], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+
+    privatePostAssetTravelRuleUnlock (params = {}): Promise<Dict> {
+        return this.request ('asset/travel-rule/unlock', [ 'private' ], 'POST', params, { 'cost': 3.3333333333333335 });
     }
 
     privatePostAssetConvertDustAssets (params = {}): Promise<Dict> {

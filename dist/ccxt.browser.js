@@ -99949,6 +99949,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -101298,6 +101305,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -104197,6 +104211,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -105546,6 +105567,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -107513,6 +107541,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -108862,6 +108897,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -149710,6 +149752,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -151059,6 +151108,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -153026,6 +153082,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -154375,6 +154438,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -460611,6 +460681,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                         'asset/deposit-withdraw-status': {
                             'cost': 20
                         },
+                        'asset/travel-rule/get-locked': {
+                            'cost': 10 / 3
+                        },
                         'asset/monthly-statement': {
                             'cost': 2
                         },
@@ -461207,6 +461280,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                         },
                         'asset/cancel-withdrawal': {
                             'cost': 5 / 3
+                        },
+                        'asset/travel-rule/unlock': {
+                            'cost': 10 / 3
                         },
                         'asset/convert-dust-assets': {
                             'cost': 10
@@ -461946,6 +462022,11 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                     '58229': _base_errors_js__rspack_import_1.InsufficientFunds,
                     '58300': _base_errors_js__rspack_import_1.ExchangeError,
                     '58350': _base_errors_js__rspack_import_1.InsufficientFunds,
+                    '58385': _base_errors_js__rspack_import_1.BadRequest,
+                    '58386': _base_errors_js__rspack_import_1.BadRequest,
+                    '58387': _base_errors_js__rspack_import_1.BadRequest,
+                    '58388': _base_errors_js__rspack_import_1.ManualInteractionNeeded,
+                    '58389': _base_errors_js__rspack_import_1.OperationRejected,
                     // Account error codes 59000-59999
                     '59000': _base_errors_js__rspack_import_1.ExchangeError,
                     '59001': _base_errors_js__rspack_import_1.ExchangeError,
