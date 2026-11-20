@@ -782,11 +782,6 @@ public partial class BaseExchange
         }
     }
 
-    public void beforeClose()
-    {
-        // stub in c#
-    }
-
     public async Task Close(bool cleanInstanceCache = false)
     {
         // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
