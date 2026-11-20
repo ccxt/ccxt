@@ -362,8 +362,10 @@ export default class hollaex extends Exchange {
             const market = this.safeDict (pairs, key);
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
-            const baseCode = this.commonCurrencyCode ((baseId as string).toUpperCase ());
-            const quoteCode = this.commonCurrencyCode ((quoteId as string).toUpperCase ());
+            const upperBaseId = (baseId as string).toUpperCase ();
+            const upperQuoteId = (quoteId as string).toUpperCase ();
+            const baseCode = this.commonCurrencyCode (upperBaseId);
+            const quoteCode = this.commonCurrencyCode (upperQuoteId);
             result.push ({
                 'id': this.safeString (market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,

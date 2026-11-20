@@ -175,7 +175,7 @@ func (this *BaseExchange) MarketCodes(optionalArgs ...any) []any {
 	}
 	var result []any = []any{}
 	for _, code := range codes {
-		result = append(result, this.CommonCurrencyCode(code))
+		result = append(result, *this.CommonCurrencyCode(&code))
 	}
 	return result
 }

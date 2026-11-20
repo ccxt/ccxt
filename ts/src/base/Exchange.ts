@@ -6949,7 +6949,8 @@ export class BaseExchange {
         }
         let code = currencyId;
         if (currencyId !== undefined) {
-            code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            const upperId = currencyId.toUpperCase ();
+            code = this.commonCurrencyCode (upperId);
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
