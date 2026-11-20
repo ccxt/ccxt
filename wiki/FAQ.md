@@ -444,7 +444,16 @@ const exchange = new ccxt.interactivebrokers ({
 If your account is not permitted to generate OAuth credentials, you can use the `Client Portal Gateway`, a local IBKR bridge that does not need api keys.
 
 1. Get the gateway running, in one of two ways:
-    - **Docker (preferred)**: use the dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ and run it as described there.
+    - **Docker (preferred)**: use the dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ (you need [Docker](https://docs.docker.com/engine/install/) installed):
+        - Clone the repository and start the container:
+
+            ```bash
+            git clone https://github.com/ccxt/interactive-brokers-cpg-wrapper.git
+            cd interactive-brokers-cpg-wrapper
+            docker compose up -d --build
+            ```
+
+        - To use another port (e.g. when 5000 is taken, as on macOS where AirPlay Receiver uses it), change the port mapping in `docker-compose.yml` from `"5000:5000"` to e.g. `"5001:5000"` before starting it.
     - **Manual**: download the files from https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow the instructions shown there. In this case you have to re-run the gateway manually after every device restart and similar cases, which is why the dockerized approach is preferred.
 2. Log in at https://localhost:5000
 3. Enable the gateway in CCXT:
