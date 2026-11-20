@@ -1601,8 +1601,8 @@ public partial class BaseExchange
         for (int i = 0; i < targets.Count; i++)
         {
             string? target = ((string)targets[i]);
-            string? source = ((string)((target != null && fallbacks.ContainsKey(target) ? fallbacks[target] : null)));
-            bool sourceDefined = ((this.has != null && source != null && this.has.ContainsKey(source))) && (!((this.has != null && source != null && this.has.ContainsKey(source) ? this.has[source] : null) == null));
+            string? source = this.safeString(fallbacks, target, "");
+            bool sourceDefined = (((source != null) && this.has.ContainsKey(source))) && (!((this.has != null && source != null && this.has.ContainsKey(source) ? this.has[source] : null) == null));
             bool targetDefined = ((this.has != null && target != null && this.has.ContainsKey(target))) && (!((this.has != null && target != null && this.has.ContainsKey(target) ? this.has[target] : null) == null));
             if (sourceDefined && !targetDefined)
             {

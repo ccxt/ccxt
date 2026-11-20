@@ -337,13 +337,13 @@ public partial class binance : PredictionExchange
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public async virtual Task<List<object>> completeRawTopics(object rawTopics)
+    public async virtual Task<List<object>> completeRawTopics(IList<object> rawTopics)
     {
         List<object> result = new List<object>() {};
-        int rawTopicsLength = getArrayLength(rawTopics);
+        int rawTopicsLength = rawTopics?.Count ?? 0;
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            IDictionary<string, object> rawTopic = ((IDictionary<string, object>)getValue(rawTopics, i));
+            IDictionary<string, object> rawTopic = ((IDictionary<string, object>)(rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
             List<object> rawMarkets = this.safeList(rawTopic, "markets", new List<object>() {});
             int rawMarketsLength = rawMarkets.Count;
             bool hasOutcomes = false;

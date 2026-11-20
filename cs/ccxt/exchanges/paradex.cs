@@ -3893,15 +3893,15 @@ public partial class paradex : Exchange
         };
     }
 
-    public virtual List<object> filterTransactionsByKind(object transactions, string kind)
+    public virtual List<object> filterTransactionsByKind(IList<object> transactions, string kind)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(transactions); i++)
+        for (int i = 0; i < (transactions?.Count ?? 0); i++)
         {
-            IDictionary<string, object> info = this.safeDict(getValue(transactions, i), "info");
+            IDictionary<string, object> info = this.safeDict((transactions != null && i < transactions.Count ? transactions[i] : null), "info");
             if ((this.safeString(info, "kind") == kind))
             {
-                result.Add(getValue(transactions, i));
+                result.Add((transactions != null && i < transactions.Count ? transactions[i] : null));
             }
         }
         return result;

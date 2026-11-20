@@ -78,7 +78,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             messageHash = ((object)(messageHash == null ? null : messageHash + (":" + marketId)));
             productIds.Add(marketId);
         }
-        object url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
+        string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " urls.api.ws is not set")) ;
@@ -86,7 +86,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
-            url = ((object)(url == null ? null : url + "?"));
+            url = (url + "?");
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -121,7 +121,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             productIds.Add(marketId);
             messageHashes.Add(((messageHashStart + ":") + this.safeString(market, "symbol", "")));
         }
-        object url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
+        string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " urls.api.ws is not set")) ;
@@ -129,7 +129,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
-            url = ((object)(url == null ? null : url + "?"));
+            url = (url + "?");
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
