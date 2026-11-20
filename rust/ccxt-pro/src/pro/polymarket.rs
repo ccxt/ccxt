@@ -1585,7 +1585,7 @@ impl Polymarket {
             return;
         }
         let key: String = format!("{}{}", "req:", id.as_deref().unwrap_or("null"));
-        let pending: Option<crate::value::Dict> = self.safe_dict_o(get_value(&client, &Value::Str("subscriptions".into())), Value::from(key.clone()));
+        let pending: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::from(key.clone()));
         if (pending.is_none()) {
             return;
         }

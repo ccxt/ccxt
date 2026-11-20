@@ -183,7 +183,7 @@ impl Upbit {
         if !(__ch.has_subscription(subscriptionsKey.as_str())) {
             __ch.add_subscription(subscriptionsKey.as_str(), self.create_safe_dictionary(&[Value::Bool(true)]));
         }
-        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(subscriptionsKey), &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict(&__ch.subscriptions, Value::from(subscriptionsKey), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]);
@@ -653,7 +653,7 @@ impl Upbit {
         if !(__ch.has_subscription(subscriptionsKey.as_str())) {
             __ch.add_subscription(subscriptionsKey.as_str(), self.create_safe_dictionary(&[Value::Bool(true)]));
         }
-        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(subscriptionsKey), &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict(&__ch.subscriptions, Value::from(subscriptionsKey), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]);

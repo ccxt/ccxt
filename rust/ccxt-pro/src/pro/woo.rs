@@ -524,7 +524,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }  else {
             if !(self.orderbooks.has(&symbol)) {
                 let defaultLimit: i64 = self.safe_integer_k(&self.options, "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                let subscription: crate::value::Dict = self.safe_dict_t(get_value(&client, &Value::Str("subscriptions".into())), Value::from(topic.as_deref()));
+                let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(topic.as_deref()));
                 let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
                 { let __cv = self.order_book(&[Value::Map({
     let m = indexmap::IndexMap::new();

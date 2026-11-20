@@ -2334,7 +2334,7 @@ pub trait ExchangeBase:
             let mut __for_first_81: bool = true;
             while { if !__for_first_81 { i += 1; } __for_first_81 = false; i < (targets.len() as i64) } {
             let mut target: Option<String> = targets.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let source: Value = fallbacks.get(target.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let source: Value = self.safe_string(&fallbacks, Value::from(target.as_deref()), &[Value::Str("".into())]);
             let sourceDefined: bool = (matches!(&source, Value::Str(__k) if self.has.contains_key(__k.as_ref()))) && ((if let Some(__k) = source.as_str() { self.has.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
             let targetDefined: bool = (matches!(target.as_deref(), Some(__k) if self.has.contains_key(__k))) && ((if let Some(__k) = target.as_deref() { self.has.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null);
             if sourceDefined && !targetDefined {

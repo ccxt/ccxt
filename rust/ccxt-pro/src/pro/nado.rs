@@ -2604,7 +2604,7 @@ impl Nado {
                 }
             }
             }
-            let subscriptionMsg: bool = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), Value::from(messageHash.clone()), &[]) != Value::Null;
+            let subscriptionMsg: bool = self.safe_value(&__ch.subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
             if (subscriptionMsg) {
                 __ch.remove_subscription(messageHash.as_str());
             }
@@ -2837,7 +2837,7 @@ impl Nado {
                 return Value::Bool(true);
             }
         }
-        let subscription: Option<crate::value::Dict> = self.safe_dict_o(get_value(client, &Value::Str("subscriptions".into())), Value::Str(format!("{}{}", "subscription:", id).into()));
+        let subscription: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::Str(format!("{}{}", "subscription:", id).into()));
         if (subscription.is_some()) {
             let subscribeHash: Option<String> = self.safe_string_k_opt(&subscription, "subscribeHash", &[]);
             __ch.remove_subscription(&(Value::Str(format!("{}{}", "subscription:", id).into())));

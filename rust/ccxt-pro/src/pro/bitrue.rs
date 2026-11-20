@@ -674,12 +674,12 @@ impl Bitrue {
             return None;
         }
         let markets: Value = Value::from(&self.markets);
-        let symbols: Vec<Value> = object_keys(&markets).as_array().cloned().unwrap_or_default();
+        let symbols: Vec<&str> = markets.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (symbols.len() as i64) } {
-            let symbolId: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let symbolId: Option<String> = symbols.get(i as usize).copied().map(str::to_owned);
             let candidate: crate::value::Dict = self.safe_value(&markets, &symbolId, &[]).into_dict();
             if !matches!(self.safe_bool_k(&candidate, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 continue;

@@ -2934,7 +2934,7 @@ impl Nado {
                 m
             }), &[tx]);
             transaction = self.extend(&transaction, &[&event]);
-            add_element_to_object(&mut transaction, &Value::Str("transaction_type".into()), Value::from(transactionType));
+            if let Value::Dict(__rda) = &mut transaction { std::sync::Arc::make_mut(__rda).insert("transaction_type".to_string(), Value::from(transactionType)); }
             transactions.push(<Self as crate::exchange::DerivedExchange>::parse_transaction(self, transaction, currency.as_ref()));
         }
         }
