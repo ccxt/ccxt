@@ -9816,7 +9816,7 @@ public partial class okx : Exchange
      * @param {int} [params.until] the latest time in ms of the entries to fetch
      * @returns {object[]} the request and the remaining params
      */
-    public virtual List<object> handleTradingStatisticsWindow(IDictionary<string, object> request, object period, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public virtual List<object> handleTradingStatisticsWindow(IDictionary<string, object> request, string period, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxLimit = 100;
@@ -9844,7 +9844,7 @@ public partial class okx : Exchange
         {
             // end the window after limit periods, so that the earliest entries from since on come back
             // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
-            string? unitPeriod = ((string)(((string)period).EndsWith("utc") ? ((period == null) ? null : ((string)period).Substring(0, Math.Max(((string)period).Length - 3, 0))) : period));
+            string? unitPeriod = period.EndsWith("utc") ? ((period == null) ? null : period.Substring(0, Math.Max(period.Length - 3, 0))) : period;
             string? unit = ((unitPeriod == null) ? null : unitPeriod.Substring(Math.Max(unitPeriod.Length - 1, 0)));
             object windowDuration = null;
             if (unit == "M")

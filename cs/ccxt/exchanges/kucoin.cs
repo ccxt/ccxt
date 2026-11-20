@@ -13363,7 +13363,7 @@ public partial class kucoin : Exchange
         return this.safeString(getVersions, "deposit-addresses", "v1");
     }
 
-    public virtual void setDepositAddressesVersion(object version)
+    public virtual void setDepositAddressesVersion(string version)
     {
         IDictionary<string, object> versions = this.safeDict(this.options, "versions", new Dictionary<string, object>() {});
         IDictionary<string, object> privateVersions = this.safeDict(versions, "private", new Dictionary<string, object>() {});

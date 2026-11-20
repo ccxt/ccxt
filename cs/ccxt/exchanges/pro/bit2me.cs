@@ -560,11 +560,11 @@ public partial class bit2me : ccxt.bit2me
      * @param {object} result the value to resolve with
      * @param {object} [error] when set the command is rejected with it instead
      */
-    public virtual void settleRequest(WebSocketClient client, object messageHash, object result, object error = null)
+    public virtual void settleRequest(WebSocketClient client, string messageHash, object result, object error = null)
     {
-        if ((client.subscriptions != null && messageHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
         }
         if ((error != null))
         {

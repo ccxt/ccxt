@@ -6428,7 +6428,7 @@ public partial class binance : Exchange
         return this.parseTicker(response, market);
     }
 
-    public virtual void checkNoStockSymbols(IList<object> symbols, object methodName)
+    public virtual void checkNoStockSymbols(IList<object> symbols, string methodName)
     {
         // a nil slice runs zero iterations, so the absent case needs no early return
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
@@ -6437,7 +6437,7 @@ public partial class binance : Exchange
             bool? stock = this.safeBool(symbolMarket, "stock", false);
             if ((stock == true))
             {
-                throw new NotSupported ((((((this.id + " ") + (methodName)) + "() does not support tokenized stock symbols (") + ((symbols != null && i < symbols.Count ? symbols[i] : null))) + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
+                throw new NotSupported ((((((this.id + " ") + methodName) + "() does not support tokenized stock symbols (") + ((symbols != null && i < symbols.Count ? symbols[i] : null))) + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
             }
         }
     }
@@ -9133,7 +9133,7 @@ public partial class binance : Exchange
      * @param {string} method HTTP method
      * @returns {object} params with the injected client order id
      */
-    public virtual object handleClientOrderId(object parameters, object api, object path, object method)
+    public virtual object handleClientOrderId(object parameters, string api, object path, object method)
     {
         if (!(method is "POST"))
         {
@@ -9142,7 +9142,7 @@ public partial class binance : Exchange
         if (((path is "order")) || ((path is "sor/order")) || ((path is "order/cancelReplace")) || ((path is "um/order")) || ((path is "cm/order")) || ((path is "margin/order")))
         {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
-            string clientOrderIdKey = ((api is "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
+            string clientOrderIdKey = ((api == "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
             string? clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
             if ((clientOrderId == null))
             {
@@ -9198,9 +9198,9 @@ public partial class binance : Exchange
         } else if ((path is "batchOrders"))
         {
             // the batch legs take the same client order id fields as the single order endpoints
-            if (((api is "fapiPrivate")) || ((api is "dapiPrivate")) || ((api is "eapiPrivate")))
+            if (((api == "fapiPrivate")) || ((api == "dapiPrivate")) || ((api == "eapiPrivate")))
             {
-                string batchClientOrderIdKey = ((api is "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
+                string batchClientOrderIdKey = ((api == "eapiPrivate")) ? "clientOrderId" : "newClientOrderId";
                 List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
                 List<object> checkedBatchOrders = new List<object>() {};
                 for (int i = 0; i < batchOrders.Count; i++)

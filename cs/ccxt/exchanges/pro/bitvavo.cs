@@ -1848,30 +1848,25 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual string? buildMessageHash(string? action, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> methods = new Dictionary<string, object>() {
-            { "privateCreateOrder", this.actionAndMarketMessageHash },
-            { "privateUpdateOrder", this.actionAndOrderIdMessageHash },
-            { "privateCancelOrder", this.actionAndOrderIdMessageHash },
-            { "privateGetOrder", this.actionAndOrderIdMessageHash },
-            { "privateGetTrades", this.actionAndMarketMessageHash },
-        };
-        Delegate method = ((Delegate)this.safeValue(methods, action));
-        object messageHash = action;
-        if ((method != null))
+        string? messageHash = action;
+        if (((action == "privateCreateOrder")) || ((action == "privateGetTrades")))
         {
-            messageHash = DynamicInvoker.InvokeMethod(method, new object[] { action, parameters});
+            messageHash = this.actionAndMarketMessageHash(action, parameters);
+        } else if (((action == "privateUpdateOrder")) || ((action == "privateCancelOrder")) || ((action == "privateGetOrder")))
+        {
+            messageHash = this.actionAndOrderIdMessageHash(action, parameters);
         }
-        return ((string?)((object)(messageHash)));
+        return messageHash;
     }
 
-    public virtual string? actionAndMarketMessageHash(string action, IDictionary<string, object>? parameters = null)
+    public virtual string? actionAndMarketMessageHash(string action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? symbol = this.safeString(parameters, "market", "");
         return ((string?)((object)((action + symbol))));
     }
 
-    public virtual string? actionAndOrderIdMessageHash(string action, IDictionary<string, object>? parameters = null)
+    public virtual string? actionAndOrderIdMessageHash(string action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? orderId = this.safeString(parameters, "orderId");

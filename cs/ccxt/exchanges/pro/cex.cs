@@ -872,7 +872,8 @@ public partial class cex : ccxt.cex
         Int64? timestamp = this.safeInteger(data, "time");
         ((IDictionary<string,object>)order)["timestamp"] = timestamp;
         ((IDictionary<string,object>)order)["datetime"] = this.iso8601(timestamp);
-        order = ccxt.BaseExchange.FromOrder(this.safeOrder(order));
+        // a fresh map copy: the cached entry is untyped
+        order = ccxt.BaseExchange.FromOrder(this.safeOrder(this.extend(order, new Dictionary<string, object>() {})));
         storedOrders.append(order);
         string messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);

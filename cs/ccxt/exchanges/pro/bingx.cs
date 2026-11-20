@@ -375,7 +375,7 @@ public partial class bingx : ccxt.bingx
         return limit;
     }
 
-    public virtual string? getMessageHash(object unifiedChannel, object symbol = null, object extra = null)
+    public virtual string? getMessageHash(string unifiedChannel, object symbol = null, object extra = null)
     {
         object hash = unifiedChannel;
         if ((symbol != null))

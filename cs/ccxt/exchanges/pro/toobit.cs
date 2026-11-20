@@ -808,7 +808,7 @@ public partial class toobit : ccxt.toobit
     public virtual void setBalanceCache(WebSocketClient client, string? marketType, object subscriptionHash = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (((subscriptionHash == null)) || ((client.subscriptions != null && subscriptionHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
+        if (((subscriptionHash == null)) || ((client.subscriptions != null && subscriptionHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
         {
             return;
         }
@@ -1193,17 +1193,17 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, string? type, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, string type, IList<object>? symbols = null)
     {
-        if ((this.positionsByType != null && type is string inOpKey0 && this.positionsByType.ContainsKey(inOpKey0)))
+        if ((this.positionsByType != null && this.positionsByType.ContainsKey(type)))
         {
             return;
         }
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))
         {
-            string? messageHash = ((string)((type + ":fetchPositionsSnapshot")));
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
+            string messageHash = (type + ":fetchPositionsSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});

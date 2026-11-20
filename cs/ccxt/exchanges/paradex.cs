@@ -3893,7 +3893,7 @@ public partial class paradex : Exchange
         };
     }
 
-    public virtual List<object> filterTransactionsByKind(object transactions, string? kind)
+    public virtual List<object> filterTransactionsByKind(object transactions, string kind)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(transactions); i++)

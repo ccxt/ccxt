@@ -3159,7 +3159,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual List<object> customHandleMarginModeAndParams(object methodName, IDictionary<string, object> parameters = null)
+    public virtual List<object> customHandleMarginModeAndParams(string methodName, IDictionary<string, object> parameters = null)
     {
         /**
         * @ignore

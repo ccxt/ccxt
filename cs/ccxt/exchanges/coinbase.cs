@@ -5629,12 +5629,12 @@ public partial class coinbase : Exchange
      * @param {string} methodName the name of the calling method
      * @param {object} params the parameters passed to the calling method
      */
-    public virtual void checkIntxPortfolioParam(object methodName, object parameters)
+    public virtual void checkIntxPortfolioParam(string methodName, object parameters)
     {
         string? portfolio = this.safeString(parameters, "portfolio");
         if ((portfolio != null))
         {
-            throw new NotSupported ((((this.id + " ") + (methodName)) + "() INTX perpetuals were removed from Coinbase Advanced Trade on 2026-10-01, use the coinbaseinternational exchange class for international perpetuals")) ;
+            throw new NotSupported ((((this.id + " ") + methodName) + "() INTX perpetuals were removed from Coinbase Advanced Trade on 2026-10-01, use the coinbaseinternational exchange class for international perpetuals")) ;
         }
     }
 

@@ -129,7 +129,7 @@ public partial class paradex : ccxt.paradex
      * @param {string} channel the channel to unsubscribe from
      * @returns {object} the unsubscribe request
      */
-    public virtual Dictionary<string, object> unsubscribeRequest(object channel)
+    public virtual Dictionary<string, object> unsubscribeRequest(string channel)
     {
         return new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },

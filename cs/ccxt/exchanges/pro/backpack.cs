@@ -93,21 +93,21 @@ public partial class backpack : ccxt.backpack
      * @param {object} params local parameters
      * @returns {string} venue market id
      */
-    public virtual string? wsVenueMarketId(object methodName, IDictionary<string, object> market, IDictionary<string, object> parameters)
+    public virtual string? wsVenueMarketId(string methodName, IDictionary<string, object> market, IDictionary<string, object> parameters)
     {
         if ((market == null))
         {
-            throw new BadSymbol ((((this.id + " ") + (methodName)) + "() requires a market")) ;
+            throw new BadSymbol ((((this.id + " ") + methodName) + "() requires a market")) ;
         }
         this.handleStockParams(methodName, parameters, market);
         string? source = this.safeString(parameters, "source", "Venue");
         if ((source == "External") || ((this.safeString(market, "executionModel") == "rfq")) || ((this.safeString((market != null && market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ")))
         {
-            throw new NotSupported ((((this.id + " ") + (methodName)) + "() requires a venue order-book market; provider and RFQ streams are not documented for this method")) ;
+            throw new NotSupported ((((this.id + " ") + methodName) + "() requires a venue order-book market; provider and RFQ streams are not documented for this method")) ;
         }
         if (source != "Venue")
         {
-            throw new BadRequest ((((this.id + " ") + (methodName)) + "() source must be Venue")) ;
+            throw new BadRequest ((((this.id + " ") + methodName) + "() source must be Venue")) ;
         }
         return ((string?)((object)((market != null && market.ContainsKey("id") ? market["id"] : null))));
     }

@@ -3217,7 +3217,7 @@ public partial class hashkey : Exchange
         {
             request["side"] = side;
         }
-        object response = null;
+        Dictionary<string, object> response = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters));

@@ -901,7 +901,7 @@ public partial class BaseExchange
             return new List<T>() {};
         }
         bool sinceIsDefined = (since != null) && (since != null);
-        IList<T> parsedArray = array;
+        IList<T> parsedArray = (array is ccxt.pro.SlimConcurrentList<T> live) ? live.ToArray() : array;
         IList<T> result = parsedArray;
         if (sinceIsDefined)
         {
@@ -932,7 +932,7 @@ public partial class BaseExchange
         tail ??= false;
         bool valueIsDefined = this.valueIsDefined(value);
         bool sinceIsDefined = (since != null) && (since != null);
-        IList<T> parsedArray = array;
+        IList<T> parsedArray = (array is ccxt.pro.SlimConcurrentList<T> live) ? live.ToArray() : array;
         IList<T> result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined)
@@ -7703,8 +7703,9 @@ public partial class BaseExchange
         for (int i = 0; i < (input?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = ((IDictionary<string, object>)(input != null && i < input.Count ? input[i] : null));
-            string? id = this.safeString(entry, "id");
-            if ((id == null))
+            // safeString treats an empty id as missing, so '' marks an absent id
+            string id = this.safeString(entry, "id", "");
+            if (id == "")
             {
                 string price = this.safeString(entry, "price", "");
                 string? amount = this.safeString(entry, "amount", "");
@@ -7717,9 +7718,9 @@ public partial class BaseExchange
                 }
                 // optional parts are empty when absent, separators keep positions distinct
                 id = (((("t_" + ((object)timestamp).ToString()) + "_") + side) + "_");
-                id = (id == null ? null : id + (((price + "_") + amount)));
+                id = (id + (((price + "_") + amount)));
             }
-            if ((id != null) && !(((id != null) && (uniqueResult?.ContainsKey(id) == true))))
+            if (!(((id != null) && (uniqueResult?.ContainsKey(id) == true))))
             {
                 uniqueResult[(string)id] = entry;
             }

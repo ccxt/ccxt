@@ -2444,7 +2444,7 @@ public partial class kraken : Exchange
         }, marketResolved);
     }
 
-    public virtual List<object> orderRequest(string? method, string? symbol, string? type, IDictionary<string, object> request, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public virtual List<object> orderRequest(string method, string? symbol, string? type, IDictionary<string, object> request, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -3457,7 +3457,7 @@ public partial class kraken : Exchange
         };
     }
 
-    public virtual object parseTransactionsByType(string? type, object transactions, string code = null, Int64? since = null, Int64? limit = null)
+    public virtual object parseTransactionsByType(string type, object transactions, string code = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(transactions); i++)

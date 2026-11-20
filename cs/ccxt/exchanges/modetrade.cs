@@ -1053,7 +1053,7 @@ public partial class modetrade : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
+    public virtual Dictionary<string, object> parseTokenAndFeeTemp(object item, string feeTokenKey, string feeAmountKey)
     {
         string? feeCost = this.safeString(item, feeAmountKey);
         Dictionary<string, object> fee = null;

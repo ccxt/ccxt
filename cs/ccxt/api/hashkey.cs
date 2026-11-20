@@ -446,10 +446,10 @@ public partial class hashkey : Exchange
     }
 
     /// <summary>Calls the privateDeleteApiV1SpotOpenOrders endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> privateDeleteApiV1SpotOpenOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteApiV1SpotOpenOrders (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("privateDeleteApiV1SpotOpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteApiV1SpotOpenOrders",parameters);
     }
 
     /// <summary>Calls the privateDeleteApiV1SpotCancelOrderByIds endpoint.</summary>

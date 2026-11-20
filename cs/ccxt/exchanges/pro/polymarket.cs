@@ -82,7 +82,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    public virtual Dictionary<string, object> sendSubscription(object action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
+    public virtual Dictionary<string, object> sendSubscription(string action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
     {
         context ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();

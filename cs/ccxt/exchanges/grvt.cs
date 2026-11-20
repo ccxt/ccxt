@@ -2094,7 +2094,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.safeList(this.filterTransfersByType(transfers, "internal", false), 1, new List<object>() {}));
     }
 
-    public virtual List<object> filterTransfersByType(IList<object> transfers, string? transferType, bool? onlyMainAccount = null)
+    public virtual List<object> filterTransfersByType(IList<object> transfers, string transferType, bool? onlyMainAccount = null)
     {
         onlyMainAccount ??= true;
         List<object> matchedResults = new List<object>() {};

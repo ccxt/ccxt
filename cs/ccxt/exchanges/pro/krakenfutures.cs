@@ -1863,7 +1863,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         return ((client.subscriptions != null && hash != null && client.subscriptions.ContainsKey(hash)));
     }
 
-    public virtual string? getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)
+    public virtual string? getMessageHash(string unifiedElementName, object subChannelName = null, object symbol = null)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
