@@ -1040,10 +1040,7 @@ export default class hyperliquid extends Exchange {
         const response = this.safeDict (results, 0);
         const midsResponse = results[1];
         const balances = this.safeList (response, 'balances', []);
-        let allMids: Dict = {};
-        if ((typeof midsResponse !== 'string') && !Array.isArray (midsResponse)) {
-            allMids = midsResponse;
-        }
+        const allMids: Dict = this.infoDict (midsResponse);
         const mids = this.safeDict (allMids, 'mids', allMids);
         const positions: PredictionPosition[] = [];
         for (let i = 0; i < balances.length; i++) {
@@ -1136,8 +1133,8 @@ export default class hyperliquid extends Exchange {
 
     findOutcomeInMarket (market: Market, sideHint: Str = undefined): Dict {
         const outcomesList = this.safeList (market, 'outcomes', []);
-        const normalizedHint = (sideHint !== undefined && sideHint !== '') ? sideHint.toUpperCase () : undefined;
-        if (normalizedHint !== undefined) {
+        if (sideHint !== undefined && sideHint !== '') {
+            const normalizedHint = sideHint.toUpperCase ();
             for (let i = 0; i < outcomesList.length; i++) {
                 const oc = this.safeDict (outcomesList, i, {});
                 const ocSymbol = this.safeString2 (oc, 'outcome', 'symbol', '');
