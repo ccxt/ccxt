@@ -2653,24 +2653,28 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
 // -> `PromiseAllTyped[T, C](A, B)` (C = AsyncResult[T] | EndpointResult[T]), `var V []T = rN.Value`, `BoxAbsent(V[k])`
 // (an absent element stays untyped nil).
 function goChan3PromiseAllPass (content: string, table: Map<string, string>): string {
-    if (content.search (/[pP]romiseAll\(\[\]any\{/) < 0) {
+    if (content.search (/[pP]romiseAll\((?:\[\]any\{|\w+\)\n)/) < 0) {
         return content;
     }
     const masked = goChanMask (content);
     const q = goChanQual (content);
     const stubs = goChan3EndpointStubs ();
     const edits: Edit[] = [];
-    const site = /^(\t+)(r\d*) := <-(?:ccxt\.)?[pP]romiseAll\(\[\]any\{/gm;
+    const site = /^(\t+)(r\d*) := <-(?:ccxt\.)?[pP]romiseAll\((?:\[\]any\{|(\w+)\)\n)/gm;
     for (let m = site.exec (masked); m !== null; m = site.exec (masked)) {
-        const open = m.index + m[0].length - 1;
-        const close = goChanClose (masked, open);
-        if (masked.substring (close, close + 2) !== ')\n') {
+        const taskList = goChan3PromiseAllTaskList (masked, m);
+        if ((m[3] !== undefined) && (taskList === undefined)) {
+            continue;
+        }
+        const open = (taskList === undefined) ? (m.index + m[0].length - 1) : taskList.open;
+        const close = (taskList === undefined) ? goChanClose (masked, open) : taskList.close;
+        if ((taskList === undefined) && (masked.substring (close, close + 2) !== ')\n')) {
             continue;
         }
         const [ fs0, fe0 ] = goChan3Func (masked, m.index);
         const fn = masked.substring (fs0, fe0);
         const r = m[2];
-        const tail = masked.substring (close + 2);
+        const tail = masked.substring ((taskList === undefined) ? (close + 2) : (m.index + m[0].length));
         const ind = m[1];
         const head = new RegExp ('^' + ind + 'if ' + r + '\\.Err != nil \\{\\n' + ind + '\\tpanic\\(' + r + '\\.Err\\)\\n' + ind + '\\}\\n' + ind + 'var (\\w+) \\[\\]any = (?:ccxt\\.)?ListTyped\\(' + r + '\\.Value\\)\\n').exec (tail);
         if (head === null) {
@@ -2731,26 +2735,66 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
         const kind = [ ...types ][0];
         const type = kind.substring (2);
         const carrier = q + ((kind[0] === 'A') ? 'AsyncResult[' : 'EndpointResult[') + type + ']';
-        const declEnd = close + 2 + head[0].length;
+        const declEnd = ((taskList === undefined) ? (close + 2) : (m.index + m[0].length)) + head[0].length;
         const rest = masked.substring (declEnd, fe0);
-        const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?GetValue\\()?' + v + '(?!\\w)(, (\\d+)\\))?', 'g');
+        const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?(?:GetValue|SafeMapTyped|SafeListTyped)\\()?' + v + '(?!\\w)(, (\\d+)\\))?', 'g');
         const reads: Edit[] = [];
         for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
-            if ((u[1] === undefined) || (u[3] === undefined) || (Number (u[3]) >= elems.length)) {
+            const native = goChan3PromiseAllSlotWrap (u[1], type);
+            // a task-list site converts only when every slot read is native (BoxAbsent folds only some positions)
+            if ((u[1] === undefined) || (u[3] === undefined) || (Number (u[3]) >= elems.length) || (native === undefined) || ((taskList !== undefined) && !native)) {
                 ok = false;
                 break;
             }
-            reads.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': q + 'BoxAbsent(' + v + '[' + u[3] + '])' });
+            reads.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': native ? (v + '[' + u[3] + ']') : (q + 'BoxAbsent(' + v + '[' + u[3] + '])') });
         }
         if (!ok || new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) {
             continue;
         }
         edits.push (...local, ...reads);
-        edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': close + 1, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + args.join (', ') + ')' });
+        if (taskList !== undefined) {
+            edits.push ({ 'start': taskList.lineStart, 'end': taskList.lineEnd, 'text': '' });
+        }
+        const callEnd = (taskList === undefined) ? (close + 1) : (m.index + m[0].length - 1);
+        edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': callEnd, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + args.join (', ') + ')' });
         const varLine = head[0].split ('\n')[3];
         edits.push ({ 'start': declEnd - 1 - varLine.length, 'end': declEnd - 1, 'text': ind + 'var ' + v + ' []' + type + ' = ' + r + '.Value' });
     }
     return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+// ===== h26-G42: promiseAll of a once-used task-list local; typed slot reads =====
+// `var P []any = []any{A, B}` declared once in the function and read only by `rN := <-promiseAll(P)`:
+// the literal span (open/close as for an inline literal) and the declaration line to drop
+function goChan3PromiseAllTaskList (masked: string, m: RegExpExecArray): { open: number, close: number, lineStart: number, lineEnd: number } | undefined {
+    if (m[3] === undefined) {
+        return undefined;
+    }
+    const [ fs0, fe0 ] = goChan3Func (masked, m.index);
+    const fn = masked.substring (fs0, fe0);
+    const decl = [ ...fn.matchAll (new RegExp ('\\n(\\t+)var ' + m[3] + ' \\[\\]any = \\[\\]any\\{', 'g')) ];
+    const uses = fn.match (new RegExp ('(?<![\\w.])' + m[3] + '(?!\\w)', 'g')) || [];
+    if ((decl.length !== 1) || (uses.length !== 2) || (decl[0][1] !== m[1]) || ((fs0 + (decl[0].index as number)) > m.index)) {
+        return undefined;
+    }
+    const lineStart = fs0 + (decl[0].index as number) + 1;
+    const open = lineStart + decl[0][0].length - 2;
+    const close = goChanClose (masked, open);
+    // single-line literal ending the line, then only blank lines up to the receive (no code between)
+    if ((close < 0) || (masked[close] !== '\n') || (masked.substring (close, m.index).trim () !== '')) {
+        return undefined;
+    }
+    return { open, close, lineStart, lineEnd: close + 1 };
+}
+
+// slot read `W(v, k)` of a `[]T` holder: true = the native `v[k]` (same Go type, same nil answer),
+// false = boxed through BoxAbsent (GetValue), undefined = not provable
+function goChan3PromiseAllSlotWrap (wrap: string | undefined, type: string): boolean | undefined {
+    const name = (wrap ?? '').replace (/^ccxt\./, '').replace (/\($/, '');
+    if (name === 'GetValue') {
+        return false;
+    }
+    return (((name === 'SafeMapTyped') && (type === 'map[string]any')) || ((name === 'SafeListTyped') && (type === '[]any'))) ? true : undefined;
 }
 
 // ===== GO-CHAN3 STRUCT: unified-struct channels (`AsyncResult[map[string]any]` -> `AsyncResult[T]`) =====
@@ -3629,6 +3673,18 @@ function goChan3SelfTest (): string[] {
     ok (run (pt) === pt, 'typed promiseAll idempotent');
     ok (run (pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})')) === pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})'), 'mixed promiseAll untouched');
     ok (run (pall.replace ('x := GetValue(v, 0)', 'x := v')) === pall.replace ('x := GetValue(v, 0)', 'x := v'), 'whole-list read untouched');
+    // task-list local + typed slot reads (h26-G42)
+    const plist = 'package ccxt\n\nfunc (this *Y) f(p any) any {\n\tvar ps []any = []any{this.PubGetA(p), this.PubGetA(p)}\n\n\tr := <-promiseAll(ps)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n\tvar x map[string]any = SafeMapTyped(v, 0)\n\treturn []any{x, SafeMapTyped(v, 1)}\n}\n';
+    const pl = run (plist);
+    ok (!pl.includes ('var ps') && pl.includes ('\tr := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](this.PubGetA(p), this.PubGetA(p))\n') && pl.includes ('\tvar x map[string]any = v[0]\n\treturn []any{x, v[1]}'), 'task-list promiseAll: ' + pl);
+    ok (run (pl) === pl, 'task-list promiseAll idempotent');
+    ok (run (plist.replace ('SafeMapTyped(v, 1)', 'SafeListTyped(v, 1)')) === plist.replace ('SafeMapTyped(v, 1)', 'SafeListTyped(v, 1)'), 'slot read of another type untouched');
+    ok (run (plist.replace ('SafeMapTyped(v, 1)', 'SafeMapTyped(v, 2)')) === plist.replace ('SafeMapTyped(v, 1)', 'SafeMapTyped(v, 2)'), 'out-of-range slot untouched');
+    const appended = plist.replace ('\n\n\tr := ', '\n\tps = append(ps, this.PubGetA(p))\n\tr := ');
+    ok (run (appended) === appended, 'appended task list untouched');
+    ok (run (plist.replace ('SafeMapTyped(v, 1)', 'GetValue(v, 1)')) === plist.replace ('SafeMapTyped(v, 1)', 'GetValue(v, 1)'), 'task list with a boxed read untouched');
+    const mixed = plist.replace ('this.PubGetA(p)}', 'this.PubGetL(p)}');
+    ok (run (mixed) === mixed, 'mixed task list untouched');
     goChan3EndpointSendSelfTest (ok, run, throws, core);
     // WS2 Future boundary: untabled Watch forwards convert through an inline type switch
     goChan3SetTableForTest (new Map ([ [ 'WatchX', 'map[string]any' ] ]), new Set ([ 'WatchX' ]));
