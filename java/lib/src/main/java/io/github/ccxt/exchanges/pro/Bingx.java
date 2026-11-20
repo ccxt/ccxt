@@ -2172,8 +2172,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             this.balance.put(type, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "timestamp", timestamp);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "datetime", this.iso8601(timestamp));
+        Map<String, Object> typeBalance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
+        typeBalance.put("timestamp", timestamp);
+        typeBalance.put("datetime", this.iso8601(timestamp));
         for (var i = 0; i < data.size(); i++)
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
@@ -2185,10 +2186,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             account.put("free", this.safeString(balance, "wb"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
+                typeBalance.put(code, account);
             }
         }
-        this.balance.put(type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
+        this.balance.put(type, this.safeBalance(typeBalance));
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
     }
 

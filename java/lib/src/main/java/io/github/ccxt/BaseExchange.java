@@ -8988,7 +8988,7 @@ public Map<String, Object> describe()
         Map<String, Object> market = this.market(symbol);
         if (!java.util.Objects.equals(market, null))
         {
-            return (String) market.get("id");
+            return this.safeString(market, "id");
         }
         return symbol;
     }
@@ -11262,14 +11262,14 @@ public Map<String, Object> describe()
         String lowercaseAccount = ((String)account).toLowerCase();
         if (accountsByType.containsKey(lowercaseAccount))
         {
-            return (accountsByType == null || !(lowercaseAccount instanceof String) ? null : accountsByType.get(lowercaseAccount));
+            return this.safeString(accountsByType, lowercaseAccount, account);
         }
         Map<String, Object> markets = this.markets;
         Map<String, Object> marketsById = this.markets_by_id;
-        if (((!java.util.Objects.equals(markets, null)) && ((account != null && markets.containsKey(account)))) || ((!java.util.Objects.equals(marketsById, null)) && ((account != null && marketsById.containsKey(account)))))
+        if (((!java.util.Objects.equals(markets, null)) && (markets.containsKey(account))) || ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(account))))
         {
             Map<String, Object> market = this.market(account);
-            return market.get("id");
+            return this.safeString(market, "id", account);
         } else
         {
             return account;

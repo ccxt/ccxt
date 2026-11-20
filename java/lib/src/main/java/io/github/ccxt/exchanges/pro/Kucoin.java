@@ -3278,9 +3278,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 this.balance.put(uniformType, new HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "info", data);
+            Map<String, Object> balance = this.safeDict(this.balance, uniformType, new HashMap<String, Object>() {{}});
             Long timestamp = (Long) this.safeInteger2(data, "time", "timestamp");
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "timestamp", timestamp);
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "datetime", this.iso8601(timestamp));
+            balance.put("timestamp", timestamp);
+            balance.put("datetime", this.iso8601(timestamp));
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             String used = this.safeString2(data, "hold", "holdBalance");
@@ -3294,9 +3295,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             account.put("total", this.safeString(data, "total"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), code, account);
+                balance.put(code, account);
             }
-            this.balance.put(uniformType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType))));
+            this.balance.put(uniformType, this.safeBalance(balance));
             client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), (uniformType + ":balance"));
         }
     }
@@ -3327,18 +3328,19 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             this.balance.put(type, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
+        Map<String, Object> balance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeIntegerProduct(data, "U", 0.000001);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "timestamp", timestamp);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "datetime", this.iso8601(timestamp));
+        balance.put("timestamp", timestamp);
+        balance.put("datetime", this.iso8601(timestamp));
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(data, "a"));
         account.put("used", this.safeString(data, "h"));
         account.put("total", this.safeString(data, "b"));
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
+            balance.put(code, account);
         }
-        this.balance.put(type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
+        this.balance.put(type, this.safeBalance(balance));
         String messageHash = (type + ":balance");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
     }

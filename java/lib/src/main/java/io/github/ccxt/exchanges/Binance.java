@@ -6571,7 +6571,7 @@ public class Binance extends BinanceApi
                 Integer symbolsLength = symbolsNormalized.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
-                    request.put("symbol", this.marketId((String) ((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)))));
+                    request.put("symbol", this.marketId(this.safeString(symbolsNormalized, 0)));
                 }
             }
             Object response = null;

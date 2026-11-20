@@ -9617,7 +9617,7 @@ public class Htx extends HtxApi
                     Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross");
                     String marginMode = marginModeparamsMarginModeVariable.first();
                     Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-                    request.put("margin_mode", marginMode);
+                    ((Map<String, Object>)request).put("margin_mode", marginMode);
                     request.put("contract_code", market.get("id"));
                     if (!java.util.Objects.equals(limit, null))
                     {

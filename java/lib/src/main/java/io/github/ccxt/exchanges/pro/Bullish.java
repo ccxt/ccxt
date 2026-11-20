@@ -807,12 +807,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> parsed = (Map<String, Object>) this.parseBalanceList(data);
             List<String> parsedKeys = new ArrayList<String>(parsed.keySet());
+            Map<String, Object> balance = this.safeDict(this.balance, tradingAccountId, new HashMap<String, Object>() {{}});
             for (var i = 0; i < parsedKeys.size(); i++)
             {
                 String parsedKey = (parsedKeys == null || i < 0 || i >= parsedKeys.size() ? null : parsedKeys.get(i));
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), parsedKey, (parsed == null || parsedKey == null ? null : parsed.get(parsedKey)));
+                balance.put(parsedKey, (parsed == null || parsedKey == null ? null : parsed.get(parsedKey)));
             }
-            this.balance.put(tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
+            this.balance.put(tradingAccountId, this.safeBalance(balance));
         } else
         {
             Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});

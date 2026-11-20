@@ -3809,14 +3809,14 @@ public class Kraken extends KrakenApi
             //        }
             //     }
             //
-            Object rawWithdrawals = null;
+            Object rawWithdrawals = new ArrayList<Object>(Arrays.asList());
             Object result = this.safeValue(response, "result");
             if (!(result instanceof List))
             {
                 rawWithdrawals = this.addPaginationCursorToResult((Map<String, Object>) (result));
             } else
             {
-                rawWithdrawals = result;
+                rawWithdrawals = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTransactionsByType("withdrawal", (List<Object>) (rawWithdrawals), code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));

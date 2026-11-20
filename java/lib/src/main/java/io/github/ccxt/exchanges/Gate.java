@@ -6315,7 +6315,11 @@ public class Gate extends GateApi
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("editOrder", market, parameters, (String) null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Object accountParsed = this.convertTypeToAccount(marketType);
+        Object accountParsed = null;
+        if (!java.util.Objects.equals(marketType, null))
+        {
+            accountParsed = this.convertTypeToAccount(marketType);
+        }
         Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "editOrder", "unifiedAccount", false);
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
         Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
@@ -7753,7 +7757,7 @@ public class Gate extends GateApi
                 put( "amount", truncated );
             }};
             Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
-            if (!((fromId != null && accountsByType.containsKey(fromId))))
+            if (!(accountsByType.containsKey(fromId)))
             {
                 request.put("from", "margin");
                 request.put("currency_pair", fromId);
@@ -7761,7 +7765,7 @@ public class Gate extends GateApi
             {
                 request.put("from", fromId);
             }
-            if (!((toId != null && accountsByType.containsKey(toId))))
+            if (!(accountsByType.containsKey(toId)))
             {
                 request.put("to", "margin");
                 request.put("currency_pair", toId);

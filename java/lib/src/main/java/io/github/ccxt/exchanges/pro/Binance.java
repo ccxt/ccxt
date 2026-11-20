@@ -6859,6 +6859,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             this.balance.put(accountType, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
+        Map<String, Object> balance = this.safeDict(this.balance, accountType, new HashMap<String, Object>() {{}});
         List<Object> B = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < B.size(); i++)
         {
@@ -6869,13 +6870,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 Map<String, Object> account = this.account();
                 account.put("total", this.safeString(entry, "b"));
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
+                balance.put(code, account);
             }
         }
         Long timestamp = this.safeInteger(message, "E");
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "timestamp", timestamp);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "datetime", this.iso8601(timestamp));
-        this.balance.put(accountType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType))));
+        balance.put("timestamp", timestamp);
+        balance.put("datetime", this.iso8601(timestamp));
+        this.balance.put(accountType, this.safeBalance(balance));
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), (accountType + ":balance"));
         // --- positions ---
         if (!(((Map<?, ?>)this.positionsByType).containsKey(accountType)))

@@ -509,11 +509,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object fundingRate = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
-                String symbol = this.safeString(fundingRate, "symbol");
+                String fundingSymbol = this.safeString(fundingRate, "symbol");
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                if (!java.util.Objects.equals(symbol, null))
+                if (!java.util.Objects.equals(fundingSymbol, null))
                 {
-                    result.put(symbol, fundingRate);
+                    result.put(fundingSymbol, fundingRate);
                 }
                 return result;
             }
