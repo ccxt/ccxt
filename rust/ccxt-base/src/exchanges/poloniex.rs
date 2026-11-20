@@ -1003,8 +1003,8 @@ impl crate::exchange::DerivedExchange for Poloniex {
         if (responseCode.is_some()) && (responseCode.as_deref() != Some("200")) {
             let message: Option<String> = self.safe_string2_opt(response, Value::Str("message".into()), Value::Str("msg".into()), &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, &feedback);
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, &feedback);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2069,6 +2069,7 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("401".to_string(), Value::Str("PermissionDenied".into()));
         m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".into()));
         m.insert("603".to_string(), Value::Str("RequestTimeout".into()));
         m.insert("601".to_string(), Value::Str("BadRequest".into()));
@@ -2212,7 +2213,10 @@ impl Poloniex {
     m
 }));
         m.insert("broad".to_string(), Value::Map({
-    let m = indexmap::IndexMap::new();
+    let mut m = indexmap::IndexMap::new();
+        m.insert("Invalid Apikey or Signature".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("ApiKey not exist".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("Illegal of ip".to_string(), Value::Str("PermissionDenied".into()));
     m
 }));
     m

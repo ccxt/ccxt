@@ -923,8 +923,8 @@ impl Kraken {
         let parsed: crate::value::List = self.parse_trades(&data, Some(&market), &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_422: bool = true;
-            while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_423: bool = true;
+            while { if !__for_first_423 { i += 1; } __for_first_423 = false; i < (parsed.len() as i64) } {
             stored.append(crate::value::KeyRead::read(&&parsed, &Value::Int(i)));
         }
         }
@@ -976,8 +976,8 @@ impl Kraken {
         let ohlcvsLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_423: bool = true;
-            while { if !__for_first_423 { i += 1; } __for_first_423 = false; i < ohlcvsLength } {
+            let mut __for_first_424: bool = true;
+            while { if !__for_first_424 { i += 1; } __for_first_424 = false; i < ohlcvsLength } {
             let candle: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let datetime: Option<String> = self.safe_string_k_opt(&candle, "interval_begin", &[]);
             let timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
@@ -1219,8 +1219,8 @@ impl Kraken {
         let mut unsubMessageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_424: bool = true;
-            while { if !__for_first_424 { i += 1; } __for_first_424 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_425: bool = true;
+            while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             std::sync::Arc::make_mut(&mut unsubMessageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("trade".into()), &[&Value::Null, &symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
@@ -1439,8 +1439,8 @@ impl Kraken {
             if (true) {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_425: bool = true;
-                    while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (symbols.len() as i64) } {
+                    let mut __for_first_426: bool = true;
+                    while { if !__for_first_426 { i += 1; } __for_first_426 = false; i < (symbols.len() as i64) } {
                     let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
                     let info: crate::value::Dict = self.safe_dict_k_t(&market, "info");
@@ -1620,8 +1620,8 @@ impl Kraken {
             let keys: crate::value::List = std::sync::Arc::new(vec![Value::Str("asks".into()), Value::Str("bids".into())]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_426: bool = true;
-                while { if !__for_first_426 { i += 1; } __for_first_426 = false; i < (keys.len() as i64) } {
+                let mut __for_first_427: bool = true;
+                while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (keys.len() as i64) } {
                 let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let bookside: crate::pro::order_book::Side = crate::pro::order_book::Side::of(get_value(&Value::from(&orderbook), key.as_deref()));
                 let deltas: crate::value::List = self.safe_list_t(&first, Value::from(key.as_deref()));
@@ -1643,8 +1643,8 @@ impl Kraken {
                 let checkBids: Value = orderbook.book_field("bids");
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_427: bool = true;
-                    while { if !__for_first_427 { i += 1; } __for_first_427 = false; (i as f64) < ((10i64) as f64) } {
+                    let mut __for_first_428: bool = true;
+                    while { if !__for_first_428 { i += 1; } __for_first_428 = false; (i as f64) < ((10i64) as f64) } {
                     let currentAsk: crate::value::List = self.safe_list_t(&checkAsks, Value::Int(i));
                     let currentAskLength: i64 = currentAsk.len() as i64;
                     let mut formattedAsk: String = "".to_string();
@@ -1656,8 +1656,8 @@ impl Kraken {
                 }
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_428: bool = true;
-                    while { if !__for_first_428 { i += 1; } __for_first_428 = false; (i as f64) < ((10i64) as f64) } {
+                    let mut __for_first_429: bool = true;
+                    while { if !__for_first_429 { i += 1; } __for_first_429 = false; (i as f64) < ((10i64) as f64) } {
                     let currentBid: crate::value::List = self.safe_list_t(&checkBids, Value::Int(i));
                     let currentBidLength: i64 = currentBid.len() as i64;
                     let mut formattedBid: String = "".to_string();
@@ -1685,8 +1685,8 @@ impl Kraken {
         let deltas: Value = deltas.into();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_429: bool = true;
-            while { if !__for_first_429 { j += 1; } __for_first_429 = false; j < (deltas.len() as i64) } {
+            let mut __for_first_430: bool = true;
+            while { if !__for_first_430 { j += 1; } __for_first_430 = false; j < (deltas.len() as i64) } {
             let delta: crate::value::Dict = self.safe_dict_t(&deltas, Value::Int(j));
             let price: Option<f64> = self.safe_number_k(&delta, "price", &[]).as_f64();
             let amount: Option<f64> = self.safe_number_k(&delta, "qty", &[]).as_f64();
@@ -1907,8 +1907,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_430: bool = true;
-                while { if !__for_first_430 { i += 1; } __for_first_430 = false; i < (allTrades.len() as i64) } {
+                let mut __for_first_431: bool = true;
+                while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (allTrades.len() as i64) } {
                 let trade: crate::value::Dict = self.safe_dict_t(&allTrades, Value::Int(i));
                 let parsed: crate::value::Dict = self.parse_ws_trade(&trade, None);
                 self.myTrades.append(Value::from(&parsed));
@@ -1921,8 +1921,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_431: bool = true;
-                while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (keys.len() as i64) } {
+                let mut __for_first_432: bool = true;
+                while { if !__for_first_432 { i += 1; } __for_first_432 = false; i < (keys.len() as i64) } {
                 let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), keys.get(i as usize).cloned().unwrap_or(Value::Null));
                 client.resolve(Value::from(&self.myTrades), messageHash.as_str());
             }
@@ -2076,8 +2076,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_432: bool = true;
-                while { if !__for_first_432 { i += 1; } __for_first_432 = false; i < (allOrders.len() as i64) } {
+                let mut __for_first_433: bool = true;
+                while { if !__for_first_433 { i += 1; } __for_first_433 = false; i < (allOrders.len() as i64) } {
                 let order: crate::value::Dict = self.safe_dict_t(&allOrders, Value::Int(i));
                 let id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
                 let parsed: crate::value::Dict = self.parse_ws_order(&order, None);
@@ -2109,8 +2109,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_433: bool = true;
-                while { if !__for_first_433 { i += 1; } __for_first_433 = false; i < (keys.len() as i64) } {
+                let mut __for_first_434: bool = true;
+                while { if !__for_first_434 { i += 1; } __for_first_434 = false; i < (keys.len() as i64) } {
                 let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), keys.get(i as usize).cloned().unwrap_or(Value::Null));
                 client.resolve(Value::from(&self.orders), messageHash.as_str());
             }
@@ -2213,8 +2213,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { i += 1; } __for_first_434 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_435: bool = true;
+            while { if !__for_first_435 { i += 1; } __for_first_435 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let eventTrigger: Option<String> = self.safe_string_k_opt(&params, "event_trigger", &[]);
             if (eventTrigger.is_some()) {
                 std::sync::Arc::make_mut(&mut messageHashes).push(self.get_message_hash(Value::from(channelName), &[&Value::Null, &Value::from(self.symbol((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()))]).map(Value::from).unwrap_or(Value::Null));
@@ -2331,8 +2331,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let data: crate::value::List = __pro_message.key_list("data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_435: bool = true;
-            while { if !__for_first_435 { i += 1; } __for_first_435 = false; i < (data.len() as i64) } {
+            let mut __for_first_436: bool = true;
+            while { if !__for_first_436 { i += 1; } __for_first_436 = false; i < (data.len() as i64) } {
             let currencyId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());

@@ -390,8 +390,8 @@ impl Nado {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_507: bool = true;
-            while { if !__for_first_507 { i += 1; } __for_first_507 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_508: bool = true;
+            while { if !__for_first_508 { i += 1; } __for_first_508 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             markets.push((market).raw.clone());
             messageHashes.push(Value::Str(format!("{}{}", "trade:", (market).symbol).into()));
@@ -439,8 +439,8 @@ impl Nado {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_508: bool = true;
-            while { if !__for_first_508 { i += 1; } __for_first_508 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_509: bool = true;
+            while { if !__for_first_509 { i += 1; } __for_first_509 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             markets.push((market).raw.clone());
             messageHashes.push(Value::Str(format!("{}{}", "trade:", (market).symbol).into()));
@@ -544,8 +544,8 @@ impl Nado {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_509: bool = true;
-            while { if !__for_first_509 { i += 1; } __for_first_509 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_510: bool = true;
+            while { if !__for_first_510 { i += 1; } __for_first_510 = false; i < (symbolsNormalized.len() as i64) } {
             let symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let messageHash: String = format!("{}{}", "orderbook:", (market).symbol);
@@ -593,8 +593,8 @@ impl Nado {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_510: bool = true;
-            while { if !__for_first_510 { i += 1; } __for_first_510 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_511: bool = true;
+            while { if !__for_first_511 { i += 1; } __for_first_511 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             markets.push((market).raw.clone());
             messageHashes.push(Value::Str(format!("{}{}", "orderbook:", (market).symbol).into()));
@@ -685,8 +685,8 @@ impl Nado {
         let mut subscriptionParams: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_511: bool = true;
-            while { if !__for_first_511 { i += 1; } __for_first_511 = false; i < symbolsLength } {
+            let mut __for_first_512: bool = true;
+            while { if !__for_first_512 { i += 1; } __for_first_512 = false; i < symbolsLength } {
             let symbolAndTimeframe: crate::value::List = self.safe_list_t(&symbolsAndTimeframes, Value::Int(i));
             let marketSymbol: Option<String> = self.safe_string_opt(&symbolAndTimeframe, Value::Int(0), &[]);
             let timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
@@ -773,8 +773,8 @@ impl Nado {
         let mut subscriptionParams: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_512: bool = true;
-            while { if !__for_first_512 { i += 1; } __for_first_512 = false; i < symbolsLength } {
+            let mut __for_first_513: bool = true;
+            while { if !__for_first_513 { i += 1; } __for_first_513 = false; i < symbolsLength } {
             let symbolAndTimeframe: crate::value::List = self.safe_list_t(&symbolsAndTimeframes, Value::Int(i));
             let marketSymbol: Option<String> = self.safe_string_opt(&symbolAndTimeframe, Value::Int(0), &[]);
             let timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
@@ -1645,8 +1645,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_513: bool = true;
-            while { if !__for_first_513 { i += 1; } __for_first_513 = false; i < (cancelledOrders.len() as i64) } {
+            let mut __for_first_514: bool = true;
+            while { if !__for_first_514 { i += 1; } __for_first_514 = false; i < (cancelledOrders.len() as i64) } {
             let __ws_arg_14 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".into()));
@@ -1710,8 +1710,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_514: bool = true;
-            while { if !__for_first_514 { i += 1; } __for_first_514 = false; i < (cancelledOrders.len() as i64) } {
+            let mut __for_first_515: bool = true;
+            while { if !__for_first_515 { i += 1; } __for_first_515 = false; i < (cancelledOrders.len() as i64) } {
             let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".into()));
@@ -1972,8 +1972,8 @@ impl Nado {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_515: bool = true;
-            while { if !__for_first_515 { i += 1; } __for_first_515 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_516: bool = true;
+            while { if !__for_first_516 { i += 1; } __for_first_516 = false; i < (messageHashes.len() as i64) } {
             let messageHash: String = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let clientSubscription: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash), &[]) != Value::Null;
             if (!clientSubscription) {
@@ -2044,8 +2044,8 @@ impl Nado {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_516: bool = true;
-            while { if !__for_first_516 { i += 1; } __for_first_516 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_517: bool = true;
+            while { if !__for_first_517 { i += 1; } __for_first_517 = false; i < (messageHashes.len() as i64) } {
             let messageHash: Value = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]);
             let id: i64 = self.request_id();
             let unsubscribeHash: String = format!("{}{}", "unsubscribe:", messageHash);
@@ -2511,8 +2511,8 @@ impl Nado {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_517: bool = true;
-            while { if !__for_first_517 { i += 1; } __for_first_517 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_518: bool = true;
+            while { if !__for_first_518 { i += 1; } __for_first_518 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let bbo: crate::value::Dict = self.safe_dict_t(&bbos, Value::from(marketId.as_deref()));
@@ -2545,8 +2545,8 @@ impl Nado {
         let symbols: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_518: bool = true;
-            while { if !__for_first_518 { i += 1; } __for_first_518 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_519: bool = true;
+            while { if !__for_first_519 { i += 1; } __for_first_519 = false; i < (symbols.len() as i64) } {
             let symbol: Option<&str> = symbols.get(i as usize).and_then(Value::as_str);
             let ticker: Value = crate::value::KeyRead::read(&&tickers, &Value::from(symbol));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
@@ -2593,8 +2593,8 @@ impl Nado {
             let subscriptions: Vec<Value> = __ch.subscription_keys();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_519: bool = true;
-                while { if !__for_first_519 { i += 1; } __for_first_519 = false; i < (subscriptions.len() as i64) } {
+                let mut __for_first_520: bool = true;
+                while { if !__for_first_520 { i += 1; } __for_first_520 = false; i < (subscriptions.len() as i64) } {
                 let subscriptionHash: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, &subscriptionHash);
                 let streamType: Option<String> = self.safe_string_k_opt(&subscription, "streamType", &[]);
@@ -2704,8 +2704,8 @@ impl Nado {
         let subscriptions: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_520: bool = true;
-            while { if !__for_first_520 { i += 1; } __for_first_520 = false; i < (subscriptions.len() as i64) } {
+            let mut __for_first_521: bool = true;
+            while { if !__for_first_521 { i += 1; } __for_first_521 = false; i < (subscriptions.len() as i64) } {
             let unsubscribeHash: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let subscription: crate::value::Dict = self.safe_dict_t(get_value(client, &Value::Str("subscriptions".into())), &unsubscribeHash);
             let subscriptionId: Option<String> = self.safe_string_k_opt(&subscription, "id", &[]);
@@ -2750,8 +2750,8 @@ impl Nado {
             let symbols: Value = Value::Array(self.tickers.keys().map(|__k| Value::Str(__k.clone().into())).collect());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_521: bool = true;
-                while { if !__for_first_521 { i += 1; } __for_first_521 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_522: bool = true;
+                while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (symbols.len() as i64) } {
                 let tickerSymbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if let (__d, Some(__k)) = (&mut self.tickers, tickerSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
             }
@@ -2765,8 +2765,8 @@ impl Nado {
             let symbols: Value = Value::Array(self.bidsasks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_522: bool = true;
-                while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_523: bool = true;
+                while { if !__for_first_523 { i += 1; } __for_first_523 = false; i < (symbols.len() as i64) } {
                 let bidaskSymbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, bidaskSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
             }

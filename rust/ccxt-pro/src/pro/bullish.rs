@@ -391,8 +391,8 @@ impl Bullish {
         let tradesList: crate::value::List = self.to_array_t(&trades);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_179: bool = true;
-            while { if !__for_first_179 { i += 1; } __for_first_179 = false; i < (tradesList.len() as i64) } {
+            let mut __for_first_180: bool = true;
+            while { if !__for_first_180 { i += 1; } __for_first_180 = false; i < (tradesList.len() as i64) } {
             tradesArray.append(tradesList.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -604,8 +604,8 @@ impl Bullish {
         let entries: crate::value::List = self.to_array_t(entry);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_180: bool = true;
-            while { if !__for_first_180 { i += 1; } __for_first_180 = false; i < (entries.len() as i64) } {
+            let mut __for_first_181: bool = true;
+            while { if !__for_first_181 { i += 1; } __for_first_181 = false; i < (entries.len() as i64) } {
             if (((i % 2)) != 0) {
                 continue;
             }
@@ -740,8 +740,8 @@ impl Bullish {
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_181: bool = true;
-                while { if !__for_first_181 { i += 1; } __for_first_181 = false; i < (rawOrders.len() as i64) } {
+                let mut __for_first_182: bool = true;
+                while { if !__for_first_182 { i += 1; } __for_first_182 = false; i < (rawOrders.len() as i64) } {
                 let parsedOrder: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None);
                 self.orders.append(Value::from(&parsedOrder));
                 let symbol: Option<String> = self.safe_string_k_opt(&parsedOrder, "symbol", &[]);
@@ -755,8 +755,8 @@ impl Bullish {
             let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_182: bool = true;
-                while { if !__for_first_182 { i += 1; } __for_first_182 = false; i < (keys.len() as i64) } {
+                let mut __for_first_183: bool = true;
+                while { if !__for_first_183 { i += 1; } __for_first_183 = false; i < (keys.len() as i64) } {
                 let hashSymbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), hashSymbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.orders), symbolMessageHash.as_str());
@@ -880,8 +880,8 @@ impl Bullish {
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_183: bool = true;
-                while { if !__for_first_183 { i += 1; } __for_first_183 = false; i < (rawTrades.len() as i64) } {
+                let mut __for_first_184: bool = true;
+                while { if !__for_first_184 { i += 1; } __for_first_184 = false; i < (rawTrades.len() as i64) } {
                 let parsedTrade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None);
                 self.myTrades.append(Value::from(&parsedTrade));
                 let symbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
@@ -895,8 +895,8 @@ impl Bullish {
             let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_184: bool = true;
-                while { if !__for_first_184 { i += 1; } __for_first_184 = false; i < (keys.len() as i64) } {
+                let mut __for_first_185: bool = true;
+                while { if !__for_first_185 { i += 1; } __for_first_185 = false; i < (keys.len() as i64) } {
                 let hashSymbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), hashSymbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.myTrades), symbolMessageHash.as_str());
@@ -1009,8 +1009,8 @@ impl Bullish {
             })).as_map().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_185: bool = true;
-                while { if !__for_first_185 { i += 1; } __for_first_185 = false; i < (parsedKeys.len() as i64) } {
+                let mut __for_first_186: bool = true;
+                while { if !__for_first_186 { i += 1; } __for_first_186 = false; i < (parsedKeys.len() as i64) } {
                 let parsedKey: Option<&str> = parsedKeys.get(i as usize).and_then(Value::as_str);
                 balance.insert(parsedKey.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&parsed, &Value::from(parsedKey)));
             }
@@ -1110,8 +1110,8 @@ impl Bullish {
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_186: bool = true;
-            while { if !__for_first_186 { i += 1; } __for_first_186 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_187: bool = true;
+            while { if !__for_first_187 { i += 1; } __for_first_187 = false; i < (rawPositions.len() as i64) } {
             let position: crate::value::Dict = self.parse_position(rawPositions.get(i as usize).cloned().unwrap_or(Value::Null), None);
             self.positions.append(Value::from(&position));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::Dict(position));
@@ -1120,8 +1120,8 @@ impl Bullish {
         let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_187: bool = true;
-            while { if !__for_first_187 { i += 1; } __for_first_187 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_188: bool = true;
+            while { if !__for_first_188 { i += 1; } __for_first_188 = false; i < (messageHashes.len() as i64) } {
             let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);

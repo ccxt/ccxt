@@ -292,7 +292,10 @@ impl crate::exchange::DerivedExchange for Blofin {
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let filled: Option<String> = self.safe_string_k_opt(&order, "filledSize", &[]);
-        let price: Option<String> = self.safe_string_n_opt(&order, Value::from(vec![Value::Str("px".into()), Value::Str("price".into()), Value::Str("orderPrice".into())]), &[]);
+        let mut price: Option<String> = self.safe_string_n_opt(&order, Value::from(vec![Value::Str("px".into()), Value::Str("price".into()), Value::Str("orderPrice".into())]), &[]);
+        if (price.as_deref() == Some("-1")) {
+            price = None; // trigger orders send orderPrice -1 for market execution
+        }
         let average: Option<String> = self.safe_string_k_opt(&order, "averagePrice", &[]);
         let status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "state", &[]).as_str());
         let feeCostString: Option<String> = self.safe_string_k_opt(&order, "fee", &[]);
@@ -330,7 +333,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let reduceOnly: bool = reduceOnlyRaw.as_deref() == Some("true");
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -343,6 +346,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
         m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));

@@ -308,8 +308,8 @@ impl Cex {
         let currencyIds: Vec<Value> = Value::Array(freeBalance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_221: bool = true;
-            while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_222: bool = true;
+            while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (currencyIds.len() as i64) } {
             let currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("free".into(), self.safe_string(&freeBalance, Value::from(currencyId.as_deref()), &[]));
@@ -373,8 +373,8 @@ impl Cex {
             let subscriptionKeys: Vec<Value> = __ch.subscription_keys();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_222: bool = true;
-                while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (subscriptionKeys.len() as i64) } {
+                let mut __for_first_223: bool = true;
+                while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (subscriptionKeys.len() as i64) } {
                 let mut subscriptionKey: Option<String> = subscriptionKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if (subscriptionKey.as_deref() == Some(subscriptionHash.as_str())) {
                     continue;
@@ -484,8 +484,8 @@ impl Cex {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < dataLength } {
+            let mut __for_first_224: bool = true;
+            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < dataLength } {
             let index: i64 = (((dataLength - 1)) - i);
             let parsed: crate::value::Dict = self.parse_ws_old_trade(crate::value::KeyRead::read(&&data, &Value::from(index)), Some(&market));
             stored.append(Value::Dict(parsed));
@@ -1324,8 +1324,8 @@ impl Cex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_224: bool = true;
-            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (rawOrders.len() as i64) } {
+            let mut __for_first_225: bool = true;
+            while { if !__for_first_225 { i += 1; } __for_first_225 = false; i < (rawOrders.len() as i64) } {
             let rawOrder: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
             let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), Some(&market));
@@ -1520,8 +1520,8 @@ impl Cex {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_225: bool = true;
-            while { if !__for_first_225 { i += 1; } __for_first_225 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_226: bool = true;
+            while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (deltas.len() as i64) } {
             self.handle_delta(&mut bookside, deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1631,8 +1631,8 @@ impl Cex {
         let sorted: Vec<Value> = self.sort_by(Value::Arr(data), Value::Int(0), &[]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_226: bool = true;
-            while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (sorted.len() as i64) } {
+            let mut __for_first_227: bool = true;
+            while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < (sorted.len() as i64) } {
             let parsed: crate::value::List = self.parse_ohlcv(sorted.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }
@@ -1700,8 +1700,8 @@ impl Cex {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&(Value::Str("unknown".into())));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_227: bool = true;
-            while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < (data.len() as i64) } {
+            let mut __for_first_228: bool = true;
+            while { if !__for_first_228 { i += 1; } __for_first_228 = false; i < (data.len() as i64) } {
             let ohlcv: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(2), &[]),
                 self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(3), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(4), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(5), &[])]);
             stored.append(Value::Arr(ohlcv));

@@ -349,8 +349,8 @@ impl Lighter {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { i += 1; } __for_first_474 = false; i < (deltas.len() as i64) } {
             self.handle_delta(&mut bookside, deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -563,8 +563,8 @@ impl Lighter {
             let marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_474: bool = true;
-                while { if !__for_first_474 { i += 1; } __for_first_474 = false; i < (marketIds.len() as i64) } {
+                let mut __for_first_475: bool = true;
+                while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (marketIds.len() as i64) } {
                 let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                 let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
                 let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -708,8 +708,8 @@ impl Lighter {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_475: bool = true;
-                while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_476: bool = true;
+                while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 messageHashes.push(self.get_message_hash("ticker", &[&symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
             }
@@ -993,8 +993,8 @@ impl Lighter {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < dataLength } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < dataLength } {
             let iReversed: Option<i64> = self.parse_to_int(Value::Int((((dataLength - 1)) - i)));
             let trade: crate::value::Dict = self.parse_ws_trade(crate::value::KeyRead::read(&&data, &Value::from(iReversed)), Some(&market));
             stored.append(Value::Dict(trade));
@@ -1232,16 +1232,16 @@ impl Lighter {
         let messageHash: Option<String> = self.get_message_hash("myTrades", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_478: bool = true;
-            while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_479: bool = true;
+            while { if !__for_first_479 { i += 1; } __for_first_479 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let trades: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             let tradesLength: i64 = trades.len() as i64;
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_477: bool = true;
-                while { if !__for_first_477 { j += 1; } __for_first_477 = false; j < tradesLength } {
+                let mut __for_first_478: bool = true;
+                while { if !__for_first_478 { j += 1; } __for_first_478 = false; j < tradesLength } {
                 let jReversed: i64 = (((tradesLength - 1)) - j);
                 let mut tradeRaw: crate::value::Dict = self.safe_dict_t(&trades, jReversed);
                 std::sync::Arc::make_mut(&mut tradeRaw).insert("accountIndex".into(), accountIndex.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1470,8 +1470,8 @@ impl Lighter {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_479: bool = true;
-            while { if !__for_first_479 { i += 1; } __for_first_479 = false; i < dataLength } {
+            let mut __for_first_480: bool = true;
+            while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < dataLength } {
             let iReversed: Option<i64> = self.parse_to_int(Value::Int((((dataLength - 1)) - i)));
             let liquidation: Value = self.parse_ws_liquidation(crate::value::KeyRead::read(&&data, &Value::from(iReversed)), Some(&market));
             stored.append(liquidation);
@@ -1639,8 +1639,8 @@ impl Lighter {
             let assetIds: Vec<Value> = Value::Array(assets.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_480: bool = true;
-                while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < (assetIds.len() as i64) } {
+                let mut __for_first_481: bool = true;
+                while { if !__for_first_481 { i += 1; } __for_first_481 = false; i < (assetIds.len() as i64) } {
                 let assetId: Option<&str> = assetIds.get(i as usize).and_then(Value::as_str);
                 let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::from(assetId.as_deref()));
                 let codeId: Option<String> = self.safe_string_k_opt(&asset, "symbol", &[]);
@@ -2005,15 +2005,15 @@ impl Lighter {
         let messageHash: Option<String> = self.get_message_hash("orders", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_482: bool = true;
-            while { if !__for_first_482 { i += 1; } __for_first_482 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_483: bool = true;
+            while { if !__for_first_483 { i += 1; } __for_first_483 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let mut orders: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_481: bool = true;
-                while { if !__for_first_481 { j += 1; } __for_first_481 = false; j < (orders.len() as i64) } {
+                let mut __for_first_482: bool = true;
+                while { if !__for_first_482 { j += 1; } __for_first_482 = false; j < (orders.len() as i64) } {
                 let order: crate::value::Dict = self.parse_order(orders.get(j as usize).cloned().unwrap_or(Value::Null), Some(&market));
                 self.orders.append(Value::from(&order));
                 let symbol: Option<String> = crate::value::KeyRead::key_read(&&order, "symbol").as_str().map(str::to_owned);
@@ -2097,8 +2097,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let subscriptionKeys: Vec<Value> = __ch.subscription_keys();
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_483: bool = true;
-                    while { if !__for_first_483 { i += 1; } __for_first_483 = false; i < (subscriptionKeys.len() as i64) } {
+                    let mut __for_first_484: bool = true;
+                    while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (subscriptionKeys.len() as i64) } {
                     let subscriptionHash: Option<String> = subscriptionKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let subscriptionId: Option<String> = self.safe_string_k_opt(__ch.get_subscription(subscriptionHash.as_deref()), "id", &[]);
                     let subscription: Option<String> = self.safe_string_k_opt(__ch.get_subscription(subscriptionHash.as_deref()), "subscription", &[]);
@@ -2239,8 +2239,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let subscriptionHashes: Vec<Value> = __ch.subscription_keys();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_484: bool = true;
-                while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (subscriptionHashes.len() as i64) } {
+                let mut __for_first_485: bool = true;
+                while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (subscriptionHashes.len() as i64) } {
                 let subscriptionHash: Option<String> = subscriptionHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if (subscriptionHash.as_deref().unwrap_or_default().starts_with("ticker")) {
                     let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, &subscriptionHash);

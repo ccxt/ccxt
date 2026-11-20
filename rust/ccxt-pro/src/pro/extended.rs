@@ -297,8 +297,8 @@ impl Extended {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { i += 1; } __for_first_312 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_313: bool = true;
+            while { if !__for_first_313 { i += 1; } __for_first_313 = false; i < (deltas.len() as i64) } {
             self.handle_delta(&mut bookside, deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -484,8 +484,8 @@ impl Extended {
         let spotBalances: crate::value::List = self.safe_list_k_t(&data, "spotBalances");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { i += 1; } __for_first_313 = false; i < (spotBalances.len() as i64) } {
+            let mut __for_first_314: bool = true;
+            while { if !__for_first_314 { i += 1; } __for_first_314 = false; i < (spotBalances.len() as i64) } {
             let spotBalance: crate::value::Dict = self.safe_dict_t(&spotBalances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&spotBalance, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -599,8 +599,8 @@ impl Extended {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { i += 1; } __for_first_314 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_315: bool = true;
+            while { if !__for_first_315 { i += 1; } __for_first_315 = false; i < (rawTrades.len() as i64) } {
             let trade: crate::value::Dict = self.parse_trade(self.safe_dict(&rawTrades, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -613,8 +613,8 @@ impl Extended {
         let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_315: bool = true;
-            while { if !__for_first_315 { i += 1; } __for_first_315 = false; i < (keys.len() as i64) } {
+            let mut __for_first_316: bool = true;
+            while { if !__for_first_316 { i += 1; } __for_first_316 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let messageHash: String = format!("{}{}", "myTrades:", key.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.myTrades), messageHash.as_str());
@@ -624,8 +624,8 @@ impl Extended {
         let subscriptions: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_316: bool = true;
-            while { if !__for_first_316 { i += 1; } __for_first_316 = false; i < (subscriptions.len() as i64) } {
+            let mut __for_first_317: bool = true;
+            while { if !__for_first_317 { i += 1; } __for_first_317 = false; i < (subscriptions.len() as i64) } {
             let messageHash: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (((if let (Some(__h), Some(__n)) = (messageHash.as_deref(), Some("myTrades:")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
                 client.resolve(Value::from(&self.myTrades), messageHash.as_deref());
@@ -718,8 +718,8 @@ impl Extended {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_317: bool = true;
-            while { if !__for_first_317 { i += 1; } __for_first_317 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_318: bool = true;
+            while { if !__for_first_318 { i += 1; } __for_first_318 = false; i < (rawPositions.len() as i64) } {
             let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let marketId: Option<String> = self.safe_string_k_opt(&rawPosition, "market", &[]);
             if (marketId.is_none()) {
@@ -733,8 +733,8 @@ impl Extended {
         let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_318: bool = true;
-            while { if !__for_first_318 { i += 1; } __for_first_318 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_319: bool = true;
+            while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (messageHashes.len() as i64) } {
             let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -798,8 +798,8 @@ impl Extended {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_319: bool = true;
-            while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (rawOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_320: bool = true;
+            while { if !__for_first_320 { i += 1; } __for_first_320 = false; i < (rawOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let order: crate::value::Dict = self.parse_order(self.safe_dict(&rawOrders, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -812,8 +812,8 @@ impl Extended {
         let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_320: bool = true;
-            while { if !__for_first_320 { i += 1; } __for_first_320 = false; i < (keys.len() as i64) } {
+            let mut __for_first_321: bool = true;
+            while { if !__for_first_321 { i += 1; } __for_first_321 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let messageHash: String = format!("{}{}", "orders:", key.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.orders), messageHash.as_str());
@@ -823,8 +823,8 @@ impl Extended {
         let subscriptions: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_321: bool = true;
-            while { if !__for_first_321 { i += 1; } __for_first_321 = false; i < (subscriptions.len() as i64) } {
+            let mut __for_first_322: bool = true;
+            while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < (subscriptions.len() as i64) } {
             let messageHash: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (((if let (Some(__h), Some(__n)) = (messageHash.as_deref(), Some("orders:")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
                 client.resolve(Value::from(&self.orders), messageHash.as_deref());
@@ -1106,8 +1106,8 @@ impl Extended {
         add_element_to_object(&mut subscription, &Value::Str("nonce".into()), Value::from(nonce));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_322: bool = true;
-            while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < (data.len() as i64) } {
+            let mut __for_first_323: bool = true;
+            while { if !__for_first_323 { i += 1; } __for_first_323 = false; i < (data.len() as i64) } {
             let trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
             stored.append(Value::Dict(trade));
         }
@@ -1239,8 +1239,8 @@ impl Extended {
         let data: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_323: bool = true;
-            while { if !__for_first_323 { i += 1; } __for_first_323 = false; i < (data.len() as i64) } {
+            let mut __for_first_324: bool = true;
+            while { if !__for_first_324 { i += 1; } __for_first_324 = false; i < (data.len() as i64) } {
             let parsed: crate::value::List = self.parse_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), None).into_list();
             stored.append(Value::Arr(parsed));
         }
@@ -1253,8 +1253,8 @@ impl Extended {
         let keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_324: bool = true;
-            while { if !__for_first_324 { i += 1; } __for_first_324 = false; i < (keys.len() as i64) } {
+            let mut __for_first_325: bool = true;
+            while { if !__for_first_325 { i += 1; } __for_first_325 = false; i < (keys.len() as i64) } {
             let key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let subscription: Value = self.safe_dict(&__ch.subscriptions, key.map(Value::from).unwrap_or(Value::Null), &[]);
             let subscriptionName: Option<String> = self.safe_string_k_opt(&subscription, "name", &[]);

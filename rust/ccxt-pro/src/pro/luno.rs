@@ -289,8 +289,8 @@ impl Luno {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_486: bool = true;
+            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (rawTrades.len() as i64) } {
             let rawTrade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let trade: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_trade(self, &rawTrade, Some(&market)).unwrap_or_default();
             stored.append(Value::Dict(trade));
@@ -454,8 +454,8 @@ impl Luno {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (bidasksValue.len() as i64) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (bidasksValue.len() as i64) } {
             result.push(self.custom_parse_bid_ask(bidasksValue.get(i as usize).cloned().unwrap_or(Value::Null), &[&priceKey, &amountKey, &thirdKey]));
         }
         }
@@ -531,8 +531,8 @@ impl Luno {
         let tradeUpdates: crate::value::List = self.safe_list_k_t(&message, "trade_updates");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (tradeUpdates.len() as i64) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (tradeUpdates.len() as i64) } {
             let tradeUpdate: crate::value::Dict = tradeUpdates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let makerOrderId: Option<String> = self.safe_string_k_opt(&tradeUpdate, "maker_order_id", &[]);
             let tradedAmount: Option<String> = self.safe_string_k_opt(&tradeUpdate, "base", &[]);
@@ -579,8 +579,8 @@ impl Luno {
         let sideLength: i64 = orderSide.length().as_i64().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < sideLength } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < sideLength } {
             let order: Value = orderSide.level(&Value::Int(i));
             let entryId: Option<String> = self.safe_string_opt(&order, Value::Int(2), &[]);
             if ((entryId.as_deref() == Some(orderId))) {
