@@ -2173,7 +2173,7 @@ export default class digifinex extends Exchange {
                 throw new BadRequest (this.id + ' cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)');
             }
             ids.push (id);
-            symbols.push (market['symbol']);
+            symbols.push (symbol);
             symbolsById[id] = market['symbol'];
         }
         if (marketType === 'swap') {
