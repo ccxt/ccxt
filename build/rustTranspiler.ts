@@ -8997,7 +8997,7 @@ function nativeSmallHelperCalls (content: string): string {
     out = out.replace (/(let __args: Vec<Value> = vec!\[Value::from\(enable\)\];[\s\S]{0,2000}?)Value::Bool\(!is_true\(&enable\)\)/g,
         (m, head) => (/\bfn \w/.test (head) ? m : `${head}Value::Bool(enable.as_bool() != Some(true))`));
     // safe_string with no default answers Value::Str or Null: parse_float is a trimmed f64 parse of the Str, else Null
-    out = out.replace (/crate::runtime::parse_float\(&(self\.safe_string\(Value::Map\(\w+\.clone\(\)\), Value::Str\("\w+"\.into\(\)\), &\[\]\))\)/g,
+    out = out.replace (/crate::runtime::parse_float\(&(self\.safe_string\((?:Value::Map\(\w+\.clone\(\)\)|&\*\w+), Value::Str\("\w+"\.into\(\)\), &\[\]\))\)/g,
         (_m, call) => `${call}.as_str().and_then(|__s| __s.trim().parse::<f64>().ok()).map(Value::Float).unwrap_or(Value::Null)`);
     return out;
 }
