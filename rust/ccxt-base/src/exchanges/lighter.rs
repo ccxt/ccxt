@@ -4447,7 +4447,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_941: bool = true;
             while { if !__for_first_941 { i += 1; } __for_first_941 = false; i < (data.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut data, &Value::Int(i)), &Value::Str("account_index".into()), accountIndex.clone());
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut data).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("account_index".into(), Value::from(accountIndex.clone())); }
         }
         }
         let nextCursor: Option<String> = self.safe_string_k_opt(&response, "next_cursor", &[]);

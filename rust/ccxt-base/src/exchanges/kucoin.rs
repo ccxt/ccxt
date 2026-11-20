@@ -6191,7 +6191,7 @@ impl Kucoin {
                         let mut i: i64 = 0;
             let mut __for_first_896: bool = true;
             while { if !__for_first_896 { i += 1; } __for_first_896 = false; i < (tickers.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut tickers, &Value::Int(i)), &Value::Str("time".into()), Value::from(time));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut tickers).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("time".into(), Value::from(Value::from(time))); }
             let ticker: crate::value::Dict = self.parse_spot_or_uta_ticker(tickers.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {

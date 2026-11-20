@@ -7392,7 +7392,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_511: bool = true;
             while { if !__for_first_511 { i += 1; } __for_first_511 = false; i < (tickerList.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut tickerList, &Value::Int(i)), &Value::Str("timestamp".into()), Value::from(timestamp)); // will be removed inside the parser
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut tickerList).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(Value::from(timestamp))); }; // will be removed inside the parser
         }
         }
         return self.parse_funding_rates(&tickerList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

@@ -10054,13 +10054,13 @@ impl Binance {
             promises.push(self.call_method(Value::Str("sapi_get_margin_all_pairs".into()), &[&params]).await);
         }
         let results: crate::value::List = promise_all(&Value::from(promises)).await;
-        let responseCurrencies: Value = self.safe_value(&results, Value::Int(0), &[]);
+        let responseCurrencies: crate::value::List = self.safe_list_t(&results, Value::Int(0));
         let mut marginablesById: Value = Value::Null;
         if fetchMargins {
             let mut responseMarginables: Option<crate::value::List> = self.safe_list_o(&results, Value::Int(1));
             marginablesById = Value::Dict(self.index_by(responseMarginables.map_or(Value::Null, Value::Arr), Value::Str("assetName".into())));
         }
-        return self.parse_currencies_custom(responseCurrencies, marginablesById);
+        return self.parse_currencies_custom(&responseCurrencies, marginablesById);
         Value::Null
         }).await?))
     }
@@ -14829,7 +14829,7 @@ impl Binance {
                                 let mut j: i64 = 0;
                 let mut __for_first_291: bool = true;
                 while { if !__for_first_291 { j += 1; } __for_first_291 = false; j < (logs.len() as i64) } {
-                add_element_to_object(get_value_mut(&mut logs, &Value::Int(j)), &Value::Str("isDustTrade".into()), Value::Bool(true));
+                if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut logs).get_mut(j as usize) { std::sync::Arc::make_mut(__d).insert("isDustTrade".into(), Value::Bool(true)); }
                 data.push(logs.get(j as usize).cloned().unwrap_or(Value::Null));
             }
             }

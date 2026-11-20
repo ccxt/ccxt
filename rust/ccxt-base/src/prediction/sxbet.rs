@@ -255,7 +255,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_raw_markets_paged" => self.fetch_raw_markets_paged(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_markets_paged" => Value::Arr(self.fetch_raw_markets_paged(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_settlements" => crate::types::IntoRaw::into_raw(self.fetch_settlements(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_sxbet_best_odds" => self.fetch_sxbet_best_odds(args.get(0).cloned().unwrap_or_default().to_str_vec(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_sxbet_book_snapshot" => self.fetch_sxbet_book_snapshot(args.get(0).and_then(crate::Value::as_text).as_deref()).await,
@@ -264,7 +264,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "filter_raw_markets_by_fixture" => self.filter_raw_markets_by_fixture(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "filter_raw_markets_by_fixture" => Value::Arr(self.filter_raw_markets_by_fixture(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -637,7 +637,7 @@ impl Sxbet {
 }));
         let rest: crate::value::Dict = self.omit_t(&params, &["limit"], &[]);
         let userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
-        let rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::from(userLimit)]).await.as_array().cloned().unwrap_or_default();
+        let rawMarkets: Vec<Value> = Value::Arr(self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::from(userLimit)]).await).as_array().cloned().unwrap_or_default();
         let mut markets: Vec<Value> = Vec::new();
         let rawMarketsLength: i64 = rawMarkets.len() as i64;
         {
@@ -665,7 +665,7 @@ impl Sxbet {
  * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
  * @returns {object[]} the raw (unparsed) sx.bet market objects
  */
-    pub async fn fetch_raw_markets_paged(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_markets_paged(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let extra = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -709,9 +709,7 @@ impl Sxbet {
                 break;
             }
         }
-        return Value::from(rawMarkets);
-
-    Value::Null
+        return std::sync::Arc::new(rawMarkets);
 }
 
 /*
@@ -723,7 +721,7 @@ impl Sxbet {
  * @param {string} sportXeventId the fixture id to keep
  * @returns {object[]} the raw markets of that fixture only
  */
-    pub fn filter_raw_markets_by_fixture(&self, rawMarkets: impl Into<crate::Value>, sportXeventId: &str) -> Value {
+    pub fn filter_raw_markets_by_fixture(&self, rawMarkets: impl Into<crate::Value>, sportXeventId: &str) -> crate::value::List {
         let mut rawMarkets: Value = rawMarkets.into();
         let __rawMarkets_empty = Vec::new();
         let rawMarkets = rawMarkets.as_array().unwrap_or(&__rawMarkets_empty);
@@ -739,9 +737,7 @@ impl Sxbet {
             }
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*
@@ -946,28 +942,28 @@ impl Sxbet {
         m.insert("sportXeventId".to_string(), eventId.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&rest]);
-            rawMarkets = self.fetch_raw_markets_paged(&[&__ws_arg_1, &Value::Null]).await;
+            rawMarkets = Value::Arr(self.fetch_raw_markets_paged(&[&__ws_arg_1, &Value::Null]).await);
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
             // returning every fixture) — enforce the scope client-side
-            rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets, eventId.as_deref().unwrap_or_default());
+            rawMarkets = Value::Arr(self.filter_raw_markets_by_fixture(rawMarkets, eventId.as_deref().unwrap_or_default()));
         }  else if (leagueId.is_some()) {
             let __ws_arg_2 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("leagueId".to_string(), leagueId.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&rest]);
-            rawMarkets = self.fetch_raw_markets_paged(&[&__ws_arg_2, &Value::Null]).await;
+            rawMarkets = Value::Arr(self.fetch_raw_markets_paged(&[&__ws_arg_2, &Value::Null]).await);
         }  else if (sportId.is_some()) {
             let __ws_arg_3 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sportId".to_string(), sportId.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&rest]);
-            rawMarkets = self.fetch_raw_markets_paged(&[&__ws_arg_3, &Value::Null]).await;
+            rawMarkets = Value::Arr(self.fetch_raw_markets_paged(&[&__ws_arg_3, &Value::Null]).await);
         }  else {
             // no server-side scope left, only query/tags — full scan honoring the fetchMarkets
             // bound, then filter client-side (the venue's /search covers team names only)
-            rawMarkets = self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::Null]).await;
+            rawMarkets = Value::Arr(self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::Null]).await);
         }
         let queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
@@ -1058,19 +1054,20 @@ impl Sxbet {
     let m = indexmap::IndexMap::new();
     m
 }));
+        let mut rawMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
         let __ws_arg_4 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sportXeventId".to_string(), id.clone());
     m
 }), &[params]);
-        let mut rawMarkets: Value = self.fetch_raw_markets_paged(&[&__ws_arg_4, &Value::Null]).await;
+        rawMarkets = self.fetch_raw_markets_paged(&[&__ws_arg_4, &Value::Null]).await;
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
-        rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets, id.as_str().unwrap_or_default());
+        rawMarkets = self.filter_raw_markets_by_fixture(&rawMarkets, id.as_str().unwrap_or_default());
         let rawMarketsLength: i64 = rawMarkets.len() as i64;
         if (rawMarketsLength == 0) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchEvent() could not find an active fixture ").into()), id)));
         }
-        let event: crate::value::Dict = self.parse_event(id.as_str().unwrap_or_default(), rawMarkets);
+        let event: crate::value::Dict = self.parse_event(id.as_str().unwrap_or_default(), &rawMarkets);
         self.index_event_outcomes(Value::from(&event));
         self.set_events(Value::from(vec![Value::from(&event)]));
         return Value::Dict(event);

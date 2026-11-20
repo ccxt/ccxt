@@ -1803,27 +1803,17 @@ impl crate::exchange::DerivedExchange for Okx {
 }
     fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let leverage: Value = leverage.into();
-        let mut marketId: Option<String> = None;
-        let mut marginMode: Option<String> = None;
+        let marketId: Option<String> = self.safe_string_k_opt(&leverage, "instId", &[]);
+        let positionSide: Option<String> = self.safe_string_lower_k_opt(&leverage, "posSide", &[]);
+        let mut lever: Option<i64> = self.safe_integer_k(&leverage, "lever", &[]).as_i64();
+        let marginMode: Option<String> = self.safe_string_lower_k_opt(&leverage, "mgnMode", &[]);
         let mut longLeverage: Option<i64> = None;
         let mut shortLeverage: Option<i64> = None;
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_1022: bool = true;
-            while { if !__for_first_1022 { i += 1; } __for_first_1022 = false; i < (leverage.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&leverage, Value::Int(i));
-            marginMode = self.safe_string_lower_k_opt(&entry, "mgnMode", &[]);
-            marketId = self.safe_string_k_opt(&entry, "instId", &[]);
-            let positionSide: Option<String> = self.safe_string_lower_k_opt(&entry, "posSide", &[]);
-            if (positionSide.as_deref() == Some("long")) {
-                longLeverage = self.safe_integer_k(&entry, "lever", &[]).as_i64();
-            }  else if (positionSide.as_deref() == Some("short")) {
-                shortLeverage = self.safe_integer_k(&entry, "lever", &[]).as_i64();
-            }  else {
-                longLeverage = self.safe_integer_k(&entry, "lever", &[]).as_i64();
-                shortLeverage = self.safe_integer_k(&entry, "lever", &[]).as_i64();
-            }
+        if (positionSide.as_deref() != Some("short")) {
+            longLeverage = lever;
         }
+        if (positionSide.as_deref() != Some("long")) {
+            shortLeverage = lever.take();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9985,8 +9975,37 @@ impl Okx {
         //        "msg": ""
         //     }
         //
-        let data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, data, Some(&market));
+        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let mut marketId: Option<String> = None;
+        let mut rowMarginMode: Option<String> = None;
+        let mut longLeverage: Option<i64> = None;
+        let mut shortLeverage: Option<i64> = None;
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_1022: bool = true;
+            while { if !__for_first_1022 { i += 1; } __for_first_1022 = false; i < (data.len() as i64) } {
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            rowMarginMode = self.safe_string_lower_k_opt(&entry, "mgnMode", &[]);
+            marketId = self.safe_string_k_opt(&entry, "instId", &[]);
+            let positionSide: Option<String> = self.safe_string_lower_k_opt(&entry, "posSide", &[]);
+            let mut lever: Option<i64> = self.safe_integer_k(&entry, "lever", &[]).as_i64();
+            if (positionSide.as_deref() != Some("short")) {
+                longLeverage = lever;
+            }
+            if (positionSide.as_deref() != Some("long")) {
+                shortLeverage = lever.take();
+            }
+        }
+        }
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), Value::Arr(data));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&market), &[]));
+        m.insert("marginMode".to_string(), rowMarginMode.map(Value::from).unwrap_or(Value::Null));
+        m.insert("longLeverage".to_string(), Value::from(longLeverage));
+        m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
+    m
+});
         Value::Null
         }).await?))
     }

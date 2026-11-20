@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "describe_data" => self.describe_data(),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "ensure_user_data_stream_ws_subscribe_listen_token" => self.ensure_user_data_stream_ws_subscribe_listen_token(&args[..].iter().collect::<Vec<_>>()).await,
+                "ensure_user_data_stream_ws_subscribe_listen_token" => self.ensure_user_data_stream_ws_subscribe_listen_token(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "ensure_user_data_stream_ws_subscribe_signature" => self.ensure_user_data_stream_ws_subscribe_signature(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_balance_ws" => crate::types::IntoRaw::into_raw(self.fetch_balance_ws(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -4039,9 +4039,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
  * @returns Promise<void>
  */
-    pub async fn ensure_user_data_stream_ws_subscribe_listen_token(&mut self, optional_args: &[&Value]) -> Value {
-        let marketType = get_arg(optional_args, 0, Value::Str("margin".into()));
-        let params = get_arg(optional_args, 1, Value::Map({
+    pub async fn ensure_user_data_stream_ws_subscribe_listen_token(&mut self, marketType: &str, optional_args: &[&Value]) -> Value {
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -4054,7 +4053,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let options: crate::value::Dict = self.safe_dict_t(&self.options, &marketType);
+        let options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from(marketType));
         let lastAuthenticatedTime: i64 = self.safe_integer_k(&options, "lastAuthenticatedTime", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let listenTokenRefreshRate: i64 = self.safe_integer_k(&self.options, "listenTokenRefreshRate", &[Value::Int(82800000)]).as_i64().unwrap_or(82800000); // 23 hours default
         let time: i64 = self.milliseconds();
@@ -4064,7 +4063,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // renewal timer re-entry through renewListenToken, so a concurrent caller
             // waits for the leader rather than minting a second listenToken
             let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-            let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "authenticate:", marketType).into()), ":listenToken");
+            let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "authenticate:", Value::from(marketType)).into()), ":listenToken");
             if (client.has_future(messageHash.as_str())) {
                 // another caller is already fetching, wait for it instead of fetching again
                 crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
@@ -4115,7 +4114,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), Value::from(requestHash.as_str()));
                         m.insert("method".to_string(), Value::Str("handle_user_data_stream_subscribe".into()));
-                        m.insert("subscription".to_string(), marketType.clone());
+                        m.insert("subscription".to_string(), Value::from(marketType));
                     m
                 });
                 self.watch(url.as_deref(), &requestHash[..], Value::Map(message), &requestHash[..], Value::Map(subscription)).await;
@@ -4128,14 +4127,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("isIsolated".to_string(), Value::Bool(isIsolated));
         m.insert("validity".to_string(), Value::from(validity));
     m
-})]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketType), __be_tmp); } }
+})]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(marketType)), __be_tmp); } }
                 // Schedule token renewal before expiration
                 if (expirationTime.is_some()) {
                     let renewalTime: Option<i64> = (if let Some(__l) = ((if let Some(__l) = expirationTime { Some(__l - time) } else { None })) { Some(__l - 60000) } else { None }); // Renew 1 minute before expiration
                     if renewalTime > Some(0) {
                         let extendedParams: crate::value::Dict = self.extend_t(params, &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
-                                m.insert("type".to_string(), marketType.clone());
+                                m.insert("type".to_string(), Value::from(marketType));
                             m
                         })]);
                         self.delay(Value::from(renewalTime), &[Value::Str("renew_listen_token".into()), Value::Dict(extendedParams)]).await;
@@ -4148,7 +4147,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
         m.insert("lastAuthenticatedTime".to_string(), Value::Int(0));
     m
-})]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketType), __be_tmp); } }
+})]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&Value::from(marketType)), __be_tmp); } }
                 client.reject(e.clone(), messageHash.as_str());
                 panic!("{}", e);
             }
@@ -4182,7 +4181,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (validity.is_some()) {
             renewParams.insert("validity".into(), Value::from(validity));
         }
-        self.ensure_user_data_stream_ws_subscribe_listen_token(&[&Value::from(type_var), &Value::Map(renewParams)]).await;
+        self.ensure_user_data_stream_ws_subscribe_listen_token(type_var.as_str(), &[&Value::Map(renewParams)]).await;
 
     Value::Null
 }
@@ -4221,7 +4220,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if isIsolatedMargin {
                 marginParams.insert("isIsolated".into(), Value::Bool(true));
             }
-            self.ensure_user_data_stream_ws_subscribe_listen_token(&[&Value::Str("margin".into()), &Value::Map(marginParams)]).await;
+            self.ensure_user_data_stream_ws_subscribe_listen_token("margin", &[&Value::Map(marginParams)]).await;
             return Value::Null;
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, Value::Str("symbol".into()), &[]);

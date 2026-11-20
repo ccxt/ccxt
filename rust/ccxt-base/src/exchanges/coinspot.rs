@@ -1442,7 +1442,7 @@ impl Coinspot {
                         let mut i: i64 = 0;
             let mut __for_first_589: bool = true;
             while { if !__for_first_589 { i += 1; } __for_first_589 = false; i < (buyTrades.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut buyTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("buy".into()));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut buyTrades).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("side".into(), Value::Str("buy".into())); }
         }
         }
         let mut sellTrades: crate::value::List = self.safe_list_k_t(&response, "sellorders");
@@ -1450,7 +1450,7 @@ impl Coinspot {
                         let mut i: i64 = 0;
             let mut __for_first_590: bool = true;
             while { if !__for_first_590 { i += 1; } __for_first_590 = false; i < (sellTrades.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut sellTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("sell".into()));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut sellTrades).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("side".into(), Value::Str("sell".into())); }
         }
         }
         let trades: crate::value::List = self.array_concat_t(Value::Arr(buyTrades), Value::Arr(sellTrades));

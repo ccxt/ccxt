@@ -3252,7 +3252,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1065: bool = true;
             while { if !__for_first_1065 { i += 1; } __for_first_1065 = false; i < (trades.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut trades, &Value::Int(i)), &Value::Str("next".into()), self.safe_string_k(&response, "next", &[]));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut trades).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(self.safe_string_k(&response, "next", &[]))); }
         }
         }
         return Value::Arr(self.parse_trades(&trades, Some(&market), &[&Value::from(since), &Value::from(limit)]));
@@ -4582,7 +4582,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1070: bool = true;
             while { if !__for_first_1070 { i += 1; } __for_first_1070 = false; i < (trades.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut trades, &Value::Int(i)), &Value::Str("next".into()), self.safe_string_k(&response, "next", &[]));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut trades).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(self.safe_string_k(&response, "next", &[]))); }
         }
         }
         return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
@@ -4864,7 +4864,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1073: bool = true;
             while { if !__for_first_1073 { i += 1; } __for_first_1073 = false; i < (rows.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut rows, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut rows).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); }
         }
         }
         let mut deposits: Vec<Value> = Vec::new();
@@ -4972,7 +4972,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1075: bool = true;
             while { if !__for_first_1075 { i += 1; } __for_first_1075 = false; i < (rows.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut rows, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut rows).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); }
         }
         }
         let mut deposits: Vec<Value> = Vec::new();
@@ -5074,7 +5074,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1077: bool = true;
             while { if !__for_first_1077 { i += 1; } __for_first_1077 = false; i < (rows.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut rows, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut rows).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); }
         }
         }
         return Value::Arr(self.parse_transfers(&rows, currency.as_ref(), &[Value::from(since), Value::from(limit)]));
@@ -5742,7 +5742,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1080: bool = true;
             while { if !__for_first_1080 { i += 1; } __for_first_1080 = false; i < (results.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut results, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
+            if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut results).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); }
         }
         }
         return self.parse_incomes(&results, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
