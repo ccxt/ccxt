@@ -343,8 +343,8 @@ impl P2b {
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), "::").into()), Value::from((market).symbol.as_str())).into()));
             args.push(Value::from((market).id.as_deref()));
@@ -426,8 +426,8 @@ impl P2b {
         if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_575: bool = true;
-                while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_578: bool = true;
+                while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "deals::", symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
@@ -581,8 +581,8 @@ impl P2b {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (trades.len() as i64) } {
+            let mut __for_first_579: bool = true;
+            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (trades.len() as i64) } {
             let mut item: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut trade: crate::value::Dict = self.parse_trade(Value::Dict(item), Some(&market)).into_dict();
             tradesArray.append(Value::Dict(trade));
@@ -718,8 +718,8 @@ impl P2b {
         if (bids.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_577: bool = true;
-                while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_580: bool = true;
+                while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[]).into_list();
                 let mut price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
                 let mut amount: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
@@ -731,8 +731,8 @@ impl P2b {
         if (asks.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_578: bool = true;
-                while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_581: bool = true;
+                while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[]).into_list();
                 let mut price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
                 let mut amount: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();

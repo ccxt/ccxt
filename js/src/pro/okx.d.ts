@@ -140,7 +140,7 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    unWatchMarkPrice(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name okx#unWatchMarkPrices

@@ -107,3 +107,5 @@ rust/tests.bin
 rust/BUILD_OPTIMIZATION.md
 PR_RESPONSE.md
 
+/pnpm-lock.yaml
+/pnpm-workspace.yaml

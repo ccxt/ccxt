@@ -111037,308 +111037,308 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
         return this.request('account', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountCompliance(params = {}) {
         return this.request('account/compliance', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountHistory(params = {}) {
         return this.request('account/history', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountInfo(params = {}) {
         return this.request('account/info', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountMargin(params = {}) {
         return this.request('account/margin', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountProfile(params = {}) {
         return this.request('account/profile', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountSettings(params = {}) {
         return this.request('account/settings', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountSubaccounts(params = {}) {
         return this.request('account/subaccounts', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountSummary(params = {}) {
         return this.request('account/summary', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetBalance(params = {}) {
         return this.request('balance', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetFills(params = {}) {
         return this.request('fills', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetFundingPayments(params = {}) {
         return this.request('funding/payments', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetPositions(params = {}) {
         return this.request('positions', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetTradebusts(params = {}) {
         return this.request('tradebusts', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetTransactions(params = {}) {
         return this.request('transactions', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountKeysSubkeys(params = {}) {
         return this.request('account/keys/subkeys', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountKeysSubkeysPublicKey(params = {}) {
         return this.request('account/keys/subkeys/{public_key}', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAccountTokens(params = {}) {
         return this.request('account/tokens', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAlgoOrders(params = {}) {
         return this.request('algo/orders', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAlgoOrdersHistory(params = {}) {
         return this.request('algo/orders-history', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetAlgoOrdersAlgoId(params = {}) {
         return this.request('algo/orders/{algo_id}', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetBlockTrades(params = {}) {
         return this.request('block-trades', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetBlockTradesBlockTradeId(params = {}) {
         return this.request('block-trades/{block_trade_id}', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetBlockTradesBlockTradeIdOffers(params = {}) {
         return this.request('block-trades/{block_trade_id}/offers', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetBlockTradesBlockTradeIdOffersOfferId(params = {}) {
         return this.request('block-trades/{block_trade_id}/offers/{offer_id}', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetLiquidations(params = {}) {
         return this.request('liquidations', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetOrders(params = {}) {
         return this.request('orders', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetOrdersHistory(params = {}) {
         return this.request('orders-history', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetOrdersByClientIdClientId(params = {}) {
         return this.request('orders/by_client_id/{client_id}', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetOrdersOrderId(params = {}) {
         return this.request('orders/{order_id}', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetReferralsQrCode(params = {}) {
         return this.request('referrals/qr-code', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetReferralsSummary(params = {}) {
         return this.request('referrals/summary', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetRfqs(params = {}) {
         return this.request('rfqs', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetRfqsDrafts(params = {}) {
         return this.request('rfqs/drafts', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetRfqsMarkets(params = {}) {
         return this.request('rfqs/markets', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetRfqsRfqIdBbo(params = {}) {
         return this.request('rfqs/{rfq_id}/bbo', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetStakingBalanceHistory(params = {}) {
         return this.request('staking/balance/history', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetStakingHistory(params = {}) {
         return this.request('staking/history', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetStakingSummary(params = {}) {
         return this.request('staking/summary', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetTransfers(params = {}) {
         return this.request('transfers', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetVaultsAccountSummary(params = {}) {
         return this.request('vaults/account-summary', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetVaultsMine(params = {}) {
         return this.request('vaults/mine', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetXpAccountBalance(params = {}) {
         return this.request('xp/account-balance', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privateGetXpTransfers(params = {}) {
         return this.request('xp/transfers', [
             'private'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privatePostAccountCompliance(params = {}) {
@@ -111464,7 +111464,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
         return this.request('auth', [
             'private'
         ], 'POST', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privatePostBlockTrades(params = {}) {
@@ -111499,7 +111499,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
         return this.request('onboarding', [
             'private'
         ], 'POST', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privatePostOrders(params = {}) {
@@ -111541,14 +111541,14 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
         return this.request('v2/auth', [
             'private'
         ], 'POST', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privatePostV2Onboarding(params = {}) {
         return this.request('v2/onboarding', [
             'private'
         ], 'POST', params, {
-            'cost': 1
+            'cost': 2.5
         });
     }
     privatePostVaults(params = {}) {
@@ -225235,13 +225235,35 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             return await this.swapV2PrivatePostTradeMarginType(this.extend(request, paramsSubType));
         }
     }
-    async addMargin(symbol, amount, params = {}) {
+    /**
+     * @method
+     * @name bingx#addMargin
+     * @description add margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */ async addMargin(symbol, amount, params = {}) {
         const request = {
             'type': 1
         };
         return await this.setMargin(symbol, amount, this.extend(request, params));
     }
-    async reduceMargin(symbol, amount, params = {}) {
+    /**
+     * @method
+     * @name bingx#reduceMargin
+     * @description remove margin from a position
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */ async reduceMargin(symbol, amount, params = {}) {
         const request = {
             'type': 2
         };
@@ -278011,11 +278033,14 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, marketResolved, '-');
         const filled = this.safeString(order, 'filledSize');
-        const price = this.safeStringN(order, [
+        let price = this.safeStringN(order, [
             'px',
             'price',
             'orderPrice'
         ]);
+        if (price === '-1') {
+            price = undefined; // trigger orders send orderPrice -1 for market execution
+        }
         const average = this.safeString(order, 'averagePrice');
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const feeCostString = this.safeString(order, 'fee');
@@ -278063,6 +278088,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': this.safeNumber(order, 'triggerPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,
@@ -478185,7 +478211,9 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'name': 'Paradex',
             'countries': [],
             'version': 'v1',
-            'rateLimit': 50,
+            // public calls are limited to 1500 per minute per ip, which also caps every private call from the
+            // same ip, so 25 per second is the base rate, see https://docs.paradex.trade/api/general-information/rate-limits/api
+            'rateLimit': 40,
             'certified': false,
             'pro': true,
             'dex': true,
@@ -478195,7 +478223,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                 'margin': false,
                 'swap': true,
                 'future': false,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -478253,6 +478281,8 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
+                'fetchOptionChain': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -478420,136 +478450,136 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                 'private': {
                     'get': {
                         'account': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/compliance': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/history': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/info': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/margin': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/profile': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/settings': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/subaccounts': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/summary': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'balance': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'fills': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'funding/payments': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'positions': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'tradebusts': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'transactions': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/keys/subkeys': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/keys/subkeys/{public_key}': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'account/tokens': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'algo/orders': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'algo/orders-history': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'algo/orders/{algo_id}': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'block-trades': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'block-trades/{block_trade_id}': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'block-trades/{block_trade_id}/offers': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'block-trades/{block_trade_id}/offers/{offer_id}': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'liquidations': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'orders': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'orders-history': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'orders/by_client_id/{client_id}': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'orders/{order_id}': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'referrals/qr-code': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'referrals/summary': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'rfqs': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'rfqs/drafts': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'rfqs/markets': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'rfqs/{rfq_id}/bbo': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'staking/balance/history': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'staking/history': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'staking/summary': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'transfers': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'vaults/account-summary': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'vaults/mine': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'xp/account-balance': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'xp/transfers': {
-                            'cost': 1
+                            'cost': 2.5
                         }
                     },
                     'post': {
@@ -478605,7 +478635,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                             'cost': 1
                         },
                         'auth': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'block-trades': {
                             'cost': 1
@@ -478620,7 +478650,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                             'cost': 1
                         },
                         'onboarding': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'orders': {
                             'cost': 1
@@ -478638,10 +478668,10 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                             'cost': 1
                         },
                         'v2/auth': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'v2/onboarding': {
-                            'cost': 1
+                            'cost': 2.5
                         },
                         'vaults': {
                             'cost': 1
@@ -478704,14 +478734,19 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                     }
                 }
             },
+            // the defaults of the api fee schedule, every market carries its own in fee_config
             'fees': {
                 'swap': {
                     'taker': this.parseNumber('0.0002'),
-                    'maker': this.parseNumber('0.0002')
+                    'maker': this.parseNumber('0')
                 },
                 'spot': {
                     'taker': this.parseNumber('0.0002'),
-                    'maker': this.parseNumber('0.0002')
+                    'maker': this.parseNumber('0')
+                },
+                'option': {
+                    'taker': this.parseNumber('0.0001'),
+                    'maker': this.parseNumber('0.0001')
                 }
             },
             'requiredCredentials': {
@@ -478813,7 +478848,15 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'commonCurrencies': {},
             'options': {
                 'paradexAccount': undefined,
-                'broker': 'CCXT'
+                'broker': 'CCXT',
+                'fetchMarkets': {
+                    // the venue lists thousands of dated options, drop 'option' to load perpetuals and spot only
+                    'types': [
+                        'swap',
+                        'spot',
+                        'option'
+                    ]
+                }
             },
             'features': {
                 'spot': {
@@ -478831,10 +478874,11 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
-                        'triggerDirection': true,
+                        // a stop order fires on the side of the trigger price, there is no direction to choose
+                        'triggerDirection': false,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -478847,7 +478891,8 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        // the venue takes EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH as the raw stp param, the unified param is not mapped
+                        'selfTradePrevention': false,
                         'iceberg': false
                     },
                     'createOrders': {
@@ -478855,9 +478900,9 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': 5000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
                         'symbolRequired': false
                     },
                     'fetchOrder': {
@@ -478868,16 +478913,16 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
-                        'limit': 100,
+                        'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false
                     },
                     'fetchOrders': {
                         'marginMode': false,
-                        'limit': 100,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'limit': 5000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false
@@ -478895,6 +478940,13 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                 },
                 'future': {
                     'linear': undefined,
+                    'inverse': undefined
+                },
+                'option': {
+                    // dated options settle in USDC and take the same order types as perpetuals
+                    'linear': {
+                        'extends': 'forSwap'
+                    },
                     'inverse': undefined
                 }
             }
@@ -478945,9 +478997,19 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
      * @description retrieves data on all markets for paradex
      * @see https://docs.paradex.trade/api/prod/markets/get-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]|string} [params.types] the market types to load, any of 'swap', 'spot' and 'option' as a list or a comma separated string, default is options.fetchMarkets.types, which loads all of them
      * @returns {object[]} an array of objects representing market data
      */ async fetchMarkets(params = {}) {
-        const response = await this.publicGetMarkets(params);
+        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets', {});
+        // the types come from params or the option, as a list or a comma separated string such as 'swap,spot'
+        const typesSource = 'types' in params ? params : fetchMarketsOptions;
+        let types = this.safeList(typesSource, 'types');
+        if (types === undefined) {
+            const typesString = this.safeString(typesSource, 'types', 'swap,spot,option');
+            types = typesString.split(',');
+        }
+        const request = this.omit(params, 'types');
+        const response = await this.publicGetMarkets(request);
         //
         //     {
         //         "results": [
@@ -478982,7 +479044,29 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        return this.parseMarkets(data);
+        // the endpoint has no type filter, so unwanted kinds are dropped before the costly parse
+        const assetKinds = {};
+        for(let i = 0; i < types.length; i++){
+            const marketType = types[i];
+            if (marketType === 'swap') {
+                assetKinds['PERP'] = true;
+            } else if (marketType === 'spot') {
+                assetKinds['SPOT'] = true;
+            } else if (marketType === 'option') {
+                assetKinds['OPTION'] = true;
+                assetKinds['PERP_OPTION'] = true;
+            } else {
+                throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchMarkets() types must be any of swap, spot and option, got ' + marketType);
+            }
+        }
+        const wanted = [];
+        for(let i = 0; i < data.length; i++){
+            const assetKind = this.safeString(data[i], 'asset_kind');
+            if (this.safeBool(assetKinds, assetKind, false)) {
+                wanted.push(data[i]);
+            }
+        }
+        return this.parseMarkets(wanted);
     }
     parseMarket(market) {
         //
@@ -479111,8 +479195,6 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         let expiry = this.safeInteger(market, 'expiry_at');
         const optionType = this.safeString(market, 'option_type');
         const strikePrice = this.safeString(market, 'strike_price');
-        const takerFee = this.parseNumber('0.0003');
-        let makerFee = this.parseNumber('-0.00005');
         if (isOption) {
             const optionTypeSuffix = optionType === 'CALL' ? 'C' : 'P';
             let deliveryValue = '';
@@ -479122,11 +479204,25 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             if (strikePrice !== undefined) {
                 symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
             }
-            makerFee = this.parseNumber('0.0003');
         } else {
             expiry = undefined;
         }
         const expireDatetime = expiry === 0 ? undefined : this.iso8601(expiry);
+        // the fee an api order pays, the market falls back to the default schedule of its type
+        const apiFee = this.safeDict(this.safeDict(market, 'fee_config', {}), 'api_fee', {});
+        const defaultFees = this.safeDict(this.fees, type, {});
+        const makerFee = this.safeNumber(this.safeDict(apiFee, 'maker_fee', {}), 'fee', this.safeNumber(defaultFees, 'maker'));
+        const takerFee = this.safeNumber(this.safeDict(apiFee, 'taker_fee', {}), 'fee', this.safeNumber(defaultFees, 'taker'));
+        // an rfq only market takes block trades and rejects orders on the book
+        const openAt = this.safeInteger(market, 'open_at');
+        const tradingMode = this.safeString(market, 'trading_mode');
+        let active = undefined;
+        if (tradingMode !== undefined || openAt !== undefined) {
+            const now = this.milliseconds();
+            const isOpen = openAt === undefined || openAt <= now;
+            const isLive = expiry === undefined || expiry === 0 || expiry > now;
+            active = tradingMode !== 'RFQ_ONLY' && isOpen && isLive;
+        }
         return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
@@ -479142,7 +479238,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'swap': isSwap,
             'future': false,
             'option': isOption,
-            'active': this.safeBool(market, 'enableTrading'),
+            'active': active,
             'contract': !isSpot,
             'linear': isSpot ? undefined : true,
             'inverse': isSpot ? undefined : false,
@@ -479175,9 +479271,126 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                     'max': undefined
                 }
             },
-            'created': undefined,
+            'created': openAt,
             'info': market
         });
+    }
+    createExpiredOptionMarket(symbol) {
+        //
+        // an option leaves the market list once it expires, while fills, orders and positions still name it
+        //
+        //     id      NEAR-USD-30OCT26-5_6-C
+        //     symbol  NEAR/USD:USDC-261030-5.6-C
+        //
+        const parts = symbol.split('-');
+        const partsLength = parts.length;
+        let base = undefined;
+        let quote = undefined;
+        let settle = undefined;
+        let expiryDate = undefined;
+        let strike = undefined;
+        let optionType = undefined;
+        if (symbol.indexOf('/') > -1) {
+            if (partsLength !== 4) {
+                throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' does not have market symbol ' + symbol);
+            }
+            const pair = parts[0];
+            const pairParts = pair.split('/');
+            base = this.safeString(pairParts, 0);
+            const quoteAndSettle = this.safeString(pairParts, 1, '');
+            const quoteParts = quoteAndSettle.split(':');
+            quote = this.safeString(quoteParts, 0);
+            settle = this.safeString(quoteParts, 1, quote);
+            expiryDate = this.safeString(parts, 1);
+            strike = this.safeString(parts, 2);
+            optionType = this.safeString(parts, 3);
+        } else {
+            if (partsLength !== 5) {
+                throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' does not have market symbol ' + symbol);
+            }
+            base = this.safeString(parts, 0);
+            quote = this.safeString(parts, 1);
+            settle = 'USDC'; // every option on the venue settles in USDC
+            expiryDate = this.convertMarketIdExpireDate(this.safeString(parts, 2));
+            const strikeId = parts[3];
+            strike = strikeId.replace('_', '.');
+            optionType = this.safeString(parts, 4);
+        }
+        // the id carries the day without a leading zero, 6NOV26
+        let idDate = this.convertExpireDateToMarketIdDate(expiryDate);
+        if (idDate.startsWith('0')) {
+            idDate = idDate.slice(1);
+        }
+        // the id names the expiry day only, the hour depends on the underlying
+        const datetime = this.convertExpireDate(expiryDate);
+        const timestamp = this.parse8601(datetime);
+        let active = undefined;
+        if (timestamp !== undefined && this.sum(timestamp, 86400000) <= this.milliseconds()) {
+            active = false;
+        }
+        let strikeInId = '';
+        if (strike !== undefined) {
+            strikeInId = strike.replace('.', '_');
+        }
+        return {
+            'id': base + '-' + quote + '-' + idDate + '-' + strikeInId + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiryDate + '-' + strike + '-' + optionType,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'active': active,
+            'type': 'option',
+            'subType': 'linear',
+            'linear': true,
+            'inverse': false,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': true,
+            'margin': false,
+            'contract': true,
+            'contractSize': this.parseNumber('1'),
+            'expiry': timestamp,
+            'expiryDatetime': datetime,
+            'optionType': optionType === 'C' ? 'call' : 'put',
+            'strike': this.parseNumber(strike),
+            'precision': {
+                'amount': undefined,
+                'price': undefined
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined
+                }
+            },
+            'info': undefined
+        };
+    }
+    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        // a dated option id has five parts, BTC-USD-29MAY26-80000-C
+        if (marketId !== undefined && marketId.indexOf('/') < 0 && (marketId.endsWith('-C') || marketId.endsWith('-P'))) {
+            const isKnown = this.markets_by_id !== undefined && marketId in this.markets_by_id;
+            if (!isKnown) {
+                const marketIdParts = marketId.split('-');
+                const marketIdPartsLength = marketIdParts.length;
+                if (marketIdPartsLength === 5) {
+                    return this.createExpiredOptionMarket(marketId);
+                }
+            }
+        }
+        return super.safeMarket(marketId, market, delimiter, marketType);
     }
     parseTradingFee(fee, market = undefined) {
         //
@@ -479289,9 +479502,11 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const fees = this.safeList(response, 'results', []);
+        // markets left out by options.fetchMarkets.types are skipped
+        const loadedFees = this.filterLoadedSummaries(fees);
         const result = {};
-        for(let i = 0; i < fees.length; i++){
-            const fee = this.parseTradingFee(fees[i]);
+        for(let i = 0; i < loadedFees.length; i++){
+            const fee = this.parseTradingFee(loadedFees[i]);
             const symbol = fee['symbol'];
             result[symbol] = fee;
         }
@@ -479309,10 +479524,16 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
+        }
+        const maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
         const market = this.market(symbol);
         const request = {
@@ -479320,13 +479541,13 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id']
         };
         const duration = this.parseTimeframe(timeframe);
-        const price = this.safeString(params, 'price');
+        const price = this.safeString(paramsPaginate, 'price');
         if (price !== undefined) {
             // the exchange names the index price "underlying" and rejects "index"
             request['price_kind'] = price === 'index' ? 'underlying' : price;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, params);
-        const hasEnd = 'end_at' in request;
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const hasEnd = 'end_at' in requestUntil;
         const paramsOmitted = this.omit(paramsUntil, [
             'price'
         ]);
@@ -479335,9 +479556,11 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         const windowLength = this.parseToInt(duration * (this.parseToInt(limitResolved) + 1) * 1000);
         if (since !== undefined) {
             requestUntil['start_at'] = since;
-            if (!hasEnd) {
-                const sinceInt = this.parseToInt(since);
-                requestUntil['end_at'] = sinceInt + windowLength - 1;
+            // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
+            const windowEnd = this.sum(this.parseToInt(since), windowLength - 1);
+            const endAt = this.safeInteger(requestUntil, 'end_at', windowEnd);
+            if (!hasEnd || endAt > windowEnd) {
+                requestUntil['end_at'] = windowEnd;
             }
         } else {
             const endAtRaw = this.safeInteger(requestUntil, 'end_at', this.milliseconds());
@@ -479397,7 +479620,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         }
         const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
-            'market': 'ALL'
+            'market': this.summaryMarketId(symbolsNormalized)
         };
         const response = await this.publicGetMarketsSummary(this.extend(request, params));
         //
@@ -479422,7 +479645,54 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        return this.parseTickers(data, symbolsNormalized);
+        const rows = request['market'] === 'ALL' ? this.filterLoadedSummaries(data) : data;
+        return this.parseTickers(rows, symbolsNormalized);
+    }
+    /**
+     * @method
+     * @ignore
+     * @name paradex#summaryMarketId
+     * @description the market a markets/summary request asks for, the endpoint takes one market id or ALL, which answers for every market on the venue in megabytes, so a single symbol is asked for by name
+     * @param {string[]|undefined} symbols unified market symbols
+     * @returns {string} the market id, or ALL
+     */ summaryMarketId(symbols = undefined) {
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                return this.market(symbols[0])['id'];
+            }
+        }
+        return 'ALL';
+    }
+    /**
+     * @method
+     * @ignore
+     * @name paradex#filterLoadedSummaries
+     * @description keeps the markets or markets/summary rows of loaded markets, the endpoints also answer for the USDC collateral and for market types left out by options.fetchMarkets.types
+     * @param {object[]} summaries the results of markets or markets/summary
+     * @param {string} [marketType] keep this market type only
+     * @returns {object[]} the rows of loaded markets
+     */ filterLoadedSummaries(summaries, marketType = undefined) {
+        const result = [];
+        const marketsById = this.markets_by_id;
+        if (marketsById === undefined) {
+            return result;
+        }
+        for(let i = 0; i < summaries.length; i++){
+            const summary = summaries[i];
+            const marketId = this.safeString(summary, 'symbol');
+            if (marketId !== undefined && marketId in marketsById) {
+                if (marketType === undefined) {
+                    result.push(summary);
+                } else {
+                    const market = this.safeMarket(marketId);
+                    if (market['type'] === marketType) {
+                        result.push(summary);
+                    }
+                }
+            }
+        }
+        return result;
     }
     /**
      * @method
@@ -479500,9 +479770,9 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'high': undefined,
             'low': undefined,
             'bid': this.safeString(ticker, 'bid'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString(ticker, 'bid_size'),
             'ask': this.safeString(ticker, 'ask'),
-            'askVolume': undefined,
+            'askVolume': this.safeString(ticker, 'ask_size'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -479514,6 +479784,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'baseVolume': undefined,
             'quoteVolume': this.safeString(ticker, 'volume_24h'),
             'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': this.safeString(ticker, 'underlying_price'),
             'info': ticker
         }, marketResolved);
     }
@@ -479530,22 +479801,14 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        // the endpoint takes one market id, and ALL answers for every product on
-        // the venue: a single symbol is asked for by name, which is 544 bytes
-        // against 1.6 MB
-        let target = 'ALL';
-        if (symbolsNormalized !== undefined) {
-            const symbolsLength = symbolsNormalized.length;
-            if (symbolsLength === 1) {
-                target = this.market(symbolsNormalized[0])['id'];
-            }
-        }
         const request = {
-            'market': target
+            'market': this.summaryMarketId(symbolsNormalized)
         };
         const response = await this.publicGetMarketsSummary(this.extend(request, params));
         const data = this.safeList(response, 'results', []);
-        return this.parseFundingRates(data, symbolsNormalized);
+        // only a perpetual funds, the other rows are dropped before they are parsed
+        const rows = request['market'] === 'ALL' ? this.filterLoadedSummaries(data, 'swap') : data;
+        return this.parseFundingRates(rows, symbolsNormalized);
     }
     /**
      * @method
@@ -479631,8 +479894,9 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, up to 100 per side, default is 20
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price_tick] aggregate the levels to this price increment, one of the values the market allows
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */ async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -479642,6 +479906,9 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'market': market['id']
         };
+        if (limit !== undefined) {
+            request['depth'] = Math.min(limit, 100);
+        }
         const response = await this.publicGetOrderbookMarket(this.extend(request, params));
         //
         //     {
@@ -479662,9 +479929,6 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //         ]
         //     }
         //
-        if (limit !== undefined) {
-            request['depth'] = limit;
-        }
         const timestamp = this.safeInteger(response, 'last_updated_at');
         const orderbook = this.parseOrderBook(response, market['symbol'], timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'seq_no');
@@ -481753,7 +482017,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
      * @name paradex#fetchAllGreeks
      * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
      * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
-     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the option markets to fetch greeks for, all options are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */ async fetchAllGreeks(symbols = undefined, params = {}) {
@@ -481762,7 +482026,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true, true);
         const request = {
-            'market': 'ALL'
+            'market': this.summaryMarketId(symbolsNormalized)
         };
         const response = await this.publicGetMarketsSummary(this.extend(request, params));
         //
@@ -481800,7 +482064,9 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const results = this.safeList(response, 'results', []);
-        return this.parseAllGreeks(results, symbolsNormalized);
+        // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
+        const rows = request['market'] === 'ALL' ? this.filterLoadedSummaries(results, 'option') : results;
+        return this.parseAllGreeks(rows, symbolsNormalized);
     }
     parseGreeks(greeks, market = undefined) {
         //
@@ -481844,13 +482110,13 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'datetime': this.iso8601(timestamp),
             'delta': this.safeNumber(greeksData, 'delta'),
             'gamma': this.safeNumber(greeksData, 'gamma'),
-            'theta': undefined,
+            'theta': this.safeNumber(greeksData, 'theta'),
             'vega': this.safeNumber(greeksData, 'vega'),
             'rho': this.safeNumber(greeksData, 'rho'),
             'vanna': this.safeNumber(greeksData, 'vanna'),
             'volga': this.safeNumber(greeksData, 'volga'),
-            'bidSize': undefined,
-            'askSize': undefined,
+            'bidSize': this.safeNumber(greeks, 'bid_size'),
+            'askSize': this.safeNumber(greeks, 'ask_size'),
             'bidImpliedVolatility': this.safeNumber(greeks, 'bid_iv'),
             'askImpliedVolatility': this.safeNumber(greeks, 'ask_iv'),
             'markImpliedVolatility': this.safeNumber(greeks, 'mark_iv'),
@@ -481860,6 +482126,147 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'lastPrice': this.safeNumber(greeks, 'last_traded_price'),
             'underlyingPrice': this.safeNumber(greeks, 'underlying_price'),
             'info': greeks
+        };
+    }
+    /**
+     * @method
+     * @name paradex#fetchOption
+     * @description fetches option data that is commonly found in an option chain
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+     */ async fetchOption(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        if (market['option'] !== true) {
+            throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' fetchOption() supports option markets only');
+        }
+        const request = {
+            'market': market['id']
+        };
+        const response = await this.publicGetMarketsSummary(this.extend(request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-25JUN27-86000-C",
+        //                 "mark_price": "10200.41688775",
+        //                 "mark_iv": "0.38613775",
+        //                 "delta": "0.56444713",
+        //                 "greeks": { "delta": "0.5644471336358705", "gamma": "0.000015727298531837943", "vega": "278.58404031445025", "theta": "-28.10779287090323", "rho": "-70.27668935000763", "vanna": "-0.0018540944752723594", "volga": "-0.1676414184328563" },
+        //                 "last_traded_price": "",
+        //                 "bid": "9724.82",
+        //                 "bid_size": "1",
+        //                 "bid_iv": "0.36986",
+        //                 "ask": "10717.12",
+        //                 "ask_size": "1",
+        //                 "ask_iv": "0.4054928",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "0",
+        //                 "created_at": 1792183389215,
+        //                 "underlying_price": "81598.69900987",
+        //                 "open_interest": "0",
+        //                 "funding_rate": "",
+        //                 "price_change_rate_24h": "-0.047715",
+        //                 "future_funding_rate": "0.00009503",
+        //                 "forward_rate": "0.05324806",
+        //                 "risk_free_rate": "0"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'results', []);
+        const chain = this.safeDict(data, 0, {});
+        return this.parseOption(chain, undefined, market);
+    }
+    /**
+     * @method
+     * @name paradex#fetchOptionChain
+     * @description fetches data for an underlying asset that is commonly found in an option chain
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string} code base currency to fetch an option chain for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
+     */ async fetchOptionChain(code, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        // the summary takes one market or all of them, so the chain is cut from the whole venue
+        const request = {
+            'market': 'ALL'
+        };
+        const response = await this.publicGetMarketsSummary(this.extend(request, params));
+        const data = this.safeList(response, 'results', []);
+        const result = {};
+        const prefix = code + '-';
+        for(let i = 0; i < data.length; i++){
+            const entry = data[i];
+            const marketId = this.safeString(entry, 'symbol', '');
+            // the id starts with the base, so the other underlyings are skipped before the market is resolved
+            if (marketId.startsWith(prefix)) {
+                // options left out by options.fetchMarkets.types are rebuilt from their id
+                const market = this.safeMarket(marketId);
+                if (market['option'] === true) {
+                    result[market['symbol']] = this.parseOption(entry, undefined, market);
+                }
+            }
+        }
+        return result;
+    }
+    parseOption(chain, currency = undefined, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-USD-25JUN27-86000-C",
+        //         "mark_price": "10200.41688775",
+        //         "mark_iv": "0.38613775",
+        //         "last_traded_price": "",
+        //         "bid": "9724.82",
+        //         "bid_size": "1",
+        //         "bid_iv": "0.36986",
+        //         "ask": "10717.12",
+        //         "ask_size": "1",
+        //         "ask_iv": "0.4054928",
+        //         "volume_24h": "0",
+        //         "created_at": 1792183389215,
+        //         "underlying_price": "81598.69900987",
+        //         "open_interest": "0",
+        //         "price_change_rate_24h": "-0.047715"
+        //     }
+        //
+        const marketId = this.safeString(chain, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market, undefined, 'option');
+        const timestamp = this.safeInteger(chain, 'created_at');
+        const bid = this.safeString(chain, 'bid');
+        const ask = this.safeString(chain, 'ask');
+        let mid = undefined;
+        if (bid !== undefined && ask !== undefined) {
+            mid = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(bid, ask), '2');
+        }
+        let percentage = this.safeString(chain, 'price_change_rate_24h');
+        if (percentage !== undefined) {
+            percentage = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(percentage, '100');
+        }
+        return {
+            'info': chain,
+            'currency': marketResolved['base'],
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'impliedVolatility': this.safeNumber(chain, 'mark_iv'),
+            'openInterest': this.safeNumber(chain, 'open_interest'),
+            'bidPrice': this.parseNumber(bid),
+            'askPrice': this.parseNumber(ask),
+            'midPrice': this.parseNumber(mid),
+            'markPrice': this.safeNumber(chain, 'mark_price'),
+            'lastPrice': this.safeNumber(chain, 'last_traded_price'),
+            'underlyingPrice': this.safeNumber(chain, 'underlying_price'),
+            'change': undefined,
+            'percentage': this.parseNumber(percentage),
+            'baseVolume': undefined,
+            'quoteVolume': this.safeNumber(chain, 'volume_24h')
         };
     }
     /**
@@ -481961,6 +482368,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [limit] the maximum amount of funding rate structures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times, back from until (default now) to since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */ async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -481969,24 +482377,48 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
+        const rowSpacing = 5000; // the venue records a funding rate observation every five seconds
+        if (paginate) {
+            if (since === undefined) {
+                throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a since argument when paginate is true');
+            }
+            // the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
+            // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
+            const [paginationCalls, paramsCalls] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
+            let endAt = this.safeInteger(paramsCalls, 'until');
+            if (endAt === undefined) {
+                endAt = Math.min(this.milliseconds(), this.sum(since, paginationCalls * 5000 * rowSpacing));
+            }
+            const paramsEndAt = this.extend(this.omit(paramsPaginate, 'until'), {
+                'end_at': endAt
+            });
+            // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
+            const pages = await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, undefined, paramsEndAt, 'next', 'cursor', undefined, 5000);
+            const sortedPages = this.sortBy(pages, 'timestamp');
+            return this.filterBySinceLimit(sortedPages, since, limit);
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id']
         };
+        let pageSize = 1000;
         if (limit !== undefined) {
-            request['page_size'] = Math.min(limit, 5000); // api maximum 5000
-        } else {
-            request['page_size'] = 1000; // max is 5000
+            pageSize = Math.min(limit, 5000); // api maximum 5000
         }
+        request['page_size'] = pageSize;
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
         if (since !== undefined) {
-            request['start_at'] = since;
+            requestUntil['start_at'] = since;
+            // a page holds the newest rows of its range, so a range wider than one page would return the latest
+            // rows and skip since, the range is cut to one page of rows from since
+            const windowEnd = this.sum(since, pageSize * rowSpacing);
+            const endAt = this.safeInteger(requestUntil, 'end_at', windowEnd);
+            if (!('end_at' in requestUntil) || endAt > windowEnd) {
+                requestUntil['end_at'] = windowEnd;
+            }
         }
-        const until = this.safeInteger(params, 'until');
-        const paramsOmitted = until !== undefined ? this.omit(params, 'until') : params;
-        if (until !== undefined) {
-            request['end_at'] = until;
-        }
-        const response = await this.publicGetFundingData(this.extend(request, paramsOmitted));
+        const response = await this.publicGetFundingData(this.extend(requestUntil, paramsUntil));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -482005,12 +482437,16 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         // }
         //
         // every row is one observation of a rate quoted for a whole funding period,
-        // not a settled payment: paradex recomputes it each second and accrues it
-        // into funding_index, so the series cannot be summed
+        // not a settled payment: paradex accrues it into funding_index each second
+        // and records an observation every five seconds, so the series cannot be summed
         const results = this.safeList(response, 'results', []);
+        const next = this.safeString(response, 'next');
         const rates = [];
         for(let i = 0; i < results.length; i++){
             const rate = results[i];
+            if (next !== undefined) {
+                rate['next'] = next; // the cursor helper reads it from info, the last page has none
+            }
             const timestamp = this.safeInteger(rate, 'created_at');
             const datetime = this.iso8601(timestamp);
             rates.push({
@@ -489706,6 +490142,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'exceptions': {
                 'exact': {
                     // General
+                    '401': _base_errors_js__rspack_import_2.PermissionDenied,
                     '500': _base_errors_js__rspack_import_2.ExchangeNotAvailable,
                     '603': _base_errors_js__rspack_import_2.RequestTimeout,
                     '601': _base_errors_js__rspack_import_2.BadRequest,
@@ -489853,7 +490290,12 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                     '12004': _base_errors_js__rspack_import_2.PermissionDenied,
                     '21001': _base_errors_js__rspack_import_2.OperationRejected
                 },
-                'broad': {}
+                'broad': {
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature': _base_errors_js__rspack_import_2.AuthenticationError,
+                    'ApiKey not exist': _base_errors_js__rspack_import_2.AuthenticationError,
+                    'Illegal of ip': _base_errors_js__rspack_import_2.PermissionDenied
+                }
             }
         });
     }
@@ -493299,8 +493741,8 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         if (responseCode !== undefined && responseCode !== '200') {
             const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
         }
         return undefined;
@@ -551751,13 +552193,39 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
             channel = 'orders-algo';
         }
         const orders = await this.watchMultipleWrapper(false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
-        const first = this.safeDict(orders, 0);
-        const tradeSymbol = this.safeString(first, 'symbol');
+        // every symbol shares one orders cache, so filter by the requested symbols and count
+        // per symbol only when exactly one is requested
+        let requestedSymbols = undefined;
+        let countSymbol = undefined;
+        const unifiedSymbols = this.marketSymbols(symbols, undefined, true);
+        if (unifiedSymbols !== undefined) {
+            const symbolsLength = unifiedSymbols.length;
+            if (symbolsLength > 0) {
+                requestedSymbols = unifiedSymbols;
+            }
+            if (symbolsLength === 1) {
+                countSymbol = unifiedSymbols[0];
+            }
+        }
+        let newest = orders;
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(tradeSymbol, limit);
+            if (countSymbol !== undefined) {
+                limitResolved = orders.getLimit(countSymbol, limit);
+            } else {
+                // updated orders move to the end of the shared cache, so the newest entries across all
+                // symbols are exactly this read's updates; take them before filtering by symbol
+                const newCount = orders.getLimit(undefined, undefined);
+                if (newCount === 0) {
+                    // another watcher already took the count, and a limit of 0 would return the whole cache
+                    newest = [];
+                } else {
+                    newest = this.filterBySinceLimit(orders, undefined, newCount, 'timestamp', true);
+                }
+            }
         }
-        return this.filterBySinceLimit(orders, since, limitResolved, 'timestamp', true);
+        const requested = this.filterByArray(newest, 'symbol', requestedSymbols, false);
+        return this.filterBySinceLimit(requested, since, limitResolved, 'timestamp', true);
     }
     handleOrders(client, message) {
         //
@@ -551777,11 +552245,16 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         const arg = this.safeDict(message, 'arg');
         const channelName = this.safeString(arg, 'channel');
         const data = this.safeList(message, 'data');
+        const symbols = [];
         for(let i = 0; i < data.length; i++){
             const order = this.parseWsOrder(this.safeDict(data, i, {}));
             orders.append(order);
+            symbols.push(this.safeString(order, 'symbol', ''));
+        }
+        // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
+        for(let i = 0; i < symbols.length; i++){
             if (channelName !== undefined) {
-                client.resolve(orders, channelName + ':' + this.safeString(order, 'symbol', ''));
+                client.resolve(orders, channelName + ':' + symbols[i]);
             }
             client.resolve(orders, channelName);
         }
@@ -552104,28 +552577,34 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const milliseconds = this.milliseconds();
         const messageHash = 'authenticate_hash';
-        const timestamp = milliseconds.toString();
-        const nonce = 'n_' + timestamp;
-        const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
-        const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_3/* .sha256 */.sc));
-        const request = {
-            'op': 'login',
-            'args': [
-                {
-                    'apiKey': this.apiKey,
-                    'passphrase': this.password,
-                    'timestamp': timestamp,
-                    'nonce': nonce,
-                    'sign': signature
-                }
-            ]
-        };
         const marketType = 'swap'; // for now
         const typeUrls = this.safeDict(this.urls['api']['ws'], marketType, {});
         const url = this.safeString(typeUrls, 'private');
-        await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        const client = this.client(url);
+        const future = client.reusableFuture(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const milliseconds = this.milliseconds();
+            const timestamp = milliseconds.toString();
+            const nonce = 'n_' + timestamp;
+            const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+            const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_3/* .sha256 */.sc));
+            const request = {
+                'op': 'login',
+                'args': [
+                    {
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'nonce': nonce,
+                        'sign': signature
+                    }
+                ]
+            };
+            this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        }
+        return await future;
     }
 }
 //  ---------------------------------------------------------------------------
@@ -553006,6 +553485,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 'watchTradesForSymbols': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchBidsAsks': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': true,
@@ -553620,6 +554100,33 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
             return ticker;
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbolsValue);
+    }
+    /**
+     * @method
+     * @name bybit#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */ async unWatchBidsAsks(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsValue = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const subMessageHashes = [];
+        const marketIds = this.marketIds(symbolsValue);
+        const topics = [];
+        for(let i = 0; i < marketIds.length; i++){
+            const marketId = this.safeString(marketIds, i, '');
+            const symbol = symbolsValue[i];
+            topics.push('orderbook.1.' + marketId);
+            subMessageHashes.push('bidask:' + symbol);
+            messageHashes.push('unsubscribe:bidask:' + symbol);
+        }
+        const url = await this.getUrlByMarketType(symbolsValue[0], false, 'watchBidsAsks', params);
+        return await this.unWatchTopics(url, 'bidsasks', symbolsValue, messageHashes, subMessageHashes, topics, params);
     }
     parseWsBidAsk(orderbook, market = undefined) {
         const timestamp = this.safeInteger(orderbook, 'timestamp');
@@ -599711,8 +600218,8 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */ unWatchMarkPrice(symbol, params = {}) {
-        return this.unWatchMarkPrices([
+     */ async unWatchMarkPrice(symbol, params = {}) {
+        return await this.unWatchMarkPrices([
             symbol
         ], params);
     }

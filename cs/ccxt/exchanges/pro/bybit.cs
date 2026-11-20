@@ -46,6 +46,7 @@ public partial class bybit : ccxt.bybit
                 { "watchTradesForSymbols", true },
                 { "unWatchTicker", true },
                 { "unWatchTickers", true },
+                { "unWatchBidsAsks", true },
                 { "unWatchOHLCV", true },
                 { "unWatchOHLCVForSymbols", true },
                 { "unWatchOrderBook", true },
@@ -709,6 +710,39 @@ public partial class bybit : ccxt.bybit
             return ccxt.BaseExchange.ToTickers(ticker);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsValue));
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsValue = this.marketSymbols(symbols, null, false);
+        List<object> messageHashes = new List<object>() {};
+        List<object> subMessageHashes = new List<object>() {};
+        IList<object> marketIds = this.marketIds(symbolsValue);
+        List<object> topics = new List<object>() {};
+        for (int i = 0; i < (marketIds?.Count ?? 0); i++)
+        {
+            string? marketId = this.safeString(marketIds, i, "");
+            string? symbol = ((string)(symbolsValue != null && i < symbolsValue.Count ? symbolsValue[i] : null));
+            topics.Add(("orderbook.1." + marketId));
+            subMessageHashes.Add(("bidask:" + symbol));
+            messageHashes.Add(("unsubscribe:bidask:" + symbol));
+        }
+        string? url = await this.getUrlByMarketType((symbolsValue != null && 0 < symbolsValue.Count ? symbolsValue[0] : null), false, "watchBidsAsks", parameters);
+        return await this.unWatchTopics(url, "bidsasks", symbolsValue, messageHashes, subMessageHashes, topics, parameters);
     }
 
     public virtual Dictionary<string, object> parseWsBidAsk(ccxt.pro.IOrderBook orderbook, IDictionary<string, object>? market = null)

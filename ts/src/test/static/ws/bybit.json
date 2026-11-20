@@ -220,6 +220,68 @@
                 ]
             }
         ],
+        "unWatchBidsAsks": [
+            {
+                "description": "spot bids asks unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://stream.bybit.com/v5/public/spot",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "unsubscribe",
+                        "conn_id": "dbqr70m38rp9le8vbseg-1q9t7",
+                        "req_id": "1",
+                        "op": "unsubscribe"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "req_id": 1,
+                        "args": [
+                            "orderbook.1.BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "linear swap bids asks of two markets in one unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://stream.bybit.com/v5/public/linear",
+                "messages": [
+                    {
+                        "success": true,
+                        "ret_msg": "",
+                        "conn_id": "dbqr4d82610onevlnn10-2939z",
+                        "req_id": "1",
+                        "op": "unsubscribe"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "req_id": 1,
+                        "args": [
+                            "orderbook.1.BTCUSDT",
+                            "orderbook.1.ETHUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
         "watchTicker": [
             {
                 "description": "linear swap ticker",

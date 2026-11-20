@@ -58,6 +58,7 @@ class bybit extends \ccxt\async\bybit {
                 'watchTradesForSymbols' => true,
                 'unWatchTicker' => true,
                 'unWatchTickers' => true,
+                'unWatchBidsAsks' => true,
                 'unWatchOHLCV' => true,
                 'unWatchOHLCVForSymbols' => true,
                 'unWatchOrderBook' => true,
@@ -713,6 +714,39 @@ class bybit extends \ccxt\async\bybit {
             return $ticker;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsValue);
+    }
+
+    public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_un_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches best bid & ask for $symbols
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         *
+         * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsValue = $this->market_symbols($symbols, null, false);
+        $messageHashes = array();
+        $subMessageHashes = array();
+        $marketIds = $this->market_ids($symbolsValue);
+        $topics = array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $this->safe_string($marketIds, $i, '');
+            $symbol = $symbolsValue[$i];
+            $topics[] = 'orderbook.1.' . $marketId;
+            $subMessageHashes[] = 'bidask:' . $symbol;
+            $messageHashes[] = 'unsubscribe:bidask:' . $symbol;
+        }
+        $url = Async\await($this->get_url_by_market_type($symbolsValue[0], false, 'watchBidsAsks', $params));
+        return Async\await($this->un_watch_topics($url, 'bidsasks', $symbolsValue, $messageHashes, $subMessageHashes, $topics, $params));
     }
 
     public function parse_ws_bid_ask(mixed $orderbook, ?array $market = null): array {

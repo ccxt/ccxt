@@ -1882,6 +1882,10 @@ public class Blofin extends BlofinApi
         String symbol = this.safeSymbol(marketId, marketResolved, "-", (String) null);
         String filled = this.safeString(order, "filledSize");
         String price = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("px", "price", "orderPrice")));
+        if (java.util.Objects.equals(price, "-1"))
+        {
+            price = null; // trigger orders send orderPrice -1 for market execution
+        }
         String average = this.safeString(order, "averagePrice");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String feeCostString = this.safeString(order, "fee");
@@ -1935,6 +1939,7 @@ public class Blofin extends BlofinApi
         mapLiteral6.put("postOnly", postOnly);
         mapLiteral6.put("side", side);
         mapLiteral6.put("price", price);
+        mapLiteral6.put("triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null));
         mapLiteral6.put("stopLossPrice", stopLossPrice);
         mapLiteral6.put("takeProfitPrice", takeProfitPrice);
         mapLiteral6.put("average", average);

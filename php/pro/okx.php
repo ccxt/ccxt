@@ -619,6 +619,10 @@ class okx extends \ccxt\async\okx {
     }
 
     public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_un_watch_mark_price(string $symbol, $params = array()) {
         /**
          *
          * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
@@ -629,7 +633,7 @@ class okx extends \ccxt\async\okx {
          * @param {string} [$params->channel] the channel to unsubscribe from, mark-price by default
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->un_watch_mark_prices(array( $symbol ), $params);
+        return Async\await($this->un_watch_mark_prices(array( $symbol ), $params));
     }
 
     public function un_watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {

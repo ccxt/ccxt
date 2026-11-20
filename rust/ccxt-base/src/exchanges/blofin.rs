@@ -293,6 +293,9 @@ impl crate::exchange::DerivedExchange for Blofin {
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[Value::Str("-".into())]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "filledSize", &[]);
         let mut price: Option<String> = self.safe_string_n_opt(order.clone(), Value::from(vec![Value::Str("px".into()), Value::Str("price".into()), Value::Str("orderPrice".into())]), &[]);
+        if (price.as_deref() == Some("-1")) {
+            price = None; // trigger orders send orderPrice -1 for market execution
+        }
         let mut average: Option<String> = self.safe_string_k_opt(order.clone(), "averagePrice", &[]);
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str());
         let mut feeCostString: Option<String> = self.safe_string_k_opt(order.clone(), "fee", &[]);
@@ -330,7 +333,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let mut reduceOnly: bool = reduceOnlyRaw.as_deref() == Some("true");
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -343,6 +346,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
         m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
