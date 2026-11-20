@@ -450,7 +450,15 @@ public partial class BaseExchange
         //     doubleValue = (double)number;
         // }
         // var doubleValue = Double.Parse(number);
-        var decimalValue = Convert.ToDecimal(number, CultureInfo.InvariantCulture);
+        decimal decimalValue;
+        if (number is string s)
+        {
+            decimalValue = decimal.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            decimalValue = Convert.ToDecimal(number, CultureInfo.InvariantCulture);
+        }
         return decimalValue.ToString(CultureInfo.InvariantCulture); // https://stackoverflow.com/questions/1546113/double-to-string-conversion-without-scientific-notation
     }
 

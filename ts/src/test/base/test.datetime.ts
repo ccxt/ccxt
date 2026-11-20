@@ -211,7 +211,33 @@ function testYmdhms () {
     assert (value === '2025-06-17_01:24:16' || value === '2025-06-17_01:24:17'); // todo: php/py rounds up to 17
 }
 
+function testParseToInt () {
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    assert (exchange.parseToInt ('123.45') === 123);
+    assert (exchange.parseToInt (123.45) === 123);
+    assert (exchange.parseToInt ('123') === 123);
+    assert (exchange.parseToInt (123) === 123);
+    assert (exchange.parseToInt ('0') === 0);
+    assert (exchange.parseToInt (0) === 0);
+    assert (exchange.parseToInt ('-42') === -42);
+    assert (exchange.parseToInt (-42) === -42);
+    assert (exchange.parseToInt ('-42.8') === -42);
+    assert (exchange.parseToInt (-42.8) === -42);
+    assert (exchange.parseToInt ('1e5') === 100000);
+    assert (exchange.parseToInt ('1E-5') === 0);
+    assert (exchange.parseToInt ('2.5e3') === 2500);
+
+    // integers above 2^53 preserve exact precision in Python, PHP, C#, Go and Java
+    if (!exchange.isNode) {
+        assert (exchange.numberToString (exchange.parseToInt ('30000000000000002')) === '30000000000000002');
+    }
+}
+
 function testDatetime () {
+    testParseToInt ();
     testIso8601 ();
     testParse8601 ();
     testParseDate ();
