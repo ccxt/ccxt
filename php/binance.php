@@ -3988,44 +3988,14 @@ class binance extends Exchange {
         return $account;
     }
 
-    public function parse_balance_custom(mixed $response, ?string $type = null, ?string $marginMode = null, bool $isPortfolioMargin = false): array {
+    public function parse_balance_custom(array $response, ?string $type = null, ?string $marginMode = null): array {
         $result = array(
             'info' => $response,
         );
         $timestamp = null;
         $isolated = $marginMode === 'isolated';
         $cross = ($type === 'margin') || ($marginMode === 'cross');
-        if ($isPortfolioMargin) {
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $this->safe_dict($response, $i);
-                $accountPapi = $this->account();
-                $currencyId = $this->safe_string($entry, 'asset');
-                $code = $this->safe_currency_code($currencyId);
-                if ($type === 'linear') {
-                    $accountPapi['free'] = $this->safe_string($entry, 'umWalletBalance');
-                    $accountPapi['used'] = $this->safe_string($entry, 'umUnrealizedPNL');
-                } elseif ($type === 'inverse') {
-                    $accountPapi['free'] = $this->safe_string($entry, 'cmWalletBalance');
-                    $accountPapi['used'] = $this->safe_string($entry, 'cmUnrealizedPNL');
-                } elseif ($cross) {
-                    $borrowed = $this->safe_string($entry, 'crossMarginBorrowed');
-                    $interest = $this->safe_string($entry, 'crossMarginInterest');
-                    $accountPapi['debt'] = Precise::string_add($borrowed, $interest);
-                    $accountPapi['free'] = $this->safe_string($entry, 'crossMarginFree');
-                    $accountPapi['used'] = $this->safe_string($entry, 'crossMarginLocked');
-                    $accountPapi['total'] = $this->safe_string($entry, 'crossMarginAsset');
-                } else {
-                    $usedLinear = $this->safe_string($entry, 'umUnrealizedPNL');
-                    $usedInverse = $this->safe_string($entry, 'cmUnrealizedPNL');
-                    $totalUsed = Precise::string_add($usedLinear, $usedInverse);
-                    $totalWalletBalance = $this->safe_string($entry, 'totalWalletBalance');
-                    $accountPapi['total'] = Precise::string_add($totalUsed, $totalWalletBalance);
-                }
-                if ($code !== null) {
-                    $result[$code] = $accountPapi;
-                }
-            }
-        } elseif (!$isolated && (($type === 'spot') || $cross)) {
+        if (!$isolated && (($type === 'spot') || $cross)) {
             $timestamp = $this->safe_integer($response, 'updateTime');
             $balances = $this->safe_list_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
@@ -4073,6 +4043,53 @@ class binance extends Exchange {
                     $result[$code] = $accountSavings;
                 }
             }
+        } else {
+            $assets = $this->safe_list($response, 'assets', array());
+            return $this->parse_balance_list($assets, $type, $marginMode, false, $response);
+        }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
+        return $this->safe_balance($result);
+    }
+
+    public function parse_balance_list(array $response, ?string $type = null, ?string $marginMode = null, bool $isPortfolioMargin = false, mixed $info = null): array {
+        $result = array(
+            'info' => $response,
+        );
+        if ($info !== null) {
+            $result['info'] = $info;
+        }
+        $cross = ($type === 'margin') || ($marginMode === 'cross');
+        if ($isPortfolioMargin) {
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $this->safe_dict($response, $i);
+                $accountPapi = $this->account();
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                if ($type === 'linear') {
+                    $accountPapi['free'] = $this->safe_string($entry, 'umWalletBalance');
+                    $accountPapi['used'] = $this->safe_string($entry, 'umUnrealizedPNL');
+                } elseif ($type === 'inverse') {
+                    $accountPapi['free'] = $this->safe_string($entry, 'cmWalletBalance');
+                    $accountPapi['used'] = $this->safe_string($entry, 'cmUnrealizedPNL');
+                } elseif ($cross) {
+                    $borrowed = $this->safe_string($entry, 'crossMarginBorrowed');
+                    $interest = $this->safe_string($entry, 'crossMarginInterest');
+                    $accountPapi['debt'] = Precise::string_add($borrowed, $interest);
+                    $accountPapi['free'] = $this->safe_string($entry, 'crossMarginFree');
+                    $accountPapi['used'] = $this->safe_string($entry, 'crossMarginLocked');
+                    $accountPapi['total'] = $this->safe_string($entry, 'crossMarginAsset');
+                } else {
+                    $usedLinear = $this->safe_string($entry, 'umUnrealizedPNL');
+                    $usedInverse = $this->safe_string($entry, 'cmUnrealizedPNL');
+                    $totalUsed = Precise::string_add($usedLinear, $usedInverse);
+                    $totalWalletBalance = $this->safe_string($entry, 'totalWalletBalance');
+                    $accountPapi['total'] = Precise::string_add($totalUsed, $totalWalletBalance);
+                }
+                if ($code !== null) {
+                    $result[$code] = $accountPapi;
+                }
+            }
         } elseif ($type === 'funding') {
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $this->safe_dict($response, $i);
@@ -4090,9 +4107,6 @@ class binance extends Exchange {
             }
         } else {
             $balances = $response;
-            if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
-                $balances = $this->safe_list($response, 'assets', array());
-            }
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $this->safe_dict($balances, $i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -4111,8 +4125,8 @@ class binance extends Exchange {
                 }
             }
         }
-        $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp);
+        $result['timestamp'] = null;
+        $result['datetime'] = null;
         return $this->safe_balance($result);
     }
 
@@ -4159,8 +4173,8 @@ class binance extends Exchange {
             } elseif ($this->is_inverse($type, $subType)) {
                 $type = 'inverse';
             }
-            $isPortfolioMargin = true;
-            $response = $this->papiGetBalance($this->extend($request, $query));
+            $papiResponse = $this->papiGetBalance($this->extend($request, $query));
+            return $this->parse_balance_list($papiResponse, $type, $marginMode, true);
         } elseif ($this->is_linear($type, $subType)) {
             $type = 'linear';
             $useV2 = null;
@@ -4201,7 +4215,8 @@ class binance extends Exchange {
         } elseif ($type === 'savings') {
             $response = $this->sapiGetLendingUnionAccount($this->extend($request, $query));
         } elseif ($type === 'funding') {
-            $response = $this->sapiPostAssetGetFundingAsset($this->extend($request, $query));
+            $fundingResponse = $this->sapiPostAssetGetFundingAsset($this->extend($request, $query));
+            return $this->parse_balance_list($fundingResponse, $type, $marginMode);
         } else {
             $response = $this->privateGetAccount($this->extend($request, $query));
         }
@@ -4385,7 +4400,7 @@ class binance extends Exchange {
         //         },
         //     ]
         //
-        return $this->parse_balance_custom($response, $type, $marginMode, $isPortfolioMargin);
+        return $this->parse_balance_custom($response, $type, $marginMode);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {

@@ -3593,17 +3593,16 @@ class binance extends \ccxt\async\binance {
         //
         //
         $messageHash = $this->safe_string($message, 'id');
-        $rawBalance = null;
         if ((gettype($message['result']) === 'array' && array_keys($message['result']) === array_keys(array_keys($message['result'])))) {
             // account.balance
             $rawBalance = $this->safe_list($message, 'result', array());
-        } else {
-            // account.status
-            $result = $this->safe_dict($message, 'result', array());
-            $rawBalance = $this->safe_list($result, 'assets', array());
+            $client->resolve($this->parseBalanceList($rawBalance), $messageHash);
+            return;
         }
-        $parsedBalances = $this->parseBalanceCustom($rawBalance);
-        $client->resolve($parsedBalances, $messageHash);
+        // account.status
+        $result = $this->safe_dict($message, 'result', array());
+        $assets = $this->safe_list($result, 'assets', array());
+        $client->resolve($this->parseBalanceList($assets), $messageHash);
     }
 
     public function handle_account_status_ws(Client $client, array $message) {

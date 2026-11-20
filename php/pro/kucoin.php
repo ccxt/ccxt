@@ -2944,8 +2944,8 @@ class kucoin extends \ccxt\async\kucoin {
             if (!(is_array($this->balance) && array_key_exists($uniformType ?? '', $this->balance))) {
                 $this->balance[$uniformType] = array();
             }
-            $this->balance[$uniformType]['info'] = $data;
             $balance = $this->safe_dict($this->balance, $uniformType, array());
+            $balance['info'] = $data;
             $timestamp = $this->safe_integer_2($data, 'time', 'timestamp');
             $balance['timestamp'] = $timestamp;
             $balance['datetime'] = $this->iso8601($timestamp);
@@ -2990,8 +2990,8 @@ class kucoin extends \ccxt\async\kucoin {
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
-        $this->balance[$type]['info'] = $data;
         $balance = $this->safe_dict($this->balance, $type, array());
+        $balance['info'] = $data;
         $timestamp = $this->safe_integer_product($data, 'U', 0.000001);
         $balance['timestamp'] = $timestamp;
         $balance['datetime'] = $this->iso8601($timestamp);

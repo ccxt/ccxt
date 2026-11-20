@@ -1915,8 +1915,8 @@ class bingx extends \ccxt\async\bingx {
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
-        $this->balance[$type]['info'] = $data;
         $typeBalance = $this->safe_dict($this->balance, $type, array());
+        $typeBalance['info'] = $data;
         $typeBalance['timestamp'] = $timestamp;
         $typeBalance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($data); $i++) {

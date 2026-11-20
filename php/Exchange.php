@@ -5104,40 +5104,21 @@ class BaseExchange {
         $trades = array();
         $isTriggerOrSLTpOrder = (($this->safe_string($orderDict, 'triggerPrice') !== null || ($this->safe_string($orderDict, 'stopLossPrice') !== null)) || ($this->safe_string($orderDict, 'takeProfitPrice') !== null));
         if ($parseFilled || $parseCost || $shouldParseFees) {
-            $rawTrades = $this->safe_value($orderDict, 'trades', $trades);
             // const oldNumber = this.number;
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            $firstTrade = $this->safe_dict($rawTrades, 0);
+            $firstTrade = $this->safe_dict($this->safe_value($orderDict, 'trades'), 0);
             // parse trades if they haven't already been parsed
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info' ?? '', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id' ?? '', $firstTrade)));
             if (!$tradesAreParsed) {
-                $trades = $this->parse_trades($rawTrades, $market);
+                $trades = $this->parse_trades($this->safe_value($orderDict, 'trades', array()), $market);
             } else {
-                $trades = $rawTrades;
+                $trades = $this->safe_list($orderDict, 'trades', array());
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
-            $tradesLength = 0;
-            $isArray = (gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades)));
-            if ($isArray) {
-                $tradesLength = count($trades);
-            }
-            if ($isArray && ($tradesLength > 0)) {
-                $headTrade = $trades[0];
-                // move properties that are defined in trades up into the order
-                if ($parseSymbol) {
-                    $orderDict['symbol'] = $headTrade['symbol'];
-                }
-                if ($parseSide) {
-                    $orderDict['side'] = $headTrade['side'];
-                }
-                if ($this->safe_string($orderDict, 'type') === null) {
-                    $orderDict['type'] = $headTrade['type'];
-                }
-                if ($this->safe_string($orderDict, 'id') === null) {
-                    $orderDict['id'] = $headTrade['order'];
-                }
+            $tradesLength = count($trades);
+            if ($tradesLength > 0) {
                 if ($parseFilled) {
                     $filled = '0';
                 }
@@ -5146,6 +5127,21 @@ class BaseExchange {
                 }
                 for ($i = 0; $i < count($trades); $i++) {
                     $trade = $trades[$i];
+                    if ($i === 0) {
+                        // move properties that are defined in trades up into the order
+                        if ($parseSymbol) {
+                            $orderDict['symbol'] = $trade['symbol'];
+                        }
+                        if ($parseSide) {
+                            $orderDict['side'] = $trade['side'];
+                        }
+                        if ($this->safe_string($orderDict, 'type') === null) {
+                            $orderDict['type'] = $trade['type'];
+                        }
+                        if ($this->safe_string($orderDict, 'id') === null) {
+                            $orderDict['id'] = $trade['order'];
+                        }
+                    }
                     $tradeAmount = $this->safe_string($trade, 'amount');
                     if ($parseFilled && ($tradeAmount !== null)) {
                         $filled = Precise::string_add($filled, $tradeAmount);
@@ -6174,14 +6170,9 @@ class BaseExchange {
             }
         }
         // fall back to scanning loaded currencies
-        $currenciesToCheck = array();
-        if ($currencyCode === null) {
-            $currenciesToCheck = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        } else {
-            $currenciesToCheck = array( $this->safe_dict($this->currencies, $currencyCode) );
-        }
-        for ($i = 0; $i < count($currenciesToCheck); $i++) {
-            $networks = $this->safe_dict($currenciesToCheck[$i], 'networks', array());
+        if ($currencyCode !== null) {
+            $currencies = array( $this->safe_dict($this->currencies, $currencyCode) );
+            $networks = $this->safe_dict($currencies[0], 'networks', array());
             if (is_array($networks) && array_key_exists($unifiedCode ?? '', $networks)) {
                 return $this->safe_string($networks[$unifiedCode], 'id');
             }
@@ -8253,9 +8244,7 @@ class BaseExchange {
     public function parse_borrow_rate_history(mixed $response, ?string $code, ?int $since, ?int $limit) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $item = $this->safe_dict($response, $i);
-            $borrowRate = $this->parse_borrow_rate($item);
-            $result[] = $borrowRate;
+            $result[] = $this->parse_borrow_rate($this->safe_dict($response, $i));
         }
         $sorted = $this->sort_by($result, 'timestamp');
         return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
@@ -8477,9 +8466,7 @@ class BaseExchange {
     public function parse_open_interests_history(mixed $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $interest = $this->parse_open_interest($entry, $market);
-            $interests[] = $interest;
+            $interests[] = $this->parse_open_interest($response[$i], $market);
         }
         $sorted = $this->sort_by($interests, 'timestamp');
         $symbol = $this->safe_string($market, 'symbol');
@@ -8669,16 +8656,30 @@ class BaseExchange {
          */
         $depositWithdrawFees = array();
         $isArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-        $responseKeys = $response;
-        if (!$isArray) {
-            $responseKeys = is_array($response) ? array_keys($response) : array();
+        $dictResponse = array();
+        $numEntries = 0;
+        if ($isArray) {
+            $responseLength = count($response);
+            $numEntries = $responseLength;
+        } else {
+            $dictResponse = $response;
         }
-        for ($i = 0; $i < count($responseKeys); $i++) {
-            $entry = $responseKeys[$i];
-            $dictionary = $isArray ? $entry : $response[$entry];
-            $currencyId = $entry;
+        $keys = is_array($dictResponse) ? array_keys($dictResponse) : array();
+        if (!$isArray) {
+            $keysLength = count($keys);
+            $numEntries = $keysLength;
+        }
+        for ($i = 0; $i < $numEntries; $i++) {
+            $dictionary = null;
+            $currencyId = null;
             if ($isArray) {
-                $currencyId = ($currencyIdKey === null) ? null : $this->safe_string($dictionary, $currencyIdKey);
+                $dictionary = $response[$i];
+                if ($currencyIdKey !== null) {
+                    $currencyId = $this->safe_string($dictionary, $currencyIdKey);
+                }
+            } else {
+                $currencyId = $keys[$i];
+                $dictionary = $response[$currencyId];
             }
             $currency = $this->safe_currency($currencyId);
             $code = $this->safe_string($currency, 'code');
@@ -8752,9 +8753,7 @@ class BaseExchange {
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
-            $entry = $incomes[$i];
-            $parsed = $this->parse_income($entry, $market);
-            $result[] = $parsed;
+            $result[] = $this->parse_income($incomes[$i], $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');
         $symbol = $this->safe_string($market, 'symbol');
@@ -9274,8 +9273,7 @@ class BaseExchange {
          */
         $result = array();
         for ($i = 0; $i < count($liquidations); $i++) {
-            $entry = $liquidations[$i];
-            $parsed = $this->parse_liquidation($entry, $market);
+            $parsed = $this->parse_liquidation($liquidations[$i], $market);
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -9311,15 +9309,14 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseOption () is not supported yet');
     }
 
-    public function parse_option_chain(mixed $response, ?string $currencyKey = null, ?string $symbolKey = null) {
+    public function parse_option_chain(array $response, ?string $currencyKey = null, ?string $symbolKey = null) {
         $optionStructures = array();
         for ($i = 0; $i < count($response); $i++) {
-            $info = $response[$i];
-            $currencyId = ($currencyKey === null) ? null : $this->safe_string($info, $currencyKey);
+            $currencyId = ($currencyKey === null) ? null : $this->safe_string($response[$i], $currencyKey);
             $currency = $this->safe_currency($currencyId);
-            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($response[$i], $symbolKey);
             $market = $this->safe_market($marketId, null, null, 'option');
-            $optionStructures[$market['symbol']] = $this->parse_option($info, $currency, $market);
+            $optionStructures[$market['symbol']] = $this->parse_option($response[$i], $currency, $market);
         }
         return $optionStructures;
     }
@@ -9501,17 +9498,16 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseMarginModification() is not supported yet');
     }
 
-    public function parse_margin_modifications(mixed $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
+    public function parse_margin_modifications(array $response, ?array $symbols = null, ?string $symbolKey = null, ?string $marketType = null) {
         $marginModifications = array();
         if ($response === null) {
             return $marginModifications;
         }
         for ($i = 0; $i < count($response); $i++) {
-            $info = $response[$i];
-            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($response[$i], $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketType);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
-                $marginModifications[] = $this->parse_margin_modification($info, $market);
+                $marginModifications[] = $this->parse_margin_modification($response[$i], $market);
             }
         }
         return $marginModifications;

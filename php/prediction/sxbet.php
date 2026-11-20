@@ -1958,7 +1958,7 @@ class sxbet extends Exchange {
         if ($outcomes === null) {
             throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
-        $outcomesList = $outcomes;
+        $outcomesList = ($outcomes === null) ? array() : $outcomes;
         $outcomesLength = count($outcomesList);
         $hashesOrder = array();
         $seenHashes = array();

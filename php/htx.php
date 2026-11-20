@@ -6011,11 +6011,7 @@ class htx extends Exchange {
             $clientOrderIds = $this->safe_value_2($query, 'client-order-id', 'clientOrderId');
             $clientOrderIds = $this->safe_value_2($query, 'client-order-ids', 'clientOrderIds', $clientOrderIds);
             if ($clientOrderIds === null) {
-                if (gettype($clientOrderIds) === 'string') {
-                    $request['order-ids'] = array( $ids );
-                } else {
-                    $request['order-ids'] = $ids;
-                }
+                $request['order-ids'] = $ids;
             } else {
                 if (gettype($clientOrderIds) === 'string') {
                     $request['client-order-ids'] = array( $clientOrderIds );
