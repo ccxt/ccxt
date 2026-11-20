@@ -4857,13 +4857,15 @@ function rustSelfFieldReadClones (content: string): string {
 // (`_t`: the empty container, `_o`: `None`, exactly what the conversion answered for a non-matching member).
 function rustTypedSafeContainerReads (content: string): string {
     const empty: Record<string, RegExp> = { dict: /^Value::Map\(\{\s*let mut m = indexmap::IndexMap::new\(\);\s*m\s*\}\)$/, list: /^Value::from\(vec!\[\]\)$/ };
-    const head = /\bself(?:\.parent)?\.safe_(dict|list)(_k|2)?\(/g;
+    const head = /\bself(?:\.parent)?\.safe_(dict|list|value)(_k|2)?\(/g;
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) {
         const open = m.index + m[0].length;
         const close = balancedCloseIndex (content, open);
         const conv = content.slice (close + 1).match (/^\.into_(opt_)?(dict|list)\(\)/);
-        if (close >= content.length || conv === null || conv[2] !== m[1]) continue;
+        // a `safe_value_k` read with no default taken back as a map is the `safe_dict_k` read (Null / non-map: the empty map)
+        const asDict = m[1] === 'value' && m[2] === '_k' && conv !== null && conv[1] === undefined && conv[2] === 'dict';
+        if (close >= content.length || conv === null || (conv[2] !== m[1] && !asDict) || (m[1] === 'value' && !asDict)) continue;
         const args = content.slice (open, close);
         const tail = args.lastIndexOf (', &[');
         if (tail < 0 || balancedCloseIndex (args, tail + 4) !== args.length - 1) continue;
@@ -4873,7 +4875,8 @@ function rustTypedSafeContainerReads (content: string): string {
         let flat = dflt.replace (/"(?:[^"\\]|\\.)*"/g, '""'), prev = '';
         while (prev !== flat) { prev = flat; flat = flat.replace (/\([^()]*\)|\[[^\[\]]*\]|\{[^{}]*\}/g, ''); }
         if (!plain && /,/.test (flat)) continue;
-        out += content.slice (last, open - 1) + (plain ? '' : '_or') + (conv[1] === undefined ? (plain ? '_t(' : '(') : '_o(') + args.slice (0, tail) + (plain ? ')' : ', ' + dflt + ')');
+        if (asDict && !plain) continue;
+        out += content.slice (last, asDict ? open - 1 - 'value_k'.length : open - 1) + (asDict ? 'dict_k' : '') + (plain ? '' : '_or') + (conv[1] === undefined ? (plain ? '_t(' : '(') : '_o(') + args.slice (0, tail) + (plain ? ')' : ', ' + dflt + ')');
         last = close + 1 + conv[0].length;
         head.lastIndex = last;
     }
