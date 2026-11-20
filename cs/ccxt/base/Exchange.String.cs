@@ -38,7 +38,7 @@ public partial class BaseExchange
         {
             return str;
         }
-        return char.ToUpper(str[0]) + str.Substring(1);
+        return char.ToUpperInvariant(str[0]) + str.Substring(1);
     }
 
 

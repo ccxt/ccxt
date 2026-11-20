@@ -120,12 +120,12 @@ public partial class BaseExchange
                     // create unified endpoint name
                     var listKey = new List<string>() { key };
                     var pathParts = paths.Concat(listKey).Concat(result.Where(x => x.Length > 0));
-                    var completePaths = pathParts.Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
+                    var completePaths = pathParts.Select(x => char.ToUpperInvariant(x[0]) + x.Substring(1)).ToList();
                     var path = string.Join("", completePaths);
-                    path = char.ToLower(path[0]) + path.Substring(1); // lowercase first letter
+                    path = char.ToLowerInvariant(path[0]) + path.Substring(1); // lowercase first letter
                     var apiObj = new List<object>(paths);
                     this.transformedApi[path] = new dict {
-                            { "method", key.ToUpper() },
+                            { "method", key.ToUpperInvariant() },
                             { "path",   endpoint },
                             { "api",    apiObj},
                             { "cost",  cost}
@@ -233,7 +233,7 @@ public partial class BaseExchange
         // set headers
         foreach (string key in headersList)
         {
-            if (key.ToLower() != "content-type")
+            if (key.ToLowerInvariant() != "content-type")
             {
                 request.Headers.TryAddWithoutValidation(key, headers[key].ToString());
             }
