@@ -1503,19 +1503,19 @@ public class Apex extends ApexApi
                 marketResolved = (this.markets == null ? null : ((Map<?, ?>)this.markets).get(marketId));
             } else if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
-                marketResolved = (marketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(marketId));
+                marketResolved = this.safeDict((marketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(marketId)), 0, null);
             } else
             {
                 String newMarketId = this.addHyphenBeforeUsdt((String) (marketId));
                 if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(newMarketId)))
                 {
-                    Object markets = (newMarketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(newMarketId));
-                    Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
-                    if ((numMarkets != null && numMarkets > 0))
+                    List<?> markets = (List<?>) ((newMarketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(newMarketId)));
+                    Integer numMarkets = markets.size();
+                    for (var i = 0; (numMarkets != null && i < numMarkets); i++)
                     {
-                        if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(markets, 0), "id2"), marketId))
+                        if (((i == 0)) && (java.util.Objects.equals(((Map<String, Object>)(markets == null || i < 0 || i >= markets.size() ? null : markets.get(i))).get("id2"), marketId)))
                         {
-                            marketResolved = Helpers.GetValue(markets, 0);
+                            marketResolved = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                         }
                     }
                 }

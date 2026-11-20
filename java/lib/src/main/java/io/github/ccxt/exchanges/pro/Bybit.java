@@ -1662,9 +1662,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+        String symbolResolved = null;
         if (!java.util.Objects.equals(symbol, null))
         {
+            symbolResolved = this.symbol(symbol);
             messageHash = (messageHash + (":" + symbolResolved));
         }
         String url = (this.getUrlByMarketType(symbolResolved, true, method, parameters)).join();
@@ -2325,9 +2326,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         String method = "watchOrders";
         String messageHash = "orders";
-        String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+        String symbolResolved = null;
         if (!java.util.Objects.equals(symbol, null))
         {
+            symbolResolved = this.symbol(symbol);
             messageHash = (messageHash + (":" + symbolResolved));
         }
         String url = (this.getUrlByMarketType(symbolResolved, true, method, parameters)).join();
@@ -2921,7 +2923,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Integer messageHashesLength = ((List<?>)messageHashes).size();
         if (java.util.Objects.equals(topicsLength, messageHashesLength))
         {
-            for (var i = 0; (topicsLength != null && i < topicsLength); i++)
+            for (var i = 0; (messageHashesLength != null && i < messageHashesLength); i++)
             {
                 Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
                 if (!(client.subscriptions.containsKey(messageHash)))

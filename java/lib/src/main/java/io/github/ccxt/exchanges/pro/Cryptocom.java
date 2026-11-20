@@ -1747,7 +1747,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleSubscribe(Client client, Map<String, Object> message)
     {
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "candlestick", "handleOHLCV");
             put( "ticker", "handleTicker");
             put( "trade", "handleTrades");
@@ -1758,22 +1758,32 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             put( "user.balance", "handleBalance");
             put( "user.position_balance", "handlePositions");
         }};
-        Object result = this.safeValue2(message, "result", "info");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict2(message, "result", "info", new HashMap<String, Object>() {{}});
         String channel = this.safeString(result, "channel");
         if ((!java.util.Objects.equals(channel, null)) && ((String)channel).indexOf("user.trade") > -1)
         {
             // channel might be user.trade.BTC_USDT
-            this.handleTrades(client, (Map<String, Object>) (result));
+            this.handleTrades(client, result);
         }
         if ((!java.util.Objects.equals(channel, null)) && (channel.startsWith(((String)"user.order"))))
         {
             // channel might be user.order.BTC_USDT
-            this.handleOrders(client, (Map<String, Object>) (result), (Object) null);
+            this.handleOrders(client, result, (Object) null);
         }
-        Object method = this.safeValue(methods, channel);
+        String method = methods.get(channel);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, result});
+            switch (method)
+            {
+                case "handleBalance" -> this.handleBalance(client, result);
+                case "handleOHLCV" -> this.handleOHLCV(client, result);
+                case "handleOrderBook" -> this.handleOrderBook(client, result);
+                case "handleOrders" -> this.handleOrders(client, result, null);
+                case "handlePositions" -> this.handlePositions(client, result);
+                case "handleTicker" -> this.handleTicker(client, result);
+                case "handleTrades" -> this.handleTrades(client, result);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         }
     }
 

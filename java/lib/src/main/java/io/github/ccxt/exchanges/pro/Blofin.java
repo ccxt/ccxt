@@ -768,6 +768,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         // the merged currencies by safeBalance
         this.balance.put(marketType, this.safeDict(this.balance, marketType, new HashMap<String, Object>() {{}}));
         Map<String, Object> parsed = this.parseWsBalance(message);
+        Map<String, Object> marketBalance = this.safeDict(this.balance, marketType, new HashMap<String, Object>() {{}});
         List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
         List<String> keys = new ArrayList<String>(parsed.keySet());
         for (var i = 0; i < keys.size(); i++)
@@ -777,8 +778,9 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 continue;
             }
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType)), key, (parsed == null || key == null ? null : parsed.get(key)));
+            marketBalance.put(key, (parsed == null || key == null ? null : parsed.get(key)));
         }
+        this.balance.put(marketType, marketBalance);
         this.balance.put(marketType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType))));
         String messageHash = (marketType + ":balance");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType)), messageHash);

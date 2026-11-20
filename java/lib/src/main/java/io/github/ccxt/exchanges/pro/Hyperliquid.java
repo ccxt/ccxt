@@ -1605,14 +1605,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         if (!java.util.Objects.equals(accountType, null))
         {
-            if (java.util.Objects.equals(this.safeValue(this.balance, accountType), null))
+            Map<String, Object> accountBalance = this.safeDict(this.balance, accountType, new HashMap<String, Object>() {{}});
+            if (!java.util.Objects.equals(code, null))
             {
-                this.balance.put(accountType, new HashMap<String, Object>() {{}});
+                accountBalance.put(code, account);
             }
-            if ((!java.util.Objects.equals(accountType, null)) && (!java.util.Objects.equals(code, null)))
-            {
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
-            }
+            this.balance.put(accountType, accountBalance);
         } else
         {
             if (!java.util.Objects.equals(code, null))

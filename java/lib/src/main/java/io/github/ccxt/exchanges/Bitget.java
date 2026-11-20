@@ -12247,7 +12247,7 @@ public class Bitget extends BitgetApi
         String productType = null;
         Boolean uta = null;
         Map<String, Object> response = null;
-        List<Object> result = null;
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> paramsProductType = null;
         Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, parameters);
         productType = productTypeparamsProductTypeVariable.first();

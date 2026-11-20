@@ -1714,6 +1714,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash")), "timestamp", timestamp);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash")), "datetime", this.iso8601(timestamp));
             Map<String, Object> holdingCodes = new HashMap<String, Object>() {{}};
+            Map<String, Object> cashBalance = this.safeDict(this.balance, "cash", new HashMap<String, Object>() {{}});
             for (var i = 0; i < holdingKeys.size(); i++)
             {
                 String key = (holdingKeys == null || i < 0 || i >= holdingKeys.size() ? null : holdingKeys.get(i));
@@ -1723,9 +1724,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 if (!java.util.Objects.equals(code, null))
                 {
                     holdingCodes.put(code, true);
-                    Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("cash")), code, newAccount);
+                    cashBalance.put(code, newAccount);
                 }
             }
+            this.balance.put("cash", cashBalance);
             this.balance.put("cash", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("cash")), holdingCodes));
             this.balance.put("cash", this.safeBalance(this.balance.get("cash")));
             updatedBalance = this.balance.get("cash");
@@ -1738,6 +1740,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), "timestamp", timestamp);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), "datetime", this.iso8601(timestamp));
             Map<String, Object> futuresSymbols = new HashMap<String, Object>() {{}};
+            Map<String, Object> marginBalance = this.safeDict(this.balance, "margin", new HashMap<String, Object>() {{}});
             for (var i = 0; i < futuresKeys.size(); i++)
             {
                 String key = (futuresKeys == null || i < 0 || i >= futuresKeys.size() ? null : futuresKeys.get(i));
@@ -1755,8 +1758,9 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     futuresSymbols.put(symbol, true);
                     symbolAccounts.put(code, newAccount);
                 }
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("margin")), symbol, symbolAccounts);
+                marginBalance.put(symbol, symbolAccounts);
             }
+            this.balance.put("margin", marginBalance);
             this.balance.put("margin", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("margin")), futuresSymbols));
             this.balance.put("margin", this.safeBalance(this.balance.get("margin")));
             client.resolve(this.balance.get("margin"), (messageHash + ":futures"));
@@ -1774,6 +1778,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), "timestamp", timestamp);
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), "datetime", this.iso8601(timestamp));
             Map<String, Object> flexCodes = new HashMap<String, Object>() {{}};
+            Map<String, Object> flexBalance = this.safeDict(this.balance, "flex", new HashMap<String, Object>() {{}});
             for (var i = 0; i < flexFuturesKeys.size(); i++)
             {
                 String key = (flexFuturesKeys == null || i < 0 || i >= flexFuturesKeys.size() ? null : flexFuturesKeys.get(i));
@@ -1786,9 +1791,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 if (!java.util.Objects.equals(code, null))
                 {
                     flexCodes.put(code, true);
-                    Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get("flex")), code, newAccount);
+                    flexBalance.put(code, newAccount);
                 }
             }
+            this.balance.put("flex", flexBalance);
             this.balance.put("flex", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("flex")), flexCodes));
             this.balance.put("flex", this.safeBalance(this.balance.get("flex")));
             client.resolve(this.balance.get("flex"), (messageHash + ":flex_futures"));

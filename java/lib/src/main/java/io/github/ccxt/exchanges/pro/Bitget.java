@@ -3042,11 +3042,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     String debts = this.safeString(entry, "debts");
                     if ((!java.util.Objects.equals(borrow, null)) || (!java.util.Objects.equals(debts, null)))
                     {
-                        Helpers.addElementToObject(coinAccount, "debt", Precise.stringAdd(borrow, debts));
+                        coinAccount.put("debt", Precise.stringAdd(borrow, debts));
                     }
-                    Helpers.addElementToObject(coinAccount, "free", this.safeString(entry, "available"));
-                    Helpers.addElementToObject(coinAccount, "used", this.safeString(entry, "locked"));
-                    Helpers.addElementToObject(coinAccount, "total", this.safeString(entry, "balance"));
+                    coinAccount.put("free", this.safeString(entry, "available"));
+                    coinAccount.put("used", this.safeString(entry, "locked"));
+                    coinAccount.put("total", this.safeString(entry, "balance"));
                     if (!java.util.Objects.equals(code, null))
                     {
                         this.balance.put(code, coinAccount);
@@ -3065,16 +3065,16 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 if (!java.util.Objects.equals(borrow, null))
                 {
                     String interest = this.safeString(rawBalance, "interest");
-                    Helpers.addElementToObject(account, "debt", Precise.stringAdd(borrow, interest));
+                    account.put("debt", Precise.stringAdd(borrow, interest));
                 }
                 String freeQuery = "available";
                 if (((Map<?, ?>)rawBalance).containsKey("maxTransferOut"))
                 {
                     freeQuery = "maxTransferOut";
                 }
-                Helpers.addElementToObject(account, "free", this.safeString(rawBalance, freeQuery));
-                Helpers.addElementToObject(account, "total", this.safeString(rawBalance, "equity"));
-                Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "frozen"));
+                account.put("free", this.safeString(rawBalance, freeQuery));
+                account.put("total", this.safeString(rawBalance, "equity"));
+                account.put("used", this.safeString(rawBalance, "frozen"));
                 if (!java.util.Objects.equals(code, null))
                 {
                     this.balance.put(code, account);
