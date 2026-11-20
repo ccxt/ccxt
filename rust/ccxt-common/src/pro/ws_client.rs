@@ -1053,6 +1053,11 @@ impl ClientHandle {
         key.with_key(|key| match (&mut self.subscriptions, key) {
             (Value::Dict(m), Value::Str(k)) => {
                 crate::value::try_ws_subs_write(m, k, &val);
+                // keep the snapshot entry what the live read serves: a dict carries its `__ws_sub_ref` back-reference
+                let val = match (val, &self.url) {
+                    (Value::Dict(mut d), Value::Str(u)) => { Arc::make_mut(&mut d).insert("__ws_sub_ref".to_string(), Value::Str(format!("{}\u{1}{}", u, k).into())); Value::Dict(d) }
+                    (v, _) => v,
+                };
                 Arc::make_mut(m).insert(k.to_string(), val);
             }
             (other, _) => crate::runtime::add_element_to_object(other, key, val),
