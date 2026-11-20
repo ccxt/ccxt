@@ -254,12 +254,8 @@ export default class bithumb extends bithumbRest {
         if (marketId === undefined) {
             return;
         }
-        let symbol: Str = undefined;
-        if (isGenerationTwo) {
-            symbol = this.safeSymbol (marketId, undefined, '-');
-        } else {
-            symbol = this.safeSymbol (marketId, undefined, '_');
-        }
+        const delimiter = isGenerationTwo ? '-' : '_';
+        const symbol = this.safeSymbol (marketId, undefined, delimiter);
         if (symbol === undefined) {
             return;
         }
