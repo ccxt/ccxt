@@ -1480,6 +1480,8 @@ class blofin(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, marketResolved, '-')
         filled = self.safe_string(order, 'filledSize')
         price = self.safe_string_n(order, ['px', 'price', 'orderPrice'])
+        if price == '-1':
+            price = None  # trigger orders send orderPrice -1 for market execution
         average = self.safe_string(order, 'averagePrice')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
@@ -1523,6 +1525,7 @@ class blofin(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,
