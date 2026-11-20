@@ -772,8 +772,9 @@ class cex extends cex$1["default"] {
         }
         const storedOrders = this.orders;
         const ordersBySymbol = this.safeDict(storedOrders.hashmap, symbol, {});
-        let order = this.safeValue(ordersBySymbol, orderId);
+        let order = this.safeDict(ordersBySymbol, orderId);
         if (order === undefined) {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             order = this.parseWsOrderUpdate(data, market);
         }
         order['remaining'] = remains;
@@ -796,8 +797,8 @@ class cex extends cex$1["default"] {
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601(timestamp);
         // a fresh map copy: the cached entry is untyped
-        order = this.safeOrder(this.extend(order, {}));
-        storedOrders.append(order);
+        const parsedOrder = this.safeOrder(this.extend(order, {}));
+        storedOrders.append(parsedOrder);
         const messageHash = 'orders:' + symbol;
         client.resolve(storedOrders, messageHash);
     }

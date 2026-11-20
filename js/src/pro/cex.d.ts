@@ -1,5 +1,5 @@
 import cexRest from '../cex.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
     describe(): Dict;
@@ -100,7 +100,7 @@ export default class cex extends cexRest {
     handleMyTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleOrderUpdate(client: Client, message: Dict): void;
-    parseWsOrderUpdate(order: Dict, market?: Market): Order | undefined;
+    parseWsOrderUpdate(order: Dict, market?: Market): NullableDict;
     fromPrecision(amount: any, scale: any): Str;
     currencyFromPrecision(currency: string, amount: any): Str;
     handleOrdersSnapshot(client: Client, message: Dict): void;

@@ -883,7 +883,7 @@ export declare class BaseExchange {
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     throwExactlyMatchedException(exact: Dict, string: Str, message: Str): void;
     throwBroadlyMatchedException(broad: Dict, string: Str, message: Str): void;
-    findBroadlyMatchedKey(broad: Dict, string: Str): Str;
+    findBroadlyMatchedKey(broad: Dict, errorString: Str): Str;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
     fetchSpotTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;

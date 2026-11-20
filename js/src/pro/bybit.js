@@ -2320,10 +2320,11 @@ export default class bybit extends bybitRest {
                 this.balance[account] = {};
             }
             this.balance[account]['info'] = info;
+            const balance = this.safeDict(this.balance, account, {});
             const timestamp = this.safeInteger(message, 'ts');
-            this.balance[account]['timestamp'] = timestamp;
-            this.balance[account]['datetime'] = this.iso8601(timestamp);
-            this.balance[account] = this.safeBalance(this.balance[account]);
+            balance['timestamp'] = timestamp;
+            balance['datetime'] = this.iso8601(timestamp);
+            this.balance[account] = this.safeBalance(balance);
             messageHash = 'balances:' + account;
             client.resolve(this.balance[account], messageHash);
         }

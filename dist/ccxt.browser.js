@@ -183081,13 +183081,13 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             throw new broad[broadKey](message);
         }
     }
-    findBroadlyMatchedKey(broad, string) {
+    findBroadlyMatchedKey(broad, errorString) {
         // a helper for matching error strings exactly vs broadly
         const keys = Object.keys(broad);
         for(let i = 0; i < keys.length; i++){
             const key = keys[i];
-            if (string !== undefined) {
-                if (string.indexOf(key) >= 0) {
+            if (errorString !== undefined) {
+                if (errorString.indexOf(key) >= 0) {
                     return key;
                 }
             }
@@ -555915,10 +555915,11 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 this.balance[account] = {};
             }
             this.balance[account]['info'] = info;
+            const balance = this.safeDict(this.balance, account, {});
             const timestamp = this.safeInteger(message, 'ts');
-            this.balance[account]['timestamp'] = timestamp;
-            this.balance[account]['datetime'] = this.iso8601(timestamp);
-            this.balance[account] = this.safeBalance(this.balance[account]);
+            balance['timestamp'] = timestamp;
+            balance['datetime'] = this.iso8601(timestamp);
+            this.balance[account] = this.safeBalance(balance);
             messageHash = 'balances:' + account;
             client.resolve(this.balance[account], messageHash);
         } else {
@@ -557369,8 +557370,9 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         }
         const storedOrders = this.orders;
         const ordersBySymbol = this.safeDict(storedOrders.hashmap, symbol, {});
-        let order = this.safeValue(ordersBySymbol, orderId);
+        let order = this.safeDict(ordersBySymbol, orderId);
         if (order === undefined) {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             order = this.parseWsOrderUpdate(data, market);
         }
         order['remaining'] = remains;
@@ -557393,8 +557395,8 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601(timestamp);
         // a fresh map copy: the cached entry is untyped
-        order = this.safeOrder(this.extend(order, {}));
-        storedOrders.append(order);
+        const parsedOrder = this.safeOrder(this.extend(order, {}));
+        storedOrders.append(parsedOrder);
         const messageHash = 'orders:' + symbol;
         client.resolve(storedOrders, messageHash);
     }
