@@ -492,7 +492,7 @@ export default class lighter extends Exchange {
         return [ defaultApiKeyIndex, paramsApiKeyIndex ];
     }
 
-    async handleAccountIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): Promise<[Int, Dict]> {
+    async handleAccountIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): Promise<[int, Dict]> {
         const [ accountIndexOption, paramsAccountIndex ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         let accountIndex: Int = accountIndexOption;
         if (accountIndex === undefined) {
@@ -954,7 +954,7 @@ export default class lighter extends Exchange {
         }
         // non-destructively get values from opts/params
         const accIndexAndParams = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
-        const accountIndex: Int = accIndexAndParams[0];
+        const accountIndex: int = accIndexAndParams[0];
         const apiKeyIndexAndParams = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
         const apiKeyIndex: int = apiKeyIndexAndParams[0];
         // before order-req creation, we need to know account status
