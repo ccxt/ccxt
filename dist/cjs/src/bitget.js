@@ -9647,7 +9647,7 @@ class bitget extends bitget$1["default"] {
         let productType = undefined;
         let uta = undefined;
         let response = undefined;
-        let result = undefined;
+        let result = [];
         let paramsProductType = undefined;
         [productType, paramsProductType] = this.handleProductTypeAndParams(market, params);
         [uta, paramsProductType] = await this.handleUTAAndParams(paramsProductType, 'fetchFundingRateHistory', false);

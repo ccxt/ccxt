@@ -167249,15 +167249,15 @@ class apex extends _abstract_apex_js__rspack_import_0/* ["default"] */.A {
             if (this.markets !== undefined && marketId in this.markets) {
                 marketResolved = this.markets[marketId];
             } else if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
-                marketResolved = this.markets_by_id[marketId];
+                marketResolved = this.safeDict(this.markets_by_id[marketId], 0);
             } else {
                 const newMarketId = this.addHyphenBeforeUsdt(marketId);
                 if (this.markets_by_id !== undefined && newMarketId in this.markets_by_id) {
                     const markets = this.markets_by_id[newMarketId];
                     const numMarkets = markets.length;
-                    if (numMarkets > 0) {
-                        if (markets[0]['id2'] === marketId) {
-                            marketResolved = markets[0];
+                    for(let i = 0; i < numMarkets; i++){
+                        if (i === 0 && markets[i]['id2'] === marketId) {
+                            marketResolved = markets[i];
                         }
                     }
                 }
@@ -249610,7 +249610,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         let productType = undefined;
         let uta = undefined;
         let response = undefined;
-        let result = undefined;
+        let result = [];
         let paramsProductType = undefined;
         [productType, paramsProductType] = this.handleProductTypeAndParams(market, params);
         [uta, paramsProductType] = await this.handleUTAAndParams(paramsProductType, 'fetchFundingRateHistory', false);
@@ -552362,6 +552362,7 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         // the merged currencies by safeBalance
         this.balance[marketType] = this.safeDict(this.balance, marketType, {});
         const parsed = this.parseWsBalance(message);
+        const marketBalance = this.safeDict(this.balance, marketType, {});
         const reserved = [
             'free',
             'used',
@@ -552373,8 +552374,9 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
             if (this.inArray(key, reserved)) {
                 continue;
             }
-            this.balance[marketType][key] = parsed[key];
+            marketBalance[key] = parsed[key];
         }
+        this.balance[marketType] = marketBalance;
         this.balance[marketType] = this.safeBalance(this.balance[marketType]);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);
@@ -555055,8 +555057,9 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = symbol !== undefined ? this.symbol(symbol) : symbol;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
             messageHash += ':' + symbolResolved;
         }
         const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
@@ -555631,8 +555634,9 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const method = 'watchOrders';
         let messageHash = 'orders';
-        const symbolResolved = symbol !== undefined ? this.symbol(symbol) : symbol;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
             messageHash += ':' + symbolResolved;
         }
         const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
@@ -556156,7 +556160,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         const topicsLength = topics.length;
         const messageHashesLength = messageHashes.length;
         if (topicsLength === messageHashesLength) {
-            for(let i = 0; i < topicsLength; i++){
+            for(let i = 0; i < messageHashesLength; i++){
                 const messageHash = messageHashes[i];
                 if (!(messageHash in client.subscriptions)) {
                     newTopics.push(topics[i]);
@@ -564509,7 +564513,7 @@ class cryptocom extends _cryptocom_js__rspack_import_0/* ["default"] */.A {
             'user.balance': this.handleBalance,
             'user.position_balance': this.handlePositions
         };
-        const result = this.safeValue2(message, 'result', 'info');
+        const result = this.safeDict2(message, 'result', 'info', {});
         const channel = this.safeString(result, 'channel');
         if (channel !== undefined && channel.indexOf('user.trade') > -1) {
             // channel might be user.trade.BTC_USDT
@@ -581795,12 +581799,11 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             account['total'] = this.safeString(balance, 'total');
         }
         if (accountType !== undefined) {
-            if (this.safeValue(this.balance, accountType) === undefined) {
-                this.balance[accountType] = {};
+            const accountBalance = this.safeDict(this.balance, accountType, {});
+            if (code !== undefined) {
+                accountBalance[code] = account;
             }
-            if (accountType !== undefined && code !== undefined) {
-                this.balance[accountType][code] = account;
-            }
+            this.balance[accountType] = accountBalance;
         } else {
             if (code !== undefined) {
                 this.balance[code] = account;
@@ -586074,6 +586077,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
             this.balance['cash']['timestamp'] = timestamp;
             this.balance['cash']['datetime'] = this.iso8601(timestamp);
             const holdingCodes = {};
+            const cashBalance = this.safeDict(this.balance, 'cash', {});
             for(let i = 0; i < holdingKeys.length; i++){
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode(key);
@@ -586081,9 +586085,10 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 newAccount['total'] = this.safeString(holding, key);
                 if (code !== undefined) {
                     holdingCodes[code] = true;
-                    this.balance['cash'][code] = newAccount;
+                    cashBalance[code] = newAccount;
                 }
             }
+            this.balance['cash'] = cashBalance;
             this.balance['cash'] = this.pruneStaleBalanceKeys(this.balance['cash'], holdingCodes);
             this.balance['cash'] = this.safeBalance(this.balance['cash']);
             updatedBalance = this.balance['cash'];
@@ -586095,6 +586100,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
             this.balance['margin']['timestamp'] = timestamp;
             this.balance['margin']['datetime'] = this.iso8601(timestamp);
             const futuresSymbols = {};
+            const marginBalance = this.safeDict(this.balance, 'margin', {});
             for(let i = 0; i < futuresKeys.length; i++){
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol(key);
@@ -586110,8 +586116,9 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                     futuresSymbols[symbol] = true;
                     symbolAccounts[code] = newAccount;
                 }
-                this.balance['margin'][symbol] = symbolAccounts;
+                marginBalance[symbol] = symbolAccounts;
             }
+            this.balance['margin'] = marginBalance;
             this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance(this.balance['margin']);
             client.resolve(this.balance['margin'], messageHash + ':futures');
@@ -586127,6 +586134,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
             this.balance['flex']['timestamp'] = timestamp;
             this.balance['flex']['datetime'] = this.iso8601(timestamp);
             const flexCodes = {};
+            const flexBalance = this.safeDict(this.balance, 'flex', {});
             for(let i = 0; i < flexFuturesKeys.length; i++){
                 const key = flexFuturesKeys[i];
                 const flexFuture = this.safeDict(flexFutureCurrencies, key);
@@ -586137,9 +586145,10 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 newAccount['total'] = this.safeString(flexFuture, 'quantity');
                 if (code !== undefined) {
                     flexCodes[code] = true;
-                    this.balance['flex'][code] = newAccount;
+                    flexBalance[code] = newAccount;
                 }
             }
+            this.balance['flex'] = flexBalance;
             this.balance['flex'] = this.pruneStaleBalanceKeys(this.balance['flex'], flexCodes);
             this.balance['flex'] = this.safeBalance(this.balance['flex']);
             client.resolve(this.balance['flex'], messageHash + ':flex_futures');

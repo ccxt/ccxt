@@ -1329,7 +1329,7 @@ class cryptocom extends cryptocom$1["default"] {
             'user.balance': this.handleBalance,
             'user.position_balance': this.handlePositions,
         };
-        const result = this.safeValue2(message, 'result', 'info');
+        const result = this.safeDict2(message, 'result', 'info', {});
         const channel = this.safeString(result, 'channel');
         if ((channel !== undefined) && channel.indexOf('user.trade') > -1) {
             // channel might be user.trade.BTC_USDT

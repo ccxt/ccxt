@@ -1292,12 +1292,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             account['total'] = this.safeString(balance, 'total');
         }
         if (accountType !== undefined) {
-            if (this.safeValue(this.balance, accountType) === undefined) {
-                this.balance[accountType] = {};
+            const accountBalance = this.safeDict(this.balance, accountType, {});
+            if (code !== undefined) {
+                accountBalance[code] = account;
             }
-            if ((accountType !== undefined) && (code !== undefined)) {
-                this.balance[accountType][code] = account;
-            }
+            this.balance[accountType] = accountBalance;
         }
         else {
             if (code !== undefined) {

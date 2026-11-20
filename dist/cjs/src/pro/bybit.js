@@ -1353,8 +1353,9 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
             messageHash += ':' + symbolResolved;
         }
         const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
@@ -1900,8 +1901,9 @@ class bybit extends bybit$1["default"] {
         }
         const method = 'watchOrders';
         let messageHash = 'orders';
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
             messageHash += ':' + symbolResolved;
         }
         const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
@@ -2422,7 +2424,7 @@ class bybit extends bybit$1["default"] {
         const topicsLength = topics.length;
         const messageHashesLength = messageHashes.length;
         if (topicsLength === messageHashesLength) {
-            for (let i = 0; i < topicsLength; i++) {
+            for (let i = 0; i < messageHashesLength; i++) {
                 const messageHash = messageHashes[i];
                 if (!(messageHash in client.subscriptions)) {
                     newTopics.push(topics[i]);

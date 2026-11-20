@@ -181,7 +181,7 @@ export declare class BaseExchange {
             deposit: {};
         };
     };
-    markets_by_id: Dictionary<any> | undefined;
+    markets_by_id: Dictionary<any[]> | undefined;
     symbols: string[];
     ids: Strings;
     currencies: Currencies;
