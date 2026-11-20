@@ -730,6 +730,7 @@ export default class mexc extends Exchange {
      */
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
+    handleMarginModeAndParams(methodName: string, params: Dict, defaultValue: string): [string, Dict];
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     /**
      * @method

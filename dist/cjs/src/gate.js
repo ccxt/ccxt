@@ -4972,7 +4972,10 @@ class gate extends gate$1["default"] {
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('editOrder', market, params);
-        const accountParsed = this.convertTypeToAccount(marketType);
+        let accountParsed = undefined;
+        if (marketType !== undefined) {
+            accountParsed = this.convertTypeToAccount(marketType);
+        }
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(paramsMarketType, 'editOrder', 'unifiedAccount', false);
         const account = isUnifiedAccount ? 'unified' : accountParsed;
         const isLimitOrder = (type === 'limit');

@@ -879,6 +879,7 @@ export declare class BaseExchange {
     handleOption(methodName: string, optionName: string, defaultValue?: any): any;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: Str): [string, Dict];
     handleSubTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: any): [SubType, Dict];
+    handleMarginModeAndParams(methodName: string, params: Dict, defaultValue: string): [string, Dict];
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     throwExactlyMatchedException(exact: Dict, string: Str, message: Str): void;
     throwBroadlyMatchedException(broad: Dict, string: Str, message: Str): void;
@@ -992,7 +993,7 @@ export declare class BaseExchange {
     fetchIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     fetchPremiumIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     handleTimeInForce(params?: Dict): Str;
-    convertTypeToAccount(account: any): any;
+    convertTypeToAccount(account: string): string;
     checkRequiredArgument(methodName: string, argument: any, argumentName: string, options?: string[]): void;
     checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): Dict;

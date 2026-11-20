@@ -761,8 +761,9 @@ class toobit extends toobit$1["default"] {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = this.safeList(message, 'B', []);
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        const typeBalance = this.safeDict(this.balance, type, {});
+        typeBalance['timestamp'] = timestamp;
+        typeBalance['datetime'] = this.iso8601(timestamp);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
@@ -772,10 +773,10 @@ class toobit extends toobit$1["default"] {
             account['used'] = this.safeString(balance, 'l');
             account['free'] = this.safeString(balance, 'f');
             if (code !== undefined) {
-                this.balance[type][code] = account;
+                typeBalance[code] = account;
             }
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(typeBalance);
         client.resolve(this.balance[type], type + ':balance');
     }
     async loadBalanceSnapshot(client, messageHash, marketType) {

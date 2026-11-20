@@ -182288,7 +182288,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     marketId(symbol) {
         const market = this.market(symbol);
         if (market !== undefined) {
-            return market['id'];
+            return this.safeString(market, 'id');
         }
         return symbol;
     }
@@ -184104,13 +184104,13 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          */ const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const lowercaseAccount = account.toLowerCase();
         if (lowercaseAccount in accountsByType) {
-            return accountsByType[lowercaseAccount];
+            return this.safeString(accountsByType, lowercaseAccount, account);
         }
         const markets = this.markets;
         const marketsById = this.markets_by_id;
         if (markets !== undefined && account in markets || marketsById !== undefined && account in marketsById) {
             const market = this.market(account);
-            return market['id'];
+            return this.safeString(market, 'id', account);
         } else {
             return account;
         }
@@ -206986,7 +206986,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (symbolsNormalized !== undefined && (this.isLinear(type, subType) || this.isInverse(type, subType))) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                request['symbol'] = this.marketId(symbolsNormalized[0]);
+                request['symbol'] = this.marketId(this.safeString(symbolsNormalized, 0));
             }
         }
         let response = undefined;
@@ -365167,7 +365167,10 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('editOrder', market, params);
-        const accountParsed = this.convertTypeToAccount(marketType);
+        let accountParsed = undefined;
+        if (marketType !== undefined) {
+            accountParsed = this.convertTypeToAccount(marketType);
+        }
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(paramsMarketType, 'editOrder', 'unifiedAccount', false);
         const account = isUnifiedAccount ? 'unified' : accountParsed;
         const isLimitOrder = type === 'limit';
@@ -411625,12 +411628,12 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
         //        }
         //     }
         //
-        let rawWithdrawals = undefined;
+        let rawWithdrawals = [];
         const result = this.safeValue(response, 'result');
         if (!Array.isArray(result)) {
             rawWithdrawals = this.addPaginationCursorToResult(result);
         } else {
-            rawWithdrawals = result;
+            rawWithdrawals = this.safeList(response, 'result', []);
         }
         return this.parseTransactionsByType('withdrawal', rawWithdrawals, code, since, limit);
     }
@@ -536748,6 +536751,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
+        const balance = this.safeDict(this.balance, accountType, {});
         const B = this.safeList(message, 'B', []);
         for(let i = 0; i < B.length; i++){
             const entry = this.safeDict(B, i);
@@ -536756,13 +536760,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             if (code !== undefined) {
                 const account = this.account();
                 account['total'] = this.safeString(entry, 'b');
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger(message, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance(this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve(this.balance[accountType], accountType + ':balance');
         // --- positions ---
         if (!(accountType in this.positionsByType)) {
@@ -538963,8 +538967,9 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = data;
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        const typeBalance = this.safeDict(this.balance, type, {});
+        typeBalance['timestamp'] = timestamp;
+        typeBalance['datetime'] = this.iso8601(timestamp);
         for(let i = 0; i < data.length; i++){
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
@@ -538974,10 +538979,10 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
             account['used'] = this.safeString(balance, 'lk');
             account['free'] = this.safeString(balance, 'wb');
             if (code !== undefined) {
-                this.balance[type][code] = account;
+                typeBalance[code] = account;
             }
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(typeBalance);
         client.resolve(this.balance[type], type + ':balance');
     }
     // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
@@ -553359,11 +553364,12 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
             const data = this.safeList(message, 'data', []);
             const parsed = this.parseBalanceList(data);
             const parsedKeys = Object.keys(parsed);
+            const balance = this.safeDict(this.balance, tradingAccountId, {});
             for(let i = 0; i < parsedKeys.length; i++){
                 const parsedKey = parsedKeys[i];
-                this.balance[tradingAccountId][parsedKey] = parsed[parsedKey];
+                balance[parsedKey] = parsed[parsedKey];
             }
-            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
+            this.balance[tradingAccountId] = this.safeBalance(balance);
         } else {
             const data = this.safeDict(message, 'data', {});
             const assetId = this.safeString(data, 'assetSymbol');
@@ -589093,9 +589099,10 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
                 this.balance[uniformType] = {};
             }
             this.balance[uniformType]['info'] = data;
+            const balance = this.safeDict(this.balance, uniformType, {});
             const timestamp = this.safeInteger2(data, 'time', 'timestamp');
-            this.balance[uniformType]['timestamp'] = timestamp;
-            this.balance[uniformType]['datetime'] = this.iso8601(timestamp);
+            balance['timestamp'] = timestamp;
+            balance['datetime'] = this.iso8601(timestamp);
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             let used = this.safeString2(data, 'hold', 'holdBalance');
@@ -589107,9 +589114,9 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
             account['used'] = used;
             account['total'] = this.safeString(data, 'total');
             if (code !== undefined) {
-                this.balance[uniformType][code] = account;
+                balance[code] = account;
             }
-            this.balance[uniformType] = this.safeBalance(this.balance[uniformType]);
+            this.balance[uniformType] = this.safeBalance(balance);
             client.resolve(this.balance[uniformType], uniformType + ':balance');
         }
     }
@@ -589137,17 +589144,18 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = data;
+        const balance = this.safeDict(this.balance, type, {});
         const timestamp = this.safeIntegerProduct(data, 'U', 0.000001);
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
         const account = this.account();
         account['free'] = this.safeString(data, 'a');
         account['used'] = this.safeString(data, 'h');
         account['total'] = this.safeString(data, 'b');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         const messageHash = type + ':balance';
         client.resolve(this.balance[type], messageHash);
     }
@@ -600157,10 +600165,10 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         const url = this.getUrl(channel, 'public');
         const fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            const symbol = this.safeString(fundingRate, 'symbol');
+            const fundingSymbol = this.safeString(fundingRate, 'symbol');
             const result = {};
-            if (symbol !== undefined) {
-                result[symbol] = fundingRate;
+            if (fundingSymbol !== undefined) {
+                result[fundingSymbol] = fundingRate;
             }
             return result;
         }
@@ -614277,8 +614285,9 @@ class toobit extends _toobit_js__rspack_import_0/* ["default"] */.A {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = this.safeList(message, 'B', []);
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        const typeBalance = this.safeDict(this.balance, type, {});
+        typeBalance['timestamp'] = timestamp;
+        typeBalance['datetime'] = this.iso8601(timestamp);
         for(let i = 0; i < data.length; i++){
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
@@ -614288,10 +614297,10 @@ class toobit extends _toobit_js__rspack_import_0/* ["default"] */.A {
             account['used'] = this.safeString(balance, 'l');
             account['free'] = this.safeString(balance, 'f');
             if (code !== undefined) {
-                this.balance[type][code] = account;
+                typeBalance[code] = account;
             }
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(typeBalance);
         client.resolve(this.balance[type], type + ':balance');
     }
     async loadBalanceSnapshot(client, messageHash, marketType) {

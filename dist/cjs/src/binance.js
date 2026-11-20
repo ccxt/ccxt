@@ -4825,7 +4825,7 @@ class binance extends binance$1["default"] {
         if ((symbolsNormalized !== undefined) && (this.isLinear(type, subType) || this.isInverse(type, subType))) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                request['symbol'] = this.marketId(symbolsNormalized[0]);
+                request['symbol'] = this.marketId(this.safeString(symbolsNormalized, 0));
             }
         }
         let response = undefined;

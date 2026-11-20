@@ -5936,7 +5936,7 @@ class BaseExchange {
     marketId(symbol) {
         const market = this.market(symbol);
         if (market !== undefined) {
-            return market['id'];
+            return this.safeString(market, 'id');
         }
         return symbol;
     }
@@ -7642,13 +7642,13 @@ class BaseExchange {
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const lowercaseAccount = account.toLowerCase();
         if (lowercaseAccount in accountsByType) {
-            return accountsByType[lowercaseAccount];
+            return this.safeString(accountsByType, lowercaseAccount, account);
         }
         const markets = this.markets;
         const marketsById = this.markets_by_id;
         if (((markets !== undefined) && (account in markets)) || ((marketsById !== undefined) && (account in marketsById))) {
             const market = this.market(account);
-            return market['id'];
+            return this.safeString(market, 'id', account);
         }
         else {
             return account;

@@ -668,11 +668,12 @@ class bullish extends bullish$1["default"] {
             const data = this.safeList(message, 'data', []);
             const parsed = this.parseBalanceList(data);
             const parsedKeys = Object.keys(parsed);
+            const balance = this.safeDict(this.balance, tradingAccountId, {});
             for (let i = 0; i < parsedKeys.length; i++) {
                 const parsedKey = parsedKeys[i];
-                this.balance[tradingAccountId][parsedKey] = parsed[parsedKey];
+                balance[parsedKey] = parsed[parsedKey];
             }
-            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
+            this.balance[tradingAccountId] = this.safeBalance(balance);
         }
         else {
             const data = this.safeDict(message, 'data', {});

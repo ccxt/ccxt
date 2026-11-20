@@ -546,6 +546,7 @@ export default class hitbtc extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
+    handleMarginModeAndParams(methodName: string, params: Dict, defaultValue: string): [string, Dict];
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;

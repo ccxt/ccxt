@@ -3254,13 +3254,13 @@ class kraken extends kraken$1["default"] {
         //        }
         //     }
         //
-        let rawWithdrawals = undefined;
+        let rawWithdrawals = [];
         const result = this.safeValue(response, 'result');
         if (!Array.isArray(result)) {
             rawWithdrawals = this.addPaginationCursorToResult(result);
         }
         else {
-            rawWithdrawals = result;
+            rawWithdrawals = this.safeList(response, 'result', []);
         }
         return this.parseTransactionsByType('withdrawal', rawWithdrawals, code, since, limit);
     }

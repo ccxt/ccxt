@@ -406,10 +406,10 @@ class okx extends okx$1["default"] {
         const url = this.getUrl(channel, 'public');
         const fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            const symbol = this.safeString(fundingRate, 'symbol');
+            const fundingSymbol = this.safeString(fundingRate, 'symbol');
             const result = {};
-            if (symbol !== undefined) {
-                result[symbol] = fundingRate;
+            if (fundingSymbol !== undefined) {
+                result[fundingSymbol] = fundingRate;
             }
             return result;
         }

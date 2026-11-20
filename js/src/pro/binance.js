@@ -5778,6 +5778,7 @@ export default class binance extends binanceRest {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
+        const balance = this.safeDict(this.balance, accountType, {});
         const B = this.safeList(message, 'B', []);
         for (let i = 0; i < B.length; i++) {
             const entry = this.safeDict(B, i);
@@ -5786,13 +5787,13 @@ export default class binance extends binanceRest {
             if (code !== undefined) {
                 const account = this.account();
                 account['total'] = this.safeString(entry, 'b');
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger(message, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance(this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve(this.balance[accountType], accountType + ':balance');
         // --- positions ---
         if (!(accountType in this.positionsByType)) {
