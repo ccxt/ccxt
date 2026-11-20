@@ -234,7 +234,7 @@ func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) map[string]a
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.Symbol(this.SafeString(trade, 2))
+	var symbol string = this.Symbol(this.SafeString(trade, 2))
 	var timestamp *int64 = this.SafeTimestamp(trade, 0)
 	var side *string = this.SafeString(trade, 5)
 	var priceString *string = this.SafeString(trade, 3)

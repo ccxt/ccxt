@@ -2255,7 +2255,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	//     ]
 	//
 	var tradingFeesByMarketId map[string]any = this.IndexBy(response, "currency_pair")
-	var tradingFee any = this.SafeDict(tradingFeesByMarketId, market["id"])
+	var tradingFee map[string]any = this.SafeDictMap(tradingFeesByMarketId, market["id"])
 	if tradingFee == nil {
 		tradingFee = map[string]any{}
 	}

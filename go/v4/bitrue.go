@@ -4022,7 +4022,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var requestBody any = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var typeVar string = api[0]
 	var version string = api[1]
 	var access string = api[2]

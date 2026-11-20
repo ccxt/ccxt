@@ -1668,7 +1668,7 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fu
 	var request map[string]any = map[string]any{
 		"type": "metaAndAssetCtxs",
 	}
-	var dexName any = this.GetDexFromSymbols("fetchFundingRates", symbolsNormalized)
+	var dexName *string = this.GetDexFromSymbols("fetchFundingRates", symbolsNormalized)
 	if dexName != nil {
 		request["dex"] = dexName
 	}
@@ -3221,7 +3221,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []any, optionalArgs ...any) 
 		var builder string = "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6"
 		var wallet *string = this.SafeStringLower(this.Options, "builder", strings.ToLower(builder))
 		// when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
-		var feeInt any = (*this.SafeInteger(this.Options, "feeInt", 10))
+		var feeInt int64 = *this.SafeInteger(this.Options, "feeInt", 10)
 		if !(*this.SafeBool(this.Options, "builderFee", true)) {
 			feeInt = 0
 		}
@@ -3458,7 +3458,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id stri
 	}, market)}
 	return nil
 }
-func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) CancelOrdersRequest(ids []string, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @name hyperliquid#cancelOrdersRequest
@@ -3502,7 +3502,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 		}
 	} else {
 		cancelAction["type"] = "cancel"
-		for i := 0; i < GetArrayLength(ids); i++ {
+		for i := 0; i < len(ids); i++ {
 			var o any = this.ParseToNumeric(this.SafeString(ids, i))
 			cancelReq = append(cancelReq, map[string]any{
 				"a": baseId,
@@ -4169,7 +4169,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbol, since, limit))}
 	return nil
 }
-func (this *Hyperliquid) GetDexFromHip3Symbol(market any) any {
+func (this *Hyperliquid) GetDexFromHip3Symbol(market any) *string {
 	var baseName string = *this.SafeString(market, "baseName", "")
 	var part []string = strings.Split(baseName, ":")
 	var partsLength int = len(part)
@@ -4228,7 +4228,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optio
 	if symbol != nil {
 		market = this.Market(symbol)
 		// check if is hip3 symbol
-		var dexName any = this.GetDexFromHip3Symbol(market)
+		var dexName *string = this.GetDexFromHip3Symbol(market)
 		if dexName != nil {
 			request["dex"] = dexName
 		}
@@ -4451,7 +4451,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if symbol != nil {
 		market = this.Market(symbol)
 		// check if is hip3 symbol
-		var dexName any = this.GetDexFromHip3Symbol(market)
+		var dexName *string = this.GetDexFromHip3Symbol(market)
 		if dexName != nil {
 			request["dex"] = dexName
 		}
@@ -5167,7 +5167,7 @@ func (this *Hyperliquid) fetchPositionBody(ch chan AsyncResult[Position], symbol
 	ch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(positions, 0, map[string]any{}))}
 	return nil
 }
-func (this *Hyperliquid) GetDexFromSymbols(methodName string, optionalArgs ...any) any {
+func (this *Hyperliquid) GetDexFromSymbols(methodName string, optionalArgs ...any) *string {
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	if symbols == nil {
@@ -5180,11 +5180,11 @@ func (this *Hyperliquid) GetDexFromSymbols(methodName string, optionalArgs ...an
 	// the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
 	// so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
 	var firstMarket map[string]any = this.Market(symbols[0])
-	var dexName any = this.GetDexFromHip3Symbol(firstMarket)
+	var dexName *string = this.GetDexFromHip3Symbol(firstMarket)
 	for i := 1; i < symbolsLength; i++ {
 		var market map[string]any = this.Market(symbols[i])
-		var currentDexName any = this.GetDexFromHip3Symbol(market)
-		if !IsEqual(currentDexName, dexName) {
+		var currentDexName *string = this.GetDexFromHip3Symbol(market)
+		if currentDexName != dexName && (currentDexName == nil || dexName == nil || *currentDexName != *dexName) {
 			panic(NotSupported(this.Id + " " + methodName + " only supports symbols from one DEX at a time for HIP3 markets"))
 		}
 	}
@@ -5229,7 +5229,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan AsyncResult[[]Position], opt
 		"type": "clearinghouseState",
 		"user": userAddress,
 	}
-	var dexName any = this.GetDexFromSymbols("fetchPositions", symbolsNormalized)
+	var dexName *string = this.GetDexFromSymbols("fetchPositions", symbolsNormalized)
 	if dexName != nil {
 		request["dex"] = dexName
 	}
@@ -6624,7 +6624,7 @@ func (this *Hyperliquid) fetchOpenInterestsBody(ch chan AsyncResult[map[string]O
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	var dexName any = this.GetDexFromSymbols("fetchOpenInterests", symbolsNormalized)
+	var dexName *string = this.GetDexFromSymbols("fetchOpenInterests", symbolsNormalized)
 	if dexName != nil {
 		request["dex"] = dexName
 	}
@@ -6657,7 +6657,7 @@ func (this *Hyperliquid) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()

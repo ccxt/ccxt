@@ -3105,12 +3105,12 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	var productGroup string = this.GetProductGroupFromMarket(market)
 	var marginMode *string = this.SafeString(params, "marginMode")
-	var encodedMarginMode int = func() int {
-		if marginMode != nil && *marginMode == "isolated" {
-			return 0
-		}
-		return 1
-	}()
+	var encodedMarginMode int
+	if marginMode != nil && *marginMode == "isolated" {
+		encodedMarginMode = 0
+	} else {
+		encodedMarginMode = 1
+	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if marginMode != nil {
 			return this.OmitDict(params, "marginMode")
@@ -3118,12 +3118,12 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		return params
 	}()
 	merged, paramsMerged := this.HandleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true)
-	var isMergedMode int = func() int {
-		if merged {
-			return 1
-		}
-		return 0
-	}()
+	var isMergedMode int
+	if merged {
+		isMergedMode = 1
+	} else {
+		isMergedMode = 0
+	}
 	var request map[string]any = map[string]any{
 		"InstrumentID":  market["id"],
 		"ProductGroup":  productGroup,

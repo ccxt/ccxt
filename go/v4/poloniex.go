@@ -5343,7 +5343,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) map[string]any {
 	// shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
 	// cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
 	var bodyJson *string = nil
-	var signedHeaders any = nil
+	var signedHeaders map[string]any = nil
 	if (apiName == "public") || (apiName == "swapPublic") {
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url = url + "?" + this.Urlencode(query)
@@ -5379,7 +5379,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResolved *string = bodyJson
-	var headersResolved any = signedHeaders
+	var headersResolved map[string]any = signedHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

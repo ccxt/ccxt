@@ -2930,7 +2930,7 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) map[string]any {
 	var url string = *apiUrl + endpoint
 	var query string = this.Urlencode(request)
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		if method == "POST" {
@@ -2950,7 +2950,7 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) map[string]any {
 		url += "?" + query
 	}
 	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

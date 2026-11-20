@@ -1155,12 +1155,12 @@ func (this *Nado) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_orders execute
  */
-func (this *Nado) CancelOrdersRequestAsync(ids any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Nado) CancelOrdersRequestAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelOrdersRequestBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Nado) cancelOrdersRequestBody(ch chan AsyncResult[map[string]any], ids any, optionalArgs ...any) any {
+func (this *Nado) cancelOrdersRequestBody(ch chan AsyncResult[map[string]any], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1172,7 +1172,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan AsyncResult[map[string]any], i
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "cancelOrders", "subaccount", "default")
 	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var productIds []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	for i := 0; i < len(ids); i++ {
 		productIds = append(productIds, productId)
 	}
 	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(paramsSubaccount, "cancelOrders", "recvWindow", 5000)

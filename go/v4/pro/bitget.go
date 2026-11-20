@@ -1945,10 +1945,10 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), instType+":positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), instType+":positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
@@ -2331,12 +2331,12 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var isTrigger bool = (channel != nil && *channel == "orders-algo") || (channel != nil && *channel == "ordersAlgo")
-	var stored ccxt.WsArrayCache = func() ccxt.WsArrayCache {
-		if isTrigger {
-			return this.TriggerOrders
-		}
-		return this.Orders
-	}()
+	var stored ccxt.WsArrayCache
+	if isTrigger {
+		stored = this.TriggerOrders
+	} else {
+		stored = this.Orders
+	}
 	var messageHash string = "order"
 	if isTrigger {
 		messageHash = "triggerOrder"

@@ -1396,12 +1396,12 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	var amounts map[string]any = this.OpinionOrderRawAmounts(isMarket, sideStr, amount, price, this.SafeInteger(quoteToken, "decimal", 18))
 	var makerAmount *string = this.SafeString(amounts, "makerAmount")
 	var takerAmount *string = this.SafeString(amounts, "takerAmount")
-	var sideInt int = func() int {
-		if sideStr == "BUY" {
-			return 0
-		}
-		return 1
-	}()
+	var sideInt int
+	if sideStr == "BUY" {
+		sideInt = 0
+	} else {
+		sideInt = 1
+	}
 	var salt *string = this.NumberToString(this.Milliseconds())
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var rest map[string]any = this.OmitDict(params, []any{"postOnly"})
@@ -1416,12 +1416,12 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	// signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
 	var makerLower string = ccxt.ToLower(maker)
 	var walletAddressLower string = strings.ToLower(this.WalletAddress)
-	var signatureType int = func() int {
-		if makerLower == walletAddressLower {
-			return 0
-		}
-		return 2
-	}()
+	var signatureType int
+	if makerLower == walletAddressLower {
+		signatureType = 0
+	} else {
+		signatureType = 2
+	}
 	var order map[string]any = map[string]any{
 		"salt":          salt,
 		"maker":         maker,
@@ -2483,12 +2483,12 @@ func (this *Opinion) Ping(client any) any {
  * @param {int} marketId the numeric binary market id
  * @returns {any} the first resolved payload
  */
-func (this *Opinion) SubscribeOpinionChannelAsync(messageHash string, channel string, marketId any) <-chan ccxt.AsyncResult[any] {
+func (this *Opinion) SubscribeOpinionChannelAsync(messageHash string, channel string, marketId *int64) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeOpinionChannelBody(ch, messageHash, channel, marketId)
 	return ch
 }
-func (this *Opinion) subscribeOpinionChannelBody(ch chan ccxt.AsyncResult[any], messageHash string, channel string, marketId any) any {
+func (this *Opinion) subscribeOpinionChannelBody(ch chan ccxt.AsyncResult[any], messageHash string, channel string, marketId *int64) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -2557,12 +2557,12 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId *int64, outcomeSide *
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes []any = ccxt.SafeListTyped(market, "outcomes")
-			var index int = func() int {
-				if outcomeSide != nil && *outcomeSide == 2 {
-					return 1
-				}
-				return 0
-			}()
+			var index int
+			if outcomeSide != nil && *outcomeSide == 2 {
+				index = 1
+			} else {
+				index = 0
+			}
 			return this.SafeDict(outcomes, index)
 		}
 	}
@@ -2602,7 +2602,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var marketId *int64 = this.SafeInteger(info, "marketId")
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "market.depth.diff"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", sym))
 
@@ -2629,7 +2629,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var future any = this.Watch(url, messageHash, subscribeMsg, subscriptionKey)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next delta
-		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym.(string)], messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*sym], messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])
@@ -2641,12 +2641,12 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
-func (this *Opinion) SeedOrderBookAsync(outcome string, sym any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Opinion) SeedOrderBookAsync(outcome string, sym *string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.seedOrderBookBody(ch, outcome, sym, optionalArgs...)
 	return ch
 }
-func (this *Opinion) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome string, sym any, optionalArgs ...any) any {
+func (this *Opinion) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome string, sym *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
@@ -2663,8 +2663,8 @@ func (this *Opinion) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome s
 	}
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
 	orderbook.Reset(snapshot)
-	if wsKey, ok := sym.(string); ok {
-		this.Orderbooks[wsKey] = orderbook
+	if sym != nil {
+		this.Orderbooks[*sym] = orderbook
 	}
 	return nil
 }
@@ -2736,7 +2736,7 @@ func (this *Opinion) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
 	}
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var marketId *int64 = this.SafeInteger(info, "marketId")
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
 
 	r1 := <-this.SubscribeOpinionChannelAsync(*messageHash, "market.last.price", marketId)
@@ -2816,7 +2816,7 @@ func (this *Opinion) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 	}
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var marketId *int64 = this.SafeInteger(info, "marketId")
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", sym))
 
 	r1 := <-this.SubscribeOpinionChannelAsync(*messageHash, "market.last.trade", marketId)
@@ -2925,7 +2925,7 @@ func (this *Opinion) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		panic(r1.Err)
 	}
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true))}
 	return nil
@@ -3075,7 +3075,7 @@ func (this *Opinion) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true))}
 	return nil

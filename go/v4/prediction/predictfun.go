@@ -1451,7 +1451,7 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predict
 	// The outcome lables are not the same as the outcome indexSet values, so we need to check the indexSet to determine which outcome is being requested
 	var indexSet *int64 = this.SafeInteger(info, "indexSet")
 	var isYesOutcome bool = (indexSet != nil && *indexSet == 1)
-	var outcomeSymbol any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var outcomeSymbol *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	// the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
 	if isYesOutcome {
 		var yesOrderbook map[string]any = this.ParseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1)
@@ -3552,7 +3552,7 @@ func (this *Predictfun) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBook() could not resolve the market id of " + outcome))
 	}
-	var outcomeHandle any = this.SafeOutcomeSymbol(nil, outcomeObj)
+	var outcomeHandle *string = this.SafeOutcomeSymbol(nil, outcomeObj)
 	// the venue publishes one book per market, quoted on the yes side, and the no side is its
 	// complement - so a single subscription serves both outcomes and each waits on its own hash
 	var topic string = "predictOrderbook/" + *marketId
@@ -3804,7 +3804,7 @@ func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var messageHash any = "orders"
-	var outcomeResolved any = outcome
+	var outcomeResolved *string = outcome
 	if outcome != nil {
 
 		r := <-this.LoadOutcomeAsync(outcomeResolved)
@@ -3869,7 +3869,7 @@ func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var messageHash any = "myTrades"
-	var outcomeResolved any = outcome
+	var outcomeResolved *string = outcome
 	if outcome != nil {
 
 		r := <-this.LoadOutcomeAsync(outcomeResolved)

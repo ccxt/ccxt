@@ -1591,12 +1591,12 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"datetime":  this.Iso8601(timestamp),
 		"nonce":     nil,
 	}
-	var priceIndex int = func() int {
-		if this.SafeString(fullRequest, "precision") != nil && *this.SafeString(fullRequest, "precision") == "R0" {
-			return 1
-		}
-		return 0
-	}()
+	var priceIndex int
+	if this.SafeString(fullRequest, "precision") != nil && *this.SafeString(fullRequest, "precision") == "R0" {
+		priceIndex = 1
+	} else {
+		priceIndex = 0
+	}
 	var orders []any = this.ToArray(orderbook)
 	for i := 0; i < len(orders); i++ {
 		var order any = orders[i]
@@ -1896,20 +1896,20 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var tradeLength int = len(tradeList)
 	var isPrivate bool = (tradeLength > 5)
 	var id *string = this.SafeString(tradeList, 0)
-	var amountIndex int = func() int {
-		if isPrivate {
-			return 4
-		}
-		return 2
-	}()
+	var amountIndex int
+	if isPrivate {
+		amountIndex = 4
+	} else {
+		amountIndex = 2
+	}
 	var side string
 	var amountString *string = this.SafeString(tradeList, amountIndex)
-	var priceIndex int = func() int {
-		if isPrivate {
-			return 5
-		}
-		return 3
-	}()
+	var priceIndex int
+	if isPrivate {
+		priceIndex = 5
+	} else {
+		priceIndex = 3
+	}
 	var priceString *string = this.SafeString(tradeList, priceIndex)
 	if strings.HasPrefix(*amountString, "-") {
 		side = "sell"
@@ -1922,20 +1922,18 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var typeVar *string = nil
 	var fee map[string]any = nil
 	var symbol *string = this.SafeSymbol(nil, market)
-	var timestampIndex int = func() int {
-		if isPrivate {
-			return 2
-		}
-		return 1
-	}()
+	var timestampIndex int
+	if isPrivate {
+		timestampIndex = 2
+	} else {
+		timestampIndex = 1
+	}
 	var timestamp *int64 = this.SafeInteger(tradeList, timestampIndex)
 	if isPrivate {
-		var marketId any = func() any {
-			if 1 >= 0 && 1 < len(tradeList) {
-				return tradeList[1]
-			}
-			return nil
-		}()
+		var marketId any = nil
+		if 1 >= 0 && 1 < len(tradeList) {
+			marketId = tradeList[1]
+		}
 		symbol = this.SafeSymbol(marketId)
 		orderId = this.SafeString(tradeList, 3)
 		var maker *int64 = this.SafeInteger(tradeList, 8)
@@ -1954,12 +1952,10 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"cost":     feeCostString,
 			"currency": feeCurrency,
 		}
-		var orderType any = func() any {
-			if 6 >= 0 && 6 < len(tradeList) {
-				return tradeList[6]
-			}
-			return nil
-		}()
+		var orderType any = nil
+		if 6 >= 0 && 6 < len(tradeList) {
+			orderType = tradeList[6]
+		}
 		typeVar = this.SafeString(this.Options["exchangeTypes"], orderType)
 	}
 	return this.SafeTrade(map[string]any{
@@ -4104,7 +4100,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = *apiUrl + "/" + request
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if apiName == "public" {
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
@@ -4126,7 +4122,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -4983,12 +4979,12 @@ func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) OpenI
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var interestLength int = GetArrayLength(interest)
-	var openInterestIndex int = func() int {
-		if interestLength == 23 {
-			return 17
-		}
-		return 18
-	}()
+	var openInterestIndex int
+	if interestLength == 23 {
+		openInterestIndex = 17
+	} else {
+		openInterestIndex = 18
+	}
 	var timestamp *int64 = this.SafeInteger(interest, 1)
 	var marketId *string = this.SafeString(interest, 0)
 	return this.SafeOpenInterest(map[string]any{

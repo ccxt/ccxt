@@ -355,7 +355,7 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	if (base == nil) || (quote == nil) {
 		return
 	}
-	var symbol any = this.Symbol(*base + "/" + *quote)
+	var symbol string = this.Symbol(*base + "/" + *quote)
 	var messageHash *string = this.SafeString(message, "event")
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -366,7 +366,7 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	trades.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	if messageHash != nil {
-		client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add(*messageHash+":", symbol))
+		client.(ccxt.ClientInterface).Resolve(trades, *messageHash+":"+symbol)
 	}
 }
 func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {

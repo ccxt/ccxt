@@ -471,12 +471,12 @@ func (this *Kraken) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Kraken) CancelOrdersWsAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Kraken) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
+func (this *Kraken) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -845,15 +845,15 @@ func (this *Kraken) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
+	var tickers map[string]ccxt.Ticker = r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, symbolValue))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickers[symbolValue]}
 	return nil
 }
 

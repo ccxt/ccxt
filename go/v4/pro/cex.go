@@ -1011,7 +1011,8 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(data, "time")
 	ccxt.AddElementToObject(order, "timestamp", timestamp)
 	ccxt.AddElementToObject(order, "datetime", this.Iso8601(timestamp))
-	order = ccxt.OrderToMap(this.SafeOrder(order))
+	// a fresh map copy: the cached entry is untyped
+	order = ccxt.OrderToMap(this.SafeOrder(this.Extend(order, map[string]any{})))
 	storedOrders.Append(order)
 	var messageHash string = "orders:" + symbol
 	client.(ccxt.ClientInterface).Resolve(storedOrders, messageHash)
@@ -1869,12 +1870,12 @@ func (this *Cex) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cex) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Cex) CancelOrdersWsAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Cex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
+func (this *Cex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)

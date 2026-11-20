@@ -1374,7 +1374,7 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) ma
 	if askSizeStr != nil {
 		askSizeStr = ccxt.Precise.StringDiv(askSizeStr, "1000000")
 	}
-	var outcomeSymbol any = this.SafeOutcomeSymbol(nil, market)
+	var outcomeSymbol *string = this.SafeOutcomeSymbol(nil, market)
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":       outcomeSymbol,
 		"outcomeId":     this.SafeString(market, "outcomeId"),
@@ -3403,7 +3403,7 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 		if priceStr != nil {
 			costStr = ccxt.Precise.StringMul(priceStr, amountStr)
 		}
-		var feedOutcome any = this.SafeOutcomeSymbol(nil, market)
+		var feedOutcome *string = this.SafeOutcomeSymbol(nil, market)
 		return this.SafePredictionTrade(map[string]any{
 			"id":           this.SafeString(trade, "txHash"),
 			"info":         trade,

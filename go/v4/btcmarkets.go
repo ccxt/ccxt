@@ -1993,7 +1993,7 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var request string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
@@ -2031,7 +2031,7 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + request
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,

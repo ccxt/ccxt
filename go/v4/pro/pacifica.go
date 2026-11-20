@@ -331,12 +331,12 @@ func (this *Pacifica) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
  * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Pacifica) CancelOrdersWsAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
+func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)

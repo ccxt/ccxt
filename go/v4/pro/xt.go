@@ -1388,10 +1388,10 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var position map[string]any = ccxt.PositionToMap(this.ParsePosition(data))
 	cache.Append(position)
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "position::contract"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), "position::contract")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray([]any{position}, "symbol", symbols, false)
@@ -1570,10 +1570,10 @@ func (this *Xt) HandleTickers(client any, message map[string]any) map[string]any
 		newTickers = append(newTickers, ticker)
 	}
 	var messageHashStart string = *this.SafeString(message, "topic", "") + "::" + tradeType
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), messageHashStart+"::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), messageHashStart+"::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = nil
 		if 2 >= 0 && 2 < len(parts) {
 			symbolsString = &parts[2]

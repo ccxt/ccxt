@@ -1377,7 +1377,7 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = params
 	var apiName string = api[0]
 	var bodySigned *string = nil
-	var headersSigned any = nil
+	var headersSigned map[string]any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1413,7 +1413,7 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) map[string]any {
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
 		}
 	}
-	var headersResolved any = headersSigned
+	var headersResolved map[string]any = headersSigned
 	var bodyResolved *string = bodySigned
 	return map[string]any{
 		"url":     url,

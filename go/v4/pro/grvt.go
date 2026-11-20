@@ -179,7 +179,7 @@ func (this *Grvt) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, this.Extend(params, map[string]any{
 		"callerMethodName": "watchTicker",
@@ -187,9 +187,9 @@ func (this *Grvt) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
+	var tickers map[string]ccxt.Ticker = r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, symbolValue))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickers[symbolValue]}
 	return nil
 }
 
@@ -530,7 +530,7 @@ func (this *Grvt) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	params["callerMethodName"] = "watchOHLCV"
 
 	r1 := <-this.WatchOHLCVForSymbolsAsync([][]any{[]any{symbolValue, timeframe}}, since, limit, params)
@@ -540,7 +540,7 @@ func (this *Grvt) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var result map[string]any = ccxt.StructResultMap(r1.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(result, symbolValue), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(result[symbolValue], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:
@@ -704,7 +704,7 @@ func (this *Grvt) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchOrderBookForSymbolsAsync([]any{symbolValue}, limit, params)
 	if r1.Err != nil {

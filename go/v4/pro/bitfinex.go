@@ -772,24 +772,24 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var createdKey int = func() int {
-		if isPublic {
-			return 1
-		}
-		return 2
-	}()
-	var priceKey int = func() int {
-		if isPublic {
-			return 3
-		}
-		return 5
-	}()
-	var amountKey int = func() int {
-		if isPublic {
-			return 2
-		}
-		return 4
-	}()
+	var createdKey int
+	if isPublic {
+		createdKey = 1
+	} else {
+		createdKey = 2
+	}
+	var priceKey int
+	if isPublic {
+		priceKey = 3
+	} else {
+		priceKey = 5
+	}
+	var amountKey int
+	if isPublic {
+		amountKey = 2
+	} else {
+		amountKey = 4
+	}
 	marketId = marketResolved["id"]
 	var typeVar *string = this.SafeString(trade, 6)
 	if typeVar != nil {
@@ -1168,12 +1168,12 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 	var asks any = book["asks"]
 	var prec string = *this.SafeString(subscription, "prec", "P0")
 	var isRaw bool = (prec == "R0")
-	var idToCheck int = func() int {
-		if isRaw {
-			return 2
-		}
-		return 0
-	}()
+	var idToCheck int
+	if isRaw {
+		idToCheck = 2
+	} else {
+		idToCheck = 0
+	}
 	// pepperoni pizza from bitfinex
 	for i := 0; i < depth; i++ {
 		var bid []any = ccxt.SafeListTyped(bids, i)

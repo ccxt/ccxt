@@ -2438,12 +2438,12 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 	var settlement map[string]any = ccxt.SafeMapTyped(trade, "settlement")
 	var winner *int64 = this.SafeInteger(settlement, "outcome")
 	var isVoid bool = (winner != nil && *winner == 0)
-	var heldNumber int = func() int {
-		if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
-			return 1
-		}
-		return 2
-	}()
+	var heldNumber int
+	if isBettingOutcomeOne != nil && *isBettingOutcomeOne {
+		heldNumber = 1
+	} else {
+		heldNumber = 2
+	}
 	var won any = func() any {
 		if (winner != nil) && !isVoid {
 			return (winner != nil && *winner == int64(heldNumber))

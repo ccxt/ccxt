@@ -1339,11 +1339,11 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 		}
 		// token ids are ~78 chars each, so cap the batch to keep the URL under common limits
 		var chunkSize *int64 = this.SafeInteger(this.Options, "fetchOutcomesBatchSize", 50)
-		var startIndex any = 0
-		for ccxt.IsLessThan(startIndex, tokenIdsLength) {
-			var endIndex any = this.Sum(startIndex, chunkSize)
-			if ccxt.IsGreaterThan(endIndex, tokenIdsLength) {
-				endIndex = tokenIdsLength
+		var startIndex int64 = 0
+		for startIndex < int64(tokenIdsLength) {
+			var endIndex int64 = startIndex + *chunkSize
+			if endIndex > int64(tokenIdsLength) {
+				endIndex = int64(tokenIdsLength)
 			}
 			var chunk []any = []any{}
 			for i := int(ccxt.ParseInt(startIndex)); ccxt.IsLessThan(i, endIndex); i++ {
@@ -1376,7 +1376,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 				}
 				this.AddMarketsEntry(ccxt.GetValue(mkt, "market"), mkt)
 			}
-			startIndex = this.Sum(startIndex, chunkSize)
+			startIndex = startIndex + *chunkSize
 		}
 		this.PopulateOutcomes()
 	}
@@ -1531,14 +1531,14 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 			}
 		}
 	}
-	var chunkSize *int64 = this.SafeInteger(this.Options, "fetchTickersBatchSize", 200)
+	var chunkSize int64 = *this.SafeInteger(this.Options, "fetchTickersBatchSize", 200)
 	var result map[string]any = map[string]any{}
 	var tokenIdsLength int = len(tokenIds)
-	var startIndex any = 0
-	for ccxt.IsLessThan(startIndex, tokenIdsLength) {
-		var endIndex any = this.Sum(startIndex, chunkSize)
-		if ccxt.IsGreaterThan(endIndex, tokenIdsLength) {
-			endIndex = tokenIdsLength
+	var startIndex int64 = 0
+	for startIndex < int64(tokenIdsLength) {
+		var endIndex int64 = startIndex + chunkSize
+		if endIndex > int64(tokenIdsLength) {
+			endIndex = int64(tokenIdsLength)
 		}
 		var bookParams []any = []any{}
 		for i := int(ccxt.ParseInt(startIndex)); ccxt.IsLessThan(i, endIndex); i++ {
@@ -1610,7 +1610,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 				result[*symbolKey] = ticker
 			}
 		}
-		startIndex = this.Sum(startIndex, chunkSize)
+		startIndex = startIndex + chunkSize
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.PredictionTicker]{Value: ccxt.PredictionTickerMapFromMap(result)}
@@ -1691,7 +1691,7 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 	if (last == nil) || (last != nil && *last == 0) {
 		last = mid
 	}
-	var outcome any = this.SafeOutcomeSymbol(nil, market)
+	var outcome *string = this.SafeOutcomeSymbol(nil, market)
 	var timestamp *int64 = this.SafeInteger(bookData, "timestamp")
 	var quoteVolume *float64 = nil
 	if market != nil {
@@ -2411,7 +2411,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	} else {
 		mkt = this.SafeOutcome(assetId)
 	}
-	var outcome any = this.SafeOutcomeSymbol(nil, mkt)
+	var outcome *string = this.SafeOutcomeSymbol(nil, mkt)
 	var rawTakerOrMaker *string = this.SafeStringLower(trade, "trader_side")
 	var takerOrMaker *string = nil
 	if (rawTakerOrMaker != nil && *rawTakerOrMaker == "taker") || (rawTakerOrMaker != nil && *rawTakerOrMaker == "maker") {
@@ -3102,12 +3102,12 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 	var amounts map[string]any = this.PolymarketOrderRawAmounts(sideStr, amount, priceResolved, tickSize, cost)
 	var makerAmount *string = this.SafeString(amounts, "makerAmount")
 	var takerAmount *string = this.SafeString(amounts, "takerAmount")
-	var sideInt int = func() int {
-		if sideStr == "BUY" {
-			return 0
-		}
-		return 1
-	}()
+	var sideInt int
+	if sideStr == "BUY" {
+		sideInt = 0
+	} else {
+		sideInt = 1
+	}
 	var bytes32Zero string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 	// builder attribution: the order's bytes32 builder field packs the builder fee (bps,
 	// upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is

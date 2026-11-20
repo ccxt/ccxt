@@ -3651,21 +3651,21 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if side != nil {
 		request["side"] = side
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 
 		r1 := <-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivateDeleteApiV1FuturesBatchOrders(this.Extend(request, params))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	} else {
 		var marketTypeValue string = *this.SafeString(market, "type", "")
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + marketTypeValue + " type of markets"))

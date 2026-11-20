@@ -1758,7 +1758,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 		url = *apiUrl4 + "/"
 	}
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if isPublic {
 		url += request
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
@@ -1790,7 +1790,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

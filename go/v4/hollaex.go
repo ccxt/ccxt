@@ -2731,7 +2731,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = *apiUrl + requestPath
 	var requestBody any = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if api[0] == "private" {
 		this.CheckRequiredCredentials()
 		var timeoutMs int64 = this.ParseToInt(this.Timeout)

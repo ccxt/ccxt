@@ -2063,12 +2063,12 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
-		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeMarketType, ":fetchBalanceSnapshot"))
+		r2 := <-client.(ccxt.ClientInterface).Future(*typeMarketType + ":fetchBalanceSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
 	}
-	var messageHash any = ccxt.Add(typeMarketType, ":balance")
+	var messageHash string = *typeMarketType + ":balance"
 	var message any = nil
 
 	r3 := <-this.Watch(url, messageHash, message, typeMarketType)
@@ -2409,7 +2409,7 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {
 		for i := 0; i < len(newPositions); i++ {
 			var position any = newPositions[i]
@@ -2814,7 +2814,7 @@ func (this *Aster) HandleOrder(client any, message any) {
 	var parsed map[string]any = this.ParseWsOrder(message, market)
 	var symbol string = *this.SafeString(market, "symbol", "")
 	cache.Append(parsed)
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {
 		var symbolMessageHash string = messageHash + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(cache, symbolMessageHash)

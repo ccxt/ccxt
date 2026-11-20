@@ -796,8 +796,8 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	}
 	return address
 }
-func (this *BaseExchange) FindMessageHashes(client *Client, element any) any {
-	var result []any = []any{}
+func (this *BaseExchange) FindMessageHashes(client *Client, element any) []string {
+	var result []string = []string{}
 	var messageHashes []string = make([]string, 0, len(client.Futures))
 	for objectKey := range client.Futures {
 		messageHashes = append(messageHashes, objectKey)
@@ -2669,13 +2669,13 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 	}
 	return balance
 }
-func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
+func (this *BaseExchange) SafeOrder(order map[string]any, optionalArgs ...any) Order {
 	// parses numbers as strings
 	// * it is important pass the trades as unparsed rawTrades
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var orderDict any = order
-	if IsEqual(order, nil) {
+	var orderDict map[string]any = order
+	if order == nil {
 		orderDict = map[string]any{}
 	}
 	var amount any = this.OmitZero(this.SafeString(orderDict, "amount"))
@@ -2725,16 +2725,16 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 		if isArray && (tradesLength > 0) {
 			// move properties that are defined in trades up into the order
 			if parseSymbol {
-				AddElementToObject(orderDict, "symbol", GetValue(GetValue(trades, 0), "symbol"))
+				orderDict["symbol"] = GetValue(GetValue(trades, 0), "symbol")
 			}
 			if parseSide {
-				AddElementToObject(orderDict, "side", GetValue(GetValue(trades, 0), "side"))
+				orderDict["side"] = GetValue(GetValue(trades, 0), "side")
 			}
 			if this.SafeString(orderDict, "type") == nil {
-				AddElementToObject(orderDict, "type", GetValue(GetValue(trades, 0), "type"))
+				orderDict["type"] = GetValue(GetValue(trades, 0), "type")
 			}
 			if this.SafeString(orderDict, "id") == nil {
-				AddElementToObject(orderDict, "id", GetValue(GetValue(trades, 0), "order"))
+				orderDict["id"] = GetValue(GetValue(trades, 0), "order")
 			}
 			if parseFilled {
 				filled = "0"
@@ -2806,9 +2806,9 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 			}
 			AppendToArray(&reducedFees, feeCopy)
 		}
-		AddElementToObject(orderDict, "fees", reducedFees)
+		orderDict["fees"] = reducedFees
 		if parseFee && (reducedLength == 1) {
-			AddElementToObject(orderDict, "fee", GetValue(reducedFees, 0))
+			orderDict["fee"] = GetValue(reducedFees, 0)
 		}
 	}
 	if IsEqual(amount, nil) {
@@ -4844,13 +4844,13 @@ func (this *BaseExchange) MarketId(symbol any) any {
 	}
 	return symbol
 }
-func (this *BaseExchange) Symbol(symbol any) any {
+func (this *BaseExchange) Symbol(symbol any) string {
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " symbol() requires a symbol argument"))
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
-	return this.SafeString(market, "symbol", symbol)
+	return *this.SafeString(market, "symbol", symbol)
 }
 
 /* eslint-disable no-unused-vars */
@@ -8526,8 +8526,9 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input []any) any {
 	var uniqueResult map[string]any = map[string]any{}
 	for i := 0; i < len(input); i++ {
 		var entry any = input[i]
-		var id any = this.SafeString(entry, "id")
-		if IsEqual(id, nil) {
+		// safeString treats an empty id as missing, so '' marks an absent id
+		var id string = *this.SafeString(entry, "id", "")
+		if id == "" {
 			var price string = *this.SafeString(entry, "price", "")
 			var amount string = *this.SafeString(entry, "amount", "")
 			var timestamp *string = this.SafeString(entry, "timestamp")
@@ -8538,10 +8539,10 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input []any) any {
 			}
 			// optional parts are empty when absent, separators keep positions distinct
 			id = "t_" + *timestamp + "_" + side + "_"
-			id = Add(id, (price + "_" + amount))
+			id = id + (price + "_" + amount)
 		}
-		if !IsEqual(id, nil) && !(InOp(uniqueResult, id)) {
-			AddElementToObject(uniqueResult, id, entry)
+		if _, ok := uniqueResult[id]; !ok {
+			uniqueResult[id] = entry
 		}
 	}
 	var values []any = nil
@@ -8773,7 +8774,7 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	var fromCurrency map[string]any = nil
 	var toCurrency map[string]any = nil
 	for i := 0; i < len(conversionsArray); i++ {
-		var entry any = DerefScalar(conversionsArray[i])
+		var entry any = conversionsArray[i]
 		var fromId *string
 		if fromCurrencyKey == nil {
 			fromId = nil
@@ -9622,12 +9623,12 @@ func (this *Exchange) cancelOrderWsBody(ch chan AsyncResult[Order], id string, o
 	_ = params
 	panic(NotSupported(this.Id + " cancelOrderWs() is not supported yet"))
 }
-func (this *Exchange) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Exchange) CancelOrdersWsAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Exchange) cancelOrdersWsBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Exchange) cancelOrdersWsBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11473,12 +11474,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048715Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = retRes1048715Recv
-	if retRes1048715 == nil {
+	retRes1048815Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048815 []any = retRes1048815Recv
+	if retRes1048815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048815)}
 	}
 	return nil
 }

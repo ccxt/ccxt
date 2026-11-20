@@ -2232,7 +2232,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 		var stockMessageHashes []any = []any{}
 		for i := 0; i < len(symbolsAndTimeframes); i++ {
 			var stockSymAndTf any = symbolsAndTimeframes[i]
-			var stockSymbolString any = this.Symbol(this.SafeString(stockSymAndTf, 0, ""))
+			var stockSymbolString string = this.Symbol(this.SafeString(stockSymAndTf, 0, ""))
 			var stockMarket map[string]any = this.Market(stockSymbolString)
 			var stockTicker *string = this.SafeString2(stockMarket, "base", "id")
 			var stockTickerString string
@@ -2839,7 +2839,7 @@ func (this *Binance) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, this.Extend(params, map[string]any{
 		"callerMethodName": "watchTicker",
@@ -2881,7 +2881,7 @@ func (this *Binance) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], s
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchMarkPricesAsync([]any{symbolValue}, this.Extend(params, map[string]any{
 		"callerMethodName": "watchMarkPrice",
@@ -6057,9 +6057,9 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		var stockUrl any = this.GetStockWsUrl("user")
 		var stockStreamName string = *stockListenKey + "@orderReport"
 		var stockRequestId int64 = this.RequestId(stockUrl)
-		var stockMessageHash any = "orders"
+		var stockMessageHash string = "orders"
 		if symbol != nil {
-			stockMessageHash = ccxt.Add("orders:", this.Symbol(symbol))
+			stockMessageHash = "orders:" + this.Symbol(symbol)
 		}
 		var stockRequest map[string]any = map[string]any{
 			"method": "SUBSCRIBE",
@@ -6084,17 +6084,18 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(stockOrders, symbol, since, stockLimit, true))}
 		return nil
 	}
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	var market map[string]any = nil
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if symbol != nil {
-			return this.Symbol(symbol)
+			symbolText := this.Symbol(symbol)
+			return &symbolText
 		}
 		return symbol
 	}()
 	if symbol != nil {
 		market = this.Market(symbol)
-		messageHash = ccxt.Add("orders:", this.Symbol(symbol))
+		messageHash = "orders:" + this.Symbol(symbol)
 	}
 	typeVarPtr, subType, paramsValue := this.ResolveAuthType("watchOrders", market, paramsStock)
 	var typeVar any = nil
@@ -7020,10 +7021,10 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
@@ -7670,10 +7671,10 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)

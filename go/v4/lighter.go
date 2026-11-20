@@ -603,9 +603,7 @@ func (this *Lighter) preLoadLighterLibraryBody(ch chan AsyncResult[bool], option
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "loadAccount", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "loadAccount", "apiKeyIndex", "api_key_index")
 
 	r := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, "loadAccount", "accountIndex", "account_index")
 	if r.Err != nil {
@@ -642,18 +640,18 @@ func (this *Lighter) preLoadLighterLibraryBody(ch chan AsyncResult[bool], option
 	ch <- AsyncResult[bool]{Value: loaded}
 	return nil
 }
-func (this *Lighter) HandleApiKeyIndex(params any, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...any) []any {
+func (this *Lighter) HandleApiKeyIndex(params any, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...any) (int64, map[string]any) {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	apiKeyIndexOption, paramsApiKeyIndex := this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
 	var apiKeyIndex *int64 = this.SafeInteger([]any{apiKeyIndexOption}, 0)
 	if (apiKeyIndex != nil) && (*apiKeyIndex >= 4) && (*apiKeyIndex <= 254) {
-		return []any{this.ParseToInt(apiKeyIndex), paramsApiKeyIndex}
+		return this.ParseToInt(apiKeyIndex), paramsApiKeyIndex
 	}
 	// apiKeyIndex = this.randNumber (2);
 	var defaultApiKeyIndex int = 254
 	this.Options["apiKeyIndex"] = defaultApiKeyIndex // default to a value to avoid overriding other keys
-	return []any{defaultApiKeyIndex, paramsApiKeyIndex}
+	return int64(defaultApiKeyIndex), paramsApiKeyIndex
 }
 func (this *Lighter) HandleAccountIndexAsync(params any, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...any) <-chan AsyncResult[[]any] {
 	ch := make(chan AsyncResult[[]any], 1)
@@ -733,9 +731,7 @@ func (this *Lighter) createSubAccountBody(ch chan AsyncResult[map[string]any], n
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "createSubAccount", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "createSubAccount", "apiKeyIndex", "api_key_index")
 	r := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, "createSubAccount", "accountIndex", "account_index")
 	if r.Err != nil {
 		panic(r.Err)
@@ -1043,9 +1039,7 @@ func (this *Lighter) changeApiKeyBody(ch chan AsyncResult[any], optionalArgs ...
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "changeApiKey", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "changeApiKey", "apiKeyIndex", "api_key_index")
 	r := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, "changeApiKey", "accountIndex", "account_index")
 	if r.Err != nil {
 		panic(r.Err)
@@ -1151,9 +1145,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar string, side string,
 	var request map[string]any = map[string]any{
 		"market_index": this.ParseToInt(market["id"]),
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "createOrder", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "createOrder", "apiKeyIndex", "api_key_index")
 	accountIndex, paramsAccountIndex := this.HandleOptionAndParams2(paramsApiKeyIndex, "createOrder", "accountIndex", "account_index")
 	nonce, paramsNonce := this.HandleOptionAndParams(paramsAccountIndex, "createOrder", "nonce")
 	orderExpiryOption, paramsOrderExpiry := this.HandleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0)
@@ -1367,8 +1359,8 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 	accIndexAndParamsRecv, _ := r1.Value, r1.Value != nil
 	var accIndexAndParams []any = accIndexAndParamsRecv
 	var accountIndex any = accIndexAndParams[0]
-	var apiKeyIndexAndParams any = this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
-	var apiKeyIndex any = GetValue(apiKeyIndexAndParams, 0)
+	apiKeyIndexAndParamsSlot0, _ := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
+	apiKeyIndex := apiKeyIndexAndParamsSlot0
 	// before order-req creation, we need to know account status
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
@@ -1561,9 +1553,7 @@ func (this *Lighter) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 			panic(r.Err)
 		}
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "editOrder", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "editOrder", "apiKeyIndex", "api_key_index")
 	r1 := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, "editOrder", "accountIndex", "account_index")
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -3099,9 +3089,7 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var accountIndexparamsAccountIndexVariable []any = accountIndexparamsAccountIndexVariableRecv
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchOpenOrders", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(paramsAccountIndex, "fetchOpenOrders", "apiKeyIndex", "api_key_index")
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
@@ -3214,9 +3202,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	var accountIndexparamsAccountIndexVariable []any = accountIndexparamsAccountIndexVariableRecv
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchClosedOrders", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(paramsAccountIndex, "fetchClosedOrders", "apiKeyIndex", "api_key_index")
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
@@ -3520,9 +3506,7 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 			panic(r.Err)
 		}
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "transfer", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "transfer", "apiKeyIndex", "api_key_index")
 	r1 := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, "transfer", "accountIndex", "account_index")
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -3552,18 +3536,18 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 		amountDecimals = "8"
 	}
 	var amountScaled int64 = this.ParseToInt(Precise.StringMul(this.Pow("10", amountDecimals), this.CurrencyToPrecision(code, amount)))
-	var fromRouteType int = func() int {
-		if fromAccount == "perp" {
-			return 0
-		}
-		return 1
-	}() // 0: perp, 1: spot
-	var toRouteType int = func() int {
-		if toAccount == "perp" {
-			return 0
-		}
-		return 1
-	}()
+	var fromRouteType int
+	if fromAccount == "perp" {
+		fromRouteType = 0
+	} else {
+		fromRouteType = 1
+	} // 0: perp, 1: spot
+	var toRouteType int
+	if toAccount == "perp" {
+		toRouteType = 0
+	} else {
+		toRouteType = 1
+	}
 	var memo *string = this.SafeString(paramsToAccountIndex, "memo", "0x000000000000000000000000000000")
 	var paramsOmitted any = this.Omit(paramsToAccountIndex, []any{"memo"})
 
@@ -3664,9 +3648,7 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	var request map[string]any = map[string]any{
 		"account_index": accountIndex,
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchTransfers", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(paramsAccountIndex, "fetchTransfers", "apiKeyIndex", "api_key_index")
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
@@ -3823,9 +3805,7 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		"account_index": accountIndex,
 		"l1_address":    address,
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchDeposits", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(paramsAccountIndex, "fetchDeposits", "apiKeyIndex", "api_key_index")
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
@@ -3933,9 +3913,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	var request map[string]any = map[string]any{
 		"account_index": accountIndex,
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchWithdrawals", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(paramsAccountIndex, "fetchWithdrawals", "apiKeyIndex", "api_key_index")
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
@@ -4079,9 +4057,7 @@ func (this *Lighter) withdrawBody(ch chan AsyncResult[Transaction], code string,
 			panic(r.Err)
 		}
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "withdraw", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "withdraw", "apiKeyIndex", "api_key_index")
 	r1 := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, "withdraw", "accountIndex", "account_index")
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -4277,9 +4253,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	var accountIndexparamsAccountIndexVariable []any = accountIndexparamsAccountIndexVariableRecv
 	accountIndex := accountIndexparamsAccountIndexVariable[0]
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchMyTrades", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(paramsAccountIndex, "fetchMyTrades", "apiKeyIndex", "api_key_index")
 	var strAccountIndex *string = this.NumberToString(accountIndex)
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 
@@ -4562,9 +4536,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
 		panic(BadRequest(this.Id + " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated"))
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "modifyLeverageAndMarginMode", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "modifyLeverageAndMarginMode", "apiKeyIndex", "api_key_index")
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " modifyLeverageAndMarginMode() requires a symbol argument"))
 	}
@@ -4641,9 +4613,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan AsyncResult[[]map[string]any
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " " + method + " requires a symbol argument"))
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
 	r1 := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, method, "accountIndex", "account_index")
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -4755,9 +4725,7 @@ func (this *Lighter) signAndCancelAllOrdersBody(ch chan AsyncResult[[]map[string
 			panic(r.Err)
 		}
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
 	r1 := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, method, "accountIndex", "account_index")
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -4876,9 +4844,7 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 	if isScheduled && ((timeout < 300000) || (timeout > 1296000000)) {
 		panic(BadRequest(this.Id + " timeout should be between 5 minutes and 15 days, or 0 to cancel the timer."))
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "cancelOrder", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "cancelOrder", "apiKeyIndex", "api_key_index")
 	r1 := <-this.HandleAccountIndexAsync(paramsApiKeyIndex, "cancelAllOrdersAfter", "accountIndex", "account_index")
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -5022,9 +4988,7 @@ func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symb
 			panic(r.Err)
 		}
 	}
-	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "setMargin", "apiKeyIndex", "api_key_index")
-	apiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[0]
-	paramsApiKeyIndex := apiKeyIndexparamsApiKeyIndexVariable[1]
+	apiKeyIndex, paramsApiKeyIndex := this.HandleApiKeyIndex(params, "setMargin", "apiKeyIndex", "api_key_index")
 	var direction *int64 = this.SafeInteger(paramsApiKeyIndex, "direction") // 1 increase margin 0 decrease margin
 	if direction == nil {
 		panic(ArgumentsRequired(this.Id + " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)"))

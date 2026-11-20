@@ -1419,7 +1419,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if api[0] == "public" {
 		url += ".json"
 	} else {
@@ -1446,7 +1446,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResult *string = requestBody
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

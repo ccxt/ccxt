@@ -766,7 +766,7 @@ func (this *Coinbase) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	var name string = "candles"
 
 	r1 := <-this.SubscribeAsync(name, false, symbolValue, params)
@@ -871,7 +871,7 @@ func (this *Coinbase) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	var name string = "market_trades"
 
 	r1 := <-this.SubscribeAsync(name, false, symbolValue, params)
@@ -1167,7 +1167,7 @@ func (this *Coinbase) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	var name string = "level2"
 
 	r1 := <-this.UnSubscribeAsync("orderbook", name, false, symbolValue)

@@ -82,12 +82,12 @@ func (this *Bitvavo) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bitvavo) WatchPublicAsync(name string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bitvavo) WatchPublicAsync(name string, symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicBody(ch, name, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchPublicBody(ch chan ccxt.AsyncResult[any], name string, symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) watchPublicBody(ch chan ccxt.AsyncResult[any], name string, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -383,7 +383,7 @@ func (this *Bitvavo) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchPublicAsync("trades", symbolValue, params)
 	if r1.Err != nil {
@@ -2590,37 +2590,33 @@ func (this *Bitvavo) HandleMarkets(client any, message map[string]any) {
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(markets, messageHash)
 }
-func (this *Bitvavo) BuildMessageHash(action *string, optionalArgs ...any) any {
+func (this *Bitvavo) BuildMessageHash(action *string, optionalArgs ...any) *string {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var methods map[string]any = map[string]any{
-		"privateCreateOrder": this.ActionAndMarketMessageHash,
-		"privateUpdateOrder": this.ActionAndOrderIdMessageHash,
-		"privateCancelOrder": this.ActionAndOrderIdMessageHash,
-		"privateGetOrder":    this.ActionAndOrderIdMessageHash,
-		"privateGetTrades":   this.ActionAndMarketMessageHash,
-	}
-	var method any = this.SafeValue(methods, action)
-	var messageHash any = action
-	if method != nil {
-		messageHash = ccxt.CallDynamically(method, action, params)
+	var messageHash *string = action
+	if (action != nil && *action == "privateCreateOrder") || (action != nil && *action == "privateGetTrades") {
+		actionAndMarketMessageHashText := this.ActionAndMarketMessageHash(action, params)
+		messageHash = &actionAndMarketMessageHashText
+	} else if (action != nil && *action == "privateUpdateOrder") || (action != nil && *action == "privateCancelOrder") || (action != nil && *action == "privateGetOrder") {
+		actionAndOrderIdMessageHashText := this.ActionAndOrderIdMessageHash(action, params)
+		messageHash = &actionAndOrderIdMessageHashText
 	}
 	return messageHash
 }
-func (this *Bitvavo) ActionAndMarketMessageHash(action any, optionalArgs ...any) any {
+func (this *Bitvavo) ActionAndMarketMessageHash(action *string, optionalArgs ...any) string {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var symbol string = *this.SafeString(params, "market", "")
-	return ccxt.Add(action, symbol)
+	return *action + symbol
 }
-func (this *Bitvavo) ActionAndOrderIdMessageHash(action any, optionalArgs ...any) any {
+func (this *Bitvavo) ActionAndOrderIdMessageHash(action *string, optionalArgs ...any) string {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var orderId *string = this.SafeString(params, "orderId")
 	if orderId == nil {
 		panic(ccxt.ExchangeError(this.Id + " privateUpdateOrderMessageHash requires a orderId parameter"))
 	}
-	return ccxt.Add(action, orderId)
+	return *action + *orderId
 }
 func (this *Bitvavo) HandleOrder(client any, message map[string]any) {
 	//
@@ -2807,7 +2803,7 @@ func (this *Bitvavo) HandleErrorMessage(client any, message map[string]any) any 
 	}
 	var code *int64 = this.SafeInteger(error, "errorCode")
 	var action *string = this.SafeString(message, "action")
-	var buildMessage any = this.BuildMessageHash(action, message)
+	var buildMessage *string = this.BuildMessageHash(action, message)
 	var messageHash *string = this.SafeString(message, "requestId", buildMessage)
 	var rejected bool = false
 

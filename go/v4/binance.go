@@ -4420,12 +4420,10 @@ func (this *Binance) Market(symbol any) map[string]any {
 					return MarketTyped(market)
 				}
 			}
-			return MarketTyped(func() any {
-				if 0 >= 0 && 0 < len(markets) {
-					return markets[0]
-				}
-				return nil
-			}())
+			if 0 >= 0 && 0 < len(markets) {
+				return MarketTyped(markets[0])
+			}
+			return MarketTyped(nil)
 		} else if (GetIndexOf(symbol, "/") > -1) && (GetIndexOf(symbol, ":") < 0) {
 			if isLegacy {
 				// support legacy symbols
@@ -7066,12 +7064,12 @@ func (this *Binance) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var inverse *bool = this.SafeBool(market, "inverse", false)
-	var volumeIndex int = func() int {
-		if inverse != nil && *inverse {
-			return 7
-		}
-		return 5
-	}()
+	var volumeIndex int
+	if inverse != nil && *inverse {
+		volumeIndex = 7
+	} else {
+		volumeIndex = 5
+	}
 	return OHLCVFromList([]any{this.SafeInteger2(ohlcv, 0, "openTime"), this.SafeNumber2(ohlcv, 1, "open"), this.SafeNumber2(ohlcv, 2, "high"), this.SafeNumber2(ohlcv, 3, "low"), this.SafeNumber2(ohlcv, 4, "close"), this.SafeNumber2(ohlcv, volumeIndex, "volume")})
 }
 
@@ -7702,12 +7700,12 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 	if limit != nil {
 		var isFutureOrSwap bool = (market["swap"] == true) || (market["future"] == true)
 		var isHistoricalEndpoint bool = (method != nil) && (strings.Index(*method, "GetHistoricalTrades") >= 0)
-		var maxLimitForContractHistorical int = func() int {
-			if isHistoricalEndpoint {
-				return 500
-			}
-			return 1000
-		}()
+		var maxLimitForContractHistorical int
+		if isHistoricalEndpoint {
+			maxLimitForContractHistorical = 500
+		} else {
+			maxLimitForContractHistorical = 1000
+		}
 		request["limit"] = func() any {
 			if isFutureOrSwap {
 				return mathMin(limit, maxLimitForContractHistorical)
@@ -7896,12 +7894,12 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) EditSpotOrderAsync(id string, symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Binance) EditSpotOrderAsync(id string, symbol string, typeVar string, side string, amount *float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editSpotOrderBody(ch, id, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Binance) editSpotOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Binance) editSpotOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, amount *float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -8159,12 +8157,12 @@ func (this *Binance) EditContractOrderRequest(id *string, symbol *string, typeVa
  * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) EditContractOrderAsync(id string, symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Binance) EditContractOrderAsync(id string, symbol string, typeVar string, side string, amount *float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editContractOrderBody(ch, id, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Binance) editContractOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Binance) editContractOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, amount *float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -8274,7 +8272,7 @@ func (this *Binance) EditOrderAsync(id string, symbol string, typeVar string, si
 func (this *Binance) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
@@ -17370,7 +17368,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *baseApiUrl + "/" + path
-	var signedHeaders any = nil
+	var signedHeaders map[string]any = nil
 	var signedBody *string = nil
 	if path == "historicalTrades" {
 		if this.ApiKey != "" {
@@ -17476,7 +17474,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 			url = url + "?" + this.Urlencode(params)
 		}
 	}
-	var headersResolved any = signedHeaders
+	var headersResolved map[string]any = signedHeaders
 	var bodyResolved *string = signedBody
 	return map[string]any{
 		"url":     url,
@@ -21266,7 +21264,7 @@ func (this *Binance) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) EditSpotOrder(id string, symbol string, typeVar string, side string, amount float64, options ...EditSpotOrderOptions) (Order, error) {
+func (this *Binance) EditSpotOrder(id string, symbol string, typeVar string, side string, amount *float64, options ...EditSpotOrderOptions) (Order, error) {
 
 	opts := EditSpotOrderOptionsStruct{}
 
@@ -21299,7 +21297,7 @@ func (this *Binance) EditSpotOrder(id string, symbol string, typeVar string, sid
  * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) EditContractOrder(id string, symbol string, typeVar string, side string, amount float64, options ...EditContractOrderOptions) (Order, error) {
+func (this *Binance) EditContractOrder(id string, symbol string, typeVar string, side string, amount *float64, options ...EditContractOrderOptions) (Order, error) {
 
 	opts := EditContractOrderOptionsStruct{}
 

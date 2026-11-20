@@ -1236,7 +1236,7 @@ func (this *Alpaca) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.FetchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -2492,12 +2492,12 @@ func (this *Alpaca) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }
-func (this *Alpaca) FetchTransactionsHelperAsync(typeVar string, code *string, since any, limit any, params any) <-chan AsyncResult[[]Transaction] {
+func (this *Alpaca) FetchTransactionsHelperAsync(typeVar string, code *string, since *int64, limit *int64, params any) <-chan AsyncResult[[]Transaction] {
 	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchTransactionsHelperBody(ch, typeVar, code, since, limit, params)
 	return ch
 }
-func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code *string, since any, limit any, params any) any {
+func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code *string, since *int64, limit *int64, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	if this.Markets == nil {
@@ -3670,7 +3670,7 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 	var res Transaction = r.Value
 	return res, nil
 }
-func (this *Alpaca) FetchTransactionsHelper(typeVar string, code *string, since int64, limit int64, params any) ([]Transaction, error) {
+func (this *Alpaca) FetchTransactionsHelper(typeVar string, code *string, since *int64, limit *int64, params any) ([]Transaction, error) {
 	r := <-this.FetchTransactionsHelperAsync(typeVar, code, since, limit, params)
 	if r.Err != nil {
 		return nil, r.Err

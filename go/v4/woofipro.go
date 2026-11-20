@@ -3345,12 +3345,12 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		}
 	}
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var maxLimit int = func() int {
-		if isTrigger != nil && *isTrigger {
-			return 100
-		}
-		return 500
-	}()
+	var maxLimit int
+	if isTrigger != nil && *isTrigger {
+		maxLimit = 100
+	} else {
+		maxLimit = 500
+	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	if paginate {
 

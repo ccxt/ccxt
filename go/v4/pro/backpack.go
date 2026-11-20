@@ -1778,12 +1778,12 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 		// stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
 		var market map[string]any = this.Market(symbol)
 		var isStockMarket bool = (market["stock"] == true) || ((marketId != nil) && ((strings.Index(*marketId, ".US_") >= 0) || (strings.Index(*marketId, ".HK_") >= 0)))
-		var defaultSnapshotDelay int = func() int {
-			if isStockMarket {
-				return 0
-			}
-			return 10
-		}()
+		var defaultSnapshotDelay int
+		if isStockMarket {
+			defaultSnapshotDelay = 0
+		} else {
+			defaultSnapshotDelay = 10
+		}
 		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay))
 		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})

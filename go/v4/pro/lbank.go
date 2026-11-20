@@ -916,11 +916,12 @@ func (this *Lbank) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	var key *string = r1.Value
 	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash any = nil
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if symbol == nil {
 			return nil
 		}
-		return this.Symbol(symbol)
+		symbolText := this.Symbol(symbol)
+		return &symbolText
 	}()
 	var message map[string]any = map[string]any{
 		"action":       "subscribe",

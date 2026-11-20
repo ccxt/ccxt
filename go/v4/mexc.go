@@ -2382,12 +2382,12 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var maxLimit int = func() int {
-		if *this.SafeBool(market, "spot", false) {
-			return 500
-		}
-		return 2000
-	}() // docs say 1000 for spot, but in practice it's 500
+	var maxLimit int
+	if *this.SafeBool(market, "spot", false) {
+		maxLimit = 500
+	} else {
+		maxLimit = 2000
+	} // docs say 1000 for spot, but in practice it's 500
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
@@ -3283,7 +3283,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 		}
 	}
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var openType any = (*this.SafeInteger(params, "openType", 2)) // defaulting to cross margin
+	var openType int64 = *this.SafeInteger(params, "openType", 2) // defaulting to cross margin
 	if marginMode != nil {
 		if marginMode != nil && *marginMode == "cross" {
 			openType = 2
@@ -3328,7 +3328,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 		}
 		request["price"] = this.ParseNumber(priceString)
 	}
-	if IsEqual(openType, 1) {
+	if openType == 1 {
 		var leverage *int64 = this.SafeInteger(paramsPostOnly, "leverage")
 		if leverage == nil {
 			panic(ArgumentsRequired(this.Id + " createSwapOrder() requires a leverage parameter for isolated margin orders"))
@@ -3388,7 +3388,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	if (triggerPrice != nil) && (triggerPrice == nil || *triggerPrice != 0) {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		triggerDirection, paramsTriggerDirection := this.HandleTriggerDirectionAndParams(paramsOmitted, "triggerType", true)
-		var triggerType any = (*this.SafeInteger(paramsTriggerDirection, "triggerType", 1))
+		var triggerType int64 = *this.SafeInteger(paramsTriggerDirection, "triggerType", 1)
 		if triggerDirection != nil && *triggerDirection == "ascending" {
 			triggerType = 1
 		} else if triggerDirection != nil && *triggerDirection == "descending" {

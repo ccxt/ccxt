@@ -3655,12 +3655,12 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) (*string, ma
 	paramsSubType = this.Omit(paramsSubType, []any{"productType", "category"})
 	return productType, MapTyped(paramsSubType)
 }
-func (this *Bitget) HandleUTAAndParamsAsync(params any, methodName string, optionalArgs ...any) <-chan AsyncResult[MapPair[any]] {
+func (this *Bitget) HandleUTAAndParamsAsync(params any, methodName *string, optionalArgs ...any) <-chan AsyncResult[MapPair[any]] {
 	ch := make(chan AsyncResult[MapPair[any]], 1)
 	go this.handleUTAAndParamsBody(ch, params, methodName, optionalArgs...)
 	return ch
 }
-func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[MapPair[any]], params any, methodName string, optionalArgs ...any) any {
+func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[MapPair[any]], params any, methodName *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var defaultValue bool = GetArgBool(optionalArgs, 0, false)
@@ -3782,7 +3782,8 @@ func (this *Bitget) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		}
 	}
 	stock, paramsStock := this.HandleOptionBoolAndParams(params, "fetchMarkets", "stock", false)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "fetchMarkets", false)
+	argStr := "fetchMarkets"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4695,7 +4696,8 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageT
 	var paramsMarginMode any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, "isolated")
 	productType, paramsMarginMode = this.HandleProductTypeAndParams(market, paramsMarginMode)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchMarketLeverageTiers", false)
+	argStr := "fetchMarketLeverageTiers"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4950,7 +4952,8 @@ func (this *Bitget) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 			panic(r.Err)
 		}
 	}
-	r1 := <-this.HandleUTAAndParamsAsync(params, "fetchDeposits", false)
+	argStr := "fetchDeposits"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -5154,7 +5157,8 @@ func (this *Bitget) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 			panic(r.Err)
 		}
 	}
-	r1 := <-this.HandleUTAAndParamsAsync(paramsNetworkCode, "withdraw", false)
+	argStr := "withdraw"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsNetworkCode, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -5256,7 +5260,8 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 			panic(r.Err)
 		}
 	}
-	r1 := <-this.HandleUTAAndParamsAsync(params, "fetchWithdrawals", false)
+	argStr := "fetchWithdrawals"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -5576,7 +5581,8 @@ func (this *Bitget) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(r.Err)
 		}
 	}
-	r1 := <-this.HandleUTAAndParamsAsync(params, "fetchDepositAddress", false)
+	argStr := "fetchDepositAddress"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -5697,7 +5703,8 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var response map[string]any = nil
 	var isStock *bool = SafeBoolPtr(market["stock"])
 	var paramsStock map[string]any = this.OmitDict(paramsProductType, "stock")
-	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "fetchOrderBook", false)
+	argStr := "fetchOrderBook"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -5962,7 +5969,8 @@ func (this *Bitget) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	var response map[string]any = nil
 	var isStock *bool = SafeBoolPtr(market["stock"])
 	var paramsStock map[string]any = this.OmitDict(paramsProductType, "stock")
-	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "fetchTicker", false)
+	argStr := "fetchTicker"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -6232,7 +6240,8 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	productType, paramsProductType := this.HandleProductTypeAndParams(market, paramsMarketType)
 	stock, paramsStock := this.HandleOptionBoolAndParamsNullable(paramsProductType, "fetchTickers", "stock", stockDefault)
 	// only if passedSubType && productType is undefined, then use spot
-	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "fetchTickers", false)
+	argStr := "fetchTickers"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -6644,7 +6653,8 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		"symbol": market["id"],
 	}
 	var uta any = nil
-	r2 := <-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchTrades", false)
+	argStr := "fetchTrades"
+	r2 := <-this.HandleUTAAndParamsAsync(paramsPaginate, &argStr, false)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -6839,7 +6849,8 @@ func (this *Bitget) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 	}
 	var uta any = nil
 	var paramsUTA any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(params, "fetchTradingFee", false)
+	argStr := "fetchTradingFee"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -6943,7 +6954,8 @@ func (this *Bitget) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchTradingFees", params)
 	marketType, paramsMarginMode = this.HandleMarketTypeAndParams("fetchTradingFees", nil, paramsMarginMode)
 	var uta any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchTradingFees", false)
+	argStr := "fetchTradingFees"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -7155,12 +7167,12 @@ func (this *Bitget) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var inverse *bool = this.SafeBool(market, "inverse", false)
-	var volumeIndex int = func() int {
-		if inverse != nil && *inverse {
-			return 6
-		}
-		return 5
-	}()
+	var volumeIndex int
+	if inverse != nil && *inverse {
+		volumeIndex = 6
+	} else {
+		volumeIndex = 5
+	}
 	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)})
 }
 
@@ -7218,7 +7230,8 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var useHistoryEndpoint *bool = this.SafeBool(params, "useHistoryEndpoint", false)
 	var useHistoryEndpointForPagination *bool = this.SafeBool(params, "useHistoryEndpointForPagination", true)
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchOHLCV", false)
+	argStr := "fetchOHLCV"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsPaginate, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -7547,7 +7560,8 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	stock, paramsStock := this.HandleOptionBoolAndParams(params, "fetchBalance", "stock", false)
 	var uta any = nil
 	var paramsUTA any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "fetchBalance", false)
+	argStr := "fetchBalance"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -8361,7 +8375,8 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
 	var response map[string]any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, "createOrder", false)
+	argStr := "createOrder"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsStock, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -8993,7 +9008,8 @@ func (this *Bitget) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	}
 	var uta any = nil
 	var paramsUTA any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(params, "createOrders", false)
+	argStr := "createOrders"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -9214,7 +9230,8 @@ func (this *Bitget) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var productType *string = nil
 	var uta any = nil
 	productType, paramsOmitted = this.HandleProductTypeAndParams(market, paramsOmitted)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsOmitted, "editOrder", false)
+	argStr := "editOrder"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsOmitted, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -9479,7 +9496,8 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		request["symbol"] = market["id"]
 	}
 	var uta any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, "cancelOrder", false)
+	argStr := "cancelOrder"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -9768,7 +9786,8 @@ func (this *Bitget) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 	var market map[string]any = this.Market(symbol)
 	var uta any = nil
 	var paramsUTA any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(params, "cancelOrders", false)
+	argStr := "cancelOrders"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -9928,7 +9947,8 @@ func (this *Bitget) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	paramsMarginMode = this.Omit(paramsMarginMode, []any{"stop", "trigger"})
 	var response map[string]any = nil
 	var uta any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, "cancelAllOrders", false)
+	argStr := "cancelAllOrders"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -10076,7 +10096,8 @@ func (this *Bitget) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		return params
 	}()
 	var response any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsOmitted, "fetchOrder", false)
+	argStr := "fetchOrder"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsOmitted, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -10296,7 +10317,8 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var paramsMarginMode any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchOpenOrders", params)
 	var uta any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchOpenOrders", false)
+	argStr := "fetchOpenOrders"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsMarginMode, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -10907,7 +10929,8 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	_ = params
 	var uta any = nil
 	var paramsUTA any = nil
-	r := <-this.HandleUTAAndParamsAsync(params, "fetchCanceledAndClosedOrders", false)
+	argStr := "fetchCanceledAndClosedOrders"
+	r := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -11499,7 +11522,8 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	var marketType *string = nil
 	marketType, paramsOmitted = this.HandleMarketTypeAndParams("fetchLedger", market, paramsOmitted)
 	var uta any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsOmitted, "fetchLedger", false)
+	argStr := "fetchLedger"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsOmitted, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -12012,7 +12036,8 @@ func (this *Bitget) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	_ = params
 	var uta any = nil
 	var paramsUTA any = nil
-	r := <-this.HandleUTAAndParamsAsync(params, "fetchMyTrades", false)
+	argStr := "fetchMyTrades"
+	r := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -12307,7 +12332,8 @@ func (this *Bitget) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 	}
 	var response map[string]any = nil
 	var result []any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "fetchPosition", false)
+	argStr := "fetchPosition"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -12483,7 +12509,8 @@ func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var response map[string]any = nil
 	var isHistory bool = false
 	var uta any = nil
-	r2 := <-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchPositions", false)
+	argStr := "fetchPositions"
+	r2 := <-this.HandleUTAAndParamsAsync(paramsPaginate, &argStr, false)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -12951,7 +12978,8 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var result []any = nil
 	var paramsProductType any = nil
 	productType, paramsProductType = this.HandleProductTypeAndParams(market, params)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingRateHistory", false)
+	argStr := "fetchFundingRateHistory"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -13092,7 +13120,8 @@ func (this *Bitget) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	}
 	var uta any = nil
 	var response map[string]any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingRate", false)
+	argStr := "fetchFundingRate"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -13176,7 +13205,8 @@ func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	}
 	var request map[string]any = map[string]any{}
 	productType, paramsProductType := this.HandleProductTypeAndParams(market, params)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingRates", false)
+	argStr := "fetchFundingRates"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -13449,7 +13479,8 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
-	r1 := <-this.HandleUTAAndParamsAsync(params, "fetchFundingHistory", false)
+	argStr := "fetchFundingHistory"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -13898,7 +13929,8 @@ func (this *Bitget) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	}
 	var uta any = nil
 	var response map[string]any = map[string]any{}
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "setLeverage", false)
+	argStr := "setLeverage"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -14051,7 +14083,8 @@ func (this *Bitget) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	}
 	var response map[string]any = map[string]any{}
 	productType, paramsProductType := this.HandleProductTypeAndParams(market, params)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "setPositionMode", false)
+	argStr := "setPositionMode"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -14117,7 +14150,8 @@ func (this *Bitget) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "fetchOpenInterest", false)
+	argStr := "fetchOpenInterest"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -14327,7 +14361,8 @@ func (this *Bitget) transferBody(ch chan AsyncResult[TransferEntry], code string
 			panic(r.Err)
 		}
 	}
-	r1 := <-this.HandleUTAAndParamsAsync(params, "transfer", false)
+	argStr := "transfer"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -15242,7 +15277,8 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 	}
 	var response map[string]any = nil
 	var result map[string]any = map[string]any{}
-	r1 := <-this.HandleUTAAndParamsAsync(params, "fetchCrossBorrowRate", false)
+	argStr := "fetchCrossBorrowRate"
+	r1 := <-this.HandleUTAAndParamsAsync(params, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -15597,7 +15633,8 @@ func (this *Bitget) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	}
 	var response map[string]any = nil
 	productType, paramsProductType := this.HandleProductTypeAndParams(market, params)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "closePosition", false)
+	argStr := "closePosition"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -15669,7 +15706,8 @@ func (this *Bitget) closeAllPositionsBody(ch chan AsyncResult[[]Position], optio
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	productType, paramsProductType := this.HandleProductTypeAndParams(nil, params)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "closeAllPositions", false)
+	argStr := "closeAllPositions"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -15842,7 +15880,8 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	productType, paramsProductType := this.HandleProductTypeAndParams(market, paramsUntil)
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "fetchPositionsHistory", false)
+	argStr := "fetchPositionsHistory"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -16287,7 +16326,8 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], s
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingInterval", false)
+	argStr := "fetchFundingInterval"
+	r1 := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

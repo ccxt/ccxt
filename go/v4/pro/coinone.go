@@ -145,9 +145,9 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	if (base == nil) || (quote == nil) {
 		return
 	}
-	var symbol any = this.Symbol(*base + "/" + *quote)
+	var symbol string = this.Symbol(*base + "/" + *quote)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol.(string)]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if orderbook == nil {
 		orderbook = this.OrderBook()
 	} else {
@@ -160,10 +160,8 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
-	if wsKey, ok := symbol.(string); ok {
-		this.Orderbooks[wsKey] = orderbook
-	}
+	var messageHash string = "orderbook:" + symbol
+	this.Orderbooks[symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Coinone) HandleDelta(bookside any, delta any) {
@@ -292,9 +290,10 @@ func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) m
 	var quoteId *string = this.SafeString(ticker, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = this.Symbol(*base + "/" + *quote)
+		symbolText := this.Symbol(*base + "/" + *quote)
+		symbol = &symbolText
 	}
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,

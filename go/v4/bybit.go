@@ -3955,12 +3955,12 @@ func (this *Bybit) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var isInverse *bool = this.SafeBool(market, "inverse", false)
-	var volumeIndex int = func() int {
-		if isInverse != nil && *isInverse {
-			return 6
-		}
-		return 5
-	}()
+	var volumeIndex int
+	if isInverse != nil && *isInverse {
+		volumeIndex = 6
+	} else {
+		volumeIndex = 5
+	}
 	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)})
 }
 
@@ -10222,12 +10222,12 @@ func (this *Bybit) ParseBorrowRate(info any, optionalArgs ...any) map[string]any
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
 	var currencyId *string = this.SafeString2(info, "coin", "currency")
 	var hourlyBorrowRate *float64 = this.SafeNumber(info, "hourlyBorrowRate")
-	var period int = func() int {
-		if hourlyBorrowRate != nil {
-			return 3600000
-		}
-		return 86400000
-	}() // 1h or 1d
+	var period int
+	if hourlyBorrowRate != nil {
+		period = 3600000
+	} else {
+		period = 86400000
+	} // 1h or 1d
 	return map[string]any{
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
 		"rate":      this.SafeNumber(info, "interestRate", hourlyBorrowRate),

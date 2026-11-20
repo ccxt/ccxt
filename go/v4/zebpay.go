@@ -2701,7 +2701,7 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var bodySigned any = nil
-	var headersSigned any = nil
+	var headersSigned map[string]any = nil
 	var paramsOmitted any = this.Omit(params, "defaultType")
 	var isV1 bool = (strings.Index(path, "v1/") > -1)
 	var marketType string = "spot"
@@ -2761,7 +2761,7 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var url string = *baseApiUrl + tail + suffix
-	var headersResolved any = headersSigned
+	var headersResolved map[string]any = headersSigned
 	var bodyResolved any = bodySigned
 	return map[string]any{
 		"url":     url,

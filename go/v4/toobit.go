@@ -3401,9 +3401,9 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3442,9 +3442,9 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3461,12 +3461,12 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	}
 	return nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar string, code *string, since any, limit any, optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar string, code *string, since *int64, limit *int64, optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
 	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsOrWithdrawalsHelperBody(ch, typeVar, code, since, limit, optionalArgs...)
 	return ch
 }
-func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code *string, since any, limit any, optionalArgs ...any) any {
+func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code *string, since *int64, limit *int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3484,11 +3484,11 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 		currency = this.Currency(code)
 		request["coin"] = currency["id"]
 	}
-	if !IsEqual(since, nil) {
-		request["startTime"] = since
+	if since != nil {
+		request["startTime"] = *since
 	}
-	if !IsEqual(limit, nil) {
-		request["limit"] = limit
+	if limit != nil {
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var response any = []any{}
@@ -4854,7 +4854,7 @@ func (this *Toobit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 	var res []Transaction = r.Value
 	return res, nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar string, code *string, since int64, limit int64, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar string, code *string, since *int64, limit *int64, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsOrWithdrawalsHelperOptionsStruct{}
 

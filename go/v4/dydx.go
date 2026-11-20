@@ -1832,12 +1832,12 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 		}
 		goodTillBlockTime = this.Seconds() + *goodTillBlockTimeInSecondsOption
 	}
-	var sideNumber int = func() int {
-		if orderSide == "BUY" {
-			return 1
-		}
-		return 2
-	}()
+	var sideNumber int
+	if orderSide == "BUY" {
+		sideNumber = 1
+	} else {
+		sideNumber = 2
+	}
 	var defaultClientOrderId int64 = this.RandNumber(9) // 2**32 - 1 is 10 digits, but it may overflow with 10
 	var clientOrderId *int64 = this.SafeInteger(paramsGoodTillBlockTimeInSeconds, "clientOrderId", defaultClientOrderId)
 	var orderPayload map[string]any = map[string]any{
@@ -2108,12 +2108,12 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	}
 	paramsGoodTillBlockTimeInSeconds := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]
 	var goodTillBlockTime any = nil
-	var defaultOrderFlags int = func() int {
-		if isTrigger != nil && *isTrigger {
-			return 32
-		}
-		return 64
-	}()
+	var defaultOrderFlags int
+	if isTrigger != nil && *isTrigger {
+		defaultOrderFlags = 32
+	} else {
+		defaultOrderFlags = 64
+	}
 	var orderFlags *int64 = this.SafeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags)
 	var subAccountId int = 0
 	var subAccountIdOptionVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId)
@@ -3416,7 +3416,7 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], section[0])
@@ -3437,7 +3437,7 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) map[string]any {
 			"Content-type": "application/json",
 		}
 	}
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,

@@ -1054,12 +1054,12 @@ func (this *Luno) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
-func (this *Luno) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Luno) FetchOrdersByStateAsync(state *string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any, optionalArgs ...any) any {
+func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1079,7 +1079,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
 	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
-	if !IsEqual(state, nil) {
+	if state != nil {
 		request["state"] = state
 	}
 	if symbol != nil {
@@ -1167,7 +1167,8 @@ func (this *Luno) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.FetchOrdersByStateAsync("PENDING", symbol, since, limit, params)
+	argStr := "PENDING"
+	r := <-this.FetchOrdersByStateAsync(&argStr, symbol, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1208,7 +1209,8 @@ func (this *Luno) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.FetchOrdersByStateAsync("COMPLETE", symbol, since, limit, params)
+	argStr := "COMPLETE"
+	r := <-this.FetchOrdersByStateAsync(&argStr, symbol, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2345,7 +2347,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = *apiUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 		url += "?" + this.Urlencode(query)
 	}
@@ -2356,7 +2358,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) map[string]any {
 			"Authorization": "Basic " + auth,
 		}
 	}
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -2510,7 +2512,7 @@ func (this *Luno) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 	var res Order = r.Value
 	return res, nil
 }
-func (this *Luno) FetchOrdersByState(state string, options ...FetchOrdersByStateOptions) ([]Order, error) {
+func (this *Luno) FetchOrdersByState(state *string, options ...FetchOrdersByStateOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStateOptionsStruct{}
 

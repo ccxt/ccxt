@@ -292,15 +292,15 @@ func (this *Krakenfutures) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
+	var tickers map[string]ccxt.Ticker = r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, symbolValue))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickers[symbolValue]}
 	return nil
 }
 
@@ -611,16 +611,16 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 	}
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = ccxt.DerefScalar(rawPositions[i])
+		var rawPosition any = rawPositions[i]
 		var timestamp *int64 = this.SafeInteger(message, "timestamp")
 		var position map[string]any = this.ParseWsPosition(rawPosition, nil, timestamp)
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)

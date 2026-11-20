@@ -2217,12 +2217,12 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		untilSeconds = this.ParseToInt(float64(*until) / 1000)
 	}
 	// the venue keeps only the latest 5000 buckets of the requested window
-	var defaultLimit int = func() int {
-		if since == nil {
-			return 1000
-		}
-		return 5000
-	}()
+	var defaultLimit int
+	if since == nil {
+		defaultLimit = 1000
+	} else {
+		defaultLimit = 5000
+	}
 	var limitResolved int64 = this.ParseToInt(defaultLimit)
 	if limit != nil {
 		limitResolved = this.ParseToInt(limit)
@@ -2233,13 +2233,13 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var span int64 = this.ParseToInt(limitResolved * duration)
 	var windowStart int64 = untilSeconds - span
 	var start int64 = windowStart
-	var end any = untilSeconds
+	var end int64 = untilSeconds
 	if since != nil {
 		var sinceSeconds int64 = this.ParseToInt(float64(*since) / 1000)
 		start = sinceSeconds
 		// the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
 		if sinceSeconds < windowStart {
-			end = this.Sum(sinceSeconds, span)
+			end = sinceSeconds + span
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -2792,9 +2792,9 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var rawOrder any = this.SafeDict(result, "raw_data")
+	var rawOrder map[string]any = this.SafeDictMap(result, "raw_data")
 	if rawOrder == nil {
-		rawOrder = this.SafeDict(result, "order", map[string]any{})
+		rawOrder = this.SafeDictMap(result, "order", map[string]any{})
 	}
 	var order map[string]any = OrderToMap(this.ParseOrder(rawOrder, market))
 	order["type"] = typeVar

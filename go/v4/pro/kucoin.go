@@ -511,12 +511,12 @@ func (this *Kucoin) unSubscribeBody(ch chan ccxt.AsyncResult[bool], url any, mes
 	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
-func (this *Kucoin) SubscribeMultipleAsync(url any, messageHashes any, topic any, subscriptionHashes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Kucoin) SubscribeMultipleAsync(url any, messageHashes any, topic string, subscriptionHashes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeMultipleBody(ch, url, messageHashes, topic, subscriptionHashes, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, topic any, subscriptionHashes []any, optionalArgs ...any) any {
+func (this *Kucoin) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, topic string, subscriptionHashes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -655,12 +655,12 @@ func (this *Kucoin) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 		return spotMethod
 	}()
-	var query map[string]any = func() map[string]any {
-		if isFuturesMethod != nil && *isFuturesMethod == true {
-			return paramsUta
-		}
-		return paramsSpotMethod
-	}()
+	var query map[string]any
+	if isFuturesMethod != nil && *isFuturesMethod == true {
+		query = paramsUta
+	} else {
+		query = paramsSpotMethod
+	}
 	var topic any = ccxt.Add(ccxt.Add(method, ":"), market["id"])
 
 	r3 := <-this.SubscribeAsync(url, messageHash, topic, query)
@@ -748,12 +748,12 @@ func (this *Kucoin) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol str
 			}
 			return spotMethod
 		}()
-		var query map[string]any = func() map[string]any {
-			if isFuturesMethod != nil && *isFuturesMethod == true {
-				return paramsUta
-			}
-			return paramsSpotMethod
-		}()
+		var query map[string]any
+		if isFuturesMethod != nil && *isFuturesMethod == true {
+			query = paramsUta
+		} else {
+			query = paramsSpotMethod
+		}
 		var topic any = ccxt.Add(ccxt.Add(method, ":"), market["id"])
 		var messageHash string = "unsubscribe:" + subMessageHash
 		subscription["messageHashes"] = []any{messageHash, topic}
@@ -2307,26 +2307,26 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		optionName = "contractMethod"
 	}
 	methodOption, paramsMethod := this.HandleOptionStringAndParams2(params, "watchOrderBook", optionName, "method", defaultMethod)
-	var method any = methodOption
-	if ccxt.GetIndexOf(method, "Depth") < 0 {
+	var method string = *methodOption
+	if strings.Index(method, "Depth") < 0 {
 		if (limit != nil && *limit == 5) || (limit != nil && *limit == 50) {
 			if !(isFuturesMethod != nil && *isFuturesMethod) {
 				method = "/spotMarket/level2"
 			}
-			method = ccxt.Add(method, "Depth"+strconv.FormatInt(*limit, 10))
+			method += "Depth" + strconv.FormatInt(*limit, 10)
 		}
 	}
-	var topic any = ccxt.Add(ccxt.Add(method, ":"), strings.Join(marketIds, ","))
+	var topic string = method + ":" + strings.Join(marketIds, ",")
 	var messageHashes []any = []any{}
 	var subscriptionHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "orderbook:"+symbol)
 		var marketId string = *this.SafeString(marketIds, i, "")
-		subscriptionHashes = append(subscriptionHashes, ccxt.Add(ccxt.Add(method, ":"), marketId))
+		subscriptionHashes = append(subscriptionHashes, method+":"+marketId)
 	}
 	var subscription map[string]any = map[string]any{}
-	if (ccxt.IsEqual(method, "/market/level2")) || (ccxt.IsEqual(method, "/contractMarket/level2")) {
+	if (method == "/market/level2") || (method == "/contractMarket/level2") {
 		subscription = map[string]any{
 			"method":  this.HandleOrderBookSubscription,
 			"symbols": symbolsNormalized,
@@ -2397,16 +2397,16 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool
 		optionName = "contractMethod"
 	}
 	methodOption, paramsMethod := this.HandleOptionStringAndParams2(paramsOmitted, "watchOrderBook", optionName, "method", defaultMethod)
-	var method any = methodOption
-	if ccxt.GetIndexOf(method, "Depth") < 0 {
+	var method string = *methodOption
+	if strings.Index(method, "Depth") < 0 {
 		if (limit != nil && *limit == 5) || (limit != nil && *limit == 50) {
 			if !(isFuturesMethod != nil && *isFuturesMethod) {
 				method = "/spotMarket/level2"
 			}
-			method = ccxt.Add(method, "Depth"+strconv.FormatInt(*limit, 10))
+			method += "Depth" + strconv.FormatInt(*limit, 10)
 		}
 	}
-	var topic any = ccxt.Add(ccxt.Add(method, ":"), strings.Join(marketIds, ","))
+	var topic string = method + ":" + strings.Join(marketIds, ",")
 	var messageHashes []any = []any{}
 	var subscriptionHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -3127,12 +3127,12 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var cachedOrders ccxt.WsArrayCache = func() ccxt.WsArrayCache {
-		if isTriggerOrder {
-			return this.TriggerOrders
-		}
-		return this.Orders
-	}()
+	var cachedOrders ccxt.WsArrayCache
+	if isTriggerOrder {
+		cachedOrders = this.TriggerOrders
+	} else {
+		cachedOrders = this.Orders
+	}
 	var orders map[string]any = nil
 	if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
 		orders = byKey[*symbol]

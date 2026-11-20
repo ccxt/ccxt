@@ -304,7 +304,7 @@ func (this *Coinbaseexchange) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	var name string = "matches"
 
 	r1 := <-this.SubscribeAsync(name, symbolValue, name, params)
@@ -411,7 +411,7 @@ func (this *Coinbaseexchange) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	var name string = "user"
 	var messageHash string = "myTrades"
 	var authentication map[string]any = this.Authenticate()
@@ -570,7 +570,7 @@ func (this *Coinbaseexchange) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Or
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	var name string = "user"
 	var messageHash string = "orders"
 	var authentication map[string]any = this.Authenticate()

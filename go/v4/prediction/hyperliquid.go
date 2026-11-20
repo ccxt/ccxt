@@ -1604,7 +1604,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 		var wallet *string = this.SafeStringLower(this.Options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
 		// feeInt defaults to 0: the builder is attached for statistics purposes only and the
 		// user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
-		var feeInt any = (*this.SafeInteger(this.Options, "feeInt", 0))
+		var feeInt int64 = *this.SafeInteger(this.Options, "feeInt", 0)
 		if !(*this.SafeBool(this.Options, "builderFee", true)) {
 			feeInt = 0
 		}

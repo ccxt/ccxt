@@ -523,7 +523,7 @@ func (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs 
 	}
 	return outcomeObjValue
 }
-func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optionalArgs ...any) any {
+func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optionalArgs ...any) *string {
 	// outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
 	// handing it to safeOutcome (whose fallback slot is a Market)
 	outcomeObj := GetArg(optionalArgs, 0, nil)
@@ -532,7 +532,7 @@ func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optiona
 		return this.SafeString(outcomeObj, "outcome")
 	}
 	var outcomeObjValue map[string]any = this.SafeOutcome(outcomeIdOrSymbol)
-	return outcomeObjValue["outcome"]
+	return SafeStringPtr(outcomeObjValue["outcome"])
 }
 func (this *PredictionExchange) ShortenSlug(slug any) string {
 	var replacements map[string]any = map[string]any{
@@ -702,14 +702,14 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 	var outcomesList []any = SafeListTyped(market, "outcomes")
 	for j := 0; j < len(outcomesList); j++ {
 		var oc any = outcomesList[j]
-		var ocSymbol any = this.SafeString2(oc, "outcome", "symbol")
+		var ocSymbol *string = this.SafeString2(oc, "outcome", "symbol")
 		var ocId *string = this.SafeString2(oc, "outcomeId", "id")
 		// assign unconditionally — safeString2 keeps the canonical key when present
 		// and falls back to the legacy one, so this never clobbers and avoids a
 		// missing-key access that throws in Python/PHP, unlike TS undefined
 		AddElementToObject(oc, "outcomeId", ocId)
 		AddElementToObject(oc, "market", this.SafeString2(oc, "market", "marketSymbol"))
-		if !IsEqual(ocSymbol, nil) {
+		if ocSymbol != nil {
 			// shortenSlug is lossy, so two different markets can produce the same handle.
 			// on a real collision of same handle but different outcomeId, disambiguate the
 			// second one deterministically instead of silently overwriting the first —
@@ -724,7 +724,8 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 						suffixStr := Slice(ocId, idLen-6, nil)
 						suffix = &suffixStr
 					}
-					ocSymbol = Add(Add(ocSymbol, "_"), strings.ToUpper(*suffix))
+					ocSymbolStr := *ocSymbol + "_" + strings.ToUpper(*suffix)
+					ocSymbol = &ocSymbolStr
 				}
 			}
 			AddElementToObject(oc, "outcome", ocSymbol)

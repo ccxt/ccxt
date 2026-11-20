@@ -113,10 +113,9 @@ func (this *Deepcoin) CreatePublicRequest(market map[string]any, requestId any, 
 	_ = suffix
 	var unWatch bool = ccxt.GetArgBool(optionalArgs, 1, false)
 	_ = unWatch
-	var marketId *string = this.SafeString(market, "symbol", "") // spot markets use symbol with slash
+	var marketId string = *this.SafeString(market, "symbol", "") // spot markets use symbol with slash
 	if this.SafeString(market, "type") != nil && *this.SafeString(market, "type") == "swap" {
-		marketIdStr := *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
-		marketId = &marketIdStr // swap markets use symbol without slash
+		marketId = *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "") // swap markets use symbol without slash
 	}
 	var action string = "1" // subscribe
 	if unWatch == true {
@@ -125,7 +124,7 @@ func (this *Deepcoin) CreatePublicRequest(market map[string]any, requestId any, 
 	var request map[string]any = map[string]any{
 		"sendTopicAction": map[string]any{
 			"Action":      action,
-			"FilterValue": "DeepCoin_" + *marketId + suffix,
+			"FilterValue": "DeepCoin_" + marketId + suffix,
 			"LocalNo":     requestId,
 			"ResumeNo":    int64(-1),
 			"TopicID":     topicID,

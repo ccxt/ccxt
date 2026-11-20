@@ -1021,10 +1021,10 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 		positions.Append(position)
 		newPositions = append(newPositions, position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var symbolPositions any = this.FilterByArray(newPositions, "symbol", symbols, false)

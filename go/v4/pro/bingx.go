@@ -1570,7 +1570,7 @@ func (this *Bingx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	awaitBalanceSnapshot, _ := this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false)
 	if fetchBalanceSnapshot && awaitBalanceSnapshot {
 
-		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
+		r2 := <-client.(ccxt.ClientInterface).Future(*typeVar + ":fetchBalanceSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1911,7 +1911,7 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "swap:positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), "swap:positions::")
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = this.SafeString(messageHashes, i, "")
 		var parts []string = strings.Split(*messageHash, "::")

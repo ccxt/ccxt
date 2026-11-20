@@ -1600,18 +1600,18 @@ func (this *Bingx) ParseMarket(market any) map[string]any {
 	} else if checkIsInverse && (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "1") {
 		isActive = true // inverse swap active
 	}
-	var isInverse *bool = func() *bool {
-		if spot {
-			return nil
-		}
-		return SafeBoolPtr(checkIsInverse)
-	}()
-	var isLinear *bool = func() *bool {
-		if spot {
-			return nil
-		}
-		return SafeBoolPtr(checkIsLinear)
-	}()
+	var isInverse *bool
+	if spot {
+		isInverse = nil
+	} else {
+		isInverse = SafeBoolPtr(checkIsInverse)
+	}
+	var isLinear *bool
+	if spot {
+		isLinear = nil
+	} else {
+		isLinear = SafeBoolPtr(checkIsLinear)
+	}
 	var minAmount *float64 = nil
 	if !spot {
 		minAmount = this.SafeNumber2(market, "minQty", "tradeMinQuantity")
@@ -1756,12 +1756,12 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var maxLimit int = func() int {
-		if *this.SafeBool(market, "inverse", false) {
-			return 1000
-		}
-		return 1440
-	}()
+	var maxLimit int
+	if *this.SafeBool(market, "inverse", false) {
+		maxLimit = 1000
+	} else {
+		maxLimit = 1440
+	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 		// klines return up to 1440 candles only for 1m, 1000 for 5m and above
@@ -1988,12 +1988,12 @@ func (this *Bingx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 	}
 	var response map[string]any = nil
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTrades", market, params)
-	var maxLimit int = func() int {
-		if marketType != nil && *marketType == "spot" {
-			return 500
-		}
-		return 1000
-	}()
+	var maxLimit int
+	if marketType != nil && *marketType == "spot" {
+		maxLimit = 500
+	} else {
+		maxLimit = 1000
+	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, maxLimit)
 	}

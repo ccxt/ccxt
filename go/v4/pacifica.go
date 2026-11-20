@@ -4201,7 +4201,7 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.FetchOpenInterestsAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -4213,7 +4213,7 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 	}
 	var oi map[string]any = SafeMapTyped(ois, symbolValue)
 	if oi == nil {
-		panic(BadSymbol(Add(this.Id+" fetchOpenInterest() could not find open interest for ", symbolValue)))
+		panic(BadSymbol(this.Id + " fetchOpenInterest() could not find open interest for " + symbolValue))
 	}
 
 	ch <- AsyncResult[OpenInterest]{Value: OpenInterestFromMap(oi)}

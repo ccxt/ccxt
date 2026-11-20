@@ -660,9 +660,10 @@ func (this *Deribit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 			panic(r1.Err)
 		}
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if symbol != nil {
-			return this.Symbol(symbol)
+			symbolText := this.Symbol(symbol)
+			return &symbolText
 		}
 		return nil
 	}()
@@ -878,14 +879,14 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(params, "data")
 	var channel *string = this.SafeString(params, "channel")
 	var parts []string = strings.Split(*channel, ".")
-	var descriptor any = ""
+	var descriptor string = ""
 	var partsLength int = len(parts)
 	var isDetailed bool = (partsLength == 5)
 	if isDetailed {
 		var interval string = *this.SafeString(parts, 4, "")
 		descriptor = *this.SafeString(parts, 2, "") + "." + *this.SafeString(parts, 3, "") + "." + interval
 	} else {
-		descriptor = this.SafeString(parts, 2, "")
+		descriptor = *this.SafeString(parts, 2, "")
 	}
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
@@ -907,7 +908,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	if symbol != nil {
 		this.Orderbooks[*symbol] = storedOrderBook
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("book|"+*symbol+"|", descriptor))
+	var messageHash string = "book|" + *symbol + "|" + descriptor
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Deribit) CleanOrderBook(data map[string]any) map[string]any {
@@ -1002,9 +1003,10 @@ func (this *Deribit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if symbol != nil {
-			return this.Symbol(symbol)
+			symbolText := this.Symbol(symbol)
+			return &symbolText
 		}
 		return nil
 	}()
@@ -1128,7 +1130,7 @@ func (this *Deribit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchOHLCVForSymbolsAsync([][]any{[]any{symbolValue, timeframe}}, since, limit, params)
 	if r1.Err != nil {
@@ -1137,7 +1139,7 @@ func (this *Deribit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	var ohlcvs map[string]any = ccxt.StructResultMap(r1.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(ohlcvs, symbolValue), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(ohlcvs[symbolValue], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:

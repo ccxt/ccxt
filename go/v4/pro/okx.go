@@ -528,7 +528,7 @@ func (this *Okx) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate]
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchFundingRatesAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -1628,7 +1628,7 @@ func (this *Okx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "candle" + *interval
 
@@ -3109,12 +3109,12 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 			this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var stored ccxt.WsArrayCache = func() ccxt.WsArrayCache {
-			if channel != nil && *channel == "orders-algo" {
-				return this.TriggerOrders
-			}
-			return this.Orders
-		}()
+		var stored ccxt.WsArrayCache
+		if channel != nil && *channel == "orders-algo" {
+			stored = this.TriggerOrders
+		} else {
+			stored = this.Orders
+		}
 		var marketIds []any = []any{}
 		var parsed []any = ccxt.ArrayTyped(this.ParseOrders(orders))
 		for i := 0; i < len(parsed); i++ {
@@ -3486,19 +3486,19 @@ func (this *Okx) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Okx) CancelOrdersWsAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Okx) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
+func (this *Okx) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var idsLength int = ccxt.GetArrayLength(ids)
+	var idsLength int = len(ids)
 	if idsLength > 20 {
 		panic(ccxt.BadRequest(this.Id + " cancelOrdersWs() accepts up to 20 ids at a time"))
 	}

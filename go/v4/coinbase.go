@@ -7170,7 +7170,7 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var version string = api[0]
 	var signed bool = (api[1] == "private")
 	var isV3 bool = (version == "v3")
@@ -7276,7 +7276,7 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

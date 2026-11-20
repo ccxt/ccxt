@@ -3264,12 +3264,12 @@ func (this *Okx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	}
 	rpi, paramsRpi := this.HandleOptionBoolAndParams(params, "fetchOrderBook", "rpi", false)
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsRpi, "fetchOrderBook", "method", "publicGetMarketBooks")
-	var defaultLimit int = func() int {
-		if method != nil && *method == "publicGetMarketBooksFull" {
-			return 5000
-		}
-		return 100
-	}()
+	var defaultLimit int
+	if method != nil && *method == "publicGetMarketBooksFull" {
+		defaultLimit = 5000
+	} else {
+		defaultLimit = 100
+	}
 	var requestedLimit int64
 	if limit == nil {
 		requestedLimit = int64(defaultLimit)
@@ -3926,12 +3926,12 @@ func (this *Okx) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams("fetchOHLCV", market, nil)), 0))
-	var volumeIndex int = func() int {
-		if typeVar != nil && *typeVar == "spot" {
-			return 5
-		}
-		return 6
-	}()
+	var volumeIndex int
+	if typeVar != nil && *typeVar == "spot" {
+		volumeIndex = 5
+	} else {
+		volumeIndex = 6
+	}
 	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, volumeIndex)})
 }
 
@@ -3985,12 +3985,12 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	var priceType *string = this.SafeString(paramsPaginate, "price")
 	var isMarkOrIndex bool = this.InArray(priceType, []any{"mark", "index"})
 	if paginate {
-		var maxEntriesPerRequest int = func() int {
-			if isMarkOrIndex {
-				return 100
-			}
-			return 200
-		}()
+		var maxEntriesPerRequest int
+		if isMarkOrIndex {
+			maxEntriesPerRequest = 100
+		} else {
+			maxEntriesPerRequest = 200
+		}
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest)
 		if r1.Err != nil {

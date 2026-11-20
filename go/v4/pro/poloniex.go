@@ -452,7 +452,7 @@ func (this *Poloniex) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id
 		params["clientOrderIds"] = this.ArrayConcat(clientOrderIds, []any{clientOrderId})
 	}
 
-	r := <-this.CancelOrdersWsAsync([]any{id}, symbol, params)
+	r := <-this.CancelOrdersWsAsync([]string{id}, symbol, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -474,12 +474,12 @@ func (this *Poloniex) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Poloniex) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Poloniex) CancelOrdersWsAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
+func (this *Poloniex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -701,7 +701,7 @@ func (this *Poloniex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -1325,12 +1325,12 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) map[string
 			var symbol *string = this.SafeString(trade, "symbol")
 			var typeVar string = "trades"
 			var messageHash string = typeVar + "::" + *this.SafeString(trade, "symbol", "")
-			var tradesArray ccxt.WsArrayCache = func() ccxt.WsArrayCache {
-				if symbol == nil {
-					return nil
-				}
-				return this.Trades[*symbol]
-			}()
+			var tradesArray ccxt.WsArrayCache
+			if symbol == nil {
+				tradesArray = nil
+			} else {
+				tradesArray = this.Trades[*symbol]
+			}
 			if tradesArray == nil {
 				var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 				tradesArray = ccxt.NewArrayCache(tradesLimit)
@@ -1754,10 +1754,10 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) map[strin
 			}
 		}
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "ticker::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), "ticker::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)

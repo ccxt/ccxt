@@ -1599,12 +1599,10 @@ func (this *Polymarket) HandleAck(client any, message any) {
 				client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			}
 			if action != nil && *action == "sub" {
-				var subMessageHash any = func() any {
-					if i >= 0 && i < len(subMessageHashes) {
-						return subMessageHashes[i]
-					}
-					return nil
-				}()
+				var subMessageHash any = nil
+				if i >= 0 && i < len(subMessageHashes) {
+					subMessageHash = subMessageHashes[i]
+				}
 				if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
 					client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
 				}

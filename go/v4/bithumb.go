@@ -1589,7 +1589,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		var requestParams any = this.Omit(paramsGeneration, []any{"until", "paginate"})
 		request["market"] = this.GetGen2MarketId(market)
 		// the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
-		var count any = 200
+		var count int64 = 200
 		if limit != nil {
 			count = min(*limit, 200)
 		}
@@ -1604,7 +1604,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 		if since != nil {
 			var duration int64 = this.ParseTimeframe(timeframe) * 1000
-			var sinceEnd any = this.Sum(since, Multiply(duration, count))
+			var sinceEnd any = this.Sum(since, duration*count)
 			if (to == nil) || (IsLessThan(sinceEnd, to)) {
 				to = sinceEnd
 			}

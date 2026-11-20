@@ -796,9 +796,9 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 					// safety guard
 					if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
 						var nextAttempts int64 = numAttempts + 1
-						var delayTime any = 1000
+						var delayTime int64 = 1000
 						if (lastTimestamp != nil) && (snapshotTimestamp != nil) {
-							delayTime = this.Sum(1000, *lastTimestamp-*snapshotTimestamp)
+							delayTime = 1000 + *lastTimestamp - *snapshotTimestamp
 						}
 						subscription["numAttempts"] = nextAttempts
 						client.(ccxt.ClientInterface).SubscriptionSet(messageHash, subscription)
@@ -2218,9 +2218,9 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	if this.IsEmpty(rawPositions) {
 		var prefixes []string = []string{"cross:positions", "isolated:positions"}
 		for i := 0; i < len(prefixes); i++ {
-			var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), prefixes[i])
-			for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
-				client.(ccxt.ClientInterface).Resolve([]any{}, ccxt.GetValue(messageHashes, j))
+			var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), prefixes[i])
+			for j := 0; j < len(messageHashes); j++ {
+				client.(ccxt.ClientInterface).Resolve([]any{}, messageHashes[j])
 			}
 		}
 		return
@@ -2266,10 +2266,10 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(marginModes); i++ {
 		var marginMode string = marginModes[i]
 		var marginModePositions any = this.SafeList(positionsByMarginMode, marginMode, []any{})
-		var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), marginMode+":positions::")
-		for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, j))
-			var parts []string = strings.Split(*messageHash, "::")
+		var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), marginMode+":positions::")
+		for j := 0; j < len(messageHashes); j++ {
+			var messageHash string = messageHashes[j]
+			var parts []string = strings.Split(messageHash, "::")
 			var symbolsString *string = nil
 			if 1 >= 0 && 1 < len(parts) {
 				symbolsString = &parts[1]

@@ -552,15 +552,15 @@ func (this *Toobit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
+	var tickers map[string]ccxt.Ticker = r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, symbolValue))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: tickers[symbolValue]}
 	return nil
 }
 
@@ -1523,10 +1523,10 @@ func (this *Toobit) HandlePositions(client any, message map[string]any) {
 	// appends `$` to every local name wherever it appears, string literals
 	// included, so a local `positions` rewrites the hash prefix below to
 	// ':$positions::' and find_message_hashes () matches nothing in PHP
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var filtered any = this.FilterByArray(newPositions, "symbol", symbols, false)

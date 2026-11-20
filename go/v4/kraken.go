@@ -3164,9 +3164,10 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if symbol != nil {
-			return this.Symbol(symbol)
+			symbolText := this.Symbol(symbol)
+			return &symbolText
 		}
 		return symbol
 	}()

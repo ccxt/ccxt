@@ -3005,7 +3005,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var url string = "/"
 	if apiName == "market" {
@@ -3061,7 +3061,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 	url = this.ImplodeParams(baseApiUrl, map[string]any{
 		"hostname": this.Hostname,
 	}) + url
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,

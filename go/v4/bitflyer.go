@@ -1809,7 +1809,7 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = params
 	var apiName string = api[0]
 	var bodySigned *string = nil
-	var headersSigned any = nil
+	var headersSigned map[string]any = nil
 	var request string = "/" + this.Version + "/"
 	if apiName == "private" {
 		request += "me/"
@@ -1845,7 +1845,7 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) map[string]any {
 			"Content-Type":     "application/json",
 		}
 	}
-	var headersResolved any = headersSigned
+	var headersResolved map[string]any = headersSigned
 	var bodyResolved *string = bodySigned
 	return map[string]any{
 		"url":     url,

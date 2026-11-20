@@ -2440,20 +2440,20 @@ func (this *Digifinex) CreateOrderRequest(symbol *string, typeVar *string, side 
 		var timeInForce *string = this.SafeString(paramsMarginMode, "timeInForce")
 		var orderType any = nil
 		if side != nil && *side == "buy" {
-			var requestType int = func() int {
-				if reduceOnly != nil && *reduceOnly {
-					return 4
-				}
-				return 1
-			}()
+			var requestType int
+			if reduceOnly != nil && *reduceOnly {
+				requestType = 4
+			} else {
+				requestType = 1
+			}
 			request["type"] = requestType
 		} else {
-			var requestType int = func() int {
-				if reduceOnly != nil && *reduceOnly {
-					return 3
-				}
-				return 2
-			}()
+			var requestType int
+			if reduceOnly != nil && *reduceOnly {
+				requestType = 3
+			} else {
+				requestType = 2
+			}
 			request["type"] = requestType
 		}
 		if isLimitOrder {

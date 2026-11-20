@@ -4902,7 +4902,7 @@ func (this *Whitebit) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.FetchFundingRatesAsync([]any{symbolValue}, params)
 	if r1.Err != nil {

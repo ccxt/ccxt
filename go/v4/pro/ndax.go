@@ -227,12 +227,12 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	for i := 0; i < len(payload); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(payload[i]))
 		var symbol *string = this.SafeString(trade, "symbol")
-		var tradesArray ccxt.WsArrayCache = func() ccxt.WsArrayCache {
-			if symbol == nil {
-				return nil
-			}
-			return this.Trades[*symbol]
-		}()
+		var tradesArray ccxt.WsArrayCache
+		if symbol == nil {
+			tradesArray = nil
+		} else {
+			tradesArray = this.Trades[*symbol]
+		}
 		if tradesArray == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(limit)

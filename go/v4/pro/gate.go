@@ -2336,10 +2336,10 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 			cache.Append(position)
 		}
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), typeVar+":positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), typeVar+":positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
@@ -2520,12 +2520,12 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var stored ccxt.WsArrayCache = func() ccxt.WsArrayCache {
-		if isTrigger {
-			return this.TriggerOrders
-		}
-		return this.Orders
-	}()
+	var stored ccxt.WsArrayCache
+	if isTrigger {
+		stored = this.TriggerOrders
+	} else {
+		stored = this.Orders
+	}
 	var marketIds map[string]any = map[string]any{}
 	var parsedOrders []any = ccxt.ArrayTyped(this.ParseOrders(orders))
 	for i := 0; i < len(parsedOrders); i++ {

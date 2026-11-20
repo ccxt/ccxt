@@ -255,19 +255,19 @@ func (this *Binance) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
  * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
  * @returns {object[]} raw market topic objects
  */
-func (this *Binance) FetchRawTopicsAsync(maxTopics any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Binance) FetchRawTopicsAsync(maxTopics *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchRawTopicsBody(ch, maxTopics, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]any], maxTopics any, optionalArgs ...any) any {
+func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]any], maxTopics *int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = rest
 	var maxTopicsOption *int64 = this.SafeInteger(this.Options, "maxFetchMarketsLimit", 200)
 	var maxTopicsResolved int64 = this.ParseToInt(maxTopicsOption)
-	if !ccxt.IsEqual(maxTopics, nil) {
+	if maxTopics != nil {
 		maxTopicsResolved = this.ParseToInt(maxTopics)
 	}
 	var pageLimitOption *int64 = this.SafeInteger(this.Options, "marketsPageLimit", 100)
@@ -596,12 +596,12 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
  * @param {object} [rest] extra params forwarded verbatim to the search endpoint
  * @returns {object[]} raw market topic objects with usable nested markets
  */
-func (this *Binance) FetchEventsByQueryAsync(queries any, limit any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Binance) FetchEventsByQueryAsync(queries any, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchEventsByQueryBody(ch, queries, limit, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, limit any, optionalArgs ...any) any {
+func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, limit *int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -610,7 +610,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 	var collected []any = []any{}
 	var queriesLength int = ccxt.GetArrayLength(queries)
 	var limitValue int64 = 20
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		limitValue = this.ParseToInt(limit)
 	}
 	var limitResolved int64 = limitValue
@@ -2623,7 +2623,7 @@ func (this *Binance) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error)
  * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
  * @returns {object[]} raw market topic objects
  */
-func (this *Binance) FetchRawTopics(maxTopics int64, rest map[string]any) ([]map[string]any, error) {
+func (this *Binance) FetchRawTopics(maxTopics *int64, rest map[string]any) ([]map[string]any, error) {
 	r := <-this.FetchRawTopicsAsync(maxTopics, rest)
 	if r.Err != nil {
 		return nil, r.Err
@@ -2695,7 +2695,7 @@ func (this *Binance) FetchEvents(params map[string]interface{}) ([]ccxt.Predicti
  * @param {object} [rest] extra params forwarded verbatim to the search endpoint
  * @returns {object[]} raw market topic objects with usable nested markets
  */
-func (this *Binance) FetchEventsByQuery(queries []string, limit int64, rest map[string]any) ([]map[string]any, error) {
+func (this *Binance) FetchEventsByQuery(queries []string, limit *int64, rest map[string]any) ([]map[string]any, error) {
 	r := <-this.FetchEventsByQueryAsync(queries, limit, rest)
 	if r.Err != nil {
 		return nil, r.Err

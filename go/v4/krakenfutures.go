@@ -3897,7 +3897,7 @@ func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) Fun
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	var symbol any = this.Symbol(marketId)
+	var symbol string = this.Symbol(marketId)
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var markPriceString *string = this.SafeString(ticker, "markPrice")
 	var fundingRateString *string = this.SafeString(ticker, "fundingRate")
@@ -4875,7 +4875,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 		}
 		return nil
 	}()
-	var privateHeaders any = nil
+	var privateHeaders map[string]any = nil
 	if (apiName == "private") || (access == "private") {
 		this.CheckRequiredCredentials()
 		var auth any = postData + "/api/"
@@ -4893,7 +4893,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 			"Authent":      signature,
 		}
 	}
-	var requestHeaders any = privateHeaders
+	var requestHeaders map[string]any = privateHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

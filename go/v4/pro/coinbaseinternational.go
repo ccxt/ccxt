@@ -1432,7 +1432,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccx
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = this.Symbol(symbol)
+	var symbolResolved string = this.Symbol(symbol)
 
 	r1 := <-this.WatchOHLCVForSymbolsAsync([][]any{[]any{symbolResolved, timeframe}}, since, limit, paramsResolved)
 	if r1.Err != nil {
@@ -1441,7 +1441,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccx
 	var ohlcvs map[string]any = ccxt.StructResultMap(r1.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(ohlcvs, symbolResolved), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(ohlcvs[symbolResolved], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:

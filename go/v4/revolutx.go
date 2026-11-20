@@ -247,7 +247,7 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var implodedPath string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiName string = api[0]
@@ -301,7 +301,7 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	var bodyResult *string = func() *string {
 		if bodyString != "" {
 			retStr := bodyString

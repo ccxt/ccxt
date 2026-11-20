@@ -1970,12 +1970,12 @@ func (this *Xt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opti
 	}
 	var limitResolved any = limit
 	if limit != nil {
-		var maxLimit int = func() int {
-			if *this.SafeBool(market, "spot", false) {
-				return 1000
-			}
-			return 1500
-		}() // spot : derivatives max limit
+		var maxLimit int
+		if *this.SafeBool(market, "spot", false) {
+			maxLimit = 1000
+		} else {
+			maxLimit = 1500
+		} // spot : derivatives max limit
 		limitResolved = mathMin(limit, maxLimit)
 		request["limit"] = limitResolved
 	} else {

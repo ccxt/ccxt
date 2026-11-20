@@ -5632,7 +5632,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	var pageSize any = 1000
+	var pageSize int64 = 1000
 	if limit != nil {
 		pageSize = min(*limit, 5000) // api maximum 5000
 	}
@@ -5642,7 +5642,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		requestUntil["start_at"] = *since
 		// a page holds the newest rows of its range, so a range wider than one page would return the latest
 		// rows and skip since, the range is cut to one page of rows from since
-		var windowEnd any = this.Sum(since, Multiply(pageSize, rowSpacing))
+		var windowEnd any = this.Sum(since, pageSize*int64(rowSpacing))
 		var endAt any
 		if derefPtr := this.SafeInteger(requestUntil, "end_at", windowEnd); derefPtr != nil {
 			endAt = *derefPtr

@@ -2546,12 +2546,18 @@ func (this *Htx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 		var key string = keys[i]
 		if *this.SafeBool(types, key, false) {
 			if key == "spot" {
-				promises = append(promises, this.FetchMarketsByTypeAndSubTypeAsync("spot", nil, paramsTypes))
+				argStr := "spot"
+				promises = append(promises, this.FetchMarketsByTypeAndSubTypeAsync(&argStr, nil, paramsTypes))
 			} else if key == "linear" {
-				promises = append(promises, this.FetchMarketsByTypeAndSubTypeAsync(nil, "linear", paramsTypes))
+				argStr2 := "linear"
+				promises = append(promises, this.FetchMarketsByTypeAndSubTypeAsync(nil, &argStr2, paramsTypes))
 			} else if key == "inverse" {
-				promises = append(promises, this.FetchMarketsByTypeAndSubTypeAsync("swap", "inverse", paramsTypes))
-				promises = append(promises, this.FetchMarketsByTypeAndSubTypeAsync("future", "inverse", paramsTypes))
+				argStr3 := "swap"
+				argStr4 := "inverse"
+				promises = append(promises, this.FetchMarketsByTypeAndSubTypeAsync(&argStr3, &argStr4, paramsTypes))
+				argStr5 := "future"
+				argStr6 := "inverse"
+				promises = append(promises, this.FetchMarketsByTypeAndSubTypeAsync(&argStr5, &argStr6, paramsTypes))
 			}
 		}
 	}
@@ -2583,23 +2589,23 @@ func (this *Htx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Htx) FetchMarketsByTypeAndSubTypeAsync(typeVar any, subType any, optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+func (this *Htx) FetchMarketsByTypeAndSubTypeAsync(typeVar *string, subType *string, optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
 	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsByTypeAndSubTypeBody(ch, typeVar, subType, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketInterface], typeVar any, subType any, optionalArgs ...any) any {
+func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketInterface], typeVar *string, subType *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var typeStr any = typeVar
-	var subTypeStr any = subType
-	var isSpot bool = (IsEqual(typeStr, "spot"))
+	var typeStr *string = typeVar
+	var subTypeStr *string = subType
+	var isSpot bool = (typeStr != nil && *typeStr == "spot")
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if !isSpot {
-		if IsEqual(subTypeStr, "linear") {
+		if subTypeStr != nil && *subTypeStr == "linear" {
 			request["business_type"] = "all" // override default to fetch all linear markets
 
 			r := <-this.ContractPublicGetLinearSwapApiV1SwapContractInfo(this.Extend(request, params))
@@ -2607,15 +2613,15 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 				panic(r.Err)
 			}
 			response = r.Raw
-		} else if IsEqual(subTypeStr, "inverse") {
-			if IsEqual(typeStr, "future") {
+		} else if subTypeStr != nil && *subTypeStr == "inverse" {
+			if typeStr != nil && *typeStr == "future" {
 
 				r1 := <-this.ContractPublicGetApiV1ContractContractInfo(this.Extend(request, params))
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
 				response = r1.Raw
-			} else if IsEqual(typeStr, "swap") {
+			} else if typeStr != nil && *typeStr == "swap" {
 
 				r2 := <-this.ContractPublicGetSwapApiV1SwapContractInfo(this.Extend(request, params))
 				if r2.Err != nil {
@@ -4899,14 +4905,14 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	var isolated bool = (marginMode != nil && *marginMode == "isolated")
 	var cross bool = (marginMode != nil && *marginMode == "cross")
 	var margin bool = (typeVar != nil && *typeVar == "margin") || (spot && (cross || isolated))
-	var response any = nil
+	var response map[string]any = nil
 	if isMultiAssetMode || (linear && (swap || future)) {
 
 		r1 := <-this.ContractPrivateGetV5AccountBalance(this.Extend(request, paramsMarginMode))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if spot || margin {
 		if margin {
 			if isolated {
@@ -4915,14 +4921,14 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 				if r2.Err != nil {
 					panic(r2.Err)
 				}
-				response = r2.Raw
+				response = r2.Value
 			} else {
 
 				r3 := <-this.SpotPrivateGetV1CrossMarginAccountsBalance(this.Extend(request, paramsMarginMode))
 				if r3.Err != nil {
 					panic(r3.Err)
 				}
-				response = r3.Raw
+				response = r3.Value
 			}
 		} else {
 
@@ -4942,7 +4948,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 			if r6.Err != nil {
 				panic(r6.Err)
 			}
-			response = r6.Raw
+			response = r6.Value
 		}
 	} else if inverse {
 		if future {
@@ -4951,14 +4957,14 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 			if r7.Err != nil {
 				panic(r7.Err)
 			}
-			response = r7.Raw
+			response = r7.Value
 		} else {
 
 			r8 := <-this.ContractPrivatePostSwapApiV1SwapAccountInfo(this.Extend(request, paramsMarginMode))
 			if r8.Err != nil {
 				panic(r8.Err)
 			}
-			response = r8.Raw
+			response = r8.Value
 		}
 	}
 	//
@@ -5102,7 +5108,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	//         "ts": 1770293281344
 	//     }
 	//
-	var finalResponse any = response
+	var finalResponse map[string]any = response
 	var result map[string]any = map[string]any{
 		"info": finalResponse,
 	}
@@ -10199,7 +10205,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var signedHeaders any = nil
+	var signedHeaders map[string]any = nil
 	var signedBody any = nil
 	var pathString string = path
 	var url string = "/"
@@ -10361,7 +10367,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 			"hostname": finalHostname,
 		}) + url
 	}
-	var headersResolved any = signedHeaders
+	var headersResolved map[string]any = signedHeaders
 	var bodyResolved any = signedBody
 	return map[string]any{
 		"url":     url,
@@ -13016,7 +13022,7 @@ func (this *Htx) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, options ...FetchMarketsByTypeAndSubTypeOptions) ([]MarketInterface, error) {
+func (this *Htx) FetchMarketsByTypeAndSubType(typeVar *string, subType *string, options ...FetchMarketsByTypeAndSubTypeOptions) ([]MarketInterface, error) {
 
 	opts := FetchMarketsByTypeAndSubTypeOptionsStruct{}
 

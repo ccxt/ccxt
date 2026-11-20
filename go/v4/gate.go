@@ -4974,12 +4974,12 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	var price *string = this.SafeString(paramsPaginate, "price")
 	request, paramsRequest := this.PrepareRequest(market, nil, paramsPaginate)
 	request["interval"] = *this.SafeString(this.Timeframes, timeframe, timeframe)
-	var maxLimit int = func() int {
-		if *this.SafeBool(market, "contract", false) {
-			return 1999
-		}
-		return 1000
-	}()
+	var maxLimit int
+	if *this.SafeBool(market, "contract", false) {
+		maxLimit = 1999
+	} else {
+		maxLimit = 1000
+	}
 	var limitValue int64
 	if limit == nil {
 		limitValue = int64(maxLimit)

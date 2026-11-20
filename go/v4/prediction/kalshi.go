@@ -3177,22 +3177,22 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-func (this *Kalshi) FetchEventsByQueryAsync(queries any, limit any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Kalshi) FetchEventsByQueryAsync(queries any, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchEventsByQueryBody(ch, queries, limit, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, limit any, optionalArgs ...any) any {
+func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, limit *int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = rest
-	var pageSize any = func() any {
-		if !ccxt.IsEqual(limit, nil) {
-			return limit
-		}
-		return this.SafeInteger(this.Options, "searchSeriesLimit", 25)
-	}()
+	var pageSize *int64
+	if limit != nil {
+		pageSize = limit
+	} else {
+		pageSize = this.SafeInteger(this.Options, "searchSeriesLimit", 25)
+	}
 	// free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
 	var seen map[string]any = map[string]any{}
 	var eventTickers []any = []any{}
@@ -3223,7 +3223,7 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string
 	}
 	var rawEvents []any = []any{}
 	var eventTickersLength int = len(eventTickers)
-	var hasLimit bool = (!ccxt.IsEqual(limit, nil))
+	var hasLimit bool = (limit != nil)
 	var limitOrZero any = func() any {
 		if hasLimit {
 			return limit
@@ -3410,12 +3410,12 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-func (this *Kalshi) FetchSeriesEventsAsync(seriesTickers any, status any, limit any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Kalshi) FetchSeriesEventsAsync(seriesTickers any, status any, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchSeriesEventsBody(ch, seriesTickers, status, limit, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]any], seriesTickers any, status any, limit any, optionalArgs ...any) any {
+func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]any], seriesTickers any, status any, limit *int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3424,7 +3424,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]
 	var seriesTickersLength int = ccxt.GetArrayLength(seriesTickers)
 	var pageLimit int64 = this.ParseToInt(this.SafeInteger(this.Options, "defaultFetchEventsLimit", 200))
 	var maxPages int64 = *this.SafeInteger(this.Options, "maxEventPagesPerSeries", 20)
-	var hasLimit bool = (!ccxt.IsEqual(limit, nil))
+	var hasLimit bool = (limit != nil)
 	var limitOrZero any = func() any {
 		if hasLimit {
 			return limit
@@ -4324,7 +4324,7 @@ func (this *Kalshi) FetchEvents(params map[string]interface{}) ([]ccxt.Predictio
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-func (this *Kalshi) FetchEventsByQuery(queries []string, limit int64, rest map[string]any) ([]map[string]any, error) {
+func (this *Kalshi) FetchEventsByQuery(queries []string, limit *int64, rest map[string]any) ([]map[string]any, error) {
 	r := <-this.FetchEventsByQueryAsync(queries, limit, rest)
 	if r.Err != nil {
 		return nil, r.Err
@@ -4368,7 +4368,7 @@ func (this *Kalshi) FetchRawEventByTicker(ticker string, options ...FetchRawEven
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-func (this *Kalshi) FetchSeriesEvents(seriesTickers []string, status string, limit int64, rest map[string]any) ([]map[string]any, error) {
+func (this *Kalshi) FetchSeriesEvents(seriesTickers []string, status string, limit *int64, rest map[string]any) ([]map[string]any, error) {
 	r := <-this.FetchSeriesEventsAsync(seriesTickers, status, limit, rest)
 	if r.Err != nil {
 		return nil, r.Err

@@ -2117,12 +2117,12 @@ func (this *Ndax) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
 	var market map[string]any = this.Market(symbol)
-	var orderSide int = func() int {
-		if side == "buy" {
-			return 0
-		}
-		return 1
-	}()
+	var orderSide int
+	if side == "buy" {
+		orderSide = 0
+	} else {
+		orderSide = 1
+	}
 	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
 		"InstrumentId": this.ParseToInt(market["id"]),
@@ -2212,12 +2212,12 @@ func (this *Ndax) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
 	var market map[string]any = this.Market(symbol)
-	var orderSide int = func() int {
-		if side == "buy" {
-			return 0
-		}
-		return 1
-	}()
+	var orderSide int
+	if side == "buy" {
+		orderSide = 0
+	} else {
+		orderSide = 1
+	}
 	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
 		"OrderIdToReplace": this.ParseToInt(id),
@@ -3580,7 +3580,7 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = params
 	var apiName string = api[0]
 	var bodySigned *string = nil
-	var headersSigned any = nil
+	var headersSigned map[string]any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -3649,7 +3649,7 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var headersResolved any = headersSigned
+	var headersResolved map[string]any = headersSigned
 	var bodyResolved *string = bodySigned
 	return map[string]any{
 		"url":     url,

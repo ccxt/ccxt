@@ -1326,7 +1326,7 @@ func (this *Cryptocom) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(symbol)
 
 	r1 := <-this.FetchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {

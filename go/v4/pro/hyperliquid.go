@@ -262,12 +262,12 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
  * @param {string} [params.vaultAddress] the vault address for order cancellation
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Hyperliquid) CancelOrdersWsAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -334,7 +334,7 @@ func (this *Hyperliquid) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order],
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.CancelOrdersWsAsync([]any{id}, symbol, params)
+	r := <-this.CancelOrdersWsAsync([]string{id}, symbol, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2090,7 +2090,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 		"type": topic,
 		"user": userAddress,
 	}
-	var dexName any = this.GetDexFromSymbols("watchPositions", symbolsNormalized)
+	var dexName *string = this.GetDexFromSymbols("watchPositions", symbolsNormalized)
 	if dexName != nil {
 		subscription["dex"] = dexName
 	}
@@ -2159,10 +2159,10 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 		cache.Append(position)
 	}
 	var baseMessageHash string = "clearinghouseState::positions"
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), baseMessageHash))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), baseMessageHash)
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = this.SafeString(parts, 2)
 		if symbolsString == nil {
 			continue

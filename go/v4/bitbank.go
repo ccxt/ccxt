@@ -1485,7 +1485,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = this.ImplodeHostname(apiUrl) + "/"
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if (apiName == "public") || (apiName == "markets") {
 		url += this.ImplodeParams(path, params)
 		if len(query) > 0 {
@@ -1537,7 +1537,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

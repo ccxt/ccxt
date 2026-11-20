@@ -5153,7 +5153,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if apiName == "public" {
 		if !this.IsEmpty(query) {
 			url += "?" + this.Urlencode(query)
@@ -5183,7 +5183,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 		requestHeaders = privateHeaders
 	}
 	var bodyResult *string = requestBody
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

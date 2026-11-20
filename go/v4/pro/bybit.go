@@ -1386,12 +1386,12 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 		}
 		return nil
 	}())
-	var defaultLimit int = func() int {
-		if *this.SafeBool(market, "option", false) {
-			return 100
-		}
-		return 50
-	}()
+	var defaultLimit int
+	if *this.SafeBool(market, "option", false) {
+		defaultLimit = 100
+	} else {
+		defaultLimit = 50
+	}
 	var limitResolved any = func() any {
 		if limit == nil {
 			return defaultLimit
@@ -2482,10 +2482,10 @@ func (this *Bybit) HandlePositions(client any, message map[string]any) {
 			cache.Append(position)
 		}
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
 		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)

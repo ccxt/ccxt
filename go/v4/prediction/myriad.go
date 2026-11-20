@@ -1051,27 +1051,23 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	var payload *string = ccxt.SafeStringPtr(ccxt.Add("02", this.RlpEncodeList(fields)))
 	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
-	var rHex any
-	if derefPtr := this.SafeString(signature, "r"); derefPtr != nil {
-		rHex = *derefPtr
-	}
-	var sHex any
-	if derefPtr := this.SafeString(signature, "s"); derefPtr != nil {
-		sHex = *derefPtr
-	}
+	var rHex *string = this.SafeString(signature, "r")
+	var sHex *string = this.SafeString(signature, "s")
 	if rHex == nil {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing rHex"))
 	}
-	var rHexLength int = ccxt.GetLength(rHex)
+	var rHexLength int = len(*rHex)
 	if (rHexLength % 2) != 0 {
-		rHex = ccxt.Add("0", rHex)
+		rHexStr := "0" + *rHex
+		rHex = &rHexStr
 	}
 	if sHex == nil {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing sHex"))
 	}
-	var sHexLength int = ccxt.GetLength(sHex)
+	var sHexLength int = len(*sHex)
 	if (sHexLength % 2) != 0 {
-		sHex = ccxt.Add("0", sHex)
+		sHexStr := "0" + *sHex
+		sHex = &sHexStr
 	}
 	var yParity *int64 = this.SafeInteger(signature, "v")
 	var signedFields []any = []any{}
@@ -1349,12 +1345,12 @@ func (this *Myriad) BuildOrderbookOrder(outcome *string, typeVar *string, side *
 		typeStr = strings.ToLower(*typeVar)
 	}
 	var sideStr string = strings.ToLower(*side)
-	var sideInt int = func() int {
-		if sideStr == "buy" {
-			return 0
-		}
-		return 1
-	}()
+	var sideInt int
+	if sideStr == "buy" {
+		sideInt = 0
+	} else {
+		sideInt = 1
+	}
 	var isMarket bool = (typeStr == "market")
 	var defaultTif string = "GTC"
 	if isMarket {
@@ -1364,12 +1360,12 @@ func (this *Myriad) BuildOrderbookOrder(outcome *string, typeVar *string, side *
 	if (price == nil) && !isMarket {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price for limit orders"))
 	}
-	var marketPrice int = func() int {
-		if sideInt == 0 {
-			return 1
-		}
-		return 0
-	}()
+	var marketPrice int
+	if sideInt == 0 {
+		marketPrice = 1
+	} else {
+		marketPrice = 0
+	}
 	var priceValue any = func() any {
 		if price != nil {
 			return price
@@ -3724,7 +3720,7 @@ func (this *Myriad) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
  * @param {string} outcome the unified outcome of the order book
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-func (this *Myriad) ParseWeiOrderBook(response any, outcome any) any {
+func (this *Myriad) ParseWeiOrderBook(response any, outcome *string) any {
 	var rawBids []any = ccxt.SafeListTyped(response, "bids")
 	var rawAsks []any = ccxt.SafeListTyped(response, "asks")
 	var bids []any = []any{}
@@ -4626,7 +4622,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var networkId string = *this.SafeString(info, "networkId", "")
 	var marketId string = *this.SafeString(info, "marketId", "")
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "orderbook:" + networkId + ":" + marketId
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", sym))
 	var url *string = this.SafeString(this.Urls["api"], "ws")
@@ -4657,7 +4653,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var future any = this.Watch(url, messageHash, subscribeMsg, channel)
 	if isNewSubscription {
 		// return the freshly-seeded book immediately instead of blocking until the next delta
-		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym.(string)], messageHash)
+		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*sym], messageHash)
 	}
 
 	r3 := <-future.(<-chan ccxt.AsyncResult[any])
@@ -4669,12 +4665,12 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
 }
-func (this *Myriad) SeedOrderBookAsync(outcome string, sym any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Myriad) SeedOrderBookAsync(outcome string, sym *string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.seedOrderBookBody(ch, outcome, sym, optionalArgs...)
 	return ch
 }
-func (this *Myriad) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome string, sym any, optionalArgs ...any) any {
+func (this *Myriad) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome string, sym *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the order book channel streams deltas only, so seed the live book from the REST snapshot
@@ -4691,8 +4687,8 @@ func (this *Myriad) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome st
 	}
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
 	orderbook.Reset(snapshot)
-	if wsKey, ok := sym.(string); ok {
-		this.Orderbooks[wsKey] = orderbook
+	if sym != nil {
+		this.Orderbooks[*sym] = orderbook
 	}
 	return nil
 }
@@ -4779,7 +4775,7 @@ func (this *Myriad) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var networkId string = *this.SafeString(info, "networkId", "")
 	var marketId string = *this.SafeString(info, "marketId", "")
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "trades:" + networkId + ":" + marketId
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", sym))
 
@@ -4836,7 +4832,7 @@ func (this *Myriad) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var networkId string = *this.SafeString(info, "networkId", "")
 	var marketId string = *this.SafeString(info, "marketId", "")
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "trades:" + networkId + ":" + marketId
 	var messageHash string = "myTrades"
 
@@ -4996,7 +4992,7 @@ func (this *Myriad) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTick
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var networkId string = *this.SafeString(info, "networkId", "")
 	var marketId string = *this.SafeString(info, "marketId", "")
-	var sym any = this.SafeOutcomeSymbol(outcome, outcomeObj)
+	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "prices:" + networkId + ":" + marketId
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
 
