@@ -14250,7 +14250,7 @@ ${constStatements.join('\n')}
         // outcome/safeOutcome (: PredictionOutcomeMarket) and parseSearchQueries (: string[]) have no venue override
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'Outcome', undefined, true);
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SafeOutcome', undefined, true);
-        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ParseSearchQueries', undefined, true, '[]any');
+        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ParseSearchQueries', undefined, true, '[]string');
         // applyEventFetchParams (: any[]) has no venue override: every return is the events list (ListTyped), so fetchEvents cores send []any
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ApplyEventFetchParams', undefined, true, '[]any');
         // setEvents (: Dictionary<any>) has no venue override: its only return is this.events, a field the struct declares map[string]any, so loadEvents cores send map[string]any
@@ -15053,7 +15053,7 @@ ${caseStatements.join('\n')}
      */
     retypeGoMapMethod (content: string, receiver: string, method: string, accept: (expr: string) => boolean | undefined, wrap: boolean, goType = 'map[string]any'): string {
         // market/currency rows leave Market/SafeMarket/Currency/SafeCurrency pointer-free, so their fields read natively
-        const typed = (goType === '[]any') ? 'ListTyped(' : ((GO_MARKET_ROW_METHODS.indexOf (method) >= 0) ? 'MarketTyped('
+        const typed = (goType === '[]any') ? 'ListTyped(' : (goType === '[]string') ? 'StringSliceFromList(' : ((GO_MARKET_ROW_METHODS.indexOf (method) >= 0) ? 'MarketTyped('
             : ([ 'Currency', 'SafeCurrency' ].indexOf (method) >= 0 ? 'CurrencyTyped(' : 'MapTyped('));
         const headRegex = new RegExp ('func\\s+\\(this \\*' + receiver + '\\)\\s+' + method + '\\(([^)]*)\\)\\s+any\\s*\\{', 'g');
         let out = '';
