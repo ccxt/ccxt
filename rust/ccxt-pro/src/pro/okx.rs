@@ -783,13 +783,13 @@ impl Okx {
         let url: Option<String> = self.get_url(Value::from(channel), &[&Value::Str("public".into())]);
         let fundingRate: Value = self.watch_multiple(url.as_deref(), &messageHashes, Value::Map(request), &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let symbol: Option<String> = self.safe_string_k_opt(&fundingRate, "symbol", &[]);
+            let fundingSymbol: Option<String> = self.safe_string_k_opt(&fundingRate, "symbol", &[]);
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
                 m
             });
-            if (symbol.is_some()) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), fundingRate);
+            if (fundingSymbol.is_some()) {
+                result.insert(fundingSymbol.as_deref().unwrap_or("null").to_string(), fundingRate);
             }
             return Value::Map(result);
         }

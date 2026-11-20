@@ -10961,8 +10961,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let marginParams: crate::value::List = { let __t = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&params]); Value::from(vec![__t.0, Value::Dict(__t.1)]) }.into_list();
-        let marginMode: Option<String> = marginParams.get(0).and_then(Value::as_str).map(str::to_owned);
+        let marginParams = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&params]);
+        let marginMode: Option<String> = marginParams.0.as_str().map(str::to_owned);
         let isStock: Option<bool> = (market).stock;
         let isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         let paramsStock: crate::value::Dict = self.omit_t(&params, Value::Str("stock".into()), &[]);
@@ -11462,8 +11462,8 @@ if _try_result.is_err() {
             let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let marginResult: crate::value::List = { let __t = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[&Value::from(&orderParams)]); Value::from(vec![__t.0, Value::Dict(__t.1)]) }.into_list();
-            let currentMarginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
+            let marginResult = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[&Value::from(&orderParams)]);
+            let currentMarginMode: Option<String> = marginResult.0.as_str().map(str::to_owned);
             if (currentMarginMode.is_some()) {
                 if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
@@ -11554,8 +11554,8 @@ if _try_result.is_err() {
             let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let marginResult: crate::value::List = { let __t = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[&Value::from(&orderParams)]); Value::from(vec![__t.0, Value::Dict(__t.1)]) }.into_list();
-            let currentMarginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
+            let marginResult = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[&Value::from(&orderParams)]);
+            let currentMarginMode: Option<String> = marginResult.0.as_str().map(str::to_owned);
             if (currentMarginMode.is_some()) {
                 if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();

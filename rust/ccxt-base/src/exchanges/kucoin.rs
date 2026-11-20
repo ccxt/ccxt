@@ -1641,7 +1641,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_hf_and_params" => { let __t = self.handle_hf_and_params(&args[..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) },
                 "is_futures_method" => self.is_futures_method(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "is_hf_or_mining" => self.is_hf_or_mining(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "is_hf_or_mining" => self.is_hf_or_mining(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "is_uta_enabled" => self.is_uta_enabled(&args[..]).await,
                 "load_migration_status" => self.load_migration_status(&args[..].iter().collect::<Vec<_>>()).await,
                 "market_order_amount_to_precision" => crate::Value::from(self.market_order_amount_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
@@ -12648,24 +12648,24 @@ impl Kucoin {
         let clientOidOption: Option<String> = clientOidOptionparamsClientOidVariable.0.as_str().map(str::to_owned);
         let paramsClientOid: crate::value::Dict = clientOidOptionparamsClientOidVariable.1;
         request.insert("clientOid".into(), clientOidOption.map(Value::from).unwrap_or(Value::Null));
-        let mut fromId: Value = self.convert_type_to_account(Value::from(fromAccount));
-        let mut toId: Value = self.convert_type_to_account(Value::from(toAccount));
+        let mut fromId: Option<String> = self.convert_type_to_account(Value::from(fromAccount)).as_str().map(str::to_owned);
+        let mut toId: Option<String> = self.convert_type_to_account(Value::from(toAccount)).as_str().map(str::to_owned);
         let exchangeIds: Value = (if (self.ids == Value::Null) { Value::from(vec![]) } else { self.ids.clone() });
-        let fromIsolated: bool = self.in_array(fromId.clone(), &exchangeIds);
-        let toIsolated: bool = self.in_array(toId.clone(), exchangeIds);
+        let fromIsolated: bool = self.in_array(&fromId, &exchangeIds);
+        let toIsolated: bool = self.in_array(&toId, exchangeIds);
         if fromIsolated {
-            request.insert("fromAccountSymbol".into(), fromId.clone());
-            fromId = Value::Str("ISOLATED".into());
+            request.insert("fromAccountSymbol".into(), Value::from(fromId.as_deref()));
+            fromId = Some("ISOLATED".to_string());
         }
         if toIsolated {
-            request.insert("toAccountSymbol".into(), toId.clone());
-            toId = Value::Str("ISOLATED".into());
+            request.insert("toAccountSymbol".into(), Value::from(toId.as_deref()));
+            toId = Some("ISOLATED".to_string());
         }
         let utaAccountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "utaAccountsByType");
-        fromId = self.safe_string(&utaAccountsByType, &fromId, &[fromId.clone()]);
-        toId = self.safe_string(&utaAccountsByType, &toId, &[toId.clone()]);
-        request.insert("fromAccountType".into(), (if let Some(__s) = (fromId).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-        request.insert("toAccountType".into(), (if let Some(__s) = (toId).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+        fromId = self.safe_string_opt(&utaAccountsByType, Value::from(fromId.as_deref()), &[&Value::from(fromId.as_deref())]);
+        toId = self.safe_string_opt(&utaAccountsByType, Value::from(toId.as_deref()), &[&Value::from(toId.as_deref())]);
+        request.insert("fromAccountType".into(), fromId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
+        request.insert("toAccountType".into(), toId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         let types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("INTERNAL".to_string(), Value::Str("0".into()));
@@ -12741,32 +12741,32 @@ impl Kucoin {
         if !(paramsTransferType.contains_key("clientOid")) {
             request.insert("clientOid".into(), Value::from(self.uuid(&[])));
         }
-        let mut fromId: Value = self.convert_type_to_account(Value::from(fromAccount));
-        let mut toId: Value = self.convert_type_to_account(Value::from(toAccount));
+        let mut fromId: Option<String> = self.convert_type_to_account(Value::from(fromAccount)).as_str().map(str::to_owned);
+        let mut toId: Option<String> = self.convert_type_to_account(Value::from(toAccount)).as_str().map(str::to_owned);
         let exchangeIds: Value = (if (self.ids == Value::Null) { Value::from(vec![]) } else { self.ids.clone() });
-        let fromIsolated: bool = self.in_array(fromId.clone(), &exchangeIds);
-        let toIsolated: bool = self.in_array(toId.clone(), exchangeIds);
+        let fromIsolated: bool = self.in_array(&fromId, &exchangeIds);
+        let toIsolated: bool = self.in_array(&toId, exchangeIds);
         if fromIsolated {
-            request.insert("fromAccountTag".into(), fromId.clone());
-            fromId = Value::Str("isolated".into());
+            request.insert("fromAccountTag".into(), fromId.clone().map(Value::from).unwrap_or(Value::Null));
+            fromId = Some("isolated".to_string());
         }
         if toIsolated {
-            request.insert("toAccountTag".into(), toId.clone());
-            toId = Value::Str("isolated".into());
+            request.insert("toAccountTag".into(), toId.clone().map(Value::from).unwrap_or(Value::Null));
+            toId = Some("isolated".to_string());
         }
-        let hfOrMining: bool = self.is_hf_or_mining(fromId.clone(), toId.clone()).as_bool() == Some(true);
+        let hfOrMining: bool = self.is_hf_or_mining(fromId.as_deref(), toId.as_deref()).as_bool() == Some(true);
         let mut response: Option<crate::value::Dict> = None;
         if hfOrMining {
             // new endpoint does not support hf and mining transfers
             // use old endpoint for hf and mining transfers
-            request.insert("from".into(), fromId);
-            request.insert("to".into(), toId);
+            request.insert("from".into(), fromId.map(Value::from).unwrap_or(Value::Null));
+            request.insert("to".into(), toId.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_108 = self.extend(&request, &[&paramsTransferType]);
             response = self.private_post_accounts_inner_transfer(&[&__ws_arg_108]).await;
         }  else {
             request.insert("type".into(), transferTypeOption.map(Value::from).unwrap_or(Value::Null));
-            request.insert("fromAccountType".into(), (if let Some(__s) = (fromId).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-            request.insert("toAccountType".into(), (if let Some(__s) = (toId).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+            request.insert("fromAccountType".into(), fromId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
+            request.insert("toAccountType".into(), toId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             //
             //     {
             //         "code": "200000",
@@ -12793,8 +12793,8 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn is_hf_or_mining(&self, mut fromId: Value, mut toId: Value) -> Value {
-        return Value::Bool(self.in_array(fromId, Value::from(vec![Value::Str("trade_hf".into()), Value::Str("pool".into())])) || self.in_array(toId, Value::from(vec![Value::Str("trade_hf".into()), Value::Str("pool".into())])));
+    pub fn is_hf_or_mining(&self, fromId: Option<&str>, toId: Option<&str>) -> Value {
+        return Value::Bool(self.in_array(Value::from(fromId), Value::from(vec![Value::Str("trade_hf".into()), Value::Str("pool".into())])) || self.in_array(Value::from(toId), Value::from(vec![Value::Str("trade_hf".into()), Value::Str("pool".into())])));
 
     Value::Null
 }

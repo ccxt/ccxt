@@ -9502,8 +9502,8 @@ impl Htx {
             let amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
             let price: Value = self.safe_value_k(&rawOrder, "price", &[]);
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let marginResult: crate::value::List = { let __t = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[&Value::from(&orderParams)]); Value::from(vec![__t.0, Value::Dict(__t.1)]) }.into_list();
-            let currentMarginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
+            let marginResult = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[&Value::from(&orderParams)]);
+            let currentMarginMode: Option<String> = marginResult.0.as_str().map(str::to_owned);
             if (currentMarginMode.is_some()) {
                 if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
@@ -11542,8 +11542,8 @@ impl Htx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
-            let marginModeAndParams: crate::value::List = { let __t = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[&params, &Value::Str("cross".into())]); Value::from(vec![__t.0, Value::Dict(__t.1)]) }.into_list();
-            let marginMode: Option<String> = marginModeAndParams.get(0).and_then(Value::as_str).map(str::to_owned);
+            let marginModeAndParams = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[&params, &Value::Str("cross".into())]);
+            let marginMode: Option<String> = marginModeAndParams.0.as_str().map(str::to_owned);
             request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_133 = self.extend(&request, &[&query]);
             response = self.contract_private_post_v5_position_lever(&[&__ws_arg_133]).await;

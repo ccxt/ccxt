@@ -4386,7 +4386,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         {
                         let mut i: i64 = 0;
             let mut __for_first_865: bool = true;
-            while { if !__for_first_865 { i += 1; } __for_first_865 = false; (i as f64) < get_array_length(&transactions).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_865 { i += 1; } __for_first_865 = false; (i as f64) < Value::Int(transactions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let __ws_arg_20 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::from(type_var));
@@ -4600,14 +4600,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        }
         //     }
         //
-        let mut rawWithdrawals: Value = Value::Null;
+        let mut rawWithdrawals: crate::value::List = std::sync::Arc::new(Vec::new());
         let result: Value = self.safe_value_k(&response, "result", &[]);
         if !(matches!(&result, Value::Arr(_))) {
-            rawWithdrawals = Value::Arr(self.add_pagination_cursor_to_result(result.clone()));
+            rawWithdrawals = self.add_pagination_cursor_to_result(result);
         }  else {
-            rawWithdrawals = result;
+            rawWithdrawals = self.safe_list_k_t(&response, "result");
         }
-        return self.parse_transactions_by_type("withdrawal", rawWithdrawals, code.as_str(), since, limit);
+        return self.parse_transactions_by_type("withdrawal", &rawWithdrawals, code.as_str(), since, limit);
         Value::Null
         }).await?))
     }

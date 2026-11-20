@@ -8743,15 +8743,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         let accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
-        let lowercaseAccount: Value = (if let Some(__s) = (account).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (matches!(&lowercaseAccount, Value::Str(__k) if accountsByType.contains_key(__k.as_ref()))) {
-            return crate::value::KeyRead::read(&&accountsByType, &lowercaseAccount);
+        let mut lowercaseAccount: Option<String> = account.as_str().map(str::to_lowercase);
+        if (matches!(lowercaseAccount.as_deref(), Some(__k) if accountsByType.contains_key(__k))) {
+            return self.safe_string(&accountsByType, lowercaseAccount.map(Value::from).unwrap_or(Value::Null), &[account]);
         }
         let markets: Value = Value::from(&self.markets);
         let marketsById: Value = Value::from(&self.markets_by_id);
         if ((markets != Value::Null) && (matches!((&markets, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((marketsById != Value::Null) && (matches!((&marketsById, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, account.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            return Value::from((market).id.as_deref());
+            return self.safe_string_k(&market, "id", &[account.clone()]);
         }  else {
             return account;
         }

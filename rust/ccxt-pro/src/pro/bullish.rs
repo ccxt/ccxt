@@ -1003,15 +1003,19 @@ impl Bullish {
             let data: crate::value::List = __pro_message.key_list("data");
             let parsed: crate::value::Dict = self.parent.parse_balance_list(&data).into_dict();
             let parsedKeys: Vec<Value> = Value::Array(parsed.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+            let mut balance: indexmap::IndexMap<String, Value> = self.balance.get(tradingAccountId.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })).as_map().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_185: bool = true;
                 while { if !__for_first_185 { i += 1; } __for_first_185 = false; i < (parsedKeys.len() as i64) } {
-                let parsedKey: Value = parsedKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(tradingAccountId.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&parsedKey), crate::value::KeyRead::read(&&parsed, &parsedKey)); } }
+                let parsedKey: Option<&str> = parsedKeys.get(i as usize).and_then(Value::as_str);
+                balance.insert(parsedKey.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&parsed, &Value::from(parsedKey)));
             }
             }
-            { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = tradingAccountId.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(tradingAccountId.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+            { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(balance))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(tradingAccountId.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }  else {
             let data: crate::value::Dict = __pro_message.key_dict("data");
             let assetId: Option<String> = self.safe_string_k_opt(&data, "assetSymbol", &[]);

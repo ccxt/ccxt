@@ -7340,8 +7340,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                         let m = indexmap::IndexMap::new();
                         m
                     })]);
-                    let mut order: Value = self.safe_dict(&orders, orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                    if (order != Value::Null) {
+                    let mut order: Option<crate::value::Dict> = self.safe_dict_o(&orders, &orderId);
+                    if (order.is_some()) {
                         // accumulate order fees
                         let fees: Option<crate::value::List> = self.safe_list_k_o(&order, "fees");
                         let mut fee: Value = self.safe_dict_k(&order, "fee", &[]);
@@ -7358,14 +7358,14 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                                     if (feeCostString.is_none()) {
                                         feeCostString = Some("0".to_string());
                                     }
-                                    add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".into())), &Value::Int(i)), &Value::Str("cost".into()), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
+                                    if let Some(__d) = &mut order { add_element_to_object(get_value_mut(std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert(Value::Null), &Value::Int(i)), &Value::Str("cost".into()), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null })); }
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             }
                             if insertNewFeeCurrency {
-                                crate::runtime::append_to_object_array(&mut order, &Value::Str("fees".into()), tradeFee.clone());
+                                if let Some(__d) = &mut order { if let Value::Arr(__a) = std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(tradeFee.clone()); } }
                             }
                         }  else if (fee != Value::Null) {
                             if (self.safe_string_k(&fee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
@@ -7375,27 +7375,27 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                                     feeCostString = Some("0".to_string());
                                 }
                                 if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".into(), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null })); }
-                                add_element_to_object(&mut order, &Value::Str("fee".into()), fee.clone());
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), fee.clone()); }
                             }  else if (fee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null) == Value::Null) {
-                                add_element_to_object(&mut order, &Value::Str("fee".into()), tradeFee.clone());
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), tradeFee.clone()); }
                             }  else {
-                                add_element_to_object(&mut order, &Value::Str("fees".into()), Value::from(vec![fee, tradeFee.clone()]));
-                                add_element_to_object(&mut order, &Value::Str("fee".into()), Value::Null);
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fees".into(), Value::from(vec![fee, tradeFee.clone()])); }
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Null); }
                             }
                         }  else {
-                            add_element_to_object(&mut order, &Value::Str("fee".into()), tradeFee);
+                            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), tradeFee); }
                         }
                         // save this trade in the order
                         let mut orderTrades: crate::value::List = self.safe_list_k_t(&order, "trades");
                         std::sync::Arc::make_mut(&mut orderTrades).push(trade.clone());
-                        add_element_to_object(&mut order, &Value::Str("trades".into()), Value::Arr(orderTrades));
+                        if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("trades".into(), Value::Arr(orderTrades)); }
                         // write the updated order back into the cache: php
                         // arrays are value types, so the fee/trades mutations
                         // above only touched a local copy there — the cache
                         // hashmap rows are wired by reference, so this
                         // assignment reaches the cached row (and is a no-op
                         // in the reference-semantics runtimes)
-                        add_element_to_object(&mut orders, &orderId.map(Value::from).unwrap_or(Value::Null), order);
+                        add_element_to_object(&mut orders, &orderId.map(Value::from).unwrap_or(Value::Null), order.map_or(Value::Null, Value::Dict));
                     }
                 }
             }
@@ -7483,25 +7483,29 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 })); }
         }
         { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
+        let mut balance: indexmap::IndexMap<String, Value> = self.balance.get(accountType.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })).as_map().cloned().unwrap_or_default();
         let B: crate::value::List = __pro_message.key_list("B");
         {
                         let mut i: i64 = 0;
             let mut __for_first_86: bool = true;
             while { if !__for_first_86 { i += 1; } __for_first_86 = false; i < (B.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&B, Value::Int(i));
+            let entry: crate::value::Dict = self.safe_dict_t(&B, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "a", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (code.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
                 account.insert("total".into(), self.safe_string_k(&entry, "b", &[]));
-                { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
+                balance.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
         let timestamp: Option<i64> = (match __pro_message.get("E") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
-        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-        { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
-        { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = Some(accountType.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(accountType.to_string(), __be_tmp); } }
+        balance.insert("timestamp".into(), Value::from(timestamp));
+        balance.insert("datetime".into(), self.iso8601(timestamp));
+        { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(balance))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(accountType.to_string(), __be_tmp); } }
         client.resolve((if let Some(__k) = Some(accountType.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", accountType, ":balance").into())));
         // --- positions ---
         if !(self.positionsByType.has(&accountType)) {

@@ -8484,22 +8484,25 @@ if _try_result.is_err() {
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("editOrder".into()), Some(&market), &[&params]);
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
-        let accountParsed: Value = self.convert_type_to_account(marketType.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut accountParsed: Option<String> = None;
+        if (marketType.is_some()) {
+            accountParsed = self.convert_type_to_account(marketType.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        }
         let isUnifiedAccountparamsUnifiedAccountVariable = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("editOrder".into()), Value::Str("unifiedAccount".into()), &[Value::Bool(false)]);
         let isUnifiedAccount: bool = isUnifiedAccountparamsUnifiedAccountVariable.0 == Some(true);
         let paramsUnifiedAccount: crate::value::Dict = isUnifiedAccountparamsUnifiedAccountVariable.1;
-        let account: Value = (if isUnifiedAccount { Value::Str("unified".into()) } else { accountParsed });
+        let account: Option<String> = (if isUnifiedAccount { Some("unified".to_string()) } else { accountParsed });
         let isLimitOrder: bool = type_var == "limit";
-        if (account.as_str() == Some("spot")) {
+        if (account.as_deref() == Some("spot")) {
             if !isLimitOrder {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " editOrder() does not support ").into()), Value::from(type_var)).into()), " orders for ").into()), marketType.as_deref().unwrap_or("null")).into()), " markets")));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " editOrder() does not support ").into()), Value::from(type_var)).into()), " orders for ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets")));
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), Value::Str(format!("{}", Value::from(id)).into()));
                 m.insert("currency_pair".to_string(), Value::from((market).id.as_deref()));
-                m.insert("account".to_string(), account);
+                m.insert("account".to_string(), account.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (amount != Value::Null) {
@@ -9432,10 +9435,7 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), truncated.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let accountsByType: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "accountsByType", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         if !(matches!(&fromId, Value::Str(__k) if accountsByType.contains_key(__k.as_ref()))) {
             request.insert("from".into(), Value::Str("margin".into()));
             request.insert("currency_pair".into(), fromId.clone());

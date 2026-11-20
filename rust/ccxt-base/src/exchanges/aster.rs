@@ -5745,8 +5745,8 @@ impl Aster {
             m
         });
         let mut type_var: Option<String> = None;
-        let fromId: Value = (if let Some(__s) = (self.convert_type_to_account(fromAccount)).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-        let toId: Value = (if let Some(__s) = (self.convert_type_to_account(toAccount)).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let fromId: Value = (self.convert_type_to_account(fromAccount)).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let toId: Value = (self.convert_type_to_account(toAccount)).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         if (fromId.as_str() == Some("SPOT")) && (toId.as_str() == Some("FUTURE")) {
             type_var = Some("SPOT_FUTURE".to_string());
         }  else if (fromId.as_str() == Some("FUTURE")) && (toId.as_str() == Some("SPOT")) {

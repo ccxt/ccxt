@@ -11040,7 +11040,7 @@ impl Binance {
         if (symbolsNormalized.is_some()) && (self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) || self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true)) {
             let symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (symbolsLength == 1) {
-                request.insert("symbol".into(), self.market_id((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str()));
+                request.insert("symbol".into(), self.market_id(self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str()));
             }
         }
         let mut response: Value = Value::Null;
@@ -15222,8 +15222,8 @@ impl Binance {
                 market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("symbol".into()), &[]);
             }
-            let mut fromId: Value = (if let Some(__s) = (self.convert_type_to_account(fromAccount.clone())).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-            let mut toId: Value = (if let Some(__s) = (self.convert_type_to_account(toAccount.clone())).as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+            let mut fromId: Value = (self.convert_type_to_account(fromAccount.clone())).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut toId: Value = (self.convert_type_to_account(toAccount.clone())).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut isolatedSymbol: Value = Value::Null;
             if (market.is_some()) {
                 isolatedSymbol = crate::value::KeyRead::key_read(&&market, "id");
