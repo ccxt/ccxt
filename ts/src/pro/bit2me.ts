@@ -273,8 +273,9 @@ export default class bit2me extends bit2meRest {
         let unifiedSymbol: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            unifiedSymbol = market['symbol'];
-            messageHash = messageHash + ':' + unifiedSymbol;
+            const marketSymbol = this.safeString (market, 'symbol', '');
+            messageHash = 'orders:' + marketSymbol;
+            unifiedSymbol = marketSymbol;
         }
         const orders = await this.subscribePrivate ('my-orders', messageHash, params);
         let finalLimit = limit;
@@ -319,7 +320,7 @@ export default class bit2me extends bit2meRest {
         const orders = this.orders;
         orders.append (order);
         client.resolve (orders, 'orders');
-        client.resolve (orders, 'orders:' + order['symbol']);
+        client.resolve (orders, 'orders:' + this.safeString (order, 'symbol', ''));
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {
@@ -402,8 +403,9 @@ export default class bit2me extends bit2meRest {
         let unifiedSymbol: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            unifiedSymbol = market['symbol'];
-            messageHash = messageHash + ':' + unifiedSymbol;
+            const marketSymbol = this.safeString (market, 'symbol', '');
+            messageHash = 'myTrades:' + marketSymbol;
+            unifiedSymbol = marketSymbol;
         }
         const trades = await this.subscribePrivate ('my-trades', messageHash, params);
         let finalLimit = limit;
@@ -443,7 +445,7 @@ export default class bit2me extends bit2meRest {
         const myTrades = this.myTrades;
         myTrades.append (trade);
         client.resolve (myTrades, 'myTrades');
-        client.resolve (myTrades, 'myTrades:' + trade['symbol']);
+        client.resolve (myTrades, 'myTrades:' + this.safeString (trade, 'symbol', ''));
     }
 
     /**
@@ -619,7 +621,7 @@ export default class bit2me extends bit2meRest {
             'symbol': market['symbol'],
             'status': this.parseOrderStatus (this.safeString (data, 'status')),
         }, market);
-        this.settleRequest (client, 'canceled-order:' + orderId, order);
+        this.settleRequest (client, 'canceled-order:' + this.safeString (data, 'orderId', ''), order);
     }
 
     /**
@@ -708,7 +710,7 @@ export default class bit2me extends bit2meRest {
             'symbol': market['id'],
         };
         const url = this.urls['api']['ws'];
-        const messageHash = 'canceled-all-orders:' + market['id'];
+        const messageHash = 'canceled-all-orders:' + this.safeString (market, 'id', '');
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
@@ -731,12 +733,12 @@ export default class bit2me extends bit2meRest {
         for (let i = 0; i < ids.length; i++) {
             orders.push (this.safeOrder ({
                 'info': message,
-                'id': ids[i],
-                'symbol': market['symbol'],
+                'id': this.safeString (ids, i),
+                'symbol': this.safeString (market, 'symbol'),
                 'status': 'canceled',
             }, market));
         }
-        this.settleRequest (client, 'canceled-all-orders:' + marketId, orders);
+        this.settleRequest (client, 'canceled-all-orders:' + this.safeString (message, 'symbol', ''), orders);
     }
 
     /**
@@ -828,11 +830,11 @@ export default class bit2me extends bit2meRest {
                 }
             }
         } else if (event === 'canceled-order') {
-            this.settleRequest (client, 'canceled-order:' + this.safeString (message, 'orderId'), undefined, exception);
+            this.settleRequest (client, 'canceled-order:' + this.safeString (message, 'orderId', ''), undefined, exception);
         } else if (event === 'canceled-orders') {
             this.settleRequest (client, 'canceled-orders', undefined, exception);
         } else if (event === 'canceled-all-orders') {
-            this.settleRequest (client, 'canceled-all-orders:' + this.safeString (message, 'symbol'), undefined, exception);
+            this.settleRequest (client, 'canceled-all-orders:' + this.safeString (message, 'symbol', ''), undefined, exception);
         } else if (event === 'subscribe') {
             // a refused subscription names the channel and the symbol it was asked for
             const subscription = this.safeDict (message, 'subscription', {});

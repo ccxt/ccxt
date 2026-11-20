@@ -450,8 +450,8 @@ export default class apex extends apexRest {
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
-        let symbol: Str = undefined;
         let parsed = this.parseTicker (data);
+        let symbol = this.safeString (parsed, 'symbol');
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = this.safeString (parsed, 'symbol');
@@ -465,6 +465,8 @@ export default class apex extends apexRest {
             const rawTicker = this.safeDict (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);
             parsed = this.parseTicker (merged);
+        } else {
+            symbol = undefined;
         }
         const timestamp = this.safeIntegerProduct (message, 'ts', 0.001);
         parsed['timestamp'] = timestamp;

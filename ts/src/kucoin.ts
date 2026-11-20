@@ -3649,12 +3649,12 @@ export default class kucoin extends Exchange {
         let paramsRequest: Dict;
         [ accountType, paramsRequest ] = this.handleOptionStringAndParams (params, 'fetchDepositAddress', 'accountType', accountType);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        accountType = this.safeString (accountsByType, accountType, accountType);
+        const accountId = this.safeString (accountsByType, accountType, accountType);
         let uta = await this.isUTAEnabled ();
         [ uta, paramsRequest ] = this.handleOptionBoolAndParams (paramsRequest, 'fetchDepositAddress', 'uta', uta);
-        if (accountType === 'contract') {
+        if (accountId === 'contract') {
             return await this.fetchContractDepositAddress (code, paramsRequest);
-        } else if (uta || (accountType === 'uta') || (accountType === 'unified')) {
+        } else if (uta || (accountId === 'uta') || (accountId === 'unified')) {
             return await super.fetchDepositAddress (code, this.extend (paramsRequest, { 'uta': true }));
         }
         const currency = this.currency (code);
@@ -7898,8 +7898,8 @@ export default class kucoin extends Exchange {
         let paramsRequest = undefined;
         [ accountType, paramsRequest ] = this.handleOptionStringAndParams (params, 'fetchDeposits', 'accountType', accountType);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        accountType = this.safeString (accountsByType, accountType, accountType);
-        if (accountType === 'contract') {
+        const accountId = this.safeString (accountsByType, accountType, accountType);
+        if (accountId === 'contract') {
             return await this.fetchContractDeposits (code, since, limit, paramsRequest);
         }
         let paginate = false;
@@ -8057,8 +8057,8 @@ export default class kucoin extends Exchange {
         let paramsRequest = undefined;
         [ accountType, paramsRequest ] = this.handleOptionStringAndParams (params, 'fetchWithdrawals', 'accountType', accountType);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        accountType = this.safeString (accountsByType, accountType, accountType);
-        if (accountType === 'contract') {
+        const accountId = this.safeString (accountsByType, accountType, accountType);
+        if (accountId === 'contract') {
             return await this.fetchContractWithdrawals (code, since, limit, paramsRequest);
         }
         const maxLimit = 500;

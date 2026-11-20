@@ -1065,11 +1065,12 @@ export default class mexc extends Exchange {
         let status: Str = undefined;
         let updated: Int = undefined;
         if (marketType === 'spot') {
-            response = await this.spotPublicGetPing (query);
+            const spotResponse: Dict = await this.spotPublicGetPing (query);
+            response = spotResponse;
             //
             //     {}
             //
-            const keys = Object.keys (response);
+            const keys = Object.keys (spotResponse);
             const length = keys.length;
             status = (length > 0) ? this.json (response) : 'ok';
         } else if (marketType === 'swap') {
@@ -1696,7 +1697,7 @@ export default class mexc extends Exchange {
         let orderId: Str = undefined;
         let symbol: Str = undefined;
         let fee: FeeString = undefined;
-        const type = undefined;
+        const type: Str = undefined;
         let side: Str = undefined;
         let takerOrMaker: Str = undefined;
         let priceString: Str = undefined;

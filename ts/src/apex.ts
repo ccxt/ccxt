@@ -1306,13 +1306,11 @@ export default class apex extends Exchange {
     }
 
     generateRandomClientIdOmni (_accountId: Str): string {
-        let accountId: string = '';
+        const suffix = '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
         if ((_accountId !== undefined) && (_accountId !== '')) {
-            accountId = _accountId;
-        } else {
-            accountId = this.randNumber (12).toString ();
+            return 'apexomni-' + _accountId + suffix;
         }
-        return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
+        return 'apexomni-' + this.randNumber (12).toString () + suffix;
     }
 
     addHyphenBeforeUsdt (symbol: string): string {

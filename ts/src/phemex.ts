@@ -1112,9 +1112,9 @@ export default class phemex extends Exchange {
         let products = this.safeList (v2ProductsData, 'products', []);
         const perpetualProductsV2 = this.safeList (v2ProductsData, 'perpProductsV2', []);
         products = this.arrayConcat (products, perpetualProductsV2);
-        let riskLimits = this.safeList (v2ProductsData, 'riskLimits', []);
+        const riskLimitsV1 = this.safeList (v2ProductsData, 'riskLimits', []);
         const riskLimitsV2 = this.safeList (v2ProductsData, 'riskLimitsV2', []);
-        riskLimits = this.arrayConcat (riskLimits, riskLimitsV2);
+        const riskLimits = this.arrayConcat (riskLimitsV1, riskLimitsV2);
         const currencies = this.safeList (v2ProductsData, 'currencies', []);
         const riskLimitsById = this.indexBy (riskLimits, 'symbol');
         const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');

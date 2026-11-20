@@ -8090,11 +8090,10 @@ export class BaseExchange {
         return result as any;
     }
 
-    parseFundingRateHistories (response: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
+    parseFundingRateHistories (response: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            rates.push (this.parseFundingRateHistory (entry, market));
+            rates.push (this.parseFundingRateHistory (response[i], market));
         }
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
@@ -8110,11 +8109,10 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
-    parseFundingRates (response: List, symbols: Strings = undefined): FundingRates {
+    parseFundingRates (response: Dict[], symbols: Strings = undefined): FundingRates {
         const fundingRates: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const parsed = this.parseFundingRate (entry);
+            const parsed = this.parseFundingRate (response[i]);
             if (parsed['symbol'] !== undefined) {
                 fundingRates[parsed['symbol']] = parsed;
             }
@@ -8126,11 +8124,10 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLongShortRatio() is not supported yet');
     }
 
-    parseLongShortRatioHistory (response: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
+    parseLongShortRatioHistory (response: Dict[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
         const rates: LongShortRatio[] = [];
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            rates.push (this.parseLongShortRatio (entry, market));
+            rates.push (this.parseLongShortRatio (response[i], market));
         }
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
@@ -8290,8 +8287,7 @@ export class BaseExchange {
     parseOpenInterests (response: List, symbols: Strings = undefined): OpenInterests {
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const parsed = this.parseOpenInterest (entry);
+            const parsed = this.parseOpenInterest (response[i]);
             if (parsed['symbol'] !== undefined) {
                 result[parsed['symbol']] = parsed;
             }

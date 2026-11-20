@@ -668,10 +668,15 @@ export default class backpack extends Exchange {
         const stock = this.safeBool (selection, 0, false);
         const query = this.safeDict (selection, 1, {});
         const marketType = this.safeString (query, 'marketType');
-        let requestedTypes = this.safeList (query, 'marketType', [ 'SPOT', 'PERP', 'RFQ' ]);
+        const defaultTypes: string[] = [];
         if (marketType !== undefined) {
-            requestedTypes = [ marketType ];
+            defaultTypes.push (marketType);
+        } else {
+            defaultTypes.push ('SPOT');
+            defaultTypes.push ('PERP');
+            defaultTypes.push ('RFQ');
         }
+        const requestedTypes = this.safeList (query, 'marketType', defaultTypes);
         const aliases: Dict = { 'spot': 'SPOT', 'swap': 'PERP', 'stock': 'RFQ' };
         const supportedTypes = [ 'SPOT', 'PERP', 'RFQ' ];
         const marketTypes: Strings = [];
@@ -2869,7 +2874,7 @@ export default class backpack extends Exchange {
             const rfqResponse = await this.privateGetApiV1Rfqs (this.extend (query, { 'symbol': market['id'], 'rfqId': id }));
             for (let i = 0; i < rfqResponse.length; i++) {
                 const order = this.parseOrder (this.safeDict (rfqResponse, i, {}), market);
-                if (order['id'] === id) {
+                if (this.safeString (order, 'id') === id) {
                     return order;
                 }
             }
@@ -2919,7 +2924,7 @@ export default class backpack extends Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const order = this.parseOrder (this.safeDict (response, i, {}), market);
-            if (order['id'] === id) {
+            if (this.safeString (order, 'id') === id) {
                 return order;
             }
         }

@@ -3154,8 +3154,9 @@ export default class blofin extends Exchange {
             throw new BadRequest (this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const marketIds: string[] = this.marketIds (symbolsNormalized);
         const request: Dict = {
-            'instId': this.marketIds (symbolsNormalized).join (','),
+            'instId': marketIds.join (','),
             'marginMode': marginMode,
         };
         const response = await this.privateGetAccountBatchLeverageInfo (this.extend (request, query));

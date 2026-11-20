@@ -1808,10 +1808,11 @@ export default class gate extends gateRest {
                 }
             }
             stored.append (parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString (parsed, 'symbol');
             const market = this.market (symbol);
-            if (market['id'] !== undefined) {
-                marketIds[market['id']] = true;
+            const marketId = this.safeString (market, 'id');
+            if (marketId !== undefined) {
+                marketIds[marketId] = true;
             }
         }
         const keys = Object.keys (marketIds);
@@ -1953,10 +1954,7 @@ export default class gate extends gateRest {
             newLiquidations.push (liquidation);
             const symbol = this.safeString (liquidation, 'symbol');
             if (symbol !== undefined) {
-                let symbolLiquidations = this.safeList (liquidationsBySymbol, symbol);
-                if (symbolLiquidations === undefined) {
-                    symbolLiquidations = [];
-                }
+                const symbolLiquidations = this.safeList (liquidationsBySymbol, symbol, []);
                 symbolLiquidations.push (liquidation);
                 liquidationsBySymbol[symbol] = symbolLiquidations;
             }

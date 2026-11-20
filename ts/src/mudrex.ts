@@ -383,12 +383,11 @@ export default class mudrex extends Exchange {
         }
         const request: Dict = {};
         const response = await this.privateGetFutures (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
         let rows: Dict[] = [];
-        if (Array.isArray (data)) {
-            rows = this.safeList (response, 'data', []);
-        } else {
-            rows = this.safeList (data, 'items', []);
+        rows = this.safeList (response, 'data', []);
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
+            rows = this.safeList (this.safeDict (response, 'data', {}), 'items', []);
         }
         const resultTickers: Dict = {};
         for (let i = 0; i < rows.length; i++) {
