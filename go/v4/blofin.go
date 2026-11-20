@@ -1867,7 +1867,7 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 		"brokerId":  this.SafeString(this.Options, "brokerId", "ec6dd3a7dd982d0b"),
 	}
 	var marginMode *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	marginMode, query = this.HandleMarginModeAndParams("createOrder", params, "cross")
 	request["marginMode"] = marginMode
 	var triggerPriceAny *string = this.SafeStringN(query, []any{"triggerPrice", "stopLossPrice", "takeProfitPrice"})
@@ -1882,7 +1882,7 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 		}
 	}
 	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
-	query = this.Omit(query, []any{"timeInForce"})
+	query = this.OmitDict(query, []any{"timeInForce"})
 	var ioc bool = (timeInForce == "IOC") || (typeVar != nil && *typeVar == "ioc")
 	var marketIOC bool = (isMarketOrder && ioc)
 	if isMarketOrder || marketIOC {
@@ -1897,13 +1897,13 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	var postOnly bool = false
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, (typeVar != nil && *typeVar == "post_only"), query)
 	postOnly = postOnlyqueryVariable[0].(bool)
-	query = postOnlyqueryVariable[1]
+	query = postOnlyqueryVariable[1].(map[string]any)
 	if postOnly {
 		request["type"] = "post_only"
 	}
 	var stopLoss map[string]any = SafeMapTyped(query, "stopLoss")
 	var takeProfit map[string]any = SafeMapTyped(query, "takeProfit")
-	query = this.Omit(query, []any{"stopLoss", "takeProfit", "hedged"})
+	query = this.OmitDict(query, []any{"stopLoss", "takeProfit", "hedged"})
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
 	if hasStopLoss || hasTakeProfit {
@@ -1928,7 +1928,7 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 		if triggerPriceSlTp != nil {
 			request["reduceOnly"] = true
 		}
-		query = this.Omit(query, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice"})
+		query = this.OmitDict(query, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice"})
 	}
 	return this.Extend(request, query)
 }

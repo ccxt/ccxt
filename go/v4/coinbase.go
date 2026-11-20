@@ -4892,7 +4892,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, 100)
+	var limit int64 = GetArgInt64(optionalArgs, 2, 100)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -4926,7 +4926,7 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if market != nil {
 		request["product_id"] = market["id"]
 	}
-	if limit != nil {
+	if true {
 		request["limit"] = limit
 	}
 	if since != nil {

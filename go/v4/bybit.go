@@ -5815,7 +5815,7 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 		defaultMethod = "privatePostV5OrderCreate"
 	}
 	var method *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	method, query = this.HandleOptionStringAndParams(params, "createOrder", "method", defaultMethod)
 	var endpointIsTradingStop bool = (method != nil && *method == "privatePostV5PositionTradingStop")
 	if (price == nil) && (lowerCaseType == "limit") && !endpointIsTradingStop {
@@ -5895,7 +5895,7 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 			} else {
 				request["tpslMode"] = tpslModeTp
 			}
-			query = this.Omit(query, []any{"stopLossLimitPrice", "takeProfitLimitPrice", "tradingStopEndpoint"})
+			query = this.OmitDict(query, []any{"stopLossLimitPrice", "takeProfitLimitPrice", "tradingStopEndpoint"})
 		}
 	} else {
 		request["side"] = this.Capitalize(side)
@@ -5904,7 +5904,7 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 		var postOnly bool
 		var postOnlyqueryVariable []any = this.HandlePostOnly(isMarket, (timeInForce != nil && *timeInForce == "postonly"), query)
 		postOnly = postOnlyqueryVariable[0].(bool)
-		query = postOnlyqueryVariable[1]
+		query = postOnlyqueryVariable[1].(map[string]any)
 		if postOnly {
 			request["timeInForce"] = "PostOnly"
 		} else if timeInForce != nil && *timeInForce == "gtc" {
@@ -5937,7 +5937,7 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 	category, query = this.GetBybitType("createOrderRequest", market, query)
 	request["category"] = category
 	var cost *string = this.SafeString(query, "cost")
-	query = this.Omit(query, "cost")
+	query = this.OmitDict(query, "cost")
 	// if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
 	var isMarketBuyAndCostInferable bool = (lowerCaseType == "market") && (side != nil && *side == "buy") && ((price != nil) || (cost != nil))
 	var isMarketOrder bool = (lowerCaseType == "market")
@@ -5994,7 +5994,7 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 		request["trailingStop"] = trailingAmount
 	} else if isTriggerOrder && !endpointIsTradingStop {
 		var triggerDirection *string = this.SafeString(query, "triggerDirection")
-		query = this.Omit(query, []any{"triggerPrice", "stopPrice", "triggerDirection"})
+		query = this.OmitDict(query, []any{"triggerPrice", "stopPrice", "triggerDirection"})
 		if *this.SafeBool(market, "spot", false) {
 			if triggerDirection != nil {
 				panic(NotSupported(this.Id + " createOrder() : trigger order does not support triggerDirection for spot markets yet"))
@@ -6075,7 +6075,7 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 	}
 	if (!(*this.SafeBool(market, "spot", false))) && (hedged != nil && *hedged) {
 		if reduceOnly != nil && *reduceOnly {
-			query = this.Omit(query, "reduceOnly")
+			query = this.OmitDict(query, "reduceOnly")
 		}
 		// a reduce-only order closes the position on the opposite side
 		var isBuyPosition bool = false
@@ -6090,7 +6090,7 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 			request["positionIdx"] = 2
 		}
 	}
-	query = this.Omit(query, []any{"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"})
+	query = this.OmitDict(query, []any{"stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"})
 	return this.Extend(request, query)
 }
 

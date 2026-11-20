@@ -811,7 +811,7 @@ func (this *BaseExchange) FindMessageHashes(client *Client, element any) []strin
 	return result
 }
 func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) []any {
-	limit := GetArg(optionalArgs, 0, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	key := GetArg(optionalArgs, 1, "timestamp")
 	_ = key
@@ -830,7 +830,7 @@ func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) []any {
 			}
 			if fromStart == true {
 				var limitResolved any = func() any {
-					if IsGreaterThan(limit, arrayLength) {
+					if limit != nil && *limit > int64(arrayLength) {
 						return arrayLength
 					}
 					return limit
@@ -841,7 +841,7 @@ func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) []any {
 				return this.ArraySlice(array, OpNeg(limitResolved))
 			}
 			if ascending {
-				return this.ArraySlice(array, OpNeg(limit))
+				return this.ArraySlice(array, (-*limit))
 			}
 			return this.ArraySlice(array, 0, limit)
 		}
@@ -851,7 +851,7 @@ func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) []any {
 func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) []any {
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	key := GetArg(optionalArgs, 2, "timestamp")
 	_ = key
@@ -874,7 +874,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) []a
 		}
 	}
 	if (tail == true) && (limit != nil) {
-		return this.ArraySlice(result, OpNeg(limit))
+		return this.ArraySlice(result, (-*limit))
 	}
 	// if the user provided a 'since' argument
 	// we want to limit the result starting from the 'since'
@@ -886,7 +886,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 	_ = value
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var key string = GetArgString(optionalArgs, 3, "timestamp")
 	_ = key
@@ -914,7 +914,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 		}
 	}
 	if (tail == true) && (limit != nil) {
-		return this.ArraySlice(result, OpNeg(limit))
+		return this.ArraySlice(result, (-*limit))
 	}
 	return this.FilterByLimit(result, limit, key, sinceIsDefined)
 }

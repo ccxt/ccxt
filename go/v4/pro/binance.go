@@ -6780,7 +6780,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	}
 	var typeVar any = nil
 	var subType any = nil
-	var paramsAuth any = nil
+	var paramsAuth map[string]any = nil
 	typeVarPtr, subTypePtr, paramsAuthMap := this.ResolveAuthType("watchPositions", market, params)
 	typeVar = nil
 	if typeVarPtr != nil {

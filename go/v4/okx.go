@@ -6685,7 +6685,7 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["instId"] = market["id"]
 	}
 	var typeVar *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	typeVar, query = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if limit != nil {
@@ -6727,10 +6727,10 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		var until *int64 = this.SafeInteger(query, "until")
 		if until != nil {
 			request["end"] = until
-			query = this.Omit(query, []any{"until"})
+			query = this.OmitDict(query, []any{"until"})
 		}
 	}
-	var send any = this.Omit(query, []any{"method", "stop", "trigger", "trailing"})
+	var send map[string]any = this.OmitDict(query, []any{"method", "stop", "trigger", "trailing"})
 	var response map[string]any = nil
 	if method != nil && *method == "privateGetTradeOrdersAlgoHistory" {
 
@@ -6918,7 +6918,7 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["instId"] = market["id"]
 	}
 	var typeVar *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	typeVar, query = this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)
 	request["instType"] = this.ConvertToInstrumentType(typeVar)
 	if limit != nil {
@@ -6953,11 +6953,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		var until *int64 = this.SafeInteger(query, "until")
 		if until != nil {
 			request["end"] = until
-			query = this.Omit(query, []any{"until"})
+			query = this.OmitDict(query, []any{"until"})
 		}
 		request["state"] = "filled"
 	}
-	var send any = this.Omit(query, []any{"method", "stop", "trigger", "trailing"})
+	var send map[string]any = this.OmitDict(query, []any{"method", "stop", "trigger", "trailing"})
 	var response map[string]any = nil
 	if method != nil && *method == "privateGetTradeOrdersAlgoHistory" {
 

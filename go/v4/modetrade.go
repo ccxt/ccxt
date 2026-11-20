@@ -4687,16 +4687,17 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) map[string]any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		var auth any = ts + method + "/" + version + "/" + pathWithParams
+		var auth string = ts + method + "/" + version + "/" + pathWithParams
 		var signedBody any = nil
 		if (method == "POST") || (method == "PUT") {
-			signedBody = this.Json(paramsSigned)
-			auth = Add(auth, signedBody)
+			var signedBodyText string = this.Json(paramsSigned)
+			signedBody = signedBodyText
+			auth += signedBodyText
 			signedHeaders["content-type"] = "application/json"
 		} else {
 			if len(paramsSigned) > 0 {
 				url += "?" + this.Urlencode(paramsSigned)
-				auth = Add(auth, "?"+this.Rawencode(paramsSigned))
+				auth += "?" + this.Rawencode(paramsSigned)
 			}
 			signedHeaders["content-type"] = "application/x-www-form-urlencoded"
 			signedBody = func() any {

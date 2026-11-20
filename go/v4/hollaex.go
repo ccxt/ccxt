@@ -2740,7 +2740,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) map[string]any {
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(float64(timeoutMs)/1000))
 		var expires int64 = this.Seconds() + *defaultExpires
 		var expiresString *string = this.NumberToString(expires)
-		var auth any = method + requestPath + *expiresString
+		var auth string = method + requestPath + *expiresString
 		requestHeaders = map[string]any{
 			"api-key":     this.ApiKey,
 			"api-expires": expiresString,
@@ -2748,8 +2748,9 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) map[string]any {
 		if method == "POST" {
 			requestHeaders["Content-type"] = "application/json"
 			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
-				requestBody = this.Json(query)
-				auth = Add(auth, requestBody)
+				var requestBodyText string = this.Json(query)
+				requestBody = requestBodyText
+				auth += requestBodyText
 			}
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)

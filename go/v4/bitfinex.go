@@ -2093,7 +2093,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, 100)
+	var limit int64 = GetArgInt64(optionalArgs, 2, 100)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2121,10 +2121,10 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	}
 	var market map[string]any = this.Market(symbol)
 	var limitResolved any = func() any {
-		if limit == nil {
+		if false {
 			return 10000
 		}
-		return mathMin(limit, 10000)
+		return min(limit, 10000)
 	}()
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],

@@ -2399,8 +2399,20 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 		var rawPosition any = rawPositions[i]
 		var position map[string]any = this.ParseWsPosition(rawPosition)
 		var timestamp *int64 = this.SafeInteger(message, "E")
-		ccxt.AddElementToObject(position, "timestamp", timestamp)
-		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
+		if position != nil {
+			if timestamp != nil {
+				position["timestamp"] = *timestamp
+			} else {
+				position["timestamp"] = nil
+			}
+		}
+		if position != nil {
+			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+				position["datetime"] = *ptrValue
+			} else {
+				position["datetime"] = nil
+			}
+		}
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}

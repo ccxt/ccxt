@@ -1242,7 +1242,11 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		strike = this.SafeNumber(optionDetails, "strike") // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
 		optionLetter = this.SafeString(optionDetails, "option_type")
 		if settle != nil {
-			symbol = Add(Add(Add(*base+"/"+*quote+":"+*settle+"-"+this.Yymmdd(expiry)+"-", this.NumberToString(strike)), "-"), optionLetter)
+			if symbolPiece := this.NumberToString(strike); symbolPiece != nil && optionLetter != nil {
+				symbol = *base + "/" + *quote + ":" + *settle + "-" + this.Yymmdd(expiry) + "-" + *symbolPiece + "-" + *optionLetter
+			} else {
+				symbol = nil
+			}
 		}
 		if optionLetter != nil && *optionLetter == "P" {
 			optionTypeStr := "put"

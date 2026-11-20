@@ -16534,10 +16534,11 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) map[string]any {
 	if signed {
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.NumberToString(this.Nonce())
-		var auth any = *timestamp + method + payload
+		var auth string = *timestamp + method + payload
 		if method == "POST" {
-			requestBody = this.Json(params)
-			auth = Add(auth, requestBody)
+			var requestBodyText string = this.Json(params)
+			requestBody = requestBodyText
+			auth += requestBodyText
 		} else {
 			if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 				var sortedParams map[string]any = this.Keysort(params)
@@ -16551,7 +16552,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) map[string]any {
 				// signature must use the decoded values (e.g. non-ascii market ids).
 				// sort explicitly (true) so the signed order matches the url order in Go,
 				// where map iteration is not ordered (keysort's order is otherwise lost)
-				auth = Add(auth, "?"+this.Rawencode(sortedParams, true))
+				auth += "?" + this.Rawencode(sortedParams, true)
 			}
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")

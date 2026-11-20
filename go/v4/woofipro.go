@@ -5025,7 +5025,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 			requestParams = this.Keysort(requestParams)
 		}
-		var auth any = ""
+		var auth string = ""
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		url += pathWithParams
 		var hasKeyPrefix bool = (strings.Index(this.ApiKey, "ed25519:") >= 0)
@@ -5042,13 +5042,14 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		auth = ts + method + "/" + version + "/" + pathWithParams
 		if (method == "POST") || (method == "PUT") {
-			requestBody = this.Json(requestParams)
-			auth = Add(auth, requestBody)
+			var requestBodyText string = this.Json(requestParams)
+			requestBody = requestBodyText
+			auth += requestBodyText
 			authHeaders["content-type"] = "application/json"
 		} else {
 			if len(requestParams) > 0 {
 				url += "?" + this.Urlencode(requestParams)
-				auth = Add(auth, "?"+this.Rawencode(requestParams))
+				auth += "?" + this.Rawencode(requestParams)
 			}
 			authHeaders["content-type"] = "application/x-www-form-urlencoded"
 			if method == "DELETE" {

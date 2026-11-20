@@ -1793,7 +1793,13 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 			}
 		}
 		stored.Append(parsed)
-		ccxt.AddElementToObject(marketIds, symbol, timeframe)
+		if symbol != nil {
+			if timeframe != nil {
+				marketIds[*symbol] = *timeframe
+			} else {
+				marketIds[*symbol] = nil
+			}
+		}
 	}
 	var keys []string = nil
 	if marketIds != nil {

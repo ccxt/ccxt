@@ -519,7 +519,7 @@ func (this *Bybit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	if (!(*this.SafeBool(market, "spot", false))) && (topic != "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
 	}
-	var topics []any = []any{topic + "." + *this.SafeString(market, "id", "")}
+	var topics []string = []string{topic + "." + *this.SafeString(market, "id", "")}
 
 	r2 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, paramsValue)
 	if r2.Err != nil {
@@ -877,7 +877,7 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
 	var marketIds []string = this.MarketIds(symbolsValue)
-	var topics []any = []any{}
+	var topics []string = []string{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var topic string = "orderbook.1." + marketId
@@ -1380,18 +1380,6 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 		symbolsNormalizedElem95936 = &symbolsNormalized[0]
 	}
 	var market map[string]any = this.Market(symbolsNormalizedElem95936)
-	var defaultLimit int
-	if *this.SafeBool(market, "option", false) {
-		defaultLimit = 100
-	} else {
-		defaultLimit = 50
-	}
-	var limitResolved any = func() any {
-		if limit == nil {
-			return defaultLimit
-		}
-		return limit
-	}()
 	if limit != nil {
 		var limits map[string]any = map[string]any{
 			"spot":    []any{1, 50, 200, 1000},
@@ -1403,12 +1391,28 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 			panic(ccxt.BadRequest(this.Id + " watchOrderBookForSymbols(): for " + *this.SafeString(market, "type", "") + " markets limit can be one of: " + this.Json(selectedLimits)))
 		}
 	}
-	var topics []any = []any{}
+	var limitParam *int64 = this.SafeInteger(map[string]any{
+		"limit": limit,
+	}, "limit")
+	var limitDefault int
+	if *this.SafeBool(market, "option", false) {
+		limitDefault = 100
+	} else {
+		limitDefault = 50
+	}
+	var limitValue int64
+	if limitParam == nil {
+		limitValue = int64(limitDefault)
+	} else {
+		limitValue = *limitParam
+	}
+	var topicPrefix string = "orderbook." + strconv.FormatInt(limitValue, 10) + "."
+	var topics []string = []string{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var marketId *string = this.MarketId(&symbol)
-		var topic *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("orderbook.", this.NumberToString(limitResolved)), "."), marketId))
+		var marketId string = *this.SafeString(this.Market(symbol), "id", "")
+		var topic string = topicPrefix + marketId
 		topics = append(topics, topic)
 		var messageHash string = "orderbook:" + symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -1479,7 +1483,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	channel += strconv.FormatInt(limit, 10)
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
-	var topics []any = []any{}
+	var topics []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -1703,7 +1707,7 @@ func (this *Bybit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 		panic(r1.Err)
 	}
 	var url string = r1.Value
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -1765,7 +1769,7 @@ func (this *Bybit) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	}
 	var url string = r1.Value
 	var messageHashes []string = []string{}
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var subMessageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -2015,16 +2019,16 @@ func (this *Bybit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var topicByMarket map[string]any = map[string]any{
-		"spot":    "ticketInfo",
-		"unified": "execution",
-		"usdc":    "user.openapi.perp.trade",
+	var privateType string = this.GetPrivateType(url)
+	var topic string = "execution"
+	if privateType == "spot" {
+		topic = "ticketInfo"
+	} else if privateType == "usdc" {
+		topic = "user.openapi.perp.trade"
 	}
-	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
 	executionFast, paramsExecutionFast := this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
 	if executionFast {
-		topicStr := "execution.fast"
-		topic = &topicStr
+		topic = "execution.fast"
 	}
 
 	r3 := <-this.WatchTopicsAsync(url, []any{messageHash}, []any{topic}, paramsExecutionFast)
@@ -2089,16 +2093,16 @@ func (this *Bybit) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalA
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var topicByMarket map[string]any = map[string]any{
-		"spot":    "ticketInfo",
-		"unified": "execution",
-		"usdc":    "user.openapi.perp.trade",
+	var privateType string = this.GetPrivateType(url)
+	var topic string = "execution"
+	if privateType == "spot" {
+		topic = "ticketInfo"
+	} else if privateType == "usdc" {
+		topic = "user.openapi.perp.trade"
 	}
-	var topic *string = this.SafeString(topicByMarket, this.GetPrivateType(url))
 	executionFast, paramsExecutionFast := this.HandleOptionBoolAndParams(params, "watchMyTrades", "executionFast", false)
 	if executionFast {
-		topicStr := "execution.fast"
-		topic = &topicStr
+		topic = "execution.fast"
 	}
 
 	r3 := <-this.UnWatchTopicsAsync(url, "myTrades", []any{}, []any{messageHash}, []any{subHash}, []any{topic}, paramsExecutionFast)
@@ -2536,7 +2540,7 @@ func (this *Bybit) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var topics []any = []any{"position"}
+	var topics []string = []string{"position"}
 
 	r3 := <-this.UnWatchTopicsAsync(url, "positions", symbols, []any{messageHash}, []any{subHash}, topics, params)
 	if r3.Err != nil {
@@ -2784,12 +2788,16 @@ func (this *Bybit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var topicsByMarket map[string]any = map[string]any{
-		"spot":    []any{"order", "stopOrder"},
-		"unified": []any{"order"},
-		"usdc":    []any{"user.openapi.perp.order"},
+	var privateType string = this.GetPrivateType(url)
+	var topics []string = []string{}
+	if privateType == "usdc" {
+		topics = append(topics, "user.openapi.perp.order")
+	} else {
+		topics = append(topics, "order")
+		if privateType == "spot" {
+			topics = append(topics, "stopOrder")
+		}
 	}
-	var topics any = this.SafeList(topicsByMarket, this.GetPrivateType(url), []any{})
 
 	r3 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)
 	if r3.Err != nil {
@@ -2851,12 +2859,16 @@ func (this *Bybit) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalArg
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var topicsByMarket map[string]any = map[string]any{
-		"spot":    []any{"order", "stopOrder"},
-		"unified": []any{"order"},
-		"usdc":    []any{"user.openapi.perp.order"},
+	var privateType string = this.GetPrivateType(url)
+	var topics []string = []string{}
+	if privateType == "usdc" {
+		topics = append(topics, "user.openapi.perp.order")
+	} else {
+		topics = append(topics, "order")
+		if privateType == "spot" {
+			topics = append(topics, "stopOrder")
+		}
 	}
-	var topics any = this.SafeList(topicsByMarket, this.GetPrivateType(url))
 
 	r3 := <-this.UnWatchTopicsAsync(url, "orders", []any{}, []any{messageHash}, []any{subHash}, topics, params)
 	if r3.Err != nil {
@@ -3059,10 +3071,6 @@ func (this *Bybit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var topicByMarket map[string]any = map[string]any{
-		"spot":    "outboundAccountInfo",
-		"unified": "wallet",
-	}
 	if isUnifiedAccount != nil && *isUnifiedAccount {
 		// unified account
 		if subType != nil && *subType == "inverse" {
@@ -3091,7 +3099,15 @@ func (this *Bybit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 			}
 		}
 	}
-	var topics []any = []any{this.SafeString(topicByMarket, this.GetPrivateType(url))}
+	var privateType string = this.GetPrivateType(url)
+	if privateType == "usdc" {
+		panic(ccxt.NotSupported(this.Id + " watchBalance() is not supported on the usdc private stream"))
+	}
+	var topic string = "wallet"
+	if privateType == "spot" {
+		topic = "outboundAccountInfo"
+	}
+	var topics []string = []string{topic}
 
 	r4 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, paramsSubType)
 	if r4.Err != nil {
@@ -3411,8 +3427,12 @@ func (this *Bybit) watchTopicsBody(ch chan ccxt.AsyncResult[any], url string, me
 			}
 		}
 		for i := 0; i < topicsLength; i++ {
-			var topic any = ccxt.GetValue(topics, i)
-			if !(ccxt.InOp(subscribedTopics, topic)) {
+			var topic *string = ccxt.SafeStringPtr(ccxt.GetValue(topics, i))
+			var topicInSubscribedTopics bool
+			if topic != nil {
+				_, topicInSubscribedTopics = subscribedTopics[*topic]
+			}
+			if !(topicInSubscribedTopics) {
 				newTopics = append(newTopics, topic)
 			}
 		}

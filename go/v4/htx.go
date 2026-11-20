@@ -4131,7 +4131,7 @@ func (this *Htx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, 1000)
+	var limit int64 = GetArgInt64(optionalArgs, 1, 1000)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -4144,8 +4144,8 @@ func (this *Htx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	if limit != nil {
-		request["size"] = mathMin(limit, 2000) // max 2000
+	if true {
+		request["size"] = min(limit, 2000) // max 2000
 	}
 	var response map[string]any = nil
 	if *this.SafeBool(market, "future", false) {

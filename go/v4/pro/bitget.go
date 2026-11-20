@@ -3187,12 +3187,12 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Bitget) WatchPublicAsync(uta any, messageHash any, args map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bitget) WatchPublicAsync(uta any, messageHash string, args map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicBody(ch, uta, messageHash, args, optionalArgs...)
 	return ch
 }
-func (this *Bitget) watchPublicBody(ch chan ccxt.AsyncResult[any], uta any, messageHash any, args map[string]any, optionalArgs ...any) any {
+func (this *Bitget) watchPublicBody(ch chan ccxt.AsyncResult[any], uta any, messageHash string, args map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

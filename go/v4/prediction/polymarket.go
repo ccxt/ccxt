@@ -1817,7 +1817,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	_ = timeframe
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1846,7 +1846,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	if since != nil {
 		startS = this.ParseToInt(float64(*since) / 1000)
 		if limit != nil {
-			var endBound int64 = this.ParseToInt(this.Sum(startS, ccxt.Multiply(ccxt.Multiply(limit, fidelityMin), 60)))
+			var endBound int64 = this.ParseToInt(startS + (*limit**fidelityMin)*60)
 			if endBound < nowS {
 				endS = endBound
 			} else {
@@ -1854,13 +1854,13 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 			}
 		}
 	} else {
-		var barCount any = func() any {
-			if limit != nil {
-				return limit
-			}
-			return 100
-		}()
-		startS = this.ParseToInt(ccxt.Subtract(nowS, (ccxt.Multiply(ccxt.Multiply(barCount, fidelityMin), 60))))
+		var barCount int64
+		if limit != nil {
+			barCount = *limit
+		} else {
+			barCount = 100
+		}
+		startS = this.ParseToInt(nowS - ((barCount * *fidelityMin) * 60))
 	}
 	// the venue rejects startTs/endTs spans over 15 days ("interval is too long")
 	// regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -1946,9 +1946,9 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	}
 	var candles []any = this.SortBy(unsortedCandles, 0)
 	var candlesLength int = len(candles)
-	if (limit != nil) && (ccxt.IsGreaterThan(candlesLength, limit)) {
+	if (limit != nil) && (int64(candlesLength) > *limit) {
 
-		ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.ArraySlice(candles, ccxt.OpNeg(limit)))}
+		ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.ArraySlice(candles, (-*limit)))}
 		return nil
 	}
 
@@ -3964,7 +3964,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 	var access string = api[1]
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "gamma"))
-	var url any = *baseUrl + "/" + this.ImplodeParams(path, params)
+	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	// an empty params container must not become a body: in PHP an empty array is
 	// indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
 	var isArrayBody bool = false
@@ -3996,7 +3996,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			querystring = this.Urlencode(query)
 		}
 		if querystring != "" {
-			url = ccxt.Add(url, "?"+querystring)
+			url += "?" + querystring
 		}
 	} else if isArrayBody {
 		jsonText := this.Json(params)

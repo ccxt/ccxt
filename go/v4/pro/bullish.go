@@ -914,15 +914,14 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 		account["total"] = this.SafeString(data, "availableQuantity")
 		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
-		if (tradingAccountId != nil) && (code != nil) {
-			if entry, ok := this.Balance[*tradingAccountId].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
-		}
 		if entry, ok := this.Balance[*tradingAccountId].(map[string]any); ok && (entry != nil) {
 			entry["info"] = message
 		}
-		this.Balance[*tradingAccountId] = this.SafeBalance(this.Balance[*tradingAccountId])
+		var deltaBalance map[string]any = this.SafeDictMap(this.Balance, tradingAccountId, map[string]any{})
+		if (tradingAccountId != nil) && (code != nil) {
+			deltaBalance[*code] = account
+		}
+		this.Balance[*tradingAccountId] = this.SafeBalance(deltaBalance)
 	}
 	var messageHash string = "balance"
 	var tradingAccountIdHash string = "::" + *tradingAccountId

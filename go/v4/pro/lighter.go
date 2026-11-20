@@ -87,12 +87,12 @@ func (this *Lighter) GetMessageHash(unifiedChannel string, optionalArgs ...any) 
 	}
 	return hash
 }
-func (this *Lighter) SubscribePublicAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Lighter) SubscribePublicAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Lighter) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash any, optionalArgs ...any) any {
+func (this *Lighter) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -177,12 +177,12 @@ func (this *Lighter) unsubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Lighter) SubscribePrivateAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Lighter) SubscribePrivateAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Lighter) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, optionalArgs ...any) any {
+func (this *Lighter) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

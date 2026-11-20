@@ -5546,7 +5546,7 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsOmitted)
 	var contract bool = (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "option")
 	if contract {
-		var contractQuery any = nil
+		var contractQuery map[string]any = nil
 		request, contractQuery = this.PrepareRequest(market, typeVar, paramsMarketType)
 		query = func() any {
 			if typeVar != nil && *typeVar == "option" {
@@ -6883,19 +6883,20 @@ func (this *Gate) EditOrderRequest(id string, symbol string, typeVar string, sid
 	_ = params
 	var market map[string]any = this.Market(symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("editOrder", market, params)
-	var accountParsed any = nil
+	var accountParsed *string = nil
 	if marketType != nil {
-		accountParsed = this.ConvertTypeToAccount(*marketType)
+		convertTypeToAccountText := this.ConvertTypeToAccount(*marketType)
+		accountParsed = &convertTypeToAccountText
 	}
 	isUnifiedAccount, paramsUnifiedAccount := this.HandleOptionBoolAndParams(paramsMarketType, "editOrder", "unifiedAccount", false)
-	var account any = func() any {
-		if isUnifiedAccount {
-			return "unified"
-		}
-		return accountParsed
-	}()
+	var account any
+	if isUnifiedAccount {
+		account = "unified"
+	} else if derefPtr := accountParsed; derefPtr != nil {
+		account = *derefPtr
+	}
 	var isLimitOrder bool = (typeVar == "limit")
-	if IsEqual(account, "spot") {
+	if account == "spot" {
 		if !isLimitOrder {
 			panic(InvalidOrder(Add(Add(this.Id+" editOrder() does not support "+typeVar+" orders for ", marketType), " markets")))
 		}

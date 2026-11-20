@@ -198,13 +198,8 @@ func (this *Krakenfutures) subscribePublicBody(ch chan ccxt.AsyncResult[map[stri
 	}
 	var length int = len(symbolsValue)
 	if length == 1 {
-		var market map[string]any = this.Market(func() any {
-			if 0 >= 0 && 0 < len(marketIds) {
-				return marketIds[0]
-			}
-			return nil
-		}())
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
+		var market map[string]any = this.Market(symbolsValue[0])
+		messageHash = ccxt.Add(messageHash, ":"+market["symbol"].(string))
 	}
 	subscribe["product_ids"] = marketIds
 	var request map[string]any = this.Extend(subscribe, params)

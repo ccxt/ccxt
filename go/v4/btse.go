@@ -1374,7 +1374,11 @@ func (this *Btse) ParseBalanceList(response any) map[string]any {
 				if code == nil {
 					continue
 				}
-				AddElementToObject(totals, code, Precise.StringAdd(this.SafeString(totals, code, "0"), this.SafeString(assetRow, "balance")))
+				if ptrValue := Precise.StringAdd(this.SafeString(totals, code, "0"), this.SafeString(assetRow, "balance")); ptrValue != nil {
+					totals[*code] = *ptrValue
+				} else {
+					totals[*code] = nil
+				}
 				useds[*code] = *this.SafeString(useds, code, "0")
 			}
 		} else {
@@ -1384,8 +1388,16 @@ func (this *Btse) ParseBalanceList(response any) map[string]any {
 			if code == nil {
 				continue
 			}
-			AddElementToObject(totals, code, Precise.StringAdd(this.SafeString(totals, code, "0"), this.SafeString2(row, "totalAmount", "total")))
-			AddElementToObject(frees, code, Precise.StringAdd(this.SafeString(frees, code, "0"), this.SafeString2(row, "availableAmount", "available")))
+			if ptrValue := Precise.StringAdd(this.SafeString(totals, code, "0"), this.SafeString2(row, "totalAmount", "total")); ptrValue != nil {
+				totals[*code] = *ptrValue
+			} else {
+				totals[*code] = nil
+			}
+			if ptrValue := Precise.StringAdd(this.SafeString(frees, code, "0"), this.SafeString2(row, "availableAmount", "available")); ptrValue != nil {
+				frees[*code] = *ptrValue
+			} else {
+				frees[*code] = nil
+			}
 		}
 	}
 	var codes []string = nil

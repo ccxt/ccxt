@@ -933,7 +933,11 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 				symbol = nil
 			}
 			if future {
-				symbol = Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.SafeString(market, "expiry", ""))
+				if symbolPiece := this.SafeString(market, "expiry", ""); symbolPiece != nil && settle != nil {
+					symbol = *base + "/" + *quote + ":" + *settle + "-" + *symbolPiece
+				} else {
+					symbol = nil
+				}
 				typeVar = "future"
 			} else {
 				typeVar = "swap"

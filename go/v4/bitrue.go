@@ -4066,10 +4066,10 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 			} else if typeVar == "dapi" {
 				signPrefix = "/dapi"
 			}
-			var signMessage any = timestamp + method + (signPrefix + "/" + version + "/" + path)
+			var signMessage string = timestamp + method + (signPrefix + "/" + version + "/" + path)
 			if method == "GET" {
 				if paramsOmittedMap, _ := paramsOmitted.(map[string]any); len(paramsOmittedMap) > 0 {
-					signMessage = Add(signMessage, "?"+this.Urlencode(paramsOmitted))
+					signMessage += "?" + this.Urlencode(paramsOmitted)
 				}
 				var signature string = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
 				requestHeaders = map[string]any{
@@ -4082,8 +4082,9 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 				var query map[string]any = this.Extend(map[string]any{
 					"recvWindow": recvWindow,
 				}, paramsOmitted)
-				requestBody = this.Json(query)
-				signMessage = Add(signMessage, requestBody)
+				var requestBodyText string = this.Json(query)
+				requestBody = requestBodyText
+				signMessage += requestBodyText
 				var signature string = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
 				requestHeaders = map[string]any{
 					"Content-Type": "application/json",

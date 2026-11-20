@@ -1921,10 +1921,10 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var isLimit bool = (uppercaseType == "LIMIT")
 	var exchangeSpecificParam *bool = this.SafeBool(params, "post_only", false)
 	var postOnly bool
-	var query any = nil
+	var query map[string]any = nil
 	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), exchangeSpecificParam, params)
 	postOnly = postOnlyqueryVariable[0].(bool)
-	query = postOnlyqueryVariable[1]
+	query = postOnlyqueryVariable[1].(map[string]any)
 	var triggerPrice *string = this.SafeStringN(query, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var request map[string]any = map[string]any{
 		"asset_pair_name": market["id"],
@@ -1948,7 +1948,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			var createMarketBuyOrderRequiresPrice bool
 			createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(query, "cost")
-			query = this.Omit(query, "cost")
+			query = this.OmitDict(query, "cost")
 			if createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -1989,7 +1989,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	query = this.Omit(query, []any{"stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"})
+	query = this.OmitDict(query, []any{"stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"})
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, query))
 	if r1.Err != nil {

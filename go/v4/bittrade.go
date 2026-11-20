@@ -1428,7 +1428,7 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, 1000)
+	var limit int64 = GetArgInt64(optionalArgs, 1, 1000)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1443,8 +1443,8 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if limit != nil {
-		request["size"] = mathMin(limit, 2000)
+	if true {
+		request["size"] = min(limit, 2000)
 	}
 
 	r1 := <-this.MarketGetHistoryTrade(this.Extend(request, params))
@@ -1531,7 +1531,7 @@ func (this *Bittrade) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, 1000)
+	var limit int64 = GetArgInt64(optionalArgs, 2, 1000)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1547,8 +1547,8 @@ func (this *Bittrade) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"symbol": market["id"],
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if limit != nil {
-		request["size"] = mathMin(limit, 2000)
+	if true {
+		request["size"] = min(limit, 2000)
 	}
 
 	r1 := <-this.MarketGetHistoryKline(this.Extend(request, params))

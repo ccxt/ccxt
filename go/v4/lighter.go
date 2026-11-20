@@ -5029,7 +5029,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var url any = nil
+	var url string
 	if apiName == "root" {
 		var baseApiUrl *string = this.SafeString(this.Urls["api"], "public")
 		if baseApiUrl == nil {
@@ -5061,7 +5061,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) map[string]any {
 				"headers": multipartHeaders,
 			}
 		}
-		url = Add(url, "?"+this.Rawencode(params))
+		url += "?" + this.Rawencode(params)
 	}
 	if apiName == "private" {
 		return map[string]any{
