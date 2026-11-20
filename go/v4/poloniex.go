@@ -657,6 +657,7 @@ func (this *Poloniex) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 		"exceptions": map[string]any{
 			"exact": map[string]any{
+				"401":    PermissionDenied,
 				"500":    ExchangeNotAvailable,
 				"603":    RequestTimeout,
 				"601":    BadRequest,
@@ -798,7 +799,11 @@ func (this *Poloniex) Describe() map[string]any {
 				"12004":  PermissionDenied,
 				"21001":  OperationRejected,
 			},
-			"broad": map[string]any{},
+			"broad": map[string]any{
+				"Invalid Apikey or Signature": AuthenticationError,
+				"ApiKey not exist":            AuthenticationError,
+				"Illegal of ip":               PermissionDenied,
+			},
 		},
 	})
 }
@@ -892,11 +897,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes69219 []any = r1.Value
-		if retRes69219 == nil {
+		var retRes69719 []any = r1.Value
+		if retRes69719 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes69219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes69719)}
 		}
 		return nil
 	}
@@ -2013,11 +2018,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes158519 []any = r1.Value
-		if retRes158519 == nil {
+		var retRes159019 []any = r1.Value
+		if retRes159019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes159019)}
 		}
 		return nil
 	}
@@ -5405,8 +5410,8 @@ func (this *Poloniex) HandleErrors(code int64, reason string, url string, method
 	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") {
 		var message *string = this.SafeString2(response, "message", "msg")
 		var feedback string = this.Id + " " + body
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

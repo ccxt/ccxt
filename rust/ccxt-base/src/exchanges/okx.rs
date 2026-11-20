@@ -3202,6 +3202,11 @@ impl Okx {
         m.insert("cost".to_string(), Value::Int(20));
     m
 }));
+        m.insert("asset/travel-rule/get-locked".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), (match ((Value::Int(10)).as_f64(), (Value::Int(3)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+    m
+}));
         m.insert("asset/monthly-statement".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -4169,6 +4174,11 @@ impl Okx {
         m.insert("asset/cancel-withdrawal".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), (match ((Value::Int(5)).as_f64(), (Value::Int(3)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+    m
+}));
+        m.insert("asset/travel-rule/unlock".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), (match ((Value::Int(10)).as_f64(), (Value::Int(3)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
     m
 }));
         m.insert("asset/convert-dust-assets".to_string(), Value::Map({
@@ -5173,6 +5183,11 @@ impl Okx {
         m.insert("58229".to_string(), Value::Str("InsufficientFunds".into()));
         m.insert("58300".to_string(), Value::Str("ExchangeError".into()));
         m.insert("58350".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("58385".to_string(), Value::Str("BadRequest".into()));
+        m.insert("58386".to_string(), Value::Str("BadRequest".into()));
+        m.insert("58387".to_string(), Value::Str("BadRequest".into()));
+        m.insert("58388".to_string(), Value::Str("ManualInteractionNeeded".into()));
+        m.insert("58389".to_string(), Value::Str("OperationRejected".into()));
         m.insert("59000".to_string(), Value::Str("ExchangeError".into()));
         m.insert("59001".to_string(), Value::Str("ExchangeError".into()));
         m.insert("59100".to_string(), Value::Str("ExchangeError".into()));

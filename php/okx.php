@@ -354,6 +354,7 @@ class okx extends Exchange {
                         'asset/deposit-history' => array( 'cost' => 5 / 3 ),
                         'asset/withdrawal-history' => array( 'cost' => 5 / 3 ),
                         'asset/deposit-withdraw-status' => array( 'cost' => 20 ),
+                        'asset/travel-rule/get-locked' => array( 'cost' => 10 / 3 ),
                         'asset/monthly-statement' => array( 'cost' => 2 ),
                         'asset/convert/currencies' => array( 'cost' => 5 / 3 ),
                         'asset/convert/currency-pair' => array( 'cost' => 5 / 3 ),
@@ -565,6 +566,7 @@ class okx extends Exchange {
                         'asset/withdrawal' => array( 'cost' => 5 / 3 ),
                         'asset/withdrawal-lightning' => array( 'cost' => 5 ), // not documented
                         'asset/cancel-withdrawal' => array( 'cost' => 5 / 3 ),
+                        'asset/travel-rule/unlock' => array( 'cost' => 10 / 3 ),
                         'asset/convert-dust-assets' => array( 'cost' => 10 ),
                         'asset/monthly-statement' => array( 'cost' => 1296000 ), // 20 req/month, 10/20*30*24*60*60 = 1296000
                         'asset/convert/estimate-quote' => array( 'cost' => 50 ),
@@ -1039,6 +1041,11 @@ class okx extends Exchange {
                     '58229' => '\\ccxt\\InsufficientFunds', // Insufficient funding account balance to pay fees {fee} USDT
                     '58300' => '\\ccxt\\ExchangeError', // Deposit-address count exceeds the limit
                     '58350' => '\\ccxt\\InsufficientFunds', // Insufficient balance
+                    '58385' => '\\ccxt\\BadRequest', // Travel Rule questionnaire response format is invalid
+                    '58386' => '\\ccxt\\BadRequest', // Missing required field in the Travel Rule questionnaire response
+                    '58387' => '\\ccxt\\BadRequest', // Invalid enum value, country, or date in the Travel Rule questionnaire response
+                    '58388' => '\\ccxt\\ManualInteractionNeeded', // Control test required, please complete it in App/Web
+                    '58389' => '\\ccxt\\OperationRejected', // Unlocking unsuccessful, reach out to CS for further details
                     // Account error codes 59000-59999
                     '59000' => '\\ccxt\\ExchangeError', // Your settings failed as you have positions or open orders
                     '59001' => '\\ccxt\\ExchangeError', // Switching unavailable as you have borrowings

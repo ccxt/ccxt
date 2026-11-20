@@ -1527,6 +1527,9 @@ class blofin extends Exchange {
         $symbol = $this->safe_symbol($marketId, $marketResolved, '-');
         $filled = $this->safe_string($order, 'filledSize');
         $price = $this->safe_string_n($order, array( 'px', 'price', 'orderPrice' ));
+        if ($price === '-1') {
+            $price = null; // trigger orders send orderPrice -1 for market execution
+        }
         $average = $this->safe_string($order, 'averagePrice');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
@@ -1574,6 +1577,7 @@ class blofin extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $average,

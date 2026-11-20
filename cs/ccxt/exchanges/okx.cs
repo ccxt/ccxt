@@ -630,6 +630,9 @@ public partial class okx : Exchange
                         { "asset/deposit-withdraw-status", new Dictionary<string, object>() {
                             { "cost", 20 },
                         } },
+                        { "asset/travel-rule/get-locked", new Dictionary<string, object>() {
+                            { "cost", ((double)10 / 3) },
+                        } },
                         { "asset/monthly-statement", new Dictionary<string, object>() {
                             { "cost", 2 },
                         } },
@@ -1210,6 +1213,9 @@ public partial class okx : Exchange
                         } },
                         { "asset/cancel-withdrawal", new Dictionary<string, object>() {
                             { "cost", ((double)5 / 3) },
+                        } },
+                        { "asset/travel-rule/unlock", new Dictionary<string, object>() {
+                            { "cost", ((double)10 / 3) },
                         } },
                         { "asset/convert-dust-assets", new Dictionary<string, object>() {
                             { "cost", 10 },
@@ -1932,6 +1938,11 @@ public partial class okx : Exchange
                     { "58229", typeof(InsufficientFunds) },
                     { "58300", typeof(ExchangeError) },
                     { "58350", typeof(InsufficientFunds) },
+                    { "58385", typeof(BadRequest) },
+                    { "58386", typeof(BadRequest) },
+                    { "58387", typeof(BadRequest) },
+                    { "58388", typeof(ManualInteractionNeeded) },
+                    { "58389", typeof(OperationRejected) },
                     { "59000", typeof(ExchangeError) },
                     { "59001", typeof(ExchangeError) },
                     { "59100", typeof(ExchangeError) },

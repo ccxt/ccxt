@@ -17,6 +17,7 @@ add margin
 **Supported exchanges:**
 [aster](/exchanges/aster.md#addmargin)
 [binance](/exchanges/binance.md#addmargin)
+[bingx](/exchanges/bingx.md#addmargin)
 [bitget](/exchanges/bitget.md#addmargin)
 [delta](/exchanges/delta.md#addmargin)
 [digifinex](/exchanges/digifinex.md#addmargin)
@@ -7088,6 +7089,7 @@ remove margin from a position
 **Supported exchanges:**
 [aster](/exchanges/aster.md#reducemargin)
 [binance](/exchanges/binance.md#reducemargin)
+[bingx](/exchanges/bingx.md#reducemargin)
 [bitget](/exchanges/bitget.md#reducemargin)
 [delta](/exchanges/delta.md#reducemargin)
 [digifinex](/exchanges/digifinex.md#reducemargin)

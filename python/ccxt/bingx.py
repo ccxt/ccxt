@@ -5659,12 +5659,36 @@ class bingx(Exchange, ImplicitAPI):
             return self.swapV2PrivatePostTradeMarginType(self.extend(request, paramsSubType))
 
     def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
+        """
+        add margin
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+        https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: "LONG" or "SHORT", required for Coin-M
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
         request = {
             'type': 1,
         }
         return self.set_margin(symbol, amount, self.extend(request, params))
 
     def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
+        """
+        remove margin from a position
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+        https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: "LONG" or "SHORT", required for Coin-M
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
         request = {
             'type': 2,
         }

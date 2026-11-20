@@ -459,6 +459,7 @@ class poloniex extends poloniex$1["default"] {
             'exceptions': {
                 'exact': {
                     // General
+                    '401': errors.PermissionDenied, // {"code":401,"message":"Illegal of ip"}
                     '500': errors.ExchangeNotAvailable, // Internal System Error
                     '603': errors.RequestTimeout, // Internal Request Timeout
                     '601': errors.BadRequest, // Invalid Parameter
@@ -606,7 +607,12 @@ class poloniex extends poloniex$1["default"] {
                     '12004': errors.PermissionDenied, // NOT_KYC_VERIFIED
                     '21001': errors.OperationRejected, // POSITION_NOT_EXIST
                 },
-                'broad': {},
+                'broad': {
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature': errors.AuthenticationError,
+                    'ApiKey not exist': errors.AuthenticationError,
+                    'Illegal of ip': errors.PermissionDenied,
+                },
             },
         });
     }
@@ -4023,8 +4029,8 @@ class poloniex extends poloniex$1["default"] {
         if ((responseCode !== undefined) && (responseCode !== '200')) {
             const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;

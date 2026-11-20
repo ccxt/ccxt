@@ -1628,6 +1628,17 @@ public class MyokxApi extends Okx
     }
 
     /**
+     * Calls the privateGetAssetTravelRuleGetLocked endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetAssetTravelRuleGetLocked (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAssetTravelRuleGetLocked", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetAssetMonthlyStatement endpoint.
      *
      * @param optionalArgs the request parameters
@@ -3748,6 +3759,17 @@ public class MyokxApi extends Okx
     public CompletableFuture<Map<String, Object>>  privatePostAssetCancelWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetCancelWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAssetTravelRuleUnlock endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostAssetTravelRuleUnlock (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAssetTravelRuleUnlock", optionalArgs);
     }
 
     /**

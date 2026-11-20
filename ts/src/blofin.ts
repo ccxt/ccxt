@@ -1533,7 +1533,10 @@ export default class blofin extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, marketResolved, '-');
         const filled = this.safeString (order, 'filledSize');
-        const price = this.safeStringN (order, [ 'px', 'price', 'orderPrice' ]);
+        let price = this.safeStringN (order, [ 'px', 'price', 'orderPrice' ]);
+        if (price === '-1') {
+            price = undefined; // trigger orders send orderPrice -1 for market execution
+        }
         const average = this.safeString (order, 'averagePrice');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
@@ -1581,6 +1584,7 @@ export default class blofin extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,

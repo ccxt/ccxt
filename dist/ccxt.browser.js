@@ -99949,6 +99949,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -101298,6 +101305,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -104197,6 +104211,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -105546,6 +105567,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -107513,6 +107541,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -108862,6 +108897,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -149710,6 +149752,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -151059,6 +151108,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -153026,6 +153082,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 20
         });
     }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', [
+            'private'
+        ], 'GET', params, {
+            'cost': 3.3333333333333335
+        });
+    }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', [
             'private'
@@ -154375,6 +154438,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'private'
         ], 'POST', params, {
             'cost': 1.6666666666666667
+        });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', [
+            'private'
+        ], 'POST', params, {
+            'cost': 3.3333333333333335
         });
     }
     privatePostAssetConvertDustAssets(params = {}) {
@@ -225259,13 +225329,35 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             return await this.swapV2PrivatePostTradeMarginType(this.extend(request, paramsSubType));
         }
     }
-    async addMargin(symbol, amount, params = {}) {
+    /**
+     * @method
+     * @name bingx#addMargin
+     * @description add margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */ async addMargin(symbol, amount, params = {}) {
         const request = {
             'type': 1
         };
         return await this.setMargin(symbol, amount, this.extend(request, params));
     }
-    async reduceMargin(symbol, amount, params = {}) {
+    /**
+     * @method
+     * @name bingx#reduceMargin
+     * @description remove margin from a position
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */ async reduceMargin(symbol, amount, params = {}) {
         const request = {
             'type': 2
         };
@@ -278055,11 +278147,14 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, marketResolved, '-');
         const filled = this.safeString(order, 'filledSize');
-        const price = this.safeStringN(order, [
+        let price = this.safeStringN(order, [
             'px',
             'price',
             'orderPrice'
         ]);
+        if (price === '-1') {
+            price = undefined; // trigger orders send orderPrice -1 for market execution
+        }
         const average = this.safeString(order, 'averagePrice');
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const feeCostString = this.safeString(order, 'fee');
@@ -278107,6 +278202,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': this.safeNumber(order, 'triggerPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,
@@ -460709,6 +460805,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                         'asset/deposit-withdraw-status': {
                             'cost': 20
                         },
+                        'asset/travel-rule/get-locked': {
+                            'cost': 10 / 3
+                        },
                         'asset/monthly-statement': {
                             'cost': 2
                         },
@@ -461305,6 +461404,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                         },
                         'asset/cancel-withdrawal': {
                             'cost': 5 / 3
+                        },
+                        'asset/travel-rule/unlock': {
+                            'cost': 10 / 3
                         },
                         'asset/convert-dust-assets': {
                             'cost': 10
@@ -462044,6 +462146,11 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                     '58229': _base_errors_js__rspack_import_1.InsufficientFunds,
                     '58300': _base_errors_js__rspack_import_1.ExchangeError,
                     '58350': _base_errors_js__rspack_import_1.InsufficientFunds,
+                    '58385': _base_errors_js__rspack_import_1.BadRequest,
+                    '58386': _base_errors_js__rspack_import_1.BadRequest,
+                    '58387': _base_errors_js__rspack_import_1.BadRequest,
+                    '58388': _base_errors_js__rspack_import_1.ManualInteractionNeeded,
+                    '58389': _base_errors_js__rspack_import_1.OperationRejected,
                     // Account error codes 59000-59999
                     '59000': _base_errors_js__rspack_import_1.ExchangeError,
                     '59001': _base_errors_js__rspack_import_1.ExchangeError,
@@ -490260,6 +490367,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'exceptions': {
                 'exact': {
                     // General
+                    '401': _base_errors_js__rspack_import_2.PermissionDenied,
                     '500': _base_errors_js__rspack_import_2.ExchangeNotAvailable,
                     '603': _base_errors_js__rspack_import_2.RequestTimeout,
                     '601': _base_errors_js__rspack_import_2.BadRequest,
@@ -490407,7 +490515,12 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                     '12004': _base_errors_js__rspack_import_2.PermissionDenied,
                     '21001': _base_errors_js__rspack_import_2.OperationRejected
                 },
-                'broad': {}
+                'broad': {
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature': _base_errors_js__rspack_import_2.AuthenticationError,
+                    'ApiKey not exist': _base_errors_js__rspack_import_2.AuthenticationError,
+                    'Illegal of ip': _base_errors_js__rspack_import_2.PermissionDenied
+                }
             }
         });
     }
@@ -493853,8 +493966,8 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         if (responseCode !== undefined && responseCode !== '200') {
             const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
         }
         return undefined;
@@ -552314,13 +552427,39 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
             channel = 'orders-algo';
         }
         const orders = await this.watchMultipleWrapper(false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
-        const first = this.safeDict(orders, 0);
-        const tradeSymbol = this.safeString(first, 'symbol');
+        // every symbol shares one orders cache, so filter by the requested symbols and count
+        // per symbol only when exactly one is requested
+        let requestedSymbols = undefined;
+        let countSymbol = undefined;
+        const unifiedSymbols = this.marketSymbols(symbols, undefined, true);
+        if (unifiedSymbols !== undefined) {
+            const symbolsLength = unifiedSymbols.length;
+            if (symbolsLength > 0) {
+                requestedSymbols = unifiedSymbols;
+            }
+            if (symbolsLength === 1) {
+                countSymbol = unifiedSymbols[0];
+            }
+        }
+        let newest = orders;
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(tradeSymbol, limit);
+            if (countSymbol !== undefined) {
+                limitResolved = orders.getLimit(countSymbol, limit);
+            } else {
+                // updated orders move to the end of the shared cache, so the newest entries across all
+                // symbols are exactly this read's updates; take them before filtering by symbol
+                const newCount = orders.getLimit(undefined, undefined);
+                if (newCount === 0) {
+                    // another watcher already took the count, and a limit of 0 would return the whole cache
+                    newest = [];
+                } else {
+                    newest = this.filterBySinceLimit(orders, undefined, newCount, 'timestamp', true);
+                }
+            }
         }
-        return this.filterBySinceLimit(orders, since, limitResolved, 'timestamp', true);
+        const requested = this.filterByArray(newest, 'symbol', requestedSymbols, false);
+        return this.filterBySinceLimit(requested, since, limitResolved, 'timestamp', true);
     }
     handleOrders(client, message) {
         //
@@ -552340,11 +552479,16 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         const arg = this.safeDict(message, 'arg');
         const channelName = this.safeString(arg, 'channel');
         const data = this.safeList(message, 'data');
+        const symbols = [];
         for(let i = 0; i < data.length; i++){
             const order = this.parseWsOrder(this.safeDict(data, i, {}));
             orders.append(order);
+            symbols.push(this.safeString(order, 'symbol', ''));
+        }
+        // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
+        for(let i = 0; i < symbols.length; i++){
             if (channelName !== undefined) {
-                client.resolve(orders, channelName + ':' + this.safeString(order, 'symbol', ''));
+                client.resolve(orders, channelName + ':' + symbols[i]);
             }
             client.resolve(orders, channelName);
         }
@@ -552667,28 +552811,34 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const milliseconds = this.milliseconds();
         const messageHash = 'authenticate_hash';
-        const timestamp = milliseconds.toString();
-        const nonce = 'n_' + timestamp;
-        const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
-        const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_3/* .sha256 */.sc));
-        const request = {
-            'op': 'login',
-            'args': [
-                {
-                    'apiKey': this.apiKey,
-                    'passphrase': this.password,
-                    'timestamp': timestamp,
-                    'nonce': nonce,
-                    'sign': signature
-                }
-            ]
-        };
         const marketType = 'swap'; // for now
         const typeUrls = this.safeDict(this.urls['api']['ws'], marketType, {});
         const url = this.safeString(typeUrls, 'private');
-        await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        const client = this.client(url);
+        const future = client.reusableFuture(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const milliseconds = this.milliseconds();
+            const timestamp = milliseconds.toString();
+            const nonce = 'n_' + timestamp;
+            const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+            const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_3/* .sha256 */.sc));
+            const request = {
+                'op': 'login',
+                'args': [
+                    {
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'nonce': nonce,
+                        'sign': signature
+                    }
+                ]
+            };
+            this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        }
+        return await future;
     }
 }
 //  ---------------------------------------------------------------------------

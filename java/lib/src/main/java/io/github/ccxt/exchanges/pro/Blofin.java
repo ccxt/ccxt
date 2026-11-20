@@ -820,15 +820,48 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 channel = "orders-algo";
             }
-            List<Object> orders = (List<Object>) (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted)).join();
-            Map<String, Object> first = this.safeDict(orders, 0, null);
-            String tradeSymbol = this.safeString(first, "symbol");
+            Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted)).join();
+            // every symbol shares one orders cache, so filter by the requested symbols and count
+            // per symbol only when exactly one is requested
+            List<String> requestedSymbols = null;
+            Object countSymbol = null;
+            List<String> unifiedSymbols = this.marketSymbols(symbols, (Object) null, true, false, false);
+            if (!java.util.Objects.equals(unifiedSymbols, null))
+            {
+                Integer symbolsLength = unifiedSymbols.size();
+                if ((symbolsLength != null && symbolsLength > 0))
+                {
+                    requestedSymbols = unifiedSymbols;
+                }
+                if (java.util.Objects.equals(symbolsLength, 1))
+                {
+                    countSymbol = (unifiedSymbols == null || 0 >= ((List<?>)unifiedSymbols).size() ? null : ((List<?>)unifiedSymbols).get(0));
+                }
+            }
+            Object newest = orders;
             Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, tradeSymbol, limit);
+                if (!java.util.Objects.equals(countSymbol, null))
+                {
+                    limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, countSymbol, limit);
+                } else
+                {
+                    // updated orders move to the end of the shared cache, so the newest entries across all
+                    // symbols are exactly this read's updates; take them before filtering by symbol
+                    Long newCount = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, null, null);
+                    if (java.util.Objects.equals(newCount, 0L))
+                    {
+                        // another watcher already took the count, and a limit of 0 would return the whole cache
+                        newest = new ArrayList<Object>(Arrays.asList());
+                    } else
+                    {
+                        newest = this.filterBySinceLimit(orders, (Long) null, newCount, "timestamp", true);
+                    }
+                }
             }
-            return this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true);
+            List<Object> requested = (List<Object>) this.filterByArray(newest, "symbol", requestedSymbols, false);
+            return this.filterBySinceLimit(requested, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -853,13 +886,19 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Map<String, Object> arg = this.safeDict(message, "arg", null);
         String channelName = this.safeString(arg, "channel");
         List<Object> data = this.safeList(message, "data", null);
+        List<Object> symbols = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.safeDict(data, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             orders.append(order);
+            ((List<Object>)symbols).add(this.safeString(order, "symbol", ""));
+        }
+        // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
+        for (var i = 0; i < symbols.size(); i++)
+        {
             if (!java.util.Objects.equals(channelName, null))
             {
-                client.resolve(orders, ((channelName + ":") + this.safeString(order, "symbol", "")));
+                client.resolve(orders, ((channelName + ":") + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))));
             }
             client.resolve(orders, channelName);
         }
@@ -1267,27 +1306,33 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            Long milliseconds = this.milliseconds();
             String messageHash = "authenticate_hash";
-            String timestamp = String.valueOf(milliseconds);
-            String nonce = ("n_" + timestamp);
-            String auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
-            String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "op", "login" );
-                put( "args", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+            String marketType = "swap"; // for now
+            Map<String, Object> typeUrls = this.safeDict(((Map<String, Object>)this.urls.get("api")).get("ws"), marketType, new HashMap<String, Object>() {{}});
+            String url = this.safeString(typeUrls, "private");
+            Client client = this.client(url);
+            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
+            {
+                Long milliseconds = this.milliseconds();
+                String timestamp = String.valueOf(milliseconds);
+                String nonce = ("n_" + timestamp);
+                String auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
+                String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "op", "login" );
+                    put( "args", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "apiKey", Blofin.this.apiKey );
         put( "passphrase", Blofin.this.password );
         put( "timestamp", timestamp );
         put( "nonce", nonce );
         put( "sign", signature );
     }})) );
-            }};
-            String marketType = "swap"; // for now
-            Map<String, Object> typeUrls = this.safeDict(((Map<String, Object>)this.urls.get("api")).get("ws"), marketType, new HashMap<String, Object>() {{}});
-            String url = this.safeString(typeUrls, "private");
-            (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-            return null;
+                }};
+                this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null);
+            }
+            return future.getFuture().join();
         });
 
     }

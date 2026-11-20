@@ -361,6 +361,7 @@ export default class okx extends Exchange {
                         'asset/deposit-history': { 'cost': 5 / 3 },
                         'asset/withdrawal-history': { 'cost': 5 / 3 },
                         'asset/deposit-withdraw-status': { 'cost': 20 },
+                        'asset/travel-rule/get-locked': { 'cost': 10 / 3 },
                         'asset/monthly-statement': { 'cost': 2 },
                         'asset/convert/currencies': { 'cost': 5 / 3 },
                         'asset/convert/currency-pair': { 'cost': 5 / 3 },
@@ -572,6 +573,7 @@ export default class okx extends Exchange {
                         'asset/withdrawal': { 'cost': 5 / 3 },
                         'asset/withdrawal-lightning': { 'cost': 5 }, // not documented
                         'asset/cancel-withdrawal': { 'cost': 5 / 3 },
+                        'asset/travel-rule/unlock': { 'cost': 10 / 3 },
                         'asset/convert-dust-assets': { 'cost': 10 },
                         'asset/monthly-statement': { 'cost': 1296000 }, // 20 req/month, 10/20*30*24*60*60 = 1296000
                         'asset/convert/estimate-quote': { 'cost': 50 },
@@ -1046,6 +1048,11 @@ export default class okx extends Exchange {
                     '58229': InsufficientFunds, // Insufficient funding account balance to pay fees {fee} USDT
                     '58300': ExchangeError, // Deposit-address count exceeds the limit
                     '58350': InsufficientFunds, // Insufficient balance
+                    '58385': BadRequest, // Travel Rule questionnaire response format is invalid
+                    '58386': BadRequest, // Missing required field in the Travel Rule questionnaire response
+                    '58387': BadRequest, // Invalid enum value, country, or date in the Travel Rule questionnaire response
+                    '58388': ManualInteractionNeeded, // Control test required, please complete it in App/Web
+                    '58389': OperationRejected, // Unlocking unsuccessful, reach out to CS for further details
                     // Account error codes 59000-59999
                     '59000': ExchangeError, // Your settings failed as you have positions or open orders
                     '59001': ExchangeError, // Switching unavailable as you have borrowings

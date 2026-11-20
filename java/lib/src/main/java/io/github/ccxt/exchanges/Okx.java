@@ -688,6 +688,9 @@ public class Okx extends OkxApi
                         put( "asset/deposit-withdraw-status", new HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
+                        put( "asset/travel-rule/get-locked", new HashMap<String, Object>() {{
+                            put( "cost", (((double) 10) / ((double) 3)) );
+                        }} );
                         put( "asset/monthly-statement", new HashMap<String, Object>() {{
                             put( "cost", 2 );
                         }} );
@@ -1268,6 +1271,9 @@ public class Okx extends OkxApi
                         }} );
                         put( "asset/cancel-withdrawal", new HashMap<String, Object>() {{
                             put( "cost", (((double) 5) / ((double) 3)) );
+                        }} );
+                        put( "asset/travel-rule/unlock", new HashMap<String, Object>() {{
+                            put( "cost", (((double) 10) / ((double) 3)) );
                         }} );
                         put( "asset/convert-dust-assets", new HashMap<String, Object>() {{
                             put( "cost", 10 );
@@ -1990,6 +1996,11 @@ public class Okx extends OkxApi
                     put( "58229", InsufficientFunds.class );
                     put( "58300", ExchangeError.class );
                     put( "58350", InsufficientFunds.class );
+                    put( "58385", BadRequest.class );
+                    put( "58386", BadRequest.class );
+                    put( "58387", BadRequest.class );
+                    put( "58388", ManualInteractionNeeded.class );
+                    put( "58389", OperationRejected.class );
                     put( "59000", ExchangeError.class );
                     put( "59001", ExchangeError.class );
                     put( "59100", ExchangeError.class );

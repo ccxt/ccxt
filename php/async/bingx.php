@@ -6156,6 +6156,18 @@ class bingx extends Exchange {
     }
 
     private function do_add_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * add margin
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->positionSide] "LONG" or "SHORT", required for Coin-M
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
         $request = array(
             'type' => 1,
         );
@@ -6167,6 +6179,18 @@ class bingx extends Exchange {
     }
 
     private function do_reduce_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * remove margin from a position
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->positionSide] "LONG" or "SHORT", required for Coin-M
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
         $request = array(
             'type' => 2,
         );
