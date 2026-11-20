@@ -180687,40 +180687,21 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         let trades = [];
         const isTriggerOrSLTpOrder = this.safeString(orderDict, 'triggerPrice') !== undefined || this.safeString(orderDict, 'stopLossPrice') !== undefined || this.safeString(orderDict, 'takeProfitPrice') !== undefined;
         if (parseFilled || parseCost || shouldParseFees) {
-            const rawTrades = this.safeValue(orderDict, 'trades', trades);
             // const oldNumber = this.number;
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            const firstTrade = this.safeDict(rawTrades, 0);
+            const firstTrade = this.safeDict(this.safeValue(orderDict, 'trades'), 0);
             // parse trades if they haven't already been parsed
             const tradesAreParsed = firstTrade !== undefined && 'info' in firstTrade && 'id' in firstTrade;
             if (!tradesAreParsed) {
-                trades = this.parseTrades(rawTrades, market);
+                trades = this.parseTrades(this.safeValue(orderDict, 'trades', []), market);
             } else {
-                trades = rawTrades;
+                trades = this.safeList(orderDict, 'trades', []);
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
-            let tradesLength = 0;
-            const isArray = Array.isArray(trades);
-            if (isArray) {
-                tradesLength = trades.length;
-            }
-            if (isArray && tradesLength > 0) {
-                const headTrade = trades[0];
-                // move properties that are defined in trades up into the order
-                if (parseSymbol) {
-                    orderDict['symbol'] = headTrade['symbol'];
-                }
-                if (parseSide) {
-                    orderDict['side'] = headTrade['side'];
-                }
-                if (this.safeString(orderDict, 'type') === undefined) {
-                    orderDict['type'] = headTrade['type'];
-                }
-                if (this.safeString(orderDict, 'id') === undefined) {
-                    orderDict['id'] = headTrade['order'];
-                }
+            const tradesLength = trades.length;
+            if (tradesLength > 0) {
                 if (parseFilled) {
                     filled = '0';
                 }
@@ -180729,6 +180710,21 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 }
                 for(let i = 0; i < trades.length; i++){
                     const trade = trades[i];
+                    if (i === 0) {
+                        // move properties that are defined in trades up into the order
+                        if (parseSymbol) {
+                            orderDict['symbol'] = trade['symbol'];
+                        }
+                        if (parseSide) {
+                            orderDict['side'] = trade['side'];
+                        }
+                        if (this.safeString(orderDict, 'type') === undefined) {
+                            orderDict['type'] = trade['type'];
+                        }
+                        if (this.safeString(orderDict, 'id') === undefined) {
+                            orderDict['id'] = trade['order'];
+                        }
+                    }
                     const tradeAmount = this.safeString(trade, 'amount');
                     if (parseFilled && tradeAmount !== undefined) {
                         filled = _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(filled, tradeAmount);
@@ -181719,16 +181715,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             }
         }
         // fall back to scanning loaded currencies
-        let currenciesToCheck = [];
-        if (currencyCode === undefined) {
-            currenciesToCheck = Object.keys(this.currencies);
-        } else {
-            currenciesToCheck = [
+        if (currencyCode !== undefined) {
+            const currencies = [
                 this.safeDict(this.currencies, currencyCode)
             ];
-        }
-        for(let i = 0; i < currenciesToCheck.length; i++){
-            const networks = this.safeDict(currenciesToCheck[i], 'networks', {});
+            const networks = this.safeDict(currencies[0], 'networks', {});
             if (unifiedCode in networks) {
                 return this.safeString(networks[unifiedCode], 'id');
             }
@@ -183799,9 +183790,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseBorrowRateHistory(response, code, since, limit) {
         const result = [];
         for(let i = 0; i < response.length; i++){
-            const item = this.safeDict(response, i);
-            const borrowRate = this.parseBorrowRate(item);
-            result.push(borrowRate);
+            result.push(this.parseBorrowRate(this.safeDict(response, i)));
         }
         const sorted = this.sortBy(result, 'timestamp');
         return this.filterByCurrencySinceLimit(sorted, code, since, limit);
@@ -184035,9 +184024,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseOpenInterestsHistory(response, market = undefined, since = undefined, limit = undefined) {
         const interests = [];
         for(let i = 0; i < response.length; i++){
-            const entry = response[i];
-            const interest = this.parseOpenInterest(entry, market);
-            interests.push(interest);
+            interests.push(this.parseOpenInterest(response[i], market));
         }
         const sorted = this.sortBy(interests, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
@@ -184224,16 +184211,30 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */ const depositWithdrawFees = {};
         const isArray = Array.isArray(response);
-        let responseKeys = response;
-        if (!isArray) {
-            responseKeys = Object.keys(response);
+        let dictResponse = {};
+        let numEntries = 0;
+        if (isArray) {
+            const responseLength = response.length;
+            numEntries = responseLength;
+        } else {
+            dictResponse = response;
         }
-        for(let i = 0; i < responseKeys.length; i++){
-            const entry = responseKeys[i];
-            const dictionary = isArray ? entry : response[entry];
-            let currencyId = entry;
+        const keys = Object.keys(dictResponse);
+        if (!isArray) {
+            const keysLength = keys.length;
+            numEntries = keysLength;
+        }
+        for(let i = 0; i < numEntries; i++){
+            let dictionary = undefined;
+            let currencyId = undefined;
             if (isArray) {
-                currencyId = currencyIdKey === undefined ? undefined : this.safeString(dictionary, currencyIdKey);
+                dictionary = response[i];
+                if (currencyIdKey !== undefined) {
+                    currencyId = this.safeString(dictionary, currencyIdKey);
+                }
+            } else {
+                currencyId = keys[i];
+                dictionary = response[currencyId];
             }
             const currency = this.safeCurrency(currencyId);
             const code = this.safeString(currency, 'code');
@@ -184302,9 +184303,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */ const result = [];
         for(let i = 0; i < incomes.length; i++){
-            const entry = incomes[i];
-            const parsed = this.parseIncome(entry, market);
-            result.push(parsed);
+            result.push(this.parseIncome(incomes[i], market));
         }
         const sorted = this.sortBy(result, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
@@ -184822,8 +184821,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
          */ const result = [];
         for(let i = 0; i < liquidations.length; i++){
-            const entry = liquidations[i];
-            const parsed = this.parseLiquidation(entry, market);
+            const parsed = this.parseLiquidation(liquidations[i], market);
             result.push(parsed);
         }
         const sorted = this.sortBy(result, 'timestamp');
@@ -184858,12 +184856,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseOptionChain(response, currencyKey = undefined, symbolKey = undefined) {
         const optionStructures = {};
         for(let i = 0; i < response.length; i++){
-            const info = response[i];
-            const currencyId = currencyKey === undefined ? undefined : this.safeString(info, currencyKey);
+            const currencyId = currencyKey === undefined ? undefined : this.safeString(response[i], currencyKey);
             const currency = this.safeCurrency(currencyId);
-            const marketId = symbolKey === undefined ? undefined : this.safeString(info, symbolKey);
+            const marketId = symbolKey === undefined ? undefined : this.safeString(response[i], symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, 'option');
-            optionStructures[market['symbol']] = this.parseOption(info, currency, market);
+            optionStructures[market['symbol']] = this.parseOption(response[i], currency, market);
         }
         return optionStructures;
     }
@@ -185042,11 +185039,10 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             return marginModifications;
         }
         for(let i = 0; i < response.length; i++){
-            const info = response[i];
-            const marketId = symbolKey === undefined ? undefined : this.safeString(info, symbolKey);
+            const marketId = symbolKey === undefined ? undefined : this.safeString(response[i], symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, marketType);
             if (symbols === undefined || this.inArray(market['symbol'], symbols)) {
-                marginModifications.push(this.parseMarginModification(info, market));
+                marginModifications.push(this.parseMarginModification(response[i], market));
             }
         }
         return marginModifications;
@@ -206268,44 +206264,14 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         account['debt'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(debt, interest);
         return account;
     }
-    parseBalanceCustom(response, type = undefined, marginMode = undefined, isPortfolioMargin = false) {
+    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
         let result = {
             'info': response
         };
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
         const cross = type === 'margin' || marginMode === 'cross';
-        if (isPortfolioMargin) {
-            for(let i = 0; i < response.length; i++){
-                const entry = this.safeDict(response, i);
-                const accountPapi = this.account();
-                const currencyId = this.safeString(entry, 'asset');
-                const code = this.safeCurrencyCode(currencyId);
-                if (type === 'linear') {
-                    accountPapi['free'] = this.safeString(entry, 'umWalletBalance');
-                    accountPapi['used'] = this.safeString(entry, 'umUnrealizedPNL');
-                } else if (type === 'inverse') {
-                    accountPapi['free'] = this.safeString(entry, 'cmWalletBalance');
-                    accountPapi['used'] = this.safeString(entry, 'cmUnrealizedPNL');
-                } else if (cross) {
-                    const borrowed = this.safeString(entry, 'crossMarginBorrowed');
-                    const interest = this.safeString(entry, 'crossMarginInterest');
-                    accountPapi['debt'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(borrowed, interest);
-                    accountPapi['free'] = this.safeString(entry, 'crossMarginFree');
-                    accountPapi['used'] = this.safeString(entry, 'crossMarginLocked');
-                    accountPapi['total'] = this.safeString(entry, 'crossMarginAsset');
-                } else {
-                    const usedLinear = this.safeString(entry, 'umUnrealizedPNL');
-                    const usedInverse = this.safeString(entry, 'cmUnrealizedPNL');
-                    const totalUsed = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(usedLinear, usedInverse);
-                    const totalWalletBalance = this.safeString(entry, 'totalWalletBalance');
-                    accountPapi['total'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(totalUsed, totalWalletBalance);
-                }
-                if (code !== undefined) {
-                    result[code] = accountPapi;
-                }
-            }
-        } else if (!isolated && (type === 'spot' || cross)) {
+        if (!isolated && (type === 'spot' || cross)) {
             timestamp = this.safeInteger(response, 'updateTime');
             const balances = this.safeList2(response, 'balances', 'userAssets', []);
             for(let i = 0; i < balances.length; i++){
@@ -206353,6 +206319,52 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                     result[code] = accountSavings;
                 }
             }
+        } else {
+            const assets = this.safeList(response, 'assets', []);
+            return this.parseBalanceList(assets, type, marginMode, false, response);
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601(timestamp);
+        return this.safeBalance(result);
+    }
+    parseBalanceList(response, type = undefined, marginMode = undefined, isPortfolioMargin = false, info = undefined) {
+        const result = {
+            'info': response
+        };
+        if (info !== undefined) {
+            result['info'] = info;
+        }
+        const cross = type === 'margin' || marginMode === 'cross';
+        if (isPortfolioMargin) {
+            for(let i = 0; i < response.length; i++){
+                const entry = this.safeDict(response, i);
+                const accountPapi = this.account();
+                const currencyId = this.safeString(entry, 'asset');
+                const code = this.safeCurrencyCode(currencyId);
+                if (type === 'linear') {
+                    accountPapi['free'] = this.safeString(entry, 'umWalletBalance');
+                    accountPapi['used'] = this.safeString(entry, 'umUnrealizedPNL');
+                } else if (type === 'inverse') {
+                    accountPapi['free'] = this.safeString(entry, 'cmWalletBalance');
+                    accountPapi['used'] = this.safeString(entry, 'cmUnrealizedPNL');
+                } else if (cross) {
+                    const borrowed = this.safeString(entry, 'crossMarginBorrowed');
+                    const interest = this.safeString(entry, 'crossMarginInterest');
+                    accountPapi['debt'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(borrowed, interest);
+                    accountPapi['free'] = this.safeString(entry, 'crossMarginFree');
+                    accountPapi['used'] = this.safeString(entry, 'crossMarginLocked');
+                    accountPapi['total'] = this.safeString(entry, 'crossMarginAsset');
+                } else {
+                    const usedLinear = this.safeString(entry, 'umUnrealizedPNL');
+                    const usedInverse = this.safeString(entry, 'cmUnrealizedPNL');
+                    const totalUsed = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(usedLinear, usedInverse);
+                    const totalWalletBalance = this.safeString(entry, 'totalWalletBalance');
+                    accountPapi['total'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(totalUsed, totalWalletBalance);
+                }
+                if (code !== undefined) {
+                    result[code] = accountPapi;
+                }
+            }
         } else if (type === 'funding') {
             for(let i = 0; i < response.length; i++){
                 const entry = this.safeDict(response, i);
@@ -206369,10 +206381,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         } else {
-            let balances = response;
-            if (!Array.isArray(response)) {
-                balances = this.safeList(response, 'assets', []);
-            }
+            const balances = response;
             for(let i = 0; i < balances.length; i++){
                 const balance = this.safeDict(balances, i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -206391,8 +206400,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601(timestamp);
+        result['timestamp'] = undefined;
+        result['datetime'] = undefined;
         return this.safeBalance(result);
     }
     /**
@@ -206437,8 +206446,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             } else if (this.isInverse(type, subType)) {
                 type = 'inverse';
             }
-            isPortfolioMargin = true;
-            response = await this.papiGetBalance(this.extend(request, query));
+            const papiResponse = await this.papiGetBalance(this.extend(request, query));
+            return this.parseBalanceList(papiResponse, type, marginMode, true);
         } else if (this.isLinear(type, subType)) {
             type = 'linear';
             let useV2 = undefined;
@@ -206479,7 +206488,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         } else if (type === 'savings') {
             response = await this.sapiGetLendingUnionAccount(this.extend(request, query));
         } else if (type === 'funding') {
-            response = await this.sapiPostAssetGetFundingAsset(this.extend(request, query));
+            const fundingResponse = await this.sapiPostAssetGetFundingAsset(this.extend(request, query));
+            return this.parseBalanceList(fundingResponse, type, marginMode);
         } else {
             response = await this.privateGetAccount(this.extend(request, query));
         }
@@ -206663,7 +206673,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         //         },
         //     ]
         //
-        return this.parseBalanceCustom(response, type, marginMode, isPortfolioMargin);
+        return this.parseBalanceCustom(response, type, marginMode);
     }
     /**
      * @method
@@ -395875,13 +395885,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             let clientOrderIds = this.safeValue2(query, 'client-order-id', 'clientOrderId');
             clientOrderIds = this.safeValue2(query, 'client-order-ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
-                if (typeof clientOrderIds === 'string') {
-                    request['order-ids'] = [
-                        ids
-                    ];
-                } else {
-                    request['order-ids'] = ids;
-                }
+                request['order-ids'] = ids;
             } else {
                 if (typeof clientOrderIds === 'string') {
                     request['client-order-ids'] = [
@@ -524237,7 +524241,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         if (outcomes === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
-        const outcomesList = outcomes;
+        const outcomesList = outcomes === undefined ? [] : outcomes;
         const outcomesLength = outcomesList.length;
         const hashesOrder = [];
         const seenHashes = {};
@@ -534548,17 +534552,16 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         //
         //
         const messageHash = this.safeString(message, 'id');
-        let rawBalance = undefined;
         if (Array.isArray(message['result'])) {
             // account.balance
-            rawBalance = this.safeList(message, 'result', []);
-        } else {
-            // account.status
-            const result = this.safeDict(message, 'result', {});
-            rawBalance = this.safeList(result, 'assets', []);
+            const rawBalance = this.safeList(message, 'result', []);
+            client.resolve(this.parseBalanceList(rawBalance), messageHash);
+            return;
         }
-        const parsedBalances = this.parseBalanceCustom(rawBalance);
-        client.resolve(parsedBalances, messageHash);
+        // account.status
+        const result = this.safeDict(message, 'result', {});
+        const assets = this.safeList(result, 'assets', []);
+        client.resolve(this.parseBalanceList(assets), messageHash);
     }
     handleAccountStatusWs(client, message) {
         //
@@ -539140,8 +539143,8 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
         const typeBalance = this.safeDict(this.balance, type, {});
+        typeBalance['info'] = data;
         typeBalance['timestamp'] = timestamp;
         typeBalance['datetime'] = this.iso8601(timestamp);
         for(let i = 0; i < data.length; i++){
@@ -589324,8 +589327,8 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
             if (!(uniformType in this.balance)) {
                 this.balance[uniformType] = {};
             }
-            this.balance[uniformType]['info'] = data;
             const balance = this.safeDict(this.balance, uniformType, {});
+            balance['info'] = data;
             const timestamp = this.safeInteger2(data, 'time', 'timestamp');
             balance['timestamp'] = timestamp;
             balance['datetime'] = this.iso8601(timestamp);
@@ -589369,8 +589372,8 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
         const balance = this.safeDict(this.balance, type, {});
+        balance['info'] = data;
         const timestamp = this.safeIntegerProduct(data, 'U', 0.000001);
         balance['timestamp'] = timestamp;
         balance['datetime'] = this.iso8601(timestamp);
@@ -656788,8 +656791,17 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(requestParams, 'orders', []);
+                        const taggedOrders = [];
+                        let hasOrders = false;
                         for(let i = 0; i < ordersList.length; i++){
-                            requestParams['orders'][i]['order_tag'] = brokerId;
+                            const orderRow = this.extend(ordersList[i], {
+                                'order_tag': brokerId
+                            });
+                            taggedOrders.push(orderRow);
+                            hasOrders = true;
+                        }
+                        if (hasOrders) {
+                            requestParams['orders'] = taggedOrders;
                         }
                     } else {
                         requestParams['order_tag'] = brokerId;

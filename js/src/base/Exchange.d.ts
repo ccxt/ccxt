@@ -1027,7 +1027,7 @@ export declare class BaseExchange {
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     parseAllGreeks(greeks: any, symbols?: Strings, params?: Dict): AllGreeks;
     parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
-    parseOptionChain(response: object[], currencyKey?: Str, symbolKey?: Str): OptionChain;
+    parseOptionChain(response: Dict[], currencyKey?: Str, symbolKey?: Str): OptionChain;
     parseMarginModes(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): MarginModes;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseLeverages(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): Leverages;
@@ -1039,7 +1039,7 @@ export declare class BaseExchange {
     convertMarketIdExpireDate(date: Str): Str;
     loadMarketsAndSignIn(): Promise<void>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    parseMarginModifications(response: object[] | undefined, symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): MarginModification[];
+    parseMarginModifications(response: Dict[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: Dict): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
     unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;

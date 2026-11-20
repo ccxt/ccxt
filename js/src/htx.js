@@ -6163,12 +6163,7 @@ export default class htx extends Exchange {
             let clientOrderIds = this.safeValue2(query, 'client-order-id', 'clientOrderId');
             clientOrderIds = this.safeValue2(query, 'client-order-ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
-                if (typeof clientOrderIds === 'string') {
-                    request['order-ids'] = [ids];
-                }
-                else {
-                    request['order-ids'] = ids;
-                }
+                request['order-ids'] = ids;
             }
             else {
                 if (typeof clientOrderIds === 'string') {

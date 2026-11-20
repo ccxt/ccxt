@@ -3416,18 +3416,16 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString(message, 'id');
-        let rawBalance = undefined;
         if (Array.isArray(message['result'])) {
             // account.balance
-            rawBalance = this.safeList(message, 'result', []);
+            const rawBalance = this.safeList(message, 'result', []);
+            client.resolve(this.parseBalanceList(rawBalance), messageHash);
+            return;
         }
-        else {
-            // account.status
-            const result = this.safeDict(message, 'result', {});
-            rawBalance = this.safeList(result, 'assets', []);
-        }
-        const parsedBalances = this.parseBalanceCustom(rawBalance);
-        client.resolve(parsedBalances, messageHash);
+        // account.status
+        const result = this.safeDict(message, 'result', {});
+        const assets = this.safeList(result, 'assets', []);
+        client.resolve(this.parseBalanceList(assets), messageHash);
     }
     handleAccountStatusWs(client, message) {
         //

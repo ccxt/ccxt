@@ -1866,7 +1866,7 @@ class sxbet extends sxbet$1["default"] {
         if (outcomes === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
-        const outcomesList = outcomes;
+        const outcomesList = (outcomes === undefined) ? [] : outcomes;
         const outcomesLength = outcomesList.length;
         const hashesOrder = [];
         const seenHashes = {};

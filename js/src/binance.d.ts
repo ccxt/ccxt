@@ -119,7 +119,8 @@ export default class binance extends Exchange {
     fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     parseBalanceHelper(entry: Dict): Dict;
-    parseBalanceCustom(response: any, type?: Str, marginMode?: Str, isPortfolioMargin?: boolean): Balances;
+    parseBalanceCustom(response: Dict, type?: Str, marginMode?: Str): Balances;
+    parseBalanceList(response: Dict[], type?: Str, marginMode?: Str, isPortfolioMargin?: boolean, info?: any): Balances;
     /**
      * @method
      * @name binance#fetchBalance

@@ -2788,8 +2788,8 @@ export default class kucoin extends kucoinRest {
             if (!(uniformType in this.balance)) {
                 this.balance[uniformType] = {};
             }
-            this.balance[uniformType]['info'] = data;
             const balance = this.safeDict(this.balance, uniformType, {});
+            balance['info'] = data;
             const timestamp = this.safeInteger2(data, 'time', 'timestamp');
             balance['timestamp'] = timestamp;
             balance['datetime'] = this.iso8601(timestamp);
@@ -2833,8 +2833,8 @@ export default class kucoin extends kucoinRest {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
         const balance = this.safeDict(this.balance, type, {});
+        balance['info'] = data;
         const timestamp = this.safeIntegerProduct(data, 'U', 0.000001);
         balance['timestamp'] = timestamp;
         balance['datetime'] = this.iso8601(timestamp);

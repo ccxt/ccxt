@@ -1826,8 +1826,8 @@ class bingx extends bingx$1["default"] {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
         const typeBalance = this.safeDict(this.balance, type, {});
+        typeBalance['info'] = data;
         typeBalance['timestamp'] = timestamp;
         typeBalance['datetime'] = this.iso8601(timestamp);
         for (let i = 0; i < data.length; i++) {
