@@ -1966,7 +1966,7 @@ public partial class kalshi : PredictionExchange
         }
         bool tickerMissing = ((ticker == null));
         bool useHeldYesTicker = (heldYes || tickerMissing);
-        object heldTicker = null;
+        string? heldTicker = null;
         if (useHeldYesTicker)
         {
             heldTicker = ticker;

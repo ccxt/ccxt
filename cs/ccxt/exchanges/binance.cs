@@ -11865,7 +11865,7 @@ public partial class binance : Exchange
             { "currency", earnedCurrency },
             { "cost", this.parseNumber(feeCostString) },
         };
-        object symbol = null;
+        string? symbol = null;
         string? amountString = null;
         string? costString = null;
         string? side = null;

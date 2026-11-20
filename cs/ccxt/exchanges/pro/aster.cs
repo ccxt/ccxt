@@ -1705,6 +1705,7 @@ public partial class aster : ccxt.aster
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
+        IDictionary<string, object> balance = this.safeDict(this.balance, accountType, new Dictionary<string, object>() {});
         IDictionary<string, object> messageValue = this.safeDict(message, "a", message);
         List<object> B = this.safeList(messageValue, "B", new List<object>() {});
         string? wallet = this.safeString(this.options, "wallet", "wb");
@@ -1719,13 +1720,13 @@ public partial class aster : ccxt.aster
             account["total"] = this.safeString(entry, wallet);
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
+                balance[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(messageValue, "E");
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        balance["timestamp"] = timestamp;
+        balance["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 

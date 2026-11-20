@@ -1855,6 +1855,7 @@ public partial class kraken : ccxt.kraken
         }
         this.balance[type] = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
         ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
+        IDictionary<string, object> balance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
@@ -1863,9 +1864,9 @@ public partial class kraken : ccxt.kraken
             Dictionary<string, object> account = this.account();
             string? eq = this.safeString(data[i], "balance");
             account["total"] = eq;
-            ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[code] = account;
+            balance[(string)code] = account;
         }
-        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        this.balance[type] = this.safeBalance(balance);
         string? channel = this.safeString(message, "channel");
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
     }

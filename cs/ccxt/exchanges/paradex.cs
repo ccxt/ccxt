@@ -1755,7 +1755,7 @@ public partial class paradex : Exchange
         // against an index, and this rate is the amount for a whole period
         string? hours = this.safeString(this.safeDict(marketResolved, "info", new Dictionary<string, object>() {}), "funding_period_hours");
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        object interval = null;
+        string? interval = null;
         if (((hours != null)) && Precise.stringGt(hours, "0"))
         {
             interval = (hours + "h");

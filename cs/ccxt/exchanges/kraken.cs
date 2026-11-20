@@ -2247,7 +2247,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> orderDescriptionObj = this.safeDict(orderOmitted, "descr"); // can be null
         string? orderDescription = ((orderDescriptionObj != null)) ? this.safeString(orderDescriptionObj, "order") : this.safeString(orderOmitted, "descr");
         string? side = null;
-        object descriptionType = null;
+        string? descriptionType = null;
         string? marketId = null;
         string? price = this.safeString(description, "price");
         string? amount = null;

@@ -5049,7 +5049,8 @@ public partial class BaseExchange
         object code = currencyId;
         if ((currencyId != null))
         {
-            code = this.commonCurrencyCode(((string)currencyId).ToUpper());
+            string upperId = ((string)currencyId).ToUpper();
+            code = this.commonCurrencyCode(upperId);
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -5281,7 +5282,7 @@ public partial class BaseExchange
         }
         if ((key is string inOpKey5 && mapping.ContainsKey(inOpKey5)))
         {
-            return ((string)((object)((mapping != null && key != null && mapping.ContainsKey((string)key) ? mapping[(string)key] : null))));
+            return ((string)((object)(this.safeString(mapping, key, key))));
         } else
         {
             List<object> keys = new List<object>(mapping.Keys);
