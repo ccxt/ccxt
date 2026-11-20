@@ -2906,10 +2906,9 @@ public partial class BaseExchange
     public virtual string? createCcxtTradeId(object timestamp = null, string? side = null, string? amount = null, string? price = null, string? takerOrMaker = null)
     {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        string? id = null;
         if ((timestamp != null))
         {
-            id = this.numberToString(timestamp);
+            string? id = this.numberToString(timestamp);
             if ((side != null))
             {
                 id = (id == null ? null : id + (string)(object)(("-" + side)));
@@ -2926,8 +2925,9 @@ public partial class BaseExchange
             {
                 id = (id == null ? null : id + (string)(object)(("-" + takerOrMaker)));
             }
+            return id;
         }
-        return id;
+        return null;
     }
 
     public virtual List<object> parsedFeeAndFees(object container)

@@ -2090,7 +2090,7 @@ public partial class htx : ccxt.htx
                         // isolated margin only allows filtering by symbol3
                         if (((symbol != null)) && ((market != null)))
                         {
-                            messageHash = ((object)(messageHash == null ? null : messageHash + ("." + this.safeString(market, "id", ""))));
+                            messageHash = ((prefix + ".") + this.safeString(market, "id", ""));
                             channel = messageHash;
                         } else
                         {
@@ -2116,7 +2116,7 @@ public partial class htx : ccxt.htx
                 // inverse futures account
                 if ((currencyCode != null))
                 {
-                    messageHash = ((object)(messageHash == null ? null : messageHash + ("." + this.safeString(currencyCode, "id", ""))));
+                    messageHash = ((prefix + ".") + this.safeString(currencyCode, "id", ""));
                     channel = messageHash;
                 } else
                 {
@@ -2128,7 +2128,7 @@ public partial class htx : ccxt.htx
                 // inverse swaps account
                 if ((market != null))
                 {
-                    messageHash = ((object)(messageHash == null ? null : messageHash + ("." + this.safeString(market, "id", ""))));
+                    messageHash = ((prefix + ".") + this.safeString(market, "id", ""));
                     channel = messageHash;
                 } else
                 {

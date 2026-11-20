@@ -2220,10 +2220,10 @@ public partial class kucoin : Exchange
             symbolsData = this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {});
         }
         Int64? crossIndex = 0;
-        Int64 isolatedIndex = 0;
+        Int64? isolatedIndex = 0;
         Int64? tickersIndex = 0;
         Int64? contractIndex = 0;
-        Int64 nextIndex = 0;
+        Int64? nextIndex = 0;
         if (fetchSpotMarkets)
         {
             nextIndex = 1;
@@ -2231,13 +2231,14 @@ public partial class kucoin : Exchange
         if (requestMarginables)
         {
             crossIndex = nextIndex;
-            nextIndex = this.sum(nextIndex, 2);
-            isolatedIndex = this.sum(crossIndex, 1);
+            nextIndex = (nextIndex + 1);
+            isolatedIndex = nextIndex;
+            nextIndex = (nextIndex + 1);
         }
         if ((fetchTickersFees == true))
         {
             tickersIndex = nextIndex;
-            nextIndex = this.sum(nextIndex, 1);
+            nextIndex = (nextIndex + 1);
         }
         if (fetchContractMarkets)
         {
@@ -2246,7 +2247,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> crossData = requestMarginables ? this.safeDict((responses != null && crossIndex != null && crossIndex < responses.Count ? responses[(int)crossIndex] : null), "data", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         List<object> crossItems = this.safeList(crossData, "items", new List<object>() {});
         Dictionary<string, object> crossById = this.indexBy(crossItems, "symbol");
-        object isolatedData = requestMarginables ? (responses != null && isolatedIndex < responses.Count ? responses[(int)isolatedIndex] : null) : new Dictionary<string, object>() {};
+        object isolatedData = requestMarginables ? (responses != null && isolatedIndex != null && isolatedIndex < responses.Count ? responses[(int)isolatedIndex] : null) : new Dictionary<string, object>() {};
         List<object> isolatedItems = this.safeList(isolatedData, "data", new List<object>() {});
         Dictionary<string, object> isolatedById = this.indexBy(isolatedItems, "symbol");
         IDictionary<string, object> tickersResponse = fetchTickersFees == true ? this.safeDict(responses, tickersIndex, new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};

@@ -1656,14 +1656,14 @@ public partial class bithumb : Exchange
             int numParts = parts.Count;
             if (numParts > 1)
             {
-                object transactionDate = (parts != null && 0 < parts.Count ? parts[0] : null);
+                string? transactionDate = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
                 string? rawTransactionTime = this.safeString(parts, 1, "");
                 string? transactionTime = rawTransactionTime;
                 if (rawTransactionTime.Length < 8)
                 {
                     transactionTime = ("0" + rawTransactionTime);
                 }
-                Int64? kstTimestamp = this.parse8601(((object)(transactionDate == null ? null : transactionDate + " " + transactionTime)));
+                Int64? kstTimestamp = this.parse8601((transactionDate == null ? null : transactionDate + " " + transactionTime));
                 timestamp = kstTimestamp;
                 if (((kstTimestamp != null)) && (!isGenerationTwo))
                 {

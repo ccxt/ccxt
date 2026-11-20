@@ -4011,9 +4011,9 @@ public partial class bitget : Exchange
                 string? yearPart = this.safeString(expiryParts, 0, "");
                 string? dayPart = this.safeString(expiryParts, 2, "");
                 string? year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
-                object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
+                string? month = ((string)(expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null));
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                string? monthDay = (month == null ? null : month + day);
+                string? monthDay = ((string)(month == null ? null : month + day));
                 string expiryString = (year + monthDay);
                 type = "future";
                 future = true;
@@ -4322,9 +4322,9 @@ public partial class bitget : Exchange
                 string? yearPart = this.safeString(expiryParts, 0, "");
                 string? dayPart = this.safeString(expiryParts, 2, "");
                 string? year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
-                object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
+                string? month = ((string)(expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null));
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                string? monthDay = (month == null ? null : month + day);
+                string? monthDay = ((string)(month == null ? null : month + day));
                 string expiryString = (year + monthDay);
                 type = "future";
                 future = true;

@@ -2378,7 +2378,7 @@ public partial class gate : ccxt.gate
                             marketType = (parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null);
                         }
                         string? symbol = this.safeSymbol(payload[i], null, "_", marketType);
-                        string? messageHashSymbol = ((string)add(add((parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null), ":"), symbol));
+                        string? messageHashSymbol = ((string)((object)((parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null) == null ? null : (parsedChannel != null && 1 < parsedChannel.Count ? parsedChannel[1] : null) + ":" + symbol)));
                         if (((messageHashSymbol != null)) && (((messageHashSymbol != null) && (client.subscriptions != null && messageHashSymbol != null && client.subscriptions.ContainsKey(messageHashSymbol)))))
                         {
                             ((IDictionary<string,object>)client.subscriptions).Remove(messageHashSymbol);

@@ -489,7 +489,7 @@ public partial class sxbet : PredictionExchange
             queries.Add((tags != null && i < tags.Count ? tags[i] : null));
         }
         Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
-        List<object> rawMarkets = null;
+        List<object> rawMarkets = new List<object>() {};
         if ((eventId != null))
         {
             rawMarkets = await this.fetchRawMarketsPaged(this.extend(new Dictionary<string, object>() {
