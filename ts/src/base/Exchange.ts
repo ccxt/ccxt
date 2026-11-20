@@ -8493,16 +8493,30 @@ export class BaseExchange {
          */
         const depositWithdrawFees: Dict = {};
         const isArray = Array.isArray (response);
-        let responseKeys = response;
-        if (!isArray) {
-            responseKeys = Object.keys (response);
+        let dictResponse = {};
+        let numEntries = 0;
+        if (isArray) {
+            const responseLength = response.length;
+            numEntries = responseLength;
+        } else {
+            dictResponse = response;
         }
-        for (let i = 0; i < responseKeys.length; i++) {
-            const entry = responseKeys[i];
-            const dictionary = isArray ? entry : response[entry];
-            let currencyId = entry;
+        const keys = Object.keys (dictResponse);
+        if (!isArray) {
+            const keysLength = keys.length;
+            numEntries = keysLength;
+        }
+        for (let i = 0; i < numEntries; i++) {
+            let dictionary = undefined;
+            let currencyId: Str = undefined;
             if (isArray) {
-                currencyId = (currencyIdKey === undefined) ? undefined : this.safeString (dictionary, currencyIdKey);
+                dictionary = response[i];
+                if (currencyIdKey !== undefined) {
+                    currencyId = this.safeString (dictionary, currencyIdKey);
+                }
+            } else {
+                currencyId = keys[i];
+                dictionary = response[currencyId];
             }
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
