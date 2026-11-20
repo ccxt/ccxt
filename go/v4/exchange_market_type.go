@@ -231,7 +231,7 @@ func (this *BaseExchange) MarketIds(optionalArgs ...any) []string {
 	}
 	result := make([]string, 0, len(symbols))
 	for _, symbol := range symbols {
-		if id, isStr := derefScalar(this.MarketId(symbol)).(string); isStr {
+		if id, isStr := derefScalar(this.MarketId(&symbol)).(string); isStr {
 			result = append(result, id)
 		}
 	}

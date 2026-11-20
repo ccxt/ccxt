@@ -6593,7 +6593,7 @@ export class BaseExchange {
     marketId (symbol: Str): Str {
         const market = this.market (symbol);
         if (market !== undefined) {
-            return market['id'];
+            return this.safeString (market, 'id');
         }
         return symbol;
     }
