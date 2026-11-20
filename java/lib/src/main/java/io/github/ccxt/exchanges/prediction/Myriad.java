@@ -1385,16 +1385,19 @@ public class Myriad extends MyriadApi
             (this.ensureErc20Allowance((String) (rpcUrl), (String) (networkId), (String) (tokenAddress), (String) (fromAddress), (String) (predictionMarket))).join();
         }
         Boolean skipWaitForReceipt = (Boolean) this.safeBool(parameters, "skipWaitForReceipt", hasPreBroadcastTxHash);
-        Object txHash = txHashParam;
-        if (java.util.Objects.equals(txHash, null))
+        String txHash = null;
+        if (!java.util.Objects.equals(txHashParam, null))
+        {
+            txHash = txHashParam;
+        } else
         {
             txHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (fromAddress), (String) (predictionMarket), "0x0", (String) (calldata), (String) (gasLimit))).join();
         }
         if (!Boolean.TRUE.equals(skipWaitForReceipt))
         {
-            (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000L)).join();
+            (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
         }
-        return this.parseTradeTx((String) (txHash), quote, outcomeObj, sideStr);
+        return this.parseTradeTx(txHash, quote, outcomeObj, sideStr);
 
     }
 
@@ -1821,7 +1824,14 @@ public class Myriad extends MyriadApi
             return new ArrayList<Object>(Arrays.asList());
         }
         String traderParam = this.safeString2(parameters, "trader", "address");
-        String trader = (((!java.util.Objects.equals(traderParam, null)))) ? traderParam : this.walletAddressOrUndefined();
+        String trader = null;
+        if (!java.util.Objects.equals(traderParam, null))
+        {
+            trader = traderParam;
+        } else
+        {
+            trader = this.walletAddressOrUndefined();
+        }
         if (java.util.Objects.equals(trader, null))
         {
             throw new ArgumentsRequired((this.id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;

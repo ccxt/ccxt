@@ -1502,7 +1502,13 @@ public class Alpaca extends AlpacaApi
         String defaultTIF = defaultTIFparamsTimeInForceVariable.first();
         Map<String, Object> paramsTimeInForce = defaultTIFparamsTimeInForceVariable.second();
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request.put("time_in_force", (((!java.util.Objects.equals(defaultTIF, null)))) ? ((String)defaultTIF).toLowerCase() : defaultTIF);
+        if (!java.util.Objects.equals(defaultTIF, null))
+        {
+            request.put("time_in_force", ((String)defaultTIF).toLowerCase());
+        } else
+        {
+            request.put("time_in_force", null);
+        }
         Map<String, Object> paramsOmitted = this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
         request.put("client_order_id", this.generateClientOrderId(paramsOmitted));
         Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")))))).join();

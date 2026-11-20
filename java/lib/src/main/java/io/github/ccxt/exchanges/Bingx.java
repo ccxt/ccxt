@@ -1852,10 +1852,10 @@ public class Bingx extends BingxApi
         //        ]
         //    }
         //
-        Object ohlcvs = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-        if (!(ohlcvs instanceof List))
+        List<Object> ohlcvs = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        if (java.util.Objects.equals(this.safeList(response, "data", null), null) && !java.util.Objects.equals(this.safeDict(response, "data", null), null))
         {
-            ohlcvs = new ArrayList<Object>(Arrays.asList(ohlcvs));
+            ohlcvs = new ArrayList<Object>(Arrays.asList(this.safeDict(response, "data", null)));
         }
         return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
@@ -4850,35 +4850,21 @@ public class Bingx extends BingxApi
                 feeCurrencyCode = this.safeString(marketResolved, feeKey);
             }
         }
-        Object stopLoss = this.safeValue(orderData, "stopLoss");
-        Object stopLossPrice = null;
-        if ((!java.util.Objects.equals(stopLoss, null)) && (!java.util.Objects.equals(stopLoss, "")))
+        // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        String stopLossString = this.safeString(orderData, "stopLoss");
+        Boolean stopLossIsDict = !java.util.Objects.equals(this.safeDict(orderData, "stopLoss", null), null);
+        Object stopLossPrice = this.omitZero(this.safeString(this.safeDict(orderData, "stopLoss", new HashMap<String, Object>() {{}}), "stopPrice"));
+        if (!Boolean.TRUE.equals(stopLossIsDict) && (!java.util.Objects.equals(stopLossString, null)) && ((((String)stopLossString).indexOf("{") == 0)))
         {
-            stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopLoss"));
+            stopLossPrice = this.omitZero(this.safeString(this.parseJson(stopLossString), "stopPrice"));
         }
-        if ((!java.util.Objects.equals(stopLoss, null)) && (!(stopLoss instanceof Long || stopLoss instanceof Integer || stopLoss instanceof Float || stopLoss instanceof Double)) && (!java.util.Objects.equals(stopLoss, "")))
+        // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        String takeProfitString = this.safeString(orderData, "takeProfit");
+        Boolean takeProfitIsDict = !java.util.Objects.equals(this.safeDict(orderData, "takeProfit", null), null);
+        Object takeProfitPrice = this.omitZero(this.safeString(this.safeDict(orderData, "takeProfit", new HashMap<String, Object>() {{}}), "stopPrice"));
+        if (!Boolean.TRUE.equals(takeProfitIsDict) && (!java.util.Objects.equals(takeProfitString, null)) && ((((String)takeProfitString).indexOf("{") == 0)))
         {
-            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if ((stopLoss instanceof String))
-            {
-                stopLoss = this.parseJson(stopLoss);
-            }
-            stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopPrice"));
-        }
-        Object takeProfit = this.safeValue(orderData, "takeProfit");
-        Object takeProfitPrice = null;
-        if (!java.util.Objects.equals(takeProfit, null) && (!java.util.Objects.equals(takeProfit, "")))
-        {
-            takeProfitPrice = this.omitZero(this.safeString(takeProfit, "takeProfit"));
-        }
-        if ((!java.util.Objects.equals(takeProfit, null)) && (!(takeProfit instanceof Long || takeProfit instanceof Integer || takeProfit instanceof Float || takeProfit instanceof Double)) && (!java.util.Objects.equals(takeProfit, "")))
-        {
-            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if ((takeProfit instanceof String))
-            {
-                takeProfit = this.parseJson(takeProfit);
-            }
-            takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
+            takeProfitPrice = this.omitZero(this.safeString(this.parseJson(takeProfitString), "stopPrice"));
         }
         String rawType = ((String)this.safeStringLower2(orderData, "type", "o"));
         String stopPrice = this.omitZero(this.safeString2(orderData, "StopPrice", "stopPrice"));

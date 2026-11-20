@@ -495,7 +495,7 @@ public class Bit2me extends Bit2meApi
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String status = this.safeString(market, "marketEnabled");
-        Object fees = this.fees;
+        Object tradingFees = this.safeValue(this.fees, "trading");
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
         mapLiteral1.put("symbol", ((base + "/") + quote));
@@ -520,8 +520,8 @@ public class Bit2me extends Bit2meApi
         mapLiteral1.put("expiryDatetime", null);
         mapLiteral1.put("strike", null);
         mapLiteral1.put("optionType", null);
-        mapLiteral1.put("taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker"));
-        mapLiteral1.put("maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker"));
+        mapLiteral1.put("taker", this.safeNumber(tradingFees, "taker", (Object) null));
+        mapLiteral1.put("maker", this.safeNumber(tradingFees, "maker", (Object) null));
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Bit2me.this.parseNumber(Bit2me.this.parsePrecision(Bit2me.this.safeString(market, "amountPrecision"))) );
                 put( "price", Bit2me.this.parseNumber(Bit2me.this.parsePrecision(Bit2me.this.safeString(market, "pricePrecision"))) );

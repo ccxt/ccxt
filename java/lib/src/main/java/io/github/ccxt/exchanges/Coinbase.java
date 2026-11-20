@@ -6248,15 +6248,18 @@ public class Coinbase extends CoinbaseApi
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         Object uri = null;
-        if (!java.util.Objects.equals(url, ""))
+        if ((!java.util.Objects.equals(url, "")) && (!java.util.Objects.equals(method, null)))
         {
-            uri = ((method + " ") + (url == null ? null : ((String)url).replaceFirst("https://", "")));
-            Integer quesPos = ((String)uri).indexOf("?");
+            String fullUri = ((method + " ") + (url == null ? null : ((String)url).replaceFirst("https://", "")));
+            Integer quesPos = ((String)fullUri).indexOf("?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if ((quesPos != null && quesPos > 0))
             {
-                uri = (uri == null ? null : ((String)uri).substring(0, (int) Math.min(quesPos < 0 ? ((String)uri).length() + quesPos : quesPos, ((String)uri).length())));
+                uri = (fullUri == null ? null : fullUri.substring(0, (int) Math.min(quesPos < 0 ? fullUri.length() + quesPos : quesPos, fullUri.length())));
+            } else
+            {
+                uri = fullUri;
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}

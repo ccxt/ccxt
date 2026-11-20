@@ -766,9 +766,9 @@ public class Bitteam extends BitteamApi
         Double fee = null;
         Map<String, Object> withdrawCommissionFixed = this.safeDict(txLimits, "withdrawCommissionFixed", new HashMap<String, Object>() {{}});
         Map<String, Object> feesByNetworkId = new HashMap<String, Object>() {{}};
-        String blockChain = this.safeString(currency, "blockChain");
+        String blockChain = this.safeString(currency, "blockChain", "");
         // if only one blockChain
-        if ((!java.util.Objects.equals(blockChain, null)) && (!java.util.Objects.equals(blockChain, "")))
+        if (!java.util.Objects.equals(blockChain, ""))
         {
             fee = this.parseNumber(withdrawCommissionFixed);
             feesByNetworkId.put(blockChain, fee);

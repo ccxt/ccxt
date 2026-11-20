@@ -324,14 +324,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             return;
         }
-        String symbol = null;
-        if (Boolean.TRUE.equals(isGenerationTwo))
-        {
-            symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
-        } else
-        {
-            symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", (String) null);
-        }
+        String delimiter = ((Boolean.TRUE.equals(isGenerationTwo))) ? "-" : "_";
+        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, delimiter, (String) null);
         if (java.util.Objects.equals(symbol, null))
         {
             return;

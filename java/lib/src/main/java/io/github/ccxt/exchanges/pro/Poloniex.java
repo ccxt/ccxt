@@ -1565,8 +1565,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");
             Long timestamp = this.safeInteger(item, "ts");
-            List<Object> asks = this.safeList(item, "asks", null);
-            List<Object> bids = this.safeList(item, "bids", null);
+            List<Object> asks = this.safeList(item, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = this.safeList(item, "bids", new ArrayList<Object>(Arrays.asList()));
             if (Boolean.TRUE.equals(snapshot) || Boolean.TRUE.equals(update))
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);

@@ -545,14 +545,10 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             List<Object> parts = new ArrayList<Object>(Arrays.asList(key.split(java.util.regex.Pattern.quote("_"))));
             String currencyId = this.safeString(parts, 0);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Object account = this.account();
-            if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
-            {
-                account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
-            }
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(this.balance, code, this.account());
             String second = this.safeString(parts, 1);
             String freeOrTotal = (((java.util.Objects.equals(second, "available")))) ? "free" : "total";
-            ((Map<String, Object>)account).put(freeOrTotal, this.safeString(data, key));
+            account.put(freeOrTotal, this.safeString(data, key));
             if (!java.util.Objects.equals(code, null))
             {
                 this.balance.put(code, account);

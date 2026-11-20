@@ -890,7 +890,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Boolean isTransaction = java.util.Objects.equals(this.safeString(message, "e"), "tx");
         String orderId = this.safeString2(data, "id", "order");
-        String remains = this.safeString(data, "remains");
+        String remainsPrecision = this.safeString(data, "remains");
         String baseId = this.safeString(data, "symbol");
         String quoteId = this.safeString(data, "symbol2");
         Map<String, Object> pair = this.safeDict(data, "pair", null);
@@ -907,7 +907,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         String symbol = ((base + "/") + quote);
         Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
-        remains = this.currencyFromPrecision((String) (base), remains);
+        String remains = this.currencyFromPrecision((String) (base), (String) (remainsPrecision));
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -997,7 +997,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return null;
             }
-            remaining = this.currencyFromPrecision((String) (market.get("base")), remainsPrecision);
+            remaining = this.currencyFromPrecision((String) (market.get("base")), (String) (remainsPrecision));
         }
         String amount = this.safeString(order, "amount");
         if (!Boolean.TRUE.equals(isTransaction))
@@ -1006,7 +1006,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return null;
             }
-            this.currencyFromPrecision((String) (market.get("base")), amount);
+            this.currencyFromPrecision((String) (market.get("base")), (String) (amount));
         }
         String baseId = this.safeString(order, "symbol");
         String quoteId = this.safeString(order, "symbol2");
@@ -1073,7 +1073,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         return this.safeOrder(parsedOrder, marketResolved);
     }
 
-    public String fromPrecision(Object amount, Object scale)
+    public String fromPrecision(String amount, Object scale)
     {
         if (java.util.Objects.equals(amount, null))
         {
@@ -1085,10 +1085,10 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         return String.valueOf(precise);
     }
 
-    public String currencyFromPrecision(String currency, Object amount)
+    public String currencyFromPrecision(String currency, String amount)
     {
         Long scale = this.safeInteger((this.currencies == null || currency == null ? null : this.currencies.get(currency)), "precision", 0);
-        return this.fromPrecision(amount, scale);
+        return this.fromPrecision((String) (amount), scale);
     }
 
     public void handleOrdersSnapshot(Client client, Map<String, Object> message)

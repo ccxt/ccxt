@@ -1177,7 +1177,7 @@ public class Krakenfutures extends KrakenfuturesApi
         //        "more_candles": true
         //    }
         //
-        List<Object> candles = this.safeList(response, "candles", null);
+        List<Object> candles = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
         return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
 
     }

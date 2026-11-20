@@ -3005,7 +3005,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> eoaSig = this.signMessage(encoded, (String) (this.privateKey));
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            String eoaSignature = ((("0x" + this.remove0xPrefix(eoaSig.get("r"))) + this.remove0xPrefix(eoaSig.get("s"))) + this.intToBase16(eoaSig.get("v")));
+            String eoaSignature = ((("0x" + this.remove0xPrefix(this.safeString(eoaSig, "r"))) + this.remove0xPrefix(this.safeString(eoaSig, "s"))) + this.intToBase16(eoaSig.get("v")));
             return eoaSignature.toLowerCase();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -3757,7 +3757,7 @@ public class Polymarket extends PolymarketApi
         }};
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
-        return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
+        return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(sig.get("v")));
     }
 
     /**

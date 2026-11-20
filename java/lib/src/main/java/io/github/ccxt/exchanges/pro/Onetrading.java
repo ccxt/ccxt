@@ -288,17 +288,16 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Map<String, Object> ticker = (Map<String, Object>) (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(ticker, "instrument");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker(ticker, (Map<String, Object>) null);
             Long timestamp = this.parse8601(datetime);
-            parsedTicker.put("timestamp", timestamp);
-            parsedTicker.put("datetime", this.iso8601(timestamp));
+            String isoDatetime = this.iso8601(timestamp);
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker(ticker, (Map<String, Object>) (null), timestamp, (String) (isoDatetime));
             this.tickers.put(symbol, parsedTicker);
             client.resolve(parsedTicker, ("ticker." + symbol));
         }
         client.resolve(this.tickers, "tickers");
     }
 
-    public Object parseWSTicker(Map<String, Object> ticker, Map<String, Object> market)
+    public Object parseWSTicker(Map<String, Object> ticker, Map<String, Object> market, Object timestamp, String datetime)
     {
         //
         //     {
@@ -314,8 +313,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String marketId = this.safeString(ticker, "instrument");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Onetrading.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "timestamp", timestamp );
+            put( "datetime", datetime );
             put( "high", Onetrading.this.safeString(ticker, "high") );
             put( "low", Onetrading.this.safeString(ticker, "low") );
             put( "bid", null );

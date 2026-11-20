@@ -682,7 +682,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString2(trade, "executedPrice", "price");
         String amount = this.safeString2(trade, "executedQuantity", "size");
         String cost = Precise.stringMul(price, amount);
@@ -1027,7 +1027,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String orderId = this.safeString(order, "orderId");
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "cost", Modetrade.this.safeString(order, "totalFee") );
@@ -1213,7 +1213,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String messageHash = "myTrades";
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol");
         Map<String, Object> trade = this.parseWsTrade(message, market);
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(trades, null))

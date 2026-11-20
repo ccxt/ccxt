@@ -1193,6 +1193,8 @@ public class Indodax extends IndodaxApi
         {
             paramsOmitted = this.omit(parameters, "cost");
         }
+        String quoteId = this.safeString(market, "quoteId", "");
+        String baseId = this.safeString(market, "baseId", "");
         if (java.util.Objects.equals(type, "market"))
         {
             if (java.util.Objects.equals(side, "buy"))
@@ -1213,7 +1215,7 @@ public class Indodax extends IndodaxApi
                     String costRequest = Precise.stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
-                request.put((String)((String)market.get("quoteId")), quoteAmount);
+                request.put(quoteId, quoteAmount);
             } else
             {
                 quantityIsRequired = true;
@@ -1224,7 +1226,7 @@ public class Indodax extends IndodaxApi
             quantityIsRequired = true;
             if (java.util.Objects.equals(side, "buy"))
             {
-                request.put((String)((String)market.get("quoteId")), this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
+                request.put(quoteId, this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
             }
         }
         if (Boolean.TRUE.equals(priceIsRequired))
@@ -1237,7 +1239,7 @@ public class Indodax extends IndodaxApi
         }
         if (Boolean.TRUE.equals(quantityIsRequired))
         {
-            request.put((String)((String)market.get("baseId")), this.amountToPrecision(symbol, amount));
+            request.put(baseId, this.amountToPrecision(symbol, amount));
         }
         Map<String, Object> result = (this.privatePostTrade(this.extend(request, paramsOmitted))).join();
         Map<String, Object> data = this.safeDict(result, "return", new HashMap<String, Object>() {{}});

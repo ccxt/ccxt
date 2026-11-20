@@ -1881,9 +1881,10 @@ public class Binance extends BinanceApi
     private Object fetchWalletCore(String methodName, Map<String, Object> parameters)
     {
 
-        if (!java.util.Objects.equals(this.safeDict(this.options, "wallet", null), null))
+        Map<String, Object> cachedWallet = this.safeDict(this.options, "wallet", null);
+        if (!java.util.Objects.equals(cachedWallet, null))
         {
-            return this.safeDict(this.options, "wallet", null);
+            return cachedWallet;
         }
         String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", this.walletAddress)).get(0);
         Map<String, Object> response = (this.sapiPrivateGetWalletList(new HashMap<String, Object>() {{}})).join();

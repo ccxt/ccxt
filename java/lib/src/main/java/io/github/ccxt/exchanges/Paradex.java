@@ -1594,8 +1594,11 @@ public class Paradex extends ParadexApi
         //     }
         //
         List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-        List<Object> rows = (List<Object>) ((((java.util.Objects.equals(request.get("market"), "ALL")))) ? this.filterLoadedSummaries(data, (String) null) : data);
-        return this.parseTickers(rows, symbolsNormalized, new HashMap<String, Object>() {{}});
+        if (java.util.Objects.equals(request.get("market"), "ALL"))
+        {
+            return this.parseTickers(this.filterLoadedSummaries(data, (String) null), symbolsNormalized, new HashMap<String, Object>() {{}});
+        }
+        return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
@@ -4530,8 +4533,11 @@ public class Paradex extends ParadexApi
         //
         List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        List<Object> rows = (((java.util.Objects.equals(request.get("market"), "ALL")))) ? this.filterLoadedSummaries(results, "option") : results;
-        return this.parseAllGreeks(rows, symbolsNormalized, new HashMap<String, Object>() {{}});
+        if (java.util.Objects.equals(request.get("market"), "ALL"))
+        {
+            return this.parseAllGreeks(this.filterLoadedSummaries(results, "option"), symbolsNormalized, new HashMap<String, Object>() {{}});
+        }
+        return this.parseAllGreeks(results, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 

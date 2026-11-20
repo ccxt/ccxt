@@ -865,11 +865,17 @@ public class Backpack extends BackpackApi
         Boolean stock = (Boolean) this.safeBool(selection, 0, false);
         Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
         String marketType = this.safeString(query, "marketType");
-        List<Object> requestedTypes = this.safeList(query, "marketType", new ArrayList<Object>(Arrays.asList("SPOT", "PERP", "RFQ")));
+        List<String> defaultTypes = new ArrayList<String>(Arrays.asList());
         if (!java.util.Objects.equals(marketType, null))
         {
-            requestedTypes = new ArrayList<Object>(Arrays.asList(marketType));
+            defaultTypes.add(marketType);
+        } else
+        {
+            defaultTypes.add("SPOT");
+            defaultTypes.add("PERP");
+            defaultTypes.add("RFQ");
         }
+        List<Object> requestedTypes = (List<Object>) this.safeList(query, "marketType", defaultTypes);
         Map<String, Object> aliases = new HashMap<String, Object>() {{
             put( "spot", "SPOT" );
             put( "swap", "PERP" );
@@ -3587,7 +3593,7 @@ public class Backpack extends BackpackApi
             for (var i = 0; i < rfqResponse.size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(rfqResponse, i, new HashMap<String, Object>() {{}}), market);
-                if (java.util.Objects.equals(order.get("id"), id))
+                if (java.util.Objects.equals(this.safeString(order, "id"), id))
                 {
                     return order;
                 }
@@ -3654,7 +3660,7 @@ public class Backpack extends BackpackApi
         for (var i = 0; i < response.size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(response, i, new HashMap<String, Object>() {{}}), market);
-            if (java.util.Objects.equals(order.get("id"), id))
+            if (java.util.Objects.equals(this.safeString(order, "id"), id))
             {
                 return order;
             }

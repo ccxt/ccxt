@@ -1595,8 +1595,8 @@ public class Woo extends WooApi
     {
         String currencyId = this.safeString(rawCurrency, "_coin_id");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        Map<String,Object> tokensByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_tokens_by_id"), "network");
-        Map<String,Object> chainsByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_networks_by_id"), "network");
+        Map<String,Object> tokensByNetworkId = this.indexBy(this.safeList(rawCurrency, "_tokens_by_id", new ArrayList<Object>(Arrays.asList())), "network");
+        Map<String,Object> chainsByNetworkId = this.indexBy(this.safeList(rawCurrency, "_networks_by_id", new ArrayList<Object>(Arrays.asList())), "network");
         List<String> keys = new ArrayList<String>(chainsByNetworkId.keySet());
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < keys.size(); j++)

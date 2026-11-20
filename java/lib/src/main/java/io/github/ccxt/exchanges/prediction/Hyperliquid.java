@@ -1209,12 +1209,8 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> response = this.safeDict(results, 0, null);
         Object midsResponse = (results == null || 1 >= ((List<?>)results).size() ? null : ((List<?>)results).get(1));
         List<Object> balances = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
-        Object allMids = new HashMap<String, Object>() {{}};
-        if ((!(midsResponse instanceof String)) && !(midsResponse instanceof List))
-        {
-            allMids = midsResponse;
-        }
-        Object mids = this.safeDict(allMids, "mids", allMids);
+        Map<String, Object> allMids = this.infoDict(midsResponse);
+        Map<String, Object> mids = (Map<String, Object>) this.safeDict(allMids, "mids", allMids);
         List<Object> positions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < balances.size(); i++)
         {
@@ -1319,9 +1315,9 @@ public class Hyperliquid extends HyperliquidApi
     public Map<String, Object> findOutcomeInMarket(Map<String, Object> market, String sideHint)
     {
         List<Object> outcomesList = this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
-        String normalizedHint = (((!java.util.Objects.equals(sideHint, null) && !java.util.Objects.equals(sideHint, "")))) ? ((String)sideHint).toUpperCase() : null;
-        if (!java.util.Objects.equals(normalizedHint, null))
+        if (!java.util.Objects.equals(sideHint, null) && !java.util.Objects.equals(sideHint, ""))
         {
+            String normalizedHint = ((String)sideHint).toUpperCase();
             for (var i = 0; i < outcomesList.size(); i++)
             {
                 Map<String, Object> oc = this.safeDict(outcomesList, i, new HashMap<String, Object>() {{}});

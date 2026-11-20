@@ -3361,7 +3361,7 @@ public class Polymarket extends PolymarketApi
      * @param {any[]} row the positional array to compact
      * @returns {any[]} the compacted array
      */
-    public Object compactSignable(List<Object> row)
+    public List<Object> compactSignable(List<Object> row)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < row.size(); i++)

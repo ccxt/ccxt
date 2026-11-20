@@ -2015,8 +2015,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             this.balance = new HashMap<String, Object>() {{}};
         }
         this.balance.put(type, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}}));
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", message);
         Map<String, Object> balance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
+        balance.put("info", message);
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {

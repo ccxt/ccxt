@@ -559,8 +559,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String topic = this.safeString(message, "topic", "");
         String updateType = this.safeString(message, "type", "");
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        String symbol = null;
         Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
+        String symbol = this.safeString(parsed, "symbol");
         if ((java.util.Objects.equals(updateType, "snapshot")))
         {
             parsed = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
@@ -576,6 +576,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Map<String, Object> rawTicker = this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = (Map<String, Object>) this.parseTicker(merged, (Map<String, Object>) null);
+        } else
+        {
+            symbol = null;
         }
         Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         parsed.put("timestamp", timestamp);

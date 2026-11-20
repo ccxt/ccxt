@@ -1385,9 +1385,9 @@ public class Phemex extends PhemexApi
         List<Object> products = this.safeList(v2ProductsData, "products", new ArrayList<Object>(Arrays.asList()));
         List<Object> perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new ArrayList<Object>(Arrays.asList()));
         products = (List<Object>) this.arrayConcat(products, perpetualProductsV2);
-        List<Object> riskLimits = this.safeList(v2ProductsData, "riskLimits", new ArrayList<Object>(Arrays.asList()));
+        List<Object> riskLimitsV1 = this.safeList(v2ProductsData, "riskLimits", new ArrayList<Object>(Arrays.asList()));
         List<Object> riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new ArrayList<Object>(Arrays.asList()));
-        riskLimits = (List<Object>) this.arrayConcat(riskLimits, riskLimitsV2);
+        List<Object> riskLimits = (List<Object>) this.arrayConcat(riskLimitsV1, riskLimitsV2);
         List<Object> currencies = this.safeList(v2ProductsData, "currencies", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> riskLimitsById = this.indexBy(riskLimits, "symbol");
         Map<String,Object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");

@@ -4971,10 +4971,9 @@ public Map<String, Object> describe()
          * @method
          * @description store value under key if key is defined (no-op on undefined)
          */
-        Object k = key;
-        if (!java.util.Objects.equals(k, null))
+        if (!java.util.Objects.equals(key, null))
         {
-            Helpers.addElementToObject(dict, k, value);
+            Helpers.addElementToObject(dict, key, value);
         }
     }
 
@@ -5092,9 +5091,11 @@ public Map<String, Object> describe()
     public Object urlEncoderForProxyUrl(Object targetUrl)
     {
         // to be overriden
-        Boolean includesQuery = ((String)targetUrl).indexOf("?") >= 0;
-        Object finalUrl = ((Boolean.TRUE.equals(includesQuery))) ? this.encodeURIComponent(targetUrl) : targetUrl;
-        return finalUrl;
+        if (((String)targetUrl).indexOf("?") >= 0)
+        {
+            return this.encodeURIComponent(targetUrl);
+        }
+        return targetUrl;
     }
 
     public Object checkProxySettings(String url, String method, Object headers, Object body)
@@ -10893,8 +10894,7 @@ public Map<String, Object> describe()
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object entry = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
-            ((List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
+            ((List<Object>)rates).add(this.parseFundingRateHistory((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
         String symbol = java.util.Objects.toString((((java.util.Objects.equals(market, null)))) ? null : market.get("symbol"), null);
@@ -10917,8 +10917,7 @@ public Map<String, Object> describe()
         Map<String, Object> fundingRates = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object entry = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
-            Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (Map<String, Object>) null);
             if (!java.util.Objects.equals(parsed.get("symbol"), null))
             {
                 fundingRates.put((String)parsed.get("symbol"), parsed);
@@ -10937,8 +10936,7 @@ public Map<String, Object> describe()
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) ((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)));
-            ((List<Object>)rates).add(this.parseLongShortRatio(entry, market));
+            ((List<Object>)rates).add(this.parseLongShortRatio((Map<String, Object>) ((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i))), market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
         String symbol = java.util.Objects.toString((((java.util.Objects.equals(market, null)))) ? null : market.get("symbol"), null);
@@ -11100,8 +11098,7 @@ public Map<String, Object> describe()
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < response.size(); i++)
         {
-            Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOpenInterest(entry, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOpenInterest((response == null || i < 0 || i >= response.size() ? null : response.get(i)), (Map<String, Object>) null);
             if (!java.util.Objects.equals(parsed.get("symbol"), null))
             {
                 result.put((String)parsed.get("symbol"), parsed);

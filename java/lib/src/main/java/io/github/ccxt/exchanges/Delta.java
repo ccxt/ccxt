@@ -1952,11 +1952,18 @@ public class Delta extends DeltaApi
             Map<String, Object> balance = this.safeDict(balances, i, null);
             String currencyId = this.safeString(balance, "asset_id");
             Map<String, Object> currency = this.safeDict(currenciesByNumericId, currencyId, null);
-            Object code = (((java.util.Objects.equals(currency, null)))) ? currencyId : currency.get("code");
+            String code = currencyId;
+            if (!java.util.Objects.equals(currency, null))
+            {
+                code = this.safeString(currency, "code");
+            }
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "balance"));
             account.put("free", this.safeString(balance, "available_balance"));
-            ((Map<Object, Object>) (Map<?, ?>) result).put(code, account);
+            if (!java.util.Objects.equals(code, null))
+            {
+                result.put(code, account);
+            }
         }
         return this.safeBalance(result);
     }

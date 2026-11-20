@@ -2409,8 +2409,16 @@ public class Whitebit extends WhitebitApi
             put( "market", market.get("id") );
             put( "interval", Whitebit.this.safeString(Whitebit.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
         }};
-        Long cappedLimit = ((((java.util.Objects.equals(limit, null)) || ((limit > 1440))))) ? 1440L : limit;
-        Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;
+        Long cappedLimit = 1440L;
+        if ((!java.util.Objects.equals(limit, null)) && ((limit < 1440)))
+        {
+            cappedLimit = limit;
+        }
+        Long limitResolved = limit;
+        if (!java.util.Objects.equals(since, null))
+        {
+            limitResolved = cappedLimit;
+        }
         Long until = this.safeInteger(parameters, "until");
         Map<String, Object> paramsOmitted = this.omit(parameters, "until");
         if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))

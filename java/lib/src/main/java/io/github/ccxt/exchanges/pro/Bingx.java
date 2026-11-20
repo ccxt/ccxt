@@ -625,7 +625,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //         }
         //     }
         //
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> dataList = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String rawHash = this.safeString(message, "dataType", "");
         List<Object> hashParts = new ArrayList<Object>(Arrays.asList(((String)rawHash).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(hashParts, 0);
@@ -639,12 +639,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String symbol = (String) market.get("symbol");
         String messageHash = ("trade::" + symbol);
         List<Object> trades = null;
-        if ((data instanceof List))
+        if (java.util.Objects.equals(this.safeDict(message, "data", null), null))
         {
-            trades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            trades = this.parseTrades(dataList, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         } else
         {
-            trades = new ArrayList<Object>(Arrays.asList(this.parseTrade(data, market)));
+            trades = new ArrayList<Object>(Arrays.asList(this.parseTrade(this.safeDict(message, "data", new HashMap<String, Object>() {{}}), market)));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))

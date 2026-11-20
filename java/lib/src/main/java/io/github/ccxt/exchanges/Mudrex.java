@@ -531,14 +531,12 @@ public class Mudrex extends MudrexApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = (this.privateGetFutures(this.extend(request, parameters))).join();
-        Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> rows = new ArrayList<Object>(Arrays.asList());
-        if ((data instanceof List))
+        rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Integer rowsLength = rows.size();
+        if (java.util.Objects.equals(rowsLength, 0))
         {
-            rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        } else
-        {
-            rows = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            rows = (List<Object>) this.safeList(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "items", new ArrayList<Object>(Arrays.asList()));
         }
         Map<String, Object> resultTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < rows.size(); i++)

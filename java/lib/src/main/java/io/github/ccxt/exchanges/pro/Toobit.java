@@ -417,16 +417,16 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         Map<String, Object> timeframes = this.safeDict(this.options.get("ws"), "timeframes", new HashMap<String, Object>() {{}});
         List<String> marketIds = new ArrayList<String>(Arrays.asList());
-        String selectedTimeframe = null;
+        String selectedTimeframe = "";
         for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
         {
             List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
             String symbolStr = this.safeString(data, 0, "");
             Map<String, Object> market = this.market(symbolStr);
-            String marketId = (String) market.get("id");
+            String marketId = this.safeString(market, "id", "");
             String unfiedTimeframe = this.safeString(data, 1, "1m");
             String rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
-            if (!java.util.Objects.equals(selectedTimeframe, null) && !java.util.Objects.equals(selectedTimeframe, rawTimeframe))
+            if (!java.util.Objects.equals(selectedTimeframe, "") && !java.util.Objects.equals(selectedTimeframe, rawTimeframe))
             {
                 throw new NotSupported((this.id + " watchOHLCVForSymbols() only supports a single timeframe for all symbols")) ;
             } else

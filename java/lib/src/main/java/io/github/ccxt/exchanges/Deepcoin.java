@@ -3847,9 +3847,10 @@ public class Deepcoin extends DeepcoinApi
             String requestBody = null;
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                requestBody = this.json(parameters);
+                String body = this.json(parameters);
                 privateHeaders.put("Content-Type", "application/json");
-                payload = (payload + requestBody);
+                payload = (payload + body);
+                requestBody = body;
             }
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             privateHeaders.put("DC-ACCESS-SIGN", signature);

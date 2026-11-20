@@ -580,7 +580,11 @@ public class Opinion extends OpinionApi
             for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
             {
                 Object m = (eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi));
-                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(Helpers.GetValue(m, "market"), m);
+                String marketKey = this.safeString(m, "market");
+                if (!java.util.Objects.equals(marketKey, null))
+                {
+                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(marketKey, m);
+                }
             }
         }
         this.populateOutcomes();

@@ -3786,14 +3786,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      */
     public String createAuthToken(Object seconds, String method, String url, Object useEddsa)
     {
-        String uri = null;
+        Object uri = null;
         if ((!java.util.Objects.equals(url, null)) && (!java.util.Objects.equals(method, null)))
         {
-            uri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
-            Object quesPos = uri.indexOf("?");
-            if ((((Integer) quesPos) > 0))
+            String fullUri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
+            Integer quesPos = ((String)fullUri).indexOf("?");
+            if ((quesPos != null && quesPos > 0))
             {
-                uri = (uri == null ? null : uri.substring(0, (int) Math.min(((Number)quesPos).intValue() < 0 ? uri.length() + ((Number)quesPos).intValue() : ((Number)quesPos).intValue(), uri.length())));
+                uri = (fullUri == null ? null : fullUri.substring(0, (int) Math.min(quesPos < 0 ? fullUri.length() + quesPos : quesPos, fullUri.length())));
+            } else
+            {
+                uri = fullUri;
             }
         }
         String nonce = this.randomBytes(16);

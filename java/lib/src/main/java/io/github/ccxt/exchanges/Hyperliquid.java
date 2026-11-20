@@ -744,7 +744,7 @@ public class Hyperliquid extends HyperliquidApi
         List<Object> markets = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < promises.size(); i++)
         {
-            Object dexName = (fetchDexesList == null || i < 0 || i >= fetchDexesList.size() ? null : fetchDexesList.get(i));
+            String dexName = this.safeString(fetchDexesList, i);
             Long offset = this.safeInteger(perpDexesOffset, dexName);
             List<Object> response = this.safeList(promises, i, null);
             Map<String, Object> meta = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
@@ -6142,10 +6142,10 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public List<Object> extractTypeFromDelta(Object data)
+    public List<Object> extractTypeFromDelta(List<Object> data)
     {
         List<Object> records = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> record = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> delta = this.safeDict(record, "delta", new HashMap<String, Object>() {{}});

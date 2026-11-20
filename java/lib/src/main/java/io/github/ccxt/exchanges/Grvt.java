@@ -2290,8 +2290,20 @@ public class Grvt extends GrvtApi
             {
                 throw new ArgumentsRequired((this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
             }
-            fromSubAccount = (((java.util.Objects.equals(fromAccount, "trading")))) ? tradingAccountId : fundingAccountId;
-            toSubAccount = (((java.util.Objects.equals(toAccount, "trading")))) ? tradingAccountId : fundingAccountId;
+            if (java.util.Objects.equals(fromAccount, "trading"))
+            {
+                fromSubAccount = tradingAccountId;
+            } else
+            {
+                fromSubAccount = fundingAccountId;
+            }
+            if (java.util.Objects.equals(toAccount, "trading"))
+            {
+                toSubAccount = tradingAccountId;
+            } else
+            {
+                toSubAccount = fundingAccountId;
+            }
             paramsFundingAccountId = paramsFunding;
         }
         Map<String, Object> request = new HashMap<String, Object>();

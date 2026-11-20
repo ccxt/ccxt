@@ -1777,9 +1777,17 @@ public class Dydx extends DydxApi
         Map<String, Object> paramsOmitted = this.omit(paramsGoodTillBlockTimeInSeconds, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId")));
         String walletAddress = this.getWalletAddress();
         Long clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
-        Object subaccountIdValue = (((java.util.Objects.equals(subaccountIdOption, null)))) ? 0 : subaccountIdOption;
+        Object subaccountIdValue = 0;
+        if (!java.util.Objects.equals(subaccountIdOption, null))
+        {
+            subaccountIdValue = subaccountIdOption;
+        }
         Long clientOrderIdValue = (((java.util.Objects.equals(clientOrderId, null)))) ? 0 : clientOrderId;
-        Integer orderFlagValue = (((java.util.Objects.equals(orderFlag, null)))) ? 0 : orderFlag;
+        Object orderFlagValue = 0;
+        if (!java.util.Objects.equals(orderFlag, null))
+        {
+            orderFlagValue = orderFlag;
+        }
         Long clobPairIdValue = (((java.util.Objects.equals(clobPairId, null)))) ? 0 : clobPairId;
         String orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new ArrayList<Object>(Arrays.asList(orderId, this.extend(signingPayload, paramsOmitted)));

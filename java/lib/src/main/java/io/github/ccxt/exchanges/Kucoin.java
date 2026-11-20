@@ -4380,15 +4380,15 @@ public class Kucoin extends KucoinApi
         accountType = accountTypeparamsRequestVariable.first();
         paramsRequest = accountTypeparamsRequestVariable.second();
         Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
-        accountType = this.safeString(accountsByType, accountType, accountType);
+        String accountId = this.safeString(accountsByType, accountType, accountType);
         Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
         Pair<Boolean, Map<String, Object>> utaparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "fetchDepositAddress", "uta", uta);
         uta = utaparamsRequestVariable.first();
         paramsRequest = utaparamsRequestVariable.second();
-        if (java.util.Objects.equals(accountType, "contract"))
+        if (java.util.Objects.equals(accountId, "contract"))
         {
             return (this.fetchContractDepositAddress(code, paramsRequest)).join();
-        } else if (Boolean.TRUE.equals(uta) || (java.util.Objects.equals(accountType, "uta")) || (java.util.Objects.equals(accountType, "unified")))
+        } else if (Boolean.TRUE.equals(uta) || (java.util.Objects.equals(accountId, "uta")) || (java.util.Objects.equals(accountId, "unified")))
         {
             return (super.fetchDepositAddress(code, this.extend(paramsRequest, new HashMap<String, Object>() {{
                 put( "uta", true );
@@ -9451,8 +9451,8 @@ public class Kucoin extends KucoinApi
         accountType = accountTypeparamsRequestVariable.first();
         paramsRequest = accountTypeparamsRequestVariable.second();
         Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
-        accountType = this.safeString(accountsByType, accountType, accountType);
-        if (java.util.Objects.equals(accountType, "contract"))
+        String accountId = this.safeString(accountsByType, accountType, accountType);
+        if (java.util.Objects.equals(accountId, "contract"))
         {
             return (this.fetchContractDeposits(code, since, limit, paramsRequest)).join();
         }
@@ -9650,8 +9650,8 @@ public class Kucoin extends KucoinApi
         accountType = accountTypeparamsRequestVariable.first();
         paramsRequest = accountTypeparamsRequestVariable.second();
         Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
-        accountType = this.safeString(accountsByType, accountType, accountType);
-        if (java.util.Objects.equals(accountType, "contract"))
+        String accountId = this.safeString(accountsByType, accountType, accountType);
+        if (java.util.Objects.equals(accountId, "contract"))
         {
             return (this.fetchContractWithdrawals(code, since, limit, paramsRequest)).join();
         }

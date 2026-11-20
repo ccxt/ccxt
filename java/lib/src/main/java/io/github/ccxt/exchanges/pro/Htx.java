@@ -1136,7 +1136,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String baseId = null;
         if (!java.util.Objects.equals(market, null))
         {
-            baseId = java.util.Objects.toString(market.get("baseId"), null);
+            baseId = this.safeString(market, "baseId");
         }
         String prefix = orderType;
         String messageHash = prefix;
@@ -1194,7 +1194,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String contractCode = null;
         if (!java.util.Objects.equals(market, null))
         {
-            contractCode = java.util.Objects.toString(market.get("id"), null);
+            contractCode = this.safeString(market, "id");
         } else
         {
             contractCode = this.safeString(parameters, "contract_code", "*");
@@ -3312,22 +3312,22 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
         Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> typeUrlsByApi = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
-        Object hostnameURL = null;
+        String hostnameURL = null;
         Object url = null;
         if (java.util.Objects.equals(type, "spot"))
         {
             Map<String, Object> spotUrls = this.safeDict(typeUrlsByApi, "spot", new HashMap<String, Object>() {{}});
             if (java.util.Objects.requireNonNullElse(isPrivate, false))
             {
-                hostnameURL = spotUrls.get("private");
+                hostnameURL = this.safeString(spotUrls, "private");
             } else
             {
                 if (java.util.Objects.requireNonNullElse(isFeed, false))
                 {
-                    hostnameURL = spotUrls.get("feed");
+                    hostnameURL = this.safeString(spotUrls, "feed");
                 } else
                 {
-                    hostnameURL = spotUrls.get("public");
+                    hostnameURL = this.safeString(spotUrls, "public");
                 }
             }
             url = this.implodeParams(hostnameURL, hostname);
@@ -3346,14 +3346,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 if (java.util.Objects.requireNonNullElse(isV5, false) && Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isLinear, true)))
                 {
-                    url = this.safeString(subTypeUrl, "privateV5", subTypeUrl.get("private"));
+                    url = this.safeString2(subTypeUrl, "privateV5", "private");
                 } else
                 {
-                    url = subTypeUrl.get("private");
+                    url = this.safeString(subTypeUrl, "private");
                 }
             } else
             {
-                url = subTypeUrl.get("public");
+                url = this.safeString(subTypeUrl, "public");
             }
         }
         return (String) (url);

@@ -1583,7 +1583,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
-        if (java.util.Objects.equals(this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe), null))
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             this.ohlcvs.get(symbol).put(timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
@@ -1887,8 +1887,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             this.balance.put(accountType, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
         Map<String, Object> balance = this.safeDict(this.balance, accountType, new HashMap<String, Object>() {{}});
+        balance.put("info", message);
         Map<String, Object> messageValue = (Map<String, Object>) this.safeDict(message, "a", message);
         List<Object> B = this.safeList(messageValue, "B", new ArrayList<Object>(Arrays.asList()));
         String wallet = this.safeString(this.options, "wallet", "wb");

@@ -2529,7 +2529,7 @@ public class Bybit extends BybitApi
     public MarketInterface createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
-        String quote = null;
+        String quote = "USDC";
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         String expiry = null;
@@ -2545,17 +2545,13 @@ public class Bybit extends BybitApi
                 throw new ExchangeError((this.id + " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
             }
             List<Object> splitQuote = new ArrayList<Object>(Arrays.asList(((String)symbolQuoteAndSettle).split(java.util.regex.Pattern.quote(":"))));
-            String quoteAndSettle = this.safeString(splitQuote, 0);
-            quote = quoteAndSettle;
+            quote = this.safeString(splitQuote, 0, "");
         } else
         {
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (((String)symbol).endsWith("-USDT"))
             {
                 quote = "USDT";
-            } else
-            {
-                quote = "USDC";
             }
         }
         String strike = this.safeString(optionParts, 2);

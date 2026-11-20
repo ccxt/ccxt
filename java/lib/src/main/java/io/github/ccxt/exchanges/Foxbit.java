@@ -2495,14 +2495,12 @@ public class Foxbit extends FoxbitApi
             }
         }
         String requestBody = null;
+        String bodyToSignature = "";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
         {
-            requestBody = this.json(paramsOmitted);
-        }
-        String bodyToSignature = "";
-        if (!java.util.Objects.equals(requestBody, null))
-        {
-            bodyToSignature = requestBody;
+            String jsonBody = this.json(paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );

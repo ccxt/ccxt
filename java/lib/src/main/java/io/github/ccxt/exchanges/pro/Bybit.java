@@ -717,13 +717,13 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             type = "spot";
         }
-        String symbol = null;
-        Map<String, Object> parsed = null;
-        if ((java.util.Objects.equals(updateType, "snapshot")))
+        if ((!java.util.Objects.equals(updateType, "snapshot")) && (!java.util.Objects.equals(updateType, "delta")))
         {
-            parsed = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
-            symbol = this.safeString(parsed, "symbol");
-        } else if (java.util.Objects.equals(updateType, "delta"))
+            return;
+        }
+        String symbol = null;
+        Map<String, Object> tickerInput = data;
+        if (java.util.Objects.equals(updateType, "delta"))
         {
             List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             Integer topicLength = topicParts.size();
@@ -733,10 +733,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             // update the info in place
             Map<String, Object> ticker = this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> rawTicker = this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> merged = this.extend(rawTicker, data);
-            parsed = (Map<String, Object>) this.parseTicker(merged, (Map<String, Object>) null);
+            tickerInput = this.extend(rawTicker, data);
         }
-        if ((java.util.Objects.equals(parsed, null)) || (java.util.Objects.equals(symbol, null)))
+        Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(tickerInput, (Map<String, Object>) null);
+        if (java.util.Objects.equals(updateType, "snapshot"))
+        {
+            symbol = this.safeString(parsed, "symbol");
+        }
+        if (java.util.Objects.equals(symbol, null))
         {
             return;
         }
@@ -2824,8 +2828,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 this.balance.put(account, new HashMap<String, Object>() {{}});
             }
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "info", info);
             Map<String, Object> balance = this.safeDict(this.balance, account, new HashMap<String, Object>() {{}});
+            balance.put("info", info);
             Long timestamp = this.safeInteger(message, "ts");
             balance.put("timestamp", timestamp);
             balance.put("datetime", this.iso8601(timestamp));

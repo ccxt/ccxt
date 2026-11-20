@@ -1419,7 +1419,7 @@ public class Digifinex extends DigifinexApi
                 put( "date", date );
             }}, this.safeDict(tickers, i, null));
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, ticker);
@@ -2550,12 +2550,12 @@ public class Digifinex extends DigifinexApi
 
     public List<Object> parseCancelOrders(Map<String, Object> response, Map<String, Object> symbolsById)
     {
-        List<String> success = (List<String>)(this.safeList(response, "success", new ArrayList<Object>(Arrays.asList())));
-        List<String> error = (List<String>)(this.safeList(response, "error", new ArrayList<Object>(Arrays.asList())));
+        List<Object> success = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
+        List<Object> error = this.safeList(response, "error", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < success.size(); i++)
         {
-            String order = (success == null || i < 0 || i >= success.size() ? null : success.get(i));
+            String order = this.safeString(success, i);
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
@@ -2565,7 +2565,7 @@ public class Digifinex extends DigifinexApi
         }
         for (var i = 0; i < error.size(); i++)
         {
-            String order = (error == null || i < 0 || i >= error.size() ? null : error.get(i));
+            String order = this.safeString(error, i);
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
@@ -2686,7 +2686,7 @@ public class Digifinex extends DigifinexApi
                 throw new ArgumentsRequired((this.id + " cancelOrdersForSymbols() requires a symbol for each order")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            String orderMarketType = (String) market.get("type");
+            String orderMarketType = this.safeString(market, "type");
             if (java.util.Objects.equals(marketType, null))
             {
                 marketType = orderMarketType;
@@ -2709,7 +2709,7 @@ public class Digifinex extends DigifinexApi
             for (var i = 0; i < ids.size(); i++)
             {
                 Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-                String marketId = (String) market.get("id");
+                String marketId = this.safeString(market, "id");
                 String orderId = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 ((List<Object>)ordersRequests).add(new HashMap<String, Object>() {{
                     put( "instrument_id", marketId );
@@ -4009,7 +4009,7 @@ public class Digifinex extends DigifinexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> currency = this.currency((String) (code));
-        String currencyId = (String) currency.get("id");
+        String currencyId = this.safeString(currency, "id");
         Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
         String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -4909,7 +4909,7 @@ public class Digifinex extends DigifinexApi
         //
         String marketId = this.safeString2(position, "instrument_id", "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String marginMode = this.safeString(position, "margin_mode");
         if (!java.util.Objects.equals(marginMode, null))
         {

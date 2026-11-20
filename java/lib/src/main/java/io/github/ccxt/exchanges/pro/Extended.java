@@ -204,7 +204,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 }} );
             }};
             this.extendExchangeOptions(defaultOptions);
-            Object originalOptions = Helpers.GetValue(this.options.get("ws"), "options");
+            Map<String, Object> originalOptions = this.safeDict(this.options.get("ws"), "options", null);
             Map<String, Object> originalHeaders = this.safeDict(originalOptions, "headers", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options", this.extend(this.extend(new HashMap<String, Object>() {{}}, originalOptions), new HashMap<String, Object>() {{
     put( "headers", Extended.this.extend(Extended.this.extend(new HashMap<String, Object>() {{
@@ -1001,13 +1001,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         String symbol = this.safeString(subscription, "symbol");
         String timeframe = this.safeString(subscription, "timeframe", "");
         String candleType = this.safeString(subscription, "candleType", "");
-        String cacheKey = null;
-        if (java.util.Objects.equals(candleType, "trades"))
+        String cacheKey = timeframe;
+        if (!java.util.Objects.equals(candleType, "trades"))
         {
-            cacheKey = timeframe;
-        } else
-        {
-            cacheKey = ((timeframe + ":") + candleType);
+            cacheKey = ((cacheKey + ":") + candleType);
         }
         String messageHash = this.safeString(subscription, "messageHash");
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));

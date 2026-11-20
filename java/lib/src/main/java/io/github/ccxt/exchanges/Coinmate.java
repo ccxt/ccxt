@@ -776,7 +776,11 @@ public class Coinmate extends CoinmateApi
         {
             Map<String, Object> market = this.market((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)), new HashMap<String, Object>() {{}}), market);
-            result.put((String)market.get("symbol"), ticker);
+            String symbol = this.safeString(market, "symbol");
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                result.put(symbol, ticker);
+            }
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 

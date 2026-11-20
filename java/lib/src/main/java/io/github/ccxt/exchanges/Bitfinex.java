@@ -840,12 +840,13 @@ public class Bitfinex extends BitfinexApi
         return ((code != null && fiat.containsKey(code)));
     }
 
-    public Object getCurrencyName(String code)
+    public String getCurrencyName(String code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if ((switch ((Object)(this.options.get("currencyNames"))) { case List<?> j39v2 -> ((Object)(code)) != null && j39v2.contains(code); case Map<?, ?> j39v1 -> ((Object)(code)) instanceof String && j39v1.containsKey(code); case null, default -> false; }))
+        String name = this.safeString(this.options.get("currencyNames"), code);
+        if (!java.util.Objects.equals(name, null))
         {
-            return Helpers.GetValue(this.options.get("currencyNames"), code);
+            return name;
         }
         throw new NotSupported((((this.id + " ") + code) + " not supported for withdrawal")) ;
     }
@@ -1549,10 +1550,10 @@ public class Bitfinex extends BitfinexApi
         Map<String, Object> fullRequest = this.extend(request, parameters);
         List<Object> orderbook = (this.publicGetBookSymbolPrecision(fullRequest)).join();
         Long timestamp = this.milliseconds();
+        List<Object> bids = new ArrayList<Object>(Arrays.asList());
+        List<Object> asks = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "symbol", market.get("symbol") );
-            put( "bids", new ArrayList<Object>(Arrays.asList()) );
-            put( "asks", new ArrayList<Object>(Arrays.asList()) );
             put( "timestamp", timestamp );
             put( "datetime", Bitfinex.this.iso8601(timestamp) );
             put( "nonce", null );
@@ -1565,15 +1566,16 @@ public class Bitfinex extends BitfinexApi
             Double price = this.safeNumber(order, priceIndex, (Object) null);
             String signedAmount = this.safeString(order, 2);
             String amount = Precise.stringAbs(signedAmount);
-            String side = "asks";
             if (Precise.stringGt(signedAmount, "0"))
             {
-                side = "bids";
+                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(amount))));
+            } else
+            {
+                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(amount))));
             }
-            ((List<Object>)(result == null || side == null ? null : result.get(side))).add(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(amount))));
         }
-        result.put("bids", this.sortBy(result.get("bids"), 0, true));
-        result.put("asks", this.sortBy(result.get("asks"), 0));
+        result.put("bids", this.sortBy(bids, 0, true));
+        result.put("asks", this.sortBy(asks, 0));
         return result;
 
     }
@@ -4524,7 +4526,7 @@ public class Bitfinex extends BitfinexApi
         //         0.0025               // funding payment cap
         //     ]
         //
-        Integer interestLength = (switch ((Object)(interest)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+        Integer interestLength = (switch ((Object)(interest)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
         Integer openInterestIndex = ((((interestLength != null && interestLength == 23)))) ? 17 : 18;
         Long timestamp = this.safeInteger(interest, 1);
         String marketId = this.safeString(interest, 0);

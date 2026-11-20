@@ -1503,7 +1503,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //        }
         //    }
         //
-        Map<String, Object> data = this.safeDict(message, "data", null);
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {

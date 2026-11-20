@@ -3431,7 +3431,8 @@ public class Btse extends BtseApi
         {
             String historyType = this.safeString(typesList, i, "");
             allowed.put(historyType, true);
-            allowed.put((String)this.capitalize(historyType.toLowerCase()), true);
+            String capitalizedType = this.capitalize(historyType.toLowerCase());
+            allowed.put(capitalizedType, true);
         }
         List<Object> rows = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawRows).size(); i++)

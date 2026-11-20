@@ -644,7 +644,8 @@ public class Nado extends NadoApi
             }
             String triggerPriceX18 = this.convertToX18(triggerPrice);
             Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
-            priceRequirement.put((String)("oracle_price_" + directionSuffix), triggerPriceX18);
+            String oracleKey = ("oracle_price_" + directionSuffix);
+            priceRequirement.put(oracleKey, triggerPriceX18);
             Map<String, Object> trigger = new HashMap<String, Object>() {{
                 put( "price_trigger", new HashMap<String, Object>() {{
                     put( "price_requirement", priceRequirement );
@@ -670,7 +671,8 @@ public class Nado extends NadoApi
             }
             String triggerPriceX18 = this.convertToX18(triggerPrice);
             Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
-            priceRequirement.put((String)("oracle_price_" + oracleSide), triggerPriceX18);
+            String oracleKey = ("oracle_price_" + oracleSide);
+            priceRequirement.put(oracleKey, triggerPriceX18);
             Map<String, Object> trigger = new HashMap<String, Object>() {{
                 put( "price_trigger", new HashMap<String, Object>() {{
                     put( "price_requirement", priceRequirement );
@@ -3363,7 +3365,10 @@ public class Nado extends NadoApi
             }
             filled = this.parseX18(Precise.stringAbs(archiveFilled));
             String costString = this.safeString(order, "quote_filled");
-            cost = (((java.util.Objects.equals(costString, null)))) ? null : this.parseX18(Precise.stringAbs(costString));
+            if (!java.util.Objects.equals(costString, null))
+            {
+                cost = this.parseX18(Precise.stringAbs(costString));
+            }
             if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(cost, null)))
             {
                 average = Precise.stringDiv(this.numberToString(cost), this.numberToString(filled));
@@ -3626,7 +3631,8 @@ public class Nado extends NadoApi
             return (paddedLeft == null ? null : paddedLeft.substring((int) Math.min(Math.min(Math.max(start < 0 ? paddedLeft.length() + start : start, 0), paddedLeft.length()), paddedLeft.length()), (int) paddedLeft.length()));
         }
         String paddedRight = (value + zeros);
-        return (paddedRight == null ? null : paddedRight.substring(0, (int) Math.min(length < 0 ? paddedRight.length() + length : length, paddedRight.length())));
+        Long end = this.parseToInt(length);
+        return (paddedRight == null ? null : paddedRight.substring(0, (int) Math.min(end < 0 ? paddedRight.length() + end : end, paddedRight.length())));
     }
 
     public String signOrder(Map<String, Object> order, Object productId, String chainId)

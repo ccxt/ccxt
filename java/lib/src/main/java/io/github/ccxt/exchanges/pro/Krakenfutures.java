@@ -1727,8 +1727,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     cashBalance.put(code, newAccount);
                 }
             }
-            this.balance.put("cash", cashBalance);
-            this.balance.put("cash", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("cash")), holdingCodes));
+            this.balance.put("cash", this.pruneStaleBalanceKeys(cashBalance, holdingCodes));
             this.balance.put("cash", this.safeBalance(this.balance.get("cash")));
             updatedBalance = this.balance.get("cash");
         }
@@ -1760,8 +1759,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 marginBalance.put(symbol, symbolAccounts);
             }
-            this.balance.put("margin", marginBalance);
-            this.balance.put("margin", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("margin")), futuresSymbols));
+            this.balance.put("margin", this.pruneStaleBalanceKeys(marginBalance, futuresSymbols));
             this.balance.put("margin", this.safeBalance(this.balance.get("margin")));
             client.resolve(this.balance.get("margin"), (messageHash + ":futures"));
             if (java.util.Objects.equals(updatedBalance, null))
@@ -1794,8 +1792,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     flexBalance.put(code, newAccount);
                 }
             }
-            this.balance.put("flex", flexBalance);
-            this.balance.put("flex", this.pruneStaleBalanceKeys((Map<String, Object>) (this.balance.get("flex")), flexCodes));
+            this.balance.put("flex", this.pruneStaleBalanceKeys(flexBalance, flexCodes));
             this.balance.put("flex", this.safeBalance(this.balance.get("flex")));
             client.resolve(this.balance.get("flex"), (messageHash + ":flex_futures"));
             if (java.util.Objects.equals(updatedBalance, null))

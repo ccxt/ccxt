@@ -3107,7 +3107,7 @@ public class Xt extends XtApi
         //         ]
         //     }
         //
-        List<Object> balances = null;
+        List<Object> balances = new ArrayList<Object>(Arrays.asList());
         if ((!java.util.Objects.equals(subType, null)) || Boolean.TRUE.equals(isContractWallet))
         {
             balances = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
@@ -3151,7 +3151,7 @@ public class Xt extends XtApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString2(balance, "currency", "coin");
@@ -5751,7 +5751,7 @@ public class Xt extends XtApi
         //     }
         //
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Map<String, Object> entry = this.safeDict(response, i, null);
             String marketId = this.safeString(entry, "symbol");

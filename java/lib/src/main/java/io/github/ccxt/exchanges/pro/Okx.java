@@ -1755,12 +1755,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        String depth = null;
-        Map<String, Object> paramsDepth = null;
-        Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "depth", "books");
-        depth = depthparamsDepthVariable.first();
-        paramsDepth = depthparamsDepthVariable.second();
-        Long limit = this.safeInteger(paramsDepth, "limit");
+        Long limit = this.safeInteger(parameters, "limit");
+        String depthOption = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "depth", "books")).get(0);
+        String depth = depthOption;
         if (!java.util.Objects.equals(limit, null))
         {
             if ((limit != null && limit == 1))

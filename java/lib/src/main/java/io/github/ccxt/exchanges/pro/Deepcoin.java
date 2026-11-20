@@ -925,7 +925,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         String type = this.safeString(message, "t");
-        if (java.util.Objects.equals((orderbook == null ? null : orderbook.get("timestamp")), null))
+        if (java.util.Objects.equals(this.safeInteger(orderbook, "timestamp"), null))
         {
             if (java.util.Objects.equals(type, "f"))
             {

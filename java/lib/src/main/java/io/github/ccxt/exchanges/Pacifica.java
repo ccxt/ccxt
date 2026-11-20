@@ -3102,12 +3102,11 @@ public class Pacifica extends PacificaApi
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         List<Object> sorted = this.sortBy(data, "history_id", true);
         Integer lastIdx = sorted.size();
-        Object lastInfo = new HashMap<String, Object>() {{}};
         if ((lastIdx != null && lastIdx > 0))
         {
-            lastInfo = (sorted == null || 0 >= ((List<?>)sorted).size() ? null : ((List<?>)sorted).get(0));
+            return this.parseOrder((sorted == null || 0 >= ((List<?>)sorted).size() ? null : ((List<?>)sorted).get(0)), market);
         }
-        return this.parseOrder(lastInfo, market);
+        return this.parseOrder(new HashMap<String, Object>() {{}}, market);
 
     }
 

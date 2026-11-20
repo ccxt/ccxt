@@ -3886,8 +3886,9 @@ public class Blofin extends BlofinApi
             throw new BadRequest((this.id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        List<String> marketIds = this.marketIds(symbolsNormalized);
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("instId", String.join(",", (List<String>)this.marketIds(symbolsNormalized)));
+        request.put("instId", String.join(",", (List<String>)marketIds));
         request.put("marginMode", marginMode);
         Map<String, Object> response = (this.privateGetAccountBatchLeverageInfo(this.extend(request, query))).join();
         //

@@ -1621,25 +1621,6 @@ public class Lbank extends LbankApi
             }
             return this.safeBalance(result);
         }
-        // from spotPrivatePostSupplementUserInfo
-        Boolean isArray = (data instanceof List);
-        if (Boolean.TRUE.equals(isArray))
-        {
-            for (var i = 0; i < ((List<?>)data).size(); i++)
-            {
-                Map<String, Object> item = this.safeDict(data, i, null);
-                String currencyId = this.safeString(item, "coin");
-                String codeInner = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> account = this.account();
-                account.put("free", this.safeString(item, "usableAmt"));
-                account.put("used", this.safeString(item, "freezeAmt"));
-                if (!java.util.Objects.equals(codeInner, null))
-                {
-                    result.put(codeInner, account);
-                }
-            }
-            return this.safeBalance(result);
-        }
         return this.safeBalance(result);
     }
 

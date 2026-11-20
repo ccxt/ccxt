@@ -1091,26 +1091,39 @@ public class Predictfun extends PredictfunApi
         String digits = "0123456789";
         List<String> chars = this.stringToCharsArray(text);
         String stripped = "";
+        String prevCh = "";
+        // a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        Boolean pendingComma = false;
         for (var i = 0; i < chars.size(); i++)
         {
             String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
-            Boolean keep = true;
-            if (java.util.Objects.equals(ch, "$"))
+            Boolean isDigit = (((String)digits).indexOf(ch) >= 0);
+            if (Boolean.TRUE.equals(pendingComma) && !Boolean.TRUE.equals(isDigit))
             {
-                keep = false;
-            } else if (java.util.Objects.equals(ch, ","))
+                stripped = (stripped + ",");
+            }
+            pendingComma = false;
+            if (java.util.Objects.equals(ch, ","))
             {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                Boolean prevIsDigit = (i > 0) && (Helpers.getIndexOf(digits, (chars == null || ((int) (((long) i) - 1L)) < 0 || ((int) (((long) i) - 1L)) >= chars.size() ? null : chars.get(((int) (((long) i) - 1L))))) >= 0);
-                Boolean nextIsDigit = (((((long) i) + 1L) < (chars.size()))) && ((digits == null || chars == null || ((int) (((long) i) + 1L)) < 0 || ((int) (((long) i) + 1L)) >= chars.size() || chars.get(((int) (((long) i) + 1L))) == null ? -1 : digits.indexOf(chars.get(((int) (((long) i) + 1L))))) >= 0);
-                keep = !(Boolean.TRUE.equals(prevIsDigit) && Boolean.TRUE.equals(nextIsDigit));
-            }
-            if (Boolean.TRUE.equals(keep))
+                if ((i > 0) && (((String)digits).indexOf(prevCh) >= 0))
+                {
+                    pendingComma = true;
+                } else
+                {
+                    stripped = (stripped + ch);
+                }
+            } else if (!java.util.Objects.equals(ch, "$"))
             {
                 stripped = (stripped + ch);
             }
+            prevCh = ch;
+        }
+        if (Boolean.TRUE.equals(pendingComma))
+        {
+            stripped = (stripped + ",");
         }
         return stripped;
     }
@@ -3452,8 +3465,11 @@ public class Predictfun extends PredictfunApi
         {
             client.subscriptions.remove((String)subscribeHash);
         }
-        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        if (java.util.Objects.equals(this.safeString(subscription, "topic"), "walletEvents"))
+        List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+        if (!java.util.Objects.equals(this.safeString(subscription, "topic"), "walletEvents"))
+        {
+            messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        } else
         {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known

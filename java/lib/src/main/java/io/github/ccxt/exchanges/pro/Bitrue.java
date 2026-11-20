@@ -468,8 +468,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Object market = null;
         if (Boolean.TRUE.equals(isFutures))
         {
-            String wsBaseQuote = this.safeStringLower(parts, 2);
-            market = this.findSwapMarketByWsBaseQuote((String) (((String)wsBaseQuote)));
+            String wsBaseQuote = this.safeStringLower(parts, 2, "");
+            market = this.findSwapMarketByWsBaseQuote((String) (wsBaseQuote));
         } else
         {
             String marketId = this.safeStringUpper(parts, 1);
@@ -507,9 +507,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     public Object findSwapMarketByWsBaseQuote(String wsBaseQuote)
     {
-        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
-        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
-        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
+        // callers pass safeStringLower (parts, 2, ''), a plain string in every port
         if (java.util.Objects.equals(this.markets, null))
         {
             return null;
@@ -698,8 +696,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             throw new NotSupported((this.id + " unWatchTrades is only supported for swap markets")) ;
         }
-        String baseIdLower = this.safeStringLower(market, "baseId");
-        String quoteIdLower = this.safeStringLower(market, "quoteId");
+        String baseIdLower = this.safeStringLower(market, "baseId", "");
+        String quoteIdLower = this.safeStringLower(market, "quoteId", "");
         String wsId = (("e_" + baseIdLower) + quoteIdLower);
         String channel = (("market_" + wsId) + "_trade_ticker");
         Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -734,8 +732,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //
         String channel = this.safeString(message, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
-        String wsBaseQuote = this.safeStringLower(parts, 2);
-        Object market = this.findSwapMarketByWsBaseQuote((String) (((String)wsBaseQuote)));
+        String wsBaseQuote = this.safeStringLower(parts, 2, "");
+        Object market = this.findSwapMarketByWsBaseQuote((String) (wsBaseQuote));
         String symbol = this.safeString(market, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -889,8 +887,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             throw new NotSupported(((this.id + " unWatchOHLCV does not support timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
         }
-        String baseIdLower = this.safeStringLower(market, "baseId");
-        String quoteIdLower = this.safeStringLower(market, "quoteId");
+        String baseIdLower = this.safeStringLower(market, "baseId", "");
+        String quoteIdLower = this.safeStringLower(market, "quoteId", "");
         String wsId = (("e_" + baseIdLower) + quoteIdLower);
         String channel = ((("market_" + wsId) + "_kline_") + interval);
         Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -923,8 +921,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //
         String channel = this.safeString(message, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
-        String wsBaseQuote = this.safeStringLower(parts, 2);
-        Object market = this.findSwapMarketByWsBaseQuote((String) (((String)wsBaseQuote)));
+        String wsBaseQuote = this.safeStringLower(parts, 2, "");
+        Object market = this.findSwapMarketByWsBaseQuote((String) (wsBaseQuote));
         String symbol = this.safeString(market, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -1041,8 +1039,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //
         String channel = this.safeString(message, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
-        String wsBaseQuote = this.safeStringLower(parts, 2);
-        Object market = this.findSwapMarketByWsBaseQuote((String) (((String)wsBaseQuote)));
+        String wsBaseQuote = this.safeStringLower(parts, 2, "");
+        Object market = this.findSwapMarketByWsBaseQuote((String) (wsBaseQuote));
         String symbol = this.safeString(market, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {

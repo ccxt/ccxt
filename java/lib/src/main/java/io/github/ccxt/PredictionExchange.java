@@ -2085,7 +2085,11 @@ public Map<String, Object> describe()
             return (this.intToBase16((128L + byteLength)) + hex);
         }
         String lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
+        Integer lengthHexLength = lengthHex.length();
+        if ((((((double) lengthHexLength) % ((double) 2))) != 0))
+        {
+            lengthHex = ("0" + lengthHex);
+        }
         Long lengthOfLength = this.parseToInt((((double) lengthHex.length()) / ((double) 2)));
         return ((this.intToBase16((183L + lengthOfLength)) + lengthHex) + hex);
     }
@@ -2103,7 +2107,11 @@ public Map<String, Object> describe()
             return (this.intToBase16((192L + byteLength)) + concatenated);
         }
         String lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
+        Integer lengthHexLength = lengthHex.length();
+        if ((((((double) lengthHexLength) % ((double) 2))) != 0))
+        {
+            lengthHex = ("0" + lengthHex);
+        }
         Long lengthOfLength = this.parseToInt((((double) lengthHex.length()) / ((double) 2)));
         return ((this.intToBase16((247L + lengthOfLength)) + lengthHex) + concatenated);
     }
@@ -2120,7 +2128,11 @@ public Map<String, Object> describe()
             return "";
         }
         String hex = this.intToBase16(value);
-        hex = this.padHexToEven(hex);
+        Integer hexLength = hex.length();
+        if ((((((double) hexLength) % ((double) 2))) != 0))
+        {
+            hex = ("0" + hex);
+        }
         return hex;
     }
 

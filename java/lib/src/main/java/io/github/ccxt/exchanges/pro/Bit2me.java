@@ -343,8 +343,9 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            unifiedSymbol = java.util.Objects.toString(market.get("symbol"), null);
-            messageHash = ((messageHash + ":") + unifiedSymbol);
+            String marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ("orders:" + marketSymbol);
+            unifiedSymbol = marketSymbol;
         }
         List<Object> orders = (List<Object>) (this.subscribePrivate("my-orders", messageHash, parameters)).join();
         Long finalLimit = limit;
@@ -393,7 +394,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         orders.append(order);
         client.resolve(orders, "orders");
-        client.resolve(orders, ("orders:" + order.get("symbol")));
+        client.resolve(orders, ("orders:" + this.safeString(order, "symbol", "")));
     }
 
     public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
@@ -488,8 +489,9 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            unifiedSymbol = java.util.Objects.toString(market.get("symbol"), null);
-            messageHash = ((messageHash + ":") + unifiedSymbol);
+            String marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ("myTrades:" + marketSymbol);
+            unifiedSymbol = marketSymbol;
         }
         List<Object> trades = (List<Object>) (this.subscribePrivate("my-trades", messageHash, parameters)).join();
         Long finalLimit = limit;
@@ -533,7 +535,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         myTrades.append(trade);
         client.resolve(myTrades, "myTrades");
-        client.resolve(myTrades, ("myTrades:" + trade.get("symbol")));
+        client.resolve(myTrades, ("myTrades:" + this.safeString(trade, "symbol", "")));
     }
 
     /**
@@ -742,7 +744,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             put( "symbol", market.get("symbol") );
             put( "status", Bit2me.this.parseOrderStatus(Bit2me.this.safeString(data, "status")) );
         }}, market);
-        this.settleRequest(client, (String) (("canceled-order:" + orderId)), order, (Object) null);
+        this.settleRequest(client, ("canceled-order:" + this.safeString(data, "orderId", "")), order, (Object) null);
     }
 
     /**
@@ -850,7 +852,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             put( "symbol", market.get("id") );
         }};
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-        String messageHash = ("canceled-all-orders:" + market.get("id"));
+        String messageHash = ("canceled-all-orders:" + this.safeString(market, "id", ""));
         return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
@@ -874,14 +876,14 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ids.size(); i++)
         {
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("info", message);
-            j39v1.put("id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
-            j39v1.put("symbol", market.get("symbol"));
-            j39v1.put("status", "canceled");
-            ((List<Object>)orders).add(this.safeOrder(j39v1, market));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("info", message);
+            mapLiteral3.put("id", this.safeString(ids, i));
+            mapLiteral3.put("symbol", this.safeString(market, "symbol"));
+            mapLiteral3.put("status", "canceled");
+            ((List<Object>)orders).add(this.safeOrder(mapLiteral3, market));
         }
-        this.settleRequest(client, (String) (("canceled-all-orders:" + marketId)), orders, (Object) null);
+        this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), orders, (Object) null);
     }
 
     /**
@@ -994,13 +996,13 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             }
         } else if (java.util.Objects.equals(eventVar, "canceled-order"))
         {
-            this.settleRequest(client, (String) (("canceled-order:" + this.safeString(message, "orderId"))), null, exception);
+            this.settleRequest(client, ("canceled-order:" + this.safeString(message, "orderId", "")), null, exception);
         } else if (java.util.Objects.equals(eventVar, "canceled-orders"))
         {
             this.settleRequest(client, "canceled-orders", null, exception);
         } else if (java.util.Objects.equals(eventVar, "canceled-all-orders"))
         {
-            this.settleRequest(client, (String) (("canceled-all-orders:" + this.safeString(message, "symbol"))), null, exception);
+            this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), null, exception);
         } else if (java.util.Objects.equals(eventVar, "subscribe"))
         {
             // a refused subscription names the channel and the symbol it was asked for

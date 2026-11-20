@@ -1407,16 +1407,17 @@ public class Mexc extends MexcApi
         Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchStatus", (Map<String, Object>) null, parameters, (String) null);
         String marketType = marketTypequeryVariable.first();
         Map<String, Object> query = marketTypequeryVariable.second();
-        Map<String, Object> response = new HashMap<String, Object>() {{}};
+        Object response = new HashMap<String, Object>() {{}};
         String status = null;
         Long updated = null;
         if (java.util.Objects.equals(marketType, "spot"))
         {
-            response = (this.spotPublicGetPing(query)).join();
+            Map<String, Object> spotResponse = (this.spotPublicGetPing(query)).join();
+            response = spotResponse;
             //
             //     {}
             //
-            List<String> keys = new ArrayList<String>(response.keySet());
+            List<String> keys = new ArrayList<String>(spotResponse.keySet());
             Integer length = keys.size();
             status = ((((length != null && length > 0)))) ? this.json(response) : "ok";
         } else if (java.util.Objects.equals(marketType, "swap"))
@@ -2108,7 +2109,7 @@ public class Mexc extends MexcApi
         String orderId = null;
         Object symbol = null;
         Map<String, Object> fee = null;
-        List<String> type = null;
+        String type = null;
         String side = null;
         String takerOrMaker = null;
         String priceString = null;

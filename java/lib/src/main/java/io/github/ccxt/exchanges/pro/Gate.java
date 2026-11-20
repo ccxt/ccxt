@@ -2236,11 +2236,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             stored.append(parsed);
-            String symbol = (String) parsed.get("symbol");
+            String symbol = this.safeString(parsed, "symbol");
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("id"), null))
+            String marketId = this.safeString(market, "id");
+            if (!java.util.Objects.equals(marketId, null))
             {
-                marketIds.put((String)market.get("id"), true);
+                marketIds.put(marketId, true);
             }
         }
         List<Object> keys = new ArrayList<Object>(marketIds.keySet());
@@ -2413,11 +2414,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String symbol = this.safeString(liquidation, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                List<Object> symbolLiquidations = this.safeList(liquidationsBySymbol, symbol, null);
-                if (java.util.Objects.equals(symbolLiquidations, null))
-                {
-                    symbolLiquidations = new ArrayList<Object>(Arrays.asList());
-                }
+                List<Object> symbolLiquidations = this.safeList(liquidationsBySymbol, symbol, new ArrayList<Object>(Arrays.asList()));
                 ((List<Object>)symbolLiquidations).add(liquidation);
                 liquidationsBySymbol.put(symbol, symbolLiquidations);
             }

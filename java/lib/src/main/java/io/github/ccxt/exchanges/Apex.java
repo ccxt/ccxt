@@ -1526,15 +1526,12 @@ public class Apex extends ApexApi
 
     public String generateRandomClientIdOmni(String _accountId)
     {
-        String accountId = "";
+        String suffix = ((("-" + String.valueOf(this.milliseconds())) + "-") + String.valueOf(this.randNumber(6)));
         if ((!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, "")))
         {
-            accountId = _accountId;
-        } else
-        {
-            accountId = String.valueOf(this.randNumber(12));
+            return (("apexomni-" + _accountId) + suffix);
         }
-        return ((((("apexomni-" + accountId) + "-") + String.valueOf(this.milliseconds())) + "-") + String.valueOf(this.randNumber(6)));
+        return (("apexomni-" + String.valueOf(this.randNumber(12))) + suffix);
     }
 
     public String addHyphenBeforeUsdt(String symbol)
