@@ -940,11 +940,9 @@ export default class htx extends htxRest {
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
-    getOrderChannelAndMessageHash (type: Str, subType: Str, market: Market = undefined, params: Dict = {}): Str[] {
-        let messageHash: Str = undefined;
-        let channel: Str = undefined;
-        let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
-        orderType = this.safeString (params, 'orderType', orderType);
+    getOrderChannelAndMessageHash (type: Str, subType: Str, market: Market = undefined, params: Dict = {}): [string, string] {
+        const defaultOrderType: string = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
+        const orderType: string = this.safeString (params, 'orderType', defaultOrderType);
         const paramsOmitted: Dict = this.omit (params, 'orderType');
         let marketCode: Str = undefined;
         if (market !== undefined) {
@@ -954,35 +952,40 @@ export default class htx extends htxRest {
         if (market !== undefined) {
             baseId = market['baseId'];
         }
-        const prefix = orderType;
-        messageHash = prefix;
+        const prefix: string = orderType;
+        let messageHash: string = prefix;
+        let channel: string = prefix + '.' + '*';
         if (subType === 'linear') {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             const marginMode = this.safeString (paramsOmitted, 'margin', 'cross');
-            let marginPrefix: Str = prefix;
+            let marginPrefix: string = prefix;
             if (marginMode === 'cross') {
                 marginPrefix = prefix + '_cross';
             }
             messageHash = marginPrefix;
             if (marketCode !== undefined) {
-                messageHash = marginPrefix + '.' + marketCode;
-                channel = messageHash;
+                const marketTopic: string = marginPrefix + '.' + marketCode;
+                messageHash = marketTopic;
+                channel = marketTopic;
             } else {
                 channel = marginPrefix + '.' + '*';
             }
         } else if (type === 'future') {
             // inverse futures Example: BCH/USD:BCH-220408
             if (baseId !== undefined) {
-                channel = prefix + '.' + baseId.toLowerCase ();
-                messageHash = channel;
+                const lowerBaseId: string = baseId.toLowerCase ();
+                const baseTopic: string = prefix + '.' + lowerBaseId;
+                channel = baseTopic;
+                messageHash = baseTopic;
             } else {
                 channel = prefix + '.' + '*';
             }
         } else {
             // inverse swaps: Example: BTC/USD:BTC
             if (marketCode !== undefined) {
-                channel = prefix + '.' + marketCode;
-                messageHash = channel;
+                const swapTopic: string = prefix + '.' + marketCode;
+                channel = swapTopic;
+                messageHash = swapTopic;
             } else {
                 channel = prefix + '.' + '*';
             }
