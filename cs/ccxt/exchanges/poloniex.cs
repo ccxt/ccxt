@@ -646,6 +646,7 @@ public partial class poloniex : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "401", typeof(PermissionDenied) },
                     { "500", typeof(ExchangeNotAvailable) },
                     { "603", typeof(RequestTimeout) },
                     { "601", typeof(BadRequest) },
@@ -787,7 +788,11 @@ public partial class poloniex : Exchange
                     { "12004", typeof(PermissionDenied) },
                     { "21001", typeof(OperationRejected) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "Invalid Apikey or Signature", typeof(AuthenticationError) },
+                    { "ApiKey not exist", typeof(AuthenticationError) },
+                    { "Illegal of ip", typeof(PermissionDenied) },
+                } },
             } },
         });
     }
@@ -4588,8 +4593,8 @@ public partial class poloniex : Exchange
         {
             string? message = this.safeString2(response, "message", "msg");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;
