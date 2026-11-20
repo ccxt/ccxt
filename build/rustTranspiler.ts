@@ -340,6 +340,8 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
         return undefined;
     };
         const useOk = (d: Def, p: string): boolean => {
+        // a param already printed `&Value` (a pro file kept from an earlier run) compiled as a borrow: same verdict as its owned form
+        if (d.params.some(x => x.name === p && x.isRef)) return true;
         const m = masks.get(d.file)!;
         const body = m.slice(d.bodyOpen, d.end);
         if (/\bmove\b|\bspawn\b/.test(body)) return no('move/spawn');
@@ -17536,7 +17538,16 @@ impl std::ops::DerefMut for ${coreName} {
             }
         };
         walk('./rust');
-        const borrowed = rustBorrowWsControlHandlers(rustBorrowWsHandlerParams(files, outside.join('\n')), outside.join('\n'));
+        // iterate to a fixpoint so a scoped run over kept pro files prints what a full run prints
+        let borrowed = files;
+        for (let i = 0; i < 8; i++) {
+            // both passes return only the files they edit: merge, so every round sees the whole crate
+            const mid = new Map([...borrowed, ...rustBorrowWsHandlerParams(borrowed, outside.join('\n'))]);
+            const next = new Map([...mid, ...rustBorrowWsControlHandlers(mid, outside.join('\n'))]);
+            const same = [...next].every(([f, t]) => t === borrowed.get(f));
+            borrowed = next;
+            if (same) break;
+        }
         for (const [f, src] of borrowed) {
             if (src !== files.get(f)) fs.writeFileSync(`${EXCHANGES_WS_FOLDER}/${f}`, src);
         }
