@@ -8310,6 +8310,17 @@ function subMessageHashesProducer (csharp, initializer) {
     return ok && writes > 0;
 }
 
+// `this.safeString (recv, i[, d])` and its hand-written string siblings only read element i:
+// passing the list as argument 0 of one of them neither mutates nor aliases it
+const SAFE_STRING_READER_CALLS = [ 'safeString', 'safeStringLower', 'safeStringUpper' ];
+function safeReaderListArgument (identifier) {
+    const call = identifier.parent;
+    const callee = call?.expression;
+    return call?.kind === ts.SyntaxKind.CallExpression && call.arguments?.[0] === identifier && call.arguments.length >= 2
+        && callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+        && SAFE_STRING_READER_CALLS.includes (callee.name?.text);
+}
+
 // is this occurrence of the receiver able to change what the list holds, hand it to another
 // scope, or rebuild it? Any such use disqualifies the receiver.
 function receiverUseIsWrite (identifier) {
@@ -8336,6 +8347,10 @@ function receiverUseIsWrite (identifier) {
     case ts.SyntaxKind.VariableDeclaration:
         return parent.initializer === identifier; // `const other = recv` aliases the list
     case ts.SyntaxKind.CallExpression:
+        if (safeReaderListArgument (identifier)) {
+            return false;
+        }
+        return (parent.arguments ?? []).some ((argument) => argument === identifier);
     case ts.SyntaxKind.NewExpression:
         return (parent.arguments ?? []).some ((argument) => argument === identifier);
     case ts.SyntaxKind.ReturnStatement:
