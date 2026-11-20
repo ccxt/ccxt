@@ -368,8 +368,10 @@ class hollaex(Exchange, ImplicitAPI):
             market = self.safe_dict(pairs, key)
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
-            baseCode = self.common_currency_code(baseId.upper())
-            quoteCode = self.common_currency_code(quoteId.upper())
+            upperBaseId = baseId.upper()
+            upperQuoteId = quoteId.upper()
+            baseCode = self.common_currency_code(upperBaseId)
+            quoteCode = self.common_currency_code(upperQuoteId)
             result.append({
                 'id': self.safe_string(market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,

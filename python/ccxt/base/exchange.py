@@ -6140,7 +6140,8 @@ class BaseExchange(object):
             return self.currencies_by_id[currencyId]
         code = currencyId
         if currencyId is not None:
-            code = self.common_currency_code(currencyId.upper())
+            upperId = currencyId.upper()
+            code = self.common_currency_code(upperId)
         return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
@@ -6270,7 +6271,7 @@ class BaseExchange(object):
         if key is None:
             raise ArgumentsRequired(self.id + ' getSupportedMapping() requires a key argument')
         if key in mapping:
-            return mapping[key]
+            return self.safe_string(mapping, key, key)
         else:
             keys = list(mapping.keys())
             # "mapping" must stay literal-final and the list must not be introduced with ": ":

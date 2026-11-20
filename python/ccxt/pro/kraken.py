@@ -1556,6 +1556,7 @@ class kraken(ccxt.async_support.kraken):
             self.balance = {}
         self.balance[type] = self.safe_dict(self.balance, type, {})
         self.balance[type]['info'] = message
+        balance = self.safe_dict(self.balance, type, {})
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             currencyId = self.safe_string(data[i], 'asset')
@@ -1563,8 +1564,8 @@ class kraken(ccxt.async_support.kraken):
             account = self.account()
             eq = self.safe_string(data[i], 'balance')
             account['total'] = eq
-            self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+            balance[code] = account
+        self.balance[type] = self.safe_balance(balance)
         channel = self.safe_string(message, 'channel')
         client.resolve(self.balance[type], channel)
 

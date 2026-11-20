@@ -1374,6 +1374,7 @@ class aster(ccxt.async_support.aster):
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
         self.balance[accountType]['info'] = message
+        balance = self.safe_dict(self.balance, accountType, {})
         messageValue = self.safe_dict(message, 'a', message)
         B = self.safe_list(messageValue, 'B', [])
         wallet = self.safe_string(self.options, 'wallet', 'wb')
@@ -1386,11 +1387,11 @@ class aster(ccxt.async_support.aster):
             account['used'] = self.safe_string(entry, 'l')
             account['total'] = self.safe_string(entry, wallet)
             if code is not None:
-                self.balance[accountType][code] = account
+                balance[code] = account
         timestamp = self.safe_integer(messageValue, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
+        self.balance[accountType] = self.safe_balance(balance)
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
