@@ -3860,7 +3860,7 @@ class BaseExchange(object):
         targets = list(fallbacks.keys())
         for i in range(0, len(targets)):
             target = targets[i]
-            source = fallbacks[target]
+            source = self.safe_string(fallbacks, target, '')
             sourceDefined = (source in self.has) and (self.has[source] is not None)
             targetDefined = (target in self.has) and (self.has[target] is not None)
             if sourceDefined and not targetDefined:

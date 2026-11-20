@@ -1624,9 +1624,8 @@ class weex(ccxt.async_support.weex):
         if url.find('contract') >= 0:
             accountType = 'swap'
         messageHash = accountType + ':balance'
-        if not (accountType in self.balance):
-            self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
+        balance = self.safe_dict(self.balance, accountType, {})
+        balance['info'] = message
         balanceUpdates = self.safe_list(message, 'd', [])
         for i in range(0, len(balanceUpdates)):
             entry = self.safe_dict(balanceUpdates, i)
@@ -1637,11 +1636,11 @@ class weex(ccxt.async_support.weex):
             account['used'] = self.safe_string(entry, 'frozen')
             account['total'] = self.safe_string_2(entry, 'equity', 'legacyAmount')
             if code is not None:
-                self.balance[accountType][code] = account
+                balance[code] = account
         timestamp = self.safe_integer(message, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
+        self.balance[accountType] = self.safe_balance(balance)
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
