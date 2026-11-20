@@ -132,7 +132,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             marketIds.append(self.market_id(symbol))
         length = len(symbolsValue)
         if length == 1:
-            market = self.market(marketIds[0])
+            market = self.market(symbolsValue[0])
             messageHash += ':' + market['symbol']
         subscribe['product_ids'] = marketIds
         request = self.extend(subscribe, params)

@@ -903,8 +903,6 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbolsNormalized[0], False, 'watchOrderBook', params)
         paramsValue = self.clean_params(params)
         market = self.market(symbolsNormalized[0])
-        defaultLimit = 100 if (self.safe_bool(market, 'option', False)) else 50
-        limitResolved = defaultLimit if (limit is None) else limit
         if limit is not None:
             limits = {
                 'spot': [1, 50, 200, 1000],
@@ -914,12 +912,16 @@ class bybit(ccxt.async_support.bybit):
             selectedLimits = self.safe_list_2(limits, market['type'], 'default', [])
             if not self.in_array(limit, selectedLimits):
                 raise BadRequest(self.id + ' watchOrderBookForSymbols(): for ' + self.safe_string(market, 'type', '') + ' markets limit can be one of: ' + self.json(selectedLimits))
+        limitParam = self.safe_integer({'limit': limit}, 'limit')
+        limitDefault = 100 if (self.safe_bool(market, 'option', False)) else 50
+        limitValue = limitDefault if (limitParam is None) else limitParam
+        topicPrefix = 'orderbook.' + str(limitValue) + '.'
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
-            marketId = self.market_id(symbol)
-            topic = 'orderbook.' + self.number_to_string(limitResolved) + '.' + marketId
+            marketId = self.safe_string(self.market(symbol), 'id', '')
+            topic = topicPrefix + marketId
             topics.append(topic)
             messageHash = 'orderbook:' + symbol
             messageHashes.append(messageHash)
@@ -1291,12 +1293,12 @@ class bybit(ccxt.async_support.bybit):
             messageHash += ':' + symbolResolved
         url = await self.get_url_by_market_type(symbolResolved, True, method, params)
         await self.authenticate(url)
-        topicByMarket = {
-            'spot': 'ticketInfo',
-            'unified': 'execution',
-            'usdc': 'user.openapi.perp.trade',
-        }
-        topic = self.safe_string(topicByMarket, self.get_private_type(url))
+        privateType = self.get_private_type(url)
+        topic = 'execution'
+        if privateType == 'spot':
+            topic = 'ticketInfo'
+        elif privateType == 'usdc':
+            topic = 'user.openapi.perp.trade'
         executionFast, paramsExecutionFast = self.handle_option_bool_and_params(params, 'watchMyTrades', 'executionFast', False)
         if executionFast:
             topic = 'execution.fast'
@@ -1328,12 +1330,12 @@ class bybit(ccxt.async_support.bybit):
             raise NotSupported(self.id + ' unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades')
         url = await self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
-        topicByMarket = {
-            'spot': 'ticketInfo',
-            'unified': 'execution',
-            'usdc': 'user.openapi.perp.trade',
-        }
-        topic = self.safe_string(topicByMarket, self.get_private_type(url))
+        privateType = self.get_private_type(url)
+        topic = 'execution'
+        if privateType == 'spot':
+            topic = 'ticketInfo'
+        elif privateType == 'usdc':
+            topic = 'user.openapi.perp.trade'
         executionFast, paramsExecutionFast = self.handle_option_bool_and_params(params, 'watchMyTrades', 'executionFast', False)
         if executionFast:
             topic = 'execution.fast'
@@ -1788,12 +1790,14 @@ class bybit(ccxt.async_support.bybit):
             messageHash += ':' + symbolResolved
         url = await self.get_url_by_market_type(symbolResolved, True, method, params)
         await self.authenticate(url)
-        topicsByMarket = {
-            'spot': ['order', 'stopOrder'],
-            'unified': ['order'],
-            'usdc': ['user.openapi.perp.order'],
-        }
-        topics = self.safe_list(topicsByMarket, self.get_private_type(url), [])
+        privateType = self.get_private_type(url)
+        topics = []
+        if privateType == 'usdc':
+            topics.append('user.openapi.perp.order')
+        else:
+            topics.append('order')
+            if privateType == 'spot':
+                topics.append('stopOrder')
         orders = await self.watch_topics(url, [messageHash], topics, params)
         limitResolved = limit
         if self.newUpdates:
@@ -1820,12 +1824,14 @@ class bybit(ccxt.async_support.bybit):
             raise NotSupported(self.id + ' unWatchOrders() does not support a symbol parameter, you must unwatch all orders')
         url = await self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
-        topicsByMarket = {
-            'spot': ['order', 'stopOrder'],
-            'unified': ['order'],
-            'usdc': ['user.openapi.perp.order'],
-        }
-        topics = self.safe_list(topicsByMarket, self.get_private_type(url))
+        privateType = self.get_private_type(url)
+        topics = []
+        if privateType == 'usdc':
+            topics.append('user.openapi.perp.order')
+        else:
+            topics.append('order')
+            if privateType == 'spot':
+                topics.append('stopOrder')
         return await self.un_watch_topics(url, 'orders', [], [messageHash], [subHash], topics, params)
 
     def handle_order_ws(self, client: Client, message: dict):
@@ -1983,10 +1989,6 @@ class bybit(ccxt.async_support.bybit):
         isUnifiedAccount = self.safe_bool(unified, 1, False)
         url = await self.get_url_by_market_type(None, True, method, paramsSubType)
         await self.authenticate(url)
-        topicByMarket = {
-            'spot': 'outboundAccountInfo',
-            'unified': 'wallet',
-        }
         if isUnifiedAccount:
             # unified account
             if subType == 'inverse':
@@ -2008,7 +2010,13 @@ class bybit(ccxt.async_support.bybit):
                     messageHash += ':unified'
                 else:
                     messageHash += ':contract'
-        topics = [self.safe_string(topicByMarket, self.get_private_type(url))]
+        privateType = self.get_private_type(url)
+        if privateType == 'usdc':
+            raise NotSupported(self.id + ' watchBalance() is not supported on the usdc private stream')
+        topic = 'wallet'
+        if privateType == 'spot':
+            topic = 'outboundAccountInfo'
+        topics = [topic]
         return await self.watch_topics(url, [messageHash], topics, paramsSubType)
 
     def handle_balance(self, client: Client, message: dict):
@@ -2250,7 +2258,7 @@ class bybit(ccxt.async_support.bybit):
             if code is not None:
                 self.balance[code] = account
 
-    async def watch_topics(self, url: str, messageHashes: list[str], topics: list[object], params: dict = {}):
+    async def watch_topics(self, url: str, messageHashes: list[str], topics: list[str], params: dict = {}):
         client = self.client(url)
         newTopics = []
         topicsLength = len(topics)
@@ -2293,7 +2301,7 @@ class bybit(ccxt.async_support.bybit):
             }
         return await self.watch_multiple(url, messageHashes, message, messageHashes, subscription)
 
-    async def un_watch_topics(self, url: str, topic: str, symbols: Strings, messageHashes: list[str], subMessageHashes: list[str], topics: object, params: dict = {}, subExtension: dict = {}):
+    async def un_watch_topics(self, url: str, topic: str, symbols: Strings, messageHashes: list[str], subMessageHashes: list[str], topics: list[str], params: dict = {}, subExtension: dict = {}):
         reqId = self.request_id()
         request = {
             'op': 'unsubscribe',
