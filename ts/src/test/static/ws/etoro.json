@@ -1,0 +1,1387 @@
+{
+    "exchange": "etoro",
+    "skipKeys": [],
+    "options": {
+        "sandboxMode": true
+    },
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "spot ticker snapshot followed by rate updates, some carrying only the date",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "messages": [
+                    {
+                        "id": "07cccc5b-8dde-42db-9e64-7910406d5e95",
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "id": "a8db5b63-046b-4965-a959-4da1e2ab4672",
+                        "success": true,
+                        "operation": "Subscribe"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100000",
+                                "content": "{\"InstrumentID\":\"100000\",\"IsInstrumentActive\":\"true\",\"OfficialClosingPrice\":\"64168.29\",\"IsMarketOpen\":\"true\",\"ConversionRateAsk\":\"1\",\"ConversionRateBid\":\"1\",\"PriceRateID\":\"165092837311\",\"BidDiscounted\":\"64130.29\",\"AskDiscounted\":\"64130.3\",\"UnitMarginBidDiscounted\":\"64130.29\",\"UnitMarginAskDiscounted\":\"64130.3\",\"AllowBuy\":\"true\",\"AllowSell\":\"true\",\"MaxPositionUnits\":\"41\",\"Ask\":\"64130.3\",\"Bid\":\"64130.29\",\"LastExecution\":\"64130.29\",\"Date\":\"2026-11-18T12:03:18.9151265Z\",\"NewUnitMargin\":\"64130.29\",\"UnitMarginAsk\":\"64130.3\",\"UnitMarginBid\":\"64130.29\",\"CfdMarkupAsk\":\"0\",\"CfdMarkupBid\":\"0\",\"RealMarkupAsk\":\"0\",\"RealMarkupBid\":\"0\",\"IsExchangeOpen\":\"false\",\"DelayedAsk\":\"0\",\"DelayedBid\":\"0\",\"ClosingPrices\":\"{\\\"Daily\\\":61651.27,\\\"Weekly\\\":60609.32,\\\"Monthly\\\":73672.62}\",\"IsOfficialClosingPrice\":\"false\",\"AvailabilityReason\":\"2\",\"DailyClose\":\"64168.29000000\"}",
+                                "id": "3da3e6ec-1a71-415c-8ba7-d5fc1245c0ad",
+                                "type": "Snapshot"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100000",
+                                "content": "{\"Date\":\"2026-11-18T12:03:19.725023Z\",\"PriceRateID\":\"165092870511\"}",
+                                "id": "80fb55ee-6560-4f71-9792-54341870902c",
+                                "type": "Trading.Instrument.Rate"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100000",
+                                "content": "{\"Ask\":\"64131.31\",\"Bid\":\"64131.3\",\"LastExecution\":\"64131.3\",\"Date\":\"2026-11-18T12:03:20.9470355Z\",\"NewUnitMargin\":\"64131.3\",\"UnitMarginAsk\":\"64131.31\",\"UnitMarginBid\":\"64131.3\",\"PriceRateID\":\"165092870807\",\"BidDiscounted\":\"64131.3\",\"AskDiscounted\":\"64131.31\",\"UnitMarginBidDiscounted\":\"64131.3\",\"UnitMarginAskDiscounted\":\"64131.31\"}",
+                                "id": "ccbe6845-f885-48ba-af05-9b4d21d310c5",
+                                "type": "Trading.Instrument.Rate"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100000",
+                                "content": "{\"Ask\":\"64132.96\",\"Bid\":\"64132.95\",\"LastExecution\":\"64132.95\",\"Date\":\"2026-11-18T12:03:21.7620762Z\",\"NewUnitMargin\":\"64132.95\",\"UnitMarginAsk\":\"64132.96\",\"UnitMarginBid\":\"64132.95\",\"PriceRateID\":\"165092871004\",\"BidDiscounted\":\"64132.95\",\"AskDiscounted\":\"64132.96\",\"UnitMarginBidDiscounted\":\"64132.95\",\"UnitMarginAskDiscounted\":\"64132.96\"}",
+                                "id": "4ed151f0-d4e3-4df1-b382-294db1981182",
+                                "type": "Trading.Instrument.Rate"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795003398915,
+                        "datetime": "2026-11-18T12:03:18.915Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 64130.29,
+                        "bidVolume": null,
+                        "ask": 64130.3,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 64130.29,
+                        "last": 64130.29,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "InstrumentID": "100000",
+                            "IsInstrumentActive": "true",
+                            "OfficialClosingPrice": "64168.29",
+                            "IsMarketOpen": "true",
+                            "ConversionRateAsk": "1",
+                            "ConversionRateBid": "1",
+                            "PriceRateID": "165092837311",
+                            "BidDiscounted": "64130.29",
+                            "AskDiscounted": "64130.3",
+                            "UnitMarginBidDiscounted": "64130.29",
+                            "UnitMarginAskDiscounted": "64130.3",
+                            "AllowBuy": "true",
+                            "AllowSell": "true",
+                            "MaxPositionUnits": "41",
+                            "Ask": "64130.3",
+                            "Bid": "64130.29",
+                            "LastExecution": "64130.29",
+                            "Date": "2026-11-18T12:03:18.9151265Z",
+                            "NewUnitMargin": "64130.29",
+                            "UnitMarginAsk": "64130.3",
+                            "UnitMarginBid": "64130.29",
+                            "CfdMarkupAsk": "0",
+                            "CfdMarkupBid": "0",
+                            "RealMarkupAsk": "0",
+                            "RealMarkupBid": "0",
+                            "IsExchangeOpen": "false",
+                            "DelayedAsk": "0",
+                            "DelayedBid": "0",
+                            "ClosingPrices": "{\"Daily\":61651.27,\"Weekly\":60609.32,\"Monthly\":73672.62}",
+                            "IsOfficialClosingPrice": "false",
+                            "AvailabilityReason": "2",
+                            "DailyClose": "64168.29000000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795003399725,
+                        "datetime": "2026-11-18T12:03:19.725Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 64130.29,
+                        "bidVolume": null,
+                        "ask": 64130.3,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 64130.29,
+                        "last": 64130.29,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "InstrumentID": "100000",
+                            "IsInstrumentActive": "true",
+                            "OfficialClosingPrice": "64168.29",
+                            "IsMarketOpen": "true",
+                            "ConversionRateAsk": "1",
+                            "ConversionRateBid": "1",
+                            "PriceRateID": "165092870511",
+                            "BidDiscounted": "64130.29",
+                            "AskDiscounted": "64130.3",
+                            "UnitMarginBidDiscounted": "64130.29",
+                            "UnitMarginAskDiscounted": "64130.3",
+                            "AllowBuy": "true",
+                            "AllowSell": "true",
+                            "MaxPositionUnits": "41",
+                            "Ask": "64130.3",
+                            "Bid": "64130.29",
+                            "LastExecution": "64130.29",
+                            "Date": "2026-11-18T12:03:19.725023Z",
+                            "NewUnitMargin": "64130.29",
+                            "UnitMarginAsk": "64130.3",
+                            "UnitMarginBid": "64130.29",
+                            "CfdMarkupAsk": "0",
+                            "CfdMarkupBid": "0",
+                            "RealMarkupAsk": "0",
+                            "RealMarkupBid": "0",
+                            "IsExchangeOpen": "false",
+                            "DelayedAsk": "0",
+                            "DelayedBid": "0",
+                            "ClosingPrices": "{\"Daily\":61651.27,\"Weekly\":60609.32,\"Monthly\":73672.62}",
+                            "IsOfficialClosingPrice": "false",
+                            "AvailabilityReason": "2",
+                            "DailyClose": "64168.29000000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795003400947,
+                        "datetime": "2026-11-18T12:03:20.947Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 64131.3,
+                        "bidVolume": null,
+                        "ask": 64131.31,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 64131.3,
+                        "last": 64131.3,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "InstrumentID": "100000",
+                            "IsInstrumentActive": "true",
+                            "OfficialClosingPrice": "64168.29",
+                            "IsMarketOpen": "true",
+                            "ConversionRateAsk": "1",
+                            "ConversionRateBid": "1",
+                            "PriceRateID": "165092870807",
+                            "BidDiscounted": "64131.3",
+                            "AskDiscounted": "64131.31",
+                            "UnitMarginBidDiscounted": "64131.3",
+                            "UnitMarginAskDiscounted": "64131.31",
+                            "AllowBuy": "true",
+                            "AllowSell": "true",
+                            "MaxPositionUnits": "41",
+                            "Ask": "64131.31",
+                            "Bid": "64131.3",
+                            "LastExecution": "64131.3",
+                            "Date": "2026-11-18T12:03:20.9470355Z",
+                            "NewUnitMargin": "64131.3",
+                            "UnitMarginAsk": "64131.31",
+                            "UnitMarginBid": "64131.3",
+                            "CfdMarkupAsk": "0",
+                            "CfdMarkupBid": "0",
+                            "RealMarkupAsk": "0",
+                            "RealMarkupBid": "0",
+                            "IsExchangeOpen": "false",
+                            "DelayedAsk": "0",
+                            "DelayedBid": "0",
+                            "ClosingPrices": "{\"Daily\":61651.27,\"Weekly\":60609.32,\"Monthly\":73672.62}",
+                            "IsOfficialClosingPrice": "false",
+                            "AvailabilityReason": "2",
+                            "DailyClose": "64168.29000000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795003401762,
+                        "datetime": "2026-11-18T12:03:21.762Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 64132.95,
+                        "bidVolume": null,
+                        "ask": 64132.96,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 64132.95,
+                        "last": 64132.95,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "InstrumentID": "100000",
+                            "IsInstrumentActive": "true",
+                            "OfficialClosingPrice": "64168.29",
+                            "IsMarketOpen": "true",
+                            "ConversionRateAsk": "1",
+                            "ConversionRateBid": "1",
+                            "PriceRateID": "165092871004",
+                            "BidDiscounted": "64132.95",
+                            "AskDiscounted": "64132.96",
+                            "UnitMarginBidDiscounted": "64132.95",
+                            "UnitMarginAskDiscounted": "64132.96",
+                            "AllowBuy": "true",
+                            "AllowSell": "true",
+                            "MaxPositionUnits": "41",
+                            "Ask": "64132.96",
+                            "Bid": "64132.95",
+                            "LastExecution": "64132.95",
+                            "Date": "2026-11-18T12:03:21.7620762Z",
+                            "NewUnitMargin": "64132.95",
+                            "UnitMarginAsk": "64132.96",
+                            "UnitMarginBid": "64132.95",
+                            "CfdMarkupAsk": "0",
+                            "CfdMarkupBid": "0",
+                            "RealMarkupAsk": "0",
+                            "RealMarkupBid": "0",
+                            "IsExchangeOpen": "false",
+                            "DelayedAsk": "0",
+                            "DelayedBid": "0",
+                            "ClosingPrices": "{\"Daily\":61651.27,\"Weekly\":60609.32,\"Monthly\":73672.62}",
+                            "IsOfficialClosingPrice": "false",
+                            "AvailabilityReason": "2",
+                            "DailyClose": "64168.29000000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "limit order created and canceled, then a market buy filled and its position closed",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "messages": [
+                    {
+                        "id": "63391927-eb5a-4547-9c5f-aeece5861880",
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "id": "c5ab802f-e46d-4b3a-b064-f80e60c1eaa8",
+                        "success": true,
+                        "operation": "Subscribe"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985338,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":16540033,\"portfolioId\":null,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mit\",\"eToroOrderType\":\"15\",\"openActionType\":null,\"closeActionType\":null,\"requestType\":\"units\",\"orderUpdateType\":\"created\",\"updateTime\":\"2026-11-18T12:03:48.2706966\",\"orderState\":\"pendingTriggeredRate\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":40000,\"requestedQuantity\":null,\"requestedUnits\":0.0003,\"requestedContracts\":null,\"requestedAmount\":12.0000,\"requestTime\":\"2026-11-18T12:03:48.2706966\",\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":\"fixed\",\"requestedClosePositions\":null,\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":null,\"totalCosts\":null,\"totalProceeds\":null,\"currencyOfTotals\":null,\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "9e65f66a-43d6-454f-b4b6-eb02f6fd5860",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"CID\":17799278,\"Order\":{\"OrderID\":394985338,\"CID\":17799278,\"OpenDateTime\":\"2026-11-18T12:03:48.2706966Z\",\"InstrumentID\":100000,\"IsBuy\":true,\"TakeProfitRate\":0.0,\"StopLossRate\":0.01,\"Rate\":40000.0,\"Amount\":12.0000,\"Leverage\":1,\"Units\":0.0003,\"IsTslEnabled\":false,\"ExecutionType\":1,\"IsDiscounted\":false,\"IsNoStopLoss\":true,\"IsNoTakeProfit\":true},\"RequestToken\":\"41fe2198-1044-4d83-8313-6ede17f56801\"}",
+                                "id": "3bec4d5d-2cec-44cd-9217-91af4426aed0",
+                                "type": "Trading.Order.Open"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985338,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":null,\"portfolioId\":null,\"action\":\"open\",\"transaction\":\"na\",\"orderType\":\"mit\",\"eToroOrderType\":\"15\",\"openActionType\":null,\"closeActionType\":null,\"requestType\":\"units\",\"orderUpdateType\":\"canceled\",\"updateTime\":\"2026-11-18T12:03:53.7882241Z\",\"orderState\":\"canceled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"na\",\"settlementType\":\"real\",\"leverage\":null,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":null,\"requestedContracts\":null,\"requestedAmount\":null,\"requestTime\":null,\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":null,\"requestedClosePositions\":null,\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":null,\"totalCosts\":null,\"totalProceeds\":null,\"currencyOfTotals\":null,\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "7f7c9e80-6033-4195-8198-0d5ab43bd641",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"OrderID\":394985338,\"CID\":17799278,\"RequestToken\":\"3313b0f5-32cc-4da7-ab22-b476fbea2f25\"}",
+                                "id": "93e3d410-619f-4dae-b981-b46fd8641927",
+                                "type": "Trading.Order.Close"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"CID\":17799278,\"Position\":{\"PositionID\":3645512817,\"CID\":17799278,\"OpenDateTime\":\"2026-11-18T12:03:56.9663863Z\",\"OpenRate\":64093.02,\"InstrumentID\":100000,\"IsBuy\":true,\"TakeProfitRate\":0.0,\"StopLossRate\":0.01000000,\"MirrorID\":0,\"ParentPositionID\":0,\"Amount\":11.99,\"Leverage\":1,\"OrderID\":394985340,\"OrderType\":17,\"Units\":0.000187,\"TotalFees\":0.0,\"InitialAmountInDollars\":11.99,\"IsTslEnabled\":false,\"StopLossVersion\":1,\"IsSettled\":true,\"RedeemStatusID\":0,\"InitialUnits\":0.000187,\"UnitsBaseValueDollars\":11.99,\"IsDiscounted\":false,\"OpenPositionActionType\":0,\"SettlementTypeID\":1,\"DelayedOrderID\":0,\"PnlVersion\":1,\"OpenConversionRate\":1.0,\"TotalExternalFees\":0.12,\"TotalExternalTaxes\":0.0,\"IsNoStopLoss\":true,\"IsNoTakeProfit\":true,\"LotCount\":0.000187},\"RequestToken\":\"1f291f10-29c6-451e-8725-65bb8a81745b\"}",
+                                "id": "a590d5a3-f9f4-42a9-a847-94c3428a78f4",
+                                "type": "Trading.Position.Open"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"OrderID\":394985340,\"CID\":17799278,\"StatusID\":2,\"Amount\":11.99,\"AmountInUnits\":0.000187,\"InstrumentID\":100000,\"IsBuy\":true,\"Leverage\":1,\"StopLossRate\":0.01,\"TakeProfitRate\":0.0,\"IsTslEnabled\":false,\"IsDiscounted\":false,\"RequestGuid\":\"1f291f10-29c6-451e-8725-65bb8a81745b\",\"LastUpdated\":\"2026-11-18T12:03:56.9294979Z\",\"OpenDateTime\":\"2026-11-18T12:03:56.8329971Z\",\"OrderType\":17,\"FilledAmount\":0.0,\"FilledAmountUnits\":0.0,\"RequestToken\":\"1f291f10-29c6-451e-8725-65bb8a81745b\",\"MirrorID\":0,\"DelayedOrderID\":0,\"ErrorCode\":0,\"TotalExternalCosts\":0.12,\"OpenActionType\":0,\"IsNoStopLoss\":true,\"IsNoTakeProfit\":true,\"LotCount\":0.000187,\"FilledLots\":0.0}",
+                                "id": "dd899ed9-702d-4961-80bf-6dc8ad168187",
+                                "type": "Trading.OrderForOpen.Update"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985340,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":null,\"portfolioId\":null,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mkt\",\"eToroOrderType\":\"17\",\"openActionType\":\"0\",\"closeActionType\":null,\"requestType\":\"amount\",\"orderUpdateType\":\"created\",\"updateTime\":\"2026-11-18T12:03:56.9294979\",\"orderState\":\"placed\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":0.000187,\"requestedContracts\":0.000187,\"requestedAmount\":11.99,\"requestTime\":\"2026-11-18T12:03:56.8329971\",\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":\"fixed\",\"requestedClosePositions\":null,\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":null,\"totalCosts\":null,\"totalProceeds\":null,\"currencyOfTotals\":null,\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "4fd2a334-d731-47e3-b4db-6252efd043e2",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985340,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":16540033,\"portfolioId\":0,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mkt\",\"eToroOrderType\":\"17\",\"openActionType\":\"0\",\"closeActionType\":null,\"requestType\":\"amount\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-18T12:03:56.95\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":null,\"requestedContracts\":null,\"requestedAmount\":null,\"requestTime\":null,\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":\"fixed\",\"requestedClosePositions\":null,\"positionsExecutions\":[{\"positionId\":3645512817,\"positionUpdateType\":\"open\",\"updateTime\":\"2026-11-18T12:03:56.95\",\"positionState\":\"open\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"marginCurrency\":\"USD\",\"initialMargin\":11.99,\"additionalMargin\":null,\"margin\":11.99,\"openingData\":{\"orderId\":394985340,\"executionTime\":\"2026-11-18T12:03:56.9663863\",\"units\":0.000187,\"contracts\":0.000187,\"avgPrice\":64093.02,\"avgConversionRate\":1,\"marketSpread\":null,\"markup\":0.02,\"fees\":0.12,\"taxes\":0,\"openReason\":null,\"externalOperationInfo\":null,\"reopenForPositionId\":null,\"openTime\":\"2026-11-18T12:03:56.9663863\"},\"closingData\":null,\"remainingUnits\":0.000187,\"remainingContracts\":0.000187,\"stopLossRate\":null,\"takeProfitRate\":null,\"stopLossType\":\"fixed\"}],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":0.12,\"totalCosts\":12.11,\"totalProceeds\":null,\"currencyOfTotals\":\"USD\",\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "ca709fc9-ea9f-4721-8684-c77ec54991f0",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985340,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":null,\"portfolioId\":null,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mkt\",\"eToroOrderType\":\"17\",\"openActionType\":\"0\",\"closeActionType\":null,\"requestType\":\"amount\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-18T12:03:56.9294979\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":0.000187,\"requestedContracts\":0.000187,\"requestedAmount\":11.99,\"requestTime\":\"2026-11-18T12:03:56.8329971\",\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":\"fixed\",\"requestedClosePositions\":null,\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":0.00000000,\"remainingUnits\":0.00000000,\"totalFees\":0.12,\"totalCosts\":12.11000000,\"totalProceeds\":null,\"currencyOfTotals\":\"USD\",\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "ece07426-7e8e-4db1-b861-347393500649",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"PositionID\":3645512817,\"CID\":17799278,\"NetProfit\":0.0,\"CloseReason\":0,\"EndRate\":64098.23,\"RequestToken\":\"119484a0-d6ef-4c53-9c94-5f1d68919d8a\",\"ExitOrderID\":395026036,\"Leverage\":1,\"PositionRatio\":0.0,\"OccurredAt\":\"2026-11-18T12:04:03.6519864Z\",\"PositionAmount\":11.99,\"NetProfitRatio\":0.0,\"BonusCreditDelta\":0.0,\"ExitOrderType\":19,\"TotalExternalFees\":0.12,\"TotalExternalTaxes\":0.0}",
+                                "id": "c7c32e54-0bdb-4bf9-8d3d-70298bb71935",
+                                "type": "Trading.Position.Close"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":395026036,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":16540033,\"portfolioId\":null,\"action\":\"close\",\"transaction\":\"sell\",\"orderType\":\"mkt\",\"eToroOrderType\":\"19\",\"openActionType\":null,\"closeActionType\":\"0\",\"requestType\":\"position\",\"orderUpdateType\":\"created\",\"updateTime\":\"2026-11-18T12:04:03.6222408\",\"orderState\":\"placed\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"na\",\"leverage\":null,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":0.000187,\"requestedContracts\":0.000187,\"requestedAmount\":null,\"requestTime\":\"2026-11-18T12:04:03.5699005\",\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":null,\"requestedClosePositions\":[3645512817],\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":null,\"totalCosts\":null,\"totalProceeds\":null,\"currencyOfTotals\":null,\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "128cbf91-2668-4c83-b373-f5687b59bb33",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":395026036,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":16540033,\"portfolioId\":0,\"action\":\"close\",\"transaction\":\"sell\",\"orderType\":\"mkt\",\"eToroOrderType\":\"19\",\"openActionType\":null,\"closeActionType\":\"0\",\"requestType\":\"position\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-18T12:04:03.65\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":null,\"requestedContracts\":null,\"requestedAmount\":null,\"requestTime\":null,\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":null,\"requestedClosePositions\":[3645512817],\"positionsExecutions\":[{\"positionId\":3645512817,\"positionUpdateType\":\"close\",\"updateTime\":\"2026-11-18T12:04:03.65\",\"positionState\":\"closed\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"marginCurrency\":\"USD\",\"initialMargin\":null,\"additionalMargin\":null,\"margin\":11.99,\"openingData\":null,\"closingData\":{\"orderId\":395026036,\"executionTime\":\"2026-11-18T12:04:03.6519864\",\"units\":0.000187,\"contracts\":0.000187,\"avgPrice\":64098.23,\"avgConversionRate\":1,\"marketSpread\":null,\"markup\":-0.01,\"fees\":0.12,\"taxes\":0,\"closeReason\":null,\"externalOperationInfo\":null,\"closeTime\":\"2026-11-18T12:04:03.6519864\",\"partialClosedPositionId\":null,\"liquidationValueAcctCcy\":11.99,\"liquidationValue\":11.99,\"acctCcyReturn\":0,\"pnl\":0.00097427},\"remainingUnits\":0,\"remainingContracts\":0,\"stopLossRate\":null,\"takeProfitRate\":null,\"stopLossType\":null}],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":0.12,\"totalCosts\":null,\"totalProceeds\":11.87,\"currencyOfTotals\":\"USD\",\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "2c279177-4891-482c-9e1d-dac1cb15d240",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "394985338",
+                            "clientOrderId": null,
+                            "datetime": "2026-11-18T12:03:48.270Z",
+                            "timestamp": 1795003428270,
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795003428270,
+                            "status": "open",
+                            "symbol": "BTC/USD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "buy",
+                            "price": 40000,
+                            "triggerPrice": null,
+                            "amount": 0.0003,
+                            "cost": null,
+                            "average": null,
+                            "filled": null,
+                            "remaining": null,
+                            "fee": null,
+                            "fees": [],
+                            "trades": [],
+                            "info": {
+                                "orderId": 394985338,
+                                "relatedOrderIds": null,
+                                "accountId": 17799278,
+                                "gcid": 16540033,
+                                "portfolioId": null,
+                                "action": "open",
+                                "transaction": "buy",
+                                "orderType": "mit",
+                                "eToroOrderType": "15",
+                                "openActionType": null,
+                                "closeActionType": null,
+                                "requestType": "units",
+                                "orderUpdateType": "created",
+                                "updateTime": "2026-11-18T12:03:48.2706966",
+                                "orderState": "pendingTriggeredRate",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": 40000,
+                                "requestedQuantity": null,
+                                "requestedUnits": 0.0003,
+                                "requestedContracts": null,
+                                "requestedAmount": 12,
+                                "requestTime": "2026-11-18T12:03:48.2706966",
+                                "openStopLossRate": null,
+                                "openTakeProfitRate": null,
+                                "requestedStopLossType": "fixed",
+                                "requestedClosePositions": null,
+                                "positionsExecutions": [],
+                                "externalOperationInfo": null,
+                                "cancelledQuantity": null,
+                                "cancelledUnits": null,
+                                "remainingQuantity": null,
+                                "remainingUnits": null,
+                                "totalFees": null,
+                                "totalCosts": null,
+                                "totalProceeds": null,
+                                "currencyOfTotals": null,
+                                "frozenAmount": null,
+                                "errorMessage": null,
+                                "errorCode": null
+                            },
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "id": "394985338",
+                            "clientOrderId": null,
+                            "datetime": "2026-11-18T12:03:48.270Z",
+                            "timestamp": 1795003428270,
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795003433788,
+                            "status": "canceled",
+                            "symbol": "BTC/USD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "buy",
+                            "price": 40000,
+                            "triggerPrice": null,
+                            "amount": 0.0003,
+                            "cost": null,
+                            "average": null,
+                            "filled": null,
+                            "remaining": null,
+                            "fee": null,
+                            "fees": [],
+                            "trades": [],
+                            "info": {
+                                "orderId": 394985338,
+                                "relatedOrderIds": null,
+                                "accountId": 17799278,
+                                "gcid": null,
+                                "portfolioId": null,
+                                "action": "open",
+                                "transaction": "na",
+                                "orderType": "mit",
+                                "eToroOrderType": "15",
+                                "openActionType": null,
+                                "closeActionType": null,
+                                "requestType": "units",
+                                "orderUpdateType": "canceled",
+                                "updateTime": "2026-11-18T12:03:53.7882241Z",
+                                "orderState": "canceled",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "na",
+                                    "settlementType": "real",
+                                    "leverage": null,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": null,
+                                "requestedQuantity": null,
+                                "requestedUnits": null,
+                                "requestedContracts": null,
+                                "requestedAmount": null,
+                                "requestTime": null,
+                                "openStopLossRate": null,
+                                "openTakeProfitRate": null,
+                                "requestedStopLossType": null,
+                                "requestedClosePositions": null,
+                                "positionsExecutions": [],
+                                "externalOperationInfo": null,
+                                "cancelledQuantity": null,
+                                "cancelledUnits": null,
+                                "remainingQuantity": null,
+                                "remainingUnits": null,
+                                "totalFees": null,
+                                "totalCosts": null,
+                                "totalProceeds": null,
+                                "currencyOfTotals": null,
+                                "frozenAmount": null,
+                                "errorMessage": null,
+                                "errorCode": null
+                            },
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "id": "394985340",
+                            "clientOrderId": null,
+                            "datetime": "2026-11-18T12:03:56.832Z",
+                            "timestamp": 1795003436832,
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795003436929,
+                            "status": "open",
+                            "symbol": "BTC/USD",
+                            "type": "market",
+                            "timeInForce": "IOC",
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "buy",
+                            "price": null,
+                            "triggerPrice": null,
+                            "amount": 0.000187,
+                            "cost": null,
+                            "average": null,
+                            "filled": null,
+                            "remaining": null,
+                            "fee": null,
+                            "fees": [],
+                            "trades": [],
+                            "info": {
+                                "orderId": 394985340,
+                                "relatedOrderIds": null,
+                                "accountId": 17799278,
+                                "gcid": null,
+                                "portfolioId": null,
+                                "action": "open",
+                                "transaction": "buy",
+                                "orderType": "mkt",
+                                "eToroOrderType": "17",
+                                "openActionType": "0",
+                                "closeActionType": null,
+                                "requestType": "amount",
+                                "orderUpdateType": "created",
+                                "updateTime": "2026-11-18T12:03:56.9294979",
+                                "orderState": "placed",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": null,
+                                "requestedQuantity": null,
+                                "requestedUnits": 0.000187,
+                                "requestedContracts": 0.000187,
+                                "requestedAmount": 11.99,
+                                "requestTime": "2026-11-18T12:03:56.8329971",
+                                "openStopLossRate": null,
+                                "openTakeProfitRate": null,
+                                "requestedStopLossType": "fixed",
+                                "requestedClosePositions": null,
+                                "positionsExecutions": [],
+                                "externalOperationInfo": null,
+                                "cancelledQuantity": null,
+                                "cancelledUnits": null,
+                                "remainingQuantity": null,
+                                "remainingUnits": null,
+                                "totalFees": null,
+                                "totalCosts": null,
+                                "totalProceeds": null,
+                                "currencyOfTotals": null,
+                                "frozenAmount": null,
+                                "errorMessage": null,
+                                "errorCode": null
+                            },
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "id": "394985340",
+                            "clientOrderId": null,
+                            "datetime": "2026-11-18T12:03:56.832Z",
+                            "timestamp": 1795003436832,
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795003436950,
+                            "status": "closed",
+                            "symbol": "BTC/USD",
+                            "type": "market",
+                            "timeInForce": "IOC",
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "buy",
+                            "price": 64093.02,
+                            "triggerPrice": null,
+                            "amount": 0.000187,
+                            "cost": 11.98539474,
+                            "average": 64093.02,
+                            "filled": 0.000187,
+                            "remaining": 0,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 0.12
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 0.12
+                                }
+                            ],
+                            "trades": [],
+                            "info": {
+                                "orderId": 394985340,
+                                "relatedOrderIds": null,
+                                "accountId": 17799278,
+                                "gcid": 16540033,
+                                "portfolioId": 0,
+                                "action": "open",
+                                "transaction": "buy",
+                                "orderType": "mkt",
+                                "eToroOrderType": "17",
+                                "openActionType": "0",
+                                "closeActionType": null,
+                                "requestType": "amount",
+                                "orderUpdateType": "executed",
+                                "updateTime": "2026-11-18T12:03:56.95",
+                                "orderState": "filled",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": null,
+                                "requestedQuantity": null,
+                                "requestedUnits": null,
+                                "requestedContracts": null,
+                                "requestedAmount": null,
+                                "requestTime": null,
+                                "openStopLossRate": null,
+                                "openTakeProfitRate": null,
+                                "requestedStopLossType": "fixed",
+                                "requestedClosePositions": null,
+                                "positionsExecutions": [
+                                    {
+                                        "positionId": 3645512817,
+                                        "positionUpdateType": "open",
+                                        "updateTime": "2026-11-18T12:03:56.95",
+                                        "positionState": "open",
+                                        "asset": {
+                                            "instrumentId": 100000,
+                                            "symbol": "",
+                                            "side": "long",
+                                            "settlementType": "real",
+                                            "leverage": 1,
+                                            "currency": "USD"
+                                        },
+                                        "marginCurrency": "USD",
+                                        "initialMargin": 11.99,
+                                        "additionalMargin": null,
+                                        "margin": 11.99,
+                                        "openingData": {
+                                            "orderId": 394985340,
+                                            "executionTime": "2026-11-18T12:03:56.9663863",
+                                            "units": 0.000187,
+                                            "contracts": 0.000187,
+                                            "avgPrice": 64093.02,
+                                            "avgConversionRate": 1,
+                                            "marketSpread": null,
+                                            "markup": 0.02,
+                                            "fees": 0.12,
+                                            "taxes": 0,
+                                            "openReason": null,
+                                            "externalOperationInfo": null,
+                                            "reopenForPositionId": null,
+                                            "openTime": "2026-11-18T12:03:56.9663863"
+                                        },
+                                        "closingData": null,
+                                        "remainingUnits": 0.000187,
+                                        "remainingContracts": 0.000187,
+                                        "stopLossRate": null,
+                                        "takeProfitRate": null,
+                                        "stopLossType": "fixed"
+                                    }
+                                ],
+                                "externalOperationInfo": null,
+                                "cancelledQuantity": null,
+                                "cancelledUnits": null,
+                                "remainingQuantity": null,
+                                "remainingUnits": null,
+                                "totalFees": 0.12,
+                                "totalCosts": 12.11,
+                                "totalProceeds": null,
+                                "currencyOfTotals": "USD",
+                                "frozenAmount": null,
+                                "errorMessage": null,
+                                "errorCode": null
+                            },
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "id": "394985340",
+                            "clientOrderId": null,
+                            "datetime": "2026-11-18T12:03:56.832Z",
+                            "timestamp": 1795003436832,
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795003436929,
+                            "status": "closed",
+                            "symbol": "BTC/USD",
+                            "type": "market",
+                            "timeInForce": "IOC",
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "buy",
+                            "price": 64093.02,
+                            "triggerPrice": null,
+                            "amount": 0.000187,
+                            "cost": 11.98539474,
+                            "average": 64093.02,
+                            "filled": 0.000187,
+                            "remaining": 0,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 0.12
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 0.12
+                                }
+                            ],
+                            "trades": [],
+                            "info": {
+                                "orderId": 394985340,
+                                "relatedOrderIds": null,
+                                "accountId": 17799278,
+                                "gcid": null,
+                                "portfolioId": null,
+                                "action": "open",
+                                "transaction": "buy",
+                                "orderType": "mkt",
+                                "eToroOrderType": "17",
+                                "openActionType": "0",
+                                "closeActionType": null,
+                                "requestType": "amount",
+                                "orderUpdateType": "executed",
+                                "updateTime": "2026-11-18T12:03:56.9294979",
+                                "orderState": "filled",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": null,
+                                "requestedQuantity": null,
+                                "requestedUnits": 0.000187,
+                                "requestedContracts": 0.000187,
+                                "requestedAmount": 11.99,
+                                "requestTime": "2026-11-18T12:03:56.8329971",
+                                "openStopLossRate": null,
+                                "openTakeProfitRate": null,
+                                "requestedStopLossType": "fixed",
+                                "requestedClosePositions": null,
+                                "positionsExecutions": [],
+                                "externalOperationInfo": null,
+                                "cancelledQuantity": null,
+                                "cancelledUnits": null,
+                                "remainingQuantity": 0,
+                                "remainingUnits": 0,
+                                "totalFees": 0.12,
+                                "totalCosts": 12.11,
+                                "totalProceeds": null,
+                                "currencyOfTotals": "USD",
+                                "frozenAmount": null,
+                                "errorMessage": null,
+                                "errorCode": null
+                            },
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "id": "395026036",
+                            "clientOrderId": null,
+                            "datetime": "2026-11-18T12:04:03.569Z",
+                            "timestamp": 1795003443569,
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795003443622,
+                            "status": "open",
+                            "symbol": "BTC/USD",
+                            "type": "market",
+                            "timeInForce": "IOC",
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "triggerPrice": null,
+                            "amount": 0.000187,
+                            "cost": null,
+                            "average": null,
+                            "filled": null,
+                            "remaining": null,
+                            "fee": null,
+                            "fees": [],
+                            "trades": [],
+                            "info": {
+                                "orderId": 395026036,
+                                "relatedOrderIds": null,
+                                "accountId": 17799278,
+                                "gcid": 16540033,
+                                "portfolioId": null,
+                                "action": "close",
+                                "transaction": "sell",
+                                "orderType": "mkt",
+                                "eToroOrderType": "19",
+                                "openActionType": null,
+                                "closeActionType": "0",
+                                "requestType": "position",
+                                "orderUpdateType": "created",
+                                "updateTime": "2026-11-18T12:04:03.6222408",
+                                "orderState": "placed",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "na",
+                                    "leverage": null,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": null,
+                                "requestedQuantity": null,
+                                "requestedUnits": 0.000187,
+                                "requestedContracts": 0.000187,
+                                "requestedAmount": null,
+                                "requestTime": "2026-11-18T12:04:03.5699005",
+                                "openStopLossRate": null,
+                                "openTakeProfitRate": null,
+                                "requestedStopLossType": null,
+                                "requestedClosePositions": [
+                                    3645512817
+                                ],
+                                "positionsExecutions": [],
+                                "externalOperationInfo": null,
+                                "cancelledQuantity": null,
+                                "cancelledUnits": null,
+                                "remainingQuantity": null,
+                                "remainingUnits": null,
+                                "totalFees": null,
+                                "totalCosts": null,
+                                "totalProceeds": null,
+                                "currencyOfTotals": null,
+                                "frozenAmount": null,
+                                "errorMessage": null,
+                                "errorCode": null
+                            },
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "id": "395026036",
+                            "clientOrderId": null,
+                            "datetime": "2026-11-18T12:04:03.569Z",
+                            "timestamp": 1795003443569,
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795003443650,
+                            "status": "closed",
+                            "symbol": "BTC/USD",
+                            "type": "market",
+                            "timeInForce": "IOC",
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "sell",
+                            "price": 64098.23,
+                            "triggerPrice": null,
+                            "amount": 0.000187,
+                            "cost": 11.98636901,
+                            "average": 64098.23,
+                            "filled": 0.000187,
+                            "remaining": 0,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 0.12
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 0.12
+                                }
+                            ],
+                            "trades": [],
+                            "info": {
+                                "orderId": 395026036,
+                                "relatedOrderIds": null,
+                                "accountId": 17799278,
+                                "gcid": 16540033,
+                                "portfolioId": 0,
+                                "action": "close",
+                                "transaction": "sell",
+                                "orderType": "mkt",
+                                "eToroOrderType": "19",
+                                "openActionType": null,
+                                "closeActionType": "0",
+                                "requestType": "position",
+                                "orderUpdateType": "executed",
+                                "updateTime": "2026-11-18T12:04:03.65",
+                                "orderState": "filled",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": null,
+                                "requestedQuantity": null,
+                                "requestedUnits": null,
+                                "requestedContracts": null,
+                                "requestedAmount": null,
+                                "requestTime": null,
+                                "openStopLossRate": null,
+                                "openTakeProfitRate": null,
+                                "requestedStopLossType": null,
+                                "requestedClosePositions": [
+                                    3645512817
+                                ],
+                                "positionsExecutions": [
+                                    {
+                                        "positionId": 3645512817,
+                                        "positionUpdateType": "close",
+                                        "updateTime": "2026-11-18T12:04:03.65",
+                                        "positionState": "closed",
+                                        "asset": {
+                                            "instrumentId": 100000,
+                                            "symbol": "",
+                                            "side": "long",
+                                            "settlementType": "real",
+                                            "leverage": 1,
+                                            "currency": "USD"
+                                        },
+                                        "marginCurrency": "USD",
+                                        "initialMargin": null,
+                                        "additionalMargin": null,
+                                        "margin": 11.99,
+                                        "openingData": null,
+                                        "closingData": {
+                                            "orderId": 395026036,
+                                            "executionTime": "2026-11-18T12:04:03.6519864",
+                                            "units": 0.000187,
+                                            "contracts": 0.000187,
+                                            "avgPrice": 64098.23,
+                                            "avgConversionRate": 1,
+                                            "marketSpread": null,
+                                            "markup": -0.01,
+                                            "fees": 0.12,
+                                            "taxes": 0,
+                                            "closeReason": null,
+                                            "externalOperationInfo": null,
+                                            "closeTime": "2026-11-18T12:04:03.6519864",
+                                            "partialClosedPositionId": null,
+                                            "liquidationValueAcctCcy": 11.99,
+                                            "liquidationValue": 11.99,
+                                            "acctCcyReturn": 0,
+                                            "pnl": 0.00097427
+                                        },
+                                        "remainingUnits": 0,
+                                        "remainingContracts": 0,
+                                        "stopLossRate": null,
+                                        "takeProfitRate": null,
+                                        "stopLossType": null
+                                    }
+                                ],
+                                "externalOperationInfo": null,
+                                "cancelledQuantity": null,
+                                "cancelledUnits": null,
+                                "remainingQuantity": null,
+                                "remainingUnits": null,
+                                "totalFees": 0.12,
+                                "totalCosts": null,
+                                "totalProceeds": 11.87,
+                                "currencyOfTotals": "USD",
+                                "frozenAmount": null,
+                                "errorMessage": null,
+                                "errorCode": null
+                            },
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "the opening buy and the closing sell of a position",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "messages": [
+                    {
+                        "id": "63391927-eb5a-4547-9c5f-aeece5861880",
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "id": "c5ab802f-e46d-4b3a-b064-f80e60c1eaa8",
+                        "success": true,
+                        "operation": "Subscribe"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985338,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":16540033,\"portfolioId\":null,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mit\",\"eToroOrderType\":\"15\",\"openActionType\":null,\"closeActionType\":null,\"requestType\":\"units\",\"orderUpdateType\":\"created\",\"updateTime\":\"2026-11-18T12:03:48.2706966\",\"orderState\":\"pendingTriggeredRate\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":40000,\"requestedQuantity\":null,\"requestedUnits\":0.0003,\"requestedContracts\":null,\"requestedAmount\":12.0000,\"requestTime\":\"2026-11-18T12:03:48.2706966\",\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":\"fixed\",\"requestedClosePositions\":null,\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":null,\"totalCosts\":null,\"totalProceeds\":null,\"currencyOfTotals\":null,\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "9e65f66a-43d6-454f-b4b6-eb02f6fd5860",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"CID\":17799278,\"Order\":{\"OrderID\":394985338,\"CID\":17799278,\"OpenDateTime\":\"2026-11-18T12:03:48.2706966Z\",\"InstrumentID\":100000,\"IsBuy\":true,\"TakeProfitRate\":0.0,\"StopLossRate\":0.01,\"Rate\":40000.0,\"Amount\":12.0000,\"Leverage\":1,\"Units\":0.0003,\"IsTslEnabled\":false,\"ExecutionType\":1,\"IsDiscounted\":false,\"IsNoStopLoss\":true,\"IsNoTakeProfit\":true},\"RequestToken\":\"41fe2198-1044-4d83-8313-6ede17f56801\"}",
+                                "id": "3bec4d5d-2cec-44cd-9217-91af4426aed0",
+                                "type": "Trading.Order.Open"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985338,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":null,\"portfolioId\":null,\"action\":\"open\",\"transaction\":\"na\",\"orderType\":\"mit\",\"eToroOrderType\":\"15\",\"openActionType\":null,\"closeActionType\":null,\"requestType\":\"units\",\"orderUpdateType\":\"canceled\",\"updateTime\":\"2026-11-18T12:03:53.7882241Z\",\"orderState\":\"canceled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"na\",\"settlementType\":\"real\",\"leverage\":null,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":null,\"requestedContracts\":null,\"requestedAmount\":null,\"requestTime\":null,\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":null,\"requestedClosePositions\":null,\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":null,\"totalCosts\":null,\"totalProceeds\":null,\"currencyOfTotals\":null,\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "7f7c9e80-6033-4195-8198-0d5ab43bd641",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"OrderID\":394985338,\"CID\":17799278,\"RequestToken\":\"3313b0f5-32cc-4da7-ab22-b476fbea2f25\"}",
+                                "id": "93e3d410-619f-4dae-b981-b46fd8641927",
+                                "type": "Trading.Order.Close"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"CID\":17799278,\"Position\":{\"PositionID\":3645512817,\"CID\":17799278,\"OpenDateTime\":\"2026-11-18T12:03:56.9663863Z\",\"OpenRate\":64093.02,\"InstrumentID\":100000,\"IsBuy\":true,\"TakeProfitRate\":0.0,\"StopLossRate\":0.01000000,\"MirrorID\":0,\"ParentPositionID\":0,\"Amount\":11.99,\"Leverage\":1,\"OrderID\":394985340,\"OrderType\":17,\"Units\":0.000187,\"TotalFees\":0.0,\"InitialAmountInDollars\":11.99,\"IsTslEnabled\":false,\"StopLossVersion\":1,\"IsSettled\":true,\"RedeemStatusID\":0,\"InitialUnits\":0.000187,\"UnitsBaseValueDollars\":11.99,\"IsDiscounted\":false,\"OpenPositionActionType\":0,\"SettlementTypeID\":1,\"DelayedOrderID\":0,\"PnlVersion\":1,\"OpenConversionRate\":1.0,\"TotalExternalFees\":0.12,\"TotalExternalTaxes\":0.0,\"IsNoStopLoss\":true,\"IsNoTakeProfit\":true,\"LotCount\":0.000187},\"RequestToken\":\"1f291f10-29c6-451e-8725-65bb8a81745b\"}",
+                                "id": "a590d5a3-f9f4-42a9-a847-94c3428a78f4",
+                                "type": "Trading.Position.Open"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"OrderID\":394985340,\"CID\":17799278,\"StatusID\":2,\"Amount\":11.99,\"AmountInUnits\":0.000187,\"InstrumentID\":100000,\"IsBuy\":true,\"Leverage\":1,\"StopLossRate\":0.01,\"TakeProfitRate\":0.0,\"IsTslEnabled\":false,\"IsDiscounted\":false,\"RequestGuid\":\"1f291f10-29c6-451e-8725-65bb8a81745b\",\"LastUpdated\":\"2026-11-18T12:03:56.9294979Z\",\"OpenDateTime\":\"2026-11-18T12:03:56.8329971Z\",\"OrderType\":17,\"FilledAmount\":0.0,\"FilledAmountUnits\":0.0,\"RequestToken\":\"1f291f10-29c6-451e-8725-65bb8a81745b\",\"MirrorID\":0,\"DelayedOrderID\":0,\"ErrorCode\":0,\"TotalExternalCosts\":0.12,\"OpenActionType\":0,\"IsNoStopLoss\":true,\"IsNoTakeProfit\":true,\"LotCount\":0.000187,\"FilledLots\":0.0}",
+                                "id": "dd899ed9-702d-4961-80bf-6dc8ad168187",
+                                "type": "Trading.OrderForOpen.Update"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985340,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":null,\"portfolioId\":null,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mkt\",\"eToroOrderType\":\"17\",\"openActionType\":\"0\",\"closeActionType\":null,\"requestType\":\"amount\",\"orderUpdateType\":\"created\",\"updateTime\":\"2026-11-18T12:03:56.9294979\",\"orderState\":\"placed\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":0.000187,\"requestedContracts\":0.000187,\"requestedAmount\":11.99,\"requestTime\":\"2026-11-18T12:03:56.8329971\",\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":\"fixed\",\"requestedClosePositions\":null,\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":null,\"totalCosts\":null,\"totalProceeds\":null,\"currencyOfTotals\":null,\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "4fd2a334-d731-47e3-b4db-6252efd043e2",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985340,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":16540033,\"portfolioId\":0,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mkt\",\"eToroOrderType\":\"17\",\"openActionType\":\"0\",\"closeActionType\":null,\"requestType\":\"amount\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-18T12:03:56.95\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":null,\"requestedContracts\":null,\"requestedAmount\":null,\"requestTime\":null,\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":\"fixed\",\"requestedClosePositions\":null,\"positionsExecutions\":[{\"positionId\":3645512817,\"positionUpdateType\":\"open\",\"updateTime\":\"2026-11-18T12:03:56.95\",\"positionState\":\"open\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"marginCurrency\":\"USD\",\"initialMargin\":11.99,\"additionalMargin\":null,\"margin\":11.99,\"openingData\":{\"orderId\":394985340,\"executionTime\":\"2026-11-18T12:03:56.9663863\",\"units\":0.000187,\"contracts\":0.000187,\"avgPrice\":64093.02,\"avgConversionRate\":1,\"marketSpread\":null,\"markup\":0.02,\"fees\":0.12,\"taxes\":0,\"openReason\":null,\"externalOperationInfo\":null,\"reopenForPositionId\":null,\"openTime\":\"2026-11-18T12:03:56.9663863\"},\"closingData\":null,\"remainingUnits\":0.000187,\"remainingContracts\":0.000187,\"stopLossRate\":null,\"takeProfitRate\":null,\"stopLossType\":\"fixed\"}],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":0.12,\"totalCosts\":12.11,\"totalProceeds\":null,\"currencyOfTotals\":\"USD\",\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "ca709fc9-ea9f-4721-8684-c77ec54991f0",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":394985340,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":null,\"portfolioId\":null,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mkt\",\"eToroOrderType\":\"17\",\"openActionType\":\"0\",\"closeActionType\":null,\"requestType\":\"amount\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-18T12:03:56.9294979\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":0.000187,\"requestedContracts\":0.000187,\"requestedAmount\":11.99,\"requestTime\":\"2026-11-18T12:03:56.8329971\",\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":\"fixed\",\"requestedClosePositions\":null,\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":0.00000000,\"remainingUnits\":0.00000000,\"totalFees\":0.12,\"totalCosts\":12.11000000,\"totalProceeds\":null,\"currencyOfTotals\":\"USD\",\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "ece07426-7e8e-4db1-b861-347393500649",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"PositionID\":3645512817,\"CID\":17799278,\"NetProfit\":0.0,\"CloseReason\":0,\"EndRate\":64098.23,\"RequestToken\":\"119484a0-d6ef-4c53-9c94-5f1d68919d8a\",\"ExitOrderID\":395026036,\"Leverage\":1,\"PositionRatio\":0.0,\"OccurredAt\":\"2026-11-18T12:04:03.6519864Z\",\"PositionAmount\":11.99,\"NetProfitRatio\":0.0,\"BonusCreditDelta\":0.0,\"ExitOrderType\":19,\"TotalExternalFees\":0.12,\"TotalExternalTaxes\":0.0}",
+                                "id": "c7c32e54-0bdb-4bf9-8d3d-70298bb71935",
+                                "type": "Trading.Position.Close"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":395026036,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":16540033,\"portfolioId\":null,\"action\":\"close\",\"transaction\":\"sell\",\"orderType\":\"mkt\",\"eToroOrderType\":\"19\",\"openActionType\":null,\"closeActionType\":\"0\",\"requestType\":\"position\",\"orderUpdateType\":\"created\",\"updateTime\":\"2026-11-18T12:04:03.6222408\",\"orderState\":\"placed\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"na\",\"leverage\":null,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":0.000187,\"requestedContracts\":0.000187,\"requestedAmount\":null,\"requestTime\":\"2026-11-18T12:04:03.5699005\",\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":null,\"requestedClosePositions\":[3645512817],\"positionsExecutions\":[],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":null,\"totalCosts\":null,\"totalProceeds\":null,\"currencyOfTotals\":null,\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "128cbf91-2668-4c83-b373-f5687b59bb33",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "content": "{\"orderId\":395026036,\"relatedOrderIds\":null,\"accountId\":17799278,\"gcid\":16540033,\"portfolioId\":0,\"action\":\"close\",\"transaction\":\"sell\",\"orderType\":\"mkt\",\"eToroOrderType\":\"19\",\"openActionType\":null,\"closeActionType\":\"0\",\"requestType\":\"position\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-18T12:04:03.65\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedQuantity\":null,\"requestedUnits\":null,\"requestedContracts\":null,\"requestedAmount\":null,\"requestTime\":null,\"openStopLossRate\":null,\"openTakeProfitRate\":null,\"requestedStopLossType\":null,\"requestedClosePositions\":[3645512817],\"positionsExecutions\":[{\"positionId\":3645512817,\"positionUpdateType\":\"close\",\"updateTime\":\"2026-11-18T12:04:03.65\",\"positionState\":\"closed\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"marginCurrency\":\"USD\",\"initialMargin\":null,\"additionalMargin\":null,\"margin\":11.99,\"openingData\":null,\"closingData\":{\"orderId\":395026036,\"executionTime\":\"2026-11-18T12:04:03.6519864\",\"units\":0.000187,\"contracts\":0.000187,\"avgPrice\":64098.23,\"avgConversionRate\":1,\"marketSpread\":null,\"markup\":-0.01,\"fees\":0.12,\"taxes\":0,\"closeReason\":null,\"externalOperationInfo\":null,\"closeTime\":\"2026-11-18T12:04:03.6519864\",\"partialClosedPositionId\":null,\"liquidationValueAcctCcy\":11.99,\"liquidationValue\":11.99,\"acctCcyReturn\":0,\"pnl\":0.00097427},\"remainingUnits\":0,\"remainingContracts\":0,\"stopLossRate\":null,\"takeProfitRate\":null,\"stopLossType\":null}],\"externalOperationInfo\":null,\"cancelledQuantity\":null,\"cancelledUnits\":null,\"remainingQuantity\":null,\"remainingUnits\":null,\"totalFees\":0.12,\"totalCosts\":null,\"totalProceeds\":11.87,\"currencyOfTotals\":\"USD\",\"frozenAmount\":null,\"errorMessage\":null,\"errorCode\":null}",
+                                "id": "2c279177-4891-482c-9e1d-dac1cb15d240",
+                                "type": "OrderEvent"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "3645512817-open",
+                            "info": {
+                                "positionId": 3645512817,
+                                "positionUpdateType": "open",
+                                "updateTime": "2026-11-18T12:03:56.95",
+                                "positionState": "open",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "USD"
+                                },
+                                "marginCurrency": "USD",
+                                "initialMargin": 11.99,
+                                "additionalMargin": null,
+                                "margin": 11.99,
+                                "openingData": {
+                                    "orderId": 394985340,
+                                    "executionTime": "2026-11-18T12:03:56.9663863",
+                                    "units": 0.000187,
+                                    "contracts": 0.000187,
+                                    "avgPrice": 64093.02,
+                                    "avgConversionRate": 1,
+                                    "marketSpread": null,
+                                    "markup": 0.02,
+                                    "fees": 0.12,
+                                    "taxes": 0,
+                                    "openReason": null,
+                                    "externalOperationInfo": null,
+                                    "reopenForPositionId": null,
+                                    "openTime": "2026-11-18T12:03:56.9663863"
+                                },
+                                "closingData": null,
+                                "remainingUnits": 0.000187,
+                                "remainingContracts": 0.000187,
+                                "stopLossRate": null,
+                                "takeProfitRate": null,
+                                "stopLossType": "fixed"
+                            },
+                            "timestamp": 1795003436966,
+                            "datetime": "2026-11-18T12:03:56.966Z",
+                            "symbol": "BTC/USD",
+                            "order": "394985340",
+                            "type": "market",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 64093.02,
+                            "amount": 0.000187,
+                            "cost": 11.98539474,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 0.12
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 0.12
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "id": "3645512817-close",
+                            "info": {
+                                "positionId": 3645512817,
+                                "positionUpdateType": "close",
+                                "updateTime": "2026-11-18T12:04:03.65",
+                                "positionState": "closed",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "USD"
+                                },
+                                "marginCurrency": "USD",
+                                "initialMargin": null,
+                                "additionalMargin": null,
+                                "margin": 11.99,
+                                "openingData": null,
+                                "closingData": {
+                                    "orderId": 395026036,
+                                    "executionTime": "2026-11-18T12:04:03.6519864",
+                                    "units": 0.000187,
+                                    "contracts": 0.000187,
+                                    "avgPrice": 64098.23,
+                                    "avgConversionRate": 1,
+                                    "marketSpread": null,
+                                    "markup": -0.01,
+                                    "fees": 0.12,
+                                    "taxes": 0,
+                                    "closeReason": null,
+                                    "externalOperationInfo": null,
+                                    "closeTime": "2026-11-18T12:04:03.6519864",
+                                    "partialClosedPositionId": null,
+                                    "liquidationValueAcctCcy": 11.99,
+                                    "liquidationValue": 11.99,
+                                    "acctCcyReturn": 0,
+                                    "pnl": 0.00097427
+                                },
+                                "remainingUnits": 0,
+                                "remainingContracts": 0,
+                                "stopLossRate": null,
+                                "takeProfitRate": null,
+                                "stopLossType": null
+                            },
+                            "timestamp": 1795003443651,
+                            "datetime": "2026-11-18T12:04:03.651Z",
+                            "symbol": "BTC/USD",
+                            "order": "395026036",
+                            "type": "market",
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 64098.23,
+                            "amount": 0.000187,
+                            "cost": 11.98636901,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 0.12
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 0.12
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,191 @@
+{
+    "exchange": "etoro",
+    "skipKeys": [],
+    "options": {
+        "sandboxMode": true
+    },
+    "methods": {
+        "closePosition": [
+            {
+                "description": "close the rest of a position",
+                "method": "closePosition",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/demo/market-close-orders/positions/3645512695",
+                "input": [
+                    "BTC/USD",
+                    null,
+                    {
+                        "positionId": "3645512695"
+                    }
+                ],
+                "output": "{\"InstrumentID\":100000}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "market buy by cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/demo/orders",
+                "input": [
+                    "BTC/USD",
+                    12
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"leverage\":1,\"orderCurrency\":\"usd\",\"amount\":12,\"orderType\":\"mkt\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel pending limit order",
+                "method": "cancelOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/demo/orders/394977917",
+                "input": [
+                    394977917
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "pending limit order",
+                "method": "fetchOpenOrders",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/demo/pnl",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "market sell part of a position",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/demo/market-close-orders/positions/3645512695",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "positionId": "3645512695"
+                    }
+                ],
+                "output": "{\"UnitsToDeduct\":0.0001,\"InstrumentID\":100000}"
+            },
+            {
+                "description": "limit buy placed as market-if-touched",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/demo/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.0003,
+                    40000
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"leverage\":1,\"orderCurrency\":\"usd\",\"units\":0.0003,\"orderType\":\"mit\",\"triggerRate\":40000}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "filled close order",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/demo/close-orders/394994989",
+                "input": [
+                    394994989,
+                    null,
+                    {
+                        "closeOrder": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "canceled limit order",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/demo/orders:lookup?orderId=394977917",
+                "input": [
+                    394977917
+                ],
+                "output": null
+            },
+            {
+                "description": "filled market buy by amount",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/demo/orders:lookup?orderId=394898254",
+                "input": [
+                    394898254
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "my trades since",
+                "method": "fetchMyTrades",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/trade/demo/history?minDate=2026-11-17",
+                "input": [
+                    "ETH/USD",
+                    1794873600000,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "balance",
+                "method": "fetchBalance",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/demo/pnl",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv 1h",
+                "method": "fetchOHLCV",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/100000/history/candles/asc/OneHour/3",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000%2C100001",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000",
+                "input": [
+                    "BTC/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://public-api.etoro.com/api/v2/market-data/instruments?type=Crypto&pageSize=1000",
+                "input": [],
+                "output": null
+            }
+        ]
+    },
+    "outputType": "both"
+}
