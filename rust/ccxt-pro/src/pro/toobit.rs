@@ -605,7 +605,7 @@ impl Toobit {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let timeframes: crate::value::Dict = self.safe_dict_t(self.options.get("ws").cloned().unwrap_or(Value::Null), Value::Str("timeframes".into()));
         let mut marketIds: Vec<Value> = Vec::new();
-        let mut selectedTimeframe: Option<String> = None;
+        let mut selectedTimeframe: Option<String> = Some("".to_string());
         {
                         let mut i: i64 = 0;
             let mut __for_first_673: bool = true;
@@ -613,15 +613,15 @@ impl Toobit {
             let data: crate::value::List = self.safe_list_t(&symbolsAndTimeframes, Value::Int(i));
             let symbolStr: String = self.safe_string(&data, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbolStr.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+            let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
             let rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &unfiedTimeframe, &[&unfiedTimeframe]);
-            if (selectedTimeframe.is_some()) && (selectedTimeframe != rawTimeframe) {
+            if (selectedTimeframe.as_deref() != Some("")) && (selectedTimeframe != rawTimeframe) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchOHLCVForSymbols() only supports a single timeframe for all symbols")));
             }  else {
                 selectedTimeframe = rawTimeframe;
             }
-            marketIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
+            marketIds.push(Value::from(marketId));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolStr).into()), "::").into()), unfiedTimeframe).into()));
         }
         }

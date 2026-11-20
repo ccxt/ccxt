@@ -38,8 +38,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let bidsLength: i64 = get_array_length(&bids).as_i64().unwrap_or_default();
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1563: bool = true;
-        while { if !__for_first_1563 { i += 1; } __for_first_1563 = false; i < bidsLength } {
+        let mut __for_first_1562: bool = true;
+        while { if !__for_first_1562 { i += 1; } __for_first_1562 = false; i < bidsLength } {
         let currentBidString: Option<String> = exchange.safe_string_opt(get_value(&bids, &Value::Int(i)), Value::Int(0), &[]);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
             let nextI: Value = Value::Int((i + 1));
@@ -59,8 +59,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let asksLength: i64 = get_array_length(&asks).as_i64().unwrap_or_default();
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1564: bool = true;
-        while { if !__for_first_1564 { i += 1; } __for_first_1564 = false; i < asksLength } {
+        let mut __for_first_1563: bool = true;
+        while { if !__for_first_1563 { i += 1; } __for_first_1563 = false; i < asksLength } {
         let currentAskString: Option<String> = exchange.safe_string_opt(get_value(&asks, &Value::Int(i)), Value::Int(0), &[]);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
             let nextI: Value = Value::Int((i + 1));

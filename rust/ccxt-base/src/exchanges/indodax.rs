@@ -1611,6 +1611,8 @@ impl Indodax {
         if isMarketBuy {
             paramsOmitted = self.omit_t(&params, Value::Str("cost".into()), &[]);
         }
+        let quoteId: String = self.safe_string_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let baseId: String = self.safe_string_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 let mut quoteAmount: Option<String> = None;
@@ -1626,7 +1628,7 @@ impl Indodax {
                     let costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     quoteAmount = self.cost_to_precision(symbol.as_str(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
-                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), quoteAmount.map(Value::from).unwrap_or(Value::Null));
+                request.insert(quoteId.clone(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 quantityIsRequired = true;
             }
@@ -1634,7 +1636,7 @@ impl Indodax {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side.as_str() == Some("buy")) {
-                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.as_str(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::from(self.number_to_string(&price)))))));
+                request.insert(quoteId, self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.as_str(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::from(self.number_to_string(&price)))))));
             }
         }
         if priceIsRequired {
@@ -1644,7 +1646,7 @@ impl Indodax {
             request.insert("price".into(), Value::from(price));
         }
         if quantityIsRequired {
-            request.insert(crate::runtime::stringify_param(&(Value::from((market).base_id.as_deref()))), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
+            request.insert(baseId, Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let result: crate::value::Dict = self.private_post_trade(&[&__ws_arg_8]).await.unwrap_or_default();

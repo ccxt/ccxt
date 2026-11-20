@@ -2147,10 +2147,9 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
-        let mut depth: Option<String> = None;
-        let mut paramsDepth: crate::value::Dict = Default::default();
-        { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())]); depth = __destr_tmp.0.as_str().map(str::to_owned); paramsDepth = __destr_tmp.1; }
-        let limit: Option<i64> = self.safe_integer_k(&paramsDepth, "limit", &[]).as_i64();
+        let limit: Option<i64> = self.safe_integer_k(&params, "limit", &[]).as_i64();
+        let depthOption: Option<String> = (self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("depth".into()), &[Value::Str("books".into())])).0.as_str().map(str::to_owned);
+        let mut depth: Option<String> = depthOption;
         if (limit.is_some()) {
             if (limit == Some(1)) {
                 depth = Some("bbo-tbt".to_string());

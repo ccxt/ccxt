@@ -7485,11 +7485,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     m
 })); }
         }
-        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
         let mut balance: indexmap::IndexMap<String, Value> = self.balance.get(accountType.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })).as_map().cloned().unwrap_or_default();
+        balance.insert("info".into(), message);
         let B: crate::value::List = __pro_message.key_list("B");
         {
                         let mut i: i64 = 0;

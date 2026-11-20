@@ -447,12 +447,8 @@ impl Bithumb {
         if (marketId.is_none()) {
             return;
         }
-        let mut symbol: Option<String> = None;
-        if isGenerationTwo {
-            symbol = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
-        }  else {
-            symbol = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("_".into())]).as_str().map(str::to_owned);
-        }
+        let delimiter: String = (if isGenerationTwo { "-".to_string() } else { "_".to_string() });
+        let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::from(delimiter)]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }

@@ -519,8 +519,8 @@ impl crate::exchange::DerivedExchange for Onetrading {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency_code", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1457,8 +1457,8 @@ impl Onetrading {
         let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1041: bool = true;
-            while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1040: bool = true;
+            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let tierObject: crate::value::Dict = (if (market).spot { firstSpotTier.clone() } else { firstFuturesTier.clone() }).into_dict();
@@ -1540,8 +1540,8 @@ impl Onetrading {
         let symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1042: bool = true;
-            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1041: bool = true;
+            while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let makerFee: Option<String> = (if (market).spot { spotMakerFee.clone() } else { futuresMakerFee.clone() });
@@ -1570,8 +1570,8 @@ impl Onetrading {
         let mut makerFees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1043: bool = true;
-            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (feeTiers.len() as i64) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (feeTiers.len() as i64) } {
             let tier: crate::value::Dict = self.safe_dict_t(&feeTiers, Value::Int(i));
             let volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
             let mut taker: Option<String> = self.safe_string_k_opt(&tier, "taker_fee", &[]);
@@ -1681,8 +1681,8 @@ impl Onetrading {
         let rawTickers: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (rawTickers.len() as i64) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (rawTickers.len() as i64) } {
             let ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, rawTickers.get(i as usize).cloned().unwrap_or(Value::Null), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
             let symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {

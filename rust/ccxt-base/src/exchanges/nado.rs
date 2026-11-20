@@ -276,7 +276,7 @@ impl crate::exchange::DerivedExchange for Nado {
         let mut amount: Option<f64> = None;
         let mut filled: Option<f64> = None;
         let mut remaining: Option<f64> = None;
-        let mut cost: Value = Value::Null;
+        let mut cost: Option<f64> = None;
         let mut average: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
         let mut lastTradeTimestamp: Option<i64> = None;
@@ -296,9 +296,11 @@ impl crate::exchange::DerivedExchange for Nado {
             }
             filled = self.parse_x18(crate::precise::Precise::stringAbs(&archiveFilled)).as_f64();
             let costString: Option<String> = self.safe_string_k_opt(&order, "quote_filled", &[]);
-            cost = (if (costString.is_none()) { Value::Null } else { self.parse_x18(crate::precise::Precise::stringAbs(&costString)) });
-            if (filled.is_some()) && (cost != Value::Null) {
-                average = crate::precise::Precise::stringDiv(&Value::from(self.number_to_string(&cost)), &Value::from(self.number_to_string(Value::from(filled)))).as_str().map(str::to_owned);
+            if (costString.is_some()) {
+                cost = self.parse_x18(crate::precise::Precise::stringAbs(&costString)).as_f64();
+            }
+            if (filled.is_some()) && (cost.is_some()) {
+                average = crate::precise::Precise::stringDiv(&Value::from(self.number_to_string(Value::from(cost))), &Value::from(self.number_to_string(Value::from(filled)))).as_str().map(str::to_owned);
             }
             if (amountString.is_some()) && (archiveFilled.is_some()) {
                 remaining = self.parse_x18(crate::precise::Precise::stringMax(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringAbs(&amountString), &crate::precise::Precise::stringAbs(&archiveFilled)), &Value::Str("0".into()))).as_f64();
@@ -392,7 +394,7 @@ impl crate::exchange::DerivedExchange for Nado {
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), Value::from(amount));
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), Value::from(cost));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::from(filled));
         m.insert("remaining".to_string(), Value::from(remaining));
@@ -434,8 +436,8 @@ impl crate::exchange::DerivedExchange for Nado {
         let balances: crate::value::List = self.safe_list_k_t(response, "spot_balances");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_999: bool = true;
-            while { if !__for_first_999 { i += 1; } __for_first_999 = false; i < (balances.len() as i64) } {
+            let mut __for_first_998: bool = true;
+            while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (balances.len() as i64) } {
             let rawBalance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&rawBalance, "product_id", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1628,7 +1630,8 @@ impl Nado {
                 let m = indexmap::IndexMap::new();
                 m
             });
-            priceRequirement.insert(format!("{}{}", "oracle_price_", directionSuffix), triggerPriceX18.map(Value::from).unwrap_or(Value::Null));
+            let oracleKey: String = format!("{}{}", "oracle_price_", directionSuffix);
+            priceRequirement.insert(oracleKey, triggerPriceX18.map(Value::from).unwrap_or(Value::Null));
             let trigger: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
@@ -1656,7 +1659,8 @@ impl Nado {
                 let m = indexmap::IndexMap::new();
                 m
             });
-            priceRequirement.insert(format!("{}{}", "oracle_price_", oracleSide), triggerPriceX18.map(Value::from).unwrap_or(Value::Null));
+            let oracleKey: String = format!("{}{}", "oracle_price_", oracleSide);
+            priceRequirement.insert(oracleKey, triggerPriceX18.map(Value::from).unwrap_or(Value::Null));
             let trigger: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
@@ -1951,8 +1955,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_982: bool = true;
-            while { if !__for_first_982 { i += 1; } __for_first_982 = false; i < (cancelledOrders.len() as i64) } {
+            let mut __for_first_981: bool = true;
+            while { if !__for_first_981 { i += 1; } __for_first_981 = false; i < (cancelledOrders.len() as i64) } {
             let __ws_arg_2 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".into()));
@@ -2074,8 +2078,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_983: bool = true;
-            while { if !__for_first_983 { i += 1; } __for_first_983 = false; i < (cancelledOrders.len() as i64) } {
+            let mut __for_first_982: bool = true;
+            while { if !__for_first_982 { i += 1; } __for_first_982 = false; i < (cancelledOrders.len() as i64) } {
             let __ws_arg_3 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".into()));
@@ -2113,8 +2117,8 @@ impl Nado {
         let mut productIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_984: bool = true;
-            while { if !__for_first_984 { i += 1; } __for_first_984 = false; i < (ids.len() as i64) } {
+            let mut __for_first_983: bool = true;
+            while { if !__for_first_983 { i += 1; } __for_first_983 = false; i < (ids.len() as i64) } {
             productIds.push(Value::from(productId));
         }
         }
@@ -2517,8 +2521,8 @@ impl Nado {
         let orders: crate::value::List = self.safe_list_k_t(&response, "orders");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_985: bool = true;
-            while { if !__for_first_985 { i += 1; } __for_first_985 = false; i < (orders.len() as i64) } {
+            let mut __for_first_984: bool = true;
+            while { if !__for_first_984 { i += 1; } __for_first_984 = false; i < (orders.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             if self.is_archive_order_closed(Value::from(&order)).as_bool() == Some(true) {
                 closedOrders.push(self.extend(Value::Map({
@@ -2695,8 +2699,8 @@ impl Nado {
         let mut trades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_986: bool = true;
-            while { if !__for_first_986 { i += 1; } __for_first_986 = false; i < (matches.len() as i64) } {
+            let mut __for_first_985: bool = true;
+            while { if !__for_first_985 { i += 1; } __for_first_985 = false; i < (matches.len() as i64) } {
             let match_val: crate::value::Dict = self.safe_dict_t(&matches, Value::Int(i));
             let submissionIdx: Option<String> = self.safe_string_k_opt(&match_val, "submission_idx", &[]);
             let tx: crate::value::Dict = self.safe_dict_t(&txsBySubmission, submissionIdx.map(Value::from).unwrap_or(Value::Null));
@@ -2909,8 +2913,8 @@ impl Nado {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_988: bool = true;
-            while { if !__for_first_988 { i += 1; } __for_first_988 = false; i < (events.len() as i64) } {
+            let mut __for_first_987: bool = true;
+            while { if !__for_first_987 { i += 1; } __for_first_987 = false; i < (events.len() as i64) } {
             let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let submissionIdx: Option<String> = self.safe_string_k_opt(&event, "submission_idx", &[]);
             let mut tx: Value = Value::Map({
@@ -2919,8 +2923,8 @@ impl Nado {
             });
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_987: bool = true;
-                while { if !__for_first_987 { j += 1; } __for_first_987 = false; j < (txs.len() as i64) } {
+                let mut __for_first_986: bool = true;
+                while { if !__for_first_986 { j += 1; } __for_first_986 = false; j < (txs.len() as i64) } {
                 let mut rawTx: Option<crate::value::Dict> = txs.get(j as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
                 let txSubmissionIdx: Option<String> = self.safe_string_k_opt(&rawTx, "submission_idx", &[]);
                 if (txSubmissionIdx == submissionIdx) {
@@ -3013,8 +3017,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_990: bool = true;
-            while { if !__for_first_990 { i += 1; } __for_first_990 = false; i < (positions.len() as i64) } {
+            let mut __for_first_989: bool = true;
+            while { if !__for_first_989 { i += 1; } __for_first_989 = false; i < (positions.len() as i64) } {
             let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let balance: crate::value::Dict = self.safe_dict_k_t(&position, "balance");
             let amount: Option<String> = self.safe_string_k_opt(&balance, "amount", &[]);
@@ -3028,8 +3032,8 @@ impl Nado {
             });
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_989: bool = true;
-                while { if !__for_first_989 { j += 1; } __for_first_989 = false; j < (products.len() as i64) } {
+                let mut __for_first_988: bool = true;
+                while { if !__for_first_988 { j += 1; } __for_first_988 = false; j < (products.len() as i64) } {
                 let mut rawProduct: Option<crate::value::Dict> = products.get(j as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
                 let rawProductId: Option<String> = self.safe_string_k_opt(&rawProduct, "product_id", &[]);
                 if (rawProductId == productId) {
@@ -3162,8 +3166,8 @@ impl Nado {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_991: bool = true;
-            while { if !__for_first_991 { i += 1; } __for_first_991 = false; i < (pairs.len() as i64) } {
+            let mut __for_first_990: bool = true;
+            while { if !__for_first_990 { i += 1; } __for_first_990 = false; i < (pairs.len() as i64) } {
             let rawPair: crate::value::Dict = self.safe_dict_t(&pairs, Value::Int(i));
             let pairProductId: Option<String> = self.safe_string_k_opt(&rawPair, "product_id", &[]);
             if (pairProductId.is_some()) {
@@ -3177,8 +3181,8 @@ impl Nado {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_992: bool = true;
-            while { if !__for_first_992 { i += 1; } __for_first_992 = false; i < (assets.len() as i64) } {
+            let mut __for_first_991: bool = true;
+            while { if !__for_first_991 { i += 1; } __for_first_991 = false; i < (assets.len() as i64) } {
             let rawAsset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             let assetProductId: Option<String> = self.safe_string_k_opt(&rawAsset, "product_id", &[]);
             if (assetProductId.is_some()) {
@@ -3192,8 +3196,8 @@ impl Nado {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_993: bool = true;
-            while { if !__for_first_993 { i += 1; } __for_first_993 = false; i < (assets.len() as i64) } {
+            let mut __for_first_992: bool = true;
+            while { if !__for_first_992 { i += 1; } __for_first_992 = false; i < (assets.len() as i64) } {
             let rawAsset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             let assetSymbol: Option<String> = self.safe_string_k_opt(&rawAsset, "symbol", &[]);
             let assetCode: Option<String> = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).as_deref(), None);
@@ -3217,8 +3221,8 @@ impl Nado {
         let mut markets: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_994: bool = true;
-            while { if !__for_first_994 { i += 1; } __for_first_994 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_993: bool = true;
+            while { if !__for_first_993 { i += 1; } __for_first_993 = false; i < (symbols.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&symbols, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "product_id", &[]);
             let pair: crate::value::Dict = self.safe_dict_t(&pairsById, &id);
@@ -3361,8 +3365,8 @@ impl Nado {
         let assets: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_995: bool = true;
-            while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (assets.len() as i64) } {
+            let mut __for_first_994: bool = true;
+            while { if !__for_first_994 { i += 1; } __for_first_994 = false; i < (assets.len() as i64) } {
             let currency: Value = self.safe_value(&assets, Value::Int(i), &[]);
             let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, currency.clone()).into_dict();
             let code: Option<String> = self.safe_string_k_opt(&parsed, "code", &[]);
@@ -3597,8 +3601,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_996: bool = true;
-            while { if !__for_first_996 { i += 1; } __for_first_996 = false; i < (fundingPayments.len() as i64) } {
+            let mut __for_first_995: bool = true;
+            while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (fundingPayments.len() as i64) } {
             result.push(self.parse_funding_history(fundingPayments.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)));
         }
         }
@@ -3659,8 +3663,8 @@ impl Nado {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_997: bool = true;
-            while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_996: bool = true;
+            while { if !__for_first_996 { i += 1; } __for_first_996 = false; i < (tickers.len() as i64) } {
             let ticker: Option<&str> = tickers.get(i as usize).and_then(Value::as_str);
             rates.push(self.safe_dict(&response, Value::from(ticker.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3781,8 +3785,8 @@ impl Nado {
         let mut interests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_998: bool = true;
-            while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_997: bool = true;
+            while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (tickers.len() as i64) } {
             let ticker: Option<&str> = tickers.get(i as usize).and_then(Value::as_str);
             interests.push(self.safe_dict(&response, Value::from(ticker.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4110,7 +4114,7 @@ impl Nado {
         if ((encoded.as_deref().unwrap_or_default().chars().count() as i64)) > 24 {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder() subaccount must fit in 12 bytes")));
         }
-        return Some(format!("{}{}", Value::Str(format!("{}{}", "0x", address).into()), self.pad_hex(encoded.as_deref().unwrap_or_default(), Value::Int(24), &[&Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null)));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", "0x", address).into()), self.pad_hex(encoded.as_deref().unwrap_or_default(), 24.0, &[&Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null)));
 }
 
     pub async fn query_contracts(&mut self, optional_args: &[&Value]) -> Value {
@@ -4141,23 +4145,21 @@ impl Nado {
 }
 
     pub fn order_verifying_contract(&self, productId: Option<i64>) -> Option<String> {
-        return Some(format!("{}{}", Value::Str("0x".into()), self.pad_hex(self.int_to_base16(Value::from(productId), &[]).as_str(), Value::Int(40), &[]).map(Value::from).unwrap_or(Value::Null)));
+        return Some(format!("{}{}", Value::Str("0x".into()), self.pad_hex(self.int_to_base16(Value::from(productId), &[]).as_str(), 40.0, &[]).map(Value::from).unwrap_or(Value::Null)));
 }
 
-    pub fn pad_hex(&self, value: &str, mut length: Value, optional_args: &[&Value]) -> Option<String> {
+    pub fn pad_hex(&self, value: &str, length: f64, optional_args: &[&Value]) -> Option<String> {
         let left: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let zeros: String = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_string();
         if left {
             let mut paddedLeft: String = format!("{}{}", zeros, Value::from(value));
-            let start: Option<i64> = (if let Some(__r) = (self.parse_to_int(&length)) { Some(((paddedLeft.chars().count() as i64)) - __r) } else { None });
+            let start: Option<i64> = (if let Some(__r) = (self.parse_to_int(Value::from(length))) { Some(((paddedLeft.chars().count() as i64)) - __r) } else { None });
             return Value::from(({ let (__l, __b, __e) = (paddedLeft.chars().count() as i64, start.unwrap_or(0), ((paddedLeft.chars().count() as i64))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
                 paddedLeft.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })).as_str().map(str::to_owned);
         }
-        let paddedRight: Value = Value::Str(format!("{}{}", Value::from(value), zeros).into());
-        return (match (&(paddedRight), 0i64, (match &(length) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str().map(str::to_owned);
+        let mut paddedRight: String = format!("{}{}", Value::from(value), zeros);
+        let end: i64 = self.parse_to_int(Value::from(length)).unwrap_or_default();
+        return Value::from(({ let (__l, __b, __e) = (paddedRight.chars().count() as i64, 0, end); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); paddedRight.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })).as_str().map(str::to_owned);
 }
 
     pub fn sign_order(&self, order: impl Into<crate::Value>, productId: Option<i64>, chainId: Option<&str>) -> Option<String> {
@@ -4321,7 +4323,7 @@ impl Nado {
         let r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let v: Value = (Value::from(self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(r.as_str(), Value::Int(64), &[]).map(Value::from).unwrap_or(Value::Null)).into()), self.pad_hex(s.as_str(), Value::Int(64), &[]).map(Value::from).unwrap_or(Value::Null)).into()), v));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(r.as_str(), 64.0, &[]).map(Value::from).unwrap_or(Value::Null)).into()), self.pad_hex(s.as_str(), 64.0, &[]).map(Value::from).unwrap_or(Value::Null)).into()), v));
 }
 
     pub fn remove_market_suffix(&self, marketId: Option<&str>) -> Option<String> {
@@ -4355,8 +4357,8 @@ impl Nado {
             let queryNames: Vec<Value> = Value::Array(byQuery.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1000: bool = true;
-                while { if !__for_first_1000 { i += 1; } __for_first_1000 = false; i < (queryNames.len() as i64) } {
+                let mut __for_first_999: bool = true;
+                while { if !__for_first_999 { i += 1; } __for_first_999 = false; i < (queryNames.len() as i64) } {
                 let queryName: Option<&str> = queryNames.get(i as usize).and_then(Value::as_str);
                 if (matches!((&params, queryName.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                     let weights: crate::value::List = self.safe_list_t(&byQuery, Value::from(queryName.as_deref()));

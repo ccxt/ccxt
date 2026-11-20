@@ -4652,9 +4652,10 @@ impl Blofin {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")));
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let marketIds: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instId".to_string(), Value::Str((self.market_ids(symbolsNormalized.as_deref()).map_or(Value::Null, Value::Arr)).as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                m.insert("instId".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
             m
         });

@@ -4495,10 +4495,12 @@ impl Coinbaseinternational {
         let useEddsa: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut uri: Option<String> = None;
         if (url.is_some()) && (method.is_some()) {
-            uri = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(method), " ").into()), url.map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| Value::from(url))));
-            let quesPos: i64 = (if let (Some(__h), Some(__n)) = (uri.as_deref(), Some("?")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+            let mut fullUri: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(method), " ").into()), url.map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| Value::from(url)));
+            let quesPos: i64 = (if let (Some(__h), Some(__n)) = (Some(fullUri.as_str()), Some("?")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
             if quesPos > 0 {
-                uri = (if let Some(__s) = uri.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, quesPos); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
+                uri = Some(({ let (__l, __b, __e) = (fullUri.chars().count() as i64, 0, quesPos); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); fullUri.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() }));
+            }  else {
+                uri = Some(fullUri);
             }
         }
         let nonce: String = self.random_bytes(Value::Int(16));

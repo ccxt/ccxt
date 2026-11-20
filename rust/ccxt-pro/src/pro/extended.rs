@@ -326,7 +326,7 @@ impl Extended {
                 m
             });
             self.extend_exchange_options(&[Value::Map(defaultOptions)]);
-            let originalOptions: Value = crate::value::get_value_k(&self.options.get("ws").cloned().unwrap_or(Value::Null), "options");
+            let originalOptions: Value = self.safe_dict(self.options.get("ws").cloned().unwrap_or(Value::Null), Value::Str("options".into()), &[]);
             let originalHeaders: crate::value::Dict = self.safe_dict_k_t(&originalOptions, "headers");
             let __ws_arg_0 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1215,11 +1215,9 @@ impl Extended {
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         let timeframe: String = self.safe_string_k(&subscription, "timeframe", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let candleType: String = self.safe_string_k(&subscription, "candleType", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut cacheKey: Option<String> = None;
-        if (candleType == "trades") {
-            cacheKey = Some(timeframe);
-        }  else {
-            cacheKey = Some(format!("{}{}", Value::Str(format!("{}{}", timeframe, ":").into()), candleType));
+        let mut cacheKey: String = timeframe;
+        if (candleType != "trades") {
+            cacheKey = format!("{}{}", Value::Str(format!("{}{}", cacheKey, ":").into()), candleType);
         }
         let messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);

@@ -1067,12 +1067,14 @@ impl Mudrex {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_get_futures(&[&__ws_arg_4]).await.unwrap_or_default();
-        let (mut data, data__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.safe_value_k(&response, "data", &[Value::from(vec![])]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (data.is_some()) {
-            rows = self.safe_list_k_t(&response, "data");
-        }  else {
-            rows = self.safe_list_k_t(&data__map, "items");
+        rows = self.safe_list_k_t(&response, "data");
+        let rowsLength: i64 = rows.len() as i64;
+        if (rowsLength == 0) {
+            rows = self.safe_list_t(self.safe_dict_k(&response, "data", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Value::Str("items".into()));
         }
         let mut resultTickers: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -1080,8 +1082,8 @@ impl Mudrex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_973: bool = true;
-            while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < (rows.len() as i64) } {
+            let mut __for_first_972: bool = true;
+            while { if !__for_first_972 { i += 1; } __for_first_972 = false; i < (rows.len() as i64) } {
             let t: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let sym: Option<String> = self.safe_string_k_opt(&t, "symbol", &[]);
             if (sym.is_none()) {
@@ -1154,8 +1156,8 @@ impl Mudrex {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_974: bool = true;
-                while { if !__for_first_974 { i += 1; } __for_first_974 = false; i < numItems } {
+                let mut __for_first_973: bool = true;
+                while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < numItems } {
                 aggregated.push(items.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -1169,8 +1171,8 @@ impl Mudrex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_975: bool = true;
-            while { if !__for_first_975 { i += 1; } __for_first_975 = false; i < (aggregated.len() as i64) } {
+            let mut __for_first_974: bool = true;
+            while { if !__for_first_974 { i += 1; } __for_first_974 = false; i < (aggregated.len() as i64) } {
             result.push(<Self as crate::exchange::DerivedExchange>::parse_market(self, aggregated.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -1652,8 +1654,8 @@ impl Mudrex {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_976: bool = true;
-            while { if !__for_first_976 { i += 1; } __for_first_976 = false; i < (rows.len() as i64) } {
+            let mut __for_first_975: bool = true;
+            while { if !__for_first_975 { i += 1; } __for_first_975 = false; i < (rows.len() as i64) } {
             orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
@@ -1787,8 +1789,8 @@ impl Mudrex {
         let mut outPos: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_977: bool = true;
-            while { if !__for_first_977 { i += 1; } __for_first_977 = false; i < (rows.len() as i64) } {
+            let mut __for_first_976: bool = true;
+            while { if !__for_first_976 { i += 1; } __for_first_976 = false; i < (rows.len() as i64) } {
             let p: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let symRaw: Option<String> = self.safe_string_k_opt(&p, "symbol", &[]);
             let m: crate::types::Market = self.safe_market(symRaw.as_deref(), None, &[]);
@@ -2082,8 +2084,8 @@ impl Mudrex {
             let dataLength: i64 = data.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_978: bool = true;
-                while { if !__for_first_978 { i += 1; } __for_first_978 = false; i < (data.len() as i64) } {
+                let mut __for_first_977: bool = true;
+                while { if !__for_first_977 { i += 1; } __for_first_977 = false; i < (data.len() as i64) } {
                 let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
                 allRows.push(Value::from(&entry));
                 if (self.safe_string_k(&entry, "fee_type", &[]).as_str() == Some("TRANSACTION")) {
@@ -2112,8 +2114,8 @@ impl Mudrex {
         let mut transactionKeys: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_979: bool = true;
-            while { if !__for_first_979 { i += 1; } __for_first_979 = false; i < (allRows.len() as i64) } {
+            let mut __for_first_978: bool = true;
+            while { if !__for_first_978 { i += 1; } __for_first_978 = false; i < (allRows.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&allRows, Value::Int(i));
             let feeType: Option<String> = self.safe_string_k_opt(&entry, "fee_type", &[]);
             let pairKey: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&entry, "created_at", &[Value::Str("".into())])).into()), ":").into()), self.safe_string_k(&entry, "transaction_amount", &[Value::Str("".into())]));
@@ -2129,13 +2131,13 @@ impl Mudrex {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_981: bool = true;
-            while { if !__for_first_981 { i += 1; } __for_first_981 = false; i < (transactions.len() as i64) } {
+            let mut __for_first_980: bool = true;
+            while { if !__for_first_980 { i += 1; } __for_first_980 = false; i < (transactions.len() as i64) } {
             let mut rebate: Option<String> = None;
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_980: bool = true;
-                while { if !__for_first_980 { j += 1; } __for_first_980 = false; j < (rebateKeys.len() as i64) } {
+                let mut __for_first_979: bool = true;
+                while { if !__for_first_979 { j += 1; } __for_first_979 = false; j < (rebateKeys.len() as i64) } {
                 if (rebateKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str()) {
                     rebate = self.safe_string_opt(&rebateAmounts, Value::Int(j), &[]);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

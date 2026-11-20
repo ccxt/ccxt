@@ -1344,9 +1344,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (market.is_some()) {
             marketCode = self.safe_string_lower_k_opt(&market, "lowercaseId", &[]);
         }
-        let mut baseId: Value = Value::Null;
+        let mut baseId: Option<String> = None;
         if (market.is_some()) {
-            baseId = crate::value::KeyRead::key_read(&market, "baseId");
+            baseId = self.safe_string_k_opt(&market, "baseId", &[]);
         }
         let prefix: Option<String> = orderType;
         let mut messageHash: Option<String> = prefix.clone();
@@ -1368,8 +1368,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }  else if (type_var.as_str() == Some("future")) {
             // inverse futures Example: BCH/USD:BCH-220408
-            if (baseId != Value::Null) {
-                let lowerBaseId: Option<String> = baseId.as_str().map(str::to_lowercase);
+            if (baseId.is_some()) {
+                let lowerBaseId: Option<String> = baseId.as_deref().map(str::to_lowercase);
                 let baseTopic: String = format!("{}{}", Value::Str(format!("{}{}", prefix.as_deref().unwrap_or("null"), ".").into()), lowerBaseId.as_deref().unwrap_or("null"));
                 channel = baseTopic.clone();
                 messageHash = Some(baseTopic);
@@ -1397,20 +1397,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut contractCode: Value = Value::Null;
+        let mut contractCode: Option<String> = None;
         if (market != Value::Null) {
-            contractCode = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+            contractCode = self.safe_string_k_opt(market, "id", &[]);
         }  else {
-            contractCode = self.safe_string_k(&params, "contract_code", &[Value::Str("*".into())]);
+            contractCode = self.safe_string_k_opt(&params, "contract_code", &[&Value::Str("*".into())]);
         }
         let mut messageHash: Value = topic.clone();
-        if (contractCode != Value::Null) && (contractCode.as_str() != Some("*")) {
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, ".").into()), (if let Some(__s) = contractCode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
+        if (contractCode.is_some()) && (contractCode.as_deref() != Some("*")) {
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, ".").into()), contractCode.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)).into());
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("contract_code".into()), &[]);
         let requestParams: crate::value::Dict = self.extend_t(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("contract_code".to_string(), contractCode);
+                m.insert("contract_code".to_string(), contractCode.map(Value::from).unwrap_or(Value::Null));
             m
         }), &[&paramsOmitted]);
         return Value::from(vec![topic, messageHash, Value::Dict(requestParams)]);
@@ -3465,22 +3465,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");
         let typeUrlsByApi: crate::value::Dict = self.safe_dict_t(&wsUrls, Value::from(api));
         let mut hostnameURL: Value = Value::Null;
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         if (type_var.as_str() == Some("spot")) {
-            let spotUrls: indexmap::IndexMap<String, Value> = self.safe_dict_k(&typeUrlsByApi, "spot", &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]).as_map().cloned().unwrap_or_default();
+            let spotUrls: crate::value::Dict = self.safe_dict_k_t(&typeUrlsByApi, "spot");
             if isPrivate {
-                hostnameURL = spotUrls.get("private").cloned().unwrap_or(Value::Null);
+                hostnameURL = self.safe_string_k(&spotUrls, "private", &[]);
             }  else {
                 if isFeed {
-                    hostnameURL = spotUrls.get("feed").cloned().unwrap_or(Value::Null);
+                    hostnameURL = self.safe_string_k(&spotUrls, "feed", &[]);
                 }  else {
-                    hostnameURL = spotUrls.get("public").cloned().unwrap_or(Value::Null);
+                    hostnameURL = self.safe_string_k(&spotUrls, "public", &[]);
                 }
             }
-            url = Value::from(self.implode_params(hostnameURL, Value::Map(hostname)));
+            url = Some(self.implode_params(hostnameURL, Value::Map(hostname)));
         }  else {
             let typeUrls: crate::value::Dict = self.safe_dict_t(&typeUrlsByApi, type_var);
             let mut subTypeUrl: Option<crate::value::Dict> = None;
@@ -3497,15 +3494,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             if isPrivate {
                 if isV5 && isLinear {
-                    url = self.safe_string_k(&subTypeUrl, "privateV5", &[crate::value::KeyRead::key_read(&&subTypeUrl, "private")]);
+                    url = self.safe_string2_opt(&subTypeUrl, Value::Str("privateV5".into()), Value::Str("private".into()), &[]);
                 }  else {
-                    url = crate::value::KeyRead::key_read(&&subTypeUrl, "private");
+                    url = self.safe_string_k_opt(&subTypeUrl, "private", &[]);
                 }
             }  else {
-                url = crate::value::KeyRead::key_read(&&subTypeUrl, "public");
+                url = self.safe_string_k_opt(&subTypeUrl, "public", &[]);
             }
         }
-        return url.as_str().map(str::to_owned);
+        return url;
 }
 
     pub async fn subscribe_public(&mut self, url: Option<&str>, symbol: Option<&str>, messageHash: Option<&str>, optional_args: &[&Value]) -> Value {

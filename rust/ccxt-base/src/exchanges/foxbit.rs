@@ -574,12 +574,11 @@ impl crate::exchange::DerivedExchange for Foxbit {
             }
         }
         let mut requestBody: Option<String> = None;
-        if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-            requestBody = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
-        }
         let mut bodyToSignature: Option<String> = Some("".to_string());
-        if (requestBody.is_some()) {
-            bodyToSignature = requestBody.clone();
+        if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
+            let jsonBody: Option<String> = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
+            requestBody = jsonBody.clone();
+            bodyToSignature = jsonBody;
         }
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

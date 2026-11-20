@@ -741,8 +741,8 @@ impl Apex {
         let topic: String = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let updateType: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         let data: crate::value::Dict = __pro_message.key_dict("data");
-        let mut symbol: Option<String> = None;
         let mut parsed: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ticker(Value::from(&data), None));
+        let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
         if (updateType.as_deref() == Some("snapshot")) {
             parsed = std::sync::Arc::unwrap_or_clone(self.parse_ticker(Value::from(&data), None));
             symbol = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -756,6 +756,8 @@ impl Apex {
             let rawTicker: crate::value::Dict = self.safe_dict_k_t(&ticker, "info");
             let merged: crate::value::Dict = self.extend_t(rawTicker, &[&data]);
             parsed = std::sync::Arc::unwrap_or_clone(self.parse_ticker(Value::Dict(merged), None));
+        }  else {
+            symbol = None;
         }
         let timestamp: Option<i64> = self.safe_integer_product_k(message, "ts", Value::Float(0.001), &[]).as_i64();
         parsed.insert("timestamp".into(), Value::from(timestamp));

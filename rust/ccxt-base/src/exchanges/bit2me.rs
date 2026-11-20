@@ -281,7 +281,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         let status: Option<String> = self.safe_string_k_opt(&market, "marketEnabled", &[]);
-        let fees: Value = Value::Dict(self.fees.clone());
+        let tradingFees: crate::value::Dict = self.safe_dict_k_t(&self.fees, "trading");
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(id));
@@ -307,8 +307,8 @@ impl crate::exchange::DerivedExchange for Bit2me {
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
-        m.insert("taker".to_string(), fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("taker")).cloned().unwrap_or(Value::Null));
-        m.insert("maker".to_string(), fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null));
+        m.insert("taker".to_string(), self.safe_number_k(&tradingFees, "taker", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&tradingFees, "maker", &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "amountPrecision", &[])]), &[]));

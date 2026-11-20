@@ -825,9 +825,10 @@ impl crate::exchange::DerivedExchange for Deepcoin {
             });
             let mut requestBody: Option<String> = None;
             if (method.as_str() != Some("GET")) {
-                requestBody = json_stringify(&params).as_str().map(str::to_owned);
+                let mut body: Option<String> = json_stringify(&params).as_str().map(str::to_owned);
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
-                payload.push_str(requestBody.as_deref().unwrap_or("null"));
+                payload.push_str(body.as_deref().unwrap_or("null"));
+                requestBody = body.take();
             }
             let signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(&self.secret), "sha256", &[Value::Str("base64".into())]);
             privateHeaders.insert("DC-ACCESS-SIGN".into(), Value::from(signature));

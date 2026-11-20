@@ -2548,10 +2548,11 @@ impl Gate {
                 }
             }
             stored.append(parsed.clone().map_or(Value::Null, Value::Dict));
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if (Value::from((market).id.as_deref()) != Value::Null) {
-                marketIds.insert(crate::runtime::stringify_param(&(Value::from((market).id.as_deref()))), Value::Bool(true));
+            let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
+            if (marketId.is_some()) {
+                marketIds.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
@@ -2735,12 +2736,9 @@ impl Gate {
             std::sync::Arc::make_mut(&mut newLiquidations).push(Value::from(&liquidation));
             let symbol: Option<String> = self.safe_string_k_opt(&liquidation, "symbol", &[]);
             if (symbol.is_some()) {
-                let mut symbolLiquidations: Value = self.safe_list(&liquidationsBySymbol, Value::from(symbol.as_deref()), &[]);
-                if (symbolLiquidations == Value::Null) {
-                    symbolLiquidations = Value::from(vec![]);
-                }
-                if let Value::Arr(__a) = &mut symbolLiquidations { std::sync::Arc::make_mut(__a).push(Value::Dict(liquidation)); };
-                liquidationsBySymbol.insert(symbol.as_deref().unwrap_or("null").to_string(), symbolLiquidations);
+                let mut symbolLiquidations: crate::value::List = self.safe_list_t(&liquidationsBySymbol, Value::from(symbol.as_deref()));
+                std::sync::Arc::make_mut(&mut symbolLiquidations).push(Value::Dict(liquidation));
+                liquidationsBySymbol.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Arr(symbolLiquidations));
             }
         }
         }

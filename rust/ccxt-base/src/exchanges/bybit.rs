@@ -2092,7 +2092,7 @@ impl crate::exchange::DerivedExchange for Bybit {
 }
     fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
-        let mut quote: Option<String> = None;
+        let mut quote: String = "USDC".to_string();
         let optionParts: crate::value::List = crate::value::List::new(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let symbolBase: crate::value::List = crate::value::List::new(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut expiry: Option<String> = None;
@@ -2106,14 +2106,11 @@ impl crate::exchange::DerivedExchange for Bybit {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createExpiredOptionMarket() missing symbolQuoteAndSettle")));
             }
             let splitQuote: crate::value::List = crate::value::List::new(if let Some(__s) = symbolQuoteAndSettle.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
-            let quoteAndSettle: Option<String> = self.safe_string_opt(&splitQuote, Value::Int(0), &[]);
-            quote = quoteAndSettle;
+            quote = self.safe_string(&splitQuote, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }  else {
             expiry = self.convert_market_id_expire_date(self.safe_string(&optionParts, Value::Int(1), &[]).as_str()).as_str().map(str::to_owned);
             if (symbol.as_str().unwrap_or("").ends_with("-USDT")) {
-                quote = Some("USDT".to_string());
-            }  else {
-                quote = Some("USDC".to_string());
+                quote = "USDT".to_string();
             }
         }
         let strike: Option<String> = self.safe_string_opt(&optionParts, Value::Int(2), &[]);
@@ -2136,18 +2133,18 @@ impl crate::exchange::DerivedExchange for Bybit {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}{}{}{}{}{}", baseName, "-", convertedExpireDate.map(Value::from).unwrap_or(Value::Null), "-", strike.as_deref().unwrap_or("null"), "-", optionType.as_deref().unwrap_or("null")).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", baseName, "/", quote.as_deref().unwrap_or("null"), ":", quote.as_deref().unwrap_or("null"), "-", expiry.as_deref().unwrap_or("null"), "-", strike.as_deref().unwrap_or("null"), "-", optionType.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", baseName, "/", quote, ":", quote, "-", expiry.as_deref().unwrap_or("null"), "-", strike.as_deref().unwrap_or("null"), "-", optionType.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), Value::from(baseName.clone()));
-        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quote".to_string(), Value::from(quote.clone()));
+        m.insert("settle".to_string(), Value::from(quote.clone()));
         m.insert("baseId".to_string(), Value::from(baseName.clone()));
-        m.insert("quoteId".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), Value::from(quote.clone()));
+        m.insert("settleId".to_string(), Value::from(quote.clone()));
         m.insert("active".to_string(), Value::Bool(false));
         m.insert("type".to_string(), Value::Str("option".into()));
-        m.insert("subType".to_string(), (if (quote.as_deref() == Some(baseName.as_str())) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) }));
-        m.insert("linear".to_string(), (Value::Bool(quote.as_deref() != Some(baseName.as_str()))));
-        m.insert("inverse".to_string(), (Value::Bool(quote.as_deref() == Some(baseName.as_str()))));
+        m.insert("subType".to_string(), (if (baseName == quote) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) }));
+        m.insert("linear".to_string(), (Value::Bool(baseName != quote)));
+        m.insert("inverse".to_string(), (Value::Bool(baseName == quote)));
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));

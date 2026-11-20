@@ -1135,7 +1135,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "edit_orders" => crate::types::IntoRaw::into_raw(self.edit_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_orders_request" => Value::Dict(self.edit_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "enable_user_dex_abstraction" => self.enable_user_dex_abstraction(args.get(0).is_some_and(crate::Value::is_truthy), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "extract_type_from_delta" => Value::Arr(self.extract_type_from_delta(&args[..].iter().collect::<Vec<_>>())),
+                "extract_type_from_delta" => Value::Arr(self.extract_type_from_delta(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1982,8 +1982,8 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_807: bool = true;
             while { if !__for_first_807 { i += 1; } __for_first_807 = false; i < (promises.len() as i64) } {
-            let dexName: Value = fetchDexesList.get(i as usize).cloned().unwrap_or(Value::Null);
-            let offset: Option<i64> = self.safe_integer(&perpDexesOffset, &dexName, &[]).as_i64();
+            let dexName: Option<String> = self.safe_string_opt(&fetchDexesList, Value::Int(i), &[]);
+            let offset: Option<i64> = self.safe_integer(&perpDexesOffset, Value::from(dexName.as_deref()), &[]).as_i64();
             let response: crate::value::List = self.safe_list_t(&promises, Value::Int(i));
             let meta: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
             let mut collateralToken: Option<String> = self.safe_string_k_opt(&meta, "collateralToken", &[]);
@@ -2006,7 +2006,7 @@ impl Hyperliquid {
                 std::sync::Arc::make_mut(&mut data).insert("baseId".into(), Value::from((if let Some(__m1) = offset { Some((j + __m1)) } else { None })));
                 std::sync::Arc::make_mut(&mut data).insert("collateralToken".into(), collateralToken.clone().map(Value::from).unwrap_or(Value::Null));
                 std::sync::Arc::make_mut(&mut data).insert("hip3".into(), Value::Bool(true));
-                std::sync::Arc::make_mut(&mut data).insert("dex".into(), dexName.clone());
+                std::sync::Arc::make_mut(&mut data).insert("dex".into(), Value::from(dexName.as_deref()));
                 let cachedCurrencies: crate::value::Dict = self.safe_dict_k_t(&self.options, "cachedCurrenciesById");
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if (matches!(collateralToken.as_deref(), Some(__k) if cachedCurrencies.contains_key(__k))) {
@@ -6491,7 +6491,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         // ]
         //
-        let records: crate::value::List = self.extract_type_from_delta(&[&Value::Arr(depositLedger)]);
+        let records: crate::value::List = self.extract_type_from_delta(&depositLedger);
         let mut vaultAddress: Option<String> = None;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = Value::Dict(__destr_tmp.1); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
@@ -6580,7 +6580,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         // ]
         //
-        let records: crate::value::List = self.extract_type_from_delta(&[&Value::Arr(withdrawalLedger)]);
+        let records: crate::value::List = self.extract_type_from_delta(&withdrawalLedger);
         let mut vaultAddress: Option<String> = None;
         { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = Value::Dict(__destr_tmp.1); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
@@ -6807,8 +6807,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn extract_type_from_delta(&self, optional_args: &[&Value]) -> crate::value::List {
-        let data = get_arg(optional_args, 0, Value::from(vec![]));
+    pub fn extract_type_from_delta(&self, data: impl Into<crate::Value>) -> crate::value::List {
+        let data: Value = data.into();
         let mut records: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

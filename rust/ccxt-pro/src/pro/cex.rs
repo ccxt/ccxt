@@ -1105,7 +1105,7 @@ impl Cex {
         let data: crate::value::Dict = message.key_dict("data");
         let isTransaction: bool = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("tx");
         let orderId: Option<String> = self.safe_string2_opt(&data, Value::Str("id".into()), Value::Str("order".into()), &[]);
-        let mut remains: Option<String> = self.safe_string_k_opt(&data, "remains", &[]);
+        let remainsPrecision: Option<String> = self.safe_string_k_opt(&data, "remains", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(&data, "symbol2", &[]);
         let pair: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "pair");
@@ -1120,7 +1120,7 @@ impl Cex {
         }
         let symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
-        remains = self.currency_from_precision(base.map(Value::from).unwrap_or(Value::Null), remains.map(Value::from).unwrap_or(Value::Null));
+        let remains: Option<String> = self.currency_from_precision(base.map(Value::from).unwrap_or(Value::Null), remainsPrecision.as_deref());
         if (self.orders.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1208,14 +1208,14 @@ impl Cex {
             if (market.is_none()) {
                 return None;
             }
-            remaining = self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), remainsPrecision.map(Value::from).unwrap_or(Value::Null));
+            remaining = self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), remainsPrecision.as_deref());
         }
         let amount: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
         if !isTransaction {
             if (market.is_none()) {
                 return None;
             }
-            self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), amount.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+            self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), amount.as_deref()).map(Value::from).unwrap_or(Value::Null);
         }
         let mut baseId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(&order, "symbol2", &[]);
@@ -1281,19 +1281,17 @@ impl Cex {
         return if let Value::Dict(__m) = Value::Dict(self.safe_order(Value::Map(parsedOrder), Some(&marketResolved))) { Some(__m) } else { None }
 }
 
-    pub fn from_precision(&self, mut amount: Value, scale: impl Into<crate::Value>) -> Option<String> {
-        let scale: Value = scale.into();
-        if (amount == Value::Null) {
+    pub fn from_precision(&self, amount: Option<&str>, mut scale: Value) -> Option<String> {
+        if (amount.is_none()) {
             return None;
         }
-        let mut precise = Precise::new(amount);
+        let mut precise = Precise::new(Value::from(amount));
         (precise).decimals += (self.safe_integer(Value::from(vec![scale]), Value::Int(0), &[Value::Int(0)]).as_i64().unwrap_or(0));
         precise.reduce();
         return Value::from(precise.to_string()).as_str().map(str::to_owned);
 }
 
-    pub fn currency_from_precision(&self, mut currency: Value, amount: impl Into<crate::Value>) -> Option<String> {
-        let amount: Value = amount.into();
+    pub fn currency_from_precision(&self, mut currency: Value, amount: Option<&str>) -> Option<String> {
         let scale: i64 = self.safe_integer((if let Some(__k) = currency.as_str() { self.currencies.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("precision".into()), &[Value::Int(0)]).as_i64().unwrap_or(0);
         return self.from_precision(amount, Value::from(scale));
 }

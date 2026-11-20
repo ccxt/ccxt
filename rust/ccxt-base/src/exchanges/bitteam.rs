@@ -640,11 +640,11 @@ impl crate::exchange::DerivedExchange for Bitteam {
             let m = indexmap::IndexMap::new();
             m
         });
-        let blockChain: Option<String> = self.safe_string_k_opt(&currency, "blockChain", &[]);
+        let blockChain: String = self.safe_string_k(&currency, "blockChain", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // if only one blockChain
-        if (blockChain.is_some()) && (blockChain.as_deref() != Some("")) {
+        if (blockChain != "") {
             fee = self.parse_number(Value::from(&withdrawCommissionFixed), &[]);
-            if let Value::Dict(__d) = &mut feesByNetworkId { std::sync::Arc::make_mut(__d).insert(blockChain.as_deref().unwrap_or("null").to_string(), fee.clone()); }
+            if let Value::Dict(__d) = &mut feesByNetworkId { std::sync::Arc::make_mut(__d).insert(blockChain, fee.clone()); }
         }  else {
             feesByNetworkId = self.extend(withdrawCommissionFixed, &[Value::Map({
                 let m = indexmap::IndexMap::new();

@@ -1111,7 +1111,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let type_var: Option<String> = (match __pro_message.get("t").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        if (orderbook.book_field("timestamp") == Value::Null) {
+        if (self.safe_integer_k(Value::from(&orderbook), "timestamp", &[]) == Value::Null) {
             if (type_var.as_deref() == Some("f")) {
                 // snapshot
                 self.handle_order_book_snapshot(&client, message.clone());

@@ -654,8 +654,8 @@ impl crate::exchange::DerivedExchange for Poloniex {
         let chainsLength: i64 = chains.len() as i64;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1093: bool = true;
-            while { if !__for_first_1093 { j += 1; } __for_first_1093 = false; j < chainsLength } {
+            let mut __for_first_1092: bool = true;
+            while { if !__for_first_1092 { j += 1; } __for_first_1092 = false; j < chainsLength } {
             let chain: Option<crate::value::Dict> = self.safe_dict_o(&chains, Value::Int(j));
             let chainId: Option<String> = self.safe_string_k_opt(&chain, "blockchain", &[]);
             let networkCode: Option<String> = self.network_id_to_code(chainId.as_deref(), code.as_deref());
@@ -840,8 +840,8 @@ impl crate::exchange::DerivedExchange for Poloniex {
         let data: crate::value::List = self.safe_list_k_t(&leverage, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1106: bool = true;
-            while { if !__for_first_1106 { i += 1; } __for_first_1106 = false; i < (data.len() as i64) } {
+            let mut __for_first_1105: bool = true;
+            while { if !__for_first_1105 { i += 1; } __for_first_1105 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             marketId = self.safe_string_k_opt(&entry, "symbol", &[]);
             // mgnMode arrives upper case; parseOrder and parsePosition read the
@@ -3041,8 +3041,8 @@ impl Poloniex {
         let orders: Value = orders.into();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1094: bool = true;
-            while { if !__for_first_1094 { i += 1; } __for_first_1094 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1093: bool = true;
+            while { if !__for_first_1093 { i += 1; } __for_first_1093 = false; i < (orders.len() as i64) } {
             let order: indexmap::IndexMap<String, Value> = self.safe_dict(&orders, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3392,8 +3392,8 @@ impl Poloniex {
         let mut isContract: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1095: bool = true;
-            while { if !__for_first_1095 { i += 1; } __for_first_1095 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1094: bool = true;
+            while { if !__for_first_1094 { i += 1; } __for_first_1094 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let symbol: String = self.safe_string_k(&rawOrder, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let marketInner: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str()));
@@ -3461,8 +3461,8 @@ impl Poloniex {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1096: bool = true;
-            while { if !__for_first_1096 { i += 1; } __for_first_1096 = false; i < dataLength } {
+            let mut __for_first_1095: bool = true;
+            while { if !__for_first_1095 { i += 1; } __for_first_1095 = false; i < dataLength } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let entryMarket: crate::value::Dict = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             results.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, &entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(Value::Dict(entryMarket)).as_ref()).map_or(Value::Null, Value::Dict));
@@ -4039,8 +4039,8 @@ impl Poloniex {
             let details: crate::value::List = self.safe_list_k_t(&response, "details");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1097: bool = true;
-                while { if !__for_first_1097 { i += 1; } __for_first_1097 = false; i < (details.len() as i64) } {
+                let mut __for_first_1096: bool = true;
+                while { if !__for_first_1096 { i += 1; } __for_first_1096 = false; i < (details.len() as i64) } {
                 let balance: crate::value::Dict = self.safe_dict_t(&details, Value::Int(i));
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "ccy", &[]);
                 let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -4056,14 +4056,14 @@ impl Poloniex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1099: bool = true;
-            while { if !__for_first_1099 { i += 1; } __for_first_1099 = false; i < (response.len() as i64) } {
+            let mut __for_first_1098: bool = true;
+            while { if !__for_first_1098 { i += 1; } __for_first_1098 = false; i < (response.len() as i64) } {
             let mut account: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let balances: crate::value::List = self.safe_list_k_t(&account, "balances");
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1098: bool = true;
-                while { if !__for_first_1098 { j += 1; } __for_first_1098 = false; j < (balances.len() as i64) } {
+                let mut __for_first_1097: bool = true;
+                while { if !__for_first_1097 { j += 1; } __for_first_1097 = false; j < (balances.len() as i64) } {
                 let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(j));
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
                 let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -4194,8 +4194,8 @@ impl Poloniex {
         let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1100: bool = true;
-            while { if !__for_first_1100 { i += 1; } __for_first_1100 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1099: bool = true;
+            while { if !__for_first_1099 { i += 1; } __for_first_1099 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4285,8 +4285,8 @@ impl Poloniex {
         let mut bidsResult: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1101: bool = true;
-            while { if !__for_first_1101 { i += 1; } __for_first_1101 = false; i < (asks.len() as i64) } {
+            let mut __for_first_1100: bool = true;
+            while { if !__for_first_1100 { i += 1; } __for_first_1100 = false; i < (asks.len() as i64) } {
             if (((i % 2)) == 0) {
                 let price: Option<f64> = self.safe_number(&asks, Value::Int(i), &[]).as_f64();
                 let amount: Option<f64> = self.safe_number(&asks, Value::Int((i + 1)), &[]).as_f64();
@@ -4296,8 +4296,8 @@ impl Poloniex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1102: bool = true;
-            while { if !__for_first_1102 { i += 1; } __for_first_1102 = false; i < (bids.len() as i64) } {
+            let mut __for_first_1101: bool = true;
+            while { if !__for_first_1101 { i += 1; } __for_first_1101 = false; i < (bids.len() as i64) } {
             if (((i % 2)) == 0) {
                 let price: Option<f64> = self.safe_number(&bids, Value::Int(i), &[]).as_f64();
                 let amount: Option<f64> = self.safe_number(&bids, Value::Int((i + 1)), &[]).as_f64();
@@ -4838,8 +4838,8 @@ impl Poloniex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1103: bool = true;
-            while { if !__for_first_1103 { i += 1; } __for_first_1103 = false; i < (entries.len() as i64) } {
+            let mut __for_first_1102: bool = true;
+            while { if !__for_first_1102 { i += 1; } __for_first_1102 = false; i < (entries.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&entries, Value::Int(i));
             let currencies: crate::value::List = crate::value::List::new(entry.keys().cloned().map(Value::from).collect());
             let currencyId: Option<String> = self.safe_string_opt(&currencies, Value::Int(0), &[]);
@@ -4884,8 +4884,8 @@ impl Poloniex {
         let responseKeys: Vec<&str> = response.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1105: bool = true;
-            while { if !__for_first_1105 { i += 1; } __for_first_1105 = false; i < (responseKeys.len() as i64) } {
+            let mut __for_first_1104: bool = true;
+            while { if !__for_first_1104 { i += 1; } __for_first_1104 = false; i < (responseKeys.len() as i64) } {
             let currencyId: Option<&str> = responseKeys.get(i as usize).copied();
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let feeInfo: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(currencyId.as_deref()));
@@ -4901,8 +4901,8 @@ impl Poloniex {
                 if chainsLength > 0 {
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_1104: bool = true;
-                        while { if !__for_first_1104 { j += 1; } __for_first_1104 = false; j < (childChains.len() as i64) } {
+                        let mut __for_first_1103: bool = true;
+                        while { if !__for_first_1103 { j += 1; } __for_first_1103 = false; j < (childChains.len() as i64) } {
                         let mut rawNetworkId: String = self.safe_string(&childChains, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                         let networkId: String = (if let Some(__o) = code.as_deref() { rawNetworkId.replace(__o, "") } else { rawNetworkId });
                         let networkCode: Option<String> = self.network_id_to_code(Some(networkId.as_str()), self.safe_string_k(&currency, "code", &[]).as_str());

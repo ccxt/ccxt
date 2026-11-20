@@ -1966,8 +1966,8 @@ impl Lighter {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
-        let id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        client.resolve(message, &(Value::Str(format!("{}{}", "jsonapi/sendtx:", id.as_deref().unwrap_or("null")).into())));
+        let id: String = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+        client.resolve(message, &(Value::Str(format!("{}{}", "jsonapi/sendtx:", id).into())));
 }
 
     pub fn handle_orders(&mut self, client: &Value, mut message: Value) -> Value {

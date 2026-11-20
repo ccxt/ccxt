@@ -797,7 +797,7 @@ impl Bingx {
         //         }
         //     }
         //
-        let data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::from(vec![]) });
+        let dataList: crate::value::List = message.key_list("data");
         let rawHash: String = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let hashParts: crate::value::List = crate::value::List::new(rawHash.split("@").map(Value::from).collect());
         let marketId: Option<String> = self.safe_string_opt(&hashParts, Value::Int(0), &[]);
@@ -810,10 +810,13 @@ impl Bingx {
         let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let messageHash: String = format!("{}{}", "trade::", symbol.as_deref().unwrap_or("null"));
         let mut trades: Value = Value::Null;
-        if (matches!(&data, Value::Arr(_))) {
-            trades = Value::Arr(self.parse_trades(data.clone(), Some(&market), &[]));
+        if ((match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }) == Value::Null) {
+            trades = Value::Arr(self.parse_trades(&dataList, Some(&market), &[]));
         }  else {
-            trades = Value::from(vec![Value::Dict(self.parse_trade(data, Some(&market)))]);
+            trades = Value::from(vec![Value::Dict(self.parse_trade((match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}) }), Some(&market)))]);
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {

@@ -2850,7 +2850,7 @@ impl Krakenfutures {
         //        "more_candles": true
         //    }
         //
-        let candles: Option<crate::value::List> = self.safe_list_k_o(&response, "candles");
+        let candles: crate::value::List = self.safe_list_k_t(&response, "candles");
         return Value::Arr(self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(since), Value::from(limitResolved)]));
         Value::Null
         }).await?))

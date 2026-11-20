@@ -653,8 +653,12 @@ impl Mexc {
         if (symbolsNormalized.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchBidsAsks required symbols argument")));
         }
-        let markets: Value = self.require_value(self.markets_for_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]), &[Value::Str("watchBidsAsks() markets is required".into())]);
-        let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(markets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_ref(), &[&params]);
+        let symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+        let mut firstMarket: Option<crate::types::Market> = None;
+        if symbolsLength > 0 {
+            firstMarket = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        }
+        let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), firstMarket.as_ref(), &[&params]);
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let isSpot: bool = marketType.as_deref() == Some("spot");
@@ -2337,8 +2341,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (symbolsNormalized.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchBidsAsks required symbols argument")));
         }
-        let markets: Value = self.require_value(self.markets_for_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]), &[Value::Str("unWatchBidsAsks() markets is required".into())]);
-        let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(markets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_ref(), &[&params]);
+        let symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+        let mut firstMarket: Option<crate::types::Market> = None;
+        if symbolsLength > 0 {
+            firstMarket = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        }
+        let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), firstMarket.as_ref(), &[&params]);
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let isSpot: bool = marketType.as_deref() == Some("spot");

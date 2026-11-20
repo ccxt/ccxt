@@ -2323,11 +2323,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 })); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
-        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
         let mut balance: indexmap::IndexMap<String, Value> = self.balance.get(type_var.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })).as_map().cloned().unwrap_or_default();
+        balance.insert("info".into(), message);
         let data: crate::value::List = __pro_message.key_list("data");
         {
                         let mut i: i64 = 0;

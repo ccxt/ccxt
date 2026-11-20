@@ -4210,7 +4210,8 @@ impl Btse {
             while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (typesList.len() as i64) } {
             let historyType: String = self.safe_string(&typesList, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             allowed.insert(historyType.clone(), Value::Bool(true));
-            allowed.insert(crate::runtime::stringify_param(&(Value::from(self.capitalize(Value::from(historyType.to_lowercase()))))), Value::Bool(true));
+            let capitalizedType: String = self.capitalize(Value::from(historyType.to_lowercase()));
+            allowed.insert(capitalizedType, Value::Bool(true));
         }
         }
         let mut rows: Vec<Value> = Vec::new();

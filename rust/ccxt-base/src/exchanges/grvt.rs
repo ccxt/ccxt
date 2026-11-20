@@ -3267,29 +3267,37 @@ if _try_result.is_err() {
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let defaultFromAccountId: Option<String> = self.safe_string_k_opt(&self.options, "userMainAccountId", &[]);
         let isInternal: bool = (self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("trading".into()), Value::Str("funding".into())]))) && self.in_array(toAccount.clone(), Value::from(vec![Value::Str("trading".into()), Value::Str("funding".into())]));
-        let mut fromSubAccount: Value = fromAccount.clone();
-        let mut toSubAccount: Value = toAccount.clone();
+        let mut fromSubAccount: Option<String> = fromAccount.as_str().map(str::to_owned);
+        let mut toSubAccount: Option<String> = toAccount.as_str().map(str::to_owned);
         let mut paramsFundingAccountId: crate::value::Dict = params.clone().into_dict();
         if isInternal {
             let tradingAccountIdparamsTradingAccountIdVariable = self.handle_option_string_and_params(params, Value::Str("transfer".into()), Value::Str("tradingAccountId".into()), &[]);
-            let tradingAccountId: Value = tradingAccountIdparamsTradingAccountIdVariable.0;
+            let tradingAccountId: Option<String> = tradingAccountIdparamsTradingAccountIdVariable.0.as_str().map(str::to_owned);
             let paramsTradingAccountId: crate::value::Dict = tradingAccountIdparamsTradingAccountIdVariable.1;
             let fundingAccountIdparamsFundingVariable = self.handle_option_string_and_params(&paramsTradingAccountId, Value::Str("transfer".into()), Value::Str("fundingAccountId".into()), &[]);
-            let fundingAccountId: Value = fundingAccountIdparamsFundingVariable.0;
+            let fundingAccountId: Option<String> = fundingAccountIdparamsFundingVariable.0.as_str().map(str::to_owned);
             let paramsFunding: crate::value::Dict = fundingAccountIdparamsFundingVariable.1;
-            if (tradingAccountId == Value::Null) || (fundingAccountId == Value::Null) {
+            if (tradingAccountId.is_none()) || (fundingAccountId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")));
             }
-            fromSubAccount = (if (fromAccount.as_str() == Some("trading")) { tradingAccountId.clone() } else { fundingAccountId.clone() });
-            toSubAccount = (if (toAccount.as_str() == Some("trading")) { tradingAccountId } else { fundingAccountId });
+            if (fromAccount.as_str() == Some("trading")) {
+                fromSubAccount = tradingAccountId.clone();
+            }  else {
+                fromSubAccount = fundingAccountId.clone();
+            }
+            if (toAccount.as_str() == Some("trading")) {
+                toSubAccount = tradingAccountId;
+            }  else {
+                toSubAccount = fundingAccountId;
+            }
             paramsFundingAccountId = paramsFunding;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("from_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_account_id", &[defaultFromAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
-                m.insert("from_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_sub_account_id", &[fromSubAccount.clone()]));
+                m.insert("from_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_sub_account_id", &[fromSubAccount.clone().map(Value::from).unwrap_or(Value::Null)]));
                 m.insert("to_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "to_account_id", &[defaultFromAccountId.map(Value::from).unwrap_or(Value::Null)]));
-                m.insert("to_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "to_sub_account_id", &[toSubAccount]));
+                m.insert("to_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "to_sub_account_id", &[toSubAccount.map(Value::from).unwrap_or(Value::Null)]));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("num_tokens".to_string(), Value::from(self.currency_to_precision(code.as_str(), Value::from(amount), &[])));
                 m.insert("signature".to_string(), self.default_signature());
@@ -3304,7 +3312,7 @@ if _try_result.is_err() {
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let msg: Option<String> = self.exception_message(error.clone(), &[]).as_str().map(str::to_owned);
-            let isFromFundingAccount: bool = fromSubAccount.as_str() == Some("funding");
+            let isFromFundingAccount: bool = fromSubAccount.as_deref() == Some("funding");
             if isFromFundingAccount && (msg.as_deref().unwrap_or_default().contains("You are not authorized")) {
                 panic!("{}", crate::exchange_errors::permission_denied(format!("{}{}", Value::Str(format!("{}{}", self.id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ").into()), msg.as_deref().unwrap_or("null"))));
             }

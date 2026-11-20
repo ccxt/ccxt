@@ -982,12 +982,12 @@ impl Bybit {
         if isSpot {
             type_var = "spot".to_string();
         }
+        if (updateType.as_deref() != Some("snapshot")) && (updateType.as_deref() != Some("delta")) {
+            return;
+        }
         let mut symbol: Option<String> = None;
-        let mut parsed: Value = Value::Null;
-        if (updateType.as_deref() == Some("snapshot")) {
-            parsed = Value::Dict(self.parse_ticker(Value::from(&data), None));
-            symbol = self.safe_string_k_opt(&parsed, "symbol", &[]);
-        }  else if (updateType.as_deref() == Some("delta")) {
+        let mut tickerInput: Value = Value::from(&data);
+        if (updateType.as_deref() == Some("delta")) {
             let topicParts: crate::value::List = crate::value::List::new(topic.split(".").map(Value::from).collect());
             let topicLength: i64 = topicParts.len() as i64;
             let marketId: Option<String> = self.safe_string_opt(&topicParts, Value::Int((topicLength - 1)), &[]);
@@ -996,16 +996,19 @@ impl Bybit {
             // update the info in place
             let ticker: crate::value::Dict = if let Some(Value::Dict(__m)) = self.tickers.get(symbol.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned() { __m } else { Default::default() };
             let rawTicker: crate::value::Dict = self.safe_dict_k_t(&ticker, "info");
-            let merged: crate::value::Dict = self.extend_t(rawTicker, &[&data]);
-            parsed = Value::Dict(self.parse_ticker(Value::Dict(merged), None));
+            tickerInput = self.extend(rawTicker, &[&data]);
         }
-        if (parsed == Value::Null) || (symbol.is_none()) {
+        let mut parsed: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ticker(tickerInput, None));
+        if (updateType.as_deref() == Some("snapshot")) {
+            symbol = self.safe_string_k_opt(&parsed, "symbol", &[]);
+        }
+        if (symbol.is_none()) {
             return;
         }
         let timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
-        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
-        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed); }
+        parsed.insert("timestamp".into(), Value::from(timestamp));
+        parsed.insert("datetime".into(), self.iso8601(timestamp));
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(parsed)); }
         let messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve((if let (__m, Some(__k)) = (&self.tickers, symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
@@ -3192,11 +3195,11 @@ impl Bybit {
     m
 })); }
             }
-            { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(account.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), info.clone()); } }
             let mut balance: indexmap::IndexMap<String, Value> = self.balance.get(account.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })).as_map().cloned().unwrap_or_default();
+            balance.insert("info".into(), info);
             let timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             balance.insert("timestamp".into(), Value::from(timestamp));
             balance.insert("datetime".into(), self.iso8601(timestamp));

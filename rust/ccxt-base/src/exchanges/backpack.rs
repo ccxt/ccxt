@@ -2374,10 +2374,15 @@ impl Backpack {
         let stock: bool = selection.0.unwrap_or(false);
         let query: crate::value::Dict = selection.1;
         let marketType: Option<String> = self.safe_string_k_opt(&query, "marketType", &[]);
-        let mut requestedTypes: Value = self.safe_list_k(&query, "marketType", &[Value::from(vec![Value::Str("SPOT".into()), Value::Str("PERP".into()), Value::Str("RFQ".into())])]);
+        let mut defaultTypes: Vec<Value> = Vec::new();
         if (marketType.is_some()) {
-            requestedTypes = Value::from(vec![marketType.map(Value::from).unwrap_or(Value::Null)]);
+            defaultTypes.push(marketType.map(Value::from).unwrap_or(Value::Null));
+        }  else {
+            defaultTypes.push(Value::Str("SPOT".into()));
+            defaultTypes.push(Value::Str("PERP".into()));
+            defaultTypes.push(Value::Str("RFQ".into()));
         }
+        let requestedTypes: crate::value::List = self.safe_list_k_or(&query, "marketType", Value::from(defaultTypes));
         let aliases: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("SPOT".into()));
@@ -4500,7 +4505,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 })]), Some(&market)).map_or(Value::Null, Value::Dict);
-                if (order.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str() == id.as_str()) {
+                if (self.safe_string_k(&order, "id", &[]).as_str() == id.as_str()) {
                     return order;
                 }
             }
@@ -4579,7 +4584,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 })]), Some(&market)).map_or(Value::Null, Value::Dict);
-            if (order.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str() == id.as_str()) {
+            if (self.safe_string_k(&order, "id", &[]).as_str() == id.as_str()) {
                 return order;
             }
         }

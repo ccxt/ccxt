@@ -853,10 +853,10 @@ impl Grvt {
         let limitOptionparamsLimitOptionVariable = self.handle_option_integer_and_params(&paramsChannel, Value::Str("watchOrderBook".into()), Value::Str("limit".into()), &[Value::Int(100)]);
         let limitOption: Option<i64> = limitOptionparamsLimitOptionVariable.0;
         let paramsLimitOption: crate::value::Dict = limitOptionparamsLimitOptionVariable.1;
-        let mut limitResolved: Option<i64> = limitOption;
+        let mut limitString: Value = Value::from(format!("{}", Value::from(limitOption)));
         let mut paramsLimit: crate::value::Dict = paramsLimitOption;
         if (limit.is_some()) {
-            limitResolved = limit;
+            limitString = Value::Str(format!("{}", Value::from(limit)).into());
             paramsLimit = paramsChannel;
         }
         let intervalparamsIntervalVariable = self.handle_option_integer_and_params(&paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]);
@@ -865,7 +865,7 @@ impl Grvt {
         let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut extraPart: Option<String> = None;
         if isSnapshot {
-            extraPart = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(format!("{}", Value::from(interval))), Value::Str("-".into())).into()), Value::from(format!("{}", Value::from(limitResolved)))));
+            extraPart = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(format!("{}", Value::from(interval))), Value::Str("-".into())).into()), limitString));
         }  else {
             extraPart = Some(format!("{}", Value::from(interval)));
         }
@@ -1040,7 +1040,7 @@ impl Grvt {
         let mut rawHashes: Vec<Value> = Vec::new();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId.as_deref().unwrap_or("null"), "-").into()), Value::from((market).id.as_deref())).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId.as_deref().unwrap_or("null"), "-").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "myTrades::", (market).symbol).into()));
         }  else {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str("myTrades".into()));
@@ -1158,7 +1158,7 @@ impl Grvt {
                 while { if !__for_first_363 { i += 1; } __for_first_363 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId.as_deref().unwrap_or("null"), "-").into()), Value::from((market).id.as_deref())).into()));
+                rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId.as_deref().unwrap_or("null"), "-").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
                 messageHashes.push(Value::Str(format!("{}{}", "positions::", (market).symbol).into()));
             }
             }
@@ -1269,7 +1269,7 @@ impl Grvt {
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHashes.push(Value::Str(format!("{}{}", "order::", (market).symbol).into()));
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, "-").into()), Value::from((market).id.as_deref())).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, "-").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

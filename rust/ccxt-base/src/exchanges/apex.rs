@@ -1978,13 +1978,11 @@ impl Apex {
 }
 
     pub fn generate_random_client_id_omni(&self, _accountId: Option<&str>) -> Option<String> {
-        let mut accountId: Option<String> = Some("".to_string());
+        let suffix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), "-").into()), Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(6)))).into()));
         if (_accountId.is_some()) && (_accountId != Some("")) {
-            accountId = _accountId.map(str::to_owned);
-        }  else {
-            accountId = Some(format!("{}", self.rand_number(Value::Int(12))));
+            return Some(format!("{}{}", Value::Str(format!("{}{}", "apexomni-", Value::from(_accountId)).into()), suffix));
         }
-        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "apexomni-", accountId.as_deref().unwrap_or("null")).into()), "-").into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), "-").into()), Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(6)))).into())));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".into()), Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(12)))).into())).into()), suffix));
 }
 
     pub fn add_hyphen_before_usdt(&self, symbol: &str) -> Option<String> {

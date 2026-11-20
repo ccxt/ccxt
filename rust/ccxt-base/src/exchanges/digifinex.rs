@@ -497,7 +497,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
         //
         let marketId: Option<String> = self.safe_string2_opt(&position, Value::Str("instrument_id".into()), Value::Str("symbol".into()), &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let mut marginMode: Option<String> = self.safe_string_k_opt(&position, "margin_mode", &[]);
         if (marginMode.is_some()) {
             marginMode = (if (marginMode.as_deref() == Some("crossed")) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
@@ -2907,10 +2907,10 @@ impl Digifinex {
                     m.insert("date".to_string(), Value::from(date));
                 m
             }), &[__ws_arg_4]);
-            let ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
-            let symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, None).unwrap_or_default();
+            let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
         }
         }
@@ -3792,12 +3792,12 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_649: bool = true;
             while { if !__for_first_649 { i += 1; } __for_first_649 = false; i < (success.len() as i64) } {
-            let order: Value = success.get(i as usize).cloned().unwrap_or(Value::Null);
+            let order: Option<String> = self.safe_string_opt(&success, Value::Int(i), &[]);
             result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), order.clone());
-                    m.insert("id".to_string(), order.clone());
-                    m.insert("symbol".to_string(), self.safe_string(&symbolsById, order, &[]));
+                    m.insert("info".to_string(), Value::from(order.as_deref()));
+                    m.insert("id".to_string(), Value::from(order.as_deref()));
+                    m.insert("symbol".to_string(), self.safe_string(&symbolsById, order.map(Value::from).unwrap_or(Value::Null), &[]));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
             }), None)));
@@ -3807,12 +3807,12 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_650: bool = true;
             while { if !__for_first_650 { i += 1; } __for_first_650 = false; i < (error.len() as i64) } {
-            let order: Value = error.get(i as usize).cloned().unwrap_or(Value::Null);
+            let order: Option<String> = self.safe_string_opt(&error, Value::Int(i), &[]);
             result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), order.clone());
-                    m.insert("id".to_string(), order.clone());
-                    m.insert("symbol".to_string(), self.safe_string(&symbolsById, order, &[]));
+                    m.insert("info".to_string(), Value::from(order.as_deref()));
+                    m.insert("id".to_string(), Value::from(order.as_deref()));
+                    m.insert("symbol".to_string(), self.safe_string(&symbolsById, order.map(Value::from).unwrap_or(Value::Null), &[]));
                     m.insert("status".to_string(), Value::Str("failed".into()));
                 m
             }), None)));
@@ -3937,10 +3937,10 @@ impl Digifinex {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrdersForSymbols() requires a symbol for each order")));
             }
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let orderMarketType: String = (market).market_type.clone();
+            let orderMarketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
             if (marketType.is_none()) {
-                marketType = Some(orderMarketType);
-            }  else if (marketType.as_deref() != Some(orderMarketType.as_str())) {
+                marketType = orderMarketType.clone();
+            }  else if (marketType != orderMarketType) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)")));
             }
             ids.push(id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3959,7 +3959,7 @@ impl Digifinex {
                 let mut __for_first_653: bool = true;
                 while { if !__for_first_653 { i += 1; } __for_first_653 = false; i < (ids.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+                let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
                 let orderId: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
                 ordersRequests.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -4904,7 +4904,7 @@ impl Digifinex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
+        let currencyId: Option<String> = self.safe_string_k_opt(&currency, "id", &[]);
         let accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let fromId: Option<String> = self.safe_string_opt(&accountsByType, &fromAccount, &[&fromAccount]);
         let toId: Option<String> = self.safe_string_opt(&accountsByType, &toAccount, &[&toAccount]);
@@ -4921,7 +4921,7 @@ impl Digifinex {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")));
             }
             request.insert("type".into(), (if toSwap { Value::Int(1) } else { Value::Int(2) })); // 1 = spot to swap, 2 = swap to spot
-            request.insert("currency".into(), Value::from(currencyId.as_deref()));
+            request.insert("currency".into(), currencyId.clone().map(Value::from).unwrap_or(Value::Null));
             request.insert("transfer_amount".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
             //
             //     {

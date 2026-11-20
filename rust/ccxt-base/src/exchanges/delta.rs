@@ -464,11 +464,16 @@ impl crate::exchange::DerivedExchange for Delta {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset_id", &[]);
             let currency: Option<crate::value::Dict> = self.safe_dict_o(&currenciesByNumericId, &currencyId);
-            let code: Option<String> = (if (currency.is_none()) { currencyId } else { crate::value::KeyRead::key_read(&&currency, "code").into_opt_string() });
+            let mut code: Option<String> = currencyId;
+            if (currency.is_some()) {
+                code = self.safe_string_k_opt(&currency, "code", &[]);
+            }
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "available_balance", &[]));
-            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
+            }
         }
         }
         return Value::Dict(self.safe_balance(Value::Map(result)));

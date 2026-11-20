@@ -676,29 +676,25 @@ impl crate::exchange::DerivedExchange for Bingx {
                 feeCurrencyCode = self.safe_string_opt(&marketResolved, Value::from(feeKey), &[]);
             }
         }
-        let mut stopLoss: Value = self.safe_value_k(&orderData, "stopLoss", &[]);
-        let mut stopLossPrice: Option<String> = None;
-        if (stopLoss != Value::Null) && (stopLoss.as_str() != Some("")) {
-            stopLossPrice = self.omit_zero(self.safe_string_k(&stopLoss, "stopLoss", &[]));
+        // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        let stopLossString: Option<String> = self.safe_string_k_opt(&orderData, "stopLoss", &[]);
+        let stopLossIsDict: bool = self.safe_dict_k(&orderData, "stopLoss", &[]) != Value::Null;
+        let mut stopLossPrice: Option<String> = self.omit_zero(self.safe_string(self.safe_dict_k(&orderData, "stopLoss", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Value::Str("stopPrice".into()), &[]));
+        if !stopLossIsDict && (stopLossString.is_some()) && (((if let (Some(__h), Some(__n)) = (stopLossString.as_deref(), Some("{")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+            stopLossPrice = self.omit_zero(self.safe_string(self.parse_json_value(stopLossString.map(Value::from).unwrap_or(Value::Null)), Value::Str("stopPrice".into()), &[]));
         }
-        if (stopLoss != Value::Null) && (!matches!(&stopLoss, Value::Int(_) | Value::Float(_))) && (stopLoss.as_str() != Some("")) {
-            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if matches!(&stopLoss, Value::Str(_)) {
-                stopLoss = self.parse_json_value(stopLoss);
-            }
-            stopLossPrice = self.omit_zero(self.safe_string_k(&stopLoss, "stopPrice", &[]));
-        }
-        let mut takeProfit: Value = self.safe_value_k(&orderData, "takeProfit", &[]);
-        let mut takeProfitPrice: Option<String> = None;
-        if (takeProfit != Value::Null) && (takeProfit.as_str() != Some("")) {
-            takeProfitPrice = self.omit_zero(self.safe_string_k(&takeProfit, "takeProfit", &[]));
-        }
-        if (takeProfit != Value::Null) && (!matches!(&takeProfit, Value::Int(_) | Value::Float(_))) && (takeProfit.as_str() != Some("")) {
-            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if matches!(&takeProfit, Value::Str(_)) {
-                takeProfit = self.parse_json_value(takeProfit);
-            }
-            takeProfitPrice = self.omit_zero(self.safe_string_k(&takeProfit, "stopPrice", &[]));
+        // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        let takeProfitString: Option<String> = self.safe_string_k_opt(&orderData, "takeProfit", &[]);
+        let takeProfitIsDict: bool = self.safe_dict_k(&orderData, "takeProfit", &[]) != Value::Null;
+        let mut takeProfitPrice: Option<String> = self.omit_zero(self.safe_string(self.safe_dict_k(&orderData, "takeProfit", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Value::Str("stopPrice".into()), &[]));
+        if !takeProfitIsDict && (takeProfitString.is_some()) && (((if let (Some(__h), Some(__n)) = (takeProfitString.as_deref(), Some("{")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+            takeProfitPrice = self.omit_zero(self.safe_string(self.parse_json_value(takeProfitString.map(Value::from).unwrap_or(Value::Null)), Value::Str("stopPrice".into()), &[]));
         }
         let rawType: Value = self.safe_string_lower2(&orderData, Value::Str("type".into()), Value::Str("o".into()), &[]);
         let stopPrice: Option<String> = self.omit_zero(self.safe_string2(&orderData, Value::Str("StopPrice".into()), Value::Str("stopPrice".into()), &[]));
@@ -4395,11 +4391,11 @@ impl Bingx {
         //        ]
         //    }
         //
-        let mut ohlcvs: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
-        if !(matches!(&ohlcvs, Value::Arr(_))) {
-            ohlcvs = Value::from(vec![ohlcvs]);
+        let mut ohlcvs: Option<crate::value::List> = self.safe_list_k_or_o(&response, "data", Value::from(vec![]));
+        if (self.safe_list_k(&response, "data", &[]) == Value::Null) && (self.safe_dict_k(&response, "data", &[]) != Value::Null) {
+            ohlcvs = Some(std::sync::Arc::new(vec![self.safe_dict_k(&response, "data", &[])]));
         }
-        return Value::Arr(self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
+        return Value::Arr(self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }

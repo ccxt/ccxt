@@ -1880,7 +1880,7 @@ impl Aster {
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
-        if (self.ohlcvs.shelf_text(&symbol).lookup(&timeframe).is_none()) {
+        if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
             let limit: i64 = self.safe_integer_k(&self.options, "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
@@ -2186,11 +2186,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     m
 })); }
         }
-        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message.clone()); } }
         let mut balance: indexmap::IndexMap<String, Value> = self.balance.get(accountType.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })).as_map().cloned().unwrap_or_default();
+        balance.insert("info".into(), message.clone());
         let messageValue: crate::value::Dict = self.safe_dict_k_or(&message, "a", &message);
         let B: crate::value::List = self.safe_list_k_t(&messageValue, "B");
         let wallet: String = self.safe_string_k(&self.options, "wallet", &[Value::Str("wb".into())]).as_str().unwrap_or("wb").to_string();

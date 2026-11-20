@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Bitrue {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "convert_from_raw_quantity" => self.convert_from_raw_quantity(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "find_swap_market_by_ws_base_quote" => crate::types::IntoRaw::into_raw(self.find_swap_market_by_ws_base_quote(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "find_swap_market_by_ws_base_quote" => crate::types::IntoRaw::into_raw(self.find_swap_market_by_ws_base_quote(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "keep_alive_listen_key" => self.keep_alive_listen_key(&args[..]).await,
                 "parse_contract_bids_asks" => Value::Arr(self.parse_contract_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
@@ -633,8 +633,8 @@ impl Bitrue {
         let isFutures: bool = channelKind.as_deref() == Some("e");
         let mut market: Option<crate::types::Market> = None;
         if isFutures {
-            let wsBaseQuote: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(2), &[]);
-            market = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
+            let wsBaseQuote: String = self.safe_string_lower(&parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            market = self.find_swap_market_by_ws_base_quote(wsBaseQuote.as_str());
         }  else {
             let marketId: Option<String> = self.safe_string_upper_opt(&parts, Value::Int(1), &[]);
             market = Some(self.safe_market(marketId.as_deref(), None, &[]));
@@ -666,10 +666,8 @@ impl Bitrue {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn find_swap_market_by_ws_base_quote(&self, mut wsBaseQuote: Value) -> Option<crate::types::Market> {
-        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
-        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
-        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
+    pub fn find_swap_market_by_ws_base_quote(&self, wsBaseQuote: &str) -> Option<crate::types::Market> {
+        // callers pass safeStringLower (parts, 2, ''), a plain string in every port
         if (self.markets.is_none()) {
             return None;
         }
@@ -689,7 +687,7 @@ impl Bitrue {
             if (baseId.is_none()) || (quoteId.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " findSwapMarketByWsBaseQuote() market ").into()), symbolId.as_deref().unwrap_or("null")).into()), " has no baseId or quoteId")));
             }
-            if (Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), quoteId.as_deref().unwrap_or("null")).into()).as_str() == wsBaseQuote.as_str()) {
+            if (Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), quoteId.as_deref().unwrap_or("null")).into()).as_str() == Some(wsBaseQuote)) {
                 return Some((match self.market(symbolId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }));
             }
         }
@@ -870,9 +868,9 @@ if _try_result.is_err() {
         if (!(market).swap) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " unWatchTrades is only supported for swap markets")));
         }
-        let baseIdLower: Option<String> = self.safe_string_lower_k_opt(&market, "baseId", &[]);
-        let quoteIdLower: Option<String> = self.safe_string_lower_k_opt(&market, "quoteId", &[]);
-        let wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower.as_deref().unwrap_or("null")).into()), quoteIdLower.as_deref().unwrap_or("null"));
+        let baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower).into()), quoteIdLower);
         let channel: String = format!("{}{}", Value::Str(format!("{}{}", "market_", wsId).into()), "_trade_ticker");
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -911,8 +909,8 @@ if _try_result.is_err() {
         //
         let channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let wsBaseQuote: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(2), &[]);
-        let market: Option<crate::types::Market> = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
+        let wsBaseQuote: String = self.safe_string_lower(&parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let market: Option<crate::types::Market> = self.find_swap_market_by_ws_base_quote(wsBaseQuote.as_str());
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -1078,9 +1076,9 @@ if _try_result.is_err() {
         if (interval.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " unWatchOHLCV does not support timeframe ").into()), timeframe)));
         }
-        let baseIdLower: Option<String> = self.safe_string_lower_k_opt(&market, "baseId", &[]);
-        let quoteIdLower: Option<String> = self.safe_string_lower_k_opt(&market, "quoteId", &[]);
-        let wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower.as_deref().unwrap_or("null")).into()), quoteIdLower.as_deref().unwrap_or("null"));
+        let baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower).into()), quoteIdLower);
         let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market_", wsId).into()), "_kline_").into()), interval.as_deref().unwrap_or("null"));
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1117,8 +1115,8 @@ if _try_result.is_err() {
         //
         let channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let wsBaseQuote: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(2), &[]);
-        let market: Option<crate::types::Market> = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
+        let wsBaseQuote: String = self.safe_string_lower(&parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let market: Option<crate::types::Market> = self.find_swap_market_by_ws_base_quote(wsBaseQuote.as_str());
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -1237,8 +1235,8 @@ if _try_result.is_err() {
         //
         let channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let wsBaseQuote: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(2), &[]);
-        let market: Option<crate::types::Market> = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
+        let wsBaseQuote: String = self.safe_string_lower(&parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let market: Option<crate::types::Market> = self.find_swap_market_by_ws_base_quote(wsBaseQuote.as_str());
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         if (symbol.is_none()) {
             return;

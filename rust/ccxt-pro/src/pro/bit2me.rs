@@ -465,8 +465,9 @@ impl Bit2me {
         let mut unifiedSymbol: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            unifiedSymbol = Some((market).symbol.clone());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), unifiedSymbol.as_deref().unwrap_or("null"));
+            let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            messageHash = format!("{}{}", "orders:", marketSymbol);
+            unifiedSymbol = Some(marketSymbol);
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private("my-orders", messageHash.as_str(), &[params]).await.into();
         let mut finalLimit: Value = limit.clone();
@@ -514,7 +515,7 @@ impl Bit2me {
         }
         self.orders.append(Value::from(&order));
         client.resolve(Value::from(&self.orders), "orders");
-        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", "orders:", crate::value::KeyRead::key_read(&&order, "symbol")).into())));
+        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
@@ -611,8 +612,9 @@ impl Bit2me {
         let mut unifiedSymbol: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            unifiedSymbol = Some((market).symbol.clone());
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), unifiedSymbol.as_deref().unwrap_or("null"));
+            let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            messageHash = format!("{}{}", "myTrades:", marketSymbol);
+            unifiedSymbol = Some(marketSymbol);
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_private("my-trades", messageHash.as_str(), &[params]).await.into();
         let mut finalLimit: Value = limit.clone();
@@ -655,7 +657,7 @@ impl Bit2me {
         }
         self.myTrades.append(Value::from(&trade));
         client.resolve(Value::from(&self.myTrades), "myTrades");
-        client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", "myTrades:", crate::value::KeyRead::key_read(&&trade, "symbol")).into())));
+        client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())])).into())));
 }
 
 /*
@@ -863,12 +865,13 @@ impl Bit2me {
         let order: Value = Value::Dict(self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), message);
-                m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                 m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(&data, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
             m
         }), Some(&market)));
-        self.settle_request(client, Value::Str(format!("{}{}", "canceled-order:", orderId.as_deref().unwrap_or("null")).into()), order, &[]);
+        let __ws_arg_3 = self.safe_string_k(&data, "orderId", &[Value::Str("".into())]);
+        self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-order:".into()), __ws_arg_3).into()), order, &[]);
 }
 
 /*
@@ -897,8 +900,8 @@ impl Bit2me {
         });
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let messageHash: String = "canceled-orders".to_string();
-        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Null).await;
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_4, &messageHash[..], Value::Null).await;
 
     Value::Null
 }
@@ -988,9 +991,9 @@ impl Bit2me {
             m
         });
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let messageHash: String = format!("{}{}", "canceled-all-orders:", Value::from((market).id.as_deref()));
-        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_4, &messageHash[..], Value::Null).await;
+        let messageHash: String = format!("{}{}", Value::Str("canceled-all-orders:".into()), Value::from((market).id.as_deref().unwrap_or("")));
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await;
 
     Value::Null
 }
@@ -1020,14 +1023,15 @@ impl Bit2me {
             orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), message.clone());
-                    m.insert("id".to_string(), ids.get(i as usize).cloned().unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
+                    m.insert("id".to_string(), self.safe_string(&ids, Value::Int(i), &[]));
+                    m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
             }), Some(&market))));
         }
         }
-        self.settle_request(client, Value::Str(format!("{}{}", "canceled-all-orders:", marketId.as_deref().unwrap_or("null")).into()), Value::from(orders), &[]);
+        let __ws_arg_6 = self.safe_string_k(message, "symbol", &[Value::Str("".into())]);
+        self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-all-orders:".into()), __ws_arg_6).into()), Value::from(orders), &[]);
 }
 
 /*
@@ -1140,12 +1144,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }  else if (event.as_deref() == Some("canceled-order")) {
             self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-order:".into()), (match __pro_message.get("orderId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()),
-                _ => Value::Null })).into()), Value::Null, &[&exception]);
+                _ => Value::Str("".into()) })).into()), Value::Null, &[&exception]);
         }  else if (event.as_deref() == Some("canceled-orders")) {
             self.settle_request(client, Value::Str("canceled-orders".into()), Value::Null, &[&exception]);
         }  else if (event.as_deref() == Some("canceled-all-orders")) {
-            let __ws_arg_5 = self.safe_string_k(&message, "symbol", &[]);
-            self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-all-orders:".into()), __ws_arg_5).into()), Value::Null, &[&exception]);
+            let __ws_arg_7 = self.safe_string_k(&message, "symbol", &[Value::Str("".into())]);
+            self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-all-orders:".into()), __ws_arg_7).into()), Value::Null, &[&exception]);
         }  else if (event.as_deref() == Some("subscribe")) {
             // a refused subscription names the channel and the symbol it was asked for
             let subscription: crate::value::Dict = __pro_message.key_dict("subscription");

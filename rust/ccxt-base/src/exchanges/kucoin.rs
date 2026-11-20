@@ -6929,12 +6929,12 @@ impl Kucoin {
         let mut paramsRequest: crate::value::Dict = Default::default();
         { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("fetchDepositAddress".into()), Value::Str("accountType".into()), &[Value::from(&accountType)]); accountType = __destr_tmp.0.as_str().map(str::to_owned); paramsRequest = __destr_tmp.1; }
         let accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
-        accountType = self.safe_string_opt(&accountsByType, Value::from(accountType.as_deref()), &[&Value::from(accountType.as_deref())]);
+        let accountId: Option<String> = self.safe_string_opt(&accountsByType, &accountType, &[&accountType]);
         let mut uta: bool = self.is_uta_enabled(&[]).await.as_bool().unwrap_or_default();
         { let __destr_tmp = self.handle_option_bool_and_params(&paramsRequest, Value::Str("fetchDepositAddress".into()), Value::Str("uta".into()), &[Value::Bool(uta)]); uta = __destr_tmp.0 == Some(true); paramsRequest = __destr_tmp.1; }
-        if (accountType.as_deref() == Some("contract")) {
+        if (accountId.as_deref() == Some("contract")) {
             return crate::types::IntoRaw::into_raw(self.fetch_contract_deposit_address(code.as_str().unwrap_or_default(), Value::from(&paramsRequest)).await);
-        }  else if uta || (accountType.as_deref() == Some("uta")) || (accountType.as_deref() == Some("unified")) {
+        }  else if uta || (accountId.as_deref() == Some("uta")) || (accountId.as_deref() == Some("unified")) {
             let __ws_arg_16 = self.extend(&paramsRequest, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("uta".to_string(), Value::Bool(true));
@@ -11711,8 +11711,8 @@ impl Kucoin {
         let mut paramsRequest: crate::value::Dict = Default::default();
         { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("accountType".into()), &[Value::from(&accountType)]); accountType = __destr_tmp.0.as_str().map(str::to_owned); paramsRequest = __destr_tmp.1; }
         let accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
-        accountType = self.safe_string_opt(&accountsByType, Value::from(accountType.as_deref()), &[&Value::from(accountType.as_deref())]);
-        if (accountType.as_deref() == Some("contract")) {
+        let accountId: Option<String> = self.safe_string_opt(&accountsByType, &accountType, &[&accountType]);
+        if (accountId.as_deref() == Some("contract")) {
             return self.fetch_contract_deposits(code.as_str(), since.as_i64(), limit.as_i64(), &[&Value::from(&paramsRequest)]).await;
         }
         let mut paginate: bool = false;
@@ -11907,8 +11907,8 @@ impl Kucoin {
         let mut paramsRequest: crate::value::Dict = Default::default();
         { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("accountType".into()), &[Value::from(&accountType)]); accountType = __destr_tmp.0.as_str().map(str::to_owned); paramsRequest = __destr_tmp.1; }
         let accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
-        accountType = self.safe_string_opt(&accountsByType, Value::from(accountType.as_deref()), &[&Value::from(accountType.as_deref())]);
-        if (accountType.as_deref() == Some("contract")) {
+        let accountId: Option<String> = self.safe_string_opt(&accountsByType, &accountType, &[&accountType]);
+        if (accountId.as_deref() == Some("contract")) {
             return self.fetch_contract_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), &[&Value::from(&paramsRequest)]).await;
         }
         let maxLimit: i64 = 500;

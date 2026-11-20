@@ -469,7 +469,7 @@ impl crate::exchange::DerivedExchange for Lbank {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
-        let data: Value = self.safe_dict_k(response, "data", &[]);
+        let data: crate::value::Dict = self.safe_dict_k_t(response, "data");
         // from spotPrivatePostUserInfo
         let toBtc: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "toBtc");
         if (toBtc.is_some()) {
@@ -505,26 +505,6 @@ impl crate::exchange::DerivedExchange for Lbank {
                 let mut account: crate::value::Dict = self.account();
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&item, "free", &[]));
                 std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&item, "locked", &[]));
-                if (codeInner.is_some()) {
-                    result.insert(codeInner.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
-                }
-            }
-            }
-            return Value::Dict(self.safe_balance(Value::Map(result)));
-        }
-        // from spotPrivatePostSupplementUserInfo
-        let isArray: bool = matches!(&data, Value::Arr(_));
-        if isArray {
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_925: bool = true;
-                while { if !__for_first_925 { i += 1; } __for_first_925 = false; i < (data.len() as i64) } {
-                let item: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
-                let currencyId: Option<String> = self.safe_string_k_opt(&item, "coin", &[]);
-                let codeInner: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-                let mut account: crate::value::Dict = self.account();
-                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&item, "usableAmt", &[]));
-                std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&item, "freezeAmt", &[]));
                 if (codeInner.is_some()) {
                     result.insert(codeInner.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }
@@ -797,8 +777,8 @@ impl crate::exchange::DerivedExchange for Lbank {
         let networkList: crate::value::List = self.safe_list_k_t(fee, "networkList");
         {
                         let mut j: i64 = 0;
-            let mut __for_first_931: bool = true;
-            while { if !__for_first_931 { j += 1; } __for_first_931 = false; j < (networkList.len() as i64) } {
+            let mut __for_first_930: bool = true;
+            while { if !__for_first_930 { j += 1; } __for_first_930 = false; j < (networkList.len() as i64) } {
             let networkEntry: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
             let networkCode: Option<String> = self.network_id_to_code(self.safe_string_k(&networkEntry, "name", &[]).as_str(), code.as_deref());
             let withdrawFee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
@@ -2849,8 +2829,8 @@ impl Lbank {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_926: bool = true;
-            while { if !__for_first_926 { i += 1; } __for_first_926 = false; i < (fees.len() as i64) } {
+            let mut __for_first_925: bool = true;
+            while { if !__for_first_925 { i += 1; } __for_first_925 = false; i < (fees.len() as i64) } {
             let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None));
             let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {
@@ -4015,8 +3995,8 @@ impl Lbank {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_928: bool = true;
-            while { if !__for_first_928 { i += 1; } __for_first_928 = false; i < (result.len() as i64) } {
+            let mut __for_first_927: bool = true;
+            while { if !__for_first_927 { i += 1; } __for_first_927 = false; i < (result.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let code: Option<String> = self.safe_currency_code(self.safe_string_k(&entry, "coin", &[]).as_str(), None);
             let networkList: crate::value::List = self.safe_list_k_t(&entry, "networkList");
@@ -4028,8 +4008,8 @@ impl Lbank {
             }
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_927: bool = true;
-                while { if !__for_first_927 { j += 1; } __for_first_927 = false; j < (networkList.len() as i64) } {
+                let mut __for_first_926: bool = true;
+                while { if !__for_first_926 { j += 1; } __for_first_926 = false; j < (networkList.len() as i64) } {
                 let networkEntry: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
                 let fee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
                 if (fee.is_some()) {
@@ -4117,8 +4097,8 @@ impl Lbank {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_929: bool = true;
-            while { if !__for_first_929 { i += 1; } __for_first_929 = false; i < (result.len() as i64) } {
+            let mut __for_first_928: bool = true;
+            while { if !__for_first_928 { i += 1; } __for_first_928 = false; i < (result.len() as i64) } {
             let item: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let canWithdraw: Option<String> = self.safe_string_k_opt(&item, "canWithDraw", &[]);
             if (canWithdraw.as_deref() == Some("true")) {
@@ -4316,8 +4296,8 @@ impl Lbank {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_930: bool = true;
-            while { if !__for_first_930 { i += 1; } __for_first_930 = false; i < (response.len() as i64) } {
+            let mut __for_first_929: bool = true;
+            while { if !__for_first_929 { i += 1; } __for_first_929 = false; i < (response.len() as i64) } {
             let fee: crate::value::Dict = response.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let canWithdraw: bool = self.safe_bool_k_opt(&fee, "canWithDraw", &[Value::Bool(false)]).unwrap_or(false);
             if canWithdraw {
@@ -4409,8 +4389,8 @@ impl Lbank {
         let mut pem: String = "-----BEGIN PRIVATE KEY-----\n".to_string(); // eslint-disable-line
         {
                         let mut i: i64 = 0;
-            let mut __for_first_932: bool = true;
-            while { if !__for_first_932 { i += 1; } __for_first_932 = false; matches!(fullLines, Some(__b) if (i as f64) <= (__b as f64)) } {
+            let mut __for_first_931: bool = true;
+            while { if !__for_first_931 { i += 1; } __for_first_931 = false; matches!(fullLines, Some(__b) if (i as f64) <= (__b as f64)) } {
             let start: i64 = (i * 64);
             let end: i64 = (start + 64);
             pem.push_str(&format!("{}{}", (match (&(self.secret.clone()), start, Some(end)) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,

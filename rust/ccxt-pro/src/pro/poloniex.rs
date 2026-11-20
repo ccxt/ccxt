@@ -1790,8 +1790,8 @@ impl Poloniex {
             let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
             let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
             let timestamp: Option<i64> = self.safe_integer_k(&item, "ts", &[]).as_i64();
-            let asks: Option<crate::value::List> = self.safe_list_k_o(&item, "asks");
-            let bids: Option<crate::value::List> = self.safe_list_k_o(&item, "bids");
+            let asks: crate::value::List = self.safe_list_k_t(&item, "asks");
+            let bids: crate::value::List = self.safe_list_k_t(&item, "bids");
             if snapshot || update {
                 let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
                 if snapshot && (orderbook.is_none()) {
@@ -1814,11 +1814,11 @@ impl Poloniex {
                         m
                     }));
                 }
-                if (bids.is_some()) {
+                if (true) {
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_651: bool = true;
-                        while { if !__for_first_651 { j += 1; } __for_first_651 = false; j < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                        while { if !__for_first_651 { j += 1; } __for_first_651 = false; j < (bids.len() as i64) } {
                         let bid: crate::value::List = self.safe_list_t(&bids, Value::Int(j));
                         let price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
                         let amount: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
@@ -1827,11 +1827,11 @@ impl Poloniex {
                     }
                     }
                 }
-                if (asks.is_some()) {
+                if (true) {
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_652: bool = true;
-                        while { if !__for_first_652 { j += 1; } __for_first_652 = false; j < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                        while { if !__for_first_652 { j += 1; } __for_first_652 = false; j < (asks.len() as i64) } {
                         let ask: crate::value::List = self.safe_list_t(&asks, Value::Int(j));
                         let price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
                         let amount: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();

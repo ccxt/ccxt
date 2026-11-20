@@ -937,8 +937,8 @@ impl crate::exchange::DerivedExchange for Weex {
         let chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "networkList");
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1153: bool = true;
-            while { if !__for_first_1153 { j += 1; } __for_first_1153 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1152: bool = true;
+            while { if !__for_first_1152 { j += 1; } __for_first_1152 = false; j < (chains.len() as i64) } {
             let chain: Option<crate::value::Dict> = self.safe_dict_o(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -2818,8 +2818,8 @@ impl Weex {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1154: bool = true;
-            while { if !__for_first_1154 { i += 1; } __for_first_1154 = false; i < (response.len() as i64) } {
+            let mut __for_first_1153: bool = true;
+            while { if !__for_first_1153 { i += 1; } __for_first_1153 = false; i < (response.len() as i64) } {
             let rawTicker: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             let marketId: Option<String> = self.safe_string_k_opt(&rawTicker, "symbol", &[]);
@@ -3551,8 +3551,8 @@ impl Weex {
         let balances: crate::value::List = self.safe_list_k_or(&response, "balances", &response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1155: bool = true;
-            while { if !__for_first_1155 { i += 1; } __for_first_1155 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1154: bool = true;
+            while { if !__for_first_1154 { i += 1; } __for_first_1154 = false; i < (balances.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "asset", &[]);
             if sandboxMode && (currencyId.as_deref() == Some("SUSDT")) {

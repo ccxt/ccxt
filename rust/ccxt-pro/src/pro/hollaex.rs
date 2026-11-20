@@ -686,16 +686,13 @@ impl Hollaex {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let parts: crate::value::List = crate::value::List::new(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
-            let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-            let mut account: Value = Value::Dict(self.account());
-            if (code.is_some()) && (matches!(code.as_deref(), Some(__k) if self.balance.contains_key(__k))) {
-                account = (if let Some(__k) = code.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            }
+            let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
+            let mut account: indexmap::IndexMap<String, Value> = self.balance.get(code.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Dict(self.account())).as_map().cloned().unwrap_or_default();
             let second: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
             let freeOrTotal: String = (if (second.as_deref() == Some("available")) { "free".to_string() } else { "total".to_string() });
-            if let Value::Dict(__rda) = &mut account { std::sync::Arc::make_mut(__rda).insert(freeOrTotal.as_str().to_string(), self.safe_string(&data, Value::from(key.as_deref()), &[])); }
+            account.insert(freeOrTotal, self.safe_string(&data, Value::from(key.as_deref()), &[]));
             if (code.is_some()) {
-                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
+                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
         }

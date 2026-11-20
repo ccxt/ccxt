@@ -1700,14 +1700,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        }
         //    }
         //
-        let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&message, "data");
+        let data: crate::value::Dict = message.key_dict("data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         if (marketId.is_some()) {
             let mut event: String = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
             let splitEvent: crate::value::List = crate::value::List::new(event.split(",").map(Value::from).collect());
             event = self.safe_string(&splitEvent, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut tradeType: String = "spot".to_string();
-            if (data.is_some()) && (matches!(data.as_deref(), Some(__d) if __d.contains_key("fu"))) {
+            if (true) && (data.contains_key("fu")) {
                 tradeType = "contract".to_string();
             }
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(tradeType.clone())]);
@@ -1734,7 +1734,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         m
                     })]);
                 }
-                orderbook.cache_push(data.clone().map_or(Value::Null, Value::Dict));
+                orderbook.cache_push(Value::from(&data));
                 return;
             }
             if (obAsks.is_some()) {

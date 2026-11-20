@@ -1452,7 +1452,10 @@ impl Coinmate {
     let m = indexmap::IndexMap::new();
     m
 })]), Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
-            result.insert(crate::runtime::stringify_param(&(Value::from((market).symbol.clone()))), Value::Map(ticker));
+            let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
+            if (symbol.is_some()) {
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
+            }
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

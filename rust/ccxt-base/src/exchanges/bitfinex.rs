@@ -2259,8 +2259,9 @@ impl Bitfinex {
 
     pub fn get_currency_name(&self, code: &str) -> Value {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (in_op(&self.options.get("currencyNames").cloned().unwrap_or(Value::Null), &Value::from(code))) {
-            return get_value(&self.options.get("currencyNames").cloned().unwrap_or(Value::Null), &Value::from(code));
+        let name: Option<String> = self.safe_string_opt(self.options.get("currencyNames").cloned().unwrap_or(Value::Null), Value::from(code), &[]);
+        if (name.is_some()) {
+            return name.map(Value::from).unwrap_or(Value::Null);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(code)).into()), " not supported for withdrawal")));
 
@@ -2890,11 +2891,11 @@ impl Bitfinex {
         let fullRequest: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let orderbook: crate::value::List = self.public_get_book_symbol_precision(&[&Value::from(&fullRequest)]).await.unwrap_or_default();
         let timestamp: i64 = self.milliseconds();
-        let mut result: Value = Value::Map({
+        let mut bids: Vec<Value> = Vec::new();
+        let mut asks: Vec<Value> = Vec::new();
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
-                m.insert("bids".to_string(), Value::from(vec![]));
-                m.insert("asks".to_string(), Value::from(vec![]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("nonce".to_string(), Value::Null);
@@ -2910,16 +2911,16 @@ impl Bitfinex {
             let price: Option<f64> = self.safe_number(&order, Value::from(priceIndex), &[]).as_f64();
             let signedAmount: Option<String> = self.safe_string_opt(&order, Value::Int(2), &[]);
             let amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount).as_str().map(str::to_owned);
-            let mut side: Value = Value::Str("asks".into());
             if crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".into())).as_bool() == Some(true) {
-                side = Value::Str("bids".into());
+                bids.push(Value::from(vec![Value::from(price), self.parse_number(&amount, &[])]));
+            }  else {
+                asks.push(Value::from(vec![Value::from(price), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[])]));
             }
-            crate::runtime::append_to_object_array(&mut result, &side, Value::from(vec![Value::from(price), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("bids".into(), __be_tmp); } }
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("asks".into(), __be_tmp); } }
-        return result;
+        result.insert("bids".into(), self.sort_by(Value::from(bids), Value::Int(0), &[Value::Bool(true)]));
+        result.insert("asks".into(), self.sort_by(Value::from(asks), Value::Int(0), &[]));
+        return Value::Map(result);
         Value::Null
         }).await?))
     }

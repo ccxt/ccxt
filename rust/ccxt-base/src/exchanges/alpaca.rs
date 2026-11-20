@@ -2381,7 +2381,11 @@ impl Alpaca {
         let defaultTIF: Option<String> = defaultTIFparamsTimeInForceVariable.0.as_str().map(str::to_owned);
         let paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.1;
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request.insert("time_in_force".into(), (if (defaultTIF.is_some()) { defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null) } else { defaultTIF.map(Value::from).unwrap_or(Value::Null) }));
+        if (defaultTIF.is_some()) {
+            request.insert("time_in_force".into(), defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
+        }  else {
+            request.insert("time_in_force".into(), Value::Null);
+        }
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsTimeInForce, &["timeInForce", "triggerPrice"], &[]);
         request.insert("client_order_id".into(), self.generate_client_order_id(&paramsOmitted).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, &["clientOrderId"], &[])]);

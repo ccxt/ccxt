@@ -1204,8 +1204,8 @@ impl crate::exchange::DerivedExchange for Paradex {
             let batchErrors: crate::value::List = self.safe_list_k_t(response, "errors");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1082: bool = true;
-                while { if !__for_first_1082 { i += 1; } __for_first_1082 = false; i < (batchErrors.len() as i64) } {
+                let mut __for_first_1081: bool = true;
+                while { if !__for_first_1081 { i += 1; } __for_first_1081 = false; i < (batchErrors.len() as i64) } {
                 let batchErrorCode: Option<String> = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
                 if (batchErrorCode.is_some()) {
                     errorCode = batchErrorCode;
@@ -2547,8 +2547,8 @@ impl Paradex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1061: bool = true;
-            while { if !__for_first_1061 { i += 1; } __for_first_1061 = false; i < (types.len() as i64) } {
+            let mut __for_first_1060: bool = true;
+            while { if !__for_first_1060 { i += 1; } __for_first_1060 = false; i < (types.len() as i64) } {
             let marketType: Value = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (marketType.as_str() == Some("swap")) {
                 assetKinds.insert("PERP".into(), Value::Bool(true));
@@ -2565,8 +2565,8 @@ impl Paradex {
         let mut wanted: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1062: bool = true;
-            while { if !__for_first_1062 { i += 1; } __for_first_1062 = false; i < (data.len() as i64) } {
+            let mut __for_first_1061: bool = true;
+            while { if !__for_first_1061 { i += 1; } __for_first_1061 = false; i < (data.len() as i64) } {
             let assetKind: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "asset_kind", &[]);
             if matches!(self.safe_bool(&assetKinds, assetKind.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]), Value::Bool(true)) {
                 wanted.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -2748,8 +2748,8 @@ impl Paradex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1063: bool = true;
-            while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (loadedFees.len() as i64) } {
+            let mut __for_first_1062: bool = true;
+            while { if !__for_first_1062 { i += 1; } __for_first_1062 = false; i < (loadedFees.len() as i64) } {
             let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(loadedFees.get(i as usize).cloned().unwrap_or(Value::Null), None));
             let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
@@ -2910,8 +2910,10 @@ impl Paradex {
         //     }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "results");
-        let rows: Value = (if (request.get("market").cloned().unwrap_or(Value::Null).as_str() == Some("ALL")) { self.filter_loaded_summaries(&data, None) } else { Value::from(&data) });
-        return self.parse_tickers(rows, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        if (request.get("market").cloned().unwrap_or(Value::Null).as_str() == Some("ALL")) {
+            return self.parse_tickers(self.filter_loaded_summaries(&data, None), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        }
+        return self.parse_tickers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2957,8 +2959,8 @@ impl Paradex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1064: bool = true;
-            while { if !__for_first_1064 { i += 1; } __for_first_1064 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_1063: bool = true;
+            while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (summaries.len() as i64) } {
             let summary: crate::value::Dict = summaries.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let marketId: Option<String> = self.safe_string_k_opt(&summary, "symbol", &[]);
             if (marketId.is_some()) && (matches!((&marketsById, marketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
@@ -3250,8 +3252,8 @@ impl Paradex {
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "results");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1065: bool = true;
-            while { if !__for_first_1065 { i += 1; } __for_first_1065 = false; i < (trades.len() as i64) } {
+            let mut __for_first_1064: bool = true;
+            while { if !__for_first_1064 { i += 1; } __for_first_1064 = false; i < (trades.len() as i64) } {
             if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut trades).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(self.safe_string_k(&response, "next", &[]))); }
         }
         }
@@ -3939,8 +3941,8 @@ impl Paradex {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1066: bool = true;
-            while { if !__for_first_1066 { i += 1; } __for_first_1066 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1065: bool = true;
+            while { if !__for_first_1065 { i += 1; } __for_first_1065 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -3985,8 +3987,8 @@ impl Paradex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1067: bool = true;
-            while { if !__for_first_1067 { i += 1; } __for_first_1067 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1066: bool = true;
+            while { if !__for_first_1066 { i += 1; } __for_first_1066 = false; i < (orders.len() as i64) } {
             let responseOrder: Option<crate::value::Dict> = self.safe_dict_o(&responseOrders, Value::Int(i));
             if (responseOrder.is_some()) {
                 result.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, &responseOrder, None).map_or(Value::Null, Value::Dict));
@@ -4128,8 +4130,8 @@ impl Paradex {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1068: bool = true;
-            while { if !__for_first_1068 { i += 1; } __for_first_1068 = false; i < (results.len() as i64) } {
+            let mut __for_first_1067: bool = true;
+            while { if !__for_first_1067 { i += 1; } __for_first_1067 = false; i < (results.len() as i64) } {
             let result: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&result, "market", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -4481,8 +4483,8 @@ impl Paradex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1069: bool = true;
-            while { if !__for_first_1069 { i += 1; } __for_first_1069 = false; i < (response.len() as i64) } {
+            let mut __for_first_1068: bool = true;
+            while { if !__for_first_1068 { i += 1; } __for_first_1068 = false; i < (response.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "token", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -4580,8 +4582,8 @@ impl Paradex {
         let mut trades: crate::value::List = self.safe_list_k_t(&response, "results");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1070: bool = true;
-            while { if !__for_first_1070 { i += 1; } __for_first_1070 = false; i < (trades.len() as i64) } {
+            let mut __for_first_1069: bool = true;
+            while { if !__for_first_1069 { i += 1; } __for_first_1069 = false; i < (trades.len() as i64) } {
             if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut trades).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(self.safe_string_k(&response, "next", &[]))); }
         }
         }
@@ -4621,8 +4623,8 @@ impl Paradex {
         let mut matching: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1071: bool = true;
-            while { if !__for_first_1071 { i += 1; } __for_first_1071 = false; i < (data.len() as i64) } {
+            let mut __for_first_1070: bool = true;
+            while { if !__for_first_1070 { i += 1; } __for_first_1070 = false; i < (data.len() as i64) } {
             if (self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "market", &[]).as_str() == Value::from((market).id.as_deref()).as_str()) {
                 matching.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
             }
@@ -4695,8 +4697,8 @@ impl Paradex {
         let mut openPositions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1072: bool = true;
-            while { if !__for_first_1072 { i += 1; } __for_first_1072 = false; i < (data.len() as i64) } {
+            let mut __for_first_1071: bool = true;
+            while { if !__for_first_1071 { i += 1; } __for_first_1071 = false; i < (data.len() as i64) } {
             let position: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let status: Option<String> = self.safe_string_k_opt(&position, "status", &[]);
             let size: Option<String> = self.safe_string_k_opt(&position, "size", &[]);
@@ -4862,16 +4864,16 @@ impl Paradex {
         let next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1073: bool = true;
-            while { if !__for_first_1073 { i += 1; } __for_first_1073 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1072: bool = true;
+            while { if !__for_first_1072 { i += 1; } __for_first_1072 = false; i < (rows.len() as i64) } {
             if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut rows).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); }
         }
         }
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1074: bool = true;
-            while { if !__for_first_1074 { i += 1; } __for_first_1074 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1073: bool = true;
+            while { if !__for_first_1073 { i += 1; } __for_first_1073 = false; i < (rows.len() as i64) } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             if allKinds || (self.safe_string_k(&row, "kind", &[]).as_str() == Some("DEPOSIT")) {
                 deposits.push(Value::Dict(row));
@@ -4970,16 +4972,16 @@ impl Paradex {
         let next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1075: bool = true;
-            while { if !__for_first_1075 { i += 1; } __for_first_1075 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1074: bool = true;
+            while { if !__for_first_1074 { i += 1; } __for_first_1074 = false; i < (rows.len() as i64) } {
             if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut rows).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); }
         }
         }
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1076: bool = true;
-            while { if !__for_first_1076 { i += 1; } __for_first_1076 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1075: bool = true;
+            while { if !__for_first_1075 { i += 1; } __for_first_1075 = false; i < (rows.len() as i64) } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             if allKinds || (self.safe_string_k(&row, "kind", &[]).as_str() == Some("WITHDRAWAL")) {
                 deposits.push(Value::Dict(row));
@@ -5072,8 +5074,8 @@ impl Paradex {
         let next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1077: bool = true;
-            while { if !__for_first_1077 { i += 1; } __for_first_1077 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1076: bool = true;
+            while { if !__for_first_1076 { i += 1; } __for_first_1076 = false; i < (rows.len() as i64) } {
             if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut rows).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); }
         }
         }
@@ -5090,8 +5092,8 @@ impl Paradex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1078: bool = true;
-            while { if !__for_first_1078 { i += 1; } __for_first_1078 = false; i < (transactions.len() as i64) } {
+            let mut __for_first_1077: bool = true;
+            while { if !__for_first_1077 { i += 1; } __for_first_1077 = false; i < (transactions.len() as i64) } {
             let info: crate::value::Dict = self.safe_dict_k_t(transactions.get(i as usize).cloned().unwrap_or(Value::Null), "info");
             if (self.safe_string_k(&info, "kind", &[]).as_str() == Some(kind)) {
                 result.push(transactions.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -5463,8 +5465,10 @@ impl Paradex {
         //
         let results: crate::value::List = self.safe_list_k_t(&response, "results");
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        let rows: Value = (if (request.get("market").cloned().unwrap_or(Value::Null).as_str() == Some("ALL")) { self.filter_loaded_summaries(&results, Some("option")) } else { Value::from(&results) });
-        return self.parse_all_greeks(rows, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        if (request.get("market").cloned().unwrap_or(Value::Null).as_str() == Some("ALL")) {
+            return self.parse_all_greeks(self.filter_loaded_summaries(&results, Some("option")), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        }
+        return self.parse_all_greeks(&results, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -5580,8 +5584,8 @@ impl Paradex {
         let prefix: String = format!("{}{}", code, "-");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1079: bool = true;
-            while { if !__for_first_1079 { i += 1; } __for_first_1079 = false; i < (data.len() as i64) } {
+            let mut __for_first_1078: bool = true;
+            while { if !__for_first_1078 { i += 1; } __for_first_1078 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: String = self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
@@ -5740,8 +5744,8 @@ impl Paradex {
         let next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1080: bool = true;
-            while { if !__for_first_1080 { i += 1; } __for_first_1080 = false; i < (results.len() as i64) } {
+            let mut __for_first_1079: bool = true;
+            while { if !__for_first_1079 { i += 1; } __for_first_1079 = false; i < (results.len() as i64) } {
             if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut results).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("next".into(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); }
         }
         }
@@ -5862,8 +5866,8 @@ impl Paradex {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1081: bool = true;
-            while { if !__for_first_1081 { i += 1; } __for_first_1081 = false; i < (results.len() as i64) } {
+            let mut __for_first_1080: bool = true;
+            while { if !__for_first_1080 { i += 1; } __for_first_1080 = false; i < (results.len() as i64) } {
             let mut rate: Option<crate::value::Dict> = self.safe_dict_o(&results, Value::Int(i));
             if (next.is_some()) {
                 if let Some(__rdm) = &mut rate { std::sync::Arc::make_mut(__rdm).insert("next".to_string(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); } // the cursor helper reads it from info, the last page has none

@@ -1956,8 +1956,7 @@ impl Krakenfutures {
                 }
             }
             }
-            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("cash".into(), Value::Map(cashBalance)); }
-            { let __be_tmp = self.prune_stale_balance_keys(self.balance.get("cash").cloned().unwrap_or(Value::Null), Value::Map(holdingCodes)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
+            { let __be_tmp = self.prune_stale_balance_keys(Value::Map(cashBalance), Value::Map(holdingCodes)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
             { let __be_tmp = Value::Dict(self.safe_balance(self.balance.get("cash").cloned().unwrap_or(Value::Null))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
             updatedBalance = self.balance.get("cash").cloned().unwrap_or(Value::Null);
         }
@@ -2002,8 +2001,7 @@ impl Krakenfutures {
                 marginBalance.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(symbolAccounts));
             }
             }
-            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("margin".into(), Value::Map(marginBalance)); }
-            { let __be_tmp = self.prune_stale_balance_keys(self.balance.get("margin").cloned().unwrap_or(Value::Null), Value::Map(futuresSymbols)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
+            { let __be_tmp = self.prune_stale_balance_keys(Value::Map(marginBalance), Value::Map(futuresSymbols)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
             { let __be_tmp = Value::Dict(self.safe_balance(self.balance.get("margin").cloned().unwrap_or(Value::Null))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
             client.resolve(self.balance.get("margin").cloned().unwrap_or(Value::Null), &(Value::Str(format!("{}{}", messageHash, ":futures").into())));
             if (updatedBalance == Value::Null) {
@@ -2045,8 +2043,7 @@ impl Krakenfutures {
                 }
             }
             }
-            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("flex".into(), Value::Map(flexBalance)); }
-            { let __be_tmp = self.prune_stale_balance_keys(self.balance.get("flex").cloned().unwrap_or(Value::Null), Value::Map(flexCodes)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
+            { let __be_tmp = self.prune_stale_balance_keys(Value::Map(flexBalance), Value::Map(flexCodes)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
             { let __be_tmp = Value::Dict(self.safe_balance(self.balance.get("flex").cloned().unwrap_or(Value::Null))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
             client.resolve(self.balance.get("flex").cloned().unwrap_or(Value::Null), &(Value::Str(format!("{}{}", messageHash, ":flex_futures").into())));
             if (updatedBalance == Value::Null) {

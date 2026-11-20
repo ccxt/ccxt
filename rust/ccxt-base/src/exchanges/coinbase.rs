@@ -7157,13 +7157,15 @@ if _try_result.is_err() {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let mut uri: Option<String> = None;
-        if (url != "") {
-            uri = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(method), " ").into()), Some(url).map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| Value::from(url))));
-            let quesPos: i64 = (if let (Some(__h), Some(__n)) = (uri.as_deref(), Some("?")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+        if (url != "") && (method.is_some()) {
+            let mut fullUri: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(method), " ").into()), Some(url).map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| Value::from(url)));
+            let quesPos: i64 = (if let (Some(__h), Some(__n)) = (Some(fullUri.as_str()), Some("?")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if quesPos > 0 {
-                uri = (if let Some(__s) = uri.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, quesPos); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
+                uri = Some(({ let (__l, __b, __e) = (fullUri.chars().count() as i64, 0, quesPos); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); fullUri.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() }));
+            }  else {
+                uri = Some(fullUri);
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}

@@ -17,8 +17,8 @@ pub async fn testFetchMarkets(mut exchange: Value, mut skippedProperties: Value)
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marketValues.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1587: bool = true;
-        while { if !__for_first_1587 { i += 1; } __for_first_1587 = false; i < (marketValues.len() as i64) } {
+        let mut __for_first_1586: bool = true;
+        while { if !__for_first_1586 { i += 1; } __for_first_1586 = false; i < (marketValues.len() as i64) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), marketValues.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
     }
     }
@@ -35,8 +35,8 @@ fn detectMarketConflicts(mut exchange: Value, mut marketValues: Value) -> Value 
     });
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1588: bool = true;
-        while { if !__for_first_1588 { i += 1; } __for_first_1588 = false; i < (marketValues.len() as i64) } {
+        let mut __for_first_1587: bool = true;
+        while { if !__for_first_1587 { i += 1; } __for_first_1587 = false; i < (marketValues.len() as i64) } {
         let market: Value = marketValues.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let symbol: Value = get_value(&market, &Value::Str("symbol".into()));
         if !(ids.as_map().is_some_and(|__m| symbol.as_str().is_some_and(|__k| __m.contains_key(__k)))) {

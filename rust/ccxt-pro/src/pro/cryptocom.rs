@@ -368,7 +368,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let bookSubscriptionType2paramsBookSubscriptionType2Variable = self.handle_option_string_and_params(&paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType.map(Value::from).unwrap_or(Value::Null)]);
         let bookSubscriptionType2: Option<String> = bookSubscriptionType2paramsBookSubscriptionType2Variable.0.as_str().map(str::to_owned);
         let mut paramsBookSubscriptionType2: crate::value::Dict = bookSubscriptionType2paramsBookSubscriptionType2Variable.1;
-        add_element_to_object(std::sync::Arc::make_mut(&mut paramsBookSubscriptionType2).entry("params".to_string()).or_insert(Value::Null), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2.map(Value::from).unwrap_or(Value::Null));
+        let mut bookParams: indexmap::IndexMap<String, Value> = self.safe_dict_k(&paramsBookSubscriptionType2, "params", &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        bookParams.insert("bookSubscriptionType".into(), bookSubscriptionType2.map(Value::from).unwrap_or(Value::Null));
+        std::sync::Arc::make_mut(&mut paramsBookSubscriptionType2).insert("params".into(), Value::Map(bookParams));
         let bookUpdateFrequencyparamsBookUpdateFrequencyVariable = self.handle_option_string_and_params(&paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]);
         let bookUpdateFrequency: Option<String> = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.0.as_str().map(str::to_owned);
         let paramsBookUpdateFrequency: crate::value::Dict = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.1;
@@ -376,7 +381,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let bookUpdateFrequency2: Option<String> = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.0.as_str().map(str::to_owned);
         let mut paramsBookUpdateFrequency2: crate::value::Dict = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.1;
         if (bookUpdateFrequency2.is_some()) {
-            add_element_to_object(std::sync::Arc::make_mut(&mut paramsBookUpdateFrequency2).entry("params".to_string()).or_insert(Value::Null), &Value::Str("bookSubscriptionType".into()), bookUpdateFrequency2.map(Value::from).unwrap_or(Value::Null));
+            let mut frequencyParams: indexmap::IndexMap<String, Value> = self.safe_dict_k(&paramsBookUpdateFrequency2, "params", &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]).as_map().cloned().unwrap_or_default();
+            frequencyParams.insert("bookSubscriptionType".into(), bookUpdateFrequency2.map(Value::from).unwrap_or(Value::Null));
+            std::sync::Arc::make_mut(&mut paramsBookUpdateFrequency2).insert("params".into(), Value::Map(frequencyParams));
         }
         {
                         let mut i: i64 = 0;
@@ -439,7 +449,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let bookSubscriptionType2paramsBookSubscriptionType2Variable = self.handle_option_string_and_params(&paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType.map(Value::from).unwrap_or(Value::Null)]);
         let bookSubscriptionType2: Option<String> = bookSubscriptionType2paramsBookSubscriptionType2Variable.0.as_str().map(str::to_owned);
         let mut paramsBookSubscriptionType2: crate::value::Dict = bookSubscriptionType2paramsBookSubscriptionType2Variable.1;
-        add_element_to_object(std::sync::Arc::make_mut(&mut paramsBookSubscriptionType2).entry("params".to_string()).or_insert(Value::Null), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2.map(Value::from).unwrap_or(Value::Null));
+        let mut bookParams: indexmap::IndexMap<String, Value> = self.safe_dict_k(&paramsBookSubscriptionType2, "params", &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        bookParams.insert("bookSubscriptionType".into(), bookSubscriptionType2.map(Value::from).unwrap_or(Value::Null));
+        std::sync::Arc::make_mut(&mut paramsBookSubscriptionType2).insert("params".into(), Value::Map(bookParams));
         let bookUpdateFrequencyparamsBookUpdateFrequencyVariable = self.handle_option_string_and_params(&paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]);
         let bookUpdateFrequency: Option<String> = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.0.as_str().map(str::to_owned);
         let paramsBookUpdateFrequency: crate::value::Dict = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.1;
@@ -447,7 +462,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let bookUpdateFrequency2: Option<String> = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.0.as_str().map(str::to_owned);
         let mut paramsBookUpdateFrequency2: crate::value::Dict = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.1;
         if (bookUpdateFrequency2.is_some()) {
-            add_element_to_object(std::sync::Arc::make_mut(&mut paramsBookUpdateFrequency2).entry("params".to_string()).or_insert(Value::Null), &Value::Str("bookSubscriptionType".into()), bookUpdateFrequency2.map(Value::from).unwrap_or(Value::Null));
+            let mut frequencyParams: indexmap::IndexMap<String, Value> = self.safe_dict_k(&paramsBookUpdateFrequency2, "params", &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]).as_map().cloned().unwrap_or_default();
+            frequencyParams.insert("bookSubscriptionType".into(), bookUpdateFrequency2.map(Value::from).unwrap_or(Value::Null));
+            std::sync::Arc::make_mut(&mut paramsBookUpdateFrequency2).insert("params".into(), Value::Map(frequencyParams));
         }
         {
                         let mut i: i64 = 0;

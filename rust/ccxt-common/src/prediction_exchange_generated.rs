@@ -2512,10 +2512,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (byteLength.is_some() && byteLength < Some(56)) {
             return Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = byteLength { Some(128 + __r) } else { None })), &[]), hex).into());
         }
-        let mut lengthHex: Option<String> = Some(self.int_to_base16(Value::from(byteLength), &[]));
-        lengthHex = self.pad_hex_to_even(lengthHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(183 + __r) } else { None })), &[]), lengthHex.as_deref().unwrap_or("null")).into()), hex).into());
+        let mut lengthHex: String = self.int_to_base16(Value::from(byteLength), &[]);
+        let lengthHexLength: i64 = (lengthHex.chars().count() as i64);
+        if (((lengthHexLength % 2)) != 0) {
+            lengthHex = format!("{}{}", "0", lengthHex);
+        }
+        let lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.chars().count() as i64)) as f64) / 2.0)));
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(183 + __r) } else { None })), &[]), lengthHex).into()), hex).into());
 
     Value::Null
 }
@@ -2533,10 +2536,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (byteLength.is_some() && byteLength < Some(56)) {
             return Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = byteLength { Some(192 + __r) } else { None })), &[]), concatenated).into());
         }
-        let mut lengthHex: Option<String> = Some(self.int_to_base16(Value::from(byteLength), &[]));
-        lengthHex = self.pad_hex_to_even(lengthHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(247 + __r) } else { None })), &[]), lengthHex.as_deref().unwrap_or("null")).into()), concatenated).into());
+        let mut lengthHex: String = self.int_to_base16(Value::from(byteLength), &[]);
+        let lengthHexLength: i64 = (lengthHex.chars().count() as i64);
+        if (((lengthHexLength % 2)) != 0) {
+            lengthHex = format!("{}{}", "0", lengthHex);
+        }
+        let lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.chars().count() as i64)) as f64) / 2.0)));
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(247 + __r) } else { None })), &[]), lengthHex).into()), concatenated).into());
 
     Value::Null
 }
@@ -2549,9 +2555,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (value.as_f64() == Some(0.0)) {
             return Value::Str("".into());
         }
-        let mut hex: Option<String> = Some(self.int_to_base16(value, &[]));
-        hex = self.pad_hex_to_even(hex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        return hex.map(Value::from).unwrap_or(Value::Null);
+        let mut hex: String = self.int_to_base16(value, &[]);
+        let hexLength: i64 = (hex.chars().count() as i64);
+        if (((hexLength % 2)) != 0) {
+            hex = format!("{}{}", "0", hex);
+        }
+        return Value::from(hex);
 
     Value::Null
 }

@@ -664,9 +664,8 @@ pub trait ExchangeBase:
          * @method
          * @description store value under key if key is defined (no-op on undefined)
          */
-        let k: Value = key;
-        if (k != Value::Null) {
-            if let Value::Dict(__d) = &mut dict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&k), value); }
+        if (key != Value::Null) {
+            if let Value::Dict(__d) = &mut dict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), value); }
         }
 }
 
@@ -795,9 +794,10 @@ pub trait ExchangeBase:
 
     fn url_encoder_for_proxy_url(&self, mut targetUrl: Value) -> Value {
         // to be overriden
-        let includesQuery: bool = targetUrl.as_str().unwrap_or("").contains("?");
-        let finalUrl: Value = (if includesQuery { self.encode_uri_component(targetUrl.clone()) } else { targetUrl });
-        return finalUrl;
+        if targetUrl.as_str().unwrap_or("").contains("?") {
+            return self.encode_uri_component(targetUrl.clone());
+        }
+        return targetUrl;
 
     Value::Null
 }
@@ -8166,8 +8166,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_152: bool = true;
             while { if !__for_first_152 { i += 1; } __for_first_152 = false; i < (response.len() as i64) } {
-            let entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
-            rates.push(<Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
+            rates.push(<Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, response.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
         }
         }
         let sorted: crate::value::List = self.sort_by_t(Value::from(rates), Value::Str("timestamp".into()), &[]);
@@ -8208,8 +8207,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_153: bool = true;
             while { if !__for_first_153 { i += 1; } __for_first_153 = false; i < (response.len() as i64) } {
-            let entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
-            let parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate(self, entry, None);
+            let parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate(self, response.get(i as usize).cloned().unwrap_or(Value::Null), None);
             if (parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 fundingRates.insert(crate::runtime::stringify_param(&(parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), parsed);
             }
@@ -8237,8 +8235,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_154: bool = true;
             while { if !__for_first_154 { i += 1; } __for_first_154 = false; i < (response.len() as i64) } {
-            let entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
-            rates.push(self.parse_long_short_ratio(entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
+            rates.push(self.parse_long_short_ratio(response.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
         }
         }
         let sorted: crate::value::List = self.sort_by_t(Value::from(rates), Value::Str("timestamp".into()), &[]);
@@ -8484,8 +8481,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_155: bool = true;
             while { if !__for_first_155 { i += 1; } __for_first_155 = false; i < (response.len() as i64) } {
-            let entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
-            let parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry, None);
+            let parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, response.get(i as usize).cloned().unwrap_or(Value::Null), None);
             if (parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&(parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), parsed);
             }

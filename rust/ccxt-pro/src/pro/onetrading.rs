@@ -68,7 +68,7 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
                 "handle_price_point_updates" => self.handle_price_point_updates(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscriptions" => self.handle_subscriptions(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trading_order" => self.parse_trading_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null))),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_many" => self.watch_many(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -108,7 +108,7 @@ impl Onetrading {
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_trading" => { self.handle_trading(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_trading_order" => self.parse_trading_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()),
-            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
+            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null))),
             "update_balance" => { self.update_balance(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_many" => { crate::exchange_stubs::enqueue_spawn("watch_many", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
@@ -452,10 +452,9 @@ impl Onetrading {
             let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
-            let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None);
             let timestamp: Option<i64> = self.parse8601(&datetime);
-            std::sync::Arc::make_mut(&mut parsedTicker).insert("timestamp".into(), Value::from(timestamp));
-            std::sync::Arc::make_mut(&mut parsedTicker).insert("datetime".into(), self.iso8601(timestamp));
+            let isoDatetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
+            let parsedTicker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None, Value::from(timestamp), isoDatetime.map(Value::from).unwrap_or(Value::Null));
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
             client.resolve(Value::Dict(parsedTicker), &(Value::Str(format!("{}{}", "ticker.", symbol.as_deref().unwrap_or("null")).into())));
         }
@@ -463,7 +462,7 @@ impl Onetrading {
         client.resolve(Value::Dict(self.tickers.clone()), "tickers");
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>, mut timestamp: Value, mut datetime: Value) -> crate::value::Dict {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -479,8 +478,8 @@ impl Onetrading {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
-        m.insert("timestamp".to_string(), Value::Null);
-        m.insert("datetime".to_string(), Value::Null);
+        m.insert("timestamp".to_string(), timestamp);
+        m.insert("datetime".to_string(), datetime);
         m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
         m.insert("bid".to_string(), Value::Null);

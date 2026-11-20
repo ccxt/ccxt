@@ -894,7 +894,7 @@ impl Modetrade {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let price: Option<String> = self.safe_string2_opt(&trade, Value::Str("executedPrice".into()), Value::Str("price".into()), &[]);
         let amount: Option<String> = self.safe_string2_opt(&trade, Value::Str("executedQuantity".into()), Value::Str("size".into()), &[]);
         let cost: Option<String> = crate::precise::Precise::stringMul(&price, &amount).as_str().map(str::to_owned);
@@ -1252,7 +1252,7 @@ impl Modetrade {
         let orderId: Option<String> = self.safe_string_k_opt(&order, "orderId", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&order, "timestamp", &[]).as_i64();
         let fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1436,7 +1436,7 @@ impl Modetrade {
         let messageHash: String = "myTrades".to_string();
         let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let trade: crate::value::Dict = self.parse_ws_trade(message, Some(&market));
         if (self.myTrades.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
