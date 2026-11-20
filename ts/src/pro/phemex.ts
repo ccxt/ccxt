@@ -65,21 +65,21 @@ export default class phemex extends phemexRest {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
-        return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
+        return this.fromEn (ep, this.safeInteger (market['info'], 'priceScale'));
     }
 
     override fromEv (ev: Str, market: Market = undefined): Str {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
-        return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
+        return this.fromEn (ev, this.safeInteger (market['info'], 'valueScale'));
     }
 
     override fromEr (er: Str, market: Market = undefined): Str {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
-        return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
+        return this.fromEn (er, this.safeInteger (market['info'], 'ratioScale'));
     }
 
     requestId (): int {

@@ -1329,14 +1329,14 @@ export default class phemex extends Exchange {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
-        return this.toEn (amount, this.safeInteger (market, 'valueScale'));
+        return this.toEn (amount, this.safeInteger (market['info'], 'valueScale'));
     }
 
     toEp (price: any, market: Market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn (price, this.safeInteger (market, 'priceScale'));
+        return this.toEn (price, this.safeInteger (market['info'], 'priceScale'));
     }
 
     fromEn (en: Str, scale: Int): Str {
@@ -1353,21 +1353,21 @@ export default class phemex extends Exchange {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
-        return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
+        return this.fromEn (ep, this.safeInteger (market['info'], 'priceScale'));
     }
 
     fromEv (ev: Str, market: Market = undefined): Str {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
-        return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
+        return this.fromEn (ev, this.safeInteger (market['info'], 'valueScale'));
     }
 
     fromEr (er: Str, market: Market = undefined): Str {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
-        return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
+        return this.fromEn (er, this.safeInteger (market['info'], 'ratioScale'));
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -4805,7 +4805,8 @@ export default class phemex extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        url = this.implodeHostname (baseApiUrl) + url;
+        const baseUrl = this.implodeHostname (baseApiUrl);
+        url = baseUrl + url;
         const isPrivatePost = (apiName === 'private') && (method === 'POST');
         let bodyResolved: Str = undefined;
         if (isPrivatePost) {
