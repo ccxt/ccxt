@@ -831,8 +831,9 @@ class toobit extends \ccxt\async\toobit {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $this->safe_list($message, 'B', array());
-        $this->balance[$type]['timestamp'] = $timestamp;
-        $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
+        $typeBalance = $this->safe_dict($this->balance, $type, array());
+        $typeBalance['timestamp'] = $timestamp;
+        $typeBalance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'a');
@@ -842,10 +843,10 @@ class toobit extends \ccxt\async\toobit {
             $account['used'] = $this->safe_string($balance, 'l');
             $account['free'] = $this->safe_string($balance, 'f');
             if ($code !== null) {
-                $this->balance[$type][$code] = $account;
+                $typeBalance[$code] = $account;
             }
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($typeBalance);
         $client->resolve($this->balance[$type], $type . ':balance');
     }
 

@@ -2945,9 +2945,10 @@ class kucoin extends \ccxt\async\kucoin {
                 $this->balance[$uniformType] = array();
             }
             $this->balance[$uniformType]['info'] = $data;
+            $balance = $this->safe_dict($this->balance, $uniformType, array());
             $timestamp = $this->safe_integer_2($data, 'time', 'timestamp');
-            $this->balance[$uniformType]['timestamp'] = $timestamp;
-            $this->balance[$uniformType]['datetime'] = $this->iso8601($timestamp);
+            $balance['timestamp'] = $timestamp;
+            $balance['datetime'] = $this->iso8601($timestamp);
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $used = $this->safe_string_2($data, 'hold', 'holdBalance');
@@ -2959,9 +2960,9 @@ class kucoin extends \ccxt\async\kucoin {
             $account['used'] = $used;
             $account['total'] = $this->safe_string($data, 'total');
             if ($code !== null) {
-                $this->balance[$uniformType][$code] = $account;
+                $balance[$code] = $account;
             }
-            $this->balance[$uniformType] = $this->safe_balance($this->balance[$uniformType]);
+            $this->balance[$uniformType] = $this->safe_balance($balance);
             $client->resolve($this->balance[$uniformType], $uniformType . ':balance');
         }
     }
@@ -2990,17 +2991,18 @@ class kucoin extends \ccxt\async\kucoin {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
+        $balance = $this->safe_dict($this->balance, $type, array());
         $timestamp = $this->safe_integer_product($data, 'U', 0.000001);
-        $this->balance[$type]['timestamp'] = $timestamp;
-        $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
         $account = $this->account();
         $account['free'] = $this->safe_string($data, 'a');
         $account['used'] = $this->safe_string($data, 'h');
         $account['total'] = $this->safe_string($data, 'b');
         if ($code !== null) {
-            $this->balance[$type][$code] = $account;
+            $balance[$code] = $account;
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($balance);
         $messageHash = $type . ':balance';
         $client->resolve($this->balance[$type], $messageHash);
     }

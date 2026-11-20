@@ -3268,12 +3268,12 @@ class kraken extends Exchange {
         //        }
         //     }
         //
-        $rawWithdrawals = null;
+        $rawWithdrawals = array();
         $result = $this->safe_value($response, 'result');
         if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
             $rawWithdrawals = $this->add_pagination_cursor_to_result($result);
         } else {
-            $rawWithdrawals = $result;
+            $rawWithdrawals = $this->safe_list($response, 'result', array());
         }
         return $this->parse_transactions_by_type('withdrawal', $rawWithdrawals, $code, $since, $limit);
     }

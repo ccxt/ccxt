@@ -4791,7 +4791,7 @@ class binance extends Exchange {
         if (($symbolsNormalized !== null) && ($this->is_linear($type, $subType) || $this->is_inverse($type, $subType))) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $request['symbol'] = $this->market_id($symbolsNormalized[0]);
+                $request['symbol'] = $this->market_id($this->safe_string($symbolsNormalized, 0));
             }
         }
         $response = null;

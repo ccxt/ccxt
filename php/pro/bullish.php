@@ -721,11 +721,12 @@ class bullish extends \ccxt\async\bullish {
             $data = $this->safe_list($message, 'data', array());
             $parsed = $this->parseBalanceList($data);
             $parsedKeys = is_array($parsed) ? array_keys($parsed) : array();
+            $balance = $this->safe_dict($this->balance, $tradingAccountId, array());
             for ($i = 0; $i < count($parsedKeys); $i++) {
                 $parsedKey = $parsedKeys[$i];
-                $this->balance[$tradingAccountId][$parsedKey] = $parsed[$parsedKey];
+                $balance[$parsedKey] = $parsed[$parsedKey];
             }
-            $this->balance[$tradingAccountId] = $this->safe_balance($this->balance[$tradingAccountId]);
+            $this->balance[$tradingAccountId] = $this->safe_balance($balance);
         } else {
             $data = $this->safe_dict($message, 'data', array());
             $assetId = $this->safe_string($data, 'assetSymbol');

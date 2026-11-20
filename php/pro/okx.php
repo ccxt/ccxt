@@ -452,10 +452,10 @@ class okx extends \ccxt\async\okx {
         $url = $this->get_url($channel, 'public');
         $fundingRate = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
         if ($this->newUpdates) {
-            $symbol = $this->safe_string($fundingRate, 'symbol');
+            $fundingSymbol = $this->safe_string($fundingRate, 'symbol');
             $result = array();
-            if ($symbol !== null) {
-                $result[$symbol] = $fundingRate;
+            if ($fundingSymbol !== null) {
+                $result[$fundingSymbol] = $fundingRate;
             }
             return $result;
         }

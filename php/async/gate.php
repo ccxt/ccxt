@@ -5099,7 +5099,10 @@ class gate extends Exchange {
     public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('editOrder', $market, $params);
-        $accountParsed = $this->convert_type_to_account($marketType);
+        $accountParsed = null;
+        if ($marketType !== null) {
+            $accountParsed = $this->convert_type_to_account($marketType);
+        }
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsMarketType, 'editOrder', 'unifiedAccount', false);
         $account = $isUnifiedAccount ? 'unified' : $accountParsed;
         $isLimitOrder = ($type === 'limit');

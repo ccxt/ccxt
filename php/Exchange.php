@@ -6829,7 +6829,7 @@ class BaseExchange {
     public function market_id(?string $symbol) {
         $market = $this->market($symbol);
         if ($market !== null) {
-            return $market['id'];
+            return $this->safe_string($market, 'id');
         }
         return $symbol;
     }
@@ -8607,7 +8607,7 @@ class BaseExchange {
         return null;
     }
 
-    public function convert_type_to_account(mixed $account) {
+    public function convert_type_to_account(string $account) {
         /**
          * @ignore
          * Must add $accountsByType to $this->options to use this method
@@ -8617,13 +8617,13 @@ class BaseExchange {
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $lowercaseAccount = strtolower($account);
         if (is_array($accountsByType) && array_key_exists($lowercaseAccount ?? '', $accountsByType)) {
-            return $accountsByType[$lowercaseAccount];
+            return $this->safe_string($accountsByType, $lowercaseAccount, $account);
         }
         $markets = $this->markets;
         $marketsById = $this->markets_by_id;
         if ((($markets !== null) && (is_array($markets) && array_key_exists($account ?? '', $markets))) || (($marketsById !== null) && (is_array($marketsById) && array_key_exists($account ?? '', $marketsById)))) {
             $market = $this->market($account);
-            return $market['id'];
+            return $this->safe_string($market, 'id', $account);
         } else {
             return $account;
         }

@@ -6028,6 +6028,7 @@ class binance extends \ccxt\async\binance {
             $this->balance[$accountType] = array();
         }
         $this->balance[$accountType]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $accountType, array());
         $B = $this->safe_list($message, 'B', array());
         for ($i = 0; $i < count($B); $i++) {
             $entry = $this->safe_dict($B, $i);
@@ -6036,13 +6037,13 @@ class binance extends \ccxt\async\binance {
             if ($code !== null) {
                 $account = $this->account();
                 $account['total'] = $this->safe_string($entry, 'b');
-                $this->balance[$accountType][$code] = $account;
+                $balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($message, 'E');
-        $this->balance[$accountType]['timestamp'] = $timestamp;
-        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($balance);
         $client->resolve($this->balance[$accountType], $accountType . ':balance');
         // --- positions ---
         if (!(is_array($this->positionsByType) && array_key_exists($accountType ?? '', $this->positionsByType))) {
