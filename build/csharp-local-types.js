@@ -18399,6 +18399,7 @@ const CORE_LIST_ARGS_SINGLE_CALLER = {
     // callers pass `listed` (List<object>) and `capped` (IList<object>); neither body rebinds it
     'filterTransactionsByKind': 0,
     'completeRawTopics': 0,
+    'parseTransactionsByType': 1,
 };
 Object.assign (CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_ARRAY_LENGTH);
 for (const table of [ CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_SINGLE_CALLER ]) {
