@@ -15133,7 +15133,7 @@ ${caseStatements.join('\n')}
             [ 'BaseExchange', 'ParseOrderBookL3', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
             // every return path is a map: the argument is defaulted and the option-market producer is wrapped
             [ 'BaseExchange', 'Market',
-              (expr: string) => (expr.indexOf ('GetValue(') === 0) || (expr === 'market') || (expr.indexOf ('this.DerivedExchange.CreateExpiredOptionMarket(') === 0),
+              (expr: string) => (expr.indexOf ('GetValue(') === 0) || (expr === 'market') || (expr === 'marketsList[0]') || (expr === 'nil') || (expr.indexOf ('this.DerivedExchange.CreateExpiredOptionMarket(') === 0),
               true ],
             // TS returns a dictionary on every path (currency panics, the safe forms build a structure)
             [ 'BaseExchange', 'Currency', (expr: string) => expr.length > 0, true ],

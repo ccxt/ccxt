@@ -445,7 +445,7 @@ export class BaseExchange {
         },
     };
 
-    markets_by_id!: Dictionary<any> | undefined;
+    markets_by_id!: Dictionary<any[]> | undefined;
     symbols: string[] = [];
     ids: Strings = undefined;
     currencies: Currencies = {};

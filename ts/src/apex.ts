@@ -1288,15 +1288,15 @@ export default class apex extends Exchange {
             if ((this.markets !== undefined) && (marketId in this.markets)) {
                 marketResolved = this.markets[marketId];
             } else if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                marketResolved = this.markets_by_id[marketId];
+                marketResolved = this.safeDict (this.markets_by_id[marketId], 0) as MarketInterface;
             } else {
                 const newMarketId = this.addHyphenBeforeUsdt (marketId);
                 if ((this.markets_by_id !== undefined) && (newMarketId in this.markets_by_id)) {
-                    const markets = this.markets_by_id[newMarketId];
+                    const markets: MarketInterface[] = this.markets_by_id[newMarketId];
                     const numMarkets = markets.length;
-                    if (numMarkets > 0) {
-                        if (markets[0]['id2'] === marketId) {
-                            marketResolved = markets[0];
+                    for (let i = 0; i < numMarkets; i++) {
+                        if ((i === 0) && (markets[i]['id2'] === marketId)) {
+                            marketResolved = markets[i];
                         }
                     }
                 }
