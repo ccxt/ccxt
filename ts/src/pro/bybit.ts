@@ -958,8 +958,6 @@ export default class bybit extends bybitRest {
         const url = await this.getUrlByMarketType (symbolsNormalized[0], false, 'watchOrderBook', params);
         const paramsValue: Dict = this.cleanParams (params);
         const market = this.market (symbolsNormalized[0]);
-        const defaultLimit = (this.safeBool (market, 'option', false)) ? 100 : 50;
-        const limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
         if (limit !== undefined) {
             const limits = {
                 'spot': [ 1, 50, 200, 1000 ],
@@ -971,12 +969,16 @@ export default class bybit extends bybitRest {
                 throw new BadRequest (this.id + ' watchOrderBookForSymbols(): for ' + this.safeString (market, 'type', '') + ' markets limit can be one of: ' + this.json (selectedLimits));
             }
         }
+        const limitParam = this.safeInteger ({ 'limit': limit }, 'limit');
+        const limitDefault: number = (this.safeBool (market, 'option', false)) ? 100 : 50;
+        const limitValue: number = (limitParam === undefined) ? limitDefault : limitParam;
+        const topicPrefix = 'orderbook.' + limitValue.toString () + '.';
         const topics: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.marketId (symbol);
-            const topic = 'orderbook.' + this.numberToString (limitResolved) + '.' + marketId;
+            const marketId = this.safeString (this.market (symbol), 'id', '');
+            const topic = topicPrefix + marketId;
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
@@ -1385,12 +1387,13 @@ export default class bybit extends bybitRest {
         }
         const url = await this.getUrlByMarketType (symbolResolved, true, method, params);
         await this.authenticate (url);
-        const topicByMarket: Dict = {
-            'spot': 'ticketInfo',
-            'unified': 'execution',
-            'usdc': 'user.openapi.perp.trade',
-        };
-        let topic: Str = this.safeString (topicByMarket, this.getPrivateType (url));
+        const privateType = this.getPrivateType (url);
+        let topic = 'execution';
+        if (privateType === 'spot') {
+            topic = 'ticketInfo';
+        } else if (privateType === 'usdc') {
+            topic = 'user.openapi.perp.trade';
+        }
         const [ executionFast, paramsExecutionFast ] = this.handleOptionBoolAndParams (params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
@@ -1427,12 +1430,13 @@ export default class bybit extends bybitRest {
         }
         const url = await this.getUrlByMarketType (symbol, true, method, params);
         await this.authenticate (url);
-        const topicByMarket: Dict = {
-            'spot': 'ticketInfo',
-            'unified': 'execution',
-            'usdc': 'user.openapi.perp.trade',
-        };
-        let topic: Str = this.safeString (topicByMarket, this.getPrivateType (url));
+        const privateType = this.getPrivateType (url);
+        let topic = 'execution';
+        if (privateType === 'spot') {
+            topic = 'ticketInfo';
+        } else if (privateType === 'usdc') {
+            topic = 'user.openapi.perp.trade';
+        }
         const [ executionFast, paramsExecutionFast ] = this.handleOptionBoolAndParams (params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
@@ -1933,12 +1937,16 @@ export default class bybit extends bybitRest {
         }
         const url = await this.getUrlByMarketType (symbolResolved, true, method, params);
         await this.authenticate (url);
-        const topicsByMarket: Dict = {
-            'spot': [ 'order', 'stopOrder' ],
-            'unified': [ 'order' ],
-            'usdc': [ 'user.openapi.perp.order' ],
-        };
-        const topics = this.safeList (topicsByMarket, this.getPrivateType (url), []);
+        const privateType = this.getPrivateType (url);
+        const topics: string[] = [];
+        if (privateType === 'usdc') {
+            topics.push ('user.openapi.perp.order');
+        } else {
+            topics.push ('order');
+            if (privateType === 'spot') {
+                topics.push ('stopOrder');
+            }
+        }
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -1969,12 +1977,16 @@ export default class bybit extends bybitRest {
         }
         const url = await this.getUrlByMarketType (symbol, true, method, params);
         await this.authenticate (url);
-        const topicsByMarket: Dict = {
-            'spot': [ 'order', 'stopOrder' ],
-            'unified': [ 'order' ],
-            'usdc': [ 'user.openapi.perp.order' ],
-        };
-        const topics = this.safeList (topicsByMarket, this.getPrivateType (url));
+        const privateType = this.getPrivateType (url);
+        const topics: string[] = [];
+        if (privateType === 'usdc') {
+            topics.push ('user.openapi.perp.order');
+        } else {
+            topics.push ('order');
+            if (privateType === 'spot') {
+                topics.push ('stopOrder');
+            }
+        }
         return await this.unWatchTopics (url, 'orders', [ ], [ messageHash ], [ subHash ], topics, params);
     }
 
@@ -2140,10 +2152,6 @@ export default class bybit extends bybitRest {
         const isUnifiedAccount = this.safeBool (unified, 1, false);
         const url = await this.getUrlByMarketType (undefined, true, method, paramsSubType);
         await this.authenticate (url);
-        const topicByMarket: Dict = {
-            'spot': 'outboundAccountInfo',
-            'unified': 'wallet',
-        };
         if (isUnifiedAccount) {
             // unified account
             if (subType === 'inverse') {
@@ -2172,7 +2180,15 @@ export default class bybit extends bybitRest {
                 }
             }
         }
-        const topics = [ this.safeString (topicByMarket, this.getPrivateType (url)) ];
+        const privateType = this.getPrivateType (url);
+        if (privateType === 'usdc') {
+            throw new NotSupported (this.id + ' watchBalance() is not supported on the usdc private stream');
+        }
+        let topic = 'wallet';
+        if (privateType === 'spot') {
+            topic = 'outboundAccountInfo';
+        }
+        const topics: string[] = [ topic ];
         return await this.watchTopics (url, [ messageHash ], topics, paramsSubType);
     }
 
@@ -2430,7 +2446,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTopics (url: string, messageHashes: string[], topics: any[], params: Dict = {}) {
+    async watchTopics (url: string, messageHashes: string[], topics: string[], params: Dict = {}) {
         const client = this.client (url);
         const newTopics: string[] = [];
         const topicsLength = topics.length;
@@ -2482,7 +2498,7 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
     }
 
-    async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params: Dict = {}, subExtension: Dict = {}) {
+    async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: string[], params: Dict = {}, subExtension: Dict = {}) {
         const reqId = this.requestId ();
         const request: Dict = {
             'op': 'unsubscribe',

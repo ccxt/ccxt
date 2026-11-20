@@ -991,7 +991,7 @@ export default class kalshi extends Exchange {
         await this.loadOutcomes (outcomes);
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         const outcomesByTicker: Dict = {};
-        const tickers: any[] = [];
+        const tickers: string[] = [];
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const ticker = this.safeString (outcomeObj['info'], 'ticker');
